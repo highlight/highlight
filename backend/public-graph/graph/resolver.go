@@ -1008,7 +1008,14 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string) (*model.Session, error) {
+func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+	// The clientID param was added in early July 2022. This check is needed until
+	// we are confident all clients are loading a version of the client script
+	// that sends this parameter.
+	if clientID == nil {
+		clientID = pointy.String("")
+	}
+
 	projectID, err := model.FromVerboseID(projectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
@@ -1052,6 +1059,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
+		ClientID:                       *clientID,
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
@@ -1235,7 +1243,7 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 	return nil
 }
 
-func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIdentifier string, userObject interface{}) error {
+func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1289,6 +1297,10 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 		session.Identifier = userIdentifier
 	}
 
+	if !backfill {
+		session.Identified = true
+	}
+
 	openSearchProperties := map[string]interface{}{
 		"user_properties": session.UserProperties,
 		"first_time":      session.FirstTime,
@@ -1302,6 +1314,21 @@ func (r *Resolver) IdentifySessionImpl(_ context.Context, sessionID int, userIde
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
+	}
+
+	highlightSession := session.ProjectID == 1
+	if highlightSession && !backfill && len(session.ClientID) > 0 {
+		// Find past unidentified sessions and identify them.
+		backfillSessions := []*model.Session{}
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID, Identifier: "", Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
+		}
+
+		for _, session := range backfillSessions {
+			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
+			}
+		}
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
@@ -2151,6 +2178,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 
+	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	defer updateSpan.Finish()
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
@@ -2252,7 +2281,9 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		if err == nil {
 			for _, d := range project.BackendDomains {
 				if u.Host == d {
-					categories[modelInputs.NetworkRequestAttributeURL] = re.Name
+					u.RawQuery = ""
+					u.Fragment = ""
+					categories[modelInputs.NetworkRequestAttributeURL] = u.String()
 				}
 			}
 		}

@@ -32,6 +32,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     secure_id: Scalars['String'];
+    client_id: Scalars['String'];
     fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
@@ -244,6 +245,14 @@ export type Account = {
     member_limit: Scalars['Int'];
 };
 
+export type AccountDetailsMember = {
+    __typename?: 'AccountDetailsMember';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    email: Scalars['String'];
+    last_active?: Maybe<Scalars['Timestamp']>;
+};
+
 export type AccountDetails = {
     __typename?: 'AccountDetails';
     id: Scalars['ID'];
@@ -251,6 +260,7 @@ export type AccountDetails = {
     session_count_per_month?: Maybe<Array<Maybe<NamedCount>>>;
     session_count_per_day?: Maybe<Array<Maybe<NamedCount>>>;
     stripe_customer_id: Scalars['String'];
+    members: Array<AccountDetailsMember>;
 };
 
 export type NamedCount = {
@@ -430,13 +440,30 @@ export type DashboardParamsInput = {
     resolution_minutes?: Maybe<Scalars['Int']>;
     timezone?: Maybe<Scalars['String']>;
     units?: Maybe<Scalars['String']>;
-    aggregate_function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
 };
 
 export type HistogramParamsInput = {
     date_range?: Maybe<DateRangeInput>;
     buckets?: Maybe<Scalars['Int']>;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
     units?: Maybe<Scalars['String']>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
+};
+
+export type MetricTagFilter = {
+    __typename?: 'MetricTagFilter';
+    tag: Scalars['String'];
+    value: Scalars['String'];
+};
+
+export type MetricTagFilterInput = {
+    tag: Scalars['String'];
+    value: Scalars['String'];
 };
 
 export enum NetworkRequestAttribute {
@@ -787,7 +814,7 @@ export type DashboardPayload = {
     __typename?: 'DashboardPayload';
     date: Scalars['String'];
     value: Scalars['Float'];
-    aggregate_function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
 };
 
 export type HistogramBucket = {
@@ -803,8 +830,6 @@ export type HistogramPayload = {
     buckets: Array<HistogramBucket>;
     min: Scalars['Float'];
     max: Scalars['Float'];
-    p1: Scalars['Float'];
-    p99: Scalars['Float'];
 };
 
 export type CategoryHistogramBucket = {
@@ -823,6 +848,17 @@ export enum DashboardChartType {
     Histogram = 'Histogram',
 }
 
+export enum MetricAggregator {
+    Avg = 'Avg',
+    P50 = 'P50',
+    P75 = 'P75',
+    P90 = 'P90',
+    P95 = 'P95',
+    P99 = 'P99',
+    Max = 'Max',
+    Count = 'Count',
+}
+
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
     description: Scalars['String'];
@@ -832,6 +868,12 @@ export type DashboardMetricConfigInput = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    aggregator: MetricAggregator;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
+    filters?: Maybe<Array<MetricTagFilterInput>>;
 };
 
 export type DashboardMetricConfig = {
@@ -844,6 +886,12 @@ export type DashboardMetricConfig = {
     units: Scalars['String'];
     help_article: Scalars['String'];
     chart_type: DashboardChartType;
+    aggregator: MetricAggregator;
+    min_value?: Maybe<Scalars['Float']>;
+    min_percentile?: Maybe<Scalars['Float']>;
+    max_value?: Maybe<Scalars['Float']>;
+    max_percentile?: Maybe<Scalars['Float']>;
+    filters?: Maybe<Array<MetricTagFilter>>;
 };
 
 export type DashboardDefinition = {
@@ -870,10 +918,12 @@ export type MetricMonitor = {
     name: Scalars['String'];
     channels_to_notify: Array<Maybe<SanitizedSlackChannel>>;
     emails_to_notify: Array<Maybe<Scalars['String']>>;
-    function: Scalars['String'];
+    aggregator: MetricAggregator;
+    period_minutes?: Maybe<Scalars['Int']>;
     metric_to_monitor: Scalars['String'];
     last_admin_to_edit_id: Scalars['ID'];
     threshold: Scalars['Float'];
+    units?: Maybe<Scalars['String']>;
     disabled: Scalars['Boolean'];
 };
 
@@ -968,6 +1018,8 @@ export type Query = {
     subscription_details: SubscriptionDetails;
     dashboard_definitions: Array<Maybe<DashboardDefinition>>;
     suggested_metrics: Array<Scalars['String']>;
+    metric_tags: Array<Scalars['String']>;
+    metric_tag_values: Array<Scalars['String']>;
     metrics_timeline: Array<Maybe<DashboardPayload>>;
     metrics_histogram: HistogramPayload;
     network_histogram: CategoryHistogramPayload;
@@ -1310,6 +1362,17 @@ export type QueryDashboard_DefinitionsArgs = {
 export type QuerySuggested_MetricsArgs = {
     project_id: Scalars['ID'];
     prefix: Scalars['String'];
+};
+
+export type QueryMetric_TagsArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+};
+
+export type QueryMetric_Tag_ValuesArgs = {
+    project_id: Scalars['ID'];
+    metric_name: Scalars['String'];
+    tag_name: Scalars['String'];
 };
 
 export type QueryMetrics_TimelineArgs = {
@@ -1687,8 +1750,10 @@ export type MutationCreateRageClickAlertArgs = {
 export type MutationCreateMetricMonitorArgs = {
     project_id: Scalars['ID'];
     name: Scalars['String'];
-    function: Scalars['String'];
+    aggregator: MetricAggregator;
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold: Scalars['Float'];
+    units?: Maybe<Scalars['String']>;
     metric_to_monitor: Scalars['String'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     emails: Array<Maybe<Scalars['String']>>;
@@ -1698,8 +1763,10 @@ export type MutationUpdateMetricMonitorArgs = {
     metric_monitor_id: Scalars['ID'];
     project_id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
-    function?: Maybe<Scalars['String']>;
+    aggregator?: Maybe<MetricAggregator>;
+    periodMinutes?: Maybe<Scalars['Int']>;
     threshold?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
     metric_to_monitor?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>;
     emails?: Maybe<Array<Maybe<Scalars['String']>>>;

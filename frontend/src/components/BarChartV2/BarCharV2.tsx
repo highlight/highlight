@@ -2,7 +2,7 @@ import {
     CLICK_NEARBY_THRESHOLD,
     CustomLegend,
     CustomTooltip,
-    findMax,
+    findDataDomain,
     Props as LineChartProps,
 } from '@components/LineChart/LineChart';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
@@ -27,6 +27,7 @@ import styles from './BarChartV2.module.scss';
 
 type Props = Omit<LineChartProps, 'lineColorMapping'> & {
     xAxisLabel?: string;
+    xAxisUnits?: string;
     yAxisKeys?: string[];
     barColorMapping: any;
     yAxisLabel: string;
@@ -41,6 +42,7 @@ const BarChartV2 = ({
     xAxisDataKeyName = 'date',
     data,
     xAxisLabel,
+    xAxisUnits,
     xAxisTickFormatter,
     hideXAxis = false,
     barColorMapping,
@@ -59,7 +61,7 @@ const BarChartV2 = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : []);
-    const max = findMax(data, 'range_start');
+    const { min, max } = findDataDomain(data, 'range_end');
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(yAxisKeys);
@@ -69,7 +71,7 @@ const BarChartV2 = ({
         <div style={{ position: 'relative', width: '100%' }}>
             {!!draggableReferenceLines?.length && (
                 <Slider
-                    min={0}
+                    min={min}
                     max={max}
                     values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
@@ -93,10 +95,9 @@ const BarChartV2 = ({
                         left: -18,
                         bottom: 0,
                     }}
-                    barSize={5}
-                    barGap={3}
-                    barCategoryGap={3}
-                    maxBarSize={3}
+                    barSize={7}
+                    barGap={0}
+                    barCategoryGap={0}
                 >
                     <CartesianGrid
                         strokeDasharray=""
@@ -109,6 +110,7 @@ const BarChartV2 = ({
                         tick={{ fontSize: '11px', fill: labelColor }}
                         tickLine={{ stroke: 'var(--color-gray-200)' }}
                         axisLine={{ stroke: gridColor }}
+                        domain={[min, max]}
                         dy={6}
                         type={'number'}
                         hide={hideXAxis}
@@ -134,6 +136,7 @@ const BarChartV2 = ({
                                             yAxisLabel={yAxisLabel}
                                             referenceLines={referenceLines}
                                             precision={0}
+                                            units={xAxisUnits || ''}
                                         />
                                     );
                                 }}
@@ -189,6 +192,7 @@ const BarChartV2 = ({
                             stroke={barColorMapping[key]}
                             fill={barColorMapping[key]}
                             animationDuration={100}
+                            radius={[2, 2, 0, 0]}
                         />
                     ))}
                     {referenceAreaProps && (

@@ -93,7 +93,7 @@ export declare type SessionShortcutOptions = false | string;
 export declare interface FeedbackWidgetOptions {
     title?: string;
     subTitle?: string;
-    submitButtonLabel?: string
+    submitButtonLabel?: string;
     enabled?: boolean;
     onSubmit?: (name: string, email: string, text: string) => void;
     onCancel?: () => void;

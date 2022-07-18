@@ -2,7 +2,6 @@ import Switch from '@components/Switch/Switch';
 import ActivityIcon from '@icons/ActivityIcon';
 import SvgReload from '@icons/Reload';
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken';
-import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators';
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph';
 import {
@@ -52,6 +51,30 @@ import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks';
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import styles from './Toolbar.module.scss';
+
+export const TimelineAnnotationColors: {
+    [key in EventsForTimelineKeys[number]]: string;
+} = {
+    Click: '--color-purple-600',
+    Focus: '--color-blue-400',
+    Reload: '--color-green-300',
+    Navigate: '--color-yellow-400',
+    Errors: '--color-red-400',
+    Segment: '--color-green-500',
+    Track: '--color-blue-300',
+    Comments: '--color-green-500',
+    Identify: '--color-orange-500',
+    Viewport: '--color-purple-600',
+    'Web Vitals': '--color-red-600',
+    Referrer: '--color-yellow-800',
+    TabHidden: '--color-gray-800',
+};
+
+export function getAnnotationColor(
+    eventTypeKey: typeof EventsForTimeline[number]
+) {
+    return TimelineAnnotationColors[eventTypeKey];
+}
 
 export const Toolbar = React.memo(() => {
     const { isHighlightAdmin } = useAuthContext();
@@ -262,15 +285,12 @@ export const Toolbar = React.memo(() => {
                 }}
             >
                 {histogramOn && (
-                    <>
-                        <Scrubber />
-                        <TimelineIndicatorsBarGraph
-                            sessionIntervals={sessionIntervals}
-                            selectedTimelineAnnotationTypes={
-                                selectedTimelineAnnotationTypes
-                            }
-                        />
-                    </>
+                    <TimelineIndicatorsBarGraph
+                        sessionIntervals={sessionIntervals}
+                        selectedTimelineAnnotationTypes={
+                            selectedTimelineAnnotationTypes
+                        }
+                    />
                 )}
                 {!histogramOn && (
                     <>
@@ -710,27 +730,3 @@ const SessionSegment = React.memo(
         );
     }
 );
-
-export const TimelineAnnotationColors: {
-    [key in EventsForTimelineKeys[number]]: string;
-} = {
-    Click: '--color-purple-600',
-    Focus: '--color-blue-400',
-    Reload: '--color-green-300',
-    Navigate: '--color-yellow-400',
-    Errors: '--color-red-400',
-    Segment: '--color-green-500',
-    Track: '--color-blue-300',
-    Comments: '--color-green-500',
-    Identify: '--color-orange-500',
-    Viewport: '--color-purple-600',
-    'Web Vitals': '--color-red-600',
-    Referrer: '--color-yellow-800',
-    TabHidden: '--color-gray-800',
-};
-
-export function getAnnotationColor(
-    eventTypeKey: typeof EventsForTimeline[number]
-) {
-    return TimelineAnnotationColors[eventTypeKey];
-}

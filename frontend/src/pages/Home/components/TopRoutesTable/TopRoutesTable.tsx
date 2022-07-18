@@ -107,7 +107,7 @@ const Columns: ColumnsType<any> = [
         render: (count) => {
             return (
                 <ProgressBarTableRowGroup alignment="ending">
-                    <span>{count}</span>
+                    <span>{count.toLocaleString()}</span>
                 </ProgressBarTableRowGroup>
             );
         },

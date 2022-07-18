@@ -2,7 +2,7 @@ import Input from '@components/Input/Input';
 import Switch from '@components/Switch/Switch';
 import { useGetWebVitalsQuery } from '@graph/hooks';
 import { EventType } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import SvgSearchIcon from '@icons/SearchIcon';
 import { EventStreamTypesFilter } from '@pages/Player/components/EventStream/components/EventStreamTypesFilter';
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters';
@@ -25,22 +25,21 @@ import React, {
 import Skeleton from 'react-loading-skeleton';
 import TextTransition from 'react-text-transition';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import styles from './EventStream.module.scss';
 
 const EventStream = () => {
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
-    const [debug] = useQueryParam('debug', BooleanParam);
     const {
         sessionMetadata,
         time,
         eventsForTimelineIndicator: replayerEvents,
         state,
         replayer,
+        currentEvent,
+        setCurrentEvent,
     } = useReplayerContext();
     const [searchQuery, setSearchQuery] = useState('');
-    const [currEvent, setCurrEvent] = useState('');
     const [showDetails, setShowDetails] = useState(false);
     const [listIsInTopPosition, setListIsInTopPosition] = useState(true);
     const eventTypeFilters = useEventTypeFilters();
@@ -78,20 +77,7 @@ const EventStream = () => {
         }
     }, [data?.web_vitals, replayerEvents]);
 
-    useEffect(() => {
-        if (!replayer) return;
-        replayer.on('event-cast', (e: any) => {
-            const event = e as HighlightEvent;
-            if (usefulEvent(event) || debug) {
-                setCurrEvent(event.identifier);
-            }
-        });
-    }, [replayer, debug]);
-
-    const usefulEvents = useMemo(
-        () => (debug ? events : events.filter(usefulEvent)),
-        [events, debug]
-    );
+    const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
 
     const filteredEvents = useMemo(
         () => getFilteredEvents(searchQuery, usefulEvents, eventTypeFilters),
@@ -107,18 +93,18 @@ const EventStream = () => {
                 state
             ) => {
                 if (virtuoso.current) {
-                    if (state === ReplayerState.Playing) {
-                        const matchingEventIndex = usefulEventsList.findIndex(
-                            (event) => event.identifier === currentEventId
-                        );
+                    const matchingEventIndex = usefulEventsList.findIndex(
+                        (event) => event.identifier === currentEventId
+                    );
 
-                        if (matchingEventIndex > -1) {
-                            virtuoso.current.scrollToIndex({
-                                index: matchingEventIndex,
-                                align: 'center',
-                                behavior: 'smooth',
-                            });
-                        }
+                    if (matchingEventIndex > -1) {
+                        virtuoso.current.scrollToIndex({
+                            index: matchingEventIndex,
+                            align: 'center',
+                            behavior: 'smooth',
+                        });
+                    }
+                    if (state !== ReplayerState.Playing) {
                     }
                 }
             },
@@ -129,10 +115,10 @@ const EventStream = () => {
 
     useEffect(() => {
         if (!isInteractingWithStreamEvents) {
-            scrollFunction(currEvent, filteredEvents, state);
+            scrollFunction(currentEvent, filteredEvents, state);
         }
     }, [
-        currEvent,
+        currentEvent,
         scrollFunction,
         filteredEvents,
         isInteractingWithStreamEvents,
@@ -233,11 +219,15 @@ const EventStream = () => {
                                         event.timestamp -
                                             sessionMetadata.startTime ===
                                             time ||
-                                        event.identifier === currEvent
+                                        event.identifier === currentEvent
                                     }
-                                    onGoToHandler={setCurrEvent}
+                                    onGoToHandler={setCurrentEvent}
                                     searchQuery={searchQuery}
-                                    showDetails={showDetails}
+                                    showDetails={
+                                        showDetails ||
+                                        (state !== ReplayerState.Playing &&
+                                            currentEvent === event.identifier)
+                                    }
                                 />
                             )}
                         />
@@ -258,7 +248,7 @@ const EventStream = () => {
 export default EventStream;
 
 // used in filter() type methods to fetch events we want
-const usefulEvent = (e: eventWithTime): boolean => {
+export const usefulEvent = (e: eventWithTime): boolean => {
     if (e.type === EventType.Custom) {
         if (e.data.tag === 'Segment Identify') {
             e.data.tag = 'Segment';

@@ -1,3 +1,11 @@
+.card {
+    padding-top: var(--size-small);
+
+    :global(.recharts-cartesian-axis-tick) {
+        user-select: none;
+    }
+}
+
 .noDataContainer {
     align-items: center;
     display: flex;
@@ -68,7 +76,7 @@
     justify-content: space-between;
     padding-right: var(--size-xSmall);
     padding-top: var(--size-small);
-    width: 245px;
+    width: 275px;
 
     button {
         height: var(--size-xLarge);
@@ -89,7 +97,7 @@
     display: flex;
     height: var(--size-xLarge);
     margin: 0 !important;
-    width: 131px;
+    width: 161px;
 }
 
 .monitorName {
@@ -99,4 +107,38 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 70px;
+}
+
+.submitRow {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.minMaxRow {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 80px 1fr 150px 80px 1fr 150px;
+}
+
+.filtersRow {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 80px 274px 300px 50px;
+}
+
+.formLabel {
+    margin-bottom: 0;
+    margin-top: 4px;
+}
+
+.removeTagFilterButton {
+    height: 48px;
+    padding: 0 16px;
+}
+
+.createNewAlertRow {
+    align-items: center;
+    display: flex;
+    justify-content: center;
 }

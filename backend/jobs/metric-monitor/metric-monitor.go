@@ -48,23 +48,28 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 		var value float64
 		end := time.Now()
 		start := end.Add(-time.Minute)
+		resMins := 1
+		if metricMonitor.PeriodMinutes != nil && *metricMonitor.PeriodMinutes > 0 {
+			resMins = *metricMonitor.PeriodMinutes
+		}
 		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
 			DateRange: &modelInputs.DateRangeInput{
 				StartDate: &start,
 				EndDate:   &end,
 			},
-			ResolutionMinutes: pointy.Int(1),
-			AggregateFunction: &metricMonitor.Function,
+			ResolutionMinutes: pointy.Int(resMins),
+			Aggregator:        &metricMonitor.Aggregator,
+			Units:             metricMonitor.Units,
 		})
 		if err != nil {
 			log.Error(err)
 			continue
 		}
-		if len(payload) != 1 {
+		if len(payload) < 1 {
 			log.Errorf("invalid metrics payload %+v", payload)
 			continue
 		}
-		value = payload[0].Value
+		value = payload[len(payload)-1].Value
 
 		log.Infof("Processing %s for Project %d. ID: %d", metricMonitor.Name, metricMonitor.ProjectID, metricMonitor.ID)
 		log.Infof("Current value: %f, Threshold: %f", value, metricMonitor.Threshold)
@@ -85,8 +90,12 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			// Example: 0.00100 should only display 0.001.
 			valueWithNoTrailingZeroes := strconv.FormatFloat(value, 'f', -1, 64)
 			thresholdWithNoTrailingZeros := strconv.FormatFloat(metricMonitor.Threshold, 'f', -1, 64)
+			unitsStr := ""
+			if metricMonitor.Units != nil {
+				unitsStr = *metricMonitor.Units
+			}
 
-			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f` over the threshold.\n(Value: `%s`, Threshold: `%s`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros)
+			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f%s` over the threshold.\n(Value: `%s%s`, Threshold: `%s%s`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, unitsStr, valueWithNoTrailingZeroes, unitsStr, thresholdWithNoTrailingZeros, unitsStr)
 
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
@@ -101,7 +110,7 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			monitorURL := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
 
 			for _, email := range emailsToNotify {
-				message = fmt.Sprintf("<b>%s</b> is currently <b>%f</b> over the threshold.<br>(Value: <b>%s</b>, Threshold: <b>%s</b>)<br><br><a href=\"%s\">View Monitor</a>", metricMonitor.Name, value-metricMonitor.Threshold, valueWithNoTrailingZeroes, thresholdWithNoTrailingZeros, monitorURL)
+				message = fmt.Sprintf("<b>%s</b> is currently <b>%f%s</b> over the threshold.<br>(Value: <b>%s%s</b>, Threshold: <b>%s%s</b>)<br><br><a href=\"%s\">View Monitor</a>", metricMonitor.Name, value-metricMonitor.Threshold, unitsStr, valueWithNoTrailingZeroes, unitsStr, thresholdWithNoTrailingZeros, unitsStr, monitorURL)
 				if err := Email.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
 					log.Error(err)
 

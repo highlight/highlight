@@ -15,6 +15,7 @@ type Field {
 type Session {
     id: ID!
     secure_id: String!
+    client_id: String!
     fingerprint: Int
     os_name: String!
     os_version: String!
@@ -214,12 +215,20 @@ type Account {
     member_limit: Int!
 }
 
+type AccountDetailsMember {
+    id: ID!
+    name: String!
+    email: String!
+    last_active: Timestamp
+}
+
 type AccountDetails {
     id: ID!
     name: String!
     session_count_per_month: [NamedCount]
     session_count_per_day: [NamedCount]
     stripe_customer_id: String!
+    members: [AccountDetailsMember!]!
 }
 
 type NamedCount {
@@ -386,13 +395,29 @@ input DashboardParamsInput {
     resolution_minutes: Int
     timezone: String
     units: String
-    aggregate_function: String
+    aggregator: MetricAggregator
+    filters: [MetricTagFilterInput!]
 }
 
 input HistogramParamsInput {
     date_range: DateRangeInput
     buckets: Int
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
     units: String
+    filters: [MetricTagFilterInput!]
+}
+
+type MetricTagFilter {
+    tag: String!
+    value: String!
+}
+
+input MetricTagFilterInput {
+    tag: String!
+    value: String!
 }
 
 enum NetworkRequestAttribute {
@@ -722,7 +747,7 @@ type Metric {
 type DashboardPayload {
     date: String!
     value: Float!
-    aggregate_function: String
+    aggregator: MetricAggregator
 }
 
 type HistogramBucket {
@@ -736,8 +761,6 @@ type HistogramPayload {
     buckets: [HistogramBucket!]!
     min: Float!
     max: Float!
-    p1: Float!
-    p99: Float!
 }
 
 type CategoryHistogramBucket {
@@ -754,6 +777,17 @@ enum DashboardChartType {
     Histogram
 }
 
+enum MetricAggregator {
+    Avg
+    P50
+    P75
+    P90
+    P95
+    P99
+    Max
+    Count
+}
+
 input DashboardMetricConfigInput {
     name: String!
     description: String!
@@ -763,6 +797,12 @@ input DashboardMetricConfigInput {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
+    filters: [MetricTagFilterInput!]
 }
 
 type DashboardMetricConfig {
@@ -774,6 +814,12 @@ type DashboardMetricConfig {
     units: String!
     help_article: String!
     chart_type: DashboardChartType!
+    aggregator: MetricAggregator!
+    min_value: Float
+    min_percentile: Float
+    max_value: Float
+    max_percentile: Float
+    filters: [MetricTagFilter!]
 }
 
 type DashboardDefinition {
@@ -797,10 +843,12 @@ type MetricMonitor {
     name: String!
     channels_to_notify: [SanitizedSlackChannel]!
     emails_to_notify: [String]!
-    function: String!
+    aggregator: MetricAggregator!
+    period_minutes: Int
     metric_to_monitor: String!
     last_admin_to_edit_id: ID!
     threshold: Float!
+    units: String
     disabled: Boolean!
 }
 
@@ -955,6 +1003,12 @@ type Query {
     subscription_details(workspace_id: ID!): SubscriptionDetails!
     dashboard_definitions(project_id: ID!): [DashboardDefinition]!
     suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+    metric_tags(project_id: ID!, metric_name: String!): [String!]!
+    metric_tag_values(
+        project_id: ID!
+        metric_name: String!
+        tag_name: String!
+    ): [String!]!
     metrics_timeline(
         project_id: ID!
         metric_name: String!
@@ -1155,8 +1209,10 @@ type Mutation {
     createMetricMonitor(
         project_id: ID!
         name: String!
-        function: String!
+        aggregator: MetricAggregator!
+        periodMinutes: Int
         threshold: Float!
+        units: String
         metric_to_monitor: String!
         slack_channels: [SanitizedSlackChannelInput]!
         emails: [String]!
@@ -1165,8 +1221,10 @@ type Mutation {
         metric_monitor_id: ID!
         project_id: ID!
         name: String
-        function: String
+        aggregator: MetricAggregator
+        periodMinutes: Int
         threshold: Float
+        units: String
         metric_to_monitor: String
         slack_channels: [SanitizedSlackChannelInput]
         emails: [String]

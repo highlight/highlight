@@ -1,4 +1,5 @@
 import Card from '@components/Card/Card';
+import CopyText from '@components/CopyText/CopyText';
 import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Input from '@components/Input/Input';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
@@ -6,7 +7,9 @@ import Select from '@components/Select/Select';
 import {
     useGetSourcemapFilesLazyQuery,
     useGetSourcemapVersionsQuery,
+    useGetWorkspaceQuery,
 } from '@graph/hooks';
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { debounce } from 'lodash';
 import React, { useEffect } from 'react';
@@ -18,6 +21,13 @@ const SourcemapSettings = () => {
     const [query, setQuery] = React.useState<string>('');
     const [versions, setVersions] = React.useState<string[]>([]);
     const [selectedVersion, setSelectedVersion] = React.useState<string>();
+    const { currentWorkspace } = useApplicationContext();
+
+    const { data: workspaceData } = useGetWorkspaceQuery({
+        variables: {
+            id: currentWorkspace?.id || '',
+        },
+    });
 
     const [
         getSourcemapFilesQuery,
@@ -76,18 +86,32 @@ const SourcemapSettings = () => {
 
     return (
         <FieldsBox id={'sourcemaps'}>
-            <p>
-                Below is a list of sourcemap files we have for your project.
-                Check out{' '}
-                <a
-                    href="https://docs.highlight.run/sourcemaps"
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    the sourcemap docs
-                </a>{' '}
-                to learn more about sending sourcemaps to Highlight.
-            </p>
+            <h3>Sourcemaps</h3>
+
+            {workspaceData?.workspace?.secret && (
+                <div className={styles.sourcemapInfo}>
+                    <p>
+                        Sourcemaps can be used to undo JavaScript minification
+                        in your error traces. You can learn more about them in{' '}
+                        <a
+                            href="https://docs.highlight.run/sourcemaps"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            our sourcemap docs
+                        </a>
+                        . Use the API key below to upload your sourcemaps to
+                        Highlight.
+                    </p>
+
+                    <CopyText
+                        text={workspaceData.workspace.secret}
+                        onCopyTooltipText="API key copied to your clipboard!"
+                    />
+                </div>
+            )}
+
+            <p>Below is a list of sourcemap files we have for your project.</p>
 
             <Card
                 className={styles.list}
@@ -106,7 +130,7 @@ const SourcemapSettings = () => {
                                     }))}
                                     onChange={setSelectedVersion}
                                     value={selectedVersion}
-                                    notFoundContent={<p>No teams found</p>}
+                                    notFoundContent={<p>No sourcemaps found</p>}
                                 />
                             </div>
                         )}
@@ -141,7 +165,7 @@ const SourcemapSettings = () => {
                     onClickHandler={() => {}}
                     noDataMessage={
                         query ? (
-                            <p>No source maps files match your search.</p>
+                            <p>No sourcemap files match your search.</p>
                         ) : needToSelectVersion ? (
                             <p>
                                 We have sourcemaps for multiple versions of your

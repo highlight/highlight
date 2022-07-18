@@ -3,7 +3,7 @@ import {
     playerMetaData,
     SessionInterval,
     viewportResizeDimension,
-} from '@highlight-run/rrweb/dist/types';
+} from '@highlight-run/rrweb/typings/types';
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook';
 
 import {
@@ -115,6 +115,8 @@ export interface ReplayerContextInterface {
     isLoadingEvents: boolean;
     setIsLoadingEvents: React.Dispatch<React.SetStateAction<boolean>>;
     sessionMetadata: playerMetaData;
+    currentEvent: string;
+    setCurrentEvent: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const [

@@ -1,6 +1,6 @@
 import { Dropdown } from 'antd';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
 import styles from './StandardDropdown.module.scss';
@@ -13,20 +13,33 @@ type Option = {
 export const StandardDropdown = ({
     data,
     onSelect,
+    display,
+    renderOption,
     defaultValue,
+    value,
     disabled,
     className,
     labelClassName,
 }: {
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
+    display?: React.ReactNode;
+    renderOption?: (o: Option) => React.ReactNode | undefined;
     defaultValue?: Option;
+    value?: Option;
     disabled?: boolean;
     className?: string;
     labelClassName?: string;
 }) => {
     const [visible, setVisible] = useState(false);
     const [selection, setSelection] = useState(defaultValue || data[0]);
+
+    useEffect(() => {
+        if (value !== undefined) {
+            setSelection(value);
+        }
+    }, [value]);
+
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -40,7 +53,11 @@ export const StandardDropdown = ({
                             setVisible(false);
                         }}
                     >
-                        <div className={styles.labelText}>{o?.label}</div>
+                        <div className={styles.labelText}>
+                            {renderOption && renderOption(o)
+                                ? renderOption(o)
+                                : o?.label}
+                        </div>
                     </div>
                 ))}
             </div>
@@ -60,11 +77,18 @@ export const StandardDropdown = ({
                 className={styles.dropdownHandler}
                 onClick={(e) => e.preventDefault()}
             >
-                <div
-                    className={classNames(styles.labelNameText, labelClassName)}
-                >
-                    {selection.label}
-                </div>
+                {display ? (
+                    display
+                ) : (
+                    <div
+                        className={classNames(
+                            styles.labelNameText,
+                            labelClassName
+                        )}
+                    >
+                        {selection.label}
+                    </div>
+                )}
                 <DownIcon
                     className={styles.icon}
                     style={{

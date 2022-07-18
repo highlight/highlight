@@ -3,29 +3,23 @@ import 'react-resizable/css/styles.css';
 
 import Button from '@components/Button/Button/Button';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
-import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import HighlightGate from '@components/HighlightGate/HighlightGate';
-import Modal from '@components/Modal/Modal';
-import ModalBody from '@components/ModalBody/ModalBody';
-import { useGetSuggestedMetricsQuery } from '@graph/hooks';
 import { DashboardDefinition, DashboardMetricConfig } from '@graph/schemas';
-import { SingleValue } from '@highlight-run/react-select';
-import AsyncSelect from '@highlight-run/react-select/async';
 import PlusIcon from '@icons/PlusIcon';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import {
-    DEFAULT_METRICS_LAYOUT,
+    DEFAULT_SINGLE_LAYOUT,
     getDefaultMetricConfig,
+    LAYOUT_CHART_WIDTH,
+    LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics';
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
-import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
-import _ from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import moment from 'moment';
+import React, { useEffect, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
 
@@ -33,8 +27,8 @@ import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const timeFilter = [
-    { label: 'Last 1 minute', value: 1 },
+const timeFilters = [
+    { label: 'Last 5 minutes', value: 5 },
     { label: 'Last 15 minutes', value: 15 },
     { label: 'Last 1 hours', value: 60 },
     { label: 'Last 6 hours', value: 6 * 60 },
@@ -43,22 +37,61 @@ const timeFilter = [
     { label: 'Last 30 days', value: 30 * 24 * 60 },
 ] as { label: string; value: number }[];
 
-interface MetricOption {
-    value: string;
-    label: string;
-}
-
 const DashboardPage = () => {
     const history = useHistory();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
-    const { dashboards, updateDashboard } = useDashboardsContext();
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
         `highlight-dashboard-${project_id}-${id}-date-range-v2`,
-        timeFilter[1]
+        timeFilters[1]
     );
+    const [customDateRange, setCustomDateRange] = React.useState<{
+        label: string;
+        value: number;
+    }>();
+    const [dateRange, setDateRange] = React.useState<{
+        start_date: string;
+        end_date: string;
+    }>({
+        start_date: moment()
+            .subtract(dateRangeLength.value, 'minutes')
+            .format(),
+        end_date: moment().format(),
+    });
+
+    const updateDateRange = (start: string, end: string, custom = false) => {
+        const startDate = moment(start);
+        const endDate = moment(end);
+        const minutesDiff = moment
+            .duration(endDate.diff(startDate))
+            .asMinutes();
+
+        const roundedEnd = roundDate(endDate, Math.min(1, minutesDiff));
+        const roundedStart = roundDate(startDate, Math.min(1, minutesDiff));
+
+        if (custom) {
+            const customDateRange = {
+                label: `${startDate.format('MMM D, LT')} - ${endDate.format(
+                    'MMM D, LT'
+                )}`,
+                value: 0,
+            };
+
+            setCustomDateRange(customDateRange);
+        } else {
+            setCustomDateRange(undefined);
+        }
+
+        setDateRange({
+            start_date: moment(roundedStart).format(
+                'YYYY-MM-DDTHH:mm:00.000000000Z'
+            ),
+            end_date: roundedEnd.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
+        });
+    };
+
+    const { dashboards, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
-    const [layout, setLayout] = useState<Layouts>(DEFAULT_METRICS_LAYOUT);
-    const [isAdding, setIsAdding] = useState(false);
+    const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
@@ -77,8 +110,12 @@ const DashboardPage = () => {
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
     const pushNewMetricConfig = (nm: DashboardMetricConfig[]) => {
-        const newPos = { ...layout.lg[0] };
+        const newPos = { ...DEFAULT_SINGLE_LAYOUT };
         newPos.i = (nm.length - 1).toString();
+        newPos.x = ((nm.length - 1) * LAYOUT_CHART_WIDTH) % LAYOUT_ROW_WIDTH;
+        newPos.y = Math.floor(
+            ((nm.length - 1) * LAYOUT_CHART_WIDTH) / LAYOUT_ROW_WIDTH
+        );
         const l = { lg: [...layout.lg, newPos].slice(0, nm.length) };
         updateDashboard({
             id,
@@ -99,21 +136,6 @@ const DashboardPage = () => {
 
     return (
         <>
-            <AddMetricModal
-                shown={isAdding}
-                onAddNewMetric={(metricName) => {
-                    if (!metricName?.length) return;
-                    setNewMetrics((d) => {
-                        const nm = [...d, getDefaultMetricConfig(metricName)];
-                        pushNewMetricConfig(nm);
-                        return nm;
-                    });
-                    setIsAdding(false);
-                }}
-                onCancel={() => {
-                    setIsAdding(false);
-                }}
-            />
             <div className={styles.dateRangePickerContainer}>
                 <HighlightGate>
                     <>
@@ -152,7 +174,11 @@ const DashboardPage = () => {
                         trackingId="DashboardAddLayout"
                         type="ghost"
                         onClick={() => {
-                            setIsAdding((prev) => !prev);
+                            setNewMetrics((d) => {
+                                const nm = [...d, getDefaultMetricConfig('')];
+                                pushNewMetricConfig(nm);
+                                return nm;
+                            });
                         }}
                     >
                         Add
@@ -160,11 +186,22 @@ const DashboardPage = () => {
                     </Button>
                 </HighlightGate>
                 <StandardDropdown
-                    data={timeFilter}
-                    defaultValue={dateRangeLength}
+                    data={
+                        customDateRange
+                            ? [customDateRange, ...timeFilters]
+                            : timeFilters
+                    }
+                    value={customDateRange || dateRangeLength}
                     onSelect={(value) => {
+                        const endDate = moment(new Date());
+                        const startDate = moment(new Date()).subtract(
+                            value,
+                            'minutes'
+                        );
+
+                        updateDateRange(startDate.format(), endDate.format());
                         setDateRangeLength(
-                            timeFilter.filter((x) => x.value === value)[0]
+                            timeFilters.filter((f) => f.value === value)[0]
                         );
                     }}
                     className={styles.dateRangePicker}
@@ -192,6 +229,7 @@ const DashboardPage = () => {
                     containerPadding={[0, 0]}
                     rowHeight={155}
                     resizeHandles={['se']}
+                    draggableHandle="[data-drag-handle]"
                     onDragStop={handleDashboardChange}
                     onResizeStop={handleDashboardChange}
                     onResize={handleDashboardChange}
@@ -218,7 +256,9 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                lookbackMinutes={dateRangeLength.value}
+                                customDateRange={customDateRange}
+                                dateRange={dateRange}
+                                setDateRange={updateDateRange}
                             />
                         </div>
                     ))}
@@ -228,141 +268,9 @@ const DashboardPage = () => {
     );
 };
 
-const AddMetricModal = ({
-    shown,
-    onAddNewMetric,
-    onCancel,
-}: {
-    shown: boolean;
-    onAddNewMetric: (metricName: string) => void;
-    onCancel: () => void;
-}) => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const [isTyping, setIsTyping] = useState(false);
-    const [metricName, setMetricName] = useState('');
-    const { loading, refetch } = useGetSuggestedMetricsQuery({
-        variables: {
-            project_id,
-            prefix: '',
-        },
-    });
-
-    const getValueOptions = (
-        input: string,
-        callback: (s: MetricOption[]) => void
-    ) => {
-        refetch({
-            project_id,
-            prefix: input,
-        })?.then((fetched) => {
-            setIsTyping(false);
-            callback(
-                fetched.data.suggested_metrics.map((s) => ({
-                    label: s,
-                    value: s,
-                }))
-            );
-        });
-    };
-
-    // Ignore this so we have a consistent reference so debounce works.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadOptions = useMemo(() => _.debounce(getValueOptions, 500), []);
-
-    return (
-        <Modal visible={shown} onCancel={onCancel} title={'Add a Metric Chart'}>
-            <ModalBody>
-                <div className={styles.newMetric}>
-                    <section className={styles.section}>
-                        <div className={styles.container}>
-                            <DropdownIndicator
-                                height={26}
-                                isLoading={loading || isTyping}
-                            />
-                            <AsyncSelect
-                                // @ts-expect-error
-                                styles={{
-                                    ...styleProps,
-                                    valueContainer: (provided) => ({
-                                        ...provided,
-                                        padding: '0 12px',
-                                        height: '40px',
-                                        cursor: 'text',
-                                    }),
-                                }}
-                                components={{
-                                    DropdownIndicator: () => (
-                                        <div
-                                            className={
-                                                styles.dropdownPlaceholder
-                                            }
-                                        ></div>
-                                    ),
-                                }}
-                                loadOptions={(
-                                    input,
-                                    callback: (options: MetricOption[]) => void
-                                ) => {
-                                    loadOptions(input, callback);
-                                }}
-                                onInputChange={(newValue) => {
-                                    setIsTyping(newValue !== '');
-                                }}
-                                onChange={(
-                                    newValue: SingleValue<{
-                                        value?: string;
-                                        label?: string;
-                                    }>
-                                ) => {
-                                    if (newValue?.value) {
-                                        setMetricName(newValue.value);
-                                    }
-                                }}
-                                isLoading={loading}
-                                isClearable={false}
-                                value={{
-                                    value: metricName,
-                                    label: metricName,
-                                }}
-                                escapeClearsValue={true}
-                                defaultOptions={Object.keys(
-                                    WEB_VITALS_CONFIGURATION
-                                ).map(
-                                    (k) =>
-                                        ({
-                                            label: k,
-                                            value: k,
-                                        } as MetricOption)
-                                )}
-                                noOptionsMessage={({ inputValue }) =>
-                                    !inputValue
-                                        ? null
-                                        : `No results for "${inputValue}"`
-                                }
-                                placeholder="Search for a metric..."
-                                isSearchable
-                                maxMenuHeight={500}
-                            />
-                        </div>
-                        <Button
-                            style={{
-                                width: 90,
-                                marginLeft: 'var(--size-medium)',
-                            }}
-                            trackingId={'AddNewMetric'}
-                            onClick={() => {
-                                onAddNewMetric(metricName);
-                                setMetricName('');
-                            }}
-                        >
-                            Add
-                            <PlusIcon style={{ marginLeft: '1em' }} />
-                        </Button>
-                    </section>
-                </div>
-            </ModalBody>
-        </Modal>
-    );
+export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    const remainder = toMinutes - (d.minute() % toMinutes);
+    return d.add(remainder, 'minutes');
 };
 
 export default DashboardPage;

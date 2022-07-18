@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1758,7 +1758,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 	return newAlert, nil
 }
 
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, function string, threshold float64, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1779,8 +1779,10 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:         projectID,
 		Name:              name,
-		Function:          function,
+		Aggregator:        aggregator,
+		PeriodMinutes:     periodMinutes,
 		Threshold:         threshold,
+		Units:             units,
 		MetricToMonitor:   metricToMonitor,
 		ChannelsToNotify:  channelsString,
 		EmailsToNotify:    emailsString,
@@ -1797,7 +1799,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 	return newMetricMonitor, nil
 }
 
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, function *string, threshold *float64, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1829,12 +1831,14 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	if name != nil {
 		metricMonitor.Name = *name
 	}
-	if function != nil {
-		metricMonitor.Function = *function
+	if aggregator != nil {
+		metricMonitor.Aggregator = *aggregator
 	}
+	metricMonitor.PeriodMinutes = periodMinutes
 	if threshold != nil {
 		metricMonitor.Threshold = *threshold
 	}
+	metricMonitor.Units = units
 	if metricToMonitor != nil {
 		metricMonitor.MetricToMonitor = *metricToMonitor
 	}
@@ -2963,15 +2967,28 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	}
 
 	for _, m := range metrics {
+		var filters []*model.DashboardMetricFilter
+		for _, f := range m.Filters {
+			filters = append(filters, &model.DashboardMetricFilter{
+				Tag:   f.Tag,
+				Value: f.Value,
+			})
+		}
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
 			ChartType:                m.ChartType,
+			Aggregator:               m.Aggregator,
 			MaxGoodValue:             m.MaxGoodValue,
 			MaxNeedsImprovementValue: m.MaxNeedsImprovementValue,
 			PoorValue:                m.PoorValue,
 			Units:                    m.Units,
 			HelpArticle:              m.HelpArticle,
+			MinValue:                 m.MinValue,
+			MinPercentile:            m.MinPercentile,
+			MaxValue:                 m.MaxValue,
+			MaxPercentile:            m.MaxPercentile,
+			Filters:                  filters,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -3143,12 +3160,25 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 		stripeCustomerId = *workspace.StripeCustomerID
 	}
 
+	var members []*modelInputs.AccountDetailsMember
+	if err := r.DB.Raw(`
+	select a.id as id, max(a.name) as name, max(a.email) as email, max(s.created_at) as last_active
+	from workspace_admins wa
+	inner join admins a on wa.admin_id = a.id 
+	inner join sessions s on s.identifier = a.email 
+	where wa.workspace_id = ? and s.project_id = 1 
+	group by a.id
+	`, workspaceID).Scan(&members).Error; err != nil {
+		return nil, e.Errorf("error querying members: %v", err)
+	}
+
 	details := &modelInputs.AccountDetails{
 		SessionCountPerMonth: sessionCountsPerMonth,
 		SessionCountPerDay:   sessionCountsPerDay,
 		Name:                 *workspace.Name,
 		ID:                   workspace.ID,
 		StripeCustomerID:     stripeCustomerId,
+		Members:              members,
 	}
 	return details, nil
 }
@@ -5140,7 +5170,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Order("updated_at DESC").Preload("Metrics").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
@@ -5148,15 +5178,28 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	for _, d := range dashboards {
 		var metrics []*modelInputs.DashboardMetricConfig
 		for _, metric := range d.Metrics {
+			var filters []*modelInputs.MetricTagFilter
+			for _, f := range metric.Filters {
+				filters = append(filters, &modelInputs.MetricTagFilter{
+					Tag:   f.Tag,
+					Value: f.Value,
+				})
+			}
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
 				ChartType:                metric.ChartType,
+				Aggregator:               metric.Aggregator,
 				MaxGoodValue:             metric.MaxGoodValue,
 				MaxNeedsImprovementValue: metric.MaxNeedsImprovementValue,
 				PoorValue:                metric.PoorValue,
 				Units:                    metric.Units,
 				HelpArticle:              metric.HelpArticle,
+				MinValue:                 metric.MinValue,
+				MinPercentile:            metric.MinPercentile,
+				MaxValue:                 metric.MaxValue,
+				MaxPercentile:            metric.MaxPercentile,
+				Filters:                  filters,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{
@@ -5203,6 +5246,55 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	}), nil
 }
 
+func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), func(t string, _ int) bool {
+		return !strings.HasPrefix(t, "_")
+	}), nil
+}
+
+func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metricName string, tagName string) ([]string, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
+		import "influxdata/influxdb/schema"
+		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), tagName, timeseries.Metrics, metricName)
+	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
+	tdbQuerySpan.SetTag("projectID", projectID)
+	tdbQuerySpan.SetTag("metricName", metricName)
+	tdbQuerySpan.SetTag("tagName", tagName)
+	results, err := r.TDB.Query(ctx, query)
+	tdbQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	return lo.Map(results, func(t *timeseries.Result, _ int) string {
+		return t.Value.(string)
+	}), nil
+}
+
 func (r *queryResolver) MetricsTimeline(ctx context.Context, projectID int, metricName string, params modelInputs.DashboardParamsInput) ([]*modelInputs.DashboardPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
@@ -5216,7 +5308,17 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
-	query := fmt.Sprintf(`
+	tagFilters := GetTagFilters(params.Filters)
+	if params.MinValue == nil || params.MaxValue == nil {
+		minPercentile := 0.01
+		if params.MinPercentile != nil {
+			minPercentile = *params.MinPercentile
+		}
+		maxPercentile := 0.99
+		if params.MaxPercentile != nil {
+			maxPercentile = *params.MaxPercentile
+		}
+		query := fmt.Sprintf(`
 	  do = (q) =>
 		from(bucket: "%s")
 		  |> range(start: %s, stop: %s)
@@ -5226,60 +5328,72 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
       union(tables: [
-		do(q:0.01),
-		do(q:0.99)
+		do(q:%f),
+		do(q:%f)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div)
-	histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
-	histogramRangeQuerySpan.SetTag("projectID", projectID)
-	histogramRangeQuerySpan.SetTag("metricName", metricName)
-	results, err := r.TDB.Query(ctx, query)
-	histogramRangeQuerySpan.Finish()
-	if err != nil {
-		return nil, err
-	}
-	if len(results) < 1 {
-		return nil, nil
+  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div, minPercentile, maxPercentile)
+		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
+		histogramRangeQuerySpan.SetTag("projectID", projectID)
+		histogramRangeQuerySpan.SetTag("metricName", metricName)
+		results, err := r.TDB.Query(ctx, query)
+		histogramRangeQuerySpan.Finish()
+		if err != nil {
+			return nil, err
+		}
+		if len(results) < 1 {
+			return nil, nil
+		}
+		if params.MinValue == nil {
+			f := results[0].Value.(float64)
+			params.MinValue = &f
+		}
+		if params.MaxValue == nil {
+			f := results[1].Value.(float64)
+			params.MaxValue = &f
+		}
 	}
 	histogramPayload := &modelInputs.HistogramPayload{
-		Min: 0.,
-		P1:  results[0].Value.(float64),
-		P99: results[1].Value.(float64),
-		Max: 0.,
+		Min: *params.MinValue,
+		Max: *params.MaxValue,
 	}
 
 	numBuckets := 10
 	if params.Buckets != nil {
 		numBuckets = *params.Buckets
 	}
-	bucketSize := (histogramPayload.P99 - histogramPayload.P1) / float64(numBuckets)
+	bucketSize := (histogramPayload.Max - histogramPayload.Min) / float64(numBuckets)
 	if bucketSize == 0. {
 		bucketSize = 1
 	}
 
-	query = fmt.Sprintf(`
+	query := fmt.Sprintf(`
 		from(bucket: "%s")
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> group()
+          %s|> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, histogramPayload.P1*div, bucketSize*div, numBuckets, div)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
 	histogramQuerySpan.SetTag("buckets", params.Buckets)
-	results, err = r.TDB.Query(ctx, query)
+	results, err := r.TDB.Query(ctx, query)
 	histogramQuerySpan.Finish()
 	if err != nil {
 		return nil, err
 	}
 
 	var payloadBuckets []*modelInputs.HistogramBucket
-	var previousCount = 0
+	var previousCount = -1
 	for i, r := range results {
+		// the first bucket LE bound is actually the start value so use it to offset the histogram
+		if previousCount == -1 {
+			previousCount = int(r.Value.(float64))
+			continue
+		}
 		le := r.Values["le"].(float64)
 		b := &modelInputs.HistogramBucket{
 			Bucket:     float64(i),

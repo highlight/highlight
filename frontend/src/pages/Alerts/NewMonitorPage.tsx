@@ -1,7 +1,7 @@
 import Card from '@components/Card/Card';
 import { useCreateMetricMonitorMutation } from '@graph/hooks';
 import { namedOperations } from '@graph/operations';
-import { DashboardMetricConfig } from '@graph/schemas';
+import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -39,14 +39,21 @@ const NewMonitorPage = ({
             WEB_VITALS_CONFIGURATION['LCP']
     );
     const [monitorName, setMonitorName] = useState('New Monitor');
-    const [functionName, setFunctionName] = useState<string>('p90');
+    const [aggregator, setAggregator] = useState<MetricAggregator>(
+        MetricAggregator.P50
+    );
+    const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [emails, setEmails] = useState<string[]>([]);
+    const [units, setUnits] = useState<string>(
+        WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units
+    );
     const [createMonitor] = useCreateMetricMonitorMutation({
         variables: {
             project_id,
-            function: functionName,
+            aggregator,
+            periodMinutes: periodMinutes,
             metric_to_monitor: metricToMonitorName,
             name: monitorName,
             slack_channels: slackChannels.map((webhook_channel_id: string) => ({
@@ -57,9 +64,13 @@ const NewMonitorPage = ({
                 webhook_channel_id,
             })),
             threshold,
+            units,
             emails,
         },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        refetchQueries: [
+            namedOperations.Query.GetAlertsPagePayload,
+            namedOperations.Query.GetMetricMonitors,
+        ],
     });
 
     const onFinish = (e: { preventDefault: () => void }) => {
@@ -87,19 +98,25 @@ const NewMonitorPage = ({
                 </p>
                 <Card>
                     <MonitorConfiguration
-                        onAggregateFunctionChange={setFunctionName}
+                        onAggregateFunctionChange={setAggregator}
+                        onAggregatePeriodChange={(p) =>
+                            setPeriodMinutes(Number(p))
+                        }
                         onMonitorNameChange={setMonitorName}
                         onConfigChange={setConfig}
                         onMetricToMonitorNameChange={setMetricToMonitorName}
                         onSlackChannelsChange={setSlackChannels}
                         slackChannels={slackChannels}
                         onThresholdChange={setThreshold}
-                        aggregateFunction={functionName}
+                        aggregator={aggregator}
+                        aggregatePeriodMinutes={periodMinutes}
                         config={config}
                         loading={loading}
                         metricToMonitorName={metricToMonitorName}
                         monitorName={monitorName}
                         threshold={threshold}
+                        units={units}
+                        onUnitsChange={setUnits}
                         channelSuggestions={channelSuggestions}
                         onFormSubmit={onFinish}
                         isSlackIntegrated={isSlackIntegrated}

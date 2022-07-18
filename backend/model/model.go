@@ -163,6 +163,7 @@ var Models = []interface{}{
 	&SavedAsset{},
 	&Dashboard{},
 	&DashboardMetric{},
+	&DashboardMetricFilter{},
 }
 
 func init() {
@@ -316,12 +317,25 @@ type DashboardMetric struct {
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
 	ChartType                modelInputs.DashboardChartType
+	Aggregator               modelInputs.MetricAggregator `gorm:"default:P50"`
 	Description              string
 	MaxGoodValue             float64
 	MaxNeedsImprovementValue float64
 	PoorValue                float64
 	Units                    string
 	HelpArticle              string
+	MinValue                 *float64
+	MinPercentile            *float64
+	MaxValue                 *float64
+	MaxPercentile            *float64
+	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+}
+
+type DashboardMetricFilter struct {
+	Model
+	MetricID int    `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Tag      string `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Value    string
 }
 
 type SlackChannel struct {
@@ -437,12 +451,16 @@ type SessionResults struct {
 type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
-	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	Fingerprint int    `json:"fingerprint"`
+	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	// For associating unidentified sessions with a user after identification
+	ClientID string `json:"client_id" gorm:"index:idx_client_project,option:CONCURRENTLY;not null;default:''"`
+	// Whether a session has been identified.
+	Identified  bool `json:"identified" gorm:"default:false;not null"`
+	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	ProjectID      int    `json:"project_id" gorm:"index:idx_client_project,option:CONCURRENTLY"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -636,10 +654,11 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                    = "sessions"
-	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
-	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
+	SESSIONS_TBL                              = "sessions"
+	DAILY_ERROR_COUNTS_TBL                    = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ                   = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ           = "metric_groups_name_session_uniq"
+	DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT = "dashboard_metric_filters_chart_id"
 )
 
 type DailyErrorCount struct {
@@ -719,8 +738,10 @@ type MetricMonitor struct {
 	Model
 	ProjectID         int `gorm:"index;not null;"`
 	Name              string
-	Function          string
+	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
+	Units             *string // Threshold value is in these Units.
 	MetricToMonitor   string
 	ChannelsToNotify  *string `gorm:"channels_to_notify"`
 	EmailsToNotify    *string `gorm:"emails_to_notify"`
@@ -1168,8 +1189,29 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS 
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
+					THEN
+						alter table dashboard_metric_filters
+							add constraint %[1]s
+								foreign key (metric_id) references dashboard_metrics (id)
+									on update cascade on delete cascade;
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
+				END;
+			END $$;
+	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
+		return nil, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
+	}
+
 	if err := DB.Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")

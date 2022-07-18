@@ -53,10 +53,15 @@ export interface Props {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+    syncId?: string;
+    onMouseDown?: (e: any) => void;
+    onMouseMove?: (e: any) => void;
+    onMouseUp?: (e: any) => void;
 }
 
-export function findMax(data: any[], key?: string) {
+export function findDataDomain(data: any[], key?: string) {
     let max = Number.MIN_VALUE;
+    let min = Number.MAX_VALUE;
     for (const x of data) {
         for (const vS of (key ? [x[key]] : Object.values(x)) || []) {
             const v = Number(vS);
@@ -64,9 +69,17 @@ export function findMax(data: any[], key?: string) {
             if (v > max) {
                 max = v;
             }
+            if (v < min) {
+                min = v;
+            }
         }
     }
-    return max;
+    const range = max - min;
+    if (min < 0) {
+        min -= 0.1 * range;
+    }
+    max += 0.1 * range;
+    return { min: Math.floor(min), max: Math.ceil(max) };
 }
 
 const LineChart = ({
@@ -84,6 +97,10 @@ const LineChart = ({
     hideLegend = false,
     referenceAreaProps,
     xAxisProps,
+    syncId,
+    onMouseDown,
+    onMouseMove,
+    onMouseUp,
 }: Props) => {
     const nonXAxisKeys =
         data.length > 0
@@ -92,19 +109,20 @@ const LineChart = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : [];
-    const max = findMax(data);
+    const { min, max } = findDataDomain(data);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
         nonXAxisKeys
     );
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
+    const [showTooltip, setShowTooltip] = React.useState(false);
 
     return (
         <>
             {!!draggableReferenceLines?.length && (
                 <Slider
-                    min={0}
+                    min={min}
                     max={max}
                     values={draggableReferenceLines.map((rl) => rl.value)}
                     onChange={(value) => {
@@ -129,6 +147,18 @@ const LineChart = ({
                         left: -18,
                         bottom: 0,
                     }}
+                    syncId={syncId}
+                    onMouseLeave={() => setShowTooltip(false)}
+                    onMouseDown={onMouseDown}
+                    onMouseMove={(e: any) => {
+                        // Not using mouseEnter because it was unreliable.
+                        setShowTooltip(true);
+
+                        if (typeof onMouseMove === 'function') {
+                            onMouseMove(e);
+                        }
+                    }}
+                    onMouseUp={onMouseUp}
                 >
                     <CartesianGrid
                         strokeDasharray=""
@@ -141,6 +171,7 @@ const LineChart = ({
                         tick={{ fontSize: '11px', fill: labelColor }}
                         tickLine={{ stroke: 'var(--color-gray-200)' }}
                         axisLine={{ stroke: gridColor }}
+                        domain={[min, max]}
                         dy={6}
                         hide={hideXAxis}
                         {...xAxisProps}
@@ -159,20 +190,24 @@ const LineChart = ({
                     <Tooltip
                         position={{ y: 0 }}
                         content={
-                            <RechartTooltip
-                                render={(payload: any[]) => {
-                                    return (
+                            showTooltip ? (
+                                <RechartTooltip
+                                    render={(payload: any[]) => (
                                         <CustomTooltip
                                             payload={payload}
                                             yAxisLabel={yAxisLabel}
                                             referenceLines={referenceLines}
                                             precision={1}
+                                            units={yAxisLabel}
                                         />
-                                    );
-                                }}
-                            />
+                                    )}
+                                />
+                            ) : (
+                                <></>
+                            )
                         }
                     />
+
                     {!hideLegend && (
                         <Legend
                             verticalAlign="bottom"
@@ -239,11 +274,13 @@ export const CustomTooltip = ({
     yAxisLabel,
     referenceLines,
     precision,
+    units,
     payload,
 }: {
     yAxisLabel: string;
     referenceLines?: Reference[];
     precision: number;
+    units: string;
     payload: any[];
 }) => {
     return (
@@ -264,6 +301,19 @@ export const CustomTooltip = ({
                                         {entry.value.toFixed(precision)}
                                     </span>{' '}
                                     {yAxisLabel}
+                                    {entry?.payload.range_start ? (
+                                        <>
+                                            {' in '}
+                                            {entry.payload.range_start.toFixed(
+                                                precision
+                                            )}
+                                            {units} -{' '}
+                                            {entry.payload.range_end.toFixed(
+                                                precision
+                                            )}
+                                            {units}
+                                        </>
+                                    ) : null}
                                 </span>
                                 {referenceLines?.length === 2
                                     ? getScoreIcon(

@@ -4,7 +4,7 @@ import {
     useUpdateMetricMonitorMutation,
 } from '@graph/hooks';
 import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations';
-import { DashboardMetricConfig } from '@graph/schemas';
+import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas';
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext';
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
@@ -41,8 +41,12 @@ const EditMonitorPage = ({
         WEB_VITALS_CONFIGURATION[metricToMonitorName]
     );
     const [monitorName, setMonitorName] = useState('');
-    const [functionName, setFunctionName] = useState<string>('p90');
+    const [aggregator, setAggregator] = useState<MetricAggregator>(
+        MetricAggregator.P50
+    );
+    const [periodMinutes, setPeriodMinutes] = useState<number>(1);
     const [threshold, setThreshold] = useState<number>(1000);
+    const [units, setUnits] = useState<string>();
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [emails, setEmails] = useState<string[]>([]);
@@ -50,7 +54,8 @@ const EditMonitorPage = ({
         variables: {
             metric_monitor_id: id,
             project_id,
-            function: functionName,
+            aggregator,
+            periodMinutes: periodMinutes,
             metric_to_monitor: metricToMonitorName,
             name: monitorName,
             slack_channels: slackChannels.map((webhook_channel_id: string) => ({
@@ -61,6 +66,7 @@ const EditMonitorPage = ({
                 webhook_channel_id,
             })),
             threshold,
+            units,
             emails,
             disabled: isDisabled,
         },
@@ -81,7 +87,7 @@ const EditMonitorPage = ({
     };
 
     useEffect(() => {
-        if (config) {
+        if (config?.max_good_value) {
             setThreshold(config.max_good_value);
         }
     }, [config]);
@@ -90,10 +96,12 @@ const EditMonitorPage = ({
         if (!loading && existingMonitor) {
             const {
                 channels_to_notify,
-                function: functionName,
+                aggregator,
+                period_minutes: period,
                 metric_to_monitor,
                 name,
                 threshold,
+                units,
                 emails_to_notify,
                 disabled,
             } = existingMonitor;
@@ -101,13 +109,15 @@ const EditMonitorPage = ({
             setMetricToMonitorName(metric_to_monitor);
             setMonitorName(name);
             setThreshold(threshold);
+            setUnits(units || undefined);
             setEmails((emails_to_notify as string[]) || []);
             setSlackChannels(
                 channels_to_notify?.map(
                     (channel: any) => channel.webhook_channel_id
                 ) || []
             );
-            setFunctionName(functionName);
+            setAggregator(aggregator);
+            setPeriodMinutes(period || 1);
             setIsDisabled(disabled);
         }
 
@@ -133,19 +143,25 @@ const EditMonitorPage = ({
                 </p>
                 <Card>
                     <MonitorConfiguration
-                        onAggregateFunctionChange={setFunctionName}
+                        onAggregateFunctionChange={setAggregator}
+                        onAggregatePeriodChange={(p) =>
+                            setPeriodMinutes(Number(p))
+                        }
                         onMonitorNameChange={setMonitorName}
                         onConfigChange={setConfig}
                         onMetricToMonitorNameChange={setMetricToMonitorName}
                         onSlackChannelsChange={setSlackChannels}
                         slackChannels={slackChannels}
                         onThresholdChange={setThreshold}
-                        aggregateFunction={functionName}
+                        aggregator={aggregator}
+                        aggregatePeriodMinutes={periodMinutes}
                         config={config}
                         loading={loading}
                         metricToMonitorName={metricToMonitorName}
                         monitorName={monitorName}
                         threshold={threshold}
+                        units={units}
+                        onUnitsChange={setUnits}
                         channelSuggestions={channelSuggestions}
                         onFormSubmit={onFinish}
                         isSlackIntegrated={isSlackIntegrated}

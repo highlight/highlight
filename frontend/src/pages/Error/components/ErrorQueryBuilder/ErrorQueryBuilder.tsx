@@ -5,17 +5,23 @@ import {
 } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext';
 import QueryBuilder, {
     CustomField,
-    DATE_OPERATORS,
     deserializeGroup,
     ERROR_FIELD_TYPE,
     ERROR_TYPE,
     FetchFieldVariables,
     QueryBuilderState,
     RuleProps,
+    SelectOption,
     serializeRules,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import moment from 'moment';
 import React from 'react';
+
+const TIME_RANGE_FIELD: SelectOption = {
+    kind: 'single',
+    label: 'timestamp',
+    value: 'error-field_timestamp',
+};
 
 const CUSTOM_FIELDS: CustomField[] = [
     {
@@ -44,14 +50,6 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'browser',
         options: {
             type: 'text',
-        },
-    },
-    {
-        type: ERROR_FIELD_TYPE,
-        name: 'timestamp',
-        options: {
-            operators: DATE_OPERATORS,
-            type: 'date',
         },
     },
     {
@@ -127,6 +125,7 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
     return (
         <QueryBuilder
             setSearchQuery={setSearchQuery}
+            timeRangeField={TIME_RANGE_FIELD}
             customFields={CUSTOM_FIELDS}
             fetchFields={fetchFields}
             getQueryFromParams={getQueryFromParams}

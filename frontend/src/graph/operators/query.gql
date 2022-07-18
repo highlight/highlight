@@ -63,7 +63,7 @@ query GetMetricsTimeline(
     ) {
         date
         value
-        aggregate_function
+        aggregator
     }
 }
 
@@ -85,8 +85,6 @@ query GetMetricsHistogram(
         }
         min
         max
-        p1
-        p99
     }
 }
 
@@ -382,6 +380,12 @@ query GetAccountDetails($workspace_id: ID!) {
             count
         }
         stripe_customer_id
+        members {
+            id
+            name
+            email
+            last_active
+        }
     }
 }
 
@@ -554,6 +558,7 @@ query GetSessionsOpenSearch(
         sessions {
             id
             secure_id
+            client_id
             fingerprint
             identifier
             os_name
@@ -615,11 +620,6 @@ query GetErrorGroupsOpenSearch(
                 lineNumber
                 functionName
                 columnNumber
-            }
-            metadata_log {
-                error_id
-                session_secure_id
-                timestamp
             }
             error_frequency
         }
@@ -1383,10 +1383,12 @@ query GetAlertsPagePayload($project_id: ID!) {
             webhook_channel_id
         }
         emails_to_notify
-        function
+        aggregator
+        period_minutes
         metric_to_monitor
         last_admin_to_edit_id
         threshold
+        units
         disabled
     }
 }
@@ -1451,6 +1453,15 @@ query GetDashboardDefinitions($project_id: ID!) {
             units
             help_article
             chart_type
+            aggregator
+            min_value
+            min_percentile
+            max_value
+            max_percentile
+            filters {
+                value
+                tag
+            }
         }
         last_admin_to_edit_id
         layout
@@ -1459,6 +1470,22 @@ query GetDashboardDefinitions($project_id: ID!) {
 
 query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
     suggested_metrics(project_id: $project_id, prefix: $prefix)
+}
+
+query GetMetricTags($project_id: ID!, $metric_name: String!) {
+    metric_tags(project_id: $project_id, metric_name: $metric_name)
+}
+
+query GetMetricTagValues(
+    $project_id: ID!
+    $metric_name: String!
+    $tag_name: String!
+) {
+    metric_tag_values(
+        project_id: $project_id
+        metric_name: $metric_name
+        tag_name: $tag_name
+    )
 }
 
 query GetSourcemapFiles($project_id: ID!, $version: String) {
