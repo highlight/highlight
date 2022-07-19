@@ -83,7 +83,7 @@ export const MetadataBox = React.memo(() => {
                     className={styles.backfillContainer}
                     onClick={() => {
                         window.open(
-                            'https://docs.highlight.run/anonymous-sessions',
+                            'https://docs.highlight.run/identifying-users#BXEtr',
                             '_blank'
                         );
                     }}
