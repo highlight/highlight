@@ -2,11 +2,14 @@ import Button from '@components/Button/Button/Button';
 import { CardFormActionsContainer, CardSubHeader } from '@components/Card/Card';
 import CardSelect from '@components/CardSelect/CardSelect';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
-import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
-import Switch from '@components/Switch/Switch';
+import {
+    SearchOption,
+    SearchSelect,
+    SimpleSearchSelect,
+} from '@components/Select/SearchSelect/SearchSelect';
 import {
     useGetMetricTagsQuery,
     useGetMetricTagValuesLazyQuery,
@@ -18,13 +21,9 @@ import {
     MetricAggregator,
     MetricTagFilter,
 } from '@graph/schemas';
-import { SingleValue } from '@highlight-run/react-select';
-import AsyncSelect from '@highlight-run/react-select/async';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
-import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
-import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
 import { Form } from 'antd';
 import _ from 'lodash';
@@ -214,9 +213,55 @@ export const EditMetricModal = ({
                                 <div className={styles.metricViewDetails}>
                                     <div className={styles.metricViewDetail}>
                                         <h3>Minimum</h3>
+                                        <Input
+                                            placeholder="Min"
+                                            name="Min"
+                                            value={min * 100}
+                                            min={minValue ? undefined : 0}
+                                            max={minValue ? undefined : 100}
+                                            onChange={(e) => {
+                                                const v = e.target?.value;
+                                                if (v.endsWith('%')) {
+                                                    setMinValue(false);
+                                                    setMin(
+                                                        (Number(
+                                                            v.slice(0, -1)
+                                                        ) || 0) / 100
+                                                    );
+                                                } else {
+                                                    setMinValue(true);
+                                                    setMin(
+                                                        (Number(v) || 0) / 100
+                                                    );
+                                                }
+                                            }}
+                                        />
                                     </div>
                                     <div className={styles.metricViewDetail}>
                                         <h3>Maximum</h3>
+                                        <Input
+                                            placeholder="Max"
+                                            name="Max"
+                                            value={max * 100}
+                                            min={maxValue ? undefined : 0}
+                                            max={maxValue ? undefined : 100}
+                                            onChange={(e) => {
+                                                const v = e.target?.value;
+                                                if (v.endsWith('%')) {
+                                                    setMaxValue(false);
+                                                    setMax(
+                                                        (Number(
+                                                            v.slice(0, -1)
+                                                        ) || 0) / 100
+                                                    );
+                                                } else {
+                                                    setMaxValue(true);
+                                                    setMax(
+                                                        (Number(v) || 0) / 100
+                                                    );
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </section>
@@ -269,66 +314,6 @@ export const EditMetricModal = ({
                         </div>
                     </CardFormActionsContainer>
                 </Form>
-                {chartType === DashboardChartType.Histogram && (
-                    <section className={styles.section}>
-                        <div className={styles.minMaxRow}>
-                            <Form.Item
-                                label="Minimum"
-                                className={styles.formLabel}
-                            />
-                            <Input
-                                type={'number'}
-                                placeholder="Min"
-                                name="Min"
-                                value={min * 100}
-                                min={minValue ? undefined : 0}
-                                max={minValue ? undefined : 100}
-                                onChange={(e) => {
-                                    setMin(
-                                        (Number(e.target?.value) || 0) / 100
-                                    );
-                                }}
-                            />
-                            <Switch
-                                label={minValue ? 'Value' : 'Percentile'}
-                                trackingId={
-                                    'EditDashboardChartMinPercentileToggle'
-                                }
-                                checked={!minValue}
-                                onChange={(checked) => {
-                                    setMinValue(!checked);
-                                }}
-                            />
-                            <Form.Item
-                                label="Maximum"
-                                className={styles.formLabel}
-                            />
-                            <Input
-                                type={'number'}
-                                placeholder="Max"
-                                name="Max"
-                                value={max * 100}
-                                min={maxValue ? undefined : 0}
-                                max={maxValue ? undefined : 100}
-                                onChange={(e) => {
-                                    setMax(
-                                        (Number(e.target?.value) || 0) / 100
-                                    );
-                                }}
-                            />
-                            <Switch
-                                label={maxValue ? 'Value' : 'Percentile'}
-                                trackingId={
-                                    'EditDashboardChartMaxPercentileToggle'
-                                }
-                                checked={!maxValue}
-                                onChange={(checked) => {
-                                    setMaxValue(!checked);
-                                }}
-                            />
-                        </div>
-                    </section>
-                )}
             </ModalBody>
         </Modal>
     );
@@ -457,76 +442,31 @@ export const TagFilterSelector = ({
 
     return (
         <>
-            {data?.metric_tags.length ? (
-                <StandardDropdown
-                    gray
-                    placeholder={'graphql_operation'}
-                    data={
-                        data?.metric_tags
-                            .filter((t) =>
-                                usedTags ? !usedTags.includes(t) : true
-                            )
-                            .map((t) => ({
-                                value: t,
-                                label: t,
-                            })) || []
+            <SimpleSearchSelect
+                options={
+                    data?.metric_tags.filter((t) =>
+                        usedTags ? !usedTags.includes(t) : true
+                    ) || []
+                }
+                value={tag}
+                onSelect={(v) => {
+                    setTag(v);
+                    setValue(undefined);
+                }}
+            />
+            <SimpleSearchSelect
+                options={values?.metric_tag_values || []}
+                value={value}
+                onSelect={(v) => {
+                    setTag(v);
+                    if (tag?.length) {
+                        onSelectTag({ tag: tag, value: v });
                     }
-                    defaultValue={value ? { value, label: value } : undefined}
-                    onSelect={(v) => {
-                        setTag(v);
-                        setValue(undefined);
-                    }}
-                />
-            ) : (
-                <Input
-                    placeholder="graphql_operation"
-                    name="graphql_operation"
-                    value={tag}
-                    onChange={(e) => {
-                        setTag(e.target.value);
-                        setValue(undefined);
-                    }}
-                />
-            )}
-            {values?.metric_tag_values.length ? (
-                <StandardDropdown
-                    gray
-                    placeholder={'GetSessions'}
-                    data={
-                        values?.metric_tag_values.map((t) => ({
-                            value: t,
-                            label: t,
-                        })) || []
-                    }
-                    defaultValue={value ? { value, label: value } : undefined}
-                    onSelect={(v) => {
-                        setTag(v);
-                        if (tag?.length) {
-                            onSelectTag({ tag: tag, value: v });
-                        }
-                    }}
-                />
-            ) : (
-                <Input
-                    placeholder="GetSessions"
-                    name="GetSessions"
-                    value={value}
-                    onChange={(e) => {
-                        setTag(e.target.value);
-                        if (tag?.length) {
-                            onSelectTag({ tag: tag, value: e.target.value });
-                        }
-                    }}
-                />
-            )}
+                }}
+            />
         </>
     );
 };
-
-interface MetricOption {
-    value: string;
-    label: string;
-}
 
 const MetricSelector = ({
     onSelectMetric,
@@ -536,104 +476,46 @@ const MetricSelector = ({
     currentMetric?: string;
 }) => {
     const { project_id } = useParams<{ project_id: string }>();
-    const [isTyping, setIsTyping] = useState(false);
-    const { data: suggestedMetrics, loading } = useGetSuggestedMetricsQuery({
+    const [options, setOptions] = useState<SearchOption[]>([]);
+    const { data } = useGetSuggestedMetricsQuery({
         variables: {
             project_id,
             prefix: '',
         },
     });
 
-    const getValueOptions = (
-        input: string,
-        callback: (s: MetricOption[]) => void
-    ) => {
-        const options =
-            suggestedMetrics?.suggested_metrics
+    const getValueOptions = (input: string) => {
+        setOptions(
+            data?.suggested_metrics
                 .filter(
                     (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
                 )
                 .map((s) => ({
                     label: s,
                     value: s,
-                })) || [];
-        setIsTyping(false);
-        callback(options);
+                })) || []
+        );
     };
 
     // Ignore this so we have a consistent reference so debounce works.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), [
-        suggestedMetrics?.suggested_metrics,
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 300), [
+        data?.suggested_metrics,
     ]);
 
+    // initial load of options
+    useEffect(() => {
+        if (!options.length && data?.suggested_metrics) {
+            loadOptions('');
+        }
+    }, [loadOptions, options, data?.suggested_metrics]);
+
     return (
-        <div className={dashStyles.container}>
-            <DropdownIndicator height={26} isLoading={loading || isTyping} />
-            <AsyncSelect
-                // @ts-expect-error
-                styles={{
-                    ...styleProps,
-                    valueContainer: (provided) => ({
-                        ...provided,
-                        padding: '0 12px',
-                        height: '40px',
-                        cursor: 'text',
-                    }),
-                }}
-                name={'graphql.operation.users'}
-                autoFocus
-                components={{
-                    DropdownIndicator: () => (
-                        <div className={dashStyles.dropdownPlaceholder}></div>
-                    ),
-                }}
-                loadOptions={(
-                    input,
-                    callback: (options: MetricOption[]) => void
-                ) => {
-                    loadOptions(input, callback);
-                }}
-                onInputChange={(newValue) => {
-                    setIsTyping(newValue !== '');
-                }}
-                onChange={(
-                    newValue: SingleValue<{
-                        value?: string;
-                        label?: string;
-                    }>
-                ) => {
-                    onSelectMetric(newValue?.value || '');
-                }}
-                isLoading={loading}
-                isClearable={false}
-                escapeClearsValue={true}
-                defaultValue={
-                    suggestedMetrics?.suggested_metrics
-                        .filter((k) => k === currentMetric)
-                        .map(
-                            (k) =>
-                                ({
-                                    label: k,
-                                    value: k,
-                                } as MetricOption)
-                        )[0]
-                }
-                defaultInputValue={currentMetric}
-                defaultOptions={suggestedMetrics?.suggested_metrics.map(
-                    (k) =>
-                        ({
-                            label: k,
-                            value: k,
-                        } as MetricOption)
-                )}
-                noOptionsMessage={({ inputValue }) =>
-                    !inputValue ? null : `No results for "${inputValue}"`
-                }
-                placeholder="Search for a metric..."
-                isSearchable
-                maxMenuHeight={500}
-            />
-        </div>
+        <SearchSelect
+            value={currentMetric}
+            onSelect={onSelectMetric}
+            options={options}
+            loadOptions={loadOptions}
+        />
     );
 };
