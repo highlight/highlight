@@ -25,7 +25,7 @@ COPY ./frontend/package.json ./frontend/yarn.lock ./
 RUN yarn install
 COPY ./frontend ./
 COPY ./.prettierrc ./
-RUN CI=false yarn build
+RUN CI=false NODE_OPTIONS="--max-old-space-size=7168" yarn build
 
 FROM alpine
 RUN apk update && apk add build-base

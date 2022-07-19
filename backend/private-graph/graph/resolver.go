@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
@@ -24,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -54,7 +56,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
 )
 
 type Resolver struct {
@@ -1329,6 +1332,126 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 			})()
 		}
 	}
+}
+
+const (
+	projectCookieName  = "project-token"
+	projectIdClaimName = "project_id"
+	expClaimName       = "exp"
+	projectIdUrlParam  = "project_id"
+	hashValUrlParam    = "hash_val"
+)
+
+func getProjectCookieName(projectId int) string {
+	return fmt.Sprintf("%s-%d", projectCookieName, projectId)
+}
+
+func getProjectIdFromToken(tokenString string) (int, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return 0, e.Wrap(err, "invalid id token")
+	}
+
+	projectId, ok := claims[projectIdClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid project_id claim")
+	}
+
+	exp, ok := claims[expClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid exp claim")
+	}
+
+	// Check if the current time is after the expiration
+	if time.Now().After(time.Unix(int64(exp), 0)) {
+		return 0, e.Wrap(err, "token expired")
+	}
+
+	return int(projectId), nil
+}
+
+func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
+	projectIdStr := chi.URLParam(req, projectIdUrlParam)
+	projectId, err := strconv.Atoi(projectIdStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid project_id", http.StatusBadRequest)
+		return
+	}
+
+	ctx := req.Context()
+	_, err = r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	atClaims := jwt.MapClaims{}
+	atClaims[projectIdClaimName] = projectId
+	atClaims[expClaimName] = time.Now().Add(time.Hour).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(JwtAccessSecret))
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     getProjectCookieName(projectId),
+		Value:    token,
+		MaxAge:   int(time.Hour.Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+	})
+}
+
+func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
+	projectIdParam := chi.URLParam(req, projectIdUrlParam)
+	hashValParam := chi.URLParam(req, hashValUrlParam)
+
+	projectId, err := strconv.Atoi(projectIdParam)
+	if err != nil {
+		log.Error(e.Wrap(err, "error converting project_id param to string"))
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	projectCookie, err := req.Cookie(getProjectCookieName(projectId))
+	if err != nil {
+		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	projectIdFromToken, err := getProjectIdFromToken(projectCookie.Value)
+	if err != nil {
+		log.Error(e.Wrap(err, "error getting project id from token claims"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	if projectIdFromToken != projectId {
+		log.Error(e.Wrap(err, "project id mismatch"))
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	url, err := r.StorageClient.GetAssetURL(projectIdParam, hashValParam)
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to generate asset url"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Cache the redirected url for up to 14 minutes
+	w.Header().Set("Cache-Control", "max-age=840")
+	http.Redirect(w, req, url, http.StatusFound)
 }
 
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {

@@ -107,6 +107,7 @@ var ContextKeys = struct {
 	AcceptEncoding contextString
 	ZapierToken    contextString
 	ZapierProject  contextString
+	SessionId      contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -116,6 +117,7 @@ var ContextKeys = struct {
 	AcceptEncoding: "acceptEncoding",
 	ZapierToken:    "parsedToken",
 	ZapierProject:  "project",
+	SessionId:      "sessionId",
 }
 
 var Models = []interface{}{
@@ -158,6 +160,7 @@ var Models = []interface{}{
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
+	&SavedAsset{},
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
@@ -978,6 +981,13 @@ type SessionPayload struct {
 	RageClicks              []RageClickEvent `json:"rage_clicks"`
 	SessionComments         []SessionComment `json:"session_comments"`
 	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
+}
+
+type SavedAsset struct {
+	ProjectID   int    `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date;index:idx_project_id_hash_val"`
+	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	HashVal     string `gorm:"index:idx_project_id_hash_val"`
 }
 
 type AlertEvent struct {
