@@ -20,6 +20,7 @@ import {
     DashboardMetricConfig,
     MetricAggregator,
     MetricTagFilter,
+    MetricTagFilterOp,
 } from '@graph/schemas';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
@@ -373,6 +374,7 @@ export const TagFilters = ({
                                         newTag = false;
                                         newTags.push({
                                             tag: x.tag,
+                                            op: t.op,
                                             value: t.value,
                                         } as MetricTagFilter);
                                     } else {
@@ -406,6 +408,11 @@ export const TagFilters = ({
     );
 };
 
+const OperatorOptions = [
+    { label: 'equals', value: MetricTagFilterOp.Equals },
+    { label: 'contains', value: MetricTagFilterOp.Contains },
+];
+
 export const TagFilterSelector = ({
     metricName,
     onSelectTag,
@@ -418,6 +425,9 @@ export const TagFilterSelector = ({
     usedTags?: string[];
 }) => {
     const [tag, setTag] = useState<string | undefined>(currentTag?.tag);
+    const [op, setOp] = useState<MetricTagFilterOp>(
+        currentTag?.op || MetricTagFilterOp.Equals
+    );
     const [value, setValue] = useState<string | undefined>(currentTag?.value);
     const { project_id } = useParams<{ project_id: string }>();
     const { data } = useGetMetricTagsQuery({
@@ -454,13 +464,27 @@ export const TagFilterSelector = ({
                     setValue(undefined);
                 }}
             />
+            <StandardDropdown
+                gray
+                data={OperatorOptions}
+                defaultValue={OperatorOptions[0]}
+                value={OperatorOptions.filter((o) => o.value == op)[0]}
+                onSelect={(v) => {
+                    setOp(v);
+                    if (tag?.length && value?.length) {
+                        onSelectTag({ tag, op: v, value });
+                    }
+                }}
+            />
             <SimpleSearchSelect
+                placeholder={'GetSession'}
                 options={values?.metric_tag_values || []}
                 value={value}
+                freeSolo
                 onSelect={(v) => {
                     setTag(v);
                     if (tag?.length) {
-                        onSelectTag({ tag: tag, value: v });
+                        onSelectTag({ tag, op, value: v });
                     }
                 }}
             />

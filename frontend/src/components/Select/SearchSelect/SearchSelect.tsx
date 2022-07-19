@@ -15,7 +15,7 @@ export const SearchSelect = ({
     loadOptions,
     value,
 }: {
-    onSelect: (metricName: string) => void;
+    onSelect: (name: string) => void;
     options: SearchOption[];
     loadOptions: (input: string) => void;
     value?: string;
@@ -52,13 +52,18 @@ export const SimpleSearchSelect = ({
     onSelect,
     options,
     value,
+    freeSolo,
+    placeholder,
 }: {
-    onSelect: (metricName: string) => void;
+    onSelect: (name: string) => void;
     options: string[];
     value?: string;
+    freeSolo?: boolean;
+    placeholder?: string;
 }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
+    const [extraOption, setExtraOption] = useState<SearchOption>();
 
     const getValueOptions = (input: string) => {
         setFilteredOptions(
@@ -66,6 +71,7 @@ export const SimpleSearchSelect = ({
                 (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
             ) || []
         );
+        setIsTyping(false);
     };
 
     // Ignore this so we have a consistent reference so debounce works.
@@ -87,22 +93,29 @@ export const SimpleSearchSelect = ({
             // this mode allows using the select component as a single searchable input
             // @ts-ignore
             mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
-            placeholder={'graphql.operation.users'}
+            placeholder={placeholder || 'graphql_operation'}
             autoFocus
-            onChange={() => {
-                setIsTyping(false);
-            }}
             onInputKeyDown={() => setIsTyping(true)}
+            onChange={(x) => {
+                if (freeSolo) {
+                    setExtraOption(x);
+                    setIsTyping(false);
+                }
+            }}
             onSelect={(newValue: SearchOption) => {
+                setIsTyping(false);
                 onSelect(newValue?.value || '');
             }}
             defaultValue={{ label: value, value: value } as SearchOption}
             loading={isTyping}
-            options={filteredOptions.map((s) => ({
-                label: s,
-                value: s,
-            }))}
-            notFoundContent={() => <span>`No results found`</span>}
+            options={[
+                ...filteredOptions.map((s) => ({
+                    label: s,
+                    value: s,
+                })),
+                ...(extraOption ? [extraOption] : []),
+            ]}
+            notFoundContent={<span>No recommendations found.</span>}
             labelInValue
             filterOption={false}
             onSearch={loadOptions}

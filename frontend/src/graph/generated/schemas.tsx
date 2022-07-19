@@ -455,14 +455,21 @@ export type HistogramParamsInput = {
     filters?: Maybe<Array<MetricTagFilterInput>>;
 };
 
+export enum MetricTagFilterOp {
+    Equals = 'equals',
+    Contains = 'contains',
+}
+
 export type MetricTagFilter = {
     __typename?: 'MetricTagFilter';
     tag: Scalars['String'];
+    op: MetricTagFilterOp;
     value: Scalars['String'];
 };
 
 export type MetricTagFilterInput = {
     tag: Scalars['String'];
+    op: MetricTagFilterOp;
     value: Scalars['String'];
 };
 

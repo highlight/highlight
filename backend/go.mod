@@ -22,6 +22,7 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.5.2
@@ -29,6 +30,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
+	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
 	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mssola/user_agent v0.5.3
@@ -60,8 +62,6 @@ require (
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 // indirect
 	github.com/DataDog/datadog-go/v5 v5.0.2 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
-	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect
@@ -71,6 +71,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/tdewolff/test v1.0.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
 

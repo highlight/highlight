@@ -333,8 +333,9 @@ type DashboardMetric struct {
 
 type DashboardMetricFilter struct {
 	Model
-	MetricID int    `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Tag      string `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	MetricID int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Tag      string                        `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Op       modelInputs.MetricTagFilterOp `gorm:"default:equals"`
 	Value    string
 }
 
