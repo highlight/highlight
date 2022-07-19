@@ -102,10 +102,10 @@ export const EditMetricModal = ({
                             filters: filters,
                             ...(minValue
                                 ? { min_value: min }
-                                : { min_percentile: min }),
+                                : { min_percentile: min / 100 }),
                             ...(maxValue
                                 ? { max_value: max }
-                                : { max_percentile: max }),
+                                : { max_percentile: max / 100 }),
                         });
                         onCancel();
                     }}
@@ -215,9 +215,10 @@ export const EditMetricModal = ({
                                     <div className={styles.metricViewDetail}>
                                         <h3>Minimum</h3>
                                         <Input
+                                            type={'text'}
                                             placeholder="Min"
                                             name="Min"
-                                            value={min * 100}
+                                            value={minValue ? min : `${min}%`}
                                             min={minValue ? undefined : 0}
                                             max={minValue ? undefined : 100}
                                             onChange={(e) => {
@@ -225,15 +226,13 @@ export const EditMetricModal = ({
                                                 if (v.endsWith('%')) {
                                                     setMinValue(false);
                                                     setMin(
-                                                        (Number(
+                                                        Number(
                                                             v.slice(0, -1)
-                                                        ) || 0) / 100
+                                                        ) || 0
                                                     );
                                                 } else {
                                                     setMinValue(true);
-                                                    setMin(
-                                                        (Number(v) || 0) / 100
-                                                    );
+                                                    setMin(Number(v) || 0);
                                                 }
                                             }}
                                         />
@@ -241,9 +240,10 @@ export const EditMetricModal = ({
                                     <div className={styles.metricViewDetail}>
                                         <h3>Maximum</h3>
                                         <Input
+                                            type={'text'}
                                             placeholder="Max"
                                             name="Max"
-                                            value={max * 100}
+                                            value={maxValue ? max : `${max}%`}
                                             min={maxValue ? undefined : 0}
                                             max={maxValue ? undefined : 100}
                                             onChange={(e) => {
@@ -251,15 +251,13 @@ export const EditMetricModal = ({
                                                 if (v.endsWith('%')) {
                                                     setMaxValue(false);
                                                     setMax(
-                                                        (Number(
+                                                        Number(
                                                             v.slice(0, -1)
-                                                        ) || 0) / 100
+                                                        ) || 0
                                                     );
                                                 } else {
                                                     setMaxValue(true);
-                                                    setMax(
-                                                        (Number(v) || 0) / 100
-                                                    );
+                                                    setMax(Number(v) || 0);
                                                 }
                                             }}
                                         />
