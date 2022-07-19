@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1163.0",
-    "glob": "^7.1.7",
+    "glob": "^7.2.3",
     "node-fetch": "^2.6.1",
     "yargs": "^17.5.1"
   }
