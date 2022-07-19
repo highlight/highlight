@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button';
 import { CardFormActionsContainer, CardSubHeader } from '@components/Card/Card';
 import CardSelect from '@components/CardSelect/CardSelect';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
@@ -9,6 +10,7 @@ import Switch from '@components/Switch/Switch';
 import {
     useGetMetricTagsQuery,
     useGetMetricTagValuesLazyQuery,
+    useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import {
     DashboardChartType,
@@ -16,15 +18,17 @@ import {
     MetricAggregator,
     MetricTagFilter,
 } from '@graph/schemas';
+import { SingleValue } from '@highlight-run/react-select';
+import AsyncSelect from '@highlight-run/react-select/async';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
-import {
-    MetricSelector,
-    UNIT_OPTIONS,
-} from '@pages/Dashboards/components/DashboardCard/DashboardCard';
+import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
+import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
+import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
 import { Form } from 'antd';
-import React, { useEffect, useState } from 'react';
+import _ from 'lodash';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import styles from './EditMetricModal.module.scss';
 
@@ -446,23 +450,17 @@ export const TagFilterSelector = ({
     });
 
     useEffect(() => {
-        if (data?.metric_tags.length) {
-            setTag(data.metric_tags[0]);
-        }
-    }, [data]);
-
-    useEffect(() => {
         if (tag?.length) {
             load().catch(console.error);
         }
     }, [tag, load]);
 
-    console.log({ tags: data?.metric_tags, values: values?.metric_tag_values });
     return (
         <>
             {data?.metric_tags.length ? (
                 <StandardDropdown
                     gray
+                    placeholder={'graphql_operation'}
                     data={
                         data?.metric_tags
                             .filter((t) =>
@@ -481,8 +479,8 @@ export const TagFilterSelector = ({
                 />
             ) : (
                 <Input
-                    placeholder="Filter Key"
-                    name="Filter Key"
+                    placeholder="graphql_operation"
+                    name="graphql_operation"
                     value={tag}
                     onChange={(e) => {
                         setTag(e.target.value);
@@ -493,6 +491,7 @@ export const TagFilterSelector = ({
             {values?.metric_tag_values.length ? (
                 <StandardDropdown
                     gray
+                    placeholder={'GetSessions'}
                     data={
                         values?.metric_tag_values.map((t) => ({
                             value: t,
@@ -509,8 +508,8 @@ export const TagFilterSelector = ({
                 />
             ) : (
                 <Input
-                    placeholder="Filter Value"
-                    name="Filter Value"
+                    placeholder="GetSessions"
+                    name="GetSessions"
                     value={value}
                     onChange={(e) => {
                         setTag(e.target.value);
@@ -521,5 +520,120 @@ export const TagFilterSelector = ({
                 />
             )}
         </>
+    );
+};
+
+interface MetricOption {
+    value: string;
+    label: string;
+}
+
+const MetricSelector = ({
+    onSelectMetric,
+    currentMetric,
+}: {
+    onSelectMetric: (metricName: string) => void;
+    currentMetric?: string;
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const [isTyping, setIsTyping] = useState(false);
+    const { data: suggestedMetrics, loading } = useGetSuggestedMetricsQuery({
+        variables: {
+            project_id,
+            prefix: '',
+        },
+    });
+
+    const getValueOptions = (
+        input: string,
+        callback: (s: MetricOption[]) => void
+    ) => {
+        const options =
+            suggestedMetrics?.suggested_metrics
+                .filter(
+                    (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
+                )
+                .map((s) => ({
+                    label: s,
+                    value: s,
+                })) || [];
+        setIsTyping(false);
+        callback(options);
+    };
+
+    // Ignore this so we have a consistent reference so debounce works.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), [
+        suggestedMetrics?.suggested_metrics,
+    ]);
+
+    return (
+        <div className={dashStyles.container}>
+            <DropdownIndicator height={26} isLoading={loading || isTyping} />
+            <AsyncSelect
+                // @ts-expect-error
+                styles={{
+                    ...styleProps,
+                    valueContainer: (provided) => ({
+                        ...provided,
+                        padding: '0 12px',
+                        height: '40px',
+                        cursor: 'text',
+                    }),
+                }}
+                name={'graphql.operation.users'}
+                autoFocus
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={dashStyles.dropdownPlaceholder}></div>
+                    ),
+                }}
+                loadOptions={(
+                    input,
+                    callback: (options: MetricOption[]) => void
+                ) => {
+                    loadOptions(input, callback);
+                }}
+                onInputChange={(newValue) => {
+                    setIsTyping(newValue !== '');
+                }}
+                onChange={(
+                    newValue: SingleValue<{
+                        value?: string;
+                        label?: string;
+                    }>
+                ) => {
+                    onSelectMetric(newValue?.value || '');
+                }}
+                isLoading={loading}
+                isClearable={false}
+                escapeClearsValue={true}
+                defaultValue={
+                    suggestedMetrics?.suggested_metrics
+                        .filter((k) => k === currentMetric)
+                        .map(
+                            (k) =>
+                                ({
+                                    label: k,
+                                    value: k,
+                                } as MetricOption)
+                        )[0]
+                }
+                defaultInputValue={currentMetric}
+                defaultOptions={suggestedMetrics?.suggested_metrics.map(
+                    (k) =>
+                        ({
+                            label: k,
+                            value: k,
+                        } as MetricOption)
+                )}
+                noOptionsMessage={({ inputValue }) =>
+                    !inputValue ? null : `No results for "${inputValue}"`
+                }
+                placeholder="Search for a metric..."
+                isSearchable
+                maxMenuHeight={500}
+            />
+        </div>
     );
 };

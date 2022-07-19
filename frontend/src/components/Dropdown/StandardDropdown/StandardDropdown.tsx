@@ -19,6 +19,7 @@ export const StandardDropdown = ({
     value,
     disabled,
     gray,
+    placeholder,
     className,
     labelClassName,
 }: {
@@ -30,11 +31,12 @@ export const StandardDropdown = ({
     value?: Option;
     disabled?: boolean;
     gray?: boolean;
+    placeholder?: string;
     className?: string;
     labelClassName?: string;
 }) => {
     const [visible, setVisible] = useState(false);
-    const [selection, setSelection] = useState(defaultValue || data[0]);
+    const [selection, setSelection] = useState(defaultValue);
 
     useEffect(() => {
         if (value !== undefined) {
@@ -90,7 +92,13 @@ export const StandardDropdown = ({
                             labelClassName
                         )}
                     >
-                        {selection.label}
+                        {selection ? (
+                            selection?.label
+                        ) : placeholder ? (
+                            <span className={styles.placeholder}>
+                                {placeholder}
+                            </span>
+                        ) : null}
                     </div>
                 )}
                 <DownIcon

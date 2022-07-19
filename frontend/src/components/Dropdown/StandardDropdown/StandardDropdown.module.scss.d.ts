@@ -7,3 +7,4 @@ export const labelItem: string;
 export const labelNameText: string;
 export const labelText: string;
 export const overlay: string;
+export const placeholder: string;

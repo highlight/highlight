@@ -2,7 +2,6 @@ import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
 import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
-import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
 import { CircularSpinner } from '@components/Loading/Loading';
@@ -13,7 +12,6 @@ import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
     useGetMetricsTimelineLazyQuery,
-    useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import {
     GetMetricsHistogramQuery,
@@ -24,8 +22,6 @@ import {
     DashboardMetricConfig,
     MetricAggregator,
 } from '@graph/schemas';
-import { SingleValue } from '@highlight-run/react-select';
-import AsyncSelect from '@highlight-run/react-select/async';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
@@ -38,12 +34,11 @@ import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
-import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
@@ -334,121 +329,6 @@ const DashboardCard = ({
                 />
             </Card>
         </>
-    );
-};
-
-interface MetricOption {
-    value: string;
-    label: string;
-}
-
-export const MetricSelector = ({
-    onSelectMetric,
-    currentMetric,
-}: {
-    onSelectMetric: (metricName: string) => void;
-    currentMetric?: string;
-}) => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const [isTyping, setIsTyping] = useState(false);
-    const { data: suggestedMetrics, loading } = useGetSuggestedMetricsQuery({
-        variables: {
-            project_id,
-            prefix: '',
-        },
-    });
-
-    const getValueOptions = (
-        input: string,
-        callback: (s: MetricOption[]) => void
-    ) => {
-        const options =
-            suggestedMetrics?.suggested_metrics
-                .filter(
-                    (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
-                )
-                .map((s) => ({
-                    label: s,
-                    value: s,
-                })) || [];
-        setIsTyping(false);
-        callback(options);
-    };
-
-    // Ignore this so we have a consistent reference so debounce works.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadOptions = useMemo(() => _.debounce(getValueOptions, 100), [
-        suggestedMetrics?.suggested_metrics,
-    ]);
-
-    return (
-        <div className={dashStyles.container}>
-            <DropdownIndicator height={26} isLoading={loading || isTyping} />
-            <AsyncSelect
-                // @ts-expect-error
-                styles={{
-                    ...styleProps,
-                    valueContainer: (provided) => ({
-                        ...provided,
-                        padding: '0 12px',
-                        height: '40px',
-                        cursor: 'text',
-                    }),
-                }}
-                name={'graphql.operation.users'}
-                autoFocus
-                components={{
-                    DropdownIndicator: () => (
-                        <div className={dashStyles.dropdownPlaceholder}></div>
-                    ),
-                }}
-                loadOptions={(
-                    input,
-                    callback: (options: MetricOption[]) => void
-                ) => {
-                    loadOptions(input, callback);
-                }}
-                onInputChange={(newValue) => {
-                    setIsTyping(newValue !== '');
-                }}
-                onChange={(
-                    newValue: SingleValue<{
-                        value?: string;
-                        label?: string;
-                    }>
-                ) => {
-                    onSelectMetric(newValue?.value || '');
-                }}
-                isLoading={loading}
-                isClearable={false}
-                escapeClearsValue={true}
-                defaultValue={
-                    suggestedMetrics?.suggested_metrics
-                        .filter((k) => k === currentMetric)
-                        .map(
-                            (k) =>
-                                ({
-                                    label: k,
-                                    value: k,
-                                } as MetricOption)
-                        )[0]
-                }
-                defaultInputValue={currentMetric}
-                defaultOptions={suggestedMetrics?.suggested_metrics.map(
-                    (k) =>
-                        ({
-                            label: k,
-                            value: k,
-                        } as MetricOption)
-                )}
-                noOptionsMessage={({ inputValue }) =>
-                    !inputValue ? null : `No results for "${inputValue}"`
-                }
-                placeholder="Search for a metric..."
-                isSearchable
-                maxMenuHeight={500}
-            />
-        </div>
     );
 };
 
