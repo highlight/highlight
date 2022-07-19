@@ -708,6 +708,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 			return nil, e.New("Filtering out noisy Gorilla Mind error")
 		}
 	}
+	if projectID == 765 {
+		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` {
+			return nil, e.New("Filtering out noisy MintParty error")
+		}
+	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)

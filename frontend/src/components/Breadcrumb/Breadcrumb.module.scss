@@ -4,6 +4,7 @@
 
 .icon {
     height: var(--size-large);
+    padding-top: var(--size-xxSmall);
     width: var(--size-large);
 }
 
@@ -13,7 +14,6 @@
 
     :global(.ant-breadcrumb-separator) {
         color: var(--color-gray-400);
-        display: flex;
         margin-left: var(--size-xxSmall) !important;
         margin-right: var(--size-xxSmall) !important;
     }

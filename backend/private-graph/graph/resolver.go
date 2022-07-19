@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"io/ioutil"
@@ -39,12 +38,14 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
+	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -182,6 +183,12 @@ func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
 	defer authSpan.Finish()
+	start := time.Now()
+	defer func() {
+		H.RecordMetric(
+			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
+		)
+	}()
 	var project *model.Project
 	var err error
 	if r.isDemoProject(project_id) {
@@ -200,6 +207,12 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
 	defer authSpan.Finish()
+	start := time.Now()
+	defer func() {
+		H.RecordMetric(
+			ctx, "resolver.internal.auth.isAdminInWorkspaceOrDemoWorkspace", time.Since(start).Seconds(),
+		)
+	}()
 	var workspace *model.Workspace
 	var err error
 	if r.isDemoWorkspace(workspace_id) {
@@ -2291,7 +2304,10 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 
 func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) float64 {
 	div := 1.0
-	if originalUnits != nil && desiredUnits != nil {
+	if originalUnits == nil {
+		originalUnits = pointy.String("s")
+	}
+	if desiredUnits != nil {
 		o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
 		if err != nil {
 			return div

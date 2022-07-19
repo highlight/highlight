@@ -3,9 +3,14 @@ import 'react-resizable/css/styles.css';
 
 import Button from '@components/Button/Button/Button';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
-import HighlightGate from '@components/HighlightGate/HighlightGate';
-import { DashboardDefinition, DashboardMetricConfig } from '@graph/schemas';
+import {
+    Admin,
+    DashboardDefinition,
+    DashboardMetricConfig,
+} from '@graph/schemas';
+import Checkmark from '@icons/Checkmark';
 import PlusIcon from '@icons/PlusIcon';
+import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import {
@@ -28,7 +33,7 @@ import styles from './DashboardPage.module.scss';
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const timeFilters = [
-    { label: 'Last 1 minute', value: 1 },
+    { label: 'Last 5 minutes', value: 5 },
     { label: 'Last 15 minutes', value: 15 },
     { label: 'Last 1 hours', value: 60 },
     { label: 'Last 6 hours', value: 6 * 60 },
@@ -65,8 +70,8 @@ const DashboardPage = () => {
             .duration(endDate.diff(startDate))
             .asMinutes();
 
-        const roundedEnd = roundDate(endDate, Math.min(15, minutesDiff));
-        const roundedStart = roundDate(startDate, Math.min(15, minutesDiff));
+        const roundedEnd = roundDate(endDate, Math.min(1, minutesDiff));
+        const roundedStart = roundDate(startDate, Math.min(1, minutesDiff));
 
         if (custom) {
             const customDateRange = {
@@ -89,7 +94,7 @@ const DashboardPage = () => {
         });
     };
 
-    const { dashboards, updateDashboard } = useDashboardsContext();
+    const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
@@ -136,55 +141,81 @@ const DashboardPage = () => {
 
     return (
         <>
+            {dashboard.last_admin_to_edit_id && (
+                <AlertLastEditedBy
+                    adminId={dashboard.last_admin_to_edit_id.toString()}
+                    lastEditedTimestamp={dashboard.updated_at}
+                    allAdmins={allAdmins.filter((a) => a) as Admin[]}
+                    loading={false}
+                />
+            )}
             <div className={styles.dateRangePickerContainer}>
-                <HighlightGate>
-                    <>
-                        {canSaveChanges && (
-                            <Button
-                                trackingId="DashboardEditLayout"
-                                type="primary"
-                                onClick={() => {
-                                    setCanSaveChanges(false);
+                <>
+                    {canSaveChanges && (
+                        <Button
+                            trackingId="DashboardEditLayout"
+                            type="primary"
+                            onClick={() => {
+                                setCanSaveChanges(false);
 
-                                    const newLayout = JSON.stringify(layout);
+                                const newLayout = JSON.stringify(layout);
 
-                                    if (
-                                        dashboard &&
-                                        newLayout !== dashboard.layout
-                                    ) {
-                                        updateDashboard({
-                                            id: id,
-                                            name: dashboard.name,
-                                            metrics: dashboard.metrics,
-                                            layout: newLayout,
-                                        });
-                                    }
+                                if (
+                                    dashboard &&
+                                    newLayout !== dashboard.layout
+                                ) {
+                                    updateDashboard({
+                                        id: id,
+                                        name: dashboard.name,
+                                        metrics: dashboard.metrics,
+                                        layout: newLayout,
+                                    });
+                                }
 
-                                    message.success(
-                                        'Dashboard layout updated!',
-                                        5
-                                    );
-                                }}
-                            >
-                                Save Changes
-                            </Button>
-                        )}
-                    </>
-                    <Button
-                        trackingId="DashboardAddLayout"
-                        type="ghost"
-                        onClick={() => {
-                            setNewMetrics((d) => {
-                                const nm = [...d, getDefaultMetricConfig('')];
-                                pushNewMetricConfig(nm);
-                                return nm;
-                            });
-                        }}
+                                message.success('Dashboard layout updated!', 5);
+                            }}
+                        >
+                            Save Changes
+                        </Button>
+                    )}
+                </>
+                <Button
+                    trackingId="DashboardAddLayout"
+                    type="ghost"
+                    onClick={() => {
+                        setNewMetrics((d) => {
+                            const nm = [...d, getDefaultMetricConfig('')];
+                            pushNewMetricConfig(nm);
+                            return nm;
+                        });
+                    }}
+                >
+                    Add
+                    <PlusIcon
+                        style={{ marginLeft: '1em', marginBottom: '0.1em' }}
+                    />
+                </Button>
+                <button
+                    className={classNames(styles.pillButton, {
+                        [styles.pillLive]: !customDateRange,
+                        [styles.pillStatic]: customDateRange,
+                    })}
+                >
+                    <span
+                        className={classNames(styles.pillButtonText, {
+                            [styles.pillButtonTextVisible]: !customDateRange,
+                        })}
                     >
-                        Add
-                        <PlusIcon style={{ marginLeft: '1em' }} />
-                    </Button>
-                </HighlightGate>
+                        <Checkmark fill={'var(--color-green-900)'} /> Live
+                    </span>
+                    <span
+                        className={classNames(styles.pillButtonText, {
+                            [styles.pillButtonTextVisible]: customDateRange,
+                        })}
+                    >
+                        Absolute
+                    </span>
+                </button>
                 <StandardDropdown
                     data={
                         customDateRange
@@ -269,6 +300,9 @@ const DashboardPage = () => {
 };
 
 export const roundDate = (d: moment.Moment, toMinutes: number) => {
+    if (toMinutes <= 1) {
+        return moment(d.format('YYYY-MM-DDTHH:mm:00.000000000Z'));
+    }
     const remainder = toMinutes - (d.minute() % toMinutes);
     return d.add(remainder, 'minutes');
 };

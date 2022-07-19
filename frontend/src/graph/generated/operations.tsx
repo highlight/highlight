@@ -1619,17 +1619,19 @@ export type GetMetricsHistogramQueryVariables = Types.Exact<{
 }>;
 
 export type GetMetricsHistogramQuery = { __typename?: 'Query' } & {
-    metrics_histogram: { __typename?: 'HistogramPayload' } & Pick<
-        Types.HistogramPayload,
-        'min' | 'max'
-    > & {
-            buckets: Array<
-                { __typename?: 'HistogramBucket' } & Pick<
-                    Types.HistogramBucket,
-                    'bucket' | 'range_start' | 'range_end' | 'count'
-                >
-            >;
-        };
+    metrics_histogram?: Types.Maybe<
+        { __typename?: 'HistogramPayload' } & Pick<
+            Types.HistogramPayload,
+            'min' | 'max'
+        > & {
+                buckets: Array<
+                    { __typename?: 'HistogramBucket' } & Pick<
+                        Types.HistogramBucket,
+                        'bucket' | 'range_start' | 'range_end' | 'count'
+                    >
+                >;
+            }
+    >;
 };
 
 export type GetNetworkHistogramQueryVariables = Types.Exact<{
@@ -1638,14 +1640,16 @@ export type GetNetworkHistogramQueryVariables = Types.Exact<{
 }>;
 
 export type GetNetworkHistogramQuery = { __typename?: 'Query' } & {
-    network_histogram: { __typename?: 'CategoryHistogramPayload' } & {
-        buckets: Array<
-            { __typename?: 'CategoryHistogramBucket' } & Pick<
-                Types.CategoryHistogramBucket,
-                'category' | 'count'
-            >
-        >;
-    };
+    network_histogram?: Types.Maybe<
+        { __typename?: 'CategoryHistogramPayload' } & {
+            buckets: Array<
+                { __typename?: 'CategoryHistogramBucket' } & Pick<
+                    Types.CategoryHistogramBucket,
+                    'category' | 'count'
+                >
+            >;
+        }
+    >;
 };
 
 export type GetSessionPayloadQueryVariables = Types.Exact<{

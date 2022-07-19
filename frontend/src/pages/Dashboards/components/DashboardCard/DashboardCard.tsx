@@ -6,6 +6,7 @@ import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicat
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Input from '@components/Input/Input';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
+import { CircularSpinner } from '@components/Loading/Loading';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import Select from '@components/Select/Select';
@@ -19,6 +20,10 @@ import {
     useGetMetricTagValuesLazyQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
+import {
+    GetMetricsHistogramQuery,
+    GetMetricsTimelineQuery,
+} from '@graph/operations';
 import {
     DashboardChartType,
     DashboardMetricConfig,
@@ -82,6 +87,7 @@ const DashboardCard = ({
 }: Props) => {
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [updatingData, setUpdatingData] = useState<boolean>(true);
     const { project_id } = useParams<{ project_id: string }>();
     const {
         data: metricMonitors,
@@ -102,111 +108,148 @@ const DashboardCard = ({
                 className={styles.card}
                 title={
                     <div className={styles.cardHeader}>
-                        <h3
-                            style={{
-                                paddingTop: 'var(--size-medium)',
-                                paddingLeft: 'var(--size-small)',
-                                paddingRight: 'var(--size-small)',
-                            }}
-                        >
-                            {metricConfig.description ||
-                                metricConfig.name ||
-                                'New Chart'}
-                            {metricConfig.help_article && (
-                                <InfoTooltip
-                                    className={styles.infoTooltip}
-                                    title={
-                                        'Click to learn more about this metric.'
-                                    }
-                                    onClick={() => {
-                                        window.open(
-                                            metricConfig.help_article,
-                                            '_blank'
-                                        );
-                                    }}
-                                />
-                            )}
-                        </h3>
+                        <div className={styles.headerContainer}>
+                            <span className={styles.header}>
+                                {metricConfig.description ||
+                                    metricConfig.name ||
+                                    'New Chart'}
+                                {metricConfig.help_article && (
+                                    <InfoTooltip
+                                        className={styles.infoTooltip}
+                                        title={
+                                            'Click to learn more about this metric.'
+                                        }
+                                        onClick={() => {
+                                            window.open(
+                                                metricConfig.help_article,
+                                                '_blank'
+                                            );
+                                        }}
+                                    />
+                                )}
+                            </span>
+                        </div>
                         <div className={classNames(styles.headerActions)}>
                             <div className={styles.chartButtons}>
-                                {metricConfig.name.length ? (
-                                    metricMonitorsLoading ? (
-                                        <Skeleton width={111} />
-                                    ) : (
-                                        <StandardDropdown
-                                            display={
-                                                <div>
-                                                    <SvgAnnouncementIcon
-                                                        style={{
-                                                            marginBottom: -3,
-                                                            marginRight:
-                                                                'var(--size-xSmall)',
-                                                        }}
-                                                    />
-                                                    {
-                                                        metricMonitors
-                                                            ?.metric_monitors
-                                                            .length
-                                                    }
-                                                    {metricMonitors
-                                                        ?.metric_monitors
-                                                        .length === 1
-                                                        ? ' Monitor'
-                                                        : ' Monitors'}
-                                                </div>
+                                <button
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
+                                    className={classNames(
+                                        dashStyles.pillButton,
+                                        dashStyles.pillButtonSmall,
+                                        {
+                                            [dashStyles.pillLoading]: updatingData,
+                                        }
+                                    )}
+                                >
+                                    <span
+                                        className={classNames(
+                                            dashStyles.pillButtonText,
+                                            {
+                                                [dashStyles.pillButtonTextVisible]: updatingData,
                                             }
-                                            renderOption={(o) =>
-                                                o.label ===
-                                                'Create New Alert' ? (
-                                                    <>
-                                                        <div
-                                                            className={
-                                                                styles.createNewAlertRow
-                                                            }
-                                                        >
-                                                            <SvgPlusIcon
-                                                                style={{
-                                                                    marginRight:
-                                                                        'var(--size-xSmall)',
-                                                                    marginBottom: 2,
-                                                                }}
-                                                            />
-                                                            Create New Alert
-                                                        </div>
-                                                    </>
-                                                ) : undefined
-                                            }
-                                            data={[
-                                                ...(
-                                                    metricMonitors?.metric_monitors ||
-                                                    []
-                                                ).map((mm) => ({
-                                                    label: mm?.name || '',
-                                                    value: mm?.id || '',
-                                                })),
-                                                {
-                                                    label: 'Create New Alert',
-                                                    value: -1,
-                                                },
-                                            ]}
-                                            onSelect={(mmId) => {
-                                                if (mmId === -1) {
-                                                    history.push(
-                                                        `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
-                                                    );
-                                                } else {
-                                                    history.push(
-                                                        `/${project_id}/alerts/monitor/${mmId}`
-                                                    );
-                                                }
+                                        )}
+                                    >
+                                        <CircularSpinner
+                                            style={{
+                                                width: 12,
+                                                height: 12,
+                                                fontSize: 12,
+                                                color:
+                                                    'var(--text-primary-inverted)',
                                             }}
-                                            className={styles.monitorItem}
-                                            labelClassName={styles.monitorName}
-                                        />
-                                    )
-                                ) : (
-                                    <div style={{ width: 161 }}></div>
-                                )}
+                                        />{' '}
+                                        Loading
+                                    </span>
+                                </button>
+                                <div
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
+                                >
+                                    {metricConfig.name.length ? (
+                                        metricMonitorsLoading ? (
+                                            <Skeleton width={111} />
+                                        ) : (
+                                            <StandardDropdown
+                                                display={
+                                                    <div>
+                                                        <SvgAnnouncementIcon
+                                                            style={{
+                                                                marginBottom: -3,
+                                                                marginRight:
+                                                                    'var(--size-xSmall)',
+                                                            }}
+                                                        />
+                                                        {
+                                                            metricMonitors
+                                                                ?.metric_monitors
+                                                                .length
+                                                        }
+                                                        {metricMonitors
+                                                            ?.metric_monitors
+                                                            .length === 1
+                                                            ? ' Monitor'
+                                                            : ' Monitors'}
+                                                    </div>
+                                                }
+                                                renderOption={(o) =>
+                                                    o.label ===
+                                                    'Create New Alert' ? (
+                                                        <>
+                                                            <div
+                                                                className={
+                                                                    styles.createNewAlertRow
+                                                                }
+                                                            >
+                                                                <SvgPlusIcon
+                                                                    style={{
+                                                                        marginRight:
+                                                                            'var(--size-xSmall)',
+                                                                        marginBottom: 2,
+                                                                    }}
+                                                                />
+                                                                Create New Alert
+                                                            </div>
+                                                        </>
+                                                    ) : undefined
+                                                }
+                                                data={[
+                                                    ...(
+                                                        metricMonitors?.metric_monitors ||
+                                                        []
+                                                    ).map((mm) => ({
+                                                        label: mm?.name || '',
+                                                        value: mm?.id || '',
+                                                    })),
+                                                    {
+                                                        label:
+                                                            'Create New Alert',
+                                                        value: -1,
+                                                    },
+                                                ]}
+                                                onSelect={(mmId) => {
+                                                    if (mmId === -1) {
+                                                        history.push(
+                                                            `/${project_id}/alerts/new/monitor?type=${metricConfig.name}`
+                                                        );
+                                                    } else {
+                                                        history.push(
+                                                            `/${project_id}/alerts/monitor/${mmId}`
+                                                        );
+                                                    }
+                                                }}
+                                                className={styles.monitorItem}
+                                                labelClassName={
+                                                    styles.monitorName
+                                                }
+                                            />
+                                        )
+                                    ) : (
+                                        <div style={{ width: 161 }}></div>
+                                    )}
+                                </div>
                                 <Button
                                     icon={
                                         <EditIcon
@@ -216,6 +259,9 @@ const DashboardCard = ({
                                             }}
                                         />
                                     }
+                                    style={{
+                                        marginRight: 'var(--size-xSmall)',
+                                    }}
                                     trackingId={'DashboardCardEditMetric'}
                                     onClick={() => {
                                         setShowEditModal(true);
@@ -225,7 +271,7 @@ const DashboardCard = ({
                                 </Button>
                                 <div
                                     className={styles.draggable}
-                                    data-drag-handle
+                                    data-drag-handle=""
                                 >
                                     <SvgDragIcon />
                                 </div>
@@ -236,7 +282,7 @@ const DashboardCard = ({
                             onCancel={() => {
                                 setShowDeleteModal(false);
                             }}
-                            title={`Delete '${metricConfig.name}' Metric?`}
+                            title={`Delete '${metricConfig.name}' Metric View?`}
                             width={400}
                         >
                             <ModalBody>
@@ -252,7 +298,7 @@ const DashboardCard = ({
                                         type="default"
                                         className={styles.button}
                                     >
-                                        Don't Delete Metric
+                                        Don't Delete View
                                     </Button>
                                     <Button
                                         trackingId="ConfirmDeleteDashboardMetric"
@@ -265,7 +311,7 @@ const DashboardCard = ({
                                             deleteMetric(metricIdx);
                                         }}
                                     >
-                                        Delete Metric
+                                        Delete Metric View
                                     </Button>
                                 </div>
                             </ModalBody>
@@ -290,6 +336,7 @@ const DashboardCard = ({
                     setShowEditModal={setShowEditModal}
                     setShowDeleteModal={setShowDeleteModal}
                     setDateRange={setDateRange}
+                    setUpdatingData={setUpdatingData}
                 />
             </Card>
         </>
@@ -435,8 +482,10 @@ export const TagFilters = ({
                             onSelectTag={(t) => {
                                 // ensure changing an existing tag updates rather than adding
                                 const newTags = [];
+                                let newTag = true;
                                 for (const x of currentTags) {
                                     if (x.tag === t.tag) {
+                                        newTag = false;
                                         newTags.push({
                                             tag: x.tag,
                                             value: t.value,
@@ -444,6 +493,9 @@ export const TagFilters = ({
                                     } else {
                                         newTags.push(x);
                                     }
+                                }
+                                if (newTag) {
+                                    newTags.push(t);
                                 }
                                 onSelectTags(newTags);
                             }}
@@ -595,11 +647,13 @@ const EditMetricModal = ({
         >
             <ModalBody>
                 <section className={dashStyles.section}>
+                    <MetricSelector
+                        onSelectMetric={setMetricName}
+                        currentMetric={metricName}
+                    />
+                </section>
+                <section className={dashStyles.section}>
                     <div className={dashStyles.metric}>
-                        <MetricSelector
-                            onSelectMetric={setMetricName}
-                            currentMetric={metricName}
-                        />
                         {chartType === DashboardChartType.Timeline ? (
                             <StandardDropdown
                                 data={Object.values(MetricAggregator).map(
@@ -802,6 +856,7 @@ const ChartContainer = React.memo(
         setShowEditModal,
         setShowDeleteModal,
         setDateRange,
+        setUpdatingData,
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
@@ -820,30 +875,38 @@ const ChartContainer = React.memo(
         setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>;
         setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
         setDateRange: Props['setDateRange'];
+        setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
-        // TODO: See if we can do away with this entirely.
+        const NUM_BUCKETS = 60;
+        const TICK_EVERY_BUCKETS = 10;
+        const { project_id } = useParams<{ project_id: string }>();
+        const [chartInitialLoading, setChartInitialLoading] = useState(true);
+        const [
+            histogramData,
+            setHistogramData,
+        ] = useState<GetMetricsHistogramQuery>();
+        const [
+            timelineData,
+            setTimelineData,
+        ] = useState<GetMetricsTimelineQuery>();
+        const [referenceArea, setReferenceArea] = useState<{
+            start: string;
+            end: string;
+        }>({ start: '', end: '' });
+        const [timelineTicks, setTimelineTicks] = useState<{
+            ticks: string[];
+            format: string;
+        }>({ ticks: [], format: '' });
+        const refetchInterval = useRef<number>();
         const lookbackMinutes = moment
             .duration(
                 moment(dateRange.end_date).diff(moment(dateRange.start_date))
             )
             .asMinutes();
-        const NUM_BUCKETS = 60;
-        const BUCKET_MINS = lookbackMinutes / NUM_BUCKETS;
-        const TICK_EVERY_BUCKETS = 10;
-        const { project_id } = useParams<{ project_id: string }>();
-        const [referenceArea, setReferenceArea] = React.useState<{
-            start: string;
-            end: string;
-        }>({ start: '', end: '' });
-        const refetchInterval = useRef<number>();
         const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
         const [
             loadTimeline,
-            {
-                data: timelineData,
-                loading: timelineLoading,
-                refetch: refetchTimeline,
-            },
+            { loading: timelineLoading, refetch: refetchTimeline },
         ] = useGetMetricsTimelineLazyQuery({
             variables: {
                 project_id,
@@ -858,14 +921,16 @@ const ChartContainer = React.memo(
                 },
             },
             fetchPolicy: 'cache-first',
+            onCompleted: (data) => {
+                if (data.metrics_timeline) {
+                    setTimelineData(data);
+                }
+                setChartInitialLoading(false);
+            },
         });
         const [
             loadHistogram,
-            {
-                data: histogramData,
-                loading: histogramLoading,
-                refetch: refetchHistogram,
-            },
+            { loading: histogramLoading, refetch: refetchHistogram },
         ] = useGetMetricsHistogramLazyQuery({
             variables: {
                 project_id,
@@ -882,6 +947,12 @@ const ChartContainer = React.memo(
                 },
             },
             fetchPolicy: 'cache-first',
+            onCompleted: (data) => {
+                if (data.metrics_histogram) {
+                    setHistogramData(data);
+                }
+                setChartInitialLoading(false);
+            },
         });
 
         useEffect(() => {
@@ -938,29 +1009,40 @@ const ChartContainer = React.memo(
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [customDateRange?.value]);
 
-        const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
-        const ticks: string[] = [];
-        const seenDays: Set<string> = new Set<string>();
-        let lastDate: moment.Moment | undefined = undefined;
-        for (const d of timelineData?.metrics_timeline || []) {
-            const pointDate = d?.date;
-            if (pointDate) {
-                const newDate = moment(pointDate);
-                if (
-                    lastDate &&
-                    newDate.diff(lastDate, 'minutes') <
-                        BUCKET_MINS * TICK_EVERY_BUCKETS
-                ) {
-                    continue;
-                }
-                lastDate = moment(newDate);
-                const formattedDate = newDate.format(tickFormat);
-                if (!seenDays.has(formattedDate)) {
-                    ticks.push(d.date);
-                    seenDays.add(formattedDate);
+        useEffect(() => {
+            setUpdatingData(timelineLoading || histogramLoading);
+        }, [setUpdatingData, timelineLoading, histogramLoading]);
+
+        useEffect(() => {
+            // build out the ticks array based on data and lookbackMinutes
+            const tickFormat = lookbackMinutes > 24 * 60 ? 'D MMM' : 'HH:mm';
+            const ticks: string[] = [];
+            const seenDays: Set<string> = new Set<string>();
+            let lastDate: moment.Moment | undefined = undefined;
+            for (const d of timelineData?.metrics_timeline || []) {
+                const pointDate = d?.date;
+                if (pointDate) {
+                    const newDate = moment(pointDate);
+                    if (
+                        lastDate &&
+                        newDate.diff(lastDate, 'minutes') <
+                            (lookbackMinutes / NUM_BUCKETS) * TICK_EVERY_BUCKETS
+                    ) {
+                        continue;
+                    }
+                    lastDate = moment(newDate);
+                    const formattedDate = newDate.format(tickFormat);
+                    if (!seenDays.has(formattedDate)) {
+                        ticks.push(pointDate);
+                        seenDays.add(formattedDate);
+                    }
                 }
             }
-        }
+            setTimelineTicks({ ticks, format: tickFormat });
+            // Only invoke on new data.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [timelineData?.metrics_timeline]);
+
         let referenceLines: Reference[] = [];
         if (WEB_VITALS_CONFIGURATION[metricConfig.name]) {
             referenceLines = [
@@ -998,7 +1080,11 @@ const ChartContainer = React.memo(
         }
 
         return (
-            <>
+            <div
+                className={classNames({
+                    [styles.blurChart]: timelineLoading || histogramLoading,
+                })}
+            >
                 <EditMetricModal
                     shown={showEditModal}
                     onCancel={() => {
@@ -1011,10 +1097,10 @@ const ChartContainer = React.memo(
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
                 />
-                {!dateRange || timelineLoading || histogramLoading ? (
+                {chartInitialLoading ? (
                     <Skeleton height={235} />
                 ) : !timelineData?.metrics_timeline.length &&
-                  !histogramData?.metrics_histogram.buckets.length ? (
+                  !histogramData?.metrics_histogram?.buckets.length ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
                             message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
@@ -1023,7 +1109,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
                         height={235}
-                        data={histogramData?.metrics_histogram.buckets || []}
+                        data={histogramData?.metrics_histogram?.buckets || []}
                         referenceLines={referenceLines}
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
@@ -1051,13 +1137,13 @@ const ChartContainer = React.memo(
                         referenceLines={referenceLines}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) =>
-                            moment(tickItem).format(tickFormat)
+                            moment(tickItem).format(timelineTicks.format)
                         }
                         xAxisProps={{
-                            ticks: ticks,
+                            ticks: timelineTicks.ticks,
+                            tickCount: timelineTicks.ticks.length,
                             domain: ['dataMin', 'dataMax'],
                             scale: 'point',
-                            tickCount: ticks.length,
                             interval: 0, // show all ticks
                         }}
                         lineColorMapping={{
@@ -1075,15 +1161,15 @@ const ChartContainer = React.memo(
                             x1: referenceArea.start,
                             x2: referenceArea.end,
                         }}
-                        onMouseDown={(e: any) => {
-                            e.activeLabel &&
+                        onMouseDown={(e?: any) => {
+                            e?.activeLabel &&
                                 setReferenceArea({
                                     start: e.activeLabel,
                                     end: referenceArea.end,
                                 });
                         }}
-                        onMouseMove={(e: any) => {
-                            e.activeLabel &&
+                        onMouseMove={(e?: any) => {
+                            e?.activeLabel &&
                                 referenceArea.start &&
                                 setReferenceArea({
                                     start: referenceArea.start,
@@ -1107,7 +1193,7 @@ const ChartContainer = React.memo(
                         }}
                     />
                 ) : null}
-            </>
+            </div>
         );
     },
     (prevProps, nextProps) =>

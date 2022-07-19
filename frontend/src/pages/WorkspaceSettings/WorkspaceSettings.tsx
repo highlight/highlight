@@ -8,7 +8,7 @@ import styles from './WorkspaceSettings.module.scss';
 
 const WorkspaceSettings = () => {
     return (
-        <>
+        <div className={styles.container}>
             <div className={styles.titleContainer}>
                 <div>
                     <h3>Properties</h3>
@@ -28,7 +28,7 @@ const WorkspaceSettings = () => {
                 </p>
                 <AutoJoinForm />
             </FieldsBox>
-        </>
+        </div>
     );
 };
 

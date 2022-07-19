@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip/Tooltip';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
+import Reload from '@icons/Reload';
 import SvgXIcon from '@icons/XIcon';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
@@ -15,8 +16,14 @@ import { useParams } from '@util/react-router/useParams';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
-import moment from 'moment';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import moment, { unitOfTime } from 'moment';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { components } from 'react-select';
 import AsyncSelect from 'react-select/async';
 import Creatable from 'react-select/creatable';
@@ -32,7 +39,7 @@ export interface RuleProps {
     val: MultiselectOption | undefined;
 }
 
-interface SelectOption {
+export interface SelectOption {
     kind: 'single';
     label: string;
     value: string;
@@ -229,12 +236,36 @@ const ScrolledTextHighlighter = ({
     );
 };
 const getDateLabel = (value: string): string => {
+    if (!value.includes('_')) {
+        // Value is a duration such as '7 days'
+        return 'Last ' + value;
+    }
     const split = value.split('_');
     const start = split[0];
     const end = split[1];
     const startStr = moment(start).format('MMM D');
     const endStr = moment(end).format('MMM D');
-    return `${startStr} and ${endStr}`;
+    return `${startStr} to ${endStr}`;
+};
+export const getAbsoluteStartTime = (value?: string): string | null => {
+    if (!value) return null;
+    if (!value.includes('_')) {
+        // value is a relative duration such as '7 days', subtract it from current time
+        const amount = parseInt(value.split(' ')[0]);
+        const unit = value.split(' ')[1].toLowerCase();
+        return moment()
+            .subtract(amount, unit as unitOfTime.DurationConstructor)
+            .toISOString();
+    }
+    return value!.split('_')[0];
+};
+export const getAbsoluteEndTime = (value?: string): string | null => {
+    if (!value) return null;
+    if (!value.includes('_')) {
+        // value is a relative duration such as '7 days', use current time as end of range
+        return moment().toISOString();
+    }
+    return value!.split('_')[1];
 };
 
 const getLengthLabel = (value: string): string => {
@@ -529,12 +560,16 @@ const PopoutContent = ({
                 <DateInput
                     startDate={
                         value?.kind === 'multi'
-                            ? new Date(value.options[0]?.value.split('_')[0])
+                            ? new Date(
+                                  getAbsoluteStartTime(value.options[0]?.value)!
+                              )
                             : undefined
                     }
                     endDate={
                         value?.kind === 'multi'
-                            ? new Date(value.options[0]?.value.split('_')[1])
+                            ? new Date(
+                                  getAbsoluteEndTime(value.options[0]?.value)!
+                              )
                             : undefined
                     }
                     onChange={(start, end) => {
@@ -718,6 +753,24 @@ const QueryRule = ({
                 </Button>
             )}
         </div>
+    );
+};
+
+export const TimeRangeFilter = ({
+    rule,
+    onChangeValue,
+}: {
+    rule: RuleProps;
+    onChangeValue: OnChange;
+}) => {
+    return (
+        <SelectPopout
+            value={rule.val}
+            onChange={onChangeValue}
+            loadOptions={() => Promise.resolve([])}
+            type={'date_range'}
+            disabled={false}
+        />
     );
 };
 
@@ -1026,6 +1079,7 @@ export type FetchFieldVariables =
 
 interface QueryBuilderProps {
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    timeRangeField: SelectOption;
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
@@ -1037,6 +1091,7 @@ interface QueryBuilderProps {
 
 const QueryBuilder = ({
     setSearchQuery,
+    timeRangeField,
     customFields,
     fetchFields,
     fieldData,
@@ -1129,8 +1184,8 @@ const QueryBuilder = ({
                         return {
                             range: {
                                 [name]: {
-                                    gte: value?.split('_')[0],
-                                    lte: value?.split('_')[1],
+                                    gte: getAbsoluteStartTime(value),
+                                    lte: getAbsoluteEndTime(value),
                                 },
                             },
                         };
@@ -1285,8 +1340,29 @@ const QueryBuilder = ({
     });
 
     const [currentRule, setCurrentRule] = useState<RuleProps | undefined>();
-
-    const [rules, setRulesImpl] = useState<RuleProps[]>([]);
+    const defaultTimeRangeRule: RuleProps = {
+        field: timeRangeField,
+        op: 'between_date',
+        val: {
+            kind: 'multi',
+            options: [
+                {
+                    label: 'Last 7 days',
+                    value: '7 days',
+                },
+            ],
+        },
+    };
+    const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
+    const timeRangeRule = useMemo<RuleProps | undefined>(
+        () => rules.find((rule) => rule.field?.value === timeRangeField.value),
+        [rules, timeRangeField.value]
+    );
+    const filterRules = useMemo<RuleProps[]>(
+        () =>
+            rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+        [rules, timeRangeField.value]
+    );
     const setRules = (rules: RuleProps[]) => {
         setRulesImpl(rules);
     };
@@ -1302,12 +1378,12 @@ const QueryBuilder = ({
         setRules([...rules, rule]);
         setCurrentRule(undefined);
     };
-    const removeRule = (index: number) =>
-        setRules(rules.filter((_, idx) => idx !== index));
-    const updateRule = (index: number, newProps: any) => {
+    const removeRule = (targetRule: RuleProps) =>
+        setRules(rules.filter((rule) => rule !== targetRule));
+    const updateRule = (targetRule: RuleProps, newProps: any) => {
         setRules(
-            rules.map((rule, idx) =>
-                idx !== index ? rule : { ...rule, ...newProps }
+            rules.map((rule) =>
+                rule !== targetRule ? rule : { ...rule, ...newProps }
             )
         );
     };
@@ -1494,168 +1570,204 @@ const QueryBuilder = ({
         return null;
     }
 
+    if (!timeRangeRule) {
+        addRule(defaultTimeRangeRule);
+    }
     return (
         <div className={styles.builderContainer}>
-            {rules.length > 0 && (
+            <div>
                 <div className={styles.rulesContainer}>
-                    {rules.flatMap((rule, index) => [
-                        ...(index != 0
-                            ? [
-                                  <Button
-                                      className={styles.separator}
-                                      trackingId="SessionsQuerySeparatorToggle"
-                                      onClick={toggleIsAnd}
-                                      key={`separator-${index}`}
-                                      type="dashed"
-                                      disabled={readonly}
-                                  >
-                                      {isAnd ? 'and' : 'or'}
-                                  </Button>,
-                              ]
-                            : []),
-                        <QueryRule
-                            key={`rule-${index}`}
-                            rule={rule}
-                            onChangeKey={(val) => {
-                                // Default to 'is' when rule is not defined yet
-                                if (rule.op === undefined) {
-                                    updateRule(index, {
-                                        field: val,
-                                        op: getDefaultOperator(rule.field),
-                                    });
-                                } else {
-                                    updateRule(index, { field: val });
+                    {timeRangeRule && (
+                        <TimeRangeFilter
+                            rule={timeRangeRule}
+                            onChangeValue={(val) =>
+                                updateRule(timeRangeRule, { val: val })
+                            }
+                        />
+                    )}
+                    {!readonly && (
+                        <Button
+                            className={styles.syncButton}
+                            onClick={() => {
+                                const query = parseGroup(isAnd, rules);
+                                setSearchQuery(JSON.stringify(query));
+                            }}
+                            loading={false}
+                            trackingId={'RefreshSearchResults'}
+                        >
+                            <Tooltip
+                                title={
+                                    'Refresh the channels & people in your Slack Workspace.'
                                 }
-                            }}
-                            getKeyOptions={getKeyOptions}
-                            onChangeOperator={(val) => {
-                                if (val?.kind === 'single') {
-                                    updateRule(index, { op: val.value });
-                                }
-                            }}
-                            getOperatorOptions={getOperatorOptionsCallback(
-                                getCustomFieldOptions(rule.field),
-                                rule.val
-                            )}
-                            onChangeValue={(val) => {
-                                updateRule(index, { val: val });
-                            }}
-                            getValueOptions={getValueOptionsCallback(
-                                rule.field
-                            )}
-                            onRemove={() => removeRule(index)}
-                            readonly={readonly ?? false}
-                        />,
-                    ])}
+                            >
+                                <Reload width="12px" height="12px" />
+                            </Tooltip>
+                        </Button>
+                    )}
                 </div>
-            )}
-            {!readonly && (
-                <div>
-                    <Popover
-                        trigger="click"
-                        content={
-                            currentRule?.field === undefined ? (
-                                <PopoutContent
-                                    key={'popover-step-1'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(undefined);
-                                    }}
-                                    onChange={(val) => {
-                                        const field = val as
-                                            | SelectOption
-                                            | undefined;
-                                        addRule({
-                                            field: field,
-                                            op: undefined,
-                                            val: undefined,
+            </div>
+            <div>
+                {filterRules.length > 0 && (
+                    <div className={styles.rulesContainer}>
+                        {filterRules.flatMap((rule, index) => [
+                            ...(index != 0
+                                ? [
+                                      <Button
+                                          className={styles.separator}
+                                          trackingId="SessionsQuerySeparatorToggle"
+                                          onClick={toggleIsAnd}
+                                          key={`separator-${index}`}
+                                          type="dashed"
+                                          disabled={readonly}
+                                      >
+                                          {isAnd ? 'and' : 'or'}
+                                      </Button>,
+                                  ]
+                                : []),
+                            <QueryRule
+                                key={`rule-${index}`}
+                                rule={rule}
+                                onChangeKey={(val) => {
+                                    // Default to 'is' when rule is not defined yet
+                                    if (rule.op === undefined) {
+                                        updateRule(rule, {
+                                            field: val,
+                                            op: getDefaultOperator(rule.field),
                                         });
-                                    }}
-                                    loadOptions={getKeyOptions}
-                                    type="select"
-                                    placeholder="Filter..."
-                                />
-                            ) : currentRule?.op === undefined ? (
-                                <PopoutContent
-                                    key={'popover-step-2'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(3);
-                                    }}
-                                    onChange={(val) => {
-                                        const op = (val as SelectOption)
-                                            .value as Operator;
-                                        if (!hasArguments(op)) {
+                                    } else {
+                                        updateRule(rule, { field: val });
+                                    }
+                                }}
+                                getKeyOptions={getKeyOptions}
+                                onChangeOperator={(val) => {
+                                    if (val?.kind === 'single') {
+                                        updateRule(rule, { op: val.value });
+                                    }
+                                }}
+                                getOperatorOptions={getOperatorOptionsCallback(
+                                    getCustomFieldOptions(rule.field),
+                                    rule.val
+                                )}
+                                onChangeValue={(val) => {
+                                    updateRule(rule, { val: val });
+                                }}
+                                getValueOptions={getValueOptionsCallback(
+                                    rule.field
+                                )}
+                                onRemove={() => removeRule(rule)}
+                                readonly={readonly ?? false}
+                            />,
+                        ])}
+                    </div>
+                )}
+                {!readonly && (
+                    <div>
+                        <Popover
+                            trigger="click"
+                            content={
+                                currentRule?.field === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-1'}
+                                        value={undefined}
+                                        setVisible={() => {
                                             setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
+                                            const field = val as
+                                                | SelectOption
+                                                | undefined;
+                                            addRule({
+                                                field: field,
+                                                op: undefined,
+                                                val: undefined,
+                                            });
+                                        }}
+                                        loadOptions={getKeyOptions}
+                                        type="select"
+                                        placeholder="Filter..."
+                                    />
+                                ) : currentRule?.op === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-2'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(3);
+                                        }}
+                                        onChange={(val) => {
+                                            const op = (val as SelectOption)
+                                                .value as Operator;
+                                            if (!hasArguments(op)) {
+                                                setCurrentStep(undefined);
+                                                addRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            } else {
+                                                setCurrentRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            }
+                                        }}
+                                        loadOptions={getOperatorOptionsCallback(
+                                            getCustomFieldOptions(
+                                                currentRule.field
+                                            ),
+                                            currentRule.val
+                                        )}
+                                        type="select"
+                                        placeholder="Select..."
+                                    />
+                                ) : (
+                                    <PopoutContent
+                                        key={'popover-step-3'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
                                             addRule({
                                                 ...currentRule,
-                                                op,
+                                                val: val as
+                                                    | MultiselectOption
+                                                    | undefined,
                                             });
-                                        } else {
-                                            setCurrentRule({
-                                                ...currentRule,
-                                                op,
-                                            });
-                                        }
-                                    }}
-                                    loadOptions={getOperatorOptionsCallback(
-                                        getCustomFieldOptions(
+                                        }}
+                                        loadOptions={getValueOptionsCallback(
                                             currentRule.field
-                                        ),
-                                        currentRule.val
-                                    )}
-                                    type="select"
-                                    placeholder="Select..."
-                                />
-                            ) : (
-                                <PopoutContent
-                                    key={'popover-step-3'}
-                                    value={undefined}
-                                    setVisible={() => {
-                                        setCurrentStep(undefined);
-                                    }}
-                                    onChange={(val) => {
-                                        addRule({
-                                            ...currentRule,
-                                            val: val as
-                                                | MultiselectOption
-                                                | undefined,
-                                        });
-                                    }}
-                                    loadOptions={getValueOptionsCallback(
-                                        currentRule.field
-                                    )}
-                                    type={getPopoutType(currentRule.op)}
-                                    placeholder={`Select...`}
-                                />
-                            )
-                        }
-                        placement="bottomLeft"
-                        contentContainerClassName={styles.contentContainer}
-                        popoverClassName={styles.popoverContainer}
-                        destroyTooltipOnHide
-                        onVisibleChange={(isVisible) => {
-                            if (!isVisible) {
-                                setCurrentStep(undefined);
+                                        )}
+                                        type={getPopoutType(currentRule.op)}
+                                        placeholder={`Select...`}
+                                    />
+                                )
                             }
-                        }}
-                        visible={
-                            currentStep === 1 ||
-                            (currentStep === 2 && !!currentRule?.field) ||
-                            (currentStep === 3 && !!currentRule?.op)
-                        }
-                    >
-                        <Button
-                            className={styles.addFilter}
-                            trackingId="SessionsQueryAddRule2"
-                            onClick={newRule}
-                            type="dashed"
+                            placement="bottomLeft"
+                            contentContainerClassName={styles.contentContainer}
+                            popoverClassName={styles.popoverContainer}
+                            destroyTooltipOnHide
+                            onVisibleChange={(isVisible) => {
+                                if (!isVisible) {
+                                    setCurrentStep(undefined);
+                                }
+                            }}
+                            visible={
+                                currentStep === 1 ||
+                                (currentStep === 2 && !!currentRule?.field) ||
+                                (currentStep === 3 && !!currentRule?.op)
+                            }
                         >
-                            + Filter
-                        </Button>
-                    </Popover>
-                </div>
-            )}
+                            <Button
+                                className={styles.addFilter}
+                                trackingId="SessionsQueryAddRule2"
+                                onClick={newRule}
+                                type="dashed"
+                            >
+                                + Filter
+                            </Button>
+                        </Popover>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

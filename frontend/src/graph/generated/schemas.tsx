@@ -1022,8 +1022,8 @@ export type Query = {
     metric_tags: Array<Scalars['String']>;
     metric_tag_values: Array<Scalars['String']>;
     metrics_timeline: Array<Maybe<DashboardPayload>>;
-    metrics_histogram: HistogramPayload;
-    network_histogram: CategoryHistogramPayload;
+    metrics_histogram?: Maybe<HistogramPayload>;
+    network_histogram?: Maybe<CategoryHistogramPayload>;
     metric_monitors: Array<Maybe<MetricMonitor>>;
     event_chunk_url: Scalars['String'];
     event_chunks: Array<EventChunk>;

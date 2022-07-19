@@ -121,9 +121,18 @@
     border-radius: var(--border-radius);
     display: flex;
     flex-direction: column;
-    gap: var(--size-xSmall);
-    padding: var(--size-xSmall);
     width: 100%;
+}
+
+.builderContainer > div {
+    border-bottom: 1px solid var(--color-gray-300);
+    gap: var(--size-xSmall);
+    line-height: 0;
+    padding: var(--size-xSmall);
+}
+
+.builderContainer > div:last-child {
+    border-bottom: 0;
 }
 
 .rulesContainer {
@@ -214,12 +223,34 @@ span:last-child {
     gap: 1px;
 }
 
+.syncButton,
+.syncButton:active,
+.syncButton:focus,
+.syncButton:hover {
+    background-color: var(--color-green-600);
+    border-radius: 4px;
+    border-width: 0;
+    color: var(--color-white) !important;
+    display: inline-block;
+    font-weight: 400;
+    height: 24.85px;
+    line-height: 0;
+    margin-left: var(--size-xxSmall);
+    padding: var(--size-xxSmall);
+    width: 24.85px;
+}
+
+.syncButton:hover {
+    opacity: 60%;
+}
+
 .addFilter {
     border: 1px dashed var(--color-purple-500);
     border-radius: 3px;
     color: var(--color-purple-500) !important;
     font-size: 12px;
     height: 100%;
+    margin-top: var(--size-xSmall);
     padding: 0 4px;
 }
 

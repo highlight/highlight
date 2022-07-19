@@ -6,7 +6,7 @@ replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/99designs/gqlgen v0.17.2
+	github.com/99designs/gqlgen v0.17.12
 	github.com/DataDog/datadog-go v4.8.2+incompatible
 	github.com/DmitriyVTitov/size v1.1.0
 	github.com/PaesslerAG/jsonpath v0.1.1
@@ -22,9 +22,9 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
-	github.com/highlight-run/highlight-go v0.4.0
+	github.com/highlight-run/highlight-go v0.5.2
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/kylelemons/godebug v1.1.0
@@ -44,8 +44,8 @@ require (
 	github.com/slack-go/slack v0.10.3
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v72 v72.73.1
-	github.com/urfave/cli/v2 v2.3.0
-	github.com/vektah/gqlparser/v2 v2.4.0
+	github.com/urfave/cli/v2 v2.8.1
+	github.com/vektah/gqlparser/v2 v2.4.6
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.7
@@ -69,6 +69,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
 
 require (
@@ -78,7 +79,7 @@ require (
 	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
-	github.com/agnivade/levenshtein v1.1.0 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.2.2 // indirect
@@ -123,16 +124,16 @@ require (
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20211013180041-c96bc1413d57 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
-	golang.org/x/tools v0.1.9 // indirect
+	golang.org/x/tools v0.1.10 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	google.golang.org/grpc v1.40.0 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
