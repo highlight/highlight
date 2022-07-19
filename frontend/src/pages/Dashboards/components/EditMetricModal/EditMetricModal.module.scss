@@ -60,7 +60,7 @@
 .tagFilterGroup {
     display: flex;
     flex-direction: column;
-    row-gap: var(--size-xSmall);
+    row-gap: var(--size-xxSmall);
 }
 
 .filtersRow {
@@ -74,7 +74,7 @@
     background-color: var(--color-red-700);
     border: var(--color-red-900);
     color: var(--color-white) !important;
-    height: 48px;
+    height: 40px;
     padding: 0 16px;
 
     &[disabled] {

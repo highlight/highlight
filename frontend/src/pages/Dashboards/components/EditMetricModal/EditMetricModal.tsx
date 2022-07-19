@@ -5,7 +5,6 @@ import { StandardDropdown } from '@components/Dropdown/StandardDropdown/Standard
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
-import Select from '@components/Select/Select';
 import Switch from '@components/Switch/Switch';
 import {
     useGetMetricTagsQuery,
@@ -161,6 +160,7 @@ export const EditMetricModal = ({
                                 <div className={styles.metricViewDetail}>
                                     <h3>Aggregator</h3>
                                     <StandardDropdown
+                                        gray
                                         data={Object.values(
                                             MetricAggregator
                                         ).map((v) => ({
@@ -339,6 +339,7 @@ const UnitsSelector = ({
 }) => {
     return (
         <StandardDropdown
+            gray
             data={UNIT_OPTIONS}
             defaultValue={
                 UNIT_OPTIONS.filter((x) => x.value === metricConfig.units)[0]
@@ -445,49 +446,80 @@ export const TagFilterSelector = ({
     });
 
     useEffect(() => {
+        if (data?.metric_tags.length) {
+            setTag(data.metric_tags[0]);
+        }
+    }, [data]);
+
+    useEffect(() => {
         if (tag?.length) {
-            load();
+            load().catch(console.error);
         }
     }, [tag, load]);
 
+    console.log({ tags: data?.metric_tags, values: values?.metric_tag_values });
     return (
         <>
-            <Select
-                placeholder={`graphql_operation`}
-                options={
-                    data?.metric_tags
-                        .filter((t) =>
-                            usedTags ? !usedTags.includes(t) : true
-                        )
-                        .map((t) => ({
-                            value: t,
-                            id: t,
-                            displayValue: t,
-                        })) || []
-                }
-                value={tag}
-                onChange={(t) => {
-                    setTag(t);
-                    setValue(undefined);
-                }}
-            />
-            <Select
-                placeholder={`GetSession`}
-                options={
-                    values?.metric_tag_values.map((t) => ({
-                        value: t,
-                        id: t,
-                        displayValue: t,
-                    })) || []
-                }
-                value={value}
-                onChange={(v) => {
-                    setValue(v);
-                    if (tag?.length) {
-                        onSelectTag({ tag: tag, value: v });
+            {data?.metric_tags.length ? (
+                <StandardDropdown
+                    gray
+                    data={
+                        data?.metric_tags
+                            .filter((t) =>
+                                usedTags ? !usedTags.includes(t) : true
+                            )
+                            .map((t) => ({
+                                value: t,
+                                label: t,
+                            })) || []
                     }
-                }}
-            />
+                    defaultValue={value ? { value, label: value } : undefined}
+                    onSelect={(v) => {
+                        setTag(v);
+                        setValue(undefined);
+                    }}
+                />
+            ) : (
+                <Input
+                    placeholder="Filter Key"
+                    name="Filter Key"
+                    value={tag}
+                    onChange={(e) => {
+                        setTag(e.target.value);
+                        setValue(undefined);
+                    }}
+                />
+            )}
+            {values?.metric_tag_values.length ? (
+                <StandardDropdown
+                    gray
+                    data={
+                        values?.metric_tag_values.map((t) => ({
+                            value: t,
+                            label: t,
+                        })) || []
+                    }
+                    defaultValue={value ? { value, label: value } : undefined}
+                    onSelect={(v) => {
+                        setTag(v);
+                        if (tag?.length) {
+                            onSelectTag({ tag: tag, value: v });
+                        }
+                    }}
+                />
+            ) : (
+                <Input
+                    placeholder="Filter Value"
+                    name="Filter Value"
+                    value={value}
+                    onChange={(e) => {
+                        setTag(e.target.value);
+                        if (tag?.length) {
+                            onSelectTag({ tag: tag, value: e.target.value });
+                        }
+                    }}
+                />
+            )}
         </>
     );
 };

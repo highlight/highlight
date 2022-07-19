@@ -18,6 +18,7 @@ export const StandardDropdown = ({
     defaultValue,
     value,
     disabled,
+    gray,
     className,
     labelClassName,
 }: {
@@ -28,6 +29,7 @@ export const StandardDropdown = ({
     defaultValue?: Option;
     value?: Option;
     disabled?: boolean;
+    gray?: boolean;
     className?: string;
     labelClassName?: string;
 }) => {
@@ -74,7 +76,9 @@ export const StandardDropdown = ({
             overlayClassName={styles.overlay}
         >
             <div
-                className={styles.dropdownHandler}
+                className={classNames(styles.dropdownHandler, {
+                    [styles.dropdownGray]: gray,
+                })}
                 onClick={(e) => e.preventDefault()}
             >
                 {display ? (

@@ -1,3 +1,4 @@
+export const dropdownGray: string;
 export const dropdownHandler: string;
 export const dropdownInner: string;
 export const dropdownMenu: string;
