@@ -4,20 +4,15 @@ import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { DropdownIndicator } from '@components/DropdownIndicator/DropdownIndicator';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
-import Input from '@components/Input/Input';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
 import { CircularSpinner } from '@components/Loading/Loading';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
-import Select from '@components/Select/Select';
 import { Skeleton } from '@components/Skeleton/Skeleton';
-import Switch from '@components/Switch/Switch';
 import {
     useGetMetricMonitorsQuery,
     useGetMetricsHistogramLazyQuery,
     useGetMetricsTimelineLazyQuery,
-    useGetMetricTagsQuery,
-    useGetMetricTagValuesLazyQuery,
     useGetSuggestedMetricsQuery,
 } from '@graph/hooks';
 import {
@@ -28,7 +23,6 @@ import {
     DashboardChartType,
     DashboardMetricConfig,
     MetricAggregator,
-    MetricTagFilter,
 } from '@graph/schemas';
 import { SingleValue } from '@highlight-run/react-select';
 import AsyncSelect from '@highlight-run/react-select/async';
@@ -36,15 +30,16 @@ import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
 import SvgDragIcon from '@icons/DragIcon';
 import EditIcon from '@icons/EditIcon';
 import SvgPlusIcon from '@icons/PlusIcon';
-import SaveIcon from '@icons/SaveIcon';
-import TrashIcon from '@icons/TrashIcon';
+import {
+    EditMetricModal,
+    UpdateMetricFn,
+} from '@pages/Dashboards/components/EditMetricModal/EditMetricModal';
 import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { styleProps } from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/QuickSearch';
 import { useParams } from '@util/react-router/useParams';
-import { Form } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
@@ -59,7 +54,6 @@ export const UNIT_OPTIONS = [
     { label: 'No Units', value: '' },
 ];
 
-type UpdateMetricFn = (idx: number, value: DashboardMetricConfig) => void;
 type DeleteMetricFn = (idx: number) => void;
 
 interface Props {
@@ -401,6 +395,8 @@ export const MetricSelector = ({
                         cursor: 'text',
                     }),
                 }}
+                name={'graphql.operation.users'}
+                autoFocus
                 components={{
                     DropdownIndicator: () => (
                         <div className={dashStyles.dropdownPlaceholder}></div>
@@ -453,387 +449,6 @@ export const MetricSelector = ({
                 maxMenuHeight={500}
             />
         </div>
-    );
-};
-
-export const TagFilters = ({
-    metricName,
-    onSelectTags,
-    currentTags,
-}: {
-    metricName: string;
-    onSelectTags: (tags: MetricTagFilter[]) => void;
-    currentTags: MetricTagFilter[];
-}) => {
-    return (
-        <>
-            {[...currentTags, undefined].map((v, idx) => (
-                <section
-                    className={dashStyles.section}
-                    key={`tag-filter-${v?.tag || idx}`}
-                >
-                    <div className={styles.filtersRow}>
-                        <Form.Item
-                            label="Filter by:"
-                            className={styles.formLabel}
-                        />
-                        <TagFilterSelector
-                            metricName={metricName}
-                            onSelectTag={(t) => {
-                                // ensure changing an existing tag updates rather than adding
-                                const newTags = [];
-                                let newTag = true;
-                                for (const x of currentTags) {
-                                    if (x.tag === t.tag) {
-                                        newTag = false;
-                                        newTags.push({
-                                            tag: x.tag,
-                                            value: t.value,
-                                        } as MetricTagFilter);
-                                    } else {
-                                        newTags.push(x);
-                                    }
-                                }
-                                if (newTag) {
-                                    newTags.push(t);
-                                }
-                                onSelectTags(newTags);
-                            }}
-                            currentTag={v}
-                            usedTags={currentTags.map((t) => t.tag)}
-                        />
-                        <Button
-                            trackingId={'EditMetricRemoveTagFilter'}
-                            className={styles.removeTagFilterButton}
-                            onClick={() => {
-                                onSelectTags(
-                                    currentTags.filter((t) => t.tag !== v?.tag)
-                                );
-                            }}
-                        >
-                            <TrashIcon />
-                        </Button>
-                    </div>
-                </section>
-            ))}
-        </>
-    );
-};
-
-export const TagFilterSelector = ({
-    metricName,
-    onSelectTag,
-    currentTag,
-    usedTags,
-}: {
-    metricName: string;
-    onSelectTag: (tags: MetricTagFilter) => void;
-    currentTag?: MetricTagFilter;
-    usedTags?: string[];
-}) => {
-    const [tag, setTag] = useState<string | undefined>(currentTag?.tag);
-    const [value, setValue] = useState<string | undefined>(currentTag?.value);
-    const { project_id } = useParams<{ project_id: string }>();
-    const { data } = useGetMetricTagsQuery({
-        variables: {
-            project_id,
-            metric_name: metricName,
-        },
-    });
-    const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
-        variables: {
-            project_id,
-            metric_name: metricName,
-            tag_name: tag || '',
-        },
-    });
-
-    useEffect(() => {
-        if (tag?.length) {
-            load();
-        }
-    }, [tag, load]);
-
-    return (
-        <>
-            <Select
-                placeholder={`graphql_operation`}
-                options={
-                    data?.metric_tags
-                        .filter((t) =>
-                            usedTags ? !usedTags.includes(t) : true
-                        )
-                        .map((t) => ({
-                            value: t,
-                            id: t,
-                            displayValue: t,
-                        })) || []
-                }
-                value={tag}
-                onChange={(t) => {
-                    setTag(t);
-                    setValue(undefined);
-                }}
-            />
-            <Select
-                placeholder={`GetSession`}
-                options={
-                    values?.metric_tag_values.map((t) => ({
-                        value: t,
-                        id: t,
-                        displayValue: t,
-                    })) || []
-                }
-                value={value}
-                onChange={(v) => {
-                    setValue(v);
-                    if (tag?.length) {
-                        onSelectTag({ tag: tag, value: v });
-                    }
-                }}
-            />
-        </>
-    );
-};
-
-const EditMetricModal = ({
-    metricIdx,
-    metricConfig,
-    updateMetric,
-    onDelete,
-    onCancel,
-    shown = false,
-}: {
-    metricIdx: number;
-    metricConfig: DashboardMetricConfig;
-    updateMetric: UpdateMetricFn;
-    onDelete: () => void;
-    onCancel: () => void;
-    shown?: boolean;
-}) => {
-    const [minValue, setMinValue] = useState<boolean>(
-        metricConfig.min_value !== null
-    );
-    const [maxValue, setMaxValue] = useState<boolean>(
-        metricConfig.max_value !== null
-    );
-    const [min, setMin] = useState<number>(
-        metricConfig.min_value || metricConfig.min_percentile || 0
-    );
-    const [max, setMax] = useState<number>(
-        metricConfig.max_value || metricConfig.max_percentile || 100
-    );
-    const [units, setUnits] = useState<string>(metricConfig.units);
-    const [metricName, setMetricName] = useState<string>(metricConfig.name);
-    const [description, setDescription] = useState<string>(
-        metricConfig.description
-    );
-    const [chartType, setChartType] = useState<DashboardChartType>(
-        metricConfig.chart_type
-    );
-    const [aggregator, setAggregator] = useState<MetricAggregator>(
-        metricConfig.aggregator
-    );
-    const [filters, setFilters] = useState<MetricTagFilter[]>(
-        metricConfig.filters || []
-    );
-    return (
-        <Modal
-            onCancel={onCancel}
-            visible={shown}
-            title={'Edit Metric'}
-            width="800px"
-            mask
-        >
-            <ModalBody>
-                <section className={dashStyles.section}>
-                    <MetricSelector
-                        onSelectMetric={setMetricName}
-                        currentMetric={metricName}
-                    />
-                </section>
-                <section className={dashStyles.section}>
-                    <div className={dashStyles.metric}>
-                        {chartType === DashboardChartType.Timeline ? (
-                            <StandardDropdown
-                                data={Object.values(MetricAggregator).map(
-                                    (v) => ({
-                                        label: v,
-                                        value: v,
-                                    })
-                                )}
-                                defaultValue={
-                                    Object.values(MetricAggregator)
-                                        .filter(
-                                            (x) => x === metricConfig.aggregator
-                                        )
-                                        .map((v) => ({
-                                            label: v,
-                                            value: v,
-                                        }))[0]
-                                }
-                                onSelect={(value) => setAggregator(value)}
-                            />
-                        ) : (
-                            <div />
-                        )}
-                        <StandardDropdown
-                            data={UNIT_OPTIONS}
-                            defaultValue={
-                                UNIT_OPTIONS.filter(
-                                    (x) => x.value === metricConfig.units
-                                )[0]
-                            }
-                            onSelect={(value) => setUnits(value)}
-                        />
-                        <StandardDropdown
-                            data={Object.keys(DashboardChartType).map(
-                                (value) => ({
-                                    label: value,
-                                    value: value,
-                                })
-                            )}
-                            defaultValue={{
-                                label: chartType,
-                                value: chartType,
-                            }}
-                            onSelect={(value) => setChartType(value)}
-                        />
-                        <Input
-                            placeholder="Description"
-                            name="Description"
-                            value={description}
-                            onChange={(e) => {
-                                setDescription(e.target?.value || '');
-                            }}
-                        />
-                    </div>
-                </section>
-                {chartType === DashboardChartType.Histogram && (
-                    <section className={dashStyles.section}>
-                        <div className={styles.minMaxRow}>
-                            <Form.Item
-                                label="Minimum"
-                                className={styles.formLabel}
-                            />
-                            <Input
-                                type={'number'}
-                                placeholder="Min"
-                                name="Min"
-                                value={min * 100}
-                                min={minValue ? undefined : 0}
-                                max={minValue ? undefined : 100}
-                                onChange={(e) => {
-                                    setMin(
-                                        (Number(e.target?.value) || 0) / 100
-                                    );
-                                }}
-                            />
-                            <Switch
-                                label={minValue ? 'Value' : 'Percentile'}
-                                trackingId={
-                                    'EditDashboardChartMinPercentileToggle'
-                                }
-                                checked={!minValue}
-                                onChange={(checked) => {
-                                    setMinValue(!checked);
-                                }}
-                            />
-                            <Form.Item
-                                label="Maximum"
-                                className={styles.formLabel}
-                            />
-                            <Input
-                                type={'number'}
-                                placeholder="Max"
-                                name="Max"
-                                value={max * 100}
-                                min={maxValue ? undefined : 0}
-                                max={maxValue ? undefined : 100}
-                                onChange={(e) => {
-                                    setMax(
-                                        (Number(e.target?.value) || 0) / 100
-                                    );
-                                }}
-                            />
-                            <Switch
-                                label={maxValue ? 'Value' : 'Percentile'}
-                                trackingId={
-                                    'EditDashboardChartMaxPercentileToggle'
-                                }
-                                checked={!maxValue}
-                                onChange={(checked) => {
-                                    setMaxValue(!checked);
-                                }}
-                            />
-                        </div>
-                    </section>
-                )}
-                <TagFilters
-                    metricName={metricName}
-                    onSelectTags={(t) => setFilters(t)}
-                    currentTags={filters}
-                />
-                <section className={dashStyles.section}>
-                    <div className={styles.submitRow}>
-                        <Button
-                            type={'primary'}
-                            style={{
-                                width: 90,
-                                marginRight: 'var(--size-xSmall)',
-                            }}
-                            icon={
-                                <SaveIcon
-                                    style={{
-                                        marginRight: 'var(--size-xSmall)',
-                                    }}
-                                />
-                            }
-                            trackingId={'SaveMetric'}
-                            onClick={() => {
-                                updateMetric(metricIdx, {
-                                    name: metricName,
-                                    description: description,
-                                    units: units,
-                                    help_article: metricConfig.help_article,
-                                    max_good_value: metricConfig.max_good_value,
-                                    max_needs_improvement_value:
-                                        metricConfig.max_needs_improvement_value,
-                                    poor_value: metricConfig.poor_value,
-                                    chart_type: chartType,
-                                    aggregator: aggregator,
-                                    filters: filters,
-                                    ...(minValue
-                                        ? { min_value: min }
-                                        : { min_percentile: min }),
-                                    ...(maxValue
-                                        ? { max_value: max }
-                                        : { max_percentile: max }),
-                                });
-                                onCancel();
-                            }}
-                        >
-                            Save
-                        </Button>
-                        <Button
-                            style={{ width: 100 }}
-                            icon={
-                                <TrashIcon
-                                    style={{
-                                        marginRight: 'var(--size-xSmall)',
-                                    }}
-                                />
-                            }
-                            danger
-                            trackingId={'DashboardCardDeleteMonitor'}
-                            onClick={onDelete}
-                        >
-                            Delete
-                        </Button>
-                    </div>
-                </section>
-            </ModalBody>
-        </Modal>
     );
 };
 

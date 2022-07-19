@@ -9,9 +9,16 @@ type Props = {
     description: string;
     onClick: () => void;
     isSelected: boolean;
+    descriptionClass?: string;
 };
 
-const CardSelect = ({ description, isSelected, onClick, title }: Props) => {
+const CardSelect = ({
+    description,
+    isSelected,
+    onClick,
+    title,
+    descriptionClass,
+}: Props) => {
     return (
         <button onClick={onClick} type="button" className={styles.button}>
             <AnimatePresence>
@@ -28,7 +35,7 @@ const CardSelect = ({ description, isSelected, onClick, title }: Props) => {
             </AnimatePresence>
 
             <h4>{title}</h4>
-            <p>{description}</p>
+            <p className={descriptionClass}>{description}</p>
         </button>
     );
 };
