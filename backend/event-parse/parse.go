@@ -1,13 +1,27 @@
 package parse
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"github.com/tdewolff/parse/css"
+	"gorm.io/gorm"
 )
 
 type EventType int
@@ -55,6 +69,15 @@ const (
 	TouchCancel
 )
 
+var ResourcesBasePath = os.Getenv("RESOURCES_BASE_PATH")
+var PrivateGraphBasePath = os.Getenv("REACT_APP_PRIVATE_GRAPH_URI")
+
+const (
+	ErrAssetTooLarge    = "ErrAssetTooLarge"
+	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
+	ErrFailedToFetch    = "ErrFailedToFetch"
+)
+
 type fetcher interface {
 	fetchStylesheetData(string) ([]byte, error)
 }
@@ -66,10 +89,12 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error fetching styles")
 	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
+
 	body = append([]byte("/*highlight-inject*/\n"), body...)
 	return body, nil
 }
@@ -192,6 +217,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		if !ok || tagName != "link" {
 			continue
 		}
+
 		attrs, ok := subNode["attributes"].(map[string]interface{})
 		if !ok {
 			continue
@@ -223,6 +249,280 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
 	return json.RawMessage(b), nil
+}
+
+// The tag types which can reference static assets in the src attribute
+var srcTagNames map[string]bool = map[string]bool{
+	"audio":  true,
+	"embed":  true,
+	"img":    true,
+	"input":  true,
+	"source": true,
+	"track":  true,
+	"video":  true,
+}
+
+// If a url was already created for this resource in the past day, return that
+// Else, fetch the resource, generate a new url for it, and save to S3
+func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageClient, db *gorm.DB) (replacements map[string]string, err error) {
+	deduped := lo.Uniq(originalUrls)
+
+	dateTrunc := time.Now().UTC().Format("2006-01-02")
+	var results []model.SavedAsset
+
+	keys := lo.Map(originalUrls, func(url string, idx int) []any {
+		return []any{
+			projectId,
+			url,
+			dateTrunc,
+		}
+	})
+	if err := db.Where("(project_id, original_url, date) IN ?", keys).Find(&results).Error; err != nil {
+		return nil, errors.Wrap(err, "error querying saved assets")
+	}
+
+	resultMap := lo.FromEntries(lo.Map(results, func(asset model.SavedAsset, _ int) lo.Entry[string, model.SavedAsset] {
+		return lo.Entry[string, model.SavedAsset]{Key: asset.OriginalUrl, Value: asset}
+	}))
+
+	var newResults []model.SavedAsset
+	replacements = map[string]string{}
+	for _, url := range deduped {
+		var hashVal string
+		result, ok := resultMap[url]
+		if ok {
+			hashVal = result.HashVal
+		} else {
+			response, err := http.Get(url)
+			if err != nil {
+				hashVal = ErrFailedToFetch
+			} else if response.ContentLength > 30e6 {
+				hashVal = ErrAssetTooLarge
+			} else {
+				res, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to read response body")
+				}
+
+				r := bytes.NewReader(res)
+				hasher := sha256.New()
+				if _, err := io.Copy(hasher, r); err != nil {
+					return nil, errors.Wrap(err, "error hashing response body")
+				}
+
+				_, err = r.Seek(0, 0)
+				if err != nil {
+					return nil, errors.Wrap(err, "error seeking to beginning of reader")
+				}
+				hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+				hashVal = strings.ReplaceAll(hashVal, "/", "-")
+				hashVal = strings.ReplaceAll(hashVal, "+", "_")
+				hashVal = strings.ReplaceAll(hashVal, "=", "~")
+				contentType := response.Header.Get("Content-Type")
+				err = s.UploadAsset(strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
+				if err != nil {
+					return nil, errors.Wrap(err, "error uploading asset")
+				}
+				newResults = append(newResults, model.SavedAsset{
+					ProjectID:   projectId,
+					OriginalUrl: url,
+					Date:        dateTrunc,
+					HashVal:     hashVal,
+				})
+			}
+		}
+
+		if len(newResults) != 0 {
+			if err := db.Create(&newResults).Error; err != nil {
+				return nil, errors.Wrap(err, "error saving asset metadata")
+			}
+		}
+
+		var newUrl string
+		if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
+			newUrl = hashVal
+		} else {
+			newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
+		}
+		replacements[url] = newUrl
+	}
+
+	return
+}
+
+func getUrlsInSrcset(projectId int, srcsetText string, replacements map[string]string) (newText string, urls []string) {
+	srcsetReplacements := map[string]string{}
+	sourceSet := srcset.Parse(srcsetText)
+	for _, source := range sourceSet {
+		urls = append(urls, source.URL)
+		newUrl, ok := replacements[source.URL]
+		if ok {
+			srcsetReplacements[source.URL] = newUrl
+		}
+	}
+
+	newText = srcsetText
+	for old, new := range srcsetReplacements {
+		newText = strings.ReplaceAll(newText, old, new)
+	}
+
+	return
+}
+
+func getUrlsInStyle(projectId int, styleText string, replacements map[string]string) (newText string, urls []string) {
+	styleReplacements := map[string]string{}
+	reader := bytes.NewReader([]byte(styleText))
+	lexer := css.NewLexer(reader)
+
+lexerLoop:
+	for {
+		tt, text := lexer.Next()
+		switch tt {
+		case css.ErrorToken:
+			if !errors.Is(lexer.Err(), io.EOF) {
+				log.Warnf("error parsing stylesheet data: %s", lexer.Err().Error())
+			}
+
+			// Once an error or EOF is reached, exit the loop
+			break lexerLoop
+		case css.URLToken:
+			// Formatted like `url('https://example.com/image.png')`
+			asString := string(text)
+			// Trim the `url(` and `)`
+			inner := asString[4 : len(asString)-1]
+			// Strip any outer quotes (' or ")
+			noQuote := strings.Trim(inner, "'\"")
+			// Replace with double quotes and unquote (to correctly handle escape characters)
+			quoted := `"` + noQuote + `"`
+			url, err := strconv.Unquote(quoted)
+			if err != nil {
+				log.Warnf("could not unquote url: %s", quoted)
+			} else {
+				if strings.HasPrefix(url, "#") {
+					// SVG path id, skipping
+				} else if strings.HasPrefix(url, "blob:") {
+					// blob url, skipping
+				} else if strings.HasPrefix(url, "data:") {
+					// data url, skipping
+				} else {
+					urls = append(urls, url)
+					newUrl, ok := replacements[url]
+					if ok {
+						// Surround with `url(" ... ")`
+						asCss := fmt.Sprintf(`url(%s)`, strconv.Quote(newUrl))
+						// Map the old url substring to the new one
+						styleReplacements[asString] = asCss
+					}
+				}
+			}
+		}
+	}
+
+	// Replace every occurrence of the old substrings
+	newText = styleText
+	for old, new := range styleReplacements {
+		newText = strings.ReplaceAll(newText, old, new)
+	}
+
+	return
+}
+
+func ReplaceAssets(projectId int, root map[string]interface{}, s *storage.StorageClient, db *gorm.DB) error {
+	urls := getAssetUrlsFromTree(projectId, root, map[string]string{})
+	replacements, err := getOrCreateUrls(projectId, urls, s, db)
+	if err != nil {
+		return errors.Wrap(err, "error creating replacement urls")
+	}
+	getAssetUrlsFromTree(projectId, root, replacements)
+	return nil
+}
+
+func getAssetUrlsFromTree(projectId int, root map[string]interface{}, replacements map[string]string) (urls []string) {
+	urls = append(urls, tryGetAssetUrls(projectId, root, replacements)...)
+
+	for _, v := range root {
+		switch typedVal := v.(type) {
+		case []interface{}:
+			for _, item := range typedVal {
+				switch typedItem := item.(type) {
+				case map[string]interface{}:
+					urls = append(urls, getAssetUrlsFromTree(projectId, typedItem, replacements)...)
+				}
+			}
+		case map[string]interface{}:
+			urls = append(urls, getAssetUrlsFromTree(projectId, typedVal, replacements)...)
+		}
+	}
+
+	return
+}
+
+func tryGetAssetUrls(projectId int, node map[string]interface{}, replacements map[string]string) (urls []string) {
+	// If this is a style node with textContent
+	if node["isStyle"] == true {
+		textContent, textContentOk := node["textContent"].(string)
+		if !textContentOk {
+			return
+		}
+		newText, newUrls := getUrlsInStyle(projectId, textContent, replacements)
+		node["textContent"] = newText
+		urls = append(urls, newUrls...)
+	}
+
+	// If this node has a _cssText attribute
+	cssText, cssTextOk := node["_cssText"].(string)
+	if cssTextOk {
+		newText, newUrls := getUrlsInStyle(projectId, cssText, replacements)
+		node["_cssText"] = newText
+		urls = append(urls, newUrls...)
+	}
+
+	// Return if this node doesn't have a tagName or attributes
+	tagName, tagNameOk := node["tagName"].(string)
+	attributes, attributesOk := node["attributes"].(map[string]interface{})
+	if !tagNameOk || !attributesOk {
+		return urls
+	}
+
+	// If this node has a style attribute
+	style, styleOk := attributes["style"].(string)
+	if styleOk {
+		newText, newUrls := getUrlsInStyle(projectId, style, replacements)
+		attributes["style"] = newText
+		urls = append(urls, newUrls...)
+	}
+
+	// Get the src, data, and srcset attributes (these can all reference static assets)
+	src, srcOk := attributes["src"].(string)
+	data, dataOk := attributes["data"].(string)
+	srcset, srcsetOk := attributes["srcset"].(string)
+
+	// If the tag supports the src attribute
+	if srcTagNames[tagName] && srcOk {
+		newUrl, ok := replacements[src]
+		if ok {
+			attributes["src"] = newUrl
+		}
+		urls = append(urls, src)
+	}
+
+	// If the object tag has a data attribute
+	if tagName == "object" && dataOk {
+		newUrl, ok := replacements[data]
+		if ok {
+			attributes["data"] = newUrl
+		}
+		urls = append(urls, data)
+	}
+
+	// If the source tag has a srcset attribute
+	if tagName == "source" && srcsetOk {
+		newText, newUrls := getUrlsInSrcset(projectId, srcset, replacements)
+		attributes["srcset"] = newText
+		urls = append(urls, newUrls...)
+	}
+
+	return
 }
 
 func javascriptToGolangTime(t float64) time.Time {

@@ -68,7 +68,7 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
-    options.backendUrl = 'http://localhost:8082/public';
+    options.backendUrl = 'https://localhost:8082/public';
 
     options.integrations = undefined;
 

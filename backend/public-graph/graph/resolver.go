@@ -1949,7 +1949,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 						continue
 					}
 					event.Data = d
-				} else if event.Type == parse.IncrementalSnapshot {
+				}
+
+				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
+				// This gate will be removed in the future
+				if projectID == 1 {
+					var s interface{}
+					err := json.Unmarshal(event.Data, &s)
+					if err != nil {
+						log.Error(e.Wrap(err, "error unmarshalling event"))
+						continue
+					}
+					err = parse.ReplaceAssets(projectID, s.(map[string]interface{}), r.StorageClient, r.DB)
+					if err != nil {
+						log.Error(e.Wrap(err, "error replacing assets"))
+						continue
+					}
+					event.Data, err = json.Marshal(s)
+					if err != nil {
+						log.Error(e.Wrap(err, "error remarshalling event"))
+						continue
+					}
+				}
+
+				if event.Type == parse.IncrementalSnapshot {
 					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 					if err != nil {
 						log.Error(e.Wrap(err, "Error unmarshalling incremental event"))
