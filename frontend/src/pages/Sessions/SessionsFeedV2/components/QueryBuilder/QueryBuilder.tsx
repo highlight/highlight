@@ -1597,7 +1597,7 @@ const QueryBuilder = ({
                         >
                             <Tooltip
                                 title={
-                                    'Refresh the channels & people in your Slack Workspace.'
+                                    'Refetch the latest results of your query.'
                                 }
                             >
                                 <Reload width="12px" height="12px" />
