@@ -22,6 +22,10 @@ function AutoJoinForm({
     updateOrigins?: (domains: string[]) => void;
     newWorkspace?: boolean;
 }) {
+    const [emailOrigins, setEmailOrigins] = useState<string[]>([]);
+    const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>(
+        []
+    );
     const { workspace_id } = useParams<{ workspace_id: string }>();
     const { admin } = useAuthContext();
     const { loading } = useGetWorkspaceAdminsQuery({
@@ -46,8 +50,6 @@ function AutoJoinForm({
         },
     });
 
-    const [emailOrigins, setEmailOrigins] = useState<string[]>([]);
-
     const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation();
     const onChangeMsg = (domains: string[], msg: string) => {
         setEmailOrigins(domains);
@@ -68,10 +70,6 @@ function AutoJoinForm({
     const onChange = (domains: string[]) => {
         onChangeMsg(domains, 'Successfully updated auto-join email domains!');
     };
-
-    const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>(
-        []
-    );
 
     const adminsEmailDomain = getEmailDomain(admin?.email);
 
