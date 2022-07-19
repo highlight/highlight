@@ -87,4 +87,4 @@ jobs:
       - name: Run Tests
         run: cd frontend && yarn test
       - name: Build Bundle
-        run: export NODE_OPTIONS='--max-old-space-size=3072' && cd frontend && CI=false yarn build
+        run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false yarn build
