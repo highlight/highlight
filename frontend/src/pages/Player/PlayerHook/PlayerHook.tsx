@@ -281,88 +281,111 @@ export const usePlayer = (): ReplayerContextInterface => {
         variables: {
             secure_id: session_secure_id,
         },
-        onCompleted: (data) => {
-            if (data.session === null) {
-                setSessionViewability(SessionViewability.ERROR);
-            } else if (data.session?.within_billing_quota || isHighlightAdmin) {
-                if (!data.session?.within_billing_quota && isHighlightAdmin) {
-                    alert(
-                        "btw this session is outside of the project's billing quota."
-                    );
-                }
-                // Show the authorization form for Highlight staff if they're trying to access a customer session.
-                if (isHighlightAdmin && project_id !== '1') {
-                    setViewingUnauthorizedSession(true);
-                }
-                if (data.session?.last_user_interaction_time) {
-                    lastActiveTimestampRef.current = new Date(
-                        data.session?.last_user_interaction_time
-                    ).getTime();
-                }
-                if (isLoggedIn && session_secure_id !== 'repro') {
-                    markSessionAsViewed({
-                        variables: {
-                            secure_id: session_secure_id,
-                            viewed: true,
-                        },
-                    });
-                }
-
-                const directDownloadUrl = data.session?.direct_download_url;
-                if (directDownloadUrl) {
-                    setEventsDataLoaded(false);
-                    getSessionPayloadQuery({
-                        variables: {
-                            session_secure_id,
-                            skip_events: true,
-                        },
-                    });
-
-                    let fetchEvents;
+        onCompleted: useCallback(
+            (data) => {
+                if (data.session === null) {
+                    setSessionViewability(SessionViewability.ERROR);
+                } else if (
+                    data.session?.within_billing_quota ||
+                    isHighlightAdmin
+                ) {
                     if (
-                        data.session?.chunked &&
-                        !CHUNKING_DISABLED_PROJECTS.includes(project_id)
+                        !data.session?.within_billing_quota &&
+                        isHighlightAdmin
                     ) {
-                        fetchEvents = fetchEventChunkURL({
-                            secure_id: session_secure_id,
-                            index: 0,
-                        }).then((response) =>
-                            fetch(response.data.event_chunk_url)
+                        alert(
+                            "btw this session is outside of the project's billing quota."
                         );
-                    } else {
-                        fetchEvents = fetch(directDownloadUrl);
+                    }
+                    // Show the authorization form for Highlight staff if they're trying to access a customer session.
+                    if (isHighlightAdmin && project_id !== '1') {
+                        setViewingUnauthorizedSession(true);
+                    }
+                    if (data.session?.last_user_interaction_time) {
+                        lastActiveTimestampRef.current = new Date(
+                            data.session?.last_user_interaction_time
+                        ).getTime();
+                    }
+                    if (isLoggedIn && session_secure_id !== 'repro') {
+                        markSessionAsViewed({
+                            variables: {
+                                secure_id: session_secure_id,
+                                viewed: true,
+                            },
+                        });
                     }
 
-                    fetchEvents
-                        .then((response) => response.json())
-                        .then((data) => {
-                            chunkEventsSet(0, toHighlightEvents(data || []));
-                        })
-                        .catch((e) => {
-                            chunkEventsSet(0, []);
-                            H.consumeError(
-                                e,
-                                'Error direct downloading session payload'
-                            );
+                    const directDownloadUrl = data.session?.direct_download_url;
+                    if (directDownloadUrl) {
+                        setEventsDataLoaded(false);
+                        getSessionPayloadQuery({
+                            variables: {
+                                session_secure_id,
+                                skip_events: true,
+                            },
                         });
+
+                        let fetchEvents;
+                        if (
+                            data.session?.chunked &&
+                            !CHUNKING_DISABLED_PROJECTS.includes(project_id)
+                        ) {
+                            fetchEvents = fetchEventChunkURL({
+                                secure_id: session_secure_id,
+                                index: 0,
+                            }).then((response) =>
+                                fetch(response.data.event_chunk_url)
+                            );
+                        } else {
+                            fetchEvents = fetch(directDownloadUrl);
+                        }
+
+                        fetchEvents
+                            .then((response) => response.json())
+                            .then((data) => {
+                                chunkEventsSet(
+                                    0,
+                                    toHighlightEvents(data || [])
+                                );
+                            })
+                            .catch((e) => {
+                                chunkEventsSet(0, []);
+                                H.consumeError(
+                                    e,
+                                    'Error direct downloading session payload'
+                                );
+                            });
+                    } else {
+                        setEventsDataLoaded(false);
+                        getSessionPayloadQuery({
+                            variables: {
+                                session_secure_id,
+                                skip_events: false,
+                            },
+                        });
+                    }
+                    setSessionViewability(SessionViewability.VIEWABLE);
+                    H.track('Viewed session', { is_guest: !isLoggedIn });
                 } else {
-                    setEventsDataLoaded(false);
-                    getSessionPayloadQuery({
-                        variables: {
-                            session_secure_id,
-                            skip_events: false,
-                        },
-                    });
+                    setSessionViewability(
+                        SessionViewability.OVER_BILLING_QUOTA
+                    );
                 }
-                setSessionViewability(SessionViewability.VIEWABLE);
-                H.track('Viewed session', { is_guest: !isLoggedIn });
-            } else {
-                setSessionViewability(SessionViewability.OVER_BILLING_QUOTA);
-            }
-        },
-        onError: () => {
+            },
+            [
+                chunkEventsSet,
+                fetchEventChunkURL,
+                getSessionPayloadQuery,
+                isHighlightAdmin,
+                isLoggedIn,
+                markSessionAsViewed,
+                project_id,
+                session_secure_id,
+            ]
+        ),
+        onError: useCallback(() => {
             setSessionViewability(SessionViewability.ERROR);
-        },
+        }, []),
         skip: !session_secure_id,
         fetchPolicy: 'network-only',
     });
