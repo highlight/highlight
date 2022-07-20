@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext';
 import { Avatar } from '@components/Avatar/Avatar';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { Skeleton } from '@components/Skeleton/Skeleton';
+import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetEnhancedUserDetailsQuery,
     useGetProjectQuery,
@@ -16,10 +17,14 @@ import {
     SocialLink,
     SocialType,
 } from '@graph/schemas';
+import SvgInformationIcon from '@icons/InformationIcon';
+import UserCross from '@icons/UserCross';
 import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip';
+import { sessionIsBackfilled } from '@pages/Player/utils/utils';
 import { mustUpgradeForClearbit } from '@util/billing/billing';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import {
     FaExternalLinkSquareAlt,
@@ -60,6 +65,7 @@ export const MetadataBox = React.memo(() => {
     const customAvatarImage = getIdentifiedUserProfileImage(
         session as Maybe<Session>
     );
+    const backfilled = sessionIsBackfilled(session);
 
     // clear enhanced avatar when session changes
     useEffect(() => {
@@ -67,39 +73,39 @@ export const MetadataBox = React.memo(() => {
     }, [session_secure_id]);
 
     return (
-        <div className={styles.userBox}>
-            <div className={styles.userMainSection}>
-                {isLoggedIn && (
-                    <div
-                        className={styles.starIconWrapper}
-                        onClick={() => {
-                            markSessionAsStarred({
-                                variables: {
-                                    secure_id: session_secure_id,
-                                    starred: !session?.starred,
-                                },
-                            })
-                                .then(() => {
-                                    message.success(
-                                        'Updated session status!',
-                                        3
-                                    );
-                                })
-                                .catch(() => {
-                                    message.error(
-                                        'Error updating session status!',
-                                        3
-                                    );
-                                });
-                        }}
-                    >
-                        {session?.starred ? (
-                            <FilledStarIcon className={styles.starredIcon} />
-                        ) : (
-                            <StarIcon className={styles.unstarredIcon} />
-                        )}
+        <div
+            className={classNames(styles.userBox, {
+                [styles.backfillShown]: backfilled,
+            })}
+        >
+            {backfilled && (
+                <div
+                    className={styles.backfillContainer}
+                    onClick={() => {
+                        window.open(
+                            'https://docs.highlight.run/identifying-users#BXEtr',
+                            '_blank'
+                        );
+                    }}
+                >
+                    <div className={styles.backfillContent}>
+                        <div className={styles.backfillUserIcon}>
+                            <UserCross />
+                        </div>
+                        <div>This session was not identified.</div>
+                        <Tooltip
+                            placement="leftTop"
+                            title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
+                            mouseEnterDelay={0}
+                        >
+                            <div className={styles.backfillInfoIcon}>
+                                <SvgInformationIcon />
+                            </div>
+                        </Tooltip>
                     </div>
-                )}
+                </div>
+            )}
+            <div className={styles.userMainSection}>
                 <div className={styles.userAvatarWrapper}>
                     {!session ? (
                         <Skeleton circle={true} height={36} width={36} />
@@ -164,6 +170,37 @@ export const MetadataBox = React.memo(() => {
                         </>
                     )}
                 </div>
+                {isLoggedIn && (
+                    <div
+                        className={styles.starIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    secure_id: session_secure_id,
+                                    starred: !session?.starred,
+                                },
+                            })
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.unstarredIcon} />
+                        )}
+                    </div>
+                )}
             </div>
             <UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
         </div>

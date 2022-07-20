@@ -70,6 +70,29 @@
     }
 }
 
+.identifier {
+    align-items: center;
+    display: flex;
+}
+
+.backfilledIcon {
+    align-items: center;
+    background-color: var(--color-gray-600);
+    border-radius: 2.5px; // matches cardAnnotation
+    color: var(--color-white);
+    display: flex;
+    font-size: 18px;
+    height: var(--size-medium);
+    justify-content: center;
+    margin-left: var(--size-xSmall);
+    width: var(--size-medium);
+
+    svg {
+        height: var(--size-small);
+        width: var(--size-small);
+    }
+}
+
 .tagWrapper {
     display: flex;
     flex-flow: row wrap;

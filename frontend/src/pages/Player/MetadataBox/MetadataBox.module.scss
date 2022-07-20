@@ -1,3 +1,5 @@
+$backfill-height: 30px;
+
 .userBox {
     background-color: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
@@ -7,7 +9,49 @@
     flex-direction: column;
     max-width: var(--right-panel-width);
     position: relative;
+
+    &.backfillShown {
+        padding-top: $backfill-height;
+    }
 }
+
+.backfillContainer {
+    background-color: var(--color-gray-600);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    height: $backfill-height;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.backfillContent {
+    align-items: center;
+    color: var(--color-white);
+    display: flex;
+    font-size: 12px;
+    height: $backfill-height;
+    justify-content: center;
+}
+
+.backfillUserIcon {
+    align-items: center;
+    display: flex;
+    margin: 0 4px;
+
+    svg {
+        width: 18px;
+    }
+}
+
+.backfillInfoIcon {
+    cursor: pointer;
+
+    svg {
+        font-size: 14px;
+    }
+}
+
 .avatar {
     height: 36px;
     width: 36px;
@@ -188,10 +232,6 @@
 }
 
 .starIconWrapper {
-    margin: auto;
-    position: absolute;
-    right: 22px;
-    top: var(--size-medium);
     width: var(--size-medium);
 
     &:hover {

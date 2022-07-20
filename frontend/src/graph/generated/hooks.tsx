@@ -4693,6 +4693,8 @@ export const GetSessionDocument = gql`
             user_object
             user_properties
             identifier
+            identified
+            client_id
             starred
             enable_strict_privacy
             enable_recording_network_contents
@@ -5963,6 +5965,7 @@ export const GetSessionsOpenSearchDocument = gql`
                 client_id
                 fingerprint
                 identifier
+                identified
                 os_name
                 os_version
                 browser_name

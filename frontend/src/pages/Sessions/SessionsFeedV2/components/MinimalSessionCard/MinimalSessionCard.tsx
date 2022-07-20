@@ -5,8 +5,10 @@ import {
 import Tooltip from '@components/Tooltip/Tooltip';
 import SvgBugIcon from '@icons/BugIcon';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
+import UserCross from '@icons/UserCross';
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
+import { sessionIsBackfilled } from '@pages/Player/utils/utils';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
@@ -66,6 +68,7 @@ const MinimalSessionCard = React.memo(
         const showDetailedSessionView =
             showDetailedSessionViewPlayerConfiguration ||
             showDetailedViewOverride;
+        const backfilled = sessionIsBackfilled(session as Session | undefined);
 
         const [viewed, setViewed] = useState(session?.viewed || false);
 
@@ -134,10 +137,17 @@ const MinimalSessionCard = React.memo(
                             <div
                                 className={classNames(
                                     styles.middleText,
+                                    styles.identifier,
                                     'highlight-block'
                                 )}
                             >
                                 {getDisplayName(session)}
+
+                                {backfilled && (
+                                    <span className={styles.backfilledIcon}>
+                                        <UserCross />
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div
