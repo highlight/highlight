@@ -128,11 +128,6 @@ const FIRST_SEND_FREQUENCY = 1000 * 1;
  * In milliseconds.
  */
 const SEND_FREQUENCY = 1000 * 2;
-/**
- * The amount of time allowed after the last push before creating a new session.
- * In milliseconds.
- */
-const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 /**
  * Maximum length of a session
