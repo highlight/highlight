@@ -502,7 +502,7 @@ const ChartContainer = React.memo(
 
             // Only invoke on initialization and custom date range selection.
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [customDateRange?.value]);
+        }, [customDateRange?.value, lookbackMinutes]);
 
         useEffect(() => {
             setUpdatingData(timelineLoading || histogramLoading);
