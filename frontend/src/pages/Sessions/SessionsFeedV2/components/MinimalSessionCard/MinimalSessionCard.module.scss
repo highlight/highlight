@@ -78,9 +78,7 @@
 .backfilledIcon {
     align-items: center;
     background-color: var(--color-gray-600);
-    border-radius: var(--border-radius);
-    border-radius: 2.5px;
-    color: white;
+    border-radius: 2.5px; // matches cardAnnotation
     color: var(--color-white);
     display: flex;
     font-size: 18px;
