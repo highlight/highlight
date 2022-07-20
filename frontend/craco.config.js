@@ -16,10 +16,9 @@ module.exports = {
     webpack: {
         alias: resolvedAliases,
         configure: {
-            devtool: 'source-map',
+            devtool: 'cheap-module-source-map',
             output: {
                 sourceMapFilename: '[file].map',
-                publicPath: '/static/',
             },
         },
     },
