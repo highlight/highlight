@@ -9,6 +9,7 @@ import {
     MetricValueScore,
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
+import moment from 'moment';
 import React, { useState } from 'react';
 import {
     CartesianGrid,
@@ -183,7 +184,7 @@ const LineChart = ({
                         axisLine={{ stroke: gridColor }}
                         domain={domain}
                         type={'number'}
-                        dx={-2}
+                        dx={2}
                         unit={yAxisLabel}
                     />
 
@@ -289,42 +290,51 @@ export const CustomTooltip = ({
                 {payload.reverse().map((entry: any) => {
                     return (
                         <p key={entry.dataKey} className={styles.tooltipEntry}>
-                            <div
-                                className={styles.legendIcon}
-                                style={{
-                                    background: entry.color,
-                                }}
-                            ></div>
+                            {entry.payload.date && (
+                                <div className={styles.tooltipRow}>
+                                    {moment(entry.payload.date).format(
+                                        'MMMM Do YYYY, h:mm A'
+                                    )}
+                                </div>
+                            )}
                             <div className={styles.tooltipRow}>
-                                <span>
-                                    <span className={styles.tooltipValue}>
-                                        {entry.value.toFixed(precision)}
-                                    </span>{' '}
-                                    {yAxisLabel}
-                                    {entry?.payload.range_start ? (
-                                        <>
-                                            {' in '}
-                                            {entry.payload.range_start.toFixed(
-                                                precision
-                                            )}
-                                            {units} -{' '}
-                                            {entry.payload.range_end.toFixed(
-                                                precision
-                                            )}
-                                            {units}
-                                        </>
-                                    ) : null}
-                                </span>
-                                {referenceLines?.length === 2
-                                    ? getScoreIcon(
-                                          getMetricValueScore(entry.value, {
-                                              max_good_value: referenceLines![0]
-                                                  .value,
-                                              max_needs_improvement_value: referenceLines![1]
-                                                  .value,
-                                          })
-                                      )
-                                    : undefined}
+                                <div
+                                    className={styles.legendIcon}
+                                    style={{
+                                        background: entry.color,
+                                    }}
+                                ></div>
+                                <div className={styles.tooltipRow}>
+                                    <span>
+                                        <span className={styles.tooltipValue}>
+                                            {entry.value.toFixed(precision)}
+                                        </span>{' '}
+                                        {yAxisLabel}
+                                        {entry?.payload.range_start ? (
+                                            <>
+                                                {' in '}
+                                                {entry.payload.range_start.toFixed(
+                                                    precision
+                                                )}
+                                                {units} -{' '}
+                                                {entry.payload.range_end.toFixed(
+                                                    precision
+                                                )}
+                                                {units}
+                                            </>
+                                        ) : null}
+                                    </span>
+                                    {referenceLines?.length === 2
+                                        ? getScoreIcon(
+                                              getMetricValueScore(entry.value, {
+                                                  max_good_value: referenceLines![0]
+                                                      .value,
+                                                  max_needs_improvement_value: referenceLines![1]
+                                                      .value,
+                                              })
+                                          )
+                                        : undefined}
+                                </div>
                             </div>
                         </p>
                     );

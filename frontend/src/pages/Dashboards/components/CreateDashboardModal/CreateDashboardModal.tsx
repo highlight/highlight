@@ -1,16 +1,18 @@
 import Button from '@components/Button/Button/Button';
+import { CardFormActionsContainer } from '@components/Card/Card';
 import Input from '@components/Input/Input';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
+import SvgPlusIcon from '@icons/PlusIcon';
 import alertStyles from '@pages/Alerts/Alerts.module.scss';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import { useParams } from '@util/react-router/useParams';
+import { Form } from 'antd';
 import { H } from 'highlight.run';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-import dashStyles from '../../pages/Dashboard/DashboardPage.module.scss';
 import styles from './CreateDashboardModal.module.scss';
 
 const CreateDashboardModal = () => {
@@ -43,50 +45,49 @@ const CreateDashboardModal = () => {
                 width="800px"
             >
                 <ModalBody>
-                    <section className={dashStyles.section}>
-                        <h3
-                            style={{
-                                fontWeight: 'normal',
-                                alignItems: 'center',
-                                alignSelf: 'center',
-                            }}
-                            className={styles.name}
-                        >
-                            What do you want to call it?
-                        </h3>
-                        <div className={styles.name}>
+                    <Form
+                        onFinish={() => {
+                            onCreateNewDashboard();
+                            setShowModal(false);
+                        }}
+                    >
+                        <section className={styles.section}>
+                            <h3>Dashboard Title</h3>
                             <Input
-                                placeholder="Name"
-                                name="Dashboard Name"
+                                placeholder="API Performance"
+                                name="Dashboard Title"
                                 value={newDashboard}
                                 onChange={(e) => {
-                                    const val = e.target?.value || '';
-                                    setNewDashboard(val);
+                                    setNewDashboard(e.target.value);
                                 }}
                                 autoFocus
                             />
-                        </div>
-                    </section>
-                    <div className={styles.actionsContainer}>
-                        <Button
-                            trackingId="CreateDashboardModalCancelButton"
-                            onClick={() => {
-                                setShowModal(false);
-                            }}
-                            type="default"
-                            className={styles.button}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            trackingId="CreateDashboardModalConfirmButton"
-                            onClick={onCreateNewDashboard}
-                            type="primary"
-                            className={styles.button}
-                        >
-                            Create
-                        </Button>
-                    </div>
+                        </section>
+
+                        <CardFormActionsContainer>
+                            <div className={styles.submitRow}>
+                                <Button
+                                    type={'primary'}
+                                    style={{
+                                        width: 105,
+                                    }}
+                                    icon={
+                                        <SvgPlusIcon
+                                            style={{
+                                                marginBottom: 2,
+                                                marginRight:
+                                                    'var(--size-xSmall)',
+                                            }}
+                                        />
+                                    }
+                                    trackingId={'CreateDashboard'}
+                                    htmlType="submit"
+                                >
+                                    Create
+                                </Button>
+                            </div>
+                        </CardFormActionsContainer>
+                    </Form>
                 </ModalBody>
             </Modal>
             <Button

@@ -2446,6 +2446,9 @@ func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) fl
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
+	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ms")
+	}
 	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
 	}
