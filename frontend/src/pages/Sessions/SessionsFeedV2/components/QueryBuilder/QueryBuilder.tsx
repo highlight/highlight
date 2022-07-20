@@ -897,6 +897,7 @@ const LABEL_MAP: { [key: string]: string } = {
     first_time: 'First Time',
     starred: 'Starred',
     identifier: 'Identifier',
+    identified: 'Identified',
     reload: 'Reloaded',
     state: 'State',
     event: 'Event',
