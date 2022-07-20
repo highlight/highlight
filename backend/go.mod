@@ -6,6 +6,8 @@ replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/
 
 replace github.com/emicklei/go-restful => github.com/emicklei/go-restful/v3 v3.8.0
 
+replace github.com/satori/go.uuid => github.com/gofrs/uuid v4.2.0+incompatible
+
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.12
