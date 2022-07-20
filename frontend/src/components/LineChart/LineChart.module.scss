@@ -38,6 +38,7 @@
     align-items: center;
     column-gap: var(--size-xxSmall);
     display: flex;
+    flex-direction: column;
     margin-bottom: 0 !important;
 }
 
@@ -49,6 +50,7 @@
     align-items: center;
     column-gap: var(--size-xSmall);
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     width: 100%;
 }

@@ -1096,7 +1096,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             // Log how long it took to move to the new time.
             const timelineChangeTime = timerEnd('timelineChangeTime');
-            console.log({ timelineChangeTime });
             datadogLogs.logger.info('Timeline Change Time', {
                 duration: timelineChangeTime,
                 sessionId: session?.secure_id,
@@ -1145,7 +1144,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
             // Log how long it took to move to the new time.
             const timelineChangeTime = timerEnd('timelineChangeTime');
-            console.log({ timelineChangeTime });
             datadogLogs.logger.info('Timeline Change Time', {
                 duration: timelineChangeTime,
                 sessionId: session?.secure_id,
