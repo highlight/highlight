@@ -30,7 +30,7 @@ type Session {
     client_config: String
     language: String!
     identifier: String!
-    identified: Boolean
+    identified: Boolean!
     created_at: Timestamp
     length: Int
     active_length: Int

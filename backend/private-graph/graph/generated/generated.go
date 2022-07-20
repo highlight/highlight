@@ -6142,7 +6142,7 @@ type Session {
     client_config: String
     language: String!
     identifier: String!
-    identified: Boolean
+    identified: Boolean!
     created_at: Timestamp
     length: Int
     active_length: Int
@@ -37229,11 +37229,14 @@ func (ec *executionContext) _Session_identified(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_identified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -51089,6 +51092,9 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_identified(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "created_at":
 
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)

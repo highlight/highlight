@@ -47,7 +47,7 @@ export type Session = {
     client_config?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
-    identified?: Maybe<Scalars['Boolean']>;
+    identified: Scalars['Boolean'];
     created_at?: Maybe<Scalars['Timestamp']>;
     length?: Maybe<Scalars['Int']>;
     active_length?: Maybe<Scalars['Int']>;
