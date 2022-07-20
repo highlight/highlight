@@ -549,7 +549,7 @@ const ChartContainer = React.memo(
                     <LoadingBar height={2} width={'100%'} />
                 )}
                 <div
-                    className={classNames({
+                    className={classNames(styles.chartInner, {
                         [styles.blurChart]: timelineLoading || histogramLoading,
                     })}
                 >
