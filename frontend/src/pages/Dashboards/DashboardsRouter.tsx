@@ -12,7 +12,7 @@ import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
+import { Route, Switch, useRouteMatch } from 'react-router-dom';
 
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -26,7 +26,6 @@ const DashboardsRouter = () => {
     const [upsertDashboardMutation] = useUpsertDashboardMutation({
         refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
     });
-    const history = useHistory<{ errorName: string }>();
 
     useEffect(() => {
         // if no dashboards exist, create a web vitals dashboard by default
