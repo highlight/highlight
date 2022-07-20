@@ -19,7 +19,7 @@ import {
 import { Landing } from '@pages/Landing/Landing';
 import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useToggle } from 'react-use';
 
@@ -41,9 +41,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
     const [getAdminQuery, { loading: adminDataLoading }] = useGetAdminLazyQuery(
         {
             fetchPolicy: 'network-only',
-            onCompleted: () => {
-                onSubmitHandler();
-            },
+            onCompleted: useCallback(onSubmitHandler, [onSubmitHandler]),
         }
     );
     const [

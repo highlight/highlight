@@ -36,21 +36,23 @@ export class ErrorContext {
     _cache: LRU<string, FileLines>;
 
     constructor(options: ErrorContextOptions) {
-        this._sourceContextCacheSizeMB = coalesceSize(options.sourceContextCacheSizeMB);
+        this._sourceContextCacheSizeMB = coalesceSize(
+            options.sourceContextCacheSizeMB
+        );
 
         const lruOptions = {
             // `max` is the max count of cache entries - the docs seemed to imply this
             // was a required parameter so it is set arbitrarily high at 1000 files.
             max: 1000,
-            maxSize: this._sourceContextCacheSizeMB 
-                ? this._sourceContextCacheSizeMB * 1000 * 1000 
+            maxSize: this._sourceContextCacheSizeMB
+                ? this._sourceContextCacheSizeMB * 1000 * 1000
                 : undefined,
             length: (lines: FileLines, key: string): number => {
                 return lines.size;
             },
         };
 
-        this._cache = new LRU(lruOptions);          
+        this._cache = new LRU(lruOptions);
     }
 
     _getOrLoadLines(filename: string): Map<number, string> {
@@ -77,7 +79,10 @@ export class ErrorContext {
         return lines;
     }
 
-    getStackFrameContext(filename: string, lineNumber: number): StackFrameContext {
+    getStackFrameContext(
+        filename: string,
+        lineNumber: number
+    ): StackFrameContext {
         const lines = this._getOrLoadLines(filename);
 
         let lineContent = lines.get(lineNumber);
@@ -91,7 +96,11 @@ export class ErrorContext {
         }
 
         let linesAfter = '';
-        for (let i = lineNumber + 1; i < lineNumber + CONTEXT_LINES_COUNT + 1; i++) {
+        for (
+            let i = lineNumber + 1;
+            i < lineNumber + CONTEXT_LINES_COUNT + 1;
+            i++
+        ) {
             let nextLine = lines.get(i);
             if (nextLine !== undefined) {
                 linesAfter += nextLine;
@@ -102,6 +111,6 @@ export class ErrorContext {
             lineContent,
             linesBefore,
             linesAfter,
-        }
+        };
     }
 }

@@ -3,7 +3,6 @@ import {
     getSdk,
     InputMaybe,
     MetricInput,
-    MetricType,
     PushBackendPayloadMutationVariables,
     PushMetricsMutationVariables,
     Sdk,
@@ -71,12 +70,11 @@ export class Highlight {
     ) {
         this.metrics.push({
             session_secure_id: secureSessionId,
+            group: requestId,
             name: name,
             value: value,
+            category: 'BACKEND',
             timestamp: new Date().toISOString(),
-            type: MetricType.Backend,
-            url: '',
-            request_id: requestId,
         });
     }
 
@@ -94,10 +92,11 @@ export class Highlight {
                         frame.fileName !== undefined &&
                         frame.lineNumber !== undefined
                     ) {
-                        const context = this._errorContext?.getStackFrameContext(
-                            frame.fileName,
-                            frame.lineNumber
-                        );
+                        const context =
+                            this._errorContext?.getStackFrameContext(
+                                frame.fileName,
+                                frame.lineNumber
+                            );
                         return { ...frame, ...context };
                     }
                 } catch {}

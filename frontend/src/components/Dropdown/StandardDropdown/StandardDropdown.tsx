@@ -18,6 +18,8 @@ export const StandardDropdown = ({
     defaultValue,
     value,
     disabled,
+    gray,
+    placeholder,
     className,
     labelClassName,
 }: {
@@ -28,11 +30,13 @@ export const StandardDropdown = ({
     defaultValue?: Option;
     value?: Option;
     disabled?: boolean;
+    gray?: boolean;
+    placeholder?: string;
     className?: string;
     labelClassName?: string;
 }) => {
     const [visible, setVisible] = useState(false);
-    const [selection, setSelection] = useState(defaultValue || data[0]);
+    const [selection, setSelection] = useState(defaultValue);
 
     useEffect(() => {
         if (value !== undefined) {
@@ -74,7 +78,9 @@ export const StandardDropdown = ({
             overlayClassName={styles.overlay}
         >
             <div
-                className={styles.dropdownHandler}
+                className={classNames(styles.dropdownHandler, {
+                    [styles.dropdownGray]: gray,
+                })}
                 onClick={(e) => e.preventDefault()}
             >
                 {display ? (
@@ -86,7 +92,13 @@ export const StandardDropdown = ({
                             labelClassName
                         )}
                     >
-                        {selection.label}
+                        {selection ? (
+                            selection?.label
+                        ) : placeholder ? (
+                            <span className={styles.placeholder}>
+                                {placeholder}
+                            </span>
+                        ) : null}
                     </div>
                 )}
                 <DownIcon

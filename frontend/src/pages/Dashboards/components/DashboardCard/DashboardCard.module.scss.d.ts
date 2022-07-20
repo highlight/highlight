@@ -8,7 +8,6 @@ export const chartWrapper: string;
 export const createNewAlertRow: string;
 export const description: string;
 export const draggable: string;
-export const filtersRow: string;
 export const formLabel: string;
 export const header: string;
 export const headerActions: string;

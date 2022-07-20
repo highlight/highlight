@@ -3724,7 +3724,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                                             __typename?: 'MetricTagFilter';
                                         } & Pick<
                                             Types.MetricTagFilter,
-                                            'value' | 'tag'
+                                            'value' | 'op' | 'tag'
                                         >
                                     >
                                 >;

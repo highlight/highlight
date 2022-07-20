@@ -3,7 +3,7 @@
     "version": "1.11.0",
     "private": true,
     "dependencies": {
-        "@apollo/client": "^3.4.0",
+        "@apollo/client": "3.4.17",
         "@datadog/browser-logs": "^4.0.1",
         "@highlight-run/react": "^1.1.6",
         "@highlight-run/react-mentions": "4.4.1",
