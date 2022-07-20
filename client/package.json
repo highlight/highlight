@@ -70,6 +70,7 @@
     },
     "resolutions": {
         "ansi-regex": "5.0.1",
-        "terser": "5.14.2"
+        "terser": "5.14.2",
+	"json-schema": "0.4.0"
     }
 }
