@@ -247,9 +247,14 @@ const getDateLabel = (value: string): string => {
     const endStr = moment(end).format('MMM D');
     return `${startStr} to ${endStr}`;
 };
+
+export const isAbsoluteTimeRange = (value?: string): boolean => {
+    return !!value && value.includes('_');
+};
+
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', subtract it from current time
         const amount = parseInt(value.split(' ')[0]);
         const unit = value.split(' ')[1].toLowerCase();
@@ -261,7 +266,7 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 };
 export const getAbsoluteEndTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', use current time as end of range
         return moment().toISOString();
     }
@@ -1585,28 +1590,31 @@ const QueryBuilder = ({
                             }
                         />
                     </div>
-                    {!readonly && (
-                        <Button
-                            className={classNames(
-                                styles.ruleItem,
-                                styles.syncButton
-                            )}
-                            onClick={() => {
-                                const query = parseGroup(isAnd, rules);
-                                setSearchQuery(JSON.stringify(query));
-                            }}
-                            loading={false}
-                            trackingId={'RefreshSearchResults'}
-                        >
-                            <Tooltip
-                                title={
-                                    'Refetch the latest results of your query.'
-                                }
+                    {!readonly &&
+                        !isAbsoluteTimeRange(
+                            timeRangeRule.val?.options[0].value
+                        ) && (
+                            <Button
+                                className={classNames(
+                                    styles.ruleItem,
+                                    styles.syncButton
+                                )}
+                                onClick={() => {
+                                    const query = parseGroup(isAnd, rules);
+                                    setSearchQuery(JSON.stringify(query));
+                                }}
+                                loading={false}
+                                trackingId={'RefreshSearchResults'}
                             >
-                                <Reload width="1em" height="1em" />
-                            </Tooltip>
-                        </Button>
-                    )}
+                                <Tooltip
+                                    title={
+                                        'Refetch the latest results of your query.'
+                                    }
+                                >
+                                    <Reload width="1em" height="1em" />
+                                </Tooltip>
+                            </Button>
+                        )}
                 </div>
             )}
             <div>
