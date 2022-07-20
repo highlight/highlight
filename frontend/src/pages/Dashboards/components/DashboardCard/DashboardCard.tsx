@@ -549,7 +549,10 @@ const ChartContainer = React.memo(
         return (
             <div
                 className={classNames({
-                    [styles.blurChart]: timelineLoading || histogramLoading,
+                    [styles.blurChart]:
+                        timelineLoading ||
+                        histogramLoading ||
+                        chartInitialLoading,
                 })}
             >
                 <EditMetricModal
@@ -564,10 +567,9 @@ const ChartContainer = React.memo(
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
                 />
-                {chartInitialLoading ? (
-                    <Skeleton height={235} />
-                ) : !timelineData?.metrics_timeline.length &&
-                  !histogramData?.metrics_histogram?.buckets.length ? (
+                {!chartInitialLoading &&
+                !timelineData?.metrics_timeline.length &&
+                !histogramData?.metrics_histogram?.buckets.length ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
                             message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
