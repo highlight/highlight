@@ -1,5 +1,3 @@
-import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
-import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import {
     useGetDashboardDefinitionsQuery,
     useGetWorkspaceAdminsByProjectIdQuery,
@@ -65,36 +63,16 @@ const DashboardsRouter = () => {
             <Helmet>
                 <title>Dashboards</title>
             </Helmet>
-            <LeadAlignLayout fullWidth>
-                <Breadcrumb
-                    getBreadcrumbName={(url) =>
-                        getDashboardsBreadcrumbNames(history.location.state)(
-                            url
-                        )
-                    }
-                    linkRenderAs="h2"
-                />
-                <Switch>
-                    <Route exact path={path}>
-                        <DashboardsHomePage />
-                    </Route>
-                    <Route path={`${path}/:id`}>
-                        <DashboardPage />
-                    </Route>
-                </Switch>
-            </LeadAlignLayout>
+            <Switch>
+                <Route exact path={path}>
+                    <DashboardsHomePage />
+                </Route>
+                <Route path={`${path}/:id`}>
+                    <DashboardPage />
+                </Route>
+            </Switch>
         </DashboardsContextProvider>
     );
 };
 
 export default DashboardsRouter;
-
-const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
-    return (url: string) => {
-        if (url.endsWith('/dashboards')) {
-            return 'Dashboards';
-        }
-
-        return `${suffixes?.dashboardName}`;
-    };
-};

@@ -1,6 +1,4 @@
 .card {
-    padding-top: var(--size-small);
-
     :global(.recharts-cartesian-axis-tick) {
         user-select: none;
     }
@@ -56,8 +54,6 @@
     align-items: center;
     display: flex;
     justify-content: flex-end;
-    padding-right: var(--size-xSmall);
-    padding-top: var(--size-small);
     width: 300px;
 
     button {
@@ -79,7 +75,7 @@
     display: flex;
     height: var(--size-xLarge);
     margin: 0 !important;
-    width: 161px;
+    padding: 10px 8px 10px 14px !important;
 }
 
 .monitorName {
@@ -120,15 +116,28 @@
     padding: 0 16px;
 }
 
+.chartWrapper {
+    padding: 10px;
+}
+
 .createNewAlertRow {
     align-items: center;
     display: flex;
     justify-content: center;
 }
 
+.mainHeaderContent {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 10px 10px 20px;
+    width: 100%;
+}
+
 .cardHeader {
     align-items: center;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
 
     > button {
@@ -138,9 +147,6 @@
 
 .headerContainer {
     overflow: hidden;
-    padding-bottom: var(--size-small);
-    padding-right: var(--size-small);
-    padding-top: var(--size-medium);
 }
 
 .header {
@@ -156,10 +162,7 @@
 .headerActions {
     align-items: center;
     display: flex;
-    height: 21px;
     justify-content: center;
-    margin-bottom: var(--size-medium);
-    padding-left: 86px;
 }
 
 .subheader {

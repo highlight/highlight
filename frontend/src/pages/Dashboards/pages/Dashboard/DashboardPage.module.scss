@@ -1,5 +1,5 @@
 .gridContainer {
-    padding-top: var(--size-large);
+    padding: 30px;
     &.isEditing {
         :global(.react-resizable-handle) {
             opacity: 1;
@@ -29,14 +29,73 @@
     }
 }
 
+.customLeadAlignLayout {
+    margin: 0;
+    padding: 0;
+    padding-top: 80px;
+}
+
+.leftTitleSection {
+    color: black;
+}
+
+.headerPanel {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.dashboardPageFixedHeader {
+    background-color: white;
+    border-bottom: var(--color-gray-300) 1px solid;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 30px;
+    position: sticky;
+    top: 80px;
+    z-index: 1000;
+}
+
 .dateRangePicker {
+    margin-left: auto;
     width: fit-content;
 }
 
-.dateRangePickerContainer {
-    column-gap: var(--size-small);
+.rightControllerSection {
     display: flex;
-    position: absolute;
+    flex-direction: column;
+}
+
+.rightControllerText {
+    align-self: flex-end;
+}
+
+.absoluteColored {
+    color: var(--color-blue-900);
+    font-weight: 500;
+}
+
+.liveColored {
+    color: var(--color-green-900);
+    font-weight: 500;
+}
+
+.liveIndicator {
+    align-items: center;
+    background-color: var(--color-green-300);
+    border: var(--color-green-900) 1.5px solid;
+    border-radius: 8px;
+    color: var(--color-green-900);
+    display: flex;
+    justify-content: center;
+    padding: 2px 12px;
+    text-align: right;
+}
+
+.dateRangePickerContainer {
+    display: flex;
+    gap: 10px;
+    height: 40px;
     right: 80px;
     top: 118px;
 }
