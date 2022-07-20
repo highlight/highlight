@@ -10,8 +10,8 @@ export interface NodeOptions extends HighlightOptions {
     disableErrorSourceContext?: boolean;
     /**
      * Source files are cached in memory to speed up error reporting
-     * and avoid costly disk access. The default cache size is 10MB, 
-     * but this can be overridden. 
+     * and avoid costly disk access. The default cache size is 10MB,
+     * but this can be overridden.
      * Specifying a value <= 0 removes all cache size limits.
      * @default 10
      */
