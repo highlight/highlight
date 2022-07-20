@@ -35,10 +35,6 @@
     padding-top: 80px;
 }
 
-.leftTitleSection {
-    color: black;
-}
-
 .headerPanel {
     display: flex;
     justify-content: space-between;
@@ -46,7 +42,6 @@
 }
 
 .dashboardPageFixedHeader {
-    background-color: white;
     border-bottom: var(--color-gray-300) 1px solid;
     display: flex;
     flex-direction: column;

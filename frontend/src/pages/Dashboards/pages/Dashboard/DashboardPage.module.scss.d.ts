@@ -8,7 +8,6 @@ export const dropdownPlaceholder: string;
 export const gridContainer: string;
 export const headerPanel: string;
 export const isEditing: string;
-export const leftTitleSection: string;
 export const liveColored: string;
 export const liveIndicator: string;
 export const metric: string;

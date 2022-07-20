@@ -144,7 +144,7 @@ const DashboardPage = () => {
         <LeadAlignLayout fullWidth className={styles.customLeadAlignLayout}>
             <div className={styles.dashboardPageFixedHeader}>
                 <div className={styles.headerPanel}>
-                    <div className={styles.leftTitleSection}>
+                    <div>
                         <Breadcrumb
                             getBreadcrumbName={(url) =>
                                 getDashboardsBreadcrumbNames(
@@ -241,7 +241,7 @@ const DashboardPage = () => {
                     </div>
                 </div>
                 <div className={styles.headerPanel}>
-                    <div className={styles.leftTitleSection}>
+                    <div>
                         {dashboard.last_admin_to_edit_id && (
                             <AlertLastEditedBy
                                 adminId={dashboard.last_admin_to_edit_id.toString()}
