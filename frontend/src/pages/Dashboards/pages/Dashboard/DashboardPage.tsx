@@ -258,7 +258,7 @@ const DashboardPage = () => {
                         <span
                             className={classNames({
                                 [styles.liveColored]: !customDateRange,
-                                [styles.absoluteColored]: !customDateRange,
+                                [styles.absoluteColored]: customDateRange,
                             })}
                         >
                             {customDateRange ? ` Absolute` : ` Live`}
