@@ -1575,19 +1575,22 @@ const QueryBuilder = ({
     }
     return (
         <div className={styles.builderContainer}>
-            <div>
+            {timeRangeRule && (
                 <div className={styles.rulesContainer}>
-                    {timeRangeRule && (
+                    <div className={styles.ruleContainer}>
                         <TimeRangeFilter
                             rule={timeRangeRule}
                             onChangeValue={(val) =>
                                 updateRule(timeRangeRule, { val: val })
                             }
                         />
-                    )}
+                    </div>
                     {!readonly && (
                         <Button
-                            className={styles.syncButton}
+                            className={classNames(
+                                styles.ruleItem,
+                                styles.syncButton
+                            )}
                             onClick={() => {
                                 const query = parseGroup(isAnd, rules);
                                 setSearchQuery(JSON.stringify(query));
@@ -1600,12 +1603,12 @@ const QueryBuilder = ({
                                     'Refetch the latest results of your query.'
                                 }
                             >
-                                <Reload width="12px" height="12px" />
+                                <Reload width="1em" height="1em" />
                             </Tooltip>
                         </Button>
                     )}
                 </div>
-            </div>
+            )}
             <div>
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>

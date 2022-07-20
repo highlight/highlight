@@ -227,17 +227,10 @@ span:last-child {
 .syncButton:active,
 .syncButton:focus,
 .syncButton:hover {
-    background-color: var(--color-green-600);
-    border-radius: 4px;
-    border-width: 0;
+    background-color: var(--color-green-600) !important;
+    border-radius: 3px;
     color: var(--color-white) !important;
-    display: inline-block;
-    font-weight: 400;
-    height: 24.85px;
-    line-height: 0;
-    margin-left: var(--size-xxSmall);
-    padding: var(--size-xxSmall);
-    width: 24.85px;
+    padding: 6px;
 }
 
 .syncButton:hover {
