@@ -30,7 +30,6 @@ import {
     UpdateMetricFn,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal';
 import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
-import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -273,31 +272,28 @@ const DashboardCard = ({
                                 </div>
                             </ModalBody>
                         </Modal>
-                        <LoadingBar height={2} width={'100%'} />
                     </div>
                 }
             >
-                <div className={styles.chartWrapper}>
-                    <ChartContainer
-                        metricIdx={metricIdx}
-                        metricConfig={metricConfig}
-                        chartType={metricConfig.chart_type}
-                        aggregator={metricConfig.aggregator}
-                        maxGoodValue={metricConfig.max_good_value}
-                        maxNeedsImprovementValue={
-                            metricConfig.max_needs_improvement_value
-                        }
-                        poorValue={metricConfig.poor_value}
-                        dateRange={dateRange}
-                        customDateRange={customDateRange}
-                        updateMetric={updateMetric}
-                        showEditModal={showEditModal}
-                        setShowEditModal={setShowEditModal}
-                        setShowDeleteModal={setShowDeleteModal}
-                        setDateRange={setDateRange}
-                        setUpdatingData={setUpdatingData}
-                    />
-                </div>
+                <ChartContainer
+                    metricIdx={metricIdx}
+                    metricConfig={metricConfig}
+                    chartType={metricConfig.chart_type}
+                    aggregator={metricConfig.aggregator}
+                    maxGoodValue={metricConfig.max_good_value}
+                    maxNeedsImprovementValue={
+                        metricConfig.max_needs_improvement_value
+                    }
+                    poorValue={metricConfig.poor_value}
+                    dateRange={dateRange}
+                    customDateRange={customDateRange}
+                    updateMetric={updateMetric}
+                    showEditModal={showEditModal}
+                    setShowEditModal={setShowEditModal}
+                    setShowDeleteModal={setShowDeleteModal}
+                    setDateRange={setDateRange}
+                    setUpdatingData={setUpdatingData}
+                />
             </DashboardInnerCard>
         </>
     );
@@ -546,119 +542,132 @@ const ChartContainer = React.memo(
         }
 
         return (
-            <div
-                className={classNames({
-                    [styles.blurChart]: timelineLoading || histogramLoading,
-                })}
-            >
-                <EditMetricModal
-                    shown={showEditModal}
-                    onCancel={() => {
-                        setShowEditModal(false);
-                    }}
-                    onDelete={() => {
-                        setShowDeleteModal(true);
-                    }}
-                    metricConfig={metricConfig}
-                    metricIdx={metricIdx}
-                    updateMetric={updateMetric}
-                />
-                {chartInitialLoading ? (
-                    <Skeleton height={235} />
-                ) : !timelineData?.metrics_timeline.length &&
-                  !histogramData?.metrics_histogram?.buckets.length ? (
-                    <div className={styles.noDataContainer}>
-                        <EmptyCardPlaceholder
-                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+            <div className={styles.chartWrapper}>
+                {(timelineLoading ||
+                    histogramLoading ||
+                    chartInitialLoading) && (
+                    <LoadingBar height={2} width={'100%'} />
+                )}
+                <div
+                    className={classNames({
+                        [styles.blurChart]: timelineLoading || histogramLoading,
+                    })}
+                >
+                    <EditMetricModal
+                        shown={showEditModal}
+                        onCancel={() => {
+                            setShowEditModal(false);
+                        }}
+                        onDelete={() => {
+                            setShowDeleteModal(true);
+                        }}
+                        metricConfig={metricConfig}
+                        metricIdx={metricIdx}
+                        updateMetric={updateMetric}
+                    />
+                    {chartInitialLoading ? (
+                        <Skeleton height={235} />
+                    ) : !timelineData?.metrics_timeline.length &&
+                      !histogramData?.metrics_histogram?.buckets.length ? (
+                        <div className={styles.noDataContainer}>
+                            <EmptyCardPlaceholder
+                                message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. You should start seeing data here a few hours after integrating.`}
+                            />
+                        </div>
+                    ) : chartType === DashboardChartType.Histogram ? (
+                        <BarChartV2
+                            height={235}
+                            data={
+                                histogramData?.metrics_histogram?.buckets || []
+                            }
+                            referenceLines={referenceLines}
+                            barColorMapping={{
+                                count: 'var(--color-purple-500)',
+                            }}
+                            xAxisDataKeyName="range_end"
+                            xAxisLabel={metricConfig.units}
+                            xAxisTickFormatter={(value: number) =>
+                                value < 1 ? value.toFixed(2) : value.toFixed(0)
+                            }
+                            xAxisUnits={metricConfig.units}
+                            yAxisLabel={'occurrences'}
+                            yAxisKeys={['count']}
                         />
-                    </div>
-                ) : chartType === DashboardChartType.Histogram ? (
-                    <BarChartV2
-                        height={235}
-                        data={histogramData?.metrics_histogram?.buckets || []}
-                        referenceLines={referenceLines}
-                        barColorMapping={{
-                            count: 'var(--color-purple-500)',
-                        }}
-                        xAxisDataKeyName="range_end"
-                        xAxisLabel={metricConfig.units}
-                        xAxisTickFormatter={(value: number) =>
-                            value < 1 ? value.toFixed(2) : value.toFixed(0)
-                        }
-                        xAxisUnits={metricConfig.units}
-                        yAxisLabel={'occurrences'}
-                        yAxisKeys={['count']}
-                    />
-                ) : chartType === DashboardChartType.Timeline ? (
-                    <LineChart
-                        height={235}
-                        syncId="dashboardChart"
-                        data={(timelineData?.metrics_timeline || []).map(
-                            (x) => ({
-                                date: x?.date,
-                                [x?.aggregator ||
-                                MetricAggregator.Avg]: x?.value,
-                            })
-                        )}
-                        referenceLines={referenceLines}
-                        xAxisDataKeyName="date"
-                        xAxisTickFormatter={(tickItem) =>
-                            moment(tickItem).format(timelineTicks.format)
-                        }
-                        xAxisProps={{
-                            ticks: timelineTicks.ticks,
-                            tickCount: timelineTicks.ticks.length,
-                            domain: ['dataMin', 'dataMax'],
-                            scale: 'point',
-                            interval: 0, // show all ticks
-                        }}
-                        lineColorMapping={{
-                            [MetricAggregator.Max]: 'var(--color-red-500)',
-                            [MetricAggregator.P99]: 'var(--color-red-400)',
-                            [MetricAggregator.P95]: 'var(--color-orange-500)',
-                            [MetricAggregator.P90]: 'var(--color-orange-400)',
-                            [MetricAggregator.P75]: 'var(--color-green-600)',
-                            [MetricAggregator.P50]: 'var(--color-blue-400)',
-                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
-                            [MetricAggregator.Count]: 'var(--color-green-500)',
-                        }}
-                        yAxisLabel={metricConfig.units}
-                        referenceAreaProps={{
-                            x1: referenceArea.start,
-                            x2: referenceArea.end,
-                        }}
-                        onMouseDown={(e?: any) => {
-                            e?.activeLabel &&
-                                setReferenceArea({
-                                    start: e.activeLabel,
-                                    end: referenceArea.end,
-                                });
-                        }}
-                        onMouseMove={(e?: any) => {
-                            e?.activeLabel &&
-                                referenceArea.start &&
-                                setReferenceArea({
-                                    start: referenceArea.start,
-                                    end: e.activeLabel,
-                                });
-                        }}
-                        onMouseUp={() => {
-                            if (Object.values(referenceArea).includes('')) {
-                                return;
+                    ) : chartType === DashboardChartType.Timeline ? (
+                        <LineChart
+                            height={235}
+                            syncId="dashboardChart"
+                            data={(timelineData?.metrics_timeline || []).map(
+                                (x) => ({
+                                    date: x?.date,
+                                    [x?.aggregator ||
+                                    MetricAggregator.Avg]: x?.value,
+                                })
+                            )}
+                            referenceLines={referenceLines}
+                            xAxisDataKeyName="date"
+                            xAxisTickFormatter={(tickItem) =>
+                                moment(tickItem).format(timelineTicks.format)
                             }
+                            xAxisProps={{
+                                ticks: timelineTicks.ticks,
+                                tickCount: timelineTicks.ticks.length,
+                                domain: ['dataMin', 'dataMax'],
+                                scale: 'point',
+                                interval: 0, // show all ticks
+                            }}
+                            lineColorMapping={{
+                                [MetricAggregator.Max]: 'var(--color-red-500)',
+                                [MetricAggregator.P99]: 'var(--color-red-400)',
+                                [MetricAggregator.P95]:
+                                    'var(--color-orange-500)',
+                                [MetricAggregator.P90]:
+                                    'var(--color-orange-400)',
+                                [MetricAggregator.P75]:
+                                    'var(--color-green-600)',
+                                [MetricAggregator.P50]: 'var(--color-blue-400)',
+                                [MetricAggregator.Avg]: 'var(--color-gray-400)',
+                                [MetricAggregator.Count]:
+                                    'var(--color-green-500)',
+                            }}
+                            yAxisLabel={metricConfig.units}
+                            referenceAreaProps={{
+                                x1: referenceArea.start,
+                                x2: referenceArea.end,
+                            }}
+                            onMouseDown={(e?: any) => {
+                                e?.activeLabel &&
+                                    setReferenceArea({
+                                        start: e.activeLabel,
+                                        end: referenceArea.end,
+                                    });
+                            }}
+                            onMouseMove={(e?: any) => {
+                                e?.activeLabel &&
+                                    referenceArea.start &&
+                                    setReferenceArea({
+                                        start: referenceArea.start,
+                                        end: e.activeLabel,
+                                    });
+                            }}
+                            onMouseUp={() => {
+                                if (Object.values(referenceArea).includes('')) {
+                                    return;
+                                }
 
-                            const { start, end } = referenceArea;
+                                const { start, end } = referenceArea;
 
-                            if (end > start) {
-                                setDateRange(start, end, true);
-                            } else {
-                                setDateRange(end, start, true);
-                            }
+                                if (end > start) {
+                                    setDateRange(start, end, true);
+                                } else {
+                                    setDateRange(end, start, true);
+                                }
 
-                            setReferenceArea({ start: '', end: '' });
-                        }}
-                    />
-                ) : null}
+                                setReferenceArea({ start: '', end: '' });
+                            }}
+                        />
+                    ) : null}
+                </div>
             </div>
         );
     },
