@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -5793,7 +5793,17 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	var deviceMemory *int
 	metric := &model.Metric{}
 
-	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name = ?`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
+	if err := r.DB.Raw(`
+	WITH filtered_group_ids AS (
+		SELECT id
+		FROM metric_groups
+		WHERE session_id = ?
+		LIMIT 10000
+	  )
+	  SELECT metrics.*
+	  FROM metrics
+	  WHERE metrics.name = ?
+	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			log.Error(err)
 		}
