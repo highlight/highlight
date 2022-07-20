@@ -444,7 +444,7 @@ export const TagFilterSelector = ({
 
     useEffect(() => {
         if (tag?.length) {
-            load().catch(console.error);
+            load();
         }
     }, [tag, load]);
 
