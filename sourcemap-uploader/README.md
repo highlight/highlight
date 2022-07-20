@@ -14,8 +14,8 @@ You can also add this as an npm script
 // In package.json
 
 {
-	"scripts": {
-		"upload-sourcemaps": "npx @highlight-run/sourcemap-uploader upload --path=\"/path/to/sourcemaps\""
-	}
+  "scripts": {
+    "upload-sourcemaps": "npx @highlight-run/sourcemap-uploader upload --path=\"/path/to/sourcemaps\""
+  }
 }
 ```

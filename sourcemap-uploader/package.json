@@ -1,6 +1,6 @@
 {
   "name": "@highlight-run/sourcemap-uploader",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Command line tool to upload source maps to Highlight",
   "main": "index.js",
   "author": "Highlight",
@@ -14,9 +14,9 @@
     "prettier": "2.3.1"
   },
   "dependencies": {
-    "aws-sdk": "^2.932.0",
-    "glob": "^7.1.7",
-    "node-fetch": "^2.6.1",
-    "yargs": "^17.0.1"
+    "aws-sdk": "^2.1163.0",
+    "glob": "^7.2.3",
+    "node-fetch": "^2.6.7",
+    "yargs": "^17.5.1"
   }
 }
