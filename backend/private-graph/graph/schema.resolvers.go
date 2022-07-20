@@ -3664,7 +3664,17 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 		return webVitals, nil
 	}
 
-	if err := r.DB.Raw(`SELECT metrics.* FROM metrics INNER JOIN metric_groups mg on mg.id = metric_group_id WHERE mg.session_id = ? AND metrics.name in ?`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
+	if err := r.DB.Raw(`
+	WITH filtered_group_ids AS (
+		SELECT id
+		FROM metric_groups
+		WHERE session_id = ?
+		LIMIT 100000
+	  )
+	  SELECT metrics.*
+	  FROM metrics
+	  WHERE metrics.name in ?
+	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, s.ID, webVitalNames).Find(&webVitals).Error; err != nil {
 		log.Error(err)
 		return webVitals, nil
 	}
@@ -5798,7 +5808,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 		SELECT id
 		FROM metric_groups
 		WHERE session_id = ?
-		LIMIT 10000
+		LIMIT 100000
 	  )
 	  SELECT metrics.*
 	  FROM metrics
