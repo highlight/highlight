@@ -1,4 +1,6 @@
+import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import Card from '@components/Card/Card';
+import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import Table from '@components/Table/Table';
 import { useGetWorkspaceAdminsByProjectIdQuery } from '@graph/hooks';
@@ -21,48 +23,57 @@ const DashboardsHomePage = () => {
     const { dashboards, allAdmins } = useDashboardsContext();
 
     return (
-        <div>
-            <div className={alertStyles.subTitleContainer}>
-                <p>
-                    Dashboards allow you to visualize what's happening in your
-                    app.
-                </p>
-                <CreateDashboardModal />
-            </div>
-
-            <Card noPadding>
-                <Table
-                    columns={TABLE_COLUMNS}
-                    loading={loading}
-                    dataSource={dashboards.map((d) => ({ ...d, allAdmins }))}
-                    pagination={false}
-                    showHeader={false}
-                    rowHasPadding
-                    renderEmptyComponent={
-                        <SearchEmptyState
-                            className={alertStyles.emptyContainer}
-                            item={'dashboards'}
-                            customTitle={`Your project doesn't have any dashboards yet 😔`}
-                            customDescription={
-                                <>
-                                    <CreateDashboardModal />
-                                </>
-                            }
-                        />
-                    }
-                    onRow={(record) => ({
-                        onClick: () => {
-                            history.push({
-                                pathname: `dashboards/${record.id}`,
-                                state: {
-                                    dashboardName: record.name,
-                                },
-                            });
-                        },
-                    })}
+        <LeadAlignLayout fullWidth>
+            <div>
+                <Breadcrumb
+                    getBreadcrumbName={() => 'Dashboards'}
+                    linkRenderAs="h2"
                 />
-            </Card>
-        </div>
+                <div className={alertStyles.subTitleContainer}>
+                    <p>
+                        Dashboards allow you to visualize what's happening in
+                        your app.
+                    </p>
+                    <CreateDashboardModal />
+                </div>
+
+                <Card noPadding>
+                    <Table
+                        columns={TABLE_COLUMNS}
+                        loading={loading}
+                        dataSource={dashboards.map((d) => ({
+                            ...d,
+                            allAdmins,
+                        }))}
+                        pagination={false}
+                        showHeader={false}
+                        rowHasPadding
+                        renderEmptyComponent={
+                            <SearchEmptyState
+                                className={alertStyles.emptyContainer}
+                                item={'dashboards'}
+                                customTitle={`Your project doesn't have any dashboards yet 😔`}
+                                customDescription={
+                                    <>
+                                        <CreateDashboardModal />
+                                    </>
+                                }
+                            />
+                        }
+                        onRow={(record) => ({
+                            onClick: () => {
+                                history.push({
+                                    pathname: `dashboards/${record.id}`,
+                                    state: {
+                                        dashboardName: record.name,
+                                    },
+                                });
+                            },
+                        })}
+                    />
+                </Card>
+            </div>
+        </LeadAlignLayout>
     );
 };
 

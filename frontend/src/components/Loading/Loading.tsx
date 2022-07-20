@@ -27,14 +27,20 @@ export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
     );
 };
 
-export const LoadingBar = ({ width }: { width?: string | number }) => {
+export const LoadingBar = ({
+    width,
+    height,
+}: {
+    height?: string | number;
+    width?: string | number;
+}) => {
     return (
         <div className={styles.spinnerWrapper}>
             <div
-                className={styles.spinnerStyle}
                 style={{ width: width || 100 }}
+                className={styles.spinnerStyle}
             >
-                <BarLoader color={'#5629c6'} />
+                <BarLoader width={width} height={height} color={'#5629c6'} />
             </div>
         </div>
     );

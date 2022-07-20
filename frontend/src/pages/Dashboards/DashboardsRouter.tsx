@@ -1,5 +1,3 @@
-import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
-import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import {
     useGetDashboardDefinitionsQuery,
     useGetWorkspaceAdminsByProjectIdQuery,
@@ -14,7 +12,7 @@ import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
+import { Route, Switch, useRouteMatch } from 'react-router-dom';
 
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -28,7 +26,6 @@ const DashboardsRouter = () => {
     const [upsertDashboardMutation] = useUpsertDashboardMutation({
         refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
     });
-    const history = useHistory<{ errorName: string }>();
 
     useEffect(() => {
         // if no dashboards exist, create a web vitals dashboard by default
@@ -65,36 +62,16 @@ const DashboardsRouter = () => {
             <Helmet>
                 <title>Dashboards</title>
             </Helmet>
-            <LeadAlignLayout fullWidth>
-                <Breadcrumb
-                    getBreadcrumbName={(url) =>
-                        getDashboardsBreadcrumbNames(history.location.state)(
-                            url
-                        )
-                    }
-                    linkRenderAs="h2"
-                />
-                <Switch>
-                    <Route exact path={path}>
-                        <DashboardsHomePage />
-                    </Route>
-                    <Route path={`${path}/:id`}>
-                        <DashboardPage />
-                    </Route>
-                </Switch>
-            </LeadAlignLayout>
+            <Switch>
+                <Route exact path={path}>
+                    <DashboardsHomePage />
+                </Route>
+                <Route path={`${path}/:id`}>
+                    <DashboardPage />
+                </Route>
+            </Switch>
         </DashboardsContextProvider>
     );
 };
 
 export default DashboardsRouter;
-
-const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
-    return (url: string) => {
-        if (url.endsWith('/dashboards')) {
-            return 'Dashboards';
-        }
-
-        return `${suffixes?.dashboardName}`;
-    };
-};

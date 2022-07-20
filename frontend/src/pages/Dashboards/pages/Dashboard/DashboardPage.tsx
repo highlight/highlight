@@ -1,14 +1,15 @@
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import Button from '@components/Button/Button/Button';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
+import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import {
     Admin,
     DashboardDefinition,
     DashboardMetricConfig,
 } from '@graph/schemas';
-import Checkmark from '@icons/Checkmark';
 import PlusIcon from '@icons/PlusIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
@@ -43,7 +44,7 @@ const timeFilters = [
 ] as { label: string; value: number }[];
 
 const DashboardPage = () => {
-    const history = useHistory();
+    const history = useHistory<{ dashboardName: string }>();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
         `highlight-dashboard-${project_id}-${id}-date-range-v2`,
@@ -140,103 +141,130 @@ const DashboardPage = () => {
     }
 
     return (
-        <>
-            {dashboard.last_admin_to_edit_id && (
-                <AlertLastEditedBy
-                    adminId={dashboard.last_admin_to_edit_id.toString()}
-                    lastEditedTimestamp={dashboard.updated_at}
-                    allAdmins={allAdmins.filter((a) => a) as Admin[]}
-                    loading={false}
-                />
-            )}
-            <div className={styles.dateRangePickerContainer}>
-                <>
-                    {canSaveChanges && (
-                        <Button
-                            trackingId="DashboardEditLayout"
-                            type="primary"
-                            onClick={() => {
-                                setCanSaveChanges(false);
+        <LeadAlignLayout fullWidth className={styles.customLeadAlignLayout}>
+            <div className={styles.dashboardPageFixedHeader}>
+                <div className={styles.headerPanel}>
+                    <div>
+                        <Breadcrumb
+                            getBreadcrumbName={(url) =>
+                                getDashboardsBreadcrumbNames(
+                                    history.location.state
+                                )(url)
+                            }
+                            linkRenderAs="h2"
+                        />
+                    </div>
+                    <div className={styles.rightControllerSection}>
+                        <div className={styles.dateRangePickerContainer}>
+                            <>
+                                {canSaveChanges && (
+                                    <Button
+                                        trackingId="DashboardEditLayout"
+                                        type="primary"
+                                        onClick={() => {
+                                            setCanSaveChanges(false);
 
-                                const newLayout = JSON.stringify(layout);
+                                            const newLayout = JSON.stringify(
+                                                layout
+                                            );
 
-                                if (
-                                    dashboard &&
-                                    newLayout !== dashboard.layout
-                                ) {
-                                    updateDashboard({
-                                        id: id,
-                                        name: dashboard.name,
-                                        metrics: dashboard.metrics,
-                                        layout: newLayout,
+                                            if (
+                                                dashboard &&
+                                                newLayout !== dashboard.layout
+                                            ) {
+                                                updateDashboard({
+                                                    id: id,
+                                                    name: dashboard.name,
+                                                    metrics: dashboard.metrics,
+                                                    layout: newLayout,
+                                                });
+                                            }
+
+                                            message.success(
+                                                'Dashboard layout updated!',
+                                                5
+                                            );
+                                        }}
+                                    >
+                                        Save Changes
+                                    </Button>
+                                )}
+                            </>
+                            <Button
+                                trackingId="DashboardAddLayout"
+                                type="ghost"
+                                onClick={() => {
+                                    setNewMetrics((d) => {
+                                        const nm = [
+                                            ...d,
+                                            getDefaultMetricConfig(''),
+                                        ];
+                                        pushNewMetricConfig(nm);
+                                        return nm;
                                     });
+                                }}
+                            >
+                                Add
+                                <PlusIcon
+                                    style={{
+                                        marginLeft: '1em',
+                                        marginBottom: '0.1em',
+                                    }}
+                                />
+                            </Button>
+                            <StandardDropdown
+                                data={
+                                    customDateRange
+                                        ? [customDateRange, ...timeFilters]
+                                        : timeFilters
                                 }
+                                value={customDateRange || dateRangeLength}
+                                onSelect={(value) => {
+                                    const endDate = moment(new Date());
+                                    const startDate = moment(
+                                        new Date()
+                                    ).subtract(value, 'minutes');
 
-                                message.success('Dashboard layout updated!', 5);
-                            }}
+                                    updateDateRange(
+                                        startDate.format(),
+                                        endDate.format()
+                                    );
+                                    setDateRangeLength(
+                                        timeFilters.filter(
+                                            (f) => f.value === value
+                                        )[0]
+                                    );
+                                }}
+                                className={styles.dateRangePicker}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.headerPanel}>
+                    <div>
+                        {dashboard.last_admin_to_edit_id && (
+                            <AlertLastEditedBy
+                                adminId={dashboard.last_admin_to_edit_id.toString()}
+                                lastEditedTimestamp={dashboard.updated_at}
+                                allAdmins={
+                                    allAdmins.filter((a) => a) as Admin[]
+                                }
+                                loading={false}
+                            />
+                        )}
+                    </div>
+                    <div className={styles.rightControllerText}>
+                        Results are{' '}
+                        <span
+                            className={classNames({
+                                [styles.liveColored]: !customDateRange,
+                                [styles.absoluteColored]: customDateRange,
+                            })}
                         >
-                            Save Changes
-                        </Button>
-                    )}
-                </>
-                <Button
-                    trackingId="DashboardAddLayout"
-                    type="ghost"
-                    onClick={() => {
-                        setNewMetrics((d) => {
-                            const nm = [...d, getDefaultMetricConfig('')];
-                            pushNewMetricConfig(nm);
-                            return nm;
-                        });
-                    }}
-                >
-                    Add
-                    <PlusIcon
-                        style={{ marginLeft: '1em', marginBottom: '0.1em' }}
-                    />
-                </Button>
-                <button
-                    className={classNames(styles.pillButton, {
-                        [styles.pillLive]: !customDateRange,
-                        [styles.pillStatic]: customDateRange,
-                    })}
-                >
-                    <span
-                        className={classNames(styles.pillButtonText, {
-                            [styles.pillButtonTextVisible]: !customDateRange,
-                        })}
-                    >
-                        <Checkmark fill={'var(--color-green-900)'} /> Live
-                    </span>
-                    <span
-                        className={classNames(styles.pillButtonText, {
-                            [styles.pillButtonTextVisible]: customDateRange,
-                        })}
-                    >
-                        Absolute
-                    </span>
-                </button>
-                <StandardDropdown
-                    data={
-                        customDateRange
-                            ? [customDateRange, ...timeFilters]
-                            : timeFilters
-                    }
-                    value={customDateRange || dateRangeLength}
-                    onSelect={(value) => {
-                        const endDate = moment(new Date());
-                        const startDate = moment(new Date()).subtract(
-                            value,
-                            'minutes'
-                        );
-
-                        updateDateRange(startDate.format(), endDate.format());
-                        setDateRangeLength(
-                            timeFilters.filter((f) => f.value === value)[0]
-                        );
-                    }}
-                    className={styles.dateRangePicker}
-                />
+                            {customDateRange ? ` Absolute` : ` Live`}
+                        </span>
+                    </div>
+                </div>
             </div>
             <div className={classNames(styles.gridContainer, styles.isEditing)}>
                 <ResponsiveGridLayout
@@ -249,8 +277,8 @@ const DashboardPage = () => {
                         xxs: 2,
                     }}
                     breakpoints={{
-                        lg: 1200,
-                        md: 996,
+                        lg: 920,
+                        md: 900,
                         sm: 768,
                         xs: 480,
                         xxs: 0,
@@ -295,7 +323,7 @@ const DashboardPage = () => {
                     ))}
                 </ResponsiveGridLayout>
             </div>
-        </>
+        </LeadAlignLayout>
     );
 };
 
@@ -305,6 +333,16 @@ export const roundDate = (d: moment.Moment, toMinutes: number) => {
     }
     const remainder = toMinutes - (d.minute() % toMinutes);
     return d.add(remainder, 'minutes');
+};
+
+const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
+    return (url: string) => {
+        if (url.endsWith('/dashboards')) {
+            return 'Dashboards';
+        }
+
+        return `${suffixes?.dashboardName}`;
+    };
 };
 
 export default DashboardPage;

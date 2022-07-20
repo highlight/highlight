@@ -1,10 +1,9 @@
 import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
-import Card from '@components/Card/Card';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
-import { CircularSpinner } from '@components/Loading/Loading';
+import { LoadingBar } from '@components/Loading/Loading';
 import Modal from '@components/Modal/Modal';
 import ModalBody from '@components/ModalBody/ModalBody';
 import { Skeleton } from '@components/Skeleton/Skeleton';
@@ -31,7 +30,6 @@ import {
     UpdateMetricFn,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal';
 import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
-import dashStyles from '@pages/Dashboards/pages/Dashboard/DashboardPage.module.scss';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -42,6 +40,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import styles from './DashboardCard.module.scss';
+import DashboardInnerCard from './DashboardInnerCard/DashboardInnerCard';
 
 export const UNIT_OPTIONS = [
     { label: 'Milliseconds', value: 'ms' },
@@ -92,66 +91,34 @@ const DashboardCard = ({
 
     return (
         <>
-            <Card
+            <DashboardInnerCard
                 interactable
                 className={styles.card}
                 title={
                     <div className={styles.cardHeader}>
-                        <div className={styles.headerContainer}>
-                            <span className={styles.header}>
-                                {metricConfig.description ||
-                                    metricConfig.name ||
-                                    'New Chart'}
-                                {metricConfig.help_article && (
-                                    <InfoTooltip
-                                        className={styles.infoTooltip}
-                                        title={
-                                            'Click to learn more about this metric.'
-                                        }
-                                        onClick={() => {
-                                            window.open(
-                                                metricConfig.help_article,
-                                                '_blank'
-                                            );
-                                        }}
-                                    />
-                                )}
-                            </span>
-                        </div>
-                        <div className={classNames(styles.headerActions)}>
-                            <div className={styles.chartButtons}>
-                                <button
-                                    style={{
-                                        marginRight: 'var(--size-xSmall)',
-                                    }}
-                                    className={classNames(
-                                        dashStyles.pillButton,
-                                        dashStyles.pillButtonSmall,
-                                        {
-                                            [dashStyles.pillLoading]: updatingData,
-                                        }
-                                    )}
-                                >
-                                    <span
-                                        className={classNames(
-                                            dashStyles.pillButtonText,
-                                            {
-                                                [dashStyles.pillButtonTextVisible]: updatingData,
+                        <div className={styles.mainHeaderContent}>
+                            <div className={styles.headerContainer}>
+                                <span className={styles.header}>
+                                    {metricConfig.description ||
+                                        metricConfig.name ||
+                                        'New Chart'}
+                                    {metricConfig.help_article && (
+                                        <InfoTooltip
+                                            className={styles.infoTooltip}
+                                            title={
+                                                'Click to learn more about this metric.'
                                             }
-                                        )}
-                                    >
-                                        <CircularSpinner
-                                            style={{
-                                                width: 12,
-                                                height: 12,
-                                                fontSize: 12,
-                                                color:
-                                                    'var(--text-primary-inverted)',
+                                            onClick={() => {
+                                                window.open(
+                                                    metricConfig.help_article,
+                                                    '_blank'
+                                                );
                                             }}
-                                        />{' '}
-                                        Loading
-                                    </span>
-                                </button>
+                                        />
+                                    )}
+                                </span>
+                            </div>
+                            <div className={styles.chartButtons}>
                                 <div
                                     style={{
                                         marginRight: 'var(--size-xSmall)',
@@ -305,29 +272,34 @@ const DashboardCard = ({
                                 </div>
                             </ModalBody>
                         </Modal>
+                        {updatingData && (
+                            <LoadingBar height={2} width={'100%'} />
+                        )}
                     </div>
                 }
             >
-                <ChartContainer
-                    metricIdx={metricIdx}
-                    metricConfig={metricConfig}
-                    chartType={metricConfig.chart_type}
-                    aggregator={metricConfig.aggregator}
-                    maxGoodValue={metricConfig.max_good_value}
-                    maxNeedsImprovementValue={
-                        metricConfig.max_needs_improvement_value
-                    }
-                    poorValue={metricConfig.poor_value}
-                    dateRange={dateRange}
-                    customDateRange={customDateRange}
-                    updateMetric={updateMetric}
-                    showEditModal={showEditModal}
-                    setShowEditModal={setShowEditModal}
-                    setShowDeleteModal={setShowDeleteModal}
-                    setDateRange={setDateRange}
-                    setUpdatingData={setUpdatingData}
-                />
-            </Card>
+                <div className={styles.chartWrapper}>
+                    <ChartContainer
+                        metricIdx={metricIdx}
+                        metricConfig={metricConfig}
+                        chartType={metricConfig.chart_type}
+                        aggregator={metricConfig.aggregator}
+                        maxGoodValue={metricConfig.max_good_value}
+                        maxNeedsImprovementValue={
+                            metricConfig.max_needs_improvement_value
+                        }
+                        poorValue={metricConfig.poor_value}
+                        dateRange={dateRange}
+                        customDateRange={customDateRange}
+                        updateMetric={updateMetric}
+                        showEditModal={showEditModal}
+                        setShowEditModal={setShowEditModal}
+                        setShowDeleteModal={setShowDeleteModal}
+                        setDateRange={setDateRange}
+                        setUpdatingData={setUpdatingData}
+                    />
+                </div>
+            </DashboardInnerCard>
         </>
     );
 };
