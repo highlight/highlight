@@ -18,7 +18,8 @@ module.exports = {
         configure: {
             devtool: 'source-map',
             output: {
-                sourceMapFilename: '/[file].map',
+                sourceMapFilename: '[file].map',
+                publicPath: '/static/',
             },
         },
     },
