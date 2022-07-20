@@ -9,13 +9,18 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"sync"
 	"time"
 )
 
 type Measurement string
 
 const (
-	Metrics Measurement = "metrics"
+	Metrics                 Measurement = "metrics"
+	MetricsAggMinute        Measurement = "metrics-aggregate-minute"
+	DownsampleInterval                  = time.Minute
+	DownsampleThreshold                 = 60 * DownsampleInterval
+	downsampledBucketSuffix string      = "/downsampled"
 )
 
 var IgnoredTags = map[string]bool{
@@ -42,6 +47,7 @@ type Result struct {
 
 type DB interface {
 	GetBucket(bucket string) string
+	GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement)
 	Write(bucket string, points []Point)
 	Query(ctx context.Context, query string) (results []*Result, e error)
 }
@@ -51,6 +57,7 @@ type InfluxDB struct {
 	org          string
 	orgID        string
 	client       influxdb2.Client
+	writeAPILock sync.Mutex
 	writeAPIs    map[string]api.WriteAPI
 	queryAPI     api.QueryAPI
 	messagesSent int
@@ -89,10 +96,45 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 	b := i.GetBucket(bucket)
 	// ignore bucket already exists error
 	_, _ = i.client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
-		// 90 day metric expiry
+		// short metric expiry for granular data since we will only store downsampled data long term
+		EverySeconds: int64((DownsampleThreshold).Seconds()),
+		Type:         domain.RetentionRuleTypeExpire,
+	})
+	// create a downsample bucket. ignore bucket already exists error
+	downsampleB := b + downsampledBucketSuffix
+	_, _ = i.client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
+		// 90 day metric expiry for downsampled data
 		EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
 		Type:         domain.RetentionRuleTypeExpire,
 	})
+	taskName := fmt.Sprintf("task-%s", downsampleB)
+	tasks, _ := i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+		Name:  taskName,
+		OrgID: i.orgID,
+		Limit: 1,
+	})
+	if len(tasks) < 1 {
+		// create a task to downsample data
+		_, _ = i.client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
+		option task = {name: "%s", every: %dm}
+		from(bucket: "%s")
+			|> range(start: -task.every)
+			|> filter(fn: (r) => r._measurement == "%s")
+			|> aggregateWindow(every: %dm, fn: mean)
+			|> set(key: "_measurement", value: "%s")
+			|> to(bucket: "%s")
+	`, taskName, int(DownsampleInterval.Minutes()), b, Metrics, int(DownsampleInterval.Minutes()), MetricsAggMinute, downsampleB), i.orgID)
+	}
+	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
+	tasks, _ = i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+		Name:  taskName,
+		OrgID: i.orgID,
+	})
+	if len(tasks) > 1 {
+		for _, t := range tasks[1:] {
+			_ = i.client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
+		}
+	}
 	// Get non-blocking write client
 	writeAPI := i.client.WriteAPI(i.org, b)
 	// Get errors channel
@@ -107,6 +149,8 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 }
 
 func (i *InfluxDB) getWriteAPI(bucket string) api.WriteAPI {
+	i.writeAPILock.Lock()
+	defer i.writeAPILock.Unlock()
 	b := i.GetBucket(bucket)
 	if _, ok := i.writeAPIs[b]; !ok {
 		i.writeAPIs[b] = i.createWriteAPI(bucket)
@@ -142,6 +186,17 @@ func (i *InfluxDB) Write(bucket string, points []Point) {
 	i.messagesSent++
 	hlog.Incr("worker.influx.writeMessageCount", nil, 1)
 	hlog.Histogram("worker.influx.writeSec", time.Since(start).Seconds(), nil, 1)
+}
+
+// GetSampledMeasurement returns the bucket and measurement to query depending on the time range
+func (i *InfluxDB) GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement) {
+	if timeRange > DownsampleThreshold {
+		switch defaultMeasurement {
+		case Metrics:
+			return defaultBucket + downsampledBucketSuffix, MetricsAggMinute
+		}
+	}
+	return defaultBucket, defaultMeasurement
 }
 
 func (i *InfluxDB) Query(ctx context.Context, query string) (results []*Result, e error) {

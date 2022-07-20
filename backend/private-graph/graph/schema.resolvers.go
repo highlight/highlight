@@ -5489,6 +5489,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -5514,7 +5515,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		do(q:%f)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, div, minPercentile, maxPercentile)
+  `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
 		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 		histogramRangeQuerySpan.SetTag("projectID", projectID)
 		histogramRangeQuerySpan.SetTag("metricName", metricName)
@@ -5557,7 +5558,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
           %s|> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)

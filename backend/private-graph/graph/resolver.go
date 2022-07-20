@@ -2486,6 +2486,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		resMins = *params.ResolutionMinutes
 	}
 
+	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	query := fmt.Sprintf(`
       query = () =>
 		from(bucket: "%[1]s")
@@ -2499,7 +2500,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
                every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, resMins)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, resMins)
 	agg := modelInputs.MetricAggregatorAvg
 	if params.Aggregator != nil {
 		agg = *params.Aggregator
