@@ -5,10 +5,7 @@
     color: var(--text-primary) !important;
     font-size: 16px !important;
     line-height: initial !important;
-    padding-bottom: var(--size-xSmall) !important;
-    padding-left: var(--size-small) !important;
-    padding-right: var(--size-small) !important;
-    padding-top: var(--size-xSmall) !important;
+    padding: var(--size-xSmall) var(--size-small) !important;
 
     &:global(.ant-input-lg) {
         padding: var(--size-xSmall) var(--size-small) !important;

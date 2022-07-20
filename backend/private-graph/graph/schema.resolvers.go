@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3052,8 +3052,10 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	for _, m := range metrics {
 		var filters []*model.DashboardMetricFilter
 		for _, f := range m.Filters {
+			log.Warnf("filter %+v", f)
 			filters = append(filters, &model.DashboardMetricFilter{
 				Tag:   f.Tag,
+				Op:    f.Op,
 				Value: f.Value,
 			})
 		}
@@ -5346,6 +5348,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			for _, f := range metric.Filters {
 				filters = append(filters, &modelInputs.MetricTagFilter{
 					Tag:   f.Tag,
+					Op:    f.Op,
 					Value: f.Value,
 				})
 			}
@@ -5493,7 +5496,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		  |> range(start: %s, stop: %s)
 		  |> filter(fn: (r) => r["_measurement"] == "%s")
 		  |> filter(fn: (r) => r["_field"] == "%s")
-		  |> group()
+		  %s|> group()
 		  |> quantile(q:q, method: "estimate_tdigest", compression: 100.0)
 		  |> map(fn: (r) => ({r with _value: r._value / %f}))
       union(tables: [
@@ -5501,7 +5504,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		do(q:%f)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, div, minPercentile, maxPercentile)
+  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, div, minPercentile, maxPercentile)
 		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 		histogramRangeQuerySpan.SetTag("projectID", projectID)
 		histogramRangeQuerySpan.SetTag("metricName", metricName)

@@ -236,13 +236,15 @@ type MetricPreview struct {
 }
 
 type MetricTagFilter struct {
-	Tag   string `json:"tag"`
-	Value string `json:"value"`
+	Tag   string            `json:"tag"`
+	Op    MetricTagFilterOp `json:"op"`
+	Value string            `json:"value"`
 }
 
 type MetricTagFilterInput struct {
-	Tag   string `json:"tag"`
-	Value string `json:"value"`
+	Tag   string            `json:"tag"`
+	Op    MetricTagFilterOp `json:"op"`
+	Value string            `json:"value"`
 }
 
 type NamedCount struct {
@@ -554,6 +556,47 @@ func (e *MetricAggregator) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricAggregator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricTagFilterOp string
+
+const (
+	MetricTagFilterOpEquals   MetricTagFilterOp = "equals"
+	MetricTagFilterOpContains MetricTagFilterOp = "contains"
+)
+
+var AllMetricTagFilterOp = []MetricTagFilterOp{
+	MetricTagFilterOpEquals,
+	MetricTagFilterOpContains,
+}
+
+func (e MetricTagFilterOp) IsValid() bool {
+	switch e {
+	case MetricTagFilterOpEquals, MetricTagFilterOpContains:
+		return true
+	}
+	return false
+}
+
+func (e MetricTagFilterOp) String() string {
+	return string(e)
+}
+
+func (e *MetricTagFilterOp) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricTagFilterOp(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricTagFilterOp", str)
+	}
+	return nil
+}
+
+func (e MetricTagFilterOp) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

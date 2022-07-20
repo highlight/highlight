@@ -410,13 +410,20 @@ input HistogramParamsInput {
     filters: [MetricTagFilterInput!]
 }
 
+enum MetricTagFilterOp {
+    equals
+    contains
+}
+
 type MetricTagFilter {
     tag: String!
+    op: MetricTagFilterOp!
     value: String!
 }
 
 input MetricTagFilterInput {
     tag: String!
+    op: MetricTagFilterOp!
     value: String!
 }
 

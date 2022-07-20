@@ -9581,6 +9581,7 @@ export const GetDashboardDefinitionsDocument = gql`
                 max_percentile
                 filters {
                     value
+                    op
                     tag
                 }
             }

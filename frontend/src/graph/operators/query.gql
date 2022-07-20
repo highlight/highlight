@@ -1460,6 +1460,7 @@ query GetDashboardDefinitions($project_id: ID!) {
             max_percentile
             filters {
                 value
+                op
                 tag
             }
         }

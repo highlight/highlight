@@ -61,8 +61,17 @@
     height: 40px;
     justify-content: center;
     padding: 10px 10px 10px 6px;
+
+    &.dropdownGray {
+        background: var(--color-gray-200) !important;
+        border: 1px solid transparent !important;
+    }
 }
 
 .overlay {
     z-index: 9999999999 !important;
+}
+
+.placeholder {
+    color: var(--color-gray-400) !important;
 }

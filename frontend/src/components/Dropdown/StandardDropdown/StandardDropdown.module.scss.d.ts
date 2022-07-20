@@ -1,3 +1,4 @@
+export const dropdownGray: string;
 export const dropdownHandler: string;
 export const dropdownInner: string;
 export const dropdownMenu: string;
@@ -6,3 +7,4 @@ export const labelItem: string;
 export const labelNameText: string;
 export const labelText: string;
 export const overlay: string;
+export const placeholder: string;

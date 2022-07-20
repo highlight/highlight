@@ -2456,7 +2456,20 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) {
 	for _, f := range filters {
 		if f != nil {
-			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] == "%s")`, f.Tag, f.Value) + "\n"
+			var op, val string
+			if f.Op != "" {
+				switch f.Op {
+				case modelInputs.MetricTagFilterOpEquals:
+					op = "=="
+					val = fmt.Sprintf(`"%s"`, f.Value)
+				case modelInputs.MetricTagFilterOpContains:
+					op = "=~"
+					val = fmt.Sprintf("/.*%s.*/", f.Value)
+				default:
+					log.Errorf("received an unsupported tag operator: %+v", f.Op)
+				}
+			}
+			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] %s %s)`, f.Tag, op, val) + "\n"
 		}
 	}
 	return
