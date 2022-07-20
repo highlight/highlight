@@ -11,7 +11,7 @@
         "@highlight-run/rrweb": "2.0.17",
         "@rehooks/local-storage": "^2.4.0",
         "@rehooks/window-size": "^1.0.2",
-        "@stripe/stripe-js": "^1.11.0",
+        "@stripe/stripe-js": "^1.32.0",
         "antd": "^4.17.0",
         "apollo3-cache-persist": "^0.14.0",
         "classnames": "^2.2.6",
