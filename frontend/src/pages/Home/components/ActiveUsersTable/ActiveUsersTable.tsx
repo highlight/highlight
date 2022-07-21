@@ -14,6 +14,7 @@ import SvgClockIcon from '@icons/ClockIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
+import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useMemo, useState } from 'react';
@@ -113,7 +114,9 @@ const ActiveUsersTable = () => {
                         user_properties: [
                             {
                                 id: record.id,
-                                name: 'identifer',
+                                name: validateEmail(record.identifier)
+                                    ? 'email'
+                                    : 'identifier',
                                 value: record.identifier,
                             },
                         ],
