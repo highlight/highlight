@@ -2906,7 +2906,7 @@
     "@emotion/weak-memoize" "^0.2.5"
     stylis "4.0.13"
 
-"@emotion/core@^10.0.15", "@emotion/core@^10.0.9":
+"@emotion/core@^10.0.9":
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/@emotion/core/-/core-10.1.1.tgz#c956c1365f2f2481960064bcb8c4732e5fb612c3"
   integrity sha512-ZMLG6qpXR8x031NXD8HJqugy/AZSkAuMxxqB46pmAR7ze47MhNJ56cdoX243QPZdGctrdfo+s08yZTiwaUcRKA==
@@ -15988,12 +15988,10 @@ react-snowfall@^1.1.1:
   dependencies:
     react-fast-compare "^3.2.0"
 
-react-spinners@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/react-spinners/-/react-spinners-0.9.0.tgz#b22c38acbfce580cd6f1b04a4649e812370b1fb8"
-  integrity sha512-+x6eD8tn/aYLdxZjNW7fSR1uoAXLb9qq6TFYZR1dFweJvckcf/HfP8Pa/cy5HOvB/cvI4JgrYXTjh2Me3S6Now==
-  dependencies:
-    "@emotion/core" "^10.0.15"
+react-spinners@^0.13.2:
+  version "0.13.3"
+  resolved "https://registry.yarnpkg.com/react-spinners/-/react-spinners-0.13.3.tgz#9d00d10fb2a0869b21efdc13fb0fddbcecd05731"
+  integrity sha512-FHQMH6dAl1Vw4Lxv0H7hbGsjBs0aKNVwjGrDJLuD9R/C3h9+IuBhKJOJyCcegxMaLiBSBV96Tp+XV3OwPK8Vtw==
 
 react-spring@^8.0.27:
   version "8.0.27"
