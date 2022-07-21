@@ -51,6 +51,7 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'viewed',
         options: {
             type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
     {
@@ -82,6 +83,7 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'processed',
         options: {
             type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
     {
@@ -89,6 +91,7 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'first_time',
         options: {
             type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
     {
@@ -96,6 +99,15 @@ const CUSTOM_FIELDS: CustomField[] = [
         name: 'starred',
         options: {
             type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'identified',
+        options: {
+            type: 'boolean',
+            operators: BOOLEAN_OPERATORS,
         },
     },
 ];
