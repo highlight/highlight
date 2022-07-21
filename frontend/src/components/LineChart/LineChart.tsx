@@ -10,7 +10,7 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     CartesianGrid,
     Label,
@@ -103,21 +103,23 @@ const LineChart = ({
     onMouseMove,
     onMouseUp,
 }: Props) => {
-    const nonXAxisKeys =
-        data.length > 0
-            ? Object.keys(data[0]).filter(
-                  (keyName) =>
-                      keyName !== xAxisDataKeyName && keyName !== '__typename'
-              )
-            : [];
     const { min, max } = findDataDomain(data);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
-    const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
-        nonXAxisKeys
-    );
+    const [dataTypesToShow, setDataTypesToShow] = useState<string[]>([]);
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
     const [showTooltip, setShowTooltip] = React.useState(false);
+
+    const isNonXAxisKey = useCallback(
+        (keyName) => keyName !== xAxisDataKeyName && keyName !== '__typename',
+        [xAxisDataKeyName]
+    );
+
+    useEffect(() => {
+        if (data.length > 0) {
+            setDataTypesToShow(Object.keys(data[0]).filter(isNonXAxisKey));
+        }
+    }, [data, isNonXAxisKey]);
 
     return (
         <>
@@ -250,7 +252,10 @@ const LineChart = ({
                             )}
                         </ReferenceLine>
                     ))}
-                    {nonXAxisKeys.map((key) => (
+                    {(data.length > 0
+                        ? Object.keys(data[0]).filter(isNonXAxisKey)
+                        : []
+                    ).map((key) => (
                         <Line
                             hide={!dataTypesToShow.includes(key)}
                             key={key}
