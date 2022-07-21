@@ -9,6 +9,7 @@ import (
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -108,12 +109,12 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 		Type:         domain.RetentionRuleTypeExpire,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
-	tasks, _ := i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+	tasks, err := i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
 		Name:  taskName,
 		OrgID: i.orgID,
 		Limit: 1,
 	})
-	if len(tasks) < 1 {
+	if err == nil && len(tasks) < 1 {
 		// create a task to downsample data
 		_, _ = i.client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
 		option task = {name: "%s", every: %dm}
@@ -131,6 +132,9 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 		OrgID: i.orgID,
 	})
 	if len(tasks) > 1 {
+		sort.Slice(tasks, func(i, j int) bool {
+			return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
+		})
 		for _, t := range tasks[1:] {
 			_ = i.client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
