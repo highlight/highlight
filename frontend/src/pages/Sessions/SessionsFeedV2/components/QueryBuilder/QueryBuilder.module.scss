@@ -224,6 +224,7 @@ span:last-child {
 }
 
 .syncButton,
+.syncButton[disabled],
 .syncButton:active,
 .syncButton:focus,
 .syncButton:hover {
@@ -235,6 +236,10 @@ span:last-child {
 
 .syncButton:hover {
     opacity: 0.6;
+}
+
+.syncButton[disabled] {
+    opacity: 0.2;
 }
 
 .addFilter {

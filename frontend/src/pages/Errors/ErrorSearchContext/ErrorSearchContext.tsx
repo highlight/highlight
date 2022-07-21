@@ -24,6 +24,8 @@ type ErrorSearchContext = {
     setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
     page?: number;
     setPage: React.Dispatch<React.SetStateAction<number | undefined>>;
+    searchResultsLoading: boolean;
+    setSearchResultsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const [

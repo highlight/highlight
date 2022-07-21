@@ -1092,6 +1092,7 @@ interface QueryBuilderProps {
     searchParams: any;
     setSearchParams: React.Dispatch<React.SetStateAction<any>>;
     readonly?: boolean;
+    searchResultsLoading: boolean;
 }
 
 const QueryBuilder = ({
@@ -1104,6 +1105,7 @@ const QueryBuilder = ({
     searchParams,
     setSearchParams,
     readonly,
+    searchResultsLoading,
 }: QueryBuilderProps) => {
     const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
@@ -1359,6 +1361,9 @@ const QueryBuilder = ({
         },
     };
     const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
+    const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(
+        false
+    );
     const timeRangeRule = useMemo<RuleProps | undefined>(
         () => rules.find((rule) => rule.field?.value === timeRangeField.value),
         [rules, timeRangeField.value]
@@ -1507,6 +1512,19 @@ const QueryBuilder = ({
     // Track the current state of the query builder to detect changes
     const [qbState, setQbState] = useState<string | undefined>(undefined);
 
+    useEffect(() => {
+        if (searchResultsLoading === false) {
+            const timer = setTimeout(() => {
+                setSyncButtonDisabled(false);
+            }, 5000);
+            return () => {
+                clearTimeout(timer);
+            };
+        } else {
+            setSyncButtonDisabled(true);
+        }
+    }, [searchResultsLoading]);
+
     // If the search query is updated externally, set the rules and `isAnd` toggle based on it
     useEffect(() => {
         if (!!searchParams.query && searchParams.query !== qbState) {
@@ -1578,6 +1596,7 @@ const QueryBuilder = ({
     if (!timeRangeRule) {
         addRule(defaultTimeRangeRule);
     }
+
     return (
         <div className={styles.builderContainer}>
             {timeRangeRule && (
@@ -1603,7 +1622,7 @@ const QueryBuilder = ({
                                     const query = parseGroup(isAnd, rules);
                                     setSearchQuery(JSON.stringify(query));
                                 }}
-                                loading={false}
+                                disabled={syncButtonDisabled}
                                 trackingId={'RefreshSearchResults'}
                             >
                                 <Tooltip

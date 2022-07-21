@@ -218,6 +218,7 @@ const SessionsQueryBuilder = React.memo(
             setSearchQuery,
             searchParams,
             setSearchParams,
+            searchResultsLoading,
         } = useSearchContext();
         const { refetch } = useGetFieldsOpensearchQuery({
             skip: true,
@@ -243,6 +244,7 @@ const SessionsQueryBuilder = React.memo(
                 searchParams={searchParams}
                 setSearchParams={setSearchParams}
                 readonly={readonly}
+                searchResultsLoading={searchResultsLoading}
             />
         );
     }
