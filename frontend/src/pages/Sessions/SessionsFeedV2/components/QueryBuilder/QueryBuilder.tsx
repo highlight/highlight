@@ -1354,8 +1354,8 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: 'Last 7 days',
-                    value: '7 days',
+                    label: 'Last 30 days',
+                    value: '30 days',
                 },
             ],
         },
