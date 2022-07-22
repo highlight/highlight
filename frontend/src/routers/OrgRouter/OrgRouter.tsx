@@ -163,6 +163,9 @@ export const ProjectRouter = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
+        false
+    );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
     const [page, setPage] = useState<number>();
@@ -355,6 +358,8 @@ export const ProjectRouter = () => {
                         setIsQuickSearchOpen,
                         page,
                         setPage,
+                        searchResultsLoading,
+                        setSearchResultsLoading,
                     }}
                 >
                     <Header />

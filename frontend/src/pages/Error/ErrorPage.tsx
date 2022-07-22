@@ -97,6 +97,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
         cachedParams || EmptyErrorsSearchParams
     );
+    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
+        false
+    );
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const dateFromSearchParams = new URLSearchParams(location.search).get(
@@ -213,6 +216,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setSearchQuery,
                 page,
                 setPage,
+                searchResultsLoading,
+                setSearchResultsLoading,
             }}
         >
             <Helmet>

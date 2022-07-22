@@ -115,6 +115,7 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
         setSearchQuery,
         searchParams,
         setSearchParams,
+        searchResultsLoading,
     } = useErrorSearchContext();
     const { refetch } = useGetErrorFieldsOpensearchQuery({
         skip: true,
@@ -132,6 +133,7 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
             searchParams={searchParams}
             setSearchParams={setSearchParams}
             readonly={readonly}
+            searchResultsLoading={searchResultsLoading}
         />
     );
 };

@@ -247,9 +247,14 @@ const getDateLabel = (value: string): string => {
     const endStr = moment(end).format('MMM D');
     return `${startStr} to ${endStr}`;
 };
+
+export const isAbsoluteTimeRange = (value?: string): boolean => {
+    return !!value && value.includes('_');
+};
+
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', subtract it from current time
         const amount = parseInt(value.split(' ')[0]);
         const unit = value.split(' ')[1].toLowerCase();
@@ -261,7 +266,7 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 };
 export const getAbsoluteEndTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', use current time as end of range
         return moment().toISOString();
     }
@@ -1088,6 +1093,7 @@ interface QueryBuilderProps {
     searchParams: any;
     setSearchParams: React.Dispatch<React.SetStateAction<any>>;
     readonly?: boolean;
+    searchResultsLoading: boolean;
 }
 
 const QueryBuilder = ({
@@ -1100,6 +1106,7 @@ const QueryBuilder = ({
     searchParams,
     setSearchParams,
     readonly,
+    searchResultsLoading,
 }: QueryBuilderProps) => {
     const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
@@ -1355,6 +1362,9 @@ const QueryBuilder = ({
         },
     };
     const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
+    const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(
+        false
+    );
     const timeRangeRule = useMemo<RuleProps | undefined>(
         () => rules.find((rule) => rule.field?.value === timeRangeField.value),
         [rules, timeRangeField.value]
@@ -1503,6 +1513,19 @@ const QueryBuilder = ({
     // Track the current state of the query builder to detect changes
     const [qbState, setQbState] = useState<string | undefined>(undefined);
 
+    useEffect(() => {
+        if (searchResultsLoading === false) {
+            const timer = setTimeout(() => {
+                setSyncButtonDisabled(false);
+            }, 5000);
+            return () => {
+                clearTimeout(timer);
+            };
+        } else {
+            setSyncButtonDisabled(true);
+        }
+    }, [searchResultsLoading]);
+
     // If the search query is updated externally, set the rules and `isAnd` toggle based on it
     useEffect(() => {
         if (!!searchParams.query && searchParams.query !== qbState) {
@@ -1574,39 +1597,46 @@ const QueryBuilder = ({
     if (!timeRangeRule) {
         addRule(defaultTimeRangeRule);
     }
+
     return (
         <div className={styles.builderContainer}>
-            <div>
+            {timeRangeRule && (
                 <div className={styles.rulesContainer}>
-                    {timeRangeRule && (
+                    <div className={styles.ruleContainer}>
                         <TimeRangeFilter
                             rule={timeRangeRule}
                             onChangeValue={(val) =>
                                 updateRule(timeRangeRule, { val: val })
                             }
                         />
-                    )}
-                    {!readonly && (
-                        <Button
-                            className={styles.syncButton}
-                            onClick={() => {
-                                const query = parseGroup(isAnd, rules);
-                                setSearchQuery(JSON.stringify(query));
-                            }}
-                            loading={false}
-                            trackingId={'RefreshSearchResults'}
-                        >
-                            <Tooltip
-                                title={
-                                    'Refetch the latest results of your query.'
-                                }
+                    </div>
+                    {!readonly &&
+                        !isAbsoluteTimeRange(
+                            timeRangeRule.val?.options[0].value
+                        ) && (
+                            <Button
+                                className={classNames(
+                                    styles.ruleItem,
+                                    styles.syncButton
+                                )}
+                                onClick={() => {
+                                    const query = parseGroup(isAnd, rules);
+                                    setSearchQuery(JSON.stringify(query));
+                                }}
+                                disabled={syncButtonDisabled}
+                                trackingId={'RefreshSearchResults'}
                             >
-                                <Reload width="12px" height="12px" />
-                            </Tooltip>
-                        </Button>
-                    )}
+                                <Tooltip
+                                    title={
+                                        'Refetch the latest results of your query.'
+                                    }
+                                >
+                                    <Reload width="1em" height="1em" />
+                                </Tooltip>
+                            </Button>
+                        )}
                 </div>
-            </div>
+            )}
             <div>
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>

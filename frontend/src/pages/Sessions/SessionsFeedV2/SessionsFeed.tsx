@@ -83,6 +83,8 @@ export const SessionFeed = React.memo(() => {
         searchQuery,
         page,
         setPage,
+        searchResultsLoading,
+        setSearchResultsLoading,
     } = useSearchContext();
     const { integrated } = useIntegrated();
     const searchParamsChanged = useRef<Date>();
@@ -107,10 +109,9 @@ export const SessionFeed = React.memo(() => {
     });
 
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
-    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     useEffect(() => {
-        setShowLoadingSkeleton(true);
-    }, [searchQuery, page]);
+        setSearchResultsLoading(true);
+    }, [searchQuery, page, setSearchResultsLoading]);
 
     // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
     const unprocessedSessionsCount: number | undefined =
@@ -124,7 +125,7 @@ export const SessionFeed = React.memo(() => {
             );
             setSessionsCount(response?.sessions_opensearch.totalCount);
         }
-        setShowLoadingSkeleton(false);
+        setSearchResultsLoading(false);
     };
 
     const { loading, called } = useGetSessionsOpenSearchQuery({
@@ -311,7 +312,7 @@ export const SessionFeed = React.memo(() => {
                         [styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
                     })}
                 >
-                    {showLoadingSkeleton ? (
+                    {searchResultsLoading ? (
                         <Skeleton
                             height={!showDetailedSessionView ? 74 : 125}
                             count={3}
