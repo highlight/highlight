@@ -5,11 +5,10 @@ import Input from '@components/Input/Input';
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable';
 import Select from '@components/Select/Select';
 import {
+    useGetProjectQuery,
     useGetSourcemapFilesLazyQuery,
     useGetSourcemapVersionsQuery,
-    useGetWorkspaceQuery,
 } from '@graph/hooks';
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext';
 import { useParams } from '@util/react-router/useParams';
 import { debounce } from 'lodash';
 import React, { useEffect } from 'react';
@@ -21,11 +20,10 @@ const SourcemapSettings = () => {
     const [query, setQuery] = React.useState<string>('');
     const [versions, setVersions] = React.useState<string[]>([]);
     const [selectedVersion, setSelectedVersion] = React.useState<string>();
-    const { currentWorkspace } = useApplicationContext();
 
-    const { data: workspaceData } = useGetWorkspaceQuery({
+    const { data: projectData } = useGetProjectQuery({
         variables: {
-            id: currentWorkspace?.id || '',
+            id: project_id,
         },
     });
 
@@ -88,7 +86,7 @@ const SourcemapSettings = () => {
         <FieldsBox id={'sourcemaps'}>
             <h3>Sourcemaps</h3>
 
-            {workspaceData?.workspace?.secret && (
+            {projectData?.project?.secret && (
                 <div className={styles.sourcemapInfo}>
                     <p>
                         Sourcemaps can be used to undo JavaScript minification
@@ -105,7 +103,7 @@ const SourcemapSettings = () => {
                     </p>
 
                     <CopyText
-                        text={workspaceData.workspace.secret}
+                        text={projectData.project.secret}
                         onCopyTooltipText="API key copied to your clipboard!"
                     />
                 </div>

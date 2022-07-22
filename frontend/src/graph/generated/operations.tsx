@@ -2615,6 +2615,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
             | 'backend_domains'
+            | 'secret'
         >
     >;
     workspace?: Types.Maybe<

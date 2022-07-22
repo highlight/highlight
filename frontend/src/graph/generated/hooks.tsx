@@ -6778,6 +6778,7 @@ export const GetProjectDocument = gql`
             rage_click_radius_pixels
             rage_click_count
             backend_domains
+            secret
         }
         workspace: workspace_for_project(project_id: $id) {
             id
