@@ -778,12 +778,27 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
+	// TODO(ccschmitz): There is probably a better way to do this. Ask someone
+	// smarter how to refactor.
+	fields := []model.Field{}
+	session := model.Session{}
+	session.ID = s.ID
+
+	w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Association("Fields").Find(&fields)
+
+	pagesVisited := len(fields)
+	firstVisit := fields[0]
+	lastVisit := fields[len(fields)-1]
+
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":       true,
-		"length":          sessionTotalLengthInMilliseconds,
-		"active_length":   accumulator.ActiveDuration.Milliseconds(),
-		"EventCounts":     eventCountsString,
-		"has_rage_clicks": hasRageClicks,
+		"processed":        true,
+		"length":           sessionTotalLengthInMilliseconds,
+		"active_length":    accumulator.ActiveDuration.Milliseconds(),
+		"EventCounts":      eventCountsString,
+		"has_rage_clicks":  hasRageClicks,
+		"pages_visited":    pagesVisited,
+		"first_page_visit": firstVisit.Value,
+		"last_page_visit":  lastVisit.Value,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
