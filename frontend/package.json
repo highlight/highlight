@@ -65,7 +65,7 @@
         "react-text-transition": "^1.3.0",
         "react-use": "^17.2.4",
         "react-virtuoso": "^2.13.1",
-        "recharts": "^2.1.12",
+        "recharts": "^2.1.13",
         "source-map-explorer": "^2.5.2",
         "stacktrace-js": "^2.0.2",
         "subscriptions-transport-ws": "^0.11.0",
