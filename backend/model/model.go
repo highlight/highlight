@@ -466,6 +466,7 @@ type Session struct {
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
+	Country   string  `json:"country"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
@@ -537,6 +538,10 @@ type Session struct {
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
 	Chunked *bool
+
+	LandingPage  *string
+	ExitPage     *string
+	PagesVisited *int
 }
 
 type EventChunk struct {
@@ -1174,7 +1179,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
 					THEN
 						ALTER TABLE metric_groups
@@ -1194,7 +1199,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
 					THEN
 						alter table dashboard_metric_filters

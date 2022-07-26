@@ -909,6 +909,9 @@ const LABEL_MAP: { [key: string]: string } = {
     timestamp: 'Date',
     has_rage_clicks: 'Has Rage Clicks',
     has_errors: 'Has Errors',
+    pages_visited: 'Pages Visited',
+    landing_page: 'Landing Page',
+    exit_page: 'Exit Page',
 };
 
 const getOperator = (

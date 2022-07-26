@@ -48,6 +48,28 @@ const CUSTOM_FIELDS: CustomField[] = [
     },
     {
         type: CUSTOM_TYPE,
+        name: 'pages_visited',
+        options: {
+            operators: RANGE_OPERATORS,
+            type: 'long',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'landing_page',
+        options: {
+            type: 'text',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'exit_page',
+        options: {
+            type: 'text',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
         name: 'viewed',
         options: {
             type: 'boolean',

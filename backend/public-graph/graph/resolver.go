@@ -63,6 +63,7 @@ type Location struct {
 	Latitude  interface{} `json:"latitude"`
 	Longitude interface{} `json:"longitude"`
 	State     string      `json:"state"`
+	Country   string      `json:"country_name"`
 }
 
 type DeviceDetails struct {
@@ -1080,6 +1081,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		Latitude:  0.0,
 		Longitude: 0.0,
 		State:     "",
+		Country:   "",
 	}
 	fetchedLocation, err := GetLocationFromIP(ip)
 	if err != nil || fetchedLocation == nil {
@@ -1094,6 +1096,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 	session.City = location.City
 	session.State = location.State
 	session.Postal = location.Postal
+	session.Country = location.Country
 	session.Latitude = location.Latitude.(float64)
 	session.Longitude = location.Longitude.(float64)
 	session.WithinBillingQuota = &withinBillingQuota
@@ -1129,6 +1132,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		"environment":     session.Environment,
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
+		"country":         session.Country,
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))

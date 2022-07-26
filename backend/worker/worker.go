@@ -763,6 +763,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s)
 	}
 
+	// TODO(ccschmitz): There is probably a better way to do this. Ask someone
+	// smarter how to refactor.
+	fields := []model.Field{}
+	session := model.Session{}
+	session.ID = s.ID
+
+	w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Association("Fields").Find(&fields)
+
+	pagesVisited := len(fields)
+	landingPage := fields[0].Value
+	exitPage := fields[len(fields)-1].Value
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -773,32 +785,24 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			EventCounts:         &eventCountsString,
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
+			LandingPage:         &landingPage,
+			ExitPage:            &exitPage,
+			PagesVisited:        &pagesVisited,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	// TODO(ccschmitz): There is probably a better way to do this. Ask someone
-	// smarter how to refactor.
-	fields := []model.Field{}
-	session := model.Session{}
-	session.ID = s.ID
-
-	w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Association("Fields").Find(&fields)
-
-	pagesVisited := len(fields)
-	firstVisit := fields[0]
-	lastVisit := fields[len(fields)-1]
-
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":        true,
-		"length":           sessionTotalLengthInMilliseconds,
-		"active_length":    accumulator.ActiveDuration.Milliseconds(),
-		"EventCounts":      eventCountsString,
-		"has_rage_clicks":  hasRageClicks,
-		"pages_visited":    pagesVisited,
-		"first_page_visit": firstVisit.Value,
-		"last_page_visit":  lastVisit.Value,
+		"processed":       true,
+		"length":          sessionTotalLengthInMilliseconds,
+		"active_length":   accumulator.ActiveDuration.Milliseconds(),
+		"EventCounts":     eventCountsString,
+		"has_rage_clicks": hasRageClicks,
+		// TODO: This gets properties into OpenSearch, but how do I add to fields table?
+		"pages_visited": pagesVisited,
+		"landing_page":  landingPage,
+		"exit_page":     exitPage,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
