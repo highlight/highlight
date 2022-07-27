@@ -22,7 +22,7 @@ const ActivityGraph = ({
                 {({ width }) => (
                     <ComposedChart
                         data={data}
-                        height={200}
+                        height={height}
                         width={width}
                         margin={{
                             top: 4,
