@@ -1,13 +1,7 @@
 import GoToButton from '@components/Button/GoToButton';
 import React, { useEffect, useState } from 'react';
-import {
-    Bar,
-    BarChart,
-    Cell,
-    ReferenceArea,
-    ResponsiveContainer,
-    Tooltip,
-} from 'recharts';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts';
 
 import styles from './Histogram.module.scss';
 
@@ -158,118 +152,133 @@ const Histogram = React.memo(
         return (
             <div className={styles.container}>
                 <div className={styles.graphContainer}>
-                    <ResponsiveContainer width="99.9%" height="100%">
-                        <BarChart
-                            data={chartData}
-                            barGap={0}
-                            margin={{
-                                top: 0,
-                                right: 0,
-                                left: 0,
-                                bottom: 0,
-                            }}
-                            onMouseDown={(e: any) => {
-                                if (!e) {
-                                    return;
-                                }
-                                setDragStart(e.activeLabel);
-                                setDragEnd(e.activeLabel);
-                            }}
-                            onMouseMove={(e: any) => {
-                                if (!e) {
-                                    return;
-                                }
-                                setTooltipHidden(false);
-                                setTooltipWantHidden(false);
-                                if (dragStart !== undefined) {
-                                    setDragEnd(e.activeLabel);
-                                }
-                            }}
-                            onMouseUp={() => {
-                                if (
-                                    dragLeft !== undefined &&
-                                    dragRight !== undefined
-                                ) {
-                                    if (dragLeft === dragRight) {
-                                        onBucketClicked(dragLeft);
-                                    } else {
-                                        onAreaChanged(dragLeft, dragRight);
-                                    }
-                                }
-                                setDragStart(undefined);
-                                setDragEnd(undefined);
-                            }}
-                            onMouseLeave={() => {
-                                setDragStart(undefined);
-                                setDragEnd(undefined);
-                                setTooltipWantHidden(true);
-                            }}
-                            onMouseEnter={() => {
-                                setTooltipHidden(false);
-                                setTooltipWantHidden(false);
-                            }}
-                        >
-                            <Tooltip
-                                content={<CustomTooltip />}
-                                wrapperStyle={{
-                                    bottom: '100%',
-                                    top: 'none',
-                                    position: 'absolute',
-                                    zIndex: 100,
-                                    overflow: 'auto',
-                                    visibility: tooltipHidden
-                                        ? 'hidden'
-                                        : 'visible',
-                                    scale: tooltipHidden ? 0 : 1,
-                                    pointerEvents: 'inherit',
+                    <AutoSizer>
+                        {({ height, width }) => (
+                            <BarChart
+                                data={chartData}
+                                barGap={0}
+                                margin={{
+                                    top: 0,
+                                    right: 0,
+                                    left: 0,
+                                    bottom: 0,
                                 }}
-                                cursor={{
-                                    fill:
+                                height={height}
+                                width={width}
+                                onMouseDown={(e: any) => {
+                                    if (!e) {
+                                        return;
+                                    }
+                                    setDragStart(e.activeLabel);
+                                    setDragEnd(e.activeLabel);
+                                }}
+                                onMouseMove={(e: any) => {
+                                    if (!e) {
+                                        return;
+                                    }
+                                    setTooltipHidden(false);
+                                    setTooltipWantHidden(false);
+                                    if (dragStart !== undefined) {
+                                        setDragEnd(e.activeLabel);
+                                    }
+                                }}
+                                onMouseUp={() => {
+                                    if (
                                         dragLeft !== undefined &&
                                         dragRight !== undefined
-                                            ? 'transparent'
-                                            : 'rgba(204, 204, 204, .5)',
+                                    ) {
+                                        if (dragLeft === dragRight) {
+                                            onBucketClicked(dragLeft);
+                                        } else {
+                                            onAreaChanged(dragLeft, dragRight);
+                                        }
+                                    }
+                                    setDragStart(undefined);
+                                    setDragEnd(undefined);
                                 }}
-                                allowEscapeViewBox={{
-                                    x: false,
-                                    y: false,
+                                onMouseLeave={() => {
+                                    setDragStart(undefined);
+                                    setDragEnd(undefined);
+                                    setTooltipWantHidden(true);
                                 }}
-                            />
-                            {seriesList.map((s) => (
-                                <Bar
-                                    isAnimationActive={false}
-                                    key={s.label}
-                                    dataKey={s.label}
-                                    stackId="a"
-                                    fill={`var(${s.color})`}
-                                >
-                                    {chartData.map((entry, i) => {
-                                        const isFirst =
-                                            firstSeries[i] === s.label;
-                                        const isLast =
-                                            lastSeries[i] === s.label;
+                                onMouseEnter={() => {
+                                    setTooltipHidden(false);
+                                    setTooltipWantHidden(false);
+                                }}
+                            >
+                                <Tooltip
+                                    content={<CustomTooltip />}
+                                    wrapperStyle={{
+                                        bottom: '100%',
+                                        top: 'none',
+                                        position: 'absolute',
+                                        zIndex: 100,
+                                        overflow: 'auto',
+                                        visibility: tooltipHidden
+                                            ? 'hidden'
+                                            : 'visible',
+                                        scale: tooltipHidden ? 0 : 1,
+                                        pointerEvents: 'inherit',
+                                    }}
+                                    cursor={{
+                                        fill:
+                                            dragLeft !== undefined &&
+                                            dragRight !== undefined
+                                                ? 'transparent'
+                                                : 'rgba(204, 204, 204, .5)',
+                                    }}
+                                    allowEscapeViewBox={{
+                                        x: false,
+                                        y: false,
+                                    }}
+                                />
+                                {seriesList.map((s) => (
+                                    <Bar
+                                        isAnimationActive={false}
+                                        key={s.label}
+                                        dataKey={s.label}
+                                        stackId="a"
+                                        fill={`var(${s.color})`}
+                                    >
+                                        {chartData.map((entry, i) => {
+                                            const isFirst =
+                                                firstSeries[i] === s.label;
+                                            const isLast =
+                                                lastSeries[i] === s.label;
 
-                                        return (
-                                            <Cell
-                                                key={`cell-${i}`}
-                                                // @ts-ignore
-                                                radius={[
-                                                    isLast ? BAR_RADIUS_PX : 0,
-                                                    isLast ? BAR_RADIUS_PX : 0,
-                                                    isFirst ? BAR_RADIUS_PX : 0,
-                                                    isFirst ? BAR_RADIUS_PX : 0,
-                                                ]}
-                                            />
-                                        );
-                                    })}
-                                </Bar>
-                            ))}
-                            {dragStart !== undefined &&
-                            dragEnd !== undefined ? (
-                                <ReferenceArea x1={dragLeft} x2={dragRight} />
-                            ) : null}
-                        </BarChart>
-                    </ResponsiveContainer>
+                                            return (
+                                                <Cell
+                                                    key={`cell-${i}`}
+                                                    // @ts-ignore
+                                                    radius={[
+                                                        isLast
+                                                            ? BAR_RADIUS_PX
+                                                            : 0,
+                                                        isLast
+                                                            ? BAR_RADIUS_PX
+                                                            : 0,
+                                                        isFirst
+                                                            ? BAR_RADIUS_PX
+                                                            : 0,
+                                                        isFirst
+                                                            ? BAR_RADIUS_PX
+                                                            : 0,
+                                                    ]}
+                                                />
+                                            );
+                                        })}
+                                    </Bar>
+                                ))}
+                                {dragStart !== undefined &&
+                                dragEnd !== undefined ? (
+                                    <ReferenceArea
+                                        x1={dragLeft}
+                                        x2={dragRight}
+                                    />
+                                ) : null}
+                            </BarChart>
+                        )}
+                    </AutoSizer>
                 </div>
             </div>
         );
