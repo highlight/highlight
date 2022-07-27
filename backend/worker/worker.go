@@ -769,7 +769,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	session := model.Session{}
 	session.ID = s.ID
 
-	w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Association("Fields").Find(&fields)
+	if err := w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Order("created_at asc").Association("Fields").Find(&fields); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
 
 	pagesVisited := len(fields)
 	landingPage := fields[0].Value
