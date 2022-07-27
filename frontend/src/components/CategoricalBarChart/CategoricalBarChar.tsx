@@ -68,8 +68,6 @@ const CategoricalBarChart = ({
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
 
-    console.log({ data, dateGroups, groupedData, yAxisKeys });
-
     if (!groupedData) return null;
     return (
         <div style={{ position: 'relative', width: '100%' }}>
