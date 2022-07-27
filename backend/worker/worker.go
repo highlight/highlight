@@ -763,20 +763,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s)
 	}
 
-	// TODO(ccschmitz): There is probably a better way to do this. Ask someone
-	// smarter how to refactor.
-	fields := []model.Field{}
-	session := model.Session{}
-	session.ID = s.ID
-
-	if err := w.Resolver.DB.Model(&session).Where("Name = ?", "visited-url").Order("created_at asc").Association("Fields").Find(&fields); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-
-	pagesVisited := len(fields)
-	landingPage := fields[0].Value
-	exitPage := fields[len(fields)-1].Value
-
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -787,12 +773,20 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			EventCounts:         &eventCountsString,
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
-			LandingPage:         &landingPage,
-			ExitPage:            &exitPage,
-			PagesVisited:        &pagesVisited,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	fields := []model.Field{}
+	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Order("id asc").Association("Fields").Find(&fields); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"pages_visited": strconv.Itoa(len(fields)),
+		"landing_page":  fields[0].Value,
+		"exit_page":     fields[len(fields)-1].Value,
 	}
 
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
@@ -801,13 +795,14 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
-		// TODO: This gets properties into OpenSearch, but how do I add to fields table?
-		"pages_visited": pagesVisited,
-		"landing_page":  landingPage,
-		"exit_page":     exitPage,
+		"pages_visited":   sessionProperties["pages_visited"],
+		"landing_page":    sessionProperties["landing_page"],
+		"exit_page":       sessionProperties["exit_page"],
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
+
+	w.PublicResolver.AppendProperties(s.ID, sessionProperties, pubgraph.PropertyType.SESSION)
 
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)

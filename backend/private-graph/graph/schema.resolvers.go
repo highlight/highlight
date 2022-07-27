@@ -3251,9 +3251,9 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	if err := r.DB.Raw(`
 	select a.id as id, max(a.name) as name, max(a.email) as email, max(s.created_at) as last_active
 	from workspace_admins wa
-	inner join admins a on wa.admin_id = a.id 
-	inner join sessions s on s.identifier = a.email 
-	where wa.workspace_id = ? and s.project_id = 1 
+	inner join admins a on wa.admin_id = a.id
+	inner join sessions s on s.identifier = a.email
+	where wa.workspace_id = ? and s.project_id = 1
 	group by a.id
 	`, workspaceID).Scan(&members).Error; err != nil {
 		return nil, e.Errorf("error querying members: %v", err)
@@ -4307,6 +4307,7 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 		return nil, nil
 	}
 
+	fmt.Print("::: FIELD SEARCH :::")
 	var q string
 	if query == "" {
 		q = fmt.Sprintf(`
@@ -4330,6 +4331,8 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 			}}
 		]}}`, fieldType, fieldName, query)
 	}
+
+	fmt.Printf("%+v\n", q)
 
 	results := []*model.Field{}
 	options := opensearch.SearchOptions{

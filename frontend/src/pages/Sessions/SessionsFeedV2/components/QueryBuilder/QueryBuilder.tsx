@@ -934,6 +934,7 @@ const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
 export const CUSTOM_TYPE = 'custom';
+export const SESSION_TYPE = 'session';
 export const ERROR_TYPE = 'error';
 export const ERROR_FIELD_TYPE = 'error-field';
 

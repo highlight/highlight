@@ -538,10 +538,6 @@ type Session struct {
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
 	Chunked *bool
-
-	LandingPage  *string
-	ExitPage     *string
-	PagesVisited *int
 }
 
 type EventChunk struct {
