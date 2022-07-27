@@ -6902,6 +6902,7 @@ type CategoryHistogramPayload {
 
 enum DashboardChartType {
     Timeline
+    TimelineBar
     Histogram
 }
 

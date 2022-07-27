@@ -382,18 +382,20 @@ type UserPropertyInput struct {
 type DashboardChartType string
 
 const (
-	DashboardChartTypeTimeline  DashboardChartType = "Timeline"
-	DashboardChartTypeHistogram DashboardChartType = "Histogram"
+	DashboardChartTypeTimeline    DashboardChartType = "Timeline"
+	DashboardChartTypeTimelineBar DashboardChartType = "TimelineBar"
+	DashboardChartTypeHistogram   DashboardChartType = "Histogram"
 )
 
 var AllDashboardChartType = []DashboardChartType{
 	DashboardChartTypeTimeline,
+	DashboardChartTypeTimelineBar,
 	DashboardChartTypeHistogram,
 }
 
 func (e DashboardChartType) IsValid() bool {
 	switch e {
-	case DashboardChartTypeTimeline, DashboardChartTypeHistogram:
+	case DashboardChartTypeTimeline, DashboardChartTypeTimelineBar, DashboardChartTypeHistogram:
 		return true
 	}
 	return false

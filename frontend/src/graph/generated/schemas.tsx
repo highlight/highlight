@@ -853,6 +853,7 @@ export type CategoryHistogramPayload = {
 
 export enum DashboardChartType {
     Timeline = 'Timeline',
+    TimelineBar = 'TimelineBar',
     Histogram = 'Histogram',
 }
 

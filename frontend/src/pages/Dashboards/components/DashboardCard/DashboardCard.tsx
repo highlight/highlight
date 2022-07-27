@@ -1,5 +1,6 @@
 import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
+import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
@@ -47,6 +48,17 @@ export const UNIT_OPTIONS = [
     { label: 'Seconds', value: 's' },
     { label: 'No Units', value: '' },
 ];
+
+const LINE_COLORS = {
+    [MetricAggregator.Max]: 'var(--color-red-500)',
+    [MetricAggregator.P99]: 'var(--color-red-400)',
+    [MetricAggregator.P95]: 'var(--color-orange-500)',
+    [MetricAggregator.P90]: 'var(--color-orange-400)',
+    [MetricAggregator.P75]: 'var(--color-green-600)',
+    [MetricAggregator.P50]: 'var(--color-blue-400)',
+    [MetricAggregator.Avg]: 'var(--color-gray-400)',
+    [MetricAggregator.Count]: 'var(--color-green-500)',
+};
 
 type DeleteMetricFn = (idx: number) => void;
 
@@ -429,7 +441,10 @@ const ChartContainer = React.memo(
                 } else {
                     loadHistogram();
                 }
-            } else if (chartType === DashboardChartType.Timeline) {
+            } else if (
+                chartType === DashboardChartType.Timeline ||
+                chartType === DashboardChartType.TimelineBar
+            ) {
                 if (refetchTimeline) {
                     refetchTimeline().catch(console.error);
                 } else {
@@ -615,16 +630,7 @@ const ChartContainer = React.memo(
                             scale: 'point',
                             interval: 0, // show all ticks
                         }}
-                        lineColorMapping={{
-                            [MetricAggregator.Max]: 'var(--color-red-500)',
-                            [MetricAggregator.P99]: 'var(--color-red-400)',
-                            [MetricAggregator.P95]: 'var(--color-orange-500)',
-                            [MetricAggregator.P90]: 'var(--color-orange-400)',
-                            [MetricAggregator.P75]: 'var(--color-green-600)',
-                            [MetricAggregator.P50]: 'var(--color-blue-400)',
-                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
-                            [MetricAggregator.Count]: 'var(--color-green-500)',
-                        }}
+                        lineColorMapping={LINE_COLORS}
                         yAxisLabel={metricConfig.units}
                         referenceAreaProps={{
                             x1: referenceArea.start,
@@ -660,6 +666,32 @@ const ChartContainer = React.memo(
 
                             setReferenceArea({ start: '', end: '' });
                         }}
+                    />
+                ) : chartType === DashboardChartType.TimelineBar ? (
+                    <CategoricalBarChart
+                        syncId="dashboardChart"
+                        height={235}
+                        data={(timelineData?.metrics_timeline || []).map(
+                            (x) => ({
+                                date: x?.date,
+                                [x?.aggregator ||
+                                MetricAggregator.Avg]: x?.value,
+                            })
+                        )}
+                        referenceLines={referenceLines}
+                        barColorMapping={LINE_COLORS}
+                        xAxisDataKeyName="date"
+                        xAxisTickFormatter={(tickItem) =>
+                            moment(tickItem).format(timelineTicks.format)
+                        }
+                        xAxisProps={{
+                            ticks: timelineTicks.ticks,
+                            tickCount: timelineTicks.ticks.length,
+                            domain: ['dataMin', 'dataMax'],
+                            scale: 'point',
+                            interval: 0, // show all ticks
+                        }}
+                        yAxisLabel={metricConfig.units}
                     />
                 ) : null}
             </div>

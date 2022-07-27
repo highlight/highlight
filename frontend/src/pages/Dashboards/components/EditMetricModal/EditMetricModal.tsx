@@ -135,7 +135,7 @@ export const EditMetricModal = ({
                         <div className={styles.typesContainer}>
                             <CardSelect
                                 title="Time Series / Line"
-                                description={`Time-based line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
+                                description={`Line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
                                 descriptionClass={styles.typeSubheader}
                                 isSelected={
                                     chartType === DashboardChartType.Timeline
@@ -145,8 +145,19 @@ export const EditMetricModal = ({
                                 }
                             />
                             <CardSelect
+                                title="Time Series / Bar"
+                                description={`Bar graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
+                                descriptionClass={styles.typeSubheader}
+                                isSelected={
+                                    chartType === DashboardChartType.TimelineBar
+                                }
+                                onClick={() =>
+                                    setChartType(DashboardChartType.TimelineBar)
+                                }
+                            />
+                            <CardSelect
                                 title="Distribution / Bar"
-                                description={`Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and what are potential outliers.`}
+                                description={`Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and view outliers.`}
                                 descriptionClass={styles.typeSubheader}
                                 isSelected={
                                     chartType === DashboardChartType.Histogram
@@ -158,7 +169,8 @@ export const EditMetricModal = ({
                         </div>
                     </section>
 
-                    {chartType === DashboardChartType.Timeline ? (
+                    {chartType === DashboardChartType.Timeline ||
+                    chartType === DashboardChartType.TimelineBar ? (
                         <section className={styles.section}>
                             <div className={styles.metricViewDetails}>
                                 <div className={styles.metricViewDetail}>

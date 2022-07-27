@@ -37,8 +37,8 @@
 
 .typesContainer {
     display: grid;
-    grid-gap: var(--size-large);
-    grid-template-columns: 1fr 1fr;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 1fr 1fr 1fr;
 }
 
 .metricViewDetails {
