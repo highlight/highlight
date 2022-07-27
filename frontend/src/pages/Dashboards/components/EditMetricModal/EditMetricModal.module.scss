@@ -70,6 +70,13 @@
     width: 100%;
 }
 
+.groupsRow {
+    display: grid;
+    grid-gap: var(--size-medium);
+    grid-template-columns: 1fr 50px;
+    width: 100%;
+}
+
 .removeTagFilterButton {
     background-color: var(--color-red-700);
     border: var(--color-red-900);

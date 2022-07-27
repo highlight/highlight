@@ -77,6 +77,7 @@ export const EditMetricModal = ({
     const [filters, setFilters] = useState<MetricTagFilter[]>(
         metricConfig.filters || []
     );
+    const [groups, setGroups] = useState<string[]>(metricConfig.groups || []);
     return (
         <Modal
             onCancel={onCancel}
@@ -98,8 +99,9 @@ export const EditMetricModal = ({
                                 metricConfig.max_needs_improvement_value,
                             poor_value: metricConfig.poor_value,
                             chart_type: chartType,
-                            aggregator: aggregator,
-                            filters: filters,
+                            aggregator,
+                            filters,
+                            groups,
                             ...(minValue
                                 ? { min_value: min }
                                 : { min_percentile: min / 100 }),
@@ -280,13 +282,24 @@ export const EditMetricModal = ({
                     ) : null}
 
                     <section className={styles.section}>
-                        <h3>Filters</h3>
+                        <h3>Filter by</h3>
                         <TagFilters
                             metricName={metricName}
                             onSelectTags={(t) => setFilters(t)}
                             currentTags={filters}
                         />
                     </section>
+
+                    {chartType === DashboardChartType.TimelineBar ? (
+                        <section className={styles.section}>
+                            <h3>Group by</h3>
+                            <TagGroups
+                                metricName={metricName}
+                                onSelectGroups={(g) => setGroups(g)}
+                                currentGroups={groups}
+                            />
+                        </section>
+                    ) : null}
 
                     <CardFormActionsContainer>
                         <div className={styles.submitRow}>
@@ -346,6 +359,48 @@ const UnitsSelector = ({
             }
             onSelect={(value) => setUnits(value)}
         />
+    );
+};
+
+export const TagGroups = ({
+    metricName,
+    onSelectGroups,
+    currentGroups,
+}: {
+    metricName: string;
+    onSelectGroups: (tags: string[]) => void;
+    currentGroups: string[];
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { data } = useGetMetricTagsQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+        },
+    });
+    const currentGroup = currentGroups[0];
+    return (
+        <>
+            <div className={styles.groupsRow} key={`tag-group-${currentGroup}`}>
+                <SimpleSearchSelect
+                    options={data?.metric_tags || []}
+                    value={currentGroup}
+                    onSelect={(v) => {
+                        onSelectGroups([v]);
+                    }}
+                />
+                <Button
+                    trackingId={'EditMetricRemoveTagGroup'}
+                    className={styles.removeTagFilterButton}
+                    disabled={!currentGroup?.length}
+                    onClick={() => {
+                        onSelectGroups([]);
+                    }}
+                >
+                    <TrashIcon />
+                </Button>
+            </div>
+        </>
     );
 };
 

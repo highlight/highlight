@@ -96,6 +96,7 @@ type DashboardMetricConfig struct {
 	MaxValue                 *float64           `json:"max_value"`
 	MaxPercentile            *float64           `json:"max_percentile"`
 	Filters                  []*MetricTagFilter `json:"filters"`
+	Groups                   []string           `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
@@ -113,6 +114,7 @@ type DashboardMetricConfigInput struct {
 	MaxValue                 *float64                `json:"max_value"`
 	MaxPercentile            *float64                `json:"max_percentile"`
 	Filters                  []*MetricTagFilterInput `json:"filters"`
+	Groups                   []string                `json:"groups"`
 }
 
 type DashboardParamsInput struct {
@@ -122,12 +124,14 @@ type DashboardParamsInput struct {
 	Units             *string                 `json:"units"`
 	Aggregator        *MetricAggregator       `json:"aggregator"`
 	Filters           []*MetricTagFilterInput `json:"filters"`
+	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
 	Date       string            `json:"date"`
 	Value      float64           `json:"value"`
 	Aggregator *MetricAggregator `json:"aggregator"`
+	Group      *string           `json:"group"`
 }
 
 type DateRangeInput struct {

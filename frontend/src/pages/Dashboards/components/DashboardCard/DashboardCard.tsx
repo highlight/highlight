@@ -397,6 +397,7 @@ const ChartContainer = React.memo(
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
                     filters: metricConfig.filters,
+                    groups: metricConfig.groups,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -614,7 +615,8 @@ const ChartContainer = React.memo(
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregator ||
+                                [x?.group ||
+                                x?.aggregator ||
                                 MetricAggregator.Avg]: x?.value,
                             })
                         )}
@@ -671,10 +673,12 @@ const ChartContainer = React.memo(
                     <CategoricalBarChart
                         syncId="dashboardChart"
                         height={235}
+                        stacked
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregator ||
+                                [x?.group ||
+                                x?.aggregator ||
                                 MetricAggregator.Avg]: x?.value,
                             })
                         )}
@@ -721,6 +725,10 @@ const ChartContainer = React.memo(
         _.isEqual(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
+        ) &&
+        _.isEqual(
+            prevProps.metricConfig.groups,
+            nextProps.metricConfig.groups
         ) &&
         _.isEqual(prevProps.dateRange, nextProps.dateRange)
 );

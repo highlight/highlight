@@ -5,6 +5,7 @@ import {
     Props as LineChartProps,
 } from '@components/LineChart/LineChart';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { generateRandomColor } from '@util/color';
 import React from 'react';
 import {
     Bar,
@@ -29,6 +30,7 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
     barColorMapping: any;
     yAxisLabel: string;
     hideLegend?: boolean;
+    stacked?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
 };
 
@@ -47,12 +49,18 @@ const CategoricalBarChart = ({
     yAxisLabel,
     syncId,
     hideLegend = false,
+    stacked = false,
     referenceAreaProps,
     xAxisProps,
 }: Props) => {
+    const dateGroups: any = {};
+    for (const x of data) {
+        dateGroups[x.date] = { ...dateGroups[x.date], ...x };
+    }
+    const groupedData: any[] = Object.values(dateGroups);
     const yAxisKeys =
         data.length > 0
-            ? Object.keys(data[0]).filter(
+            ? Object.keys(groupedData[0]).filter(
                   (keyName) =>
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
@@ -60,13 +68,16 @@ const CategoricalBarChart = ({
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
 
+    console.log({ data, dateGroups, groupedData, yAxisKeys });
+
+    if (!groupedData) return null;
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             <ResponsiveContainer width="100%" height={height}>
                 <RechartsBarChart
                     width={500}
                     height={300}
-                    data={data}
+                    data={groupedData}
                     syncId={syncId}
                     margin={{
                         top: 42,
@@ -164,10 +175,15 @@ const CategoricalBarChart = ({
                     ))}
                     {yAxisKeys.map((key) => (
                         <Bar
+                            stackId={stacked ? 'a' : undefined}
                             key={key}
                             dataKey={key}
-                            stroke={barColorMapping[key]}
-                            fill={barColorMapping[key]}
+                            stroke={
+                                barColorMapping[key] || generateRandomColor(key)
+                            }
+                            fill={
+                                barColorMapping[key] || generateRandomColor(key)
+                            }
                             animationDuration={100}
                             radius={[2, 2, 0, 0]}
                         />

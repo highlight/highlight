@@ -64,6 +64,7 @@ query GetMetricsTimeline(
         date
         value
         aggregator
+        group
     }
 }
 
@@ -1467,6 +1468,7 @@ query GetDashboardDefinitions($project_id: ID!) {
                 op
                 tag
             }
+            groups
         }
         last_admin_to_edit_id
         layout
