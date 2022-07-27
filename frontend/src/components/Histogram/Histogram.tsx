@@ -158,7 +158,7 @@ const Histogram = React.memo(
         return (
             <div className={styles.container}>
                 <div className={styles.graphContainer}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="99.9%" height="100%">
                         <BarChart
                             data={chartData}
                             barGap={0}

@@ -16,7 +16,7 @@ const ActivityGraph = ({
     const lineColor = 'var(--color-purple)';
 
     return (
-        <ResponsiveContainer width="100%" height={height}>
+        <ResponsiveContainer width="99.9%" height={height}>
             <ComposedChart
                 data={data}
                 height={200}
