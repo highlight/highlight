@@ -701,19 +701,21 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
 export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     metric_monitor_id: Types.Scalars['ID'];
     project_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    aggregator: Types.MetricAggregator;
-    threshold: Types.Scalars['Float'];
+    name?: Types.Maybe<Types.Scalars['String']>;
+    aggregator?: Types.Maybe<Types.MetricAggregator>;
+    threshold?: Types.Maybe<Types.Scalars['Float']>;
     units?: Types.Maybe<Types.Scalars['String']>;
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
-    metric_to_monitor: Types.Scalars['String'];
-    slack_channels:
+    metric_to_monitor?: Types.Maybe<Types.Scalars['String']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {

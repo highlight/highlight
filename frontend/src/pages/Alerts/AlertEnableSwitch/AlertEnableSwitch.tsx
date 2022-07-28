@@ -2,6 +2,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Switch from '@components/Switch/Switch';
 import {
     useUpdateErrorAlertMutation,
+    useUpdateMetricMonitorMutation,
     useUpdateNewSessionAlertMutation,
     useUpdateNewUserAlertMutation,
     useUpdateRageClickAlertMutation,
@@ -25,6 +26,7 @@ export const AlertEnableSwitch: React.FC<{ record: any }> = ({ record }) => {
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
     const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
     const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
+    const [updateMetricMonitor] = useUpdateMetricMonitorMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
     const [
         updateTrackPropertiesAlert,
@@ -111,6 +113,16 @@ export const AlertEnableSwitch: React.FC<{ record: any }> = ({ record }) => {
                     variables: {
                         project_id,
                         rage_click_alert_id: record.id,
+                        disabled: isDisabled,
+                    },
+                });
+                break;
+            case ALERT_TYPE.MetricMonitor:
+                await updateMetricMonitor({
+                    ...requestBody,
+                    variables: {
+                        metric_monitor_id: record.id,
+                        project_id,
                         disabled: isDisabled,
                     },
                 });
