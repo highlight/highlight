@@ -620,10 +620,19 @@ export type SanitizedAdminInput = {
     email: Scalars['String'];
 };
 
+export type SessionsHistogram = {
+    __typename?: 'SessionsHistogram';
+    labels: Array<Scalars['String']>;
+    sessions_without_errors: Array<Scalars['Int64']>;
+    sessions_with_errors: Array<Scalars['Int64']>;
+    total_sessions: Array<Scalars['Int64']>;
+};
+
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
     totalCount: Scalars['Int64'];
+    histogram?: Maybe<SessionsHistogram>;
 };
 
 export type ErrorResults = {

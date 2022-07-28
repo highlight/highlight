@@ -458,9 +458,17 @@ type EmailSignup struct {
 	ApolloDataShortened string
 }
 
+type SessionsHistogram struct {
+	Labels                []string `json:"labels"`
+	SessionsWithoutErrors []int64  `json:"sessions_without_errors"`
+	SessionsWithErrors    []int64  `json:"sessions_with_errors"`
+	TotalSessions         []int64  `json:"total_sessions"`
+}
+
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
+	Histogram  SessionsHistogram
 }
 
 type Session struct {

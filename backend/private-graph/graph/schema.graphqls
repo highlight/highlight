@@ -567,9 +567,17 @@ input SanitizedAdminInput {
     email: String!
 }
 
+type SessionsHistogram {
+    labels: [String!]!
+    sessions_without_errors: [Int64!]!
+    sessions_with_errors: [Int64!]!
+    total_sessions: [Int64!]!
+}
+
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
+    histogram: SessionsHistogram
 }
 
 type ErrorResults {

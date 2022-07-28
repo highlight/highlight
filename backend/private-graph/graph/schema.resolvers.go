@@ -4305,14 +4305,37 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		]
 	}}`, query)
 	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
-	fmt.Printf("%x\n", aggs)
 	if err != nil {
 		return nil, err
+	}
+	fmt.Printf("%x\n", aggs)
+
+	// Generate histogram
+	date_labels, no_errors_counts, with_errors_counts, total_counts := []string{}, []int64{}, []int64{}, []int64{}
+	for _, date_bucket := range aggs {
+		date_labels = append(date_labels, date_bucket.Key)
+		total_counts = append(total_counts, date_bucket.DocCount)
+		no_errors, with_errors := int64(0), int64(0)
+		for _, errors_bucket := range date_bucket.SubAggregationResults {
+			if errors_bucket.Key == "false" {
+				no_errors = errors_bucket.DocCount
+			} else if errors_bucket.Key == "true" {
+				with_errors = errors_bucket.DocCount
+			}
+		}
+		no_errors_counts = append(no_errors_counts, no_errors)
+		with_errors_counts = append(with_errors_counts, with_errors)
 	}
 
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
+		Histogram: model.SessionsHistogram{
+			Labels:                date_labels,
+			SessionsWithoutErrors: no_errors_counts,
+			SessionsWithErrors:    with_errors_counts,
+			TotalSessions:         total_counts,
+		},
 	}, nil
 }
 
