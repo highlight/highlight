@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
@@ -778,15 +779,27 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	fields := []model.Field{}
-	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Order("id asc").Association("Fields").Find(&fields); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
+	// Get the
+	visitFields := []model.Field{}
+	results := []model.Session{}
+	options := opensearch.SearchOptions{
+		MaxResults: ptr.Int(1),
+	}
+	q := fmt.Sprintf(`{ "match": { "id": "%d" } }`, s.ID)
+	if _, _, err := w.Resolver.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, s.ProjectID, q, options, &results); err != nil {
+		return e.Wrap(err, "error querying session in opensearch")
+	}
+
+	for _, field := range results[0].Fields {
+		if field.Name == "visited-url" {
+			visitFields = append(visitFields, *field)
+		}
 	}
 
 	sessionProperties := map[string]string{
-		"pages_visited": strconv.Itoa(len(fields)),
-		"landing_page":  fields[0].Value,
-		"exit_page":     fields[len(fields)-1].Value,
+		"pages_visited": strconv.Itoa(len(visitFields)),
+		"landing_page":  visitFields[0].Value,
+		"exit_page":     visitFields[len(visitFields)-1].Value,
 	}
 
 	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
@@ -802,7 +815,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	w.PublicResolver.AppendProperties(s.ID, sessionProperties, pubgraph.PropertyType.SESSION)
+	if err := w.PublicResolver.AppendProperties(s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d"), s.ID)
+	}
 
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
