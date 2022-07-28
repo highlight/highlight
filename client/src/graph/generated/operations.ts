@@ -1,5 +1,3 @@
-import * as Types from './schemas';
-
 import { GraphQLClient } from 'graphql-request';
 import * as Dom from 'graphql-request/dist/types.dom';
 import gql from 'graphql-tag';
@@ -9,13 +7,9 @@ export type Exact<T extends { [key: string]: unknown }> = {
     [K in keyof T]: T[K];
 };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
-    {
-        [SubKey in K]?: Maybe<T[SubKey]>;
-    };
+    { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
-    {
-        [SubKey in K]: Maybe<T[SubKey]>;
-    };
+    { [SubKey in K]: Maybe<T[SubKey]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
     ID: string;
@@ -176,17 +170,15 @@ export type StackFrameInput = {
     source?: InputMaybe<Scalars['String']>;
 };
 
-export type PushPayloadMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    events: Types.ReplayEventsInput;
-    messages: Types.Scalars['String'];
-    resources: Types.Scalars['String'];
-    errors:
-        | Array<Types.InputMaybe<Types.ErrorObjectInput>>
-        | Types.InputMaybe<Types.ErrorObjectInput>;
-    is_beacon?: Types.InputMaybe<Types.Scalars['Boolean']>;
-    has_session_unloaded?: Types.InputMaybe<Types.Scalars['Boolean']>;
-    highlight_logs?: Types.InputMaybe<Types.Scalars['String']>;
+export type PushPayloadMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    events: ReplayEventsInput;
+    messages: Scalars['String'];
+    resources: Scalars['String'];
+    errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>;
+    is_beacon?: InputMaybe<Scalars['Boolean']>;
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+    highlight_logs?: InputMaybe<Scalars['String']>;
 }>;
 
 export type PushPayloadMutation = {
@@ -194,10 +186,10 @@ export type PushPayloadMutation = {
     pushPayload: number;
 };
 
-export type IdentifySessionMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    user_identifier: Types.Scalars['String'];
-    user_object?: Types.InputMaybe<Types.Scalars['Any']>;
+export type IdentifySessionMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    user_identifier: Scalars['String'];
+    user_object?: InputMaybe<Scalars['Any']>;
 }>;
 
 export type IdentifySessionMutation = {
@@ -205,9 +197,9 @@ export type IdentifySessionMutation = {
     identifySession?: string | null;
 };
 
-export type AddSessionPropertiesMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    properties_object?: Types.InputMaybe<Types.Scalars['Any']>;
+export type AddSessionPropertiesMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    properties_object?: InputMaybe<Scalars['Any']>;
 }>;
 
 export type AddSessionPropertiesMutation = {
@@ -215,10 +207,8 @@ export type AddSessionPropertiesMutation = {
     addSessionProperties?: string | null;
 };
 
-export type PushMetricsMutationVariables = Types.Exact<{
-    metrics:
-        | Array<Types.InputMaybe<Types.MetricInput>>
-        | Types.InputMaybe<Types.MetricInput>;
+export type PushMetricsMutationVariables = Exact<{
+    metrics: Array<InputMaybe<MetricInput>> | InputMaybe<MetricInput>;
 }>;
 
 export type PushMetricsMutation = {
@@ -226,9 +216,9 @@ export type PushMetricsMutation = {
     pushMetrics: string;
 };
 
-export type AddTrackPropertiesMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    properties_object?: Types.InputMaybe<Types.Scalars['Any']>;
+export type AddTrackPropertiesMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    properties_object?: InputMaybe<Scalars['Any']>;
 }>;
 
 export type AddTrackPropertiesMutation = {
@@ -236,12 +226,12 @@ export type AddTrackPropertiesMutation = {
     addTrackProperties?: string | null;
 };
 
-export type AddSessionFeedbackMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    user_name?: Types.InputMaybe<Types.Scalars['String']>;
-    user_email?: Types.InputMaybe<Types.Scalars['String']>;
-    verbatim: Types.Scalars['String'];
-    timestamp: Types.Scalars['Timestamp'];
+export type AddSessionFeedbackMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    user_name?: InputMaybe<Scalars['String']>;
+    user_email?: InputMaybe<Scalars['String']>;
+    verbatim: Scalars['String'];
+    timestamp: Scalars['Timestamp'];
 }>;
 
 export type AddSessionFeedbackMutation = {
@@ -249,18 +239,18 @@ export type AddSessionFeedbackMutation = {
     addSessionFeedback: string;
 };
 
-export type InitializeSessionMutationVariables = Types.Exact<{
-    organization_verbose_id: Types.Scalars['String'];
-    enable_strict_privacy: Types.Scalars['Boolean'];
-    enable_recording_network_contents: Types.Scalars['Boolean'];
-    clientVersion: Types.Scalars['String'];
-    firstloadVersion: Types.Scalars['String'];
-    clientConfig: Types.Scalars['String'];
-    environment: Types.Scalars['String'];
-    id: Types.Scalars['String'];
-    appVersion?: Types.InputMaybe<Types.Scalars['String']>;
-    session_secure_id?: Types.InputMaybe<Types.Scalars['String']>;
-    client_id?: Types.InputMaybe<Types.Scalars['String']>;
+export type InitializeSessionMutationVariables = Exact<{
+    organization_verbose_id: Scalars['String'];
+    enable_strict_privacy: Scalars['Boolean'];
+    enable_recording_network_contents: Scalars['Boolean'];
+    clientVersion: Scalars['String'];
+    firstloadVersion: Scalars['String'];
+    clientConfig: Scalars['String'];
+    environment: Scalars['String'];
+    id: Scalars['String'];
+    appVersion?: InputMaybe<Scalars['String']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
+    client_id?: InputMaybe<Scalars['String']>;
 }>;
 
 export type InitializeSessionMutation = {
@@ -274,8 +264,8 @@ export type InitializeSessionMutation = {
     } | null;
 };
 
-export type IgnoreQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+export type IgnoreQueryVariables = Exact<{
+    id: Scalars['ID'];
 }>;
 
 export type IgnoreQuery = { __typename?: 'Query'; ignore?: any | null };
