@@ -3,10 +3,10 @@
 import dev from 'rollup-plugin-dev'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize';
+import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
-import json from 'rollup-plugin-json';
 import esbuild from 'rollup-plugin-esbuild';
 import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 import pkg from './package.json';
