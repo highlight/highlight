@@ -346,14 +346,28 @@ const BillingPage = () => {
                                 Consider upgrading to the new unlimited members
                                 version of your plan.
                                 <Button
+                                    type={'primary'}
                                     trackingId="UpdateFailedInvoice"
                                     onClick={createOnSelect(
                                         billingData?.billingDetails.plan.type
                                     )}
-                                    loading={loadingCustomerPortal && !isCancel}
+                                    loading={
+                                        billingLoading ||
+                                        subscriptionLoading ||
+                                        !!loadingPlanType
+                                    }
                                     className={styles.unlimitedMembersButton}
                                 >
-                                    Upgrade to Unlimited Members
+                                    Upgrade to Unlimited Members on the{' '}
+                                    {
+                                        BILLING_PLANS.filter(
+                                            (b) =>
+                                                b.type ===
+                                                billingData.billingDetails.plan
+                                                    .type
+                                        )[0]?.name
+                                    }{' '}
+                                    Plan
                                 </Button>
                             </div>
                         </div>
