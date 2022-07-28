@@ -415,8 +415,14 @@ const BillingPage = () => {
                         />
                     }
                 >
-                    {BILLING_PLANS.map((billingPlan) =>
-                        billingLoading ? (
+                    {BILLING_PLANS.map((billingPlan) => {
+                        const isCurrent =
+                            billingData?.billingDetails.plan.type ===
+                                billingPlan.type &&
+                            (billingPlan.type === PlanType.Free ||
+                                billingData?.billingDetails.plan.interval ===
+                                    subscriptionInterval);
+                        return billingLoading ? (
                             <Skeleton
                                 style={{ borderRadius: 8 }}
                                 count={1}
@@ -432,14 +438,9 @@ const BillingPage = () => {
                                 }
                                 glowing={billingPlan.type === tier}
                                 key={billingPlan.type}
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                        billingPlan.name &&
-                                    (billingPlan.type === PlanType.Free ||
-                                        billingData?.billingDetails.plan
-                                            .interval === subscriptionInterval)
-                                }
+                                current={isCurrent}
                                 currentUnlimitedMembers={
+                                    isCurrent &&
                                     billingData?.billingDetails?.plan
                                         .membersLimit === null
                                 }
@@ -451,8 +452,8 @@ const BillingPage = () => {
                                     billingData?.billingDetails.membersMeter
                                 }
                             />
-                        )
-                    )}
+                        );
+                    })}
                 </Authorization>
             </div>
         </>

@@ -169,12 +169,16 @@ export const BillingPlanCard = ({
             ) : (
                 <Button
                     trackingId="ChangeBillingPlan"
-                    disabled={current || disabled}
+                    disabled={
+                        (current &&
+                            currentUnlimitedMembers === unlimitedMembers) ||
+                        disabled
+                    }
                     onClick={() => onSelect(unlimitedMembers)}
                     className={styles.button}
                     loading={loading}
                 >
-                    {current
+                    {current && currentUnlimitedMembers === unlimitedMembers
                         ? 'Current plan'
                         : `Select ${billingPlan.name} Plan`}
                 </Button>
