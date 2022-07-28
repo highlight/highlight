@@ -1091,6 +1091,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
 	var nextInvoiceDate *time.Time
@@ -1099,8 +1100,9 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
+				unlimitedMembers = productUnlimitedMembers
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1125,6 +1127,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
+			"UnlimitedMembers":   unlimitedMembers,
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,

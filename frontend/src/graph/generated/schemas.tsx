@@ -241,6 +241,7 @@ export type Account = {
     email: Scalars['String'];
     subscription_start?: Maybe<Scalars['Timestamp']>;
     plan_tier: Scalars['String'];
+    unlimited_members: Scalars['Boolean'];
     stripe_customer_id: Scalars['String'];
     member_count: Scalars['Int'];
     member_limit?: Maybe<Scalars['Int']>;
@@ -279,6 +280,7 @@ export type Workspace = {
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
     plan_tier: Scalars['String'];
+    unlimited_members: Scalars['Boolean'];
     trial_end_date?: Maybe<Scalars['Timestamp']>;
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
@@ -1623,6 +1625,7 @@ export type MutationDeleteErrorSegmentArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     workspace_id: Scalars['ID'];
     plan_type: PlanType;
+    unlimited_members: Scalars['Boolean'];
     interval: SubscriptionInterval;
 };
 

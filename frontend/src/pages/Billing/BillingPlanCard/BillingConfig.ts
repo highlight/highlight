@@ -9,6 +9,8 @@ export type BillingPlan = {
     name: string;
     monthlyPrice: number;
     annualPrice: number;
+    monthlyUnlimitedMembersPrice: number;
+    annualUnlimitedMembersPrice: number;
     type: PlanType;
     advertisedFeatures: (FeatureWithTooltip | string)[];
     membersIncluded?: number;
@@ -18,10 +20,12 @@ const SESSIONS_AFTER_LIMIT_TOOLTIP =
     'After this monthly limit is reached, extra sessions will be charged $5 per 1000 sessions.';
 
 const freePlan: BillingPlan = {
-    name: 'Free',
+    name: 'Basic',
     type: PlanType.Free,
     monthlyPrice: 0,
     annualPrice: 0,
+    monthlyUnlimitedMembersPrice: 0,
+    annualUnlimitedMembersPrice: 0,
     advertisedFeatures: [
         {
             text: '500 sessions / month',
@@ -33,16 +37,17 @@ const freePlan: BillingPlan = {
 };
 
 const basicPlan: BillingPlan = {
-    name: 'Basic',
+    name: 'Essentials',
     type: PlanType.Basic,
     monthlyPrice: 100,
     annualPrice: 80,
+    monthlyUnlimitedMembersPrice: 150,
+    annualUnlimitedMembersPrice: 120,
     advertisedFeatures: [
         {
             text: '10,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
-        '2 members included',
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
@@ -52,18 +57,21 @@ const basicPlan: BillingPlan = {
 const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
-    monthlyPrice: 500,
-    annualPrice: 400,
+    monthlyPrice: 300,
+    annualPrice: 240,
+    monthlyUnlimitedMembersPrice: 400,
+    annualUnlimitedMembersPrice: 320,
     advertisedFeatures: [
         {
             text: '80,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
         'Everything in Basic',
-        'Unlimited members included',
         'Enhanced user metadata',
+        'App performance metrics',
         'Issue tracking integrations',
     ],
+    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
@@ -71,13 +79,20 @@ const enterprisePlan: BillingPlan = {
     type: PlanType.Enterprise,
     monthlyPrice: 1000,
     annualPrice: 800,
+    monthlyUnlimitedMembersPrice: 1500,
+    annualUnlimitedMembersPrice: 1200,
     advertisedFeatures: [
+        {
+            text: '300,000 free sessions / mo',
+            tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+        },
         'Everything in Basic/Startup',
         'Personalized support',
         'User RBAC/Permissioning',
         'On-premise deployments',
         'SSO/SAML',
     ],
+    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [

@@ -160,11 +160,13 @@ export const CreateOrUpdateStripeSubscriptionDocument = gql`
     mutation CreateOrUpdateStripeSubscription(
         $workspace_id: ID!
         $plan_type: PlanType!
+        $unlimited_members: Boolean!
         $interval: SubscriptionInterval!
     ) {
         createOrUpdateStripeSubscription(
             workspace_id: $workspace_id
             plan_type: $plan_type
+            unlimited_members: $unlimited_members
             interval: $interval
         )
     }
@@ -189,6 +191,7 @@ export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
  *      plan_type: // value for 'plan_type'
+ *      unlimited_members: // value for 'unlimited_members'
  *      interval: // value for 'interval'
  *   },
  * });
@@ -6200,6 +6203,7 @@ export const GetWorkspaceDocument = gql`
             name
             secret
             plan_tier
+            unlimited_members
             clearbit_enabled
             projects {
                 id

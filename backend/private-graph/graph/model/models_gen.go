@@ -21,6 +21,7 @@ type Account struct {
 	Email                string     `json:"email"`
 	SubscriptionStart    *time.Time `json:"subscription_start"`
 	PlanTier             string     `json:"plan_tier"`
+	UnlimitedMembers     bool       `json:"unlimited_members"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	MemberCount          int        `json:"member_count"`
 	MemberLimit          *int       `json:"member_limit"`

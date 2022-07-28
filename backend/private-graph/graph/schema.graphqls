@@ -211,6 +211,7 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
     member_limit: Int
@@ -245,6 +246,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -1106,6 +1108,7 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
+        unlimited_members: Boolean!
         interval: SubscriptionInterval!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean

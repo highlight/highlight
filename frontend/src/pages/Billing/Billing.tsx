@@ -185,12 +185,13 @@ const BillingPage = () => {
     ]);
 
     const createOnSelect = (newPlan: PlanType) => {
-        return async () => {
+        return async (unlimitedMembers: boolean) => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
                     workspace_id,
                     plan_type: newPlan,
+                    unlimited_members: unlimitedMembers,
                     interval: subscriptionInterval,
                 },
             }).then((r) => {
@@ -437,6 +438,10 @@ const BillingPage = () => {
                                     (billingPlan.type === PlanType.Free ||
                                         billingData?.billingDetails.plan
                                             .interval === subscriptionInterval)
+                                }
+                                currentUnlimitedMembers={
+                                    billingData?.billingDetails?.plan
+                                        .membersLimit === null
                                 }
                                 billingPlan={billingPlan}
                                 onSelect={createOnSelect(billingPlan.type)}

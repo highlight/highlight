@@ -28,6 +28,7 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
+    unlimited_members: Types.Scalars['Boolean'];
     interval: Types.SubscriptionInterval;
 }>;
 
@@ -2384,7 +2385,12 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
+            | 'id'
+            | 'name'
+            | 'secret'
+            | 'plan_tier'
+            | 'unlimited_members'
+            | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
