@@ -4258,6 +4258,16 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+		Aggregation: &opensearch.DateHistogramAggregation{
+			Field:            "created_at",
+			CalendarInterval: "day",
+			SortOrder:        "asc",
+			Format:           "yyyy-MM-dd",
+			SubAggregation: &opensearch.TermsAggregation{
+				Field:   "has_errors",
+				Missing: ptr.String("false"),
+			},
+		},
 	}
 	if page != nil {
 		// page param is 1 indexed
@@ -4294,7 +4304,8 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			%s
 		]
 	}}`, query)
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	fmt.Printf("%x\n", aggs)
 	if err != nil {
 		return nil, err
 	}

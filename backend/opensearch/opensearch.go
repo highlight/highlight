@@ -72,6 +72,7 @@ type Aggregation interface {
 
 type TermsAggregation struct {
 	Field          string
+	Missing        *string // Optional: The value to use when the field is missing.
 	SubAggregation Aggregation
 	Include        *string
 	Size           *int
@@ -93,10 +94,15 @@ func (t *TermsAggregation) GetAggsString() string {
 		sizePart = fmt.Sprintf(`, "size": %d`, *t.Size)
 	}
 
+	missing := ""
+	if t.Missing != nil {
+		missing = fmt.Sprintf(`, "missing": "%s"`, *t.Missing)
+	}
 	return fmt.Sprintf(`
 		"aggregate": {
 			"terms": {
 				"field": "%s"
+				%s
 				%s
 				%s
 			},
@@ -104,7 +110,7 @@ func (t *TermsAggregation) GetAggsString() string {
 				%s
 			}
 		}
-	`, t.Field, includePart, sizePart, subAggString)
+	`, t.Field, includePart, sizePart, missing, subAggString)
 }
 
 type DateHistogramAggregation struct {
@@ -447,6 +453,33 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		excludesStr += `"` + e + `"`
 	}
 
+	/*
+		GET prod_sessions/_search
+		{
+		  "size": 0,
+		  "query": {
+		    "range": {
+		      "created_at": {
+		        "gte": "now-7d/d"
+		      }
+		    }
+		  },
+		  "aggs": {
+		    "session_count_buckets": {
+		      "date_histogram": {
+		        "field": "created_at",
+		        "interval": "day"
+		      },
+		      "aggs" : {
+		        "has_errors" : {
+		          "terms" : { "field" : "has_errors", "missing": "false" }
+		        }
+		      }
+		    }
+		  }
+		}
+	*/
+
 	aggs := ""
 	if options.Aggregation != nil {
 		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
@@ -478,6 +511,8 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	if err := searchResponse.Body.Close(); err != nil {
 		return 0, nil, e.Wrap(err, "failed to close search response")
 	}
+
+	fmt.Printf("\n\nSize: %d, Result: %s\n\n", count, string(res))
 
 	var response struct {
 		Hits struct {
