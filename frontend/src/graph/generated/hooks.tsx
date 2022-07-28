@@ -4712,6 +4712,7 @@ export const GetSessionDocument = gql`
             has_errors
             within_billing_quota
             client_version
+            firstload_version
             client_config
             is_public
             event_counts

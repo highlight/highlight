@@ -27,6 +27,7 @@ type Session {
     environment: String
     app_version: String
     client_version: String
+    firstload_version: String
     client_config: String
     language: String!
     identifier: String!
