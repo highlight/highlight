@@ -11,6 +11,15 @@ export declare interface Metadata {
     [key: string]: string | boolean | number;
 }
 
+export declare type SamplingStrategy = {
+    /**
+     * 'all' will record every single canvas call.
+     * a number between 1 and 60, will record an image snapshots in a web-worker a (maximum) number of times per second.
+     * Number is only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
+     */
+    canvas: 'all' | number;
+};
+
 export declare type HighlightOptions = {
     /**
      * Do not use this.
@@ -89,6 +98,27 @@ export declare type HighlightOptions = {
      * @default false
      */
     enableCanvasRecording?: boolean;
+    /**
+     * Configure the recording sampling options, eg. how frequently we record canvas updates.
+     */
+    samplingStrategy?: SamplingStrategy;
+    /**
+     * Specifies whether to inline images into the recording.
+     * This means that images that are local to the client (eg. client-generated blob: urls)
+     * will be serialized into the recording and will be valid on replay.
+     * Only enable this if you are running into issues with client-local images.
+     * @default false
+     */
+    inlineImages?: boolean;
+    /**
+     * Specifies whether to inline stylesheets into the recording.
+     * This means that stylesheets that are local to the client (eg. client-generated blob: urls)
+     * will be serialized into the recording and will be valid on replay.
+     * Only enable this if you are running into issues with client-local stylesheets.
+     * May significantly decrease recording performance.
+     * @default false
+     */
+    inlineStylesheet?: boolean;
     integrations?: IntegrationOptions;
     /**
      * Specifies the keyboard shortcut to open the current session in Highlight.
