@@ -30,7 +30,7 @@ import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
-import { useLocation } from 'react-router-dom';
+import { Route, Switch as RouteSwitch, useLocation } from 'react-router-dom';
 import { StringParam, useQueryParams } from 'use-query-params';
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
@@ -185,13 +185,12 @@ const BillingPage = () => {
     ]);
 
     const createOnSelect = (newPlan: PlanType) => {
-        return async (unlimitedMembers: boolean) => {
+        return async () => {
             setLoadingPlanType(newPlan);
             createOrUpdateStripeSubscription({
                 variables: {
                     workspace_id,
                     plan_type: newPlan,
-                    unlimited_members: unlimitedMembers,
                     interval: subscriptionInterval,
                 },
             }).then((r) => {
@@ -255,61 +254,11 @@ const BillingPage = () => {
             subscriptionData?.subscription_details?.lastInvoice?.amountDue ?? 0,
         currency: USD,
     });
+    const currentUnlimitedMembers =
+        billingData?.billingDetails?.plan.membersLimit === null;
 
-    return (
+    const BillingDetails = () => (
         <>
-            {rainConfetti && <Confetti recycle={false} />}
-            {subscriptionIssues && (
-                <Card
-                    className={styles.invoiceFailedCard}
-                    style={{ marginBottom: 0, marginTop: 24 }}
-                >
-                    <div className={styles.invoiceFailedContainer}>
-                        <div className={styles.invoiceFailedBell}>
-                            <BellRingingIcon />
-                        </div>
-                        <div>
-                            <span className={styles.invoiceFailedHeader}>
-                                Your last invoice failed to process!
-                            </span>
-                            <br />
-                            <span>
-                                $
-                                {toUnit(outstandingAmount, {
-                                    digits: 2,
-                                    round: down,
-                                })}
-                            </span>{' '}
-                            is past due as of{' '}
-                            {moment(
-                                subscriptionData?.subscription_details
-                                    ?.lastInvoice?.date
-                            ).format('M/D/YY')}
-                            . Please add a payment method to maintain the
-                            subscription.
-                            <Authorization allowedRoles={[AdminRole.Admin]}>
-                                <Button
-                                    trackingId="UpdateFailedInvoice"
-                                    onClick={() => {
-                                        window.open(
-                                            subscriptionData
-                                                ?.subscription_details
-                                                ?.lastInvoice?.url || '',
-                                            '_self'
-                                        );
-                                    }}
-                                    loading={loadingCustomerPortal && !isCancel}
-                                    className={
-                                        styles.invoiceFailedUpdatePayment
-                                    }
-                                >
-                                    Update Payment
-                                </Button>
-                            </Authorization>
-                        </div>
-                    </div>
-                </Card>
-            )}
             <div className={styles.titleContainer}>
                 <div>
                     <h3>Billing</h3>
@@ -372,7 +321,45 @@ const BillingPage = () => {
                 subscriptionDetails={subscriptionData?.subscription_details}
                 trialEndDate={billingData?.workspace?.trial_end_date}
             />
+        </>
+    );
 
+    const BillingUpgrade = () => (
+        <>
+            {!currentUnlimitedMembers &&
+            billingData?.billingDetails.plan.type &&
+            billingData.billingDetails.plan.type !== PlanType.Free ? (
+                <Authorization allowedRoles={[AdminRole.Admin]}>
+                    <Card className={styles.unlimitedMembersCard}>
+                        <div className={styles.unlimitedMembersContainer}>
+                            <div className={styles.unlimitedMembersIcon}>
+                                <BellRingingIcon />
+                            </div>
+                            <div>
+                                <span className={styles.unlimitedMembersHeader}>
+                                    We have a new pricing plan for you!
+                                </span>
+                                <br />
+                                Your current billing plan charges per member in
+                                your account.
+                                <br />
+                                Consider upgrading to the new unlimited members
+                                version of your plan.
+                                <Button
+                                    trackingId="UpdateFailedInvoice"
+                                    onClick={createOnSelect(
+                                        billingData?.billingDetails.plan.type
+                                    )}
+                                    loading={loadingCustomerPortal && !isCancel}
+                                    className={styles.unlimitedMembersButton}
+                                >
+                                    Upgrade to Unlimited Members
+                                </Button>
+                            </div>
+                        </div>
+                    </Card>
+                </Authorization>
+            ) : null}
             <Authorization allowedRoles={[AdminRole.Admin]}>
                 <div className={styles.annualToggleBox}>
                     <Switch
@@ -415,14 +402,8 @@ const BillingPage = () => {
                         />
                     }
                 >
-                    {BILLING_PLANS.map((billingPlan) => {
-                        const isCurrent =
-                            billingData?.billingDetails.plan.type ===
-                                billingPlan.type &&
-                            (billingPlan.type === PlanType.Free ||
-                                billingData?.billingDetails.plan.interval ===
-                                    subscriptionInterval);
-                        return billingLoading ? (
+                    {BILLING_PLANS.map((billingPlan) =>
+                        billingLoading ? (
                             <Skeleton
                                 style={{ borderRadius: 8 }}
                                 count={1}
@@ -438,11 +419,14 @@ const BillingPage = () => {
                                 }
                                 glowing={billingPlan.type === tier}
                                 key={billingPlan.type}
-                                current={isCurrent}
-                                currentUnlimitedMembers={
-                                    isCurrent &&
-                                    billingData?.billingDetails?.plan
-                                        .membersLimit === null
+                                current={
+                                    billingData?.billingDetails.plan
+                                        .membersLimit === null &&
+                                    billingData?.billingDetails.plan.type ===
+                                        billingPlan.type &&
+                                    (billingPlan.type === PlanType.Free ||
+                                        billingData?.billingDetails.plan
+                                            .interval === subscriptionInterval)
                                 }
                                 billingPlan={billingPlan}
                                 onSelect={createOnSelect(billingPlan.type)}
@@ -452,10 +436,75 @@ const BillingPage = () => {
                                     billingData?.billingDetails.membersMeter
                                 }
                             />
-                        );
-                    })}
+                        )
+                    )}
                 </Authorization>
             </div>
+        </>
+    );
+
+    return (
+        <>
+            {rainConfetti && <Confetti recycle={false} />}
+            {subscriptionIssues && (
+                <Card
+                    className={styles.invoiceFailedCard}
+                    style={{ marginBottom: 0, marginTop: 24 }}
+                >
+                    <div className={styles.invoiceFailedContainer}>
+                        <div className={styles.invoiceFailedBell}>
+                            <BellRingingIcon />
+                        </div>
+                        <div>
+                            <span className={styles.invoiceFailedHeader}>
+                                Your last invoice failed to process!
+                            </span>
+                            <br />
+                            <span>
+                                $
+                                {toUnit(outstandingAmount, {
+                                    digits: 2,
+                                    round: down,
+                                })}
+                            </span>{' '}
+                            is past due as of{' '}
+                            {moment(
+                                subscriptionData?.subscription_details
+                                    ?.lastInvoice?.date
+                            ).format('M/D/YY')}
+                            . Please add a payment method to maintain the
+                            subscription.
+                            <Authorization allowedRoles={[AdminRole.Admin]}>
+                                <Button
+                                    trackingId="UpdateFailedInvoice"
+                                    onClick={() => {
+                                        window.open(
+                                            subscriptionData
+                                                ?.subscription_details
+                                                ?.lastInvoice?.url || '',
+                                            '_self'
+                                        );
+                                    }}
+                                    loading={loadingCustomerPortal && !isCancel}
+                                    className={
+                                        styles.invoiceFailedUpdatePayment
+                                    }
+                                >
+                                    Update Payment
+                                </Button>
+                            </Authorization>
+                        </div>
+                    </div>
+                </Card>
+            )}
+            <RouteSwitch>
+                <Route exact path={`/w/:workspace_id(\\d+)/:page_id(billing)`}>
+                    <BillingDetails />
+                </Route>
+                <Route exact path={`/w/:workspace_id(\\d+)/:page_id(plan)`}>
+                    <BillingUpgrade />
+                </Route>
+            </RouteSwitch>
         </>
     );
 };

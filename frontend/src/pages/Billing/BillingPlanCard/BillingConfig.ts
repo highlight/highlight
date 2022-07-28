@@ -9,8 +9,6 @@ export type BillingPlan = {
     name: string;
     monthlyPrice: number;
     annualPrice: number;
-    monthlyUnlimitedMembersPrice: number;
-    annualUnlimitedMembersPrice: number;
     type: PlanType;
     advertisedFeatures: (FeatureWithTooltip | string)[];
     membersIncluded?: number;
@@ -24,8 +22,6 @@ const freePlan: BillingPlan = {
     type: PlanType.Free,
     monthlyPrice: 0,
     annualPrice: 0,
-    monthlyUnlimitedMembersPrice: 0,
-    annualUnlimitedMembersPrice: 0,
     advertisedFeatures: [
         {
             text: '500 sessions / month',
@@ -39,28 +35,24 @@ const freePlan: BillingPlan = {
 const basicPlan: BillingPlan = {
     name: 'Essentials',
     type: PlanType.Basic,
-    monthlyPrice: 100,
-    annualPrice: 80,
-    monthlyUnlimitedMembersPrice: 150,
-    annualUnlimitedMembersPrice: 120,
+    monthlyPrice: 150,
+    annualPrice: 120,
     advertisedFeatures: [
         {
             text: '10,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
+        'Unlimited members included',
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
-    membersIncluded: 2,
 };
 
 const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
-    monthlyPrice: 300,
-    annualPrice: 240,
-    monthlyUnlimitedMembersPrice: 400,
-    annualUnlimitedMembersPrice: 320,
+    monthlyPrice: 400,
+    annualPrice: 320,
     advertisedFeatures: [
         {
             text: '80,000 free sessions / mo',
@@ -71,16 +63,13 @@ const startupPlan: BillingPlan = {
         'App performance metrics',
         'Issue tracking integrations',
     ],
-    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
     name: 'Enterprise',
     type: PlanType.Enterprise,
-    monthlyPrice: 1000,
-    annualPrice: 800,
-    monthlyUnlimitedMembersPrice: 1500,
-    annualUnlimitedMembersPrice: 1200,
+    monthlyPrice: 1500,
+    annualPrice: 1200,
     advertisedFeatures: [
         {
             text: '300,000 free sessions / mo',
@@ -92,7 +81,6 @@ const enterprisePlan: BillingPlan = {
         'On-premise deployments',
         'SSO/SAML',
     ],
-    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [

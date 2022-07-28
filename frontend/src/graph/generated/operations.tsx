@@ -28,7 +28,6 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
     workspace_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
-    unlimited_members: Types.Scalars['Boolean'];
     interval: Types.SubscriptionInterval;
 }>;
 

@@ -1,8 +1,11 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { ErrorState } from '@components/ErrorState/ErrorState';
+import { Header } from '@components/Header/Header';
 import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks';
 import LoginForm from '@pages/Login/Login';
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs';
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext';
@@ -14,10 +17,7 @@ import React, { useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { useToggle } from 'react-use';
 
-import { useAuthContext } from '../../authentication/AuthContext';
 import commonStyles from '../../Common.module.scss';
-import { Header } from '../../components/Header/Header';
-import { useGetWorkspaceDropdownOptionsQuery } from '../../graph/generated/hooks';
 import { ApplicationContextProvider } from './ApplicationContext';
 
 export const WorkspaceRouter = () => {
@@ -121,7 +121,7 @@ export const WorkspaceRouter = () => {
                     ) : (
                         <>
                             <Switch>
-                                <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|billing)">
+                                <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|billing|plan)">
                                     <WorkspaceTabs />
                                 </Route>
                                 <Route path="/w/:workspace_id(\d+)">

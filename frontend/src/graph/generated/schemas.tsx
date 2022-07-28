@@ -1625,7 +1625,6 @@ export type MutationDeleteErrorSegmentArgs = {
 export type MutationCreateOrUpdateStripeSubscriptionArgs = {
     workspace_id: Scalars['ID'];
     plan_type: PlanType;
-    unlimited_members: Scalars['Boolean'];
     interval: SubscriptionInterval;
 };
 

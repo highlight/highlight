@@ -15,13 +15,11 @@ mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
 mutation CreateOrUpdateStripeSubscription(
     $workspace_id: ID!
     $plan_type: PlanType!
-    $unlimited_members: Boolean!
     $interval: SubscriptionInterval!
 ) {
     createOrUpdateStripeSubscription(
         workspace_id: $workspace_id
         plan_type: $plan_type
-        unlimited_members: $unlimited_members
         interval: $interval
     )
 }

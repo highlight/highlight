@@ -1108,7 +1108,6 @@ type Mutation {
     createOrUpdateStripeSubscription(
         workspace_id: ID!
         plan_type: PlanType!
-        unlimited_members: Boolean!
         interval: SubscriptionInterval!
     ): String
     updateBillingDetails(workspace_id: ID!): Boolean
