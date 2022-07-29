@@ -1,3 +1,5 @@
+import 'firebase/auth';
+
 import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
@@ -24,7 +26,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import classNames from 'classnames';
-import firebase from 'firebase';
+import Firebase from 'firebase/app';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -77,8 +79,7 @@ export const ProjectRouter = () => {
             process.env.REACT_APP_PRIVATE_GRAPH_URI ??
             window.location.origin + '/private';
         let intervalId: NodeJS.Timeout;
-        firebase
-            .auth()
+        Firebase.auth()
             .currentUser?.getIdToken()
             .then((t) => {
                 const fetchToken = () => {
