@@ -87,5 +87,13 @@
     &[disabled] {
         background-color: var(--color-red-300) !important;
         border: var(--color-red-400);
+
+        &:hover {
+            background-color: var(--color-red-300) !important;
+        }
+    }
+
+    &:hover {
+        background-color: var(--color-red-600) !important;
     }
 }
