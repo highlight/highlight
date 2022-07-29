@@ -6,7 +6,8 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+    SamplingStrategy,
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -33,7 +34,6 @@ import { SegmentIntegrationListener } from './listeners/segment-integration-list
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
-import 'clientjs';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
@@ -52,10 +52,12 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
+import { ClientJS } from 'clientjs';
 import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
+import publicGraphURI from 'consts:publicGraphURI';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -91,6 +93,9 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    samplingStrategy?: SamplingStrategy;
+    inlineImages?: boolean;
+    inlineStylesheet?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -162,6 +167,9 @@ export class Highlight {
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    samplingStrategy!: SamplingStrategy;
+    inlineImages!: boolean;
+    inlineStylesheet!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -194,6 +202,8 @@ export class Highlight {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
         }
+        // default to inlining stylesheets to help with recording accuracy
+        options.inlineStylesheet = true;
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
@@ -254,16 +264,21 @@ export class Highlight {
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
+        this.inlineImages = options.inlineImages || false;
+        this.inlineStylesheet = options.inlineStylesheet || false;
+        this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
-            process.env.PUBLIC_GRAPH_URI ||
+            publicGraphURI ||
             'https://pub.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         const graphQLRequestWrapper = async <T,>(
             requestFn: () => Promise<T>,
+            operationName: string,
+            operationType?: string,
             retries: number = 0
         ): Promise<T> => {
             const MAX_RETRIES = 5;
@@ -282,7 +297,12 @@ export class Highlight {
                             INITIAL_BACKOFF * Math.pow(2, retries)
                         )
                     );
-                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                    return await graphQLRequestWrapper(
+                        requestFn,
+                        operationName,
+                        operationType,
+                        retries + 1
+                    );
                 }
                 logForHighlight(
                     '[' +
@@ -391,7 +411,7 @@ export class Highlight {
             this.logger.log(
                 `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
                     user_object
-                )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                )} @ ${publicGraphURI}`
             );
             this.numberOfFailedRequests = 0;
         } catch (e) {
@@ -512,9 +532,9 @@ export class Highlight {
                 this.logger.log(
                     `AddSessionProperties to session (${
                         this.sessionData.sessionID
-                    }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                        process.env.PUBLIC_GRAPH_URI
-                    }`
+                    }) w/ obj: ${JSON.stringify(
+                        properties_obj
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
@@ -550,7 +570,7 @@ export class Highlight {
                         this.sessionData.sessionID
                     }, source: ${sourceString}) w/ obj: ${stringify(
                         properties_obj
-                    )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
@@ -625,7 +645,6 @@ export class Highlight {
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
-                // @ts-ignore
                 const client = new ClientJS();
                 let fingerprint = 0;
                 if ('getFingerprint' in client) {
@@ -665,7 +684,7 @@ export class Highlight {
                     );
                     this.logger.log(
                         `Loaded Highlight
-  Remote: ${process.env.PUBLIC_GRAPH_URI}
+  Remote: ${publicGraphURI}
   Friendly Project ID: ${this.organizationID}
   Short Project ID: ${this.sessionData.projectID}
   SessionID: ${this.sessionData.sessionID}
@@ -722,9 +741,12 @@ export class Highlight {
                     enableStrictPrivacy: this.enableStrictPrivacy,
                     maskAllInputs: this.enableStrictPrivacy,
                     recordCanvas: this.enableCanvasRecording,
+                    sampling: this.samplingStrategy,
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineImages: this.inlineImages,
+                    inlineStylesheet: this.inlineStylesheet,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {

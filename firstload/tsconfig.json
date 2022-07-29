@@ -14,6 +14,7 @@
 		"module": "esnext",
 		"declaration": true,
 		"declarationDir": "dist",
+		"emitDeclarationOnly": true,
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"jsx": "react",

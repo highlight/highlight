@@ -2331,15 +2331,15 @@ export const UpdateMetricMonitorDocument = gql`
     mutation UpdateMetricMonitor(
         $metric_monitor_id: ID!
         $project_id: ID!
-        $name: String!
-        $aggregator: MetricAggregator!
-        $threshold: Float!
+        $name: String
+        $aggregator: MetricAggregator
+        $threshold: Float
         $units: String
         $periodMinutes: Int
-        $metric_to_monitor: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $disabled: Boolean!
+        $metric_to_monitor: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $disabled: Boolean
     ) {
         updateMetricMonitor(
             metric_monitor_id: $metric_monitor_id

@@ -94,6 +94,14 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
+	sessionObj := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+		// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
+		log.Error(e.Wrapf(err, "PushPayload couldn't find session with ID %d", sessionID))
+	} else if sessionObj.ProjectID == 1074 {
+		// Drop solitaired payloads because they are causing ingestion issues
+		return size.Of(events), nil
+	}
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{

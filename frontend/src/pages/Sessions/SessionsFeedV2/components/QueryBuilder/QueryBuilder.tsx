@@ -902,7 +902,6 @@ const LABEL_MAP: { [key: string]: string } = {
     first_time: 'First Time',
     starred: 'Starred',
     identifier: 'Identifier',
-    identified: 'Identified',
     reload: 'Reloaded',
     state: 'State',
     event: 'Event',
@@ -1359,8 +1358,8 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: 'Last 7 days',
-                    value: '7 days',
+                    label: 'Last 30 days',
+                    value: '30 days',
                 },
             ],
         },
