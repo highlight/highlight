@@ -17,4 +17,19 @@ applications:
         paths:
           - node_modules/**/*
     appRoot: frontend
-
+  - client:
+      phases:
+        preBuild:
+          commands:
+            - yarn
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    appRoot: client
