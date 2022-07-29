@@ -5444,10 +5444,14 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
+	metrics, _ := r.SuggestedMetrics(ctx, projectID, "")
+
 	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
 		return t.Value.(string)
 	}), func(t string, _ int) bool {
-		return !strings.HasPrefix(t, "_")
+		// filter out metrics from possible metric tags
+		_, isMetric := lo.Find(metrics, func(m string) bool { return t == m })
+		return !strings.HasPrefix(t, "_") && !isMetric
 	}), nil
 }
 
