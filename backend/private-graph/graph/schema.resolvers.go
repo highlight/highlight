@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -44,6 +44,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
+	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -4252,13 +4253,18 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		sortOrder = "asc"
 	}
 
+	histogramRequested := slices.Contains(graphql.CollectAllFields(ctx), "histogram")
+
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
 		SortField:     ptr.String("created_at"),
 		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
-		Aggregation: &opensearch.DateHistogramAggregation{
+	}
+
+	if histogramRequested {
+		options.Aggregation = &opensearch.DateHistogramAggregation{
 			Field:            "created_at",
 			CalendarInterval: "day",
 			SortOrder:        "asc",
@@ -4267,8 +4273,9 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 				Field:   "has_errors",
 				Missing: ptr.String("false"),
 			},
-		},
+		}
 	}
+
 	if page != nil {
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
@@ -4310,33 +4317,39 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}
 	fmt.Printf("%x\n", aggs)
 
-	// Generate histogram
-	date_labels, no_errors_counts, with_errors_counts, total_counts := []string{}, []int64{}, []int64{}, []int64{}
-	for _, date_bucket := range aggs {
-		date_labels = append(date_labels, date_bucket.Key)
-		total_counts = append(total_counts, date_bucket.DocCount)
-		no_errors, with_errors := int64(0), int64(0)
-		for _, errors_bucket := range date_bucket.SubAggregationResults {
-			if errors_bucket.Key == "false" {
-				no_errors = errors_bucket.DocCount
-			} else if errors_bucket.Key == "true" {
-				with_errors = errors_bucket.DocCount
-			}
-		}
-		no_errors_counts = append(no_errors_counts, no_errors)
-		with_errors_counts = append(with_errors_counts, with_errors)
-	}
-
-	return &model.SessionResults{
+	returnValue := &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
-		Histogram: model.SessionsHistogram{
+		Histogram:  nil,
+	}
+
+	if histogramRequested {
+		date_labels, no_errors_counts, with_errors_counts, total_counts := []string{}, []int64{}, []int64{}, []int64{}
+		for _, date_bucket := range aggs {
+			date_labels = append(date_labels, date_bucket.Key)
+			total_counts = append(total_counts, date_bucket.DocCount)
+			no_errors, with_errors := int64(0), int64(0)
+			for _, errors_bucket := range date_bucket.SubAggregationResults {
+				if errors_bucket.Key == "false" {
+					no_errors = errors_bucket.DocCount
+				} else if errors_bucket.Key == "true" {
+					with_errors = errors_bucket.DocCount
+				}
+			}
+			no_errors_counts = append(no_errors_counts, no_errors)
+			with_errors_counts = append(with_errors_counts, with_errors)
+		}
+
+		returnValue.Histogram = &model.SessionsHistogram{
 			Labels:                date_labels,
 			SessionsWithoutErrors: no_errors_counts,
 			SessionsWithErrors:    with_errors_counts,
 			TotalSessions:         total_counts,
-		},
-	}, nil
+		}
+
+	}
+
+	return returnValue, nil
 }
 
 // FieldTypes is the resolver for the field_types field.

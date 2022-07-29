@@ -41044,9 +41044,9 @@ func (ec *executionContext) _SessionResults_histogram(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model1.SessionsHistogram)
+	res := resTmp.(*model1.SessionsHistogram)
 	fc.Result = res
-	return ec.marshalOSessionsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
+	return ec.marshalOSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SessionResults_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -57608,8 +57608,11 @@ func (ec *executionContext) marshalOSessionPayload2ᚖgithubᚗcomᚋhighlight�
 	return ec._SessionPayload(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSessionsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v model1.SessionsHistogram) graphql.Marshaler {
-	return ec._SessionsHistogram(ctx, sel, &v)
+func (ec *executionContext) marshalOSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v *model1.SessionsHistogram) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SessionsHistogram(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v []*model.SocialLink) graphql.Marshaler {
