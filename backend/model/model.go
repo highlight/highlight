@@ -329,6 +329,7 @@ type DashboardMetric struct {
 	MaxValue                 *float64
 	MaxPercentile            *float64
 	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+	Groups                   pq.StringArray           `gorm:"type:text[]"`
 }
 
 type DashboardMetricFilter struct {

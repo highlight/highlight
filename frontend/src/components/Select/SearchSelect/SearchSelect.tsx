@@ -61,7 +61,6 @@ export const SimpleSearchSelect = ({
     freeSolo?: boolean;
     placeholder?: string;
 }) => {
-    const [isTyping, setIsTyping] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState<string[]>([]);
     const [extraOption, setExtraOption] = useState<SearchOption>();
 
@@ -71,7 +70,6 @@ export const SimpleSearchSelect = ({
                 (m) => m.toLowerCase().indexOf(input.toLowerCase()) !== -1
             ) || []
         );
-        setIsTyping(false);
     };
 
     // Ignore this so we have a consistent reference so debounce works.
@@ -95,19 +93,15 @@ export const SimpleSearchSelect = ({
             mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
             placeholder={placeholder || 'graphql_operation'}
             autoFocus
-            onInputKeyDown={() => setIsTyping(true)}
             onChange={(x) => {
                 if (freeSolo) {
                     setExtraOption(x);
-                    setIsTyping(false);
                 }
             }}
             onSelect={(newValue: SearchOption) => {
-                setIsTyping(false);
                 onSelect(newValue?.value || '');
             }}
             defaultValue={{ label: value, value: value } as SearchOption}
-            loading={isTyping}
             options={[
                 ...filteredOptions.map((s) => ({
                     label: s,

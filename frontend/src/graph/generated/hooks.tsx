@@ -4206,6 +4206,7 @@ export const GetMetricsTimelineDocument = gql`
             date
             value
             aggregator
+            group
         }
     }
 `;
@@ -9588,6 +9589,7 @@ export const GetDashboardDefinitionsDocument = gql`
                     op
                     tag
                 }
+                groups
             }
             last_admin_to_edit_id
             layout

@@ -174,6 +174,7 @@ type ComplexityRoot struct {
 		ChartType                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		Filters                  func(childComplexity int) int
+		Groups                   func(childComplexity int) int
 		HelpArticle              func(childComplexity int) int
 		MaxGoodValue             func(childComplexity int) int
 		MaxNeedsImprovementValue func(childComplexity int) int
@@ -189,6 +190,7 @@ type ComplexityRoot struct {
 	DashboardPayload struct {
 		Aggregator func(childComplexity int) int
 		Date       func(childComplexity int) int
+		Group      func(childComplexity int) int
 		Value      func(childComplexity int) int
 	}
 
@@ -1628,6 +1630,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.Filters(childComplexity), true
 
+	case "DashboardMetricConfig.groups":
+		if e.complexity.DashboardMetricConfig.Groups == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.Groups(childComplexity), true
+
 	case "DashboardMetricConfig.help_article":
 		if e.complexity.DashboardMetricConfig.HelpArticle == nil {
 			break
@@ -1711,6 +1720,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardPayload.Date(childComplexity), true
+
+	case "DashboardPayload.group":
+		if e.complexity.DashboardPayload.Group == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.Group(childComplexity), true
 
 	case "DashboardPayload.value":
 		if e.complexity.DashboardPayload.Value == nil {
@@ -6518,6 +6534,7 @@ input DashboardParamsInput {
     units: String
     aggregator: MetricAggregator
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 input HistogramParamsInput {
@@ -6876,6 +6893,7 @@ type DashboardPayload {
     date: String!
     value: Float!
     aggregator: MetricAggregator
+    group: String
 }
 
 type HistogramBucket {
@@ -6902,6 +6920,7 @@ type CategoryHistogramPayload {
 
 enum DashboardChartType {
     Timeline
+    TimelineBar
     Histogram
 }
 
@@ -6931,6 +6950,7 @@ input DashboardMetricConfigInput {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 type DashboardMetricConfig {
@@ -6948,6 +6968,7 @@ type DashboardMetricConfig {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilter!]
+    groups: [String!]
 }
 
 type DashboardDefinition {
@@ -15350,6 +15371,8 @@ func (ec *executionContext) fieldContext_DashboardDefinition_metrics(ctx context
 				return ec.fieldContext_DashboardMetricConfig_max_percentile(ctx, field)
 			case "filters":
 				return ec.fieldContext_DashboardMetricConfig_filters(ctx, field)
+			case "groups":
+				return ec.fieldContext_DashboardMetricConfig_groups(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DashboardMetricConfig", field.Name)
 		},
@@ -16048,6 +16071,47 @@ func (ec *executionContext) fieldContext_DashboardMetricConfig_filters(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _DashboardMetricConfig_groups(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardMetricConfig_groups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Groups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardMetricConfig_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DashboardPayload_date(ctx, field)
 	if err != nil {
@@ -16172,6 +16236,47 @@ func (ec *executionContext) fieldContext_DashboardPayload_aggregator(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type MetricAggregator does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DashboardPayload_group(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardPayload_group(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardPayload_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -34099,6 +34204,8 @@ func (ec *executionContext) fieldContext_Query_metrics_timeline(ctx context.Cont
 				return ec.fieldContext_DashboardPayload_value(ctx, field)
 			case "aggregator":
 				return ec.fieldContext_DashboardPayload_aggregator(ctx, field)
+			case "group":
+				return ec.fieldContext_DashboardPayload_group(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DashboardPayload", field.Name)
 		},
@@ -44578,7 +44685,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters"}
+	fieldsInOrder := [...]string{"name", "description", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters", "groups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44697,6 +44804,14 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "groups":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
+			it.Groups, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -44710,7 +44825,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"date_range", "resolution_minutes", "timezone", "units", "aggregator", "filters"}
+	fieldsInOrder := [...]string{"date_range", "resolution_minutes", "timezone", "units", "aggregator", "filters", "groups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44762,6 +44877,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "groups":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
+			it.Groups, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46280,6 +46403,10 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 
 			out.Values[i] = ec._DashboardMetricConfig_filters(ctx, field, obj)
 
+		case "groups":
+
+			out.Values[i] = ec._DashboardMetricConfig_groups(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46318,6 +46445,10 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 		case "aggregator":
 
 			out.Values[i] = ec._DashboardPayload_aggregator(ctx, field, obj)
+
+		case "group":
+
+			out.Values[i] = ec._DashboardPayload_group(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -56887,6 +57018,44 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {

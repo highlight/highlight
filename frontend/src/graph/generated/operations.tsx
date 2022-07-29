@@ -1608,7 +1608,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregator'
+                'date' | 'value' | 'aggregator' | 'group'
             >
         >
     >;
@@ -3723,6 +3723,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'min_percentile'
                             | 'max_value'
                             | 'max_percentile'
+                            | 'groups'
                         > & {
                                 filters?: Types.Maybe<
                                     Array<

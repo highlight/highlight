@@ -2478,9 +2478,20 @@ func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) 
 	return
 }
 
+// GetTagGroups returns the influxdb group columns for a particular set of tag groups
+func GetTagGroups(groups []string) (result string) {
+	result += "["
+	for _, g := range groups {
+		result += fmt.Sprintf(`"%s",`, g)
+	}
+	result += "]"
+	return result
+}
+
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
+	tagGroups := GetTagGroups(params.Groups)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -2492,14 +2503,14 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		  |> range(start: %[2]s, stop: %[3]s)
 		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
 		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  %[6]s|> group()
+		  %[6]s|> group(columns: %[8]s)
       do = (q) =>
         query()
 		  |> aggregateWindow(
                every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, resMins)
+	`, tdb.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, resMins, tagGroups)
 	agg := modelInputs.MetricAggregatorAvg
 	if params.Aggregator != nil {
 		agg = *params.Aggregator
@@ -2525,11 +2536,26 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 				v = x / div
 			}
 		}
-		payload = append(payload, &modelInputs.DashboardPayload{
-			Date:       r.Time.Format(time.RFC3339Nano),
-			Value:      v,
-			Aggregator: &agg,
-		})
+		if len(params.Groups) > 0 {
+			for _, g := range params.Groups {
+				gVal := r.Values[g]
+				if gVal == nil {
+					continue
+				}
+				payload = append(payload, &modelInputs.DashboardPayload{
+					Date:       r.Time.Format(time.RFC3339Nano),
+					Value:      v,
+					Aggregator: &agg,
+					Group:      pointy.String(gVal.(string)),
+				})
+			}
+		} else {
+			payload = append(payload, &modelInputs.DashboardPayload{
+				Date:       r.Time.Format(time.RFC3339Nano),
+				Value:      v,
+				Aggregator: &agg,
+			})
+		}
 	}
 	return
 }

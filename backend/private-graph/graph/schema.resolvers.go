@@ -3052,7 +3052,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	for _, m := range metrics {
 		var filters []*model.DashboardMetricFilter
 		for _, f := range m.Filters {
-			log.Warnf("filter %+v", f)
 			filters = append(filters, &model.DashboardMetricFilter{
 				Tag:   f.Tag,
 				Op:    f.Op,
@@ -3074,6 +3073,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			MaxValue:                 m.MaxValue,
 			MaxPercentile:            m.MaxPercentile,
 			Filters:                  filters,
+			Groups:                   m.Groups,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -5377,6 +5377,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				MaxValue:                 metric.MaxValue,
 				MaxPercentile:            metric.MaxPercentile,
 				Filters:                  filters,
+				Groups:                   metric.Groups,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{
@@ -5443,10 +5444,14 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
+	metrics, _ := r.SuggestedMetrics(ctx, projectID, "")
+
 	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
 		return t.Value.(string)
 	}), func(t string, _ int) bool {
-		return !strings.HasPrefix(t, "_")
+		// filter out metrics from possible metric tags
+		_, isMetric := lo.Find(metrics, func(m string) bool { return t == m })
+		return !strings.HasPrefix(t, "_") && !isMetric
 	}), nil
 }
 

@@ -443,6 +443,7 @@ export type DashboardParamsInput = {
     units?: Maybe<Scalars['String']>;
     aggregator?: Maybe<MetricAggregator>;
     filters?: Maybe<Array<MetricTagFilterInput>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
 
 export type HistogramParamsInput = {
@@ -823,6 +824,7 @@ export type DashboardPayload = {
     date: Scalars['String'];
     value: Scalars['Float'];
     aggregator?: Maybe<MetricAggregator>;
+    group?: Maybe<Scalars['String']>;
 };
 
 export type HistogramBucket = {
@@ -853,6 +855,7 @@ export type CategoryHistogramPayload = {
 
 export enum DashboardChartType {
     Timeline = 'Timeline',
+    TimelineBar = 'TimelineBar',
     Histogram = 'Histogram',
 }
 
@@ -882,6 +885,7 @@ export type DashboardMetricConfigInput = {
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
     filters?: Maybe<Array<MetricTagFilterInput>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
 
 export type DashboardMetricConfig = {
@@ -900,6 +904,7 @@ export type DashboardMetricConfig = {
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
     filters?: Maybe<Array<MetricTagFilter>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
 
 export type DashboardDefinition = {
