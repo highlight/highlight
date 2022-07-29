@@ -1813,6 +1813,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'has_errors'
             | 'within_billing_quota'
             | 'client_version'
+            | 'firstload_version'
             | 'client_config'
             | 'is_public'
             | 'event_counts'
