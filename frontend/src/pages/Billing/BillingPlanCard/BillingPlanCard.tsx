@@ -1,6 +1,7 @@
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import { PlanType, SubscriptionInterval } from '@graph/schemas';
+import MessageIcon from '@icons/MessageIcon';
 import { MEMBERS_PRICE } from '@pages/Billing/BillingStatusCard/BillingStatusCard';
 import { formatNumberWithDelimiters } from '@util/numbers';
 import classNames from 'classnames/bind';
@@ -45,28 +46,43 @@ export const BillingPlanCard = ({
             })}
         >
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-            <div>
-                <span
-                    className={classNames(
-                        commonStyles.title,
-                        styles.billingPlanPrice
-                    )}
-                >
-                    {`$${formatNumberWithDelimiters(
-                        subscriptionInterval === SubscriptionInterval.Annual
-                            ? billingPlan.annualPrice
-                            : billingPlan.monthlyPrice
-                    )}`}
-                </span>
-                {billingPlan.type !== PlanType.Free && (
-                    <span>
-                        /mo, billed{' '}
-                        {subscriptionInterval === SubscriptionInterval.Annual
-                            ? 'annually'
-                            : 'monthly'}
+            {billingPlan.type === PlanType.Enterprise ? (
+                <div className={styles.enterpriseRow}>
+                    <span
+                        className={classNames(
+                            commonStyles.title,
+                            styles.billingPlanPrice
+                        )}
+                    >
+                        <MessageIcon />
                     </span>
-                )}
-            </div>
+                    <span>reach out for more details</span>
+                </div>
+            ) : (
+                <div>
+                    <span
+                        className={classNames(
+                            commonStyles.title,
+                            styles.billingPlanPrice
+                        )}
+                    >
+                        {`$${formatNumberWithDelimiters(
+                            subscriptionInterval === SubscriptionInterval.Annual
+                                ? billingPlan.annualPrice
+                                : billingPlan.monthlyPrice
+                        )}`}
+                    </span>
+                    {billingPlan.type !== PlanType.Free && (
+                        <span>
+                            /mo, billed{' '}
+                            {subscriptionInterval ===
+                            SubscriptionInterval.Annual
+                                ? 'annually'
+                                : 'monthly'}
+                        </span>
+                    )}
+                </div>
+            )}
             <div className={styles.extraMembers}>
                 {billingPlan.type === PlanType.Free ? null : membersOverage >
                   0 ? (

@@ -89,3 +89,10 @@
         transform: scale(0.95);
     }
 }
+
+.enterpriseRow {
+    align-items: center;
+    column-gap: 8px;
+    display: flex;
+    height: 44px;
+}
