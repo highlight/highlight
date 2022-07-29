@@ -141,12 +141,19 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 const SessionReinitializeExpiry = time.Minute * 15
 
 //Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
+func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
+	defer outerSpan.Finish()
+
+	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil {
 		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
+	loadSessionSpan.Finish()
 
 	modelFields := []*model.Field{}
 	projectID := session.ProjectID
@@ -160,12 +167,16 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 		}
 	}
 
-	err := r.AppendFields(modelFields, session)
+	err := r.AppendFields(outerCtx, modelFields, session)
+
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
 
 	r.AlertWorkerPool.SubmitRecover(func() {
+		alertWorkerSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+			tracer.ResourceName("go.sessions.AppendProperties.alertWorker"), tracer.Tag("sessionID", sessionID))
+		defer alertWorkerSpan.Finish()
 		// Sending Track Properties Alert
 		if propType != PropertyType.TRACK {
 			return
@@ -322,7 +333,11 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	return nil
 }
 
-func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
+func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
+	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
+		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
+	defer outerSpan.Finish()
+
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
 		field := model.Field{}
@@ -1014,7 +1029,11 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionMinimal",
+		tracer.ResourceName("go.sessions.InitializeSessionMinimal"))
+	defer outerSpan.Finish()
+
 	// The clientID param was added in early July 2022. This check is needed until
 	// we are confident all clients are loading a version of the client script
 	// that sends this parameter.
@@ -1130,7 +1149,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
 	}
-	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+	if err := r.AppendProperties(outerCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
@@ -1252,6 +1271,10 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 }
 
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionID", sessionID))
+	defer outerSpan.Finish()
+
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1277,7 +1300,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		}
 	}
 
-	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
+	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
@@ -1398,7 +1421,11 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	return nil
 }
 
-func (r *Resolver) AddTrackPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
+		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
+	defer outerSpan.Finish()
+
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1410,14 +1437,18 @@ func (r *Resolver) AddTrackPropertiesImpl(_ context.Context, sessionID int, prop
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
 	return nil
 }
 
-func (r *Resolver) AddSessionPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
+		tracer.ResourceName("go.sessions.AddSessionPropertiesImpl"))
+	defer outerSpan.Finish()
+
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1426,7 +1457,7 @@ func (r *Resolver) AddSessionPropertiesImpl(_ context.Context, sessionID int, pr
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
