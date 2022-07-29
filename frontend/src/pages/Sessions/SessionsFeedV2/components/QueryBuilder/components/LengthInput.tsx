@@ -12,6 +12,7 @@ import styles from './LengthInput.module.scss';
 interface LengthInputProps {
     start: number;
     end: number;
+    max: number;
     type: string;
     onChange: (start: number, end: number) => void;
 }
@@ -20,6 +21,7 @@ export const LengthInput = ({
     start,
     end,
     type,
+    max,
     onChange,
 }: LengthInputProps) => {
     const [localMin, setLocalMin] = useState(start);
@@ -33,7 +35,7 @@ export const LengthInput = ({
 
     const marks: { [key: string]: string } = {
         0: '0',
-        [end]: `${end}+`,
+        [max]: `${max}+`,
     };
 
     useEffect(() => {
@@ -66,6 +68,7 @@ export const LengthInput = ({
                     start={start}
                     end={end}
                     type={type}
+                    max={max}
                     onChange={(min, max) => {
                         setLocalMin(min);
                         setLocalMax(max);
@@ -81,7 +84,7 @@ export const LengthInput = ({
                     }
                     disabled={false}
                     min={0}
-                    max={end}
+                    max={max}
                     marks={marks}
                     value={[localMin, localMax]}
                     onChange={([min, max]) => {

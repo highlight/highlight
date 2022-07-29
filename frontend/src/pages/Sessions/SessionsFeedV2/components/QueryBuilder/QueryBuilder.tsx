@@ -618,6 +618,7 @@ const PopoutContent = ({
                             ? Number(value.options[0]?.value.split('_')[1])
                             : 60
                     }
+                    max={60}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -648,6 +649,7 @@ const PopoutContent = ({
                             ? Number(value.options[0]?.value.split('_')[1])
                             : 200
                     }
+                    max={200}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -1271,6 +1273,15 @@ const QueryBuilder = ({
                                                   60 *
                                                   1000,
                                           }),
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: Number(value?.split('_')[0]),
+                                    lte: Number(value?.split('_')[1]),
                                 },
                             },
                         };
