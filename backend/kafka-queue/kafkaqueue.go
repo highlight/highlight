@@ -122,7 +122,7 @@ func New(topic string, mode Mode) *Queue {
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
 	if mode&1 == 1 {
-		log.Infof("initializing kafka producer for %s", topic)
+		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
@@ -148,7 +148,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	}
 	if (mode>>1)&1 == 1 {
-		log.Infof("initializing kafka consumer for %s", topic)
+		log.Debugf("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
