@@ -228,7 +228,9 @@ func (p *Queue) Receive() (msg *Message) {
 	defer cancel()
 	m, err := p.kafkaC.ReadMessage(ctx)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to receive message"))
+		if err.Error() != "context deadline exceeded" {
+			log.Error(errors.Wrap(err, "failed to receive message"))
+		}
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)
