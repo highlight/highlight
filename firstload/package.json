@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "4.3.1",
+    "version": "4.3.2",
     "scripts": {
         "build": "tsc && rollup -c",
         "dev": "doppler run -- rollup -c -w",
@@ -11,6 +11,7 @@
     "types": "dist/firstload/src/index.d.ts",
     "license": "MIT",
     "devDependencies": {
+        "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^13.3.0",
         "@rollup/plugin-typescript": "^8.3.3",
         "@types/chrome": "^0.0.144",
@@ -24,7 +25,6 @@
         "rollup-plugin-dev": "^2.0.4",
         "rollup-plugin-esbuild": "^4.9.1",
         "rollup-plugin-filesize": "^9.1.2",
-        "rollup-plugin-json": "^4.0.0",
         "rollup-plugin-terser": "^7.0.2",
         "rollup-plugin-web-worker-loader": "^1.6.1",
         "tslib": "^2.4.0",

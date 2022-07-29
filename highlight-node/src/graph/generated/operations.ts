@@ -1,5 +1,3 @@
-import * as Types from './schemas';
-
 import { GraphQLClient } from 'graphql-request';
 import * as Dom from 'graphql-request/dist/types.dom';
 import gql from 'graphql-tag';
@@ -174,10 +172,10 @@ export type StackFrameInput = {
     source?: InputMaybe<Scalars['String']>;
 };
 
-export type PushBackendPayloadMutationVariables = Types.Exact<{
+export type PushBackendPayloadMutationVariables = Exact<{
     errors:
-        | Array<Types.InputMaybe<Types.BackendErrorObjectInput>>
-        | Types.InputMaybe<Types.BackendErrorObjectInput>;
+        | Array<InputMaybe<BackendErrorObjectInput>>
+        | InputMaybe<BackendErrorObjectInput>;
 }>;
 
 export type PushBackendPayloadMutation = {
@@ -185,8 +183,8 @@ export type PushBackendPayloadMutation = {
     pushBackendPayload?: any | null;
 };
 
-export type MarkBackendSetupMutationVariables = Types.Exact<{
-    session_secure_id: Types.Scalars['String'];
+export type MarkBackendSetupMutationVariables = Exact<{
+    session_secure_id: Scalars['String'];
 }>;
 
 export type MarkBackendSetupMutation = {
@@ -194,10 +192,8 @@ export type MarkBackendSetupMutation = {
     markBackendSetup: string;
 };
 
-export type PushMetricsMutationVariables = Types.Exact<{
-    metrics:
-        | Array<Types.InputMaybe<Types.MetricInput>>
-        | Types.InputMaybe<Types.MetricInput>;
+export type PushMetricsMutationVariables = Exact<{
+    metrics: Array<InputMaybe<MetricInput>> | InputMaybe<MetricInput>;
 }>;
 
 export type PushMetricsMutation = {
@@ -223,10 +219,15 @@ export const PushMetricsDocument = gql`
 
 export type SdkFunctionWrapper = <T>(
     action: (requestHeaders?: Record<string, string>) => Promise<T>,
-    operationName: string
+    operationName: string,
+    operationType?: string
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action, _operationName) => action();
+const defaultWrapper: SdkFunctionWrapper = (
+    action,
+    _operationName,
+    _operationType
+) => action();
 
 export function getSdk(
     client: GraphQLClient,
@@ -244,7 +245,8 @@ export function getSdk(
                         variables,
                         { ...requestHeaders, ...wrappedRequestHeaders }
                     ),
-                'PushBackendPayload'
+                'PushBackendPayload',
+                'mutation'
             );
         },
         MarkBackendSetup(
@@ -258,7 +260,8 @@ export function getSdk(
                         variables,
                         { ...requestHeaders, ...wrappedRequestHeaders }
                     ),
-                'MarkBackendSetup'
+                'MarkBackendSetup',
+                'mutation'
             );
         },
         PushMetrics(
@@ -272,7 +275,8 @@ export function getSdk(
                         variables,
                         { ...requestHeaders, ...wrappedRequestHeaders }
                     ),
-                'PushMetrics'
+                'PushMetrics',
+                'mutation'
             );
         },
     };
