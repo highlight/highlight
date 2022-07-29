@@ -121,7 +121,14 @@ export const WorkspaceRouter = () => {
                     ) : (
                         <>
                             <Switch>
-                                <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|billing|plan)">
+                                <Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
+                                    {isLoggedIn ? (
+                                        <WorkspaceRedirectionRouter />
+                                    ) : (
+                                        <LoginForm />
+                                    )}
+                                </Route>
+                                <Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
                                     <WorkspaceTabs />
                                 </Route>
                                 <Route path="/w/:workspace_id(\d+)">

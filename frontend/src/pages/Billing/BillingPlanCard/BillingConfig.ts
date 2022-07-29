@@ -70,6 +70,7 @@ const enterprisePlan: BillingPlan = {
     type: PlanType.Enterprise,
     monthlyPrice: 1500,
     annualPrice: 1200,
+    // customPrice: <MessageIcon/>,
     advertisedFeatures: [
         {
             text: '300,000 free sessions / mo',

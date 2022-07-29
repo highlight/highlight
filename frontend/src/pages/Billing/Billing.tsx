@@ -263,7 +263,7 @@ const BillingPage = () => {
                 <div>
                     <h3>Billing</h3>
                     <p className={layoutStyles.subTitle}>
-                        Upgrade or edit your workspace's billing settings.
+                        View or edit your workspace's billing settings.
                     </p>
                 </div>
                 <Authorization allowedRoles={[AdminRole.Admin]}>
@@ -337,38 +337,21 @@ const BillingPage = () => {
                             </div>
                             <div>
                                 <span className={styles.unlimitedMembersHeader}>
-                                    We have a new pricing plan for you!
+                                    You're currently on a custom plan.
                                 </span>
                                 <br />
-                                Your current billing plan charges per member in
-                                your account.
+                                Our new plans don't charge based on seats in
+                                your workspace.
                                 <br />
-                                Consider upgrading to the new unlimited members
-                                version of your plan.
-                                <Button
-                                    type={'primary'}
-                                    trackingId="UpdateFailedInvoice"
-                                    onClick={createOnSelect(
-                                        billingData?.billingDetails.plan.type
-                                    )}
-                                    loading={
-                                        billingLoading ||
-                                        subscriptionLoading ||
-                                        !!loadingPlanType
-                                    }
-                                    className={styles.unlimitedMembersButton}
+                                If you'd like to upgrade, pick one of the new
+                                plans or{' '}
+                                <a
+                                    className={styles.contact}
+                                    href="mailto:sales@highlight.run"
+                                    type="default"
                                 >
-                                    Upgrade to Unlimited Members on the{' '}
-                                    {
-                                        BILLING_PLANS.filter(
-                                            (b) =>
-                                                b.type ===
-                                                billingData.billingDetails.plan
-                                                    .type
-                                        )[0]?.name
-                                    }{' '}
-                                    Plan
-                                </Button>
+                                    contact us.
+                                </a>
                             </div>
                         </div>
                     </Card>
@@ -512,10 +495,16 @@ const BillingPage = () => {
                 </Card>
             )}
             <RouteSwitch>
-                <Route exact path={`/w/:workspace_id(\\d+)/:page_id(billing)`}>
+                <Route
+                    exact
+                    path={`/w/:workspace_id(\\d+)/:page_id(current-plan)`}
+                >
                     <BillingDetails />
                 </Route>
-                <Route exact path={`/w/:workspace_id(\\d+)/:page_id(plan)`}>
+                <Route
+                    exact
+                    path={`/w/:workspace_id(\\d+)/:page_id(upgrade-plan)`}
+                >
                     <BillingUpgrade />
                 </Route>
             </RouteSwitch>
