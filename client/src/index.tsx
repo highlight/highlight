@@ -202,6 +202,8 @@ export class Highlight {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
         }
+        // default to inlining stylesheets to help with recording accuracy
+        options.inlineStylesheet = true;
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
