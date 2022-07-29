@@ -72,6 +72,7 @@ type PopoutType =
     | 'multiselect'
     | 'creatable'
     | 'date_range'
+    | 'time_range'
     | 'range';
 interface PopoutContentProps {
     type: PopoutType;
@@ -273,7 +274,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
     return value!.split('_')[1];
 };
 
-const getLengthLabel = (value: string): string => {
+const getTimeLabel = (value: string): string => {
     const split = value.split('_');
     const start = Number(split[0]);
     const end = Number(split[1]);
@@ -281,6 +282,13 @@ const getLengthLabel = (value: string): string => {
     return ints
         ? `${start} and ${end} minutes`
         : `${start * 60} and ${end * 60} seconds`;
+};
+
+const getLengthLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = Number(split[0]);
+    const end = Number(split[1]);
+    return `${start} and ${end}`;
 };
 
 const getProcessedLabel = (value: string): string => {
@@ -403,6 +411,7 @@ const PopoutContent = ({
     type,
     ...props
 }: PopoutContentProps & SetVisible & OptionTypeBase) => {
+    console.log('::: TYPE', type);
     switch (type) {
         case 'select':
             return (
@@ -595,9 +604,10 @@ const PopoutContent = ({
                     }}
                 />
             );
-        case 'range':
+        case 'time_range':
             return (
                 <LengthInput
+                    type={type}
                     start={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[0])
@@ -607,6 +617,36 @@ const PopoutContent = ({
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[1])
                             : 60
+                    }
+                    onChange={(start, end) => {
+                        const value = `${start}_${end}`;
+
+                        onChange({
+                            kind: 'multi',
+                            options: [
+                                {
+                                    label: getTimeLabel(value),
+                                    value,
+                                },
+                            ],
+                        });
+                        setVisible(false);
+                    }}
+                />
+            );
+        case 'range':
+            return (
+                <LengthInput
+                    type={type}
+                    start={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[0])
+                            : 0
+                    }
+                    end={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[1])
+                            : 200
                     }
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
@@ -694,6 +734,7 @@ const SelectPopout = ({
     );
 };
 
+// TODO: Look at this
 const getPopoutType = (op: Operator | undefined): PopoutType => {
     switch (op) {
         case 'contains':
@@ -703,6 +744,8 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
             return 'creatable';
         case 'between_date':
             return 'date_range';
+        case 'between_time':
+            return 'time_range';
         case 'between':
             return 'range';
         default:
@@ -721,6 +764,7 @@ const QueryRule = ({
     onRemove,
     readonly,
 }: { rule: RuleProps } & RuleSettings) => {
+    console.log('::: RULE', rule);
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -788,6 +832,7 @@ const isNegative = (op: Operator): boolean =>
         'not_contains',
         'not_exists',
         'not_between',
+        'not_between_time',
         'not_between_date',
         'not_matches',
     ].includes(op);
@@ -801,6 +846,8 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches',
@@ -816,6 +863,8 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches any of',
@@ -842,6 +891,8 @@ const NEGATION_MAP: { [K in Operator]: Operator } = {
     not_exists: 'exists',
     between: 'not_between',
     not_between: 'between',
+    between_time: 'not_between_time',
+    not_between_time: 'between_time',
     between_date: 'not_between_date',
     not_between_date: 'between_date',
     matches: 'not_matches',
@@ -857,6 +908,8 @@ type Operator =
     | 'not_exists'
     | 'between'
     | 'not_between'
+    | 'between_time'
+    | 'not_between_time'
     | 'between_date'
     | 'not_between_date'
     | 'matches'
@@ -874,6 +927,8 @@ const OPERATORS: Operator[] = [
 ];
 
 export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
+
+export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time'];
 
 export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
@@ -1200,7 +1255,7 @@ const QueryBuilder = ({
                                 },
                             },
                         };
-                    case 'between':
+                    case 'between_time':
                         return {
                             range: {
                                 [name]: {

@@ -19,6 +19,7 @@ import QueryBuilder, {
     SelectOption,
     serializeRules,
     SESSION_TYPE,
+    TIME_OPERATORS,
     VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
@@ -43,12 +44,12 @@ const CUSTOM_FIELDS: CustomField[] = [
         type: CUSTOM_TYPE,
         name: 'active_length',
         options: {
-            operators: RANGE_OPERATORS,
+            operators: TIME_OPERATORS,
             type: 'long',
         },
     },
     {
-        type: SESSION_TYPE,
+        type: CUSTOM_TYPE,
         name: 'pages_visited',
         options: {
             operators: RANGE_OPERATORS,

@@ -779,13 +779,25 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	// Get the
+	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+		"processed":       true,
+		"length":          sessionTotalLengthInMilliseconds,
+		"active_length":   accumulator.ActiveDuration.Milliseconds(),
+		"EventCounts":     eventCountsString,
+		"has_rage_clicks": hasRageClicks,
+	}); err != nil {
+		return e.Wrap(err, "error updating session in opensearch")
+	}
+
 	visitFields := []model.Field{}
 	results := []model.Session{}
 	options := opensearch.SearchOptions{
 		MaxResults: ptr.Int(1),
 	}
 	q := fmt.Sprintf(`{ "match": { "id": "%d" } }`, s.ID)
+	// We reindex records occasionally so we can't rely on ordering of fields in
+	// session documents.
+	// Consider adding a created_at or indexed_at column on session_fields.
 	if _, _, err := w.Resolver.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, s.ProjectID, q, options, &results); err != nil {
 		return e.Wrap(err, "error querying session in opensearch")
 	}
@@ -802,19 +814,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"exit_page":     visitFields[len(visitFields)-1].Value,
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-		"processed":       true,
-		"length":          sessionTotalLengthInMilliseconds,
-		"active_length":   accumulator.ActiveDuration.Milliseconds(),
-		"EventCounts":     eventCountsString,
-		"has_rage_clicks": hasRageClicks,
-		"pages_visited":   sessionProperties["pages_visited"],
-		"landing_page":    sessionProperties["landing_page"],
-		"exit_page":       sessionProperties["exit_page"],
-	}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-
+	fmt.Printf("::: Appending properties: %+v\n", sessionProperties)
 	if err := w.PublicResolver.AppendProperties(s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d"), s.ID)
 	}
