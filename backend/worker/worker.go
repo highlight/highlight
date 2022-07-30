@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -353,6 +354,8 @@ func (w *Worker) PublicWorker() {
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
 	// is processed serially, so messages in that slice are processed in order.
+	wg := sync.WaitGroup{}
+	wg.Add(parallelWorkers)
 	for i := 0; i < parallelWorkers; i++ {
 		go func(workerId int) {
 			k := KafkaWorker{
@@ -361,8 +364,10 @@ func (w *Worker) PublicWorker() {
 				WorkerThread: workerId,
 			}
 			k.ProcessMessages()
+			wg.Done()
 		}(i)
 	}
+	wg.Wait()
 }
 
 // Delete data for any sessions created > 4 hours ago
