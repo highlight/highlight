@@ -16,6 +16,7 @@ func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
 	if task.Failures >= task.MaxRetries {
 		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
+		hlog.Incr("worker.kafka.processed.failedAttempt", nil, 1)
 		// sleep up to 10 ms * 16
 		time.Sleep(InitialBackoff * (1 << task.Failures))
 	}
