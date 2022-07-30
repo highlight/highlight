@@ -23,8 +23,8 @@ const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	taskRetries           = 5
-	prefetchQueueCapacity = 8192
-	prefetchSizeBytes     = 8 * 1000 * 1000   // 8 MB
+	prefetchQueueCapacity = 16
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -122,7 +122,7 @@ func New(topic string, mode Mode) *Queue {
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
 	if mode&1 == 1 {
-		log.Infof("initializing kafka producer for %s", topic)
+		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
@@ -148,7 +148,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	}
 	if (mode>>1)&1 == 1 {
-		log.Infof("initializing kafka consumer for %s", topic)
+		log.Debugf("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
@@ -228,7 +228,9 @@ func (p *Queue) Receive() (msg *Message) {
 	defer cancel()
 	m, err := p.kafkaC.ReadMessage(ctx)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to receive message"))
+		if err.Error() != "context deadline exceeded" {
+			log.Error(errors.Wrap(err, "failed to receive message"))
+		}
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)
