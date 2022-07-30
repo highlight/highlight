@@ -5,20 +5,21 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"time"
 )
 
+const InitialBackoff = 10 * time.Millisecond
+
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
-	task.Failures += 1
-	if task.Failures < task.MaxRetries {
-		if err := k.KafkaQueue.Submit(task, string(task.KafkaMessage.Key)); err != nil {
-			log.Error(errors.Wrap(err, "failed to resubmit message"))
-		}
-	} else {
+	if task.Failures >= task.MaxRetries {
 		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
+	} else {
+		// sleep up to 10 ms * 16
+		time.Sleep(InitialBackoff * (1 << task.Failures))
 	}
+	task.Failures += 1
 }
 
 func (k *KafkaWorker) ProcessMessages() {
@@ -39,9 +40,11 @@ func (k *KafkaWorker) ProcessMessages() {
 			s.SetTag("taskType", task.Type)
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
-			if err := k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(context.Background(), s), task); err != nil {
-				s2.SetTag("taskFailures", task.Failures)
-				k.processWorkerError(task, err)
+			for i := 0; i < task.MaxRetries; i++ {
+				if err := k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(context.Background(), s), task); err != nil {
+					s2.SetTag("taskFailures", task.Failures)
+					k.processWorkerError(task, err)
+				}
 			}
 			s2.Finish()
 
