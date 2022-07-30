@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
-	"sync"
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -62,6 +61,7 @@ type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
 	S3Client       *storage.StorageClient
+	KafkaQueue     *kafkaqueue.Queue
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -268,13 +268,24 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
+func (w *Worker) processWorkerError(task *kafkaqueue.Message, err error) {
+	task.Failures += 1
+	if task.Failures < task.MaxRetries {
+		if err := w.KafkaQueue.Submit(task, string(task.KafkaMessage.Key)); err != nil {
+			log.Error(errors.Wrap(err, "failed to resubmit message"))
+		}
+	} else {
+		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
+	}
+}
+
+func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
 			break
 		}
-		if err := w.PublicResolver.ProcessPayload(
+		err := w.PublicResolver.ProcessPayload(
 			ctx,
 			task.PushPayload.SessionID,
 			task.PushPayload.Events,
@@ -283,43 +294,48 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-			task.PushPayload.HighlightLogs); err != nil {
+			task.PushPayload.HighlightLogs)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process ProcessPayload task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.InitializeSession:
 		if task.InitializeSession == nil {
 			break
 		}
-		if _, err := w.PublicResolver.InitializeSessionImplementation(
+		_, err := w.PublicResolver.InitializeSessionImplementation(
 			task.InitializeSession.SessionID,
-			task.InitializeSession.IP); err != nil {
+			task.InitializeSession.IP)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.IdentifySession:
 		if task.IdentifySession == nil {
 			break
 		}
-		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
+		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.AddTrackProperties:
 		if task.AddTrackProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject); err != nil {
+		err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.AddSessionProperties:
 		if task.AddSessionProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject); err != nil {
+		err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.PushBackendPayload:
 		if task.PushBackendPayload == nil {
@@ -330,44 +346,76 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushMetrics == nil {
 			break
 		}
-		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics); err != nil {
+		err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	case kafkaqueue.MarkBackendSetup:
 		if task.MarkBackendSetup == nil {
 			break
 		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectID); err != nil {
+		err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.ProjectID)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
-			return err
+			w.processWorkerError(task, err)
 		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
-	return nil
 }
 
 func (w *Worker) PublicWorker() {
-	const parallelWorkers = 4
-	// creates N parallel kafka message consumers that process messages.
-	// each consumer is considered part of the same consumer group and gets
-	// allocated a slice of all partitions. this ensures that a particular subset of partitions
-	// is processed serially, so messages in that slice are processed in order.
-	wg := sync.WaitGroup{}
-	wg.Add(parallelWorkers)
+	if w.KafkaQueue == nil {
+		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer|kafkaqueue.Producer)
+	}
+
+	parallelWorkers := 16
+	workerPrefetch := 16
+	// receive messages and submit them to worker pool for processing
+	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
 	for i := 0; i < parallelWorkers; i++ {
 		go func(workerId int) {
-			k := KafkaWorker{
-				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer),
-				Worker:       w,
-				WorkerThread: workerId,
+			for {
+				func() {
+					defer util.Recover()
+					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("worker.goroutine", workerId))
+					defer s.Finish()
+
+					ctx := tracer.ContextWithSpan(context.Background(), s)
+					s1 := tracer.StartSpan("worker.kafka.retrieveMessage", tracer.ChildOf(s.Context()))
+					task := <-messages
+					s1.Finish()
+					s.SetTag("taskType", task.Type)
+
+					s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
+					w.processPublicWorkerMessage(ctx, task)
+					s2.Finish()
+
+					s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
+					w.KafkaQueue.Commit(task.KafkaMessage)
+					s3.Finish()
+
+					hlog.Incr("worker.kafka.processed.total", nil, 1)
+				}()
 			}
-			k.ProcessMessages()
-			wg.Done()
 		}(i)
 	}
-	wg.Wait()
+	for {
+		s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.receive"))
+
+		s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
+		task := w.KafkaQueue.Receive()
+		s1.Finish()
+
+		if task == nil {
+			log.Errorf("worker retrieved empty message from kafka")
+			continue
+		}
+		s.SetTag("taskType", task.Type)
+		messages <- task
+		s.Finish()
+	}
 }
 
 // Delete data for any sessions created > 4 hours ago
