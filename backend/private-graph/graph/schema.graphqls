@@ -120,7 +120,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -212,9 +212,10 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -246,6 +247,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp

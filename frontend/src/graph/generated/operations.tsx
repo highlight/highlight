@@ -2387,7 +2387,12 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
+            | 'id'
+            | 'name'
+            | 'secret'
+            | 'plan_tier'
+            | 'unlimited_members'
+            | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<

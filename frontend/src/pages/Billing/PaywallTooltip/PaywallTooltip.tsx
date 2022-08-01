@@ -15,7 +15,7 @@ export const PaywallTooltip = ({
             mouseEnterDelay={0.3}
             title={
                 <a
-                    href={`/w/${project_id}/billing?tier=${tier}`}
+                    href={`/w/${project_id}/plan?tier=${tier}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ textDecoration: 'none' }}

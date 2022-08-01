@@ -6202,6 +6202,7 @@ export const GetWorkspaceDocument = gql`
             name
             secret
             plan_tier
+            unlimited_members
             clearbit_enabled
             projects {
                 id

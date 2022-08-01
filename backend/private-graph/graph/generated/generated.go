@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 		SessionLimit         func(childComplexity int) int
 		StripeCustomerID     func(childComplexity int) int
 		SubscriptionStart    func(childComplexity int) int
+		UnlimitedMembers     func(childComplexity int) int
 	}
 
 	AccountDetails struct {
@@ -866,6 +867,7 @@ type ComplexityRoot struct {
 		SlackWebhookChannel         func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
 		TrialExtensionEnabled       func(childComplexity int) int
+		UnlimitedMembers            func(childComplexity int) int
 	}
 
 	WorkspaceInviteLink struct {
@@ -1224,6 +1226,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.SubscriptionStart(childComplexity), true
+
+	case "Account.unlimited_members":
+		if e.complexity.Account.UnlimitedMembers == nil {
+			break
+		}
+
+		return e.complexity.Account.UnlimitedMembers(childComplexity), true
 
 	case "AccountDetails.id":
 		if e.complexity.AccountDetails.ID == nil {
@@ -6007,6 +6016,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.TrialExtensionEnabled(childComplexity), true
 
+	case "Workspace.unlimited_members":
+		if e.complexity.Workspace.UnlimitedMembers == nil {
+			break
+		}
+
+		return e.complexity.Workspace.UnlimitedMembers(childComplexity), true
+
 	case "WorkspaceInviteLink.expiration_date":
 		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
 			break
@@ -6264,7 +6280,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -6356,9 +6372,10 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -6390,6 +6407,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -12922,6 +12940,50 @@ func (ec *executionContext) fieldContext_Account_plan_tier(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Account_unlimited_members(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Account_unlimited_members(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnlimitedMembers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Account_unlimited_members(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Account",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Account_stripe_customer_id(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Account_stripe_customer_id(ctx, field)
 	if err != nil {
@@ -13031,14 +13093,11 @@ func (ec *executionContext) _Account_member_limit(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_member_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -23173,6 +23232,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -23335,6 +23396,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -27386,6 +27449,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -27916,14 +27981,11 @@ func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -28501,6 +28563,8 @@ func (ec *executionContext) fieldContext_Query_accounts(ctx context.Context, fie
 				return ec.fieldContext_Account_subscription_start(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Account_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Account_unlimited_members(ctx, field)
 			case "stripe_customer_id":
 				return ec.fieldContext_Account_stripe_customer_id(ctx, field)
 			case "member_count":
@@ -31891,6 +31955,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -32008,6 +32074,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -32769,6 +32837,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSuggestion(ctx context.C
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -33392,6 +33462,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -33543,6 +33615,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -42342,6 +42416,50 @@ func (ec *executionContext) fieldContext_Workspace_plan_tier(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Workspace_unlimited_members(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_unlimited_members(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnlimitedMembers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_unlimited_members(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Workspace_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Workspace_trial_end_date(ctx, field)
 	if err != nil {
@@ -45736,6 +45854,13 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "unlimited_members":
+
+			out.Values[i] = ec._Account_unlimited_members(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "stripe_customer_id":
 
 			out.Values[i] = ec._Account_stripe_customer_id(ctx, field, obj)
@@ -45754,9 +45879,6 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Account_member_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48695,9 +48817,6 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -52556,6 +52675,13 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "plan_tier":
 
 			out.Values[i] = ec._Workspace_plan_tier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unlimited_members":
+
+			out.Values[i] = ec._Workspace_unlimited_members(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
