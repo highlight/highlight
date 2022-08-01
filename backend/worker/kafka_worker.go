@@ -39,13 +39,12 @@ func (k *KafkaWorker) ProcessMessages() {
 				return
 			}
 			s.SetTag("taskType", task.Type)
-			s.SetTag("taskFailures", task.Failures)
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
 				if err := k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(context.Background(), s), task); err != nil {
-					s2.SetTag("taskFailures", task.Failures)
 					k.processWorkerError(task, err)
+					s.SetTag("taskFailures", task.Failures)
 				} else {
 					break
 				}
