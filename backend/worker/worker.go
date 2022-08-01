@@ -269,6 +269,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
+	log.Infof("processing public worker message %d: %+v", task.Type, *task)
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
@@ -349,7 +350,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 func (w *Worker) PublicWorker() {
-	const parallelWorkers = 4
+	const parallelWorkers = 16
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions

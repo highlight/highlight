@@ -16,7 +16,7 @@ func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
 	if task.Failures >= task.MaxRetries {
 		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
-		hlog.Incr("worker.kafka.processed.failedAttempt", nil, 1)
+		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 		// sleep up to 10 ms * 16
 		time.Sleep(InitialBackoff * (1 << task.Failures))
 	}
@@ -39,12 +39,15 @@ func (k *KafkaWorker) ProcessMessages() {
 				return
 			}
 			s.SetTag("taskType", task.Type)
+			s.SetTag("taskFailures", task.Failures)
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
 				if err := k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(context.Background(), s), task); err != nil {
 					s2.SetTag("taskFailures", task.Failures)
 					k.processWorkerError(task, err)
+				} else {
+					break
 				}
 			}
 			s2.Finish()
