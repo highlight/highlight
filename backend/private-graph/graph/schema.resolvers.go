@@ -4550,7 +4550,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
-	if workspace.MonthlyMembersLimit != nil {
+	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
 		membersLimit = workspace.MonthlyMembersLimit
 	}
 
