@@ -3796,10 +3796,10 @@
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
   integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
 
-"@highlight-run/rrweb@2.0.17":
-  version "2.0.17"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.17.tgz#a8a8b28dcc18b08d3db8de52f3e69dcafee37bf8"
-  integrity sha512-SpS7Z1BqYtAalQ3DDOabrBRsxsrYxHThB26lf1VBX40D51O9hcLD85dgh0pmYGdgjwV2WeQi49ouiE4VLt3HGw==
+"@highlight-run/rrweb@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.1.0.tgz#d59e55732909ee678ff23a64fa84b9f0dc9586df"
+  integrity sha512-EdGaLeyDCQVE39q+2gxRWPuShLRdPHpBTiYJR3ywSTIiKFSlDdNzry86uE+o5RIpeh4bDChq16eKwECamLtJmQ==
   dependencies:
     "@highlight-run/rrdom" ">=0.1.14"
     "@highlight-run/rrweb-snapshot" ">=1.1.22"
@@ -3807,7 +3807,7 @@
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
     fflate "^0.4.4"
-    mitt "^1.1.3"
+    mitt "^3.0.0"
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -12902,10 +12902,10 @@ mississippi@^3.0.0:
     stream-each "^1.1.0"
     through2 "^2.0.0"
 
-mitt@^1.1.3:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/mitt/-/mitt-1.2.0.tgz#cb24e6569c806e31bd4e3995787fe38a04fdf90d"
-  integrity sha512-r6lj77KlwqLhIUku9UWYes7KJtsczvolZkzp8hbaDPPaE24OmWl5s539Mytlj22siEQKosZ26qCBgda2PKwoJw==
+mitt@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/mitt/-/mitt-3.0.0.tgz#69ef9bd5c80ff6f57473e8d89326d01c414be0bd"
+  integrity sha512-7dX2/10ITVyqh4aOSVI9gdape+t9l2/8QxHrFmUXu4EEUpdlxl6RudZUPZoc+zuY2hk1j7XxVroIVIan/pD/SQ==
 
 mixin-deep@^1.2.0:
   version "1.3.2"
