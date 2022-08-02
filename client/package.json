@@ -1,7 +1,7 @@
 {
     "name": "@highlight-run/client",
     "private": true,
-    "version": "1.1.4",
+    "version": "1.1.5",
     "description": "rollup setup for writing a javascript library and making it availabe as script or npm package",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
@@ -44,7 +44,7 @@
         "typescript": "^4.1.3"
     },
     "dependencies": {
-        "@highlight-run/rrweb": "2.0.17",
+        "@highlight-run/rrweb": "2.0.18",
         "@rollup/plugin-commonjs": "^22.0.1",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^13.3.0",
@@ -54,8 +54,8 @@
         "error-stack-parser": "2.0.6",
         "esbuild": "^0.14.47",
         "graphql": "^16.5.0",
-        "graphql-tag": "^2.12.6",
         "graphql-request": "^4.3.0",
+        "graphql-tag": "^2.12.6",
         "json-stringify-safe": "^5.0.1",
         "rollup": "^2.75.7",
         "rollup-plugin-consts": "^1.1.0",
@@ -69,6 +69,6 @@
     "resolutions": {
         "ansi-regex": "5.0.1",
         "terser": "5.14.2",
-	"json-schema": "0.4.0"
+        "json-schema": "0.4.0"
     }
 }

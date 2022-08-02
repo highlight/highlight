@@ -1405,10 +1405,10 @@
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
   integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
 
-"@highlight-run/rrweb@2.0.17":
-  version "2.0.17"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.17.tgz#a8a8b28dcc18b08d3db8de52f3e69dcafee37bf8"
-  integrity sha512-SpS7Z1BqYtAalQ3DDOabrBRsxsrYxHThB26lf1VBX40D51O9hcLD85dgh0pmYGdgjwV2WeQi49ouiE4VLt3HGw==
+"@highlight-run/rrweb@2.0.18":
+  version "2.0.18"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.18.tgz#3a217f0a83c3e10ea9fc0b7a1d8b77f8d9746f39"
+  integrity sha512-Bzlfj811nNwbdRJmUwSQKD4qzQSGv/h58SMzaB+Pjc3BW4qlQjQGXo62n6A+tfjCLAhw9AVlqkGsE2LL0nD7LA==
   dependencies:
     "@highlight-run/rrdom" ">=0.1.14"
     "@highlight-run/rrweb-snapshot" ">=1.1.22"
