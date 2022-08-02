@@ -1,7 +1,7 @@
 {
     "name": "@highlight-run/client",
     "private": true,
-    "version": "1.1.6",
+    "version": "1.1.7",
     "description": "rollup setup for writing a javascript library and making it availabe as script or npm package",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
