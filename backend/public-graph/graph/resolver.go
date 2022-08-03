@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -139,6 +140,8 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 // SessionReinitializeExpiry is the interval between two InitializeSession calls with
 // the same secureSessionID that should be treated as different sessions
 const SessionReinitializeExpiry = time.Minute * 15
+
+var UseStagingBucket = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
@@ -1885,7 +1888,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1996,10 +1999,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
-			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating events object")
+
+			if UseStagingBucket && projectID == 1 {
+				payloadIdDeref := 0
+				if payloadId != nil {
+					payloadIdDeref = *payloadId
+				}
+				if err := r.StorageClient.PushStagingFile(ctx, projectID, sessionID, payloadIdDeref, string(b), isBeacon); err != nil {
+					return e.Wrap(err, "error creating staging file")
+				}
+			} else {
+				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
+				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating events object")
+				}
 			}
+
+			// ZANETODO: should be max(current, new)
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")

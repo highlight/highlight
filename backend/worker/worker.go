@@ -294,7 +294,8 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-			task.PushPayload.HighlightLogs)
+			task.PushPayload.HighlightLogs,
+			task.PushPayload.PayloadID)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process ProcessPayload task"))
 			w.processWorkerError(task, err)

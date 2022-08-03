@@ -28,6 +28,7 @@ import (
 
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
+	S3SessionsStagingBucketName = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
 	S3ResourcesBucketName       = os.Getenv("AWS_S3_RESOURCES_BUCKET")
 	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
@@ -60,6 +61,14 @@ var StoredPayloadTypes = map[payload.FileType]PayloadType{
 
 func GetChunkedPayloadType(offset int) PayloadType {
 	return SessionContentsCompressed + PayloadType(fmt.Sprintf("-%04d", offset))
+}
+
+func GetStagingPayloadType(isBeacon bool, offset int) PayloadType {
+	suffix := PayloadType(fmt.Sprintf("-%04d", offset))
+	if isBeacon {
+		suffix += "-beacon"
+	}
+	return PayloadType("staging") + suffix
 }
 
 type StorageClient struct {
@@ -112,6 +121,38 @@ func getURLSigner() *sign.URLSigner {
 	}
 
 	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
+}
+
+func (s *StorageClient) MergeStagingFiles(ctx context.Context, projectId int, sessionId int, payloadId int, contents string, isBeacon bool) error {
+	key := s.bucketKey(sessionId, projectId, GetStagingPayloadType(isBeacon, payloadId))
+	options := s3.PutObjectInput{
+		Bucket: &S3SessionsStagingBucketName,
+		Key:    key,
+		Body:   bytes.NewReader([]byte(contents)),
+	}
+	if _, err := s.S3Client.PutObject(ctx, &options); err != nil {
+		return err
+	}
+
+	s.S3Client.CopyObject()
+
+	return nil
+}
+
+func (s *StorageClient) PushStagingFile(ctx context.Context, projectId int, sessionId int, payloadId int, contents string, isBeacon bool) error {
+	key := s.bucketKey(sessionId, projectId, GetStagingPayloadType(isBeacon, payloadId))
+	options := s3.PutObjectInput{
+		Bucket: &S3SessionsStagingBucketName,
+		Key:    key,
+		Body:   bytes.NewReader([]byte(contents)),
+	}
+	if _, err := s.S3Client.PutObject(ctx, &options); err != nil {
+		return err
+	}
+
+	s.S3Client.CopyObject()
+
+	return nil
 }
 
 func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {

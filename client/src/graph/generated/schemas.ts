@@ -124,6 +124,7 @@ export type MutationPushPayloadArgs = {
     highlight_logs?: InputMaybe<Scalars['String']>;
     is_beacon?: InputMaybe<Scalars['Boolean']>;
     messages: Scalars['String'];
+    payload_id?: InputMaybe<Scalars['ID']>;
     resources: Scalars['String'];
     session_id: Scalars['ID'];
 };

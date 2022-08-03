@@ -189,6 +189,7 @@ export class Highlight {
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -366,6 +367,7 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
+        this._payloadId = 1;
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -1177,7 +1179,13 @@ export class Highlight {
             errors,
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
+            payload_id: this._payloadId.toString(),
         };
+
+        if (!isBeacon) {
+            this._payloadId++;
+        }
+
         const highlightLogs = getHighlightLogs();
         if (highlightLogs) {
             payload.highlight_logs = highlightLogs;

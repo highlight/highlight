@@ -2,13 +2,14 @@ package kafka_queue
 
 import (
 	"fmt"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/segmentio/kafka-go"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/segmentio/kafka-go"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -56,6 +57,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						IsBeacon:           nil,
 						HasSessionUnloaded: nil,
 						HighlightLogs:      nil,
+						PayloadID:          nil,
 					},
 				}, fmt.Sprintf("test-%d", w))
 				if err != nil {
