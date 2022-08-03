@@ -2356,7 +2356,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	start := time.Now().Add(-24 * time.Hour)
 	// different than the metric monitor aggregator because we want to get a high value
 	// that won't trigger with the monitor aggregator of p50
-	agg := modelInputs.MetricAggregatorP90
+	agg := modelInputs.MetricAggregatorP95
 	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
 		DateRange: &modelInputs.DateRangeInput{
 			StartDate: &start,
@@ -2383,6 +2383,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		MetricToMonitor:  metric.Name,
 		ChannelsToNotify: channelsString,
 		EmailsToNotify:   emailsString,
+		Disabled:         pointy.Bool(true),
 	}
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return e.Wrap(err, "failed to auto create metric monitor")
