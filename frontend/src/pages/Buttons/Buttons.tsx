@@ -54,6 +54,8 @@ export const Buttons = () => {
                 </div>
             </div>
             <div className={styles.buttonBody}>
+            </div>
+            <div className={styles.buttonBody}>
                 <div>
                     <button
                         onClick={() => {
