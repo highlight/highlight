@@ -62,6 +62,7 @@ const options: HighlightOptions = {
             apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
         },
     },
+    enableSegmentIntegration: true,
     enableCanvasRecording: true,
     samplingStrategy: {
         canvas: 1,

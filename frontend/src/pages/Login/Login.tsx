@@ -46,6 +46,7 @@ export const AuthAdminRouter = () => {
                 };
             }
             H.identify(email, identifyMetadata);
+            window.analytics.identify(email, identifyMetadata);
             H.getSessionURL()
                 .then((sessionUrl) => {
                     window.Intercom('boot', {
