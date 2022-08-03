@@ -492,7 +492,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
+			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
@@ -581,6 +581,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).Delete(&model.SessionInterval{}).Error; err != nil {
 		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
+	}
+
+	if len(userInteractionEvents) == 0 {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
+		return w.excludeSession(ctx, s)
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
@@ -706,7 +711,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 2. A web crawler visited the page and produced no events
 	if accumulator.ActiveDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
+			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
 		return w.excludeSession(ctx, s)
 	}
 
