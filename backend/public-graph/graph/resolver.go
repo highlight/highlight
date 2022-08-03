@@ -1367,10 +1367,11 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("identified session: %s", session.Identifier)
 
-	r.AlertWorkerPool.SubmitRecover(func() {
+	func() {
+		defer util.Recover()
 		// Sending New User Alert
 		// if is not new user, return
-		if session.FirstTime == nil || !*session.FirstTime {
+		if !*firstTime {
 			return
 		}
 		var sessionAlerts []*model.SessionAlert
@@ -1418,7 +1419,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
 		}
-	})
+	}()
 	return nil
 }
 
