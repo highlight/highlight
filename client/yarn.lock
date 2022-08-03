@@ -1393,25 +1393,25 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@highlight-run/rrdom@>=0.1.14":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.14.tgz#d52b39327d29b904e49eaab6f1e6a13a41308a70"
-  integrity sha512-aN8Oy3zA7ABX6zDETXuvoI08TwSR7FJlhA8+8/ICe4CLVWqjdsJuFfPq+ZZ+FFN6BIdAtMot+NBfdDbp2d8PnA==
+"@highlight-run/rrdom@0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.16.tgz#e312fee7b6287ddb90e744b7a4664b5c25165655"
+  integrity sha512-TbJm20/Q65DMgSagYbB77P1VtfKiP/3u1epVxM1DSkF813ZWZuem/6YZjK7a0eHPQFzrvI1MZZDHJI7oqj0zWQ==
   dependencies:
-    "@highlight-run/rrweb-snapshot" ">=1.1.22"
+    "@highlight-run/rrweb-snapshot" "1.1.24"
 
-"@highlight-run/rrweb-snapshot@>=1.1.22":
-  version "1.1.22"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
-  integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
+"@highlight-run/rrweb-snapshot@1.1.24":
+  version "1.1.24"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.24.tgz#da5144b126742b011ceb90eb768981ba2aad958c"
+  integrity sha512-4P7VILRcV4v3FFElbd7dXcj7qgvWNLjZHjZR1Ma3DGlzV3wXMScKqiRRNvm40tl64NQqi+8Iyjtn8qlsbeBheg==
 
-"@highlight-run/rrweb@2.0.18":
-  version "2.0.18"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.18.tgz#3a217f0a83c3e10ea9fc0b7a1d8b77f8d9746f39"
-  integrity sha512-Bzlfj811nNwbdRJmUwSQKD4qzQSGv/h58SMzaB+Pjc3BW4qlQjQGXo62n6A+tfjCLAhw9AVlqkGsE2LL0nD7LA==
+"@highlight-run/rrweb@2.0.20":
+  version "2.0.20"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.20.tgz#cd0dbb9f185f803f1531f87c2c539bda65ceaa0c"
+  integrity sha512-BXByqggfPd8Eg66Sybo4LCy+6388SWp+7UhUlpUaYdiHyX7BcdkmeoBZhJzxFYdi57oU4cZ6VkvKsWaZPmIgJQ==
   dependencies:
-    "@highlight-run/rrdom" ">=0.1.14"
-    "@highlight-run/rrweb-snapshot" ">=1.1.22"
+    "@highlight-run/rrdom" "0.1.16"
+    "@highlight-run/rrweb-snapshot" "1.1.24"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
