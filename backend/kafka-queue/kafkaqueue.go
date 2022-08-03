@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,19 +70,18 @@ func New(topic string, mode Mode) *Queue {
 		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
 	}
 
+	client := &kafka.Client{
+		Addr: kafka.TCP(brokers...),
+		Transport: &kafka.Transport{
+			SASL: mechanism,
+			TLS:  tlsConfig,
+		},
+	}
 	groupID := "group-default"
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-
-		client := &kafka.Client{
-			Addr: kafka.TCP(brokers...),
-			Transport: &kafka.Transport{
-				SASL: mechanism,
-				TLS:  tlsConfig,
-			},
-		}
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
@@ -92,31 +92,36 @@ func New(topic string, mode Mode) *Queue {
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
-		res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
-			Addr: kafka.TCP(brokers...),
-			Resources: []kafka.AlterConfigRequestResource{
-				{
-					ResourceType: kafka.ResourceTypeTopic,
-					ResourceName: topic,
-					Configs: []kafka.AlterConfigRequestConfig{
-						{
-							Name:  "delete.retention.ms",
-							Value: "604800000",
-						},
+	}
+
+	res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+		Addr: kafka.TCP(brokers...),
+		Resources: []kafka.AlterConfigRequestResource{
+			{
+				ResourceType: kafka.ResourceTypeTopic,
+				ResourceName: topic,
+				Configs: []kafka.AlterConfigRequestConfig{
+					{
+						Name:  "retention.ms",
+						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
+					},
+					{
+						Name:  "delete.retention.ms",
+						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
 					},
 				},
 			},
-		})
+		},
+	})
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to update topic retention"))
+	} else {
+		err = res.Errors[kafka.AlterConfigsResponseResource{
+			Type: int8(kafka.ResourceTypeTopic),
+			Name: topic,
+		}]
 		if err != nil {
-			log.Error(errors.Wrap(err, "failed to update topic retention"))
-		} else {
-			err = res.Errors[kafka.AlterConfigsResponseResource{
-				Type: int8(kafka.ResourceTypeTopic),
-				Name: topic,
-			}]
-			if err != nil {
-				log.Error(errors.Wrap(err, "topic retention failed server-side"))
-			}
+			log.Error(errors.Wrap(err, "topic retention failed server-side"))
 		}
 	}
 
