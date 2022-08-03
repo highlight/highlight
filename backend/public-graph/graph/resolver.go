@@ -1085,6 +1085,7 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       *clientID,
+		Excluded:                       &model.T, // A session is excluded by default until it receives events
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
