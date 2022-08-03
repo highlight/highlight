@@ -2383,7 +2383,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		MetricToMonitor:  metric.Name,
 		ChannelsToNotify: channelsString,
 		EmailsToNotify:   emailsString,
-		Disabled:         true,
+		Disabled:         pointy.Bool(true),
 	}
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return e.Wrap(err, "failed to auto create metric monitor")
