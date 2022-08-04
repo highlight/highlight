@@ -18,7 +18,7 @@ const SESSIONS_AFTER_LIMIT_TOOLTIP =
     'After this monthly limit is reached, extra sessions will be charged $5 per 1000 sessions.';
 
 const freePlan: BillingPlan = {
-    name: 'Free',
+    name: 'Basic',
     type: PlanType.Free,
     monthlyPrice: 0,
     annualPrice: 0,
@@ -33,53 +33,55 @@ const freePlan: BillingPlan = {
 };
 
 const basicPlan: BillingPlan = {
-    name: 'Basic',
+    name: 'Essentials',
     type: PlanType.Basic,
-    monthlyPrice: 100,
-    annualPrice: 80,
+    monthlyPrice: 150,
+    annualPrice: 120,
     advertisedFeatures: [
         {
             text: '10,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
-        '2 members included',
+        'Unlimited members included',
         'Unlimited dev tools access',
         'Unlimited retention',
     ],
-    membersIncluded: 2,
 };
 
 const startupPlan: BillingPlan = {
     name: 'Startup',
     type: PlanType.Startup,
-    monthlyPrice: 300,
-    annualPrice: 240,
+    monthlyPrice: 400,
+    annualPrice: 320,
     advertisedFeatures: [
         {
             text: '80,000 free sessions / mo',
             tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
         },
         'Everything in Basic',
-        '8 members included',
         'Enhanced user metadata',
+        'App performance metrics',
         'Issue tracking integrations',
     ],
-    membersIncluded: 8,
 };
 
 const enterprisePlan: BillingPlan = {
     name: 'Enterprise',
     type: PlanType.Enterprise,
-    monthlyPrice: 1000,
-    annualPrice: 800,
+    monthlyPrice: 1500,
+    annualPrice: 1200,
+    // customPrice: <MessageIcon/>,
     advertisedFeatures: [
+        {
+            text: '300,000 free sessions / mo',
+            tooltip: SESSIONS_AFTER_LIMIT_TOOLTIP,
+        },
         'Everything in Basic/Startup',
-        '15 members included',
+        'Personalized support',
         'User RBAC/Permissioning',
         'On-premise deployments',
         'SSO/SAML',
     ],
-    membersIncluded: 15,
 };
 
 export const BILLING_PLANS = [

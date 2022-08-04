@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 		SessionLimit         func(childComplexity int) int
 		StripeCustomerID     func(childComplexity int) int
 		SubscriptionStart    func(childComplexity int) int
+		UnlimitedMembers     func(childComplexity int) int
 	}
 
 	AccountDetails struct {
@@ -174,6 +175,7 @@ type ComplexityRoot struct {
 		ChartType                func(childComplexity int) int
 		Description              func(childComplexity int) int
 		Filters                  func(childComplexity int) int
+		Groups                   func(childComplexity int) int
 		HelpArticle              func(childComplexity int) int
 		MaxGoodValue             func(childComplexity int) int
 		MaxNeedsImprovementValue func(childComplexity int) int
@@ -189,6 +191,7 @@ type ComplexityRoot struct {
 	DashboardPayload struct {
 		Aggregator func(childComplexity int) int
 		Date       func(childComplexity int) int
+		Group      func(childComplexity int) int
 		Value      func(childComplexity int) int
 	}
 
@@ -701,6 +704,7 @@ type ComplexityRoot struct {
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
 		FirstTime                      func(childComplexity int) int
+		FirstloadVersion               func(childComplexity int) int
 		HasErrors                      func(childComplexity int) int
 		HasRageClicks                  func(childComplexity int) int
 		ID                             func(childComplexity int) int
@@ -863,6 +867,7 @@ type ComplexityRoot struct {
 		SlackWebhookChannel         func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
 		TrialExtensionEnabled       func(childComplexity int) int
+		UnlimitedMembers            func(childComplexity int) int
 	}
 
 	WorkspaceInviteLink struct {
@@ -1221,6 +1226,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.SubscriptionStart(childComplexity), true
+
+	case "Account.unlimited_members":
+		if e.complexity.Account.UnlimitedMembers == nil {
+			break
+		}
+
+		return e.complexity.Account.UnlimitedMembers(childComplexity), true
 
 	case "AccountDetails.id":
 		if e.complexity.AccountDetails.ID == nil {
@@ -1628,6 +1640,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DashboardMetricConfig.Filters(childComplexity), true
 
+	case "DashboardMetricConfig.groups":
+		if e.complexity.DashboardMetricConfig.Groups == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.Groups(childComplexity), true
+
 	case "DashboardMetricConfig.help_article":
 		if e.complexity.DashboardMetricConfig.HelpArticle == nil {
 			break
@@ -1711,6 +1730,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardPayload.Date(childComplexity), true
+
+	case "DashboardPayload.group":
+		if e.complexity.DashboardPayload.Group == nil {
+			break
+		}
+
+		return e.complexity.DashboardPayload.Group(childComplexity), true
 
 	case "DashboardPayload.value":
 		if e.complexity.DashboardPayload.Value == nil {
@@ -5201,6 +5227,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.FirstTime(childComplexity), true
 
+	case "Session.firstload_version":
+		if e.complexity.Session.FirstloadVersion == nil {
+			break
+		}
+
+		return e.complexity.Session.FirstloadVersion(childComplexity), true
+
 	case "Session.has_errors":
 		if e.complexity.Session.HasErrors == nil {
 			break
@@ -5983,6 +6016,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.TrialExtensionEnabled(childComplexity), true
 
+	case "Workspace.unlimited_members":
+		if e.complexity.Workspace.UnlimitedMembers == nil {
+			break
+		}
+
+		return e.complexity.Workspace.UnlimitedMembers(childComplexity), true
+
 	case "WorkspaceInviteLink.expiration_date":
 		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
 			break
@@ -6147,6 +6187,7 @@ type Session {
     environment: String
     app_version: String
     client_version: String
+    firstload_version: String
     client_config: String
     language: String!
     identifier: String!
@@ -6239,7 +6280,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -6331,9 +6372,10 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -6365,6 +6407,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -6518,6 +6561,7 @@ input DashboardParamsInput {
     units: String
     aggregator: MetricAggregator
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 input HistogramParamsInput {
@@ -6876,6 +6920,7 @@ type DashboardPayload {
     date: String!
     value: Float!
     aggregator: MetricAggregator
+    group: String
 }
 
 type HistogramBucket {
@@ -6902,6 +6947,7 @@ type CategoryHistogramPayload {
 
 enum DashboardChartType {
     Timeline
+    TimelineBar
     Histogram
 }
 
@@ -6931,6 +6977,7 @@ input DashboardMetricConfigInput {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 type DashboardMetricConfig {
@@ -6948,6 +6995,7 @@ type DashboardMetricConfig {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilter!]
+    groups: [String!]
 }
 
 type DashboardDefinition {
@@ -12892,6 +12940,50 @@ func (ec *executionContext) fieldContext_Account_plan_tier(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Account_unlimited_members(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Account_unlimited_members(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnlimitedMembers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Account_unlimited_members(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Account",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Account_stripe_customer_id(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Account_stripe_customer_id(ctx, field)
 	if err != nil {
@@ -13001,14 +13093,11 @@ func (ec *executionContext) _Account_member_limit(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_member_limit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15350,6 +15439,8 @@ func (ec *executionContext) fieldContext_DashboardDefinition_metrics(ctx context
 				return ec.fieldContext_DashboardMetricConfig_max_percentile(ctx, field)
 			case "filters":
 				return ec.fieldContext_DashboardMetricConfig_filters(ctx, field)
+			case "groups":
+				return ec.fieldContext_DashboardMetricConfig_groups(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DashboardMetricConfig", field.Name)
 		},
@@ -16048,6 +16139,47 @@ func (ec *executionContext) fieldContext_DashboardMetricConfig_filters(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _DashboardMetricConfig_groups(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardMetricConfig_groups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Groups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardMetricConfig_groups(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DashboardPayload_date(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DashboardPayload_date(ctx, field)
 	if err != nil {
@@ -16172,6 +16304,47 @@ func (ec *executionContext) fieldContext_DashboardPayload_aggregator(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type MetricAggregator does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DashboardPayload_group(ctx context.Context, field graphql.CollectedField, obj *model.DashboardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardPayload_group(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardPayload_group(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -23059,6 +23232,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -23221,6 +23396,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -23319,6 +23496,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -23463,6 +23642,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -27052,6 +27233,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -27266,6 +27449,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -27796,14 +27981,11 @@ func (ec *executionContext) _Plan_membersLimit(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_membersLimit(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -28381,6 +28563,8 @@ func (ec *executionContext) fieldContext_Query_accounts(ctx context.Context, fie
 				return ec.fieldContext_Account_subscription_start(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Account_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Account_unlimited_members(ctx, field)
 			case "stripe_customer_id":
 				return ec.fieldContext_Account_stripe_customer_id(ctx, field)
 			case "member_count":
@@ -28527,6 +28711,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -30418,6 +30604,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -31767,6 +31955,8 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -31884,6 +32074,8 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -32645,6 +32837,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSuggestion(ctx context.C
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -33268,6 +33462,8 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -33419,6 +33615,8 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_projects(ctx, field)
 			case "plan_tier":
 				return ec.fieldContext_Workspace_plan_tier(ctx, field)
+			case "unlimited_members":
+				return ec.fieldContext_Workspace_unlimited_members(ctx, field)
 			case "trial_end_date":
 				return ec.fieldContext_Workspace_trial_end_date(ctx, field)
 			case "billing_period_end":
@@ -34099,6 +34297,8 @@ func (ec *executionContext) fieldContext_Query_metrics_timeline(ctx context.Cont
 				return ec.fieldContext_DashboardPayload_value(ctx, field)
 			case "aggregator":
 				return ec.fieldContext_DashboardPayload_aggregator(ctx, field)
+			case "group":
+				return ec.fieldContext_DashboardPayload_group(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DashboardPayload", field.Name)
 		},
@@ -37128,6 +37328,47 @@ func (ec *executionContext) _Session_client_version(ctx context.Context, field g
 }
 
 func (ec *executionContext) fieldContext_Session_client_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Session_firstload_version(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_firstload_version(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstloadVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_firstload_version(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Session",
 		Field:      field,
@@ -40508,6 +40749,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_app_version(ctx, field)
 			case "client_version":
 				return ec.fieldContext_Session_client_version(ctx, field)
+			case "firstload_version":
+				return ec.fieldContext_Session_firstload_version(ctx, field)
 			case "client_config":
 				return ec.fieldContext_Session_client_config(ctx, field)
 			case "language":
@@ -42168,6 +42411,50 @@ func (ec *executionContext) fieldContext_Workspace_plan_tier(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_unlimited_members(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_unlimited_members(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnlimitedMembers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_unlimited_members(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44578,7 +44865,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters"}
+	fieldsInOrder := [...]string{"name", "description", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters", "groups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44697,6 +44984,14 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "groups":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
+			it.Groups, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -44710,7 +45005,7 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"date_range", "resolution_minutes", "timezone", "units", "aggregator", "filters"}
+	fieldsInOrder := [...]string{"date_range", "resolution_minutes", "timezone", "units", "aggregator", "filters", "groups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44762,6 +45057,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 			it.Filters, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "groups":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("groups"))
+			it.Groups, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45551,6 +45854,13 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "unlimited_members":
+
+			out.Values[i] = ec._Account_unlimited_members(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "stripe_customer_id":
 
 			out.Values[i] = ec._Account_stripe_customer_id(ctx, field, obj)
@@ -45569,9 +45879,6 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Account_member_limit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46280,6 +46587,10 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 
 			out.Values[i] = ec._DashboardMetricConfig_filters(ctx, field, obj)
 
+		case "groups":
+
+			out.Values[i] = ec._DashboardMetricConfig_groups(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46318,6 +46629,10 @@ func (ec *executionContext) _DashboardPayload(ctx context.Context, sel ast.Selec
 		case "aggregator":
 
 			out.Values[i] = ec._DashboardPayload_aggregator(ctx, field, obj)
+
+		case "group":
+
+			out.Values[i] = ec._DashboardPayload_group(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -48502,9 +48817,6 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._Plan_membersLimit(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -51146,6 +51458,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_client_version(ctx, field, obj)
 
+		case "firstload_version":
+
+			out.Values[i] = ec._Session_firstload_version(ctx, field, obj)
+
 		case "client_config":
 
 			out.Values[i] = ec._Session_client_config(ctx, field, obj)
@@ -52359,6 +52675,13 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "plan_tier":
 
 			out.Values[i] = ec._Workspace_plan_tier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unlimited_members":
+
+			out.Values[i] = ec._Workspace_unlimited_members(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -56887,6 +57210,44 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {

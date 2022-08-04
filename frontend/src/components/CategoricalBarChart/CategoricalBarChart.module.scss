@@ -38,7 +38,6 @@
     align-items: center;
     column-gap: var(--size-xxSmall);
     display: flex;
-    flex-direction: column;
     margin-bottom: 0 !important;
 }
 
@@ -50,15 +49,7 @@
     align-items: center;
     column-gap: var(--size-xSmall);
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
-    width: 100%;
-}
-
-.tooltipGrid {
-    display: grid;
-    grid-column-gap: var(--size-xSmall);
-    grid-template-columns: 1fr 10px 64px 10px;
     width: 100%;
 }
 

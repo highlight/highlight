@@ -183,7 +183,12 @@ const NESTED_FIELD_MAPPINGS = `
 			"properties": {
 				"Key": {
 					"type": "keyword",
-					"normalizer": "lowercase"
+					"normalizer": "lowercase",
+					"fields": {
+						"raw": { 
+						  "type":  "keyword"
+						}
+					}
 				},
 				"KeyValue": {
 					"type": "keyword",

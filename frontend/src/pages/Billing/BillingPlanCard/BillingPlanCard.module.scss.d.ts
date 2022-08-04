@@ -6,6 +6,7 @@ export const billingPlanPrice: string;
 export const billingPlanTitle: string;
 export const button: string;
 export const currentPlan: string;
+export const enterpriseRow: string;
 export const extraMembers: string;
 export const extraMembersBreakdown: string;
 export const extraMembersCost: string;

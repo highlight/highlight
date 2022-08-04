@@ -1091,6 +1091,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
 	var nextInvoiceDate *time.Time
@@ -1099,8 +1100,9 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
+				unlimitedMembers = productUnlimitedMembers
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1125,6 +1127,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
+			"UnlimitedMembers":   unlimitedMembers,
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
@@ -2353,7 +2356,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 	start := time.Now().Add(-24 * time.Hour)
 	// different than the metric monitor aggregator because we want to get a high value
 	// that won't trigger with the monitor aggregator of p50
-	agg := modelInputs.MetricAggregatorP90
+	agg := modelInputs.MetricAggregatorP95
 	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
 		DateRange: &modelInputs.DateRangeInput{
 			StartDate: &start,
@@ -2380,6 +2383,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 		MetricToMonitor:  metric.Name,
 		ChannelsToNotify: channelsString,
 		EmailsToNotify:   emailsString,
+		Disabled:         pointy.Bool(true),
 	}
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
 		return e.Wrap(err, "failed to auto create metric monitor")
@@ -2478,9 +2482,20 @@ func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) 
 	return
 }
 
+// GetTagGroups returns the influxdb group columns for a particular set of tag groups
+func GetTagGroups(groups []string) (result string) {
+	result += "["
+	for _, g := range groups {
+		result += fmt.Sprintf(`"%s",`, g)
+	}
+	result += "]"
+	return result
+}
+
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
+	tagGroups := GetTagGroups(params.Groups)
 	resMins := 60
 	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
 		resMins = *params.ResolutionMinutes
@@ -2493,14 +2508,14 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		  |> range(start: %[2]s, stop: %[3]s)
 		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
 		  |> filter(fn: (r) => r["_field"] == "%[5]s")
-		  %[6]s|> group()
+		  %[6]s|> group(columns: %[8]s)
       do = (q) =>
         query()
 		  |> aggregateWindow(
                every: %[7]dm,
                fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
                createEmpty: true)
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, resMins)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, resMins, tagGroups)
 	agg := modelInputs.MetricAggregatorAvg
 	if params.Aggregator != nil {
 		agg = *params.Aggregator
@@ -2526,11 +2541,26 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 				v = x / div
 			}
 		}
-		payload = append(payload, &modelInputs.DashboardPayload{
-			Date:       r.Time.Format(time.RFC3339Nano),
-			Value:      v,
-			Aggregator: &agg,
-		})
+		if len(params.Groups) > 0 {
+			for _, g := range params.Groups {
+				gVal := r.Values[g]
+				if gVal == nil {
+					continue
+				}
+				payload = append(payload, &modelInputs.DashboardPayload{
+					Date:       r.Time.Format(time.RFC3339Nano),
+					Value:      v,
+					Aggregator: &agg,
+					Group:      pointy.String(gVal.(string)),
+				})
+			}
+		} else {
+			payload = append(payload, &modelInputs.DashboardPayload{
+				Date:       r.Time.Format(time.RFC3339Nano),
+				Value:      v,
+				Aggregator: &agg,
+			})
+		}
 	}
 	return
 }

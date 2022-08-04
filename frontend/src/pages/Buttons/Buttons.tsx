@@ -40,6 +40,9 @@ export const Buttons = () => {
                 title="Introducing Superhuman"
                 src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
             ></iframe>
+            <div className={'highlight-mask'}>This is masked.</div>
+            <div className={'highlight-block'}>This is blocked.</div>
+            <div className={'highlight-ignore'}>This is ignored.</div>
             <div>
                 <button
                     onClick={() => {

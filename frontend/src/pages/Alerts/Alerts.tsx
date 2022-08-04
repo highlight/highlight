@@ -493,7 +493,7 @@ const AlertsPage = () => {
 
             {((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
                 !alertsPayload) && (
-                <Card noPadding>
+                <Card noPadding style={{ width: 1200 }}>
                     <Table
                         columns={TABLE_COLUMNS}
                         loading={loading}

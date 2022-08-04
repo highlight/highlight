@@ -169,6 +169,16 @@ const BillingBanner = () => {
     }
 
     if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
+        // If date is Aug 4 in PST timezone, show Product Hunt banner
+        const isAug4 = moment().isBetween(
+            '2022-08-04T07:00:00Z',
+            '2022-08-05T07:00:00Z'
+        );
+        if (isAug4) {
+            toggleShowBanner(true);
+            return <ProductHuntBanner />;
+        }
+
         toggleShowBanner(false);
         return null;
     }
@@ -308,7 +318,6 @@ const DemoWorkspaceBanner = () => {
     );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ProductHuntBanner = () => {
     const { toggleShowBanner } = useGlobalContext();
 
@@ -319,7 +328,7 @@ const ProductHuntBanner = () => {
             Highlight is live on Product Hunt 🎉‍{' '}
             <a
                 target="_blank"
-                href="https://www.producthunt.com/posts/comments-by-highlight"
+                href="https://www.producthunt.com/posts/highlight-6"
                 className={styles.trialLink}
                 rel="noreferrer"
             >

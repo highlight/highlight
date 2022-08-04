@@ -77,6 +77,7 @@ export const EditMetricModal = ({
     const [filters, setFilters] = useState<MetricTagFilter[]>(
         metricConfig.filters || []
     );
+    const [groups, setGroups] = useState<string[]>(metricConfig.groups || []);
     return (
         <Modal
             onCancel={onCancel}
@@ -98,8 +99,9 @@ export const EditMetricModal = ({
                                 metricConfig.max_needs_improvement_value,
                             poor_value: metricConfig.poor_value,
                             chart_type: chartType,
-                            aggregator: aggregator,
-                            filters: filters,
+                            aggregator,
+                            filters,
+                            groups,
                             ...(minValue
                                 ? { min_value: min }
                                 : { min_percentile: min / 100 }),
@@ -135,7 +137,7 @@ export const EditMetricModal = ({
                         <div className={styles.typesContainer}>
                             <CardSelect
                                 title="Time Series / Line"
-                                description={`Time-based line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
+                                description={`Line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
                                 descriptionClass={styles.typeSubheader}
                                 isSelected={
                                     chartType === DashboardChartType.Timeline
@@ -145,8 +147,19 @@ export const EditMetricModal = ({
                                 }
                             />
                             <CardSelect
+                                title="Time Series / Bar"
+                                description={`Bar graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
+                                descriptionClass={styles.typeSubheader}
+                                isSelected={
+                                    chartType === DashboardChartType.TimelineBar
+                                }
+                                onClick={() =>
+                                    setChartType(DashboardChartType.TimelineBar)
+                                }
+                            />
+                            <CardSelect
                                 title="Distribution / Bar"
-                                description={`Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and what are potential outliers.`}
+                                description={`Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and view outliers.`}
                                 descriptionClass={styles.typeSubheader}
                                 isSelected={
                                     chartType === DashboardChartType.Histogram
@@ -158,7 +171,8 @@ export const EditMetricModal = ({
                         </div>
                     </section>
 
-                    {chartType === DashboardChartType.Timeline ? (
+                    {chartType === DashboardChartType.Timeline ||
+                    chartType === DashboardChartType.TimelineBar ? (
                         <section className={styles.section}>
                             <div className={styles.metricViewDetails}>
                                 <div className={styles.metricViewDetail}>
@@ -268,13 +282,24 @@ export const EditMetricModal = ({
                     ) : null}
 
                     <section className={styles.section}>
-                        <h3>Filters</h3>
+                        <h3>Filter by</h3>
                         <TagFilters
                             metricName={metricName}
                             onSelectTags={(t) => setFilters(t)}
                             currentTags={filters}
                         />
                     </section>
+
+                    {chartType === DashboardChartType.TimelineBar ? (
+                        <section className={styles.section}>
+                            <h3>Group by</h3>
+                            <TagGroups
+                                metricName={metricName}
+                                onSelectGroups={(g) => setGroups(g)}
+                                currentGroups={groups}
+                            />
+                        </section>
+                    ) : null}
 
                     <CardFormActionsContainer>
                         <div className={styles.submitRow}>
@@ -334,6 +359,48 @@ const UnitsSelector = ({
             }
             onSelect={(value) => setUnits(value)}
         />
+    );
+};
+
+export const TagGroups = ({
+    metricName,
+    onSelectGroups,
+    currentGroups,
+}: {
+    metricName: string;
+    onSelectGroups: (tags: string[]) => void;
+    currentGroups: string[];
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { data } = useGetMetricTagsQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+        },
+    });
+    const currentGroup = currentGroups[0];
+    return (
+        <>
+            <div className={styles.groupsRow} key={`tag-group-${currentGroup}`}>
+                <SimpleSearchSelect
+                    options={data?.metric_tags || []}
+                    value={currentGroup}
+                    onSelect={(v) => {
+                        onSelectGroups([v]);
+                    }}
+                />
+                <Button
+                    trackingId={'EditMetricRemoveTagGroup'}
+                    className={styles.removeTagFilterButton}
+                    disabled={!currentGroup?.length}
+                    onClick={() => {
+                        onSelectGroups([]);
+                    }}
+                >
+                    <TrashIcon />
+                </Button>
+            </div>
+        </>
     );
 };
 
