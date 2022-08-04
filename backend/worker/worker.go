@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/smithy-go/ptr"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 
 	"gorm.io/gorm"
@@ -790,23 +789,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	visitFields := []model.Field{}
-	results := []model.Session{}
-	options := opensearch.SearchOptions{
-		MaxResults: ptr.Int(1),
-	}
-	q := fmt.Sprintf(`{ "match": { "id": "%d" } }`, s.ID)
-	// We reindex records occasionally so we can't rely on ordering of fields in
-	// session documents.
-	// Consider adding a created_at or indexed_at column on session_fields.
-	if _, _, err := w.Resolver.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, s.ProjectID, q, options, &results); err != nil {
-		return e.Wrap(err, "error querying session in opensearch")
+	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
+		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
 	}
 
-	for _, field := range results[0].Fields {
-		if field.Name == "visited-url" {
-			visitFields = append(visitFields, *field)
-		}
-	}
+	fmt.Print("::: visitFields :::")
+	fmt.Printf("%+v", visitFields)
 
 	sessionProperties := map[string]string{
 		"pages_visited": strconv.Itoa(len(visitFields)),
