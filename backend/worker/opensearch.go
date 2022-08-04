@@ -2,6 +2,7 @@ package worker
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -104,27 +105,40 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 		whereClause = "updated_at > NOW() - interval '30 minutes'"
 	}
 
+	type ErrorObjectJoined struct {
+		Id           int
+		ErrorGroupID int
+		Url          string    `json:"url"`
+		Os           string    `json:"os"`
+		Browser      string    `json:"browser"`
+		Timestamp    time.Time `json:"timestamp"`
+		Environment  string    `json:"environment"`
+	}
+
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
+		Select("error_objects.id, error_objects.error_group_id, error_objects.url, error_objects.os, error_objects.browser, error_objects.timestamp, sessions.environment").
+		Joins("JOIN sessions ON error_objects.session_id = sessions.id").
 		Where(whereClause).
-		Order("created_at asc").Rows()
+		Order("error_objects.created_at asc").Rows()
 	if err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
 
 	for rows.Next() {
-		eo := model.ErrorObject{}
+		eo := ErrorObjectJoined{}
 		if err := w.Resolver.DB.ScanRows(rows, &eo); err != nil {
 			log.Fatalf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
 
 		os := opensearch.OpenSearchErrorObject{
-			Url:       eo.URL,
-			Os:        eo.OS,
-			Browser:   eo.Browser,
-			Timestamp: eo.Timestamp,
+			Url:         eo.Url,
+			Os:          eo.Os,
+			Browser:     eo.Browser,
+			Timestamp:   eo.Timestamp,
+			Environment: eo.Environment,
 		}
 
-		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eo.ID, pointy.Int(eo.ErrorGroupID), os); err != nil {
+		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eo.Id, pointy.Int(eo.ErrorGroupID), os); err != nil {
 			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
 		}
 	}
