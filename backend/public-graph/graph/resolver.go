@@ -1934,6 +1934,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		if hasBeacon {
 			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
+		hasFullSnapshot := false
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -2001,6 +2002,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			}
 
 			if UseStagingBucket && projectID == 1 {
+				if hasFullSnapshot {
+
+				}
 				payloadIdDeref := 0
 				if payloadId != nil {
 					payloadIdDeref = *payloadId

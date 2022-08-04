@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -123,18 +125,73 @@ func getURLSigner() *sign.URLSigner {
 	return sign.NewURLSigner(CloudfrontPublicKeyID, privateKey)
 }
 
-func (s *StorageClient) MergeStagingFiles(ctx context.Context, projectId int, sessionId int, payloadId int, contents string, isBeacon bool) error {
-	key := s.bucketKey(sessionId, projectId, GetStagingPayloadType(isBeacon, payloadId))
+func (s *StorageClient) MergeStagingFiles(ctx context.Context, projectId int, sessionId int, maxPayloadId int, contents string, isBeacon bool) error {
+	keys := []*string{}
+	for i := 1; i <= maxPayloadId; i++ {
+		keys = append(keys, s.bucketKey(sessionId, projectId, GetStagingPayloadType(false, i)))
+	}
+	keys = append(keys, s.bucketKey(sessionId, projectId, GetStagingPayloadType(true, maxPayloadId+1)))
+
+	filename := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(sessionId), 10) + ".eventsaggregation.json.br"
+	file, err := os.Create(filename)
+	if err != nil {
+		return errors.Wrap(err, "error creating file")
+	}
+
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to close file"))
+			return
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			log.Error(errors.Wrap(err, "failed to remove file"))
+			return
+		}
+	}()
+
+	writer := payload.NewCompressedJSONArrayWriter(file)
+
+	for _, k := range keys {
+		options := s3.GetObjectInput{
+			Bucket: &S3SessionsStagingBucketName,
+			Key:    k,
+		}
+		output, err := s.S3ClientEast2.GetObject(ctx, &options)
+		if err != nil {
+			// File might not exist (e.g. beacon file) and that's probably ok
+			log.Warnf("S3 object does not exist for key %s", *k)
+			continue
+		}
+
+		buf := new(bytes.Buffer)
+		_, err = buf.ReadFrom(output.Body)
+		if err != nil {
+			writer.Close()
+			return errors.Wrap(err, "error reading from S3 buffer")
+		}
+
+		eo := model.EventsObject{
+			Events: buf.String(),
+		}
+
+		err = writer.WriteObject(&eo, &payload.EventsUnmarshalled{})
+		if err != nil {
+			writer.Close()
+			return errors.Wrap(err, "error writing to NewCompressedJSONArrayWriter")
+		}
+	}
+
+	writer.Close()
+
 	options := s3.PutObjectInput{
-		Bucket: &S3SessionsStagingBucketName,
-		Key:    key,
-		Body:   bytes.NewReader([]byte(contents)),
+		Bucket: &S3SessionsPayloadBucketName,
+		Key:    pointy.String(string(GetChunkedPayloadType(0))),
 	}
 	if _, err := s.S3Client.PutObject(ctx, &options); err != nil {
 		return err
 	}
-
-	s.S3Client.CopyObject()
 
 	return nil
 }
@@ -146,12 +203,9 @@ func (s *StorageClient) PushStagingFile(ctx context.Context, projectId int, sess
 		Key:    key,
 		Body:   bytes.NewReader([]byte(contents)),
 	}
-	if _, err := s.S3Client.PutObject(ctx, &options); err != nil {
+	if _, err := s.S3ClientEast2.PutObject(ctx, &options); err != nil {
 		return err
 	}
-
-	s.S3Client.CopyObject()
-
 	return nil
 }
 
