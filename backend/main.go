@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,9 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis"
+	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
 
@@ -119,6 +121,8 @@ func main() {
 	// initialize logger
 	log.SetReportCaller(true)
 
+	redisEventsStagingEndpoint := os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
+
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
 		// default case, should only exist in main highlight prod
@@ -201,6 +205,11 @@ func main() {
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+		Redis: redis.NewClient(&redis.Options{
+			Addr:     redisEventsStagingEndpoint,
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		}),
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.

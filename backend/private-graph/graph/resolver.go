@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -17,7 +15,11 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/go-chi/chi"
+	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
@@ -72,6 +74,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	HubspotApi             HubspotApiInterface
+	Redis                  *redis.Client
 }
 
 // For a given session, an EventCursor is the address of an event in the list of events,

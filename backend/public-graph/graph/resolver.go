@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -56,6 +57,7 @@ type Resolver struct {
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
+	Redis           *redis.Client
 }
 
 type Location struct {
@@ -141,7 +143,7 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 // the same secureSessionID that should be treated as different sessions
 const SessionReinitializeExpiry = time.Minute * 15
 
-var UseStagingBucket = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
@@ -1934,7 +1936,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		if hasBeacon {
 			r.DB.Table("events_objects_partitioned").Where(&model.EventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.EventsObject{})
 		}
-		hasFullSnapshot := false
+		// hasFullSnapshot := false
 		if evs := events.Events; len(evs) > 0 {
 			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 			// should fix at some point.
@@ -2001,17 +2003,26 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if UseStagingBucket && projectID == 1 {
-				if hasFullSnapshot {
-
-				}
+			if UseRedis && projectID == 1 {
+				var builder strings.Builder
 				payloadIdDeref := 0
 				if payloadId != nil {
 					payloadIdDeref = *payloadId
 				}
-				if err := r.StorageClient.PushStagingFile(ctx, projectID, sessionID, payloadIdDeref, string(b), isBeacon); err != nil {
-					return e.Wrap(err, "error creating staging file")
+
+				beaconStr := ";"
+				if isBeacon {
+					beaconStr = "b"
 				}
+
+				builder.WriteString(beaconStr)
+				builder.Write(b)
+
+				// Add to sorted set without updating existing elements
+				r.Redis.ZAddNX(fmt.Sprintf("events-%d", sessionID), redis.Z{
+					Score:  float64(payloadIdDeref),
+					Member: builder.String(),
+				})
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {

@@ -196,19 +196,6 @@ func (s *StorageClient) MergeStagingFiles(ctx context.Context, projectId int, se
 	return nil
 }
 
-func (s *StorageClient) PushStagingFile(ctx context.Context, projectId int, sessionId int, payloadId int, contents string, isBeacon bool) error {
-	key := s.bucketKey(sessionId, projectId, GetStagingPayloadType(isBeacon, payloadId))
-	options := s3.PutObjectInput{
-		Bucket: &S3SessionsStagingBucketName,
-		Key:    key,
-		Body:   bytes.NewReader([]byte(contents)),
-	}
-	if _, err := s.S3ClientEast2.PutObject(ctx, &options); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *StorageClient) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
