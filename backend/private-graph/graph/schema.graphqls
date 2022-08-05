@@ -820,7 +820,20 @@ input DashboardMetricConfigInput {
     groups: [String!]
 }
 
+enum MetricViewComponentType {
+    CustomChart
+    KeyPerformanceGauge
+    SessionCountChart
+    ErrorCountChart
+    ReferrersTable
+    ActiveUsersTable
+    RageClicksTable
+    TopRoutesTable
+}
+
 type DashboardMetricConfig {
+    # defaults to CustomChart
+    component_type: MetricViewComponentType
     name: String!
     description: String!
     max_good_value: Float!

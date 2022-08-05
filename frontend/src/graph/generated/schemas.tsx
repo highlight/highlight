@@ -891,8 +891,19 @@ export type DashboardMetricConfigInput = {
     groups?: Maybe<Array<Scalars['String']>>;
 };
 
+export enum PrebuiltComponent {
+    KeyPerformanceGauge = 'KeyPerformanceGauge',
+    SessionCountChart = 'SessionCountChart',
+    ErrorCountChart = 'ErrorCountChart',
+    ReferrersTable = 'ReferrersTable',
+    ActiveUsersTable = 'ActiveUsersTable',
+    RageClicksTable = 'RageClicksTable',
+    TopRoutesTable = 'TopRoutesTable',
+}
+
 export type DashboardMetricConfig = {
     __typename?: 'DashboardMetricConfig';
+    prebuilt?: Maybe<PrebuiltComponent>;
     name: Scalars['String'];
     description: Scalars['String'];
     max_good_value: Scalars['Float'];

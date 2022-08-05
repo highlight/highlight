@@ -3717,6 +3717,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                     metrics: Array<
                         { __typename?: 'DashboardMetricConfig' } & Pick<
                             Types.DashboardMetricConfig,
+                            | 'prebuilt'
                             | 'name'
                             | 'description'
                             | 'max_good_value'
