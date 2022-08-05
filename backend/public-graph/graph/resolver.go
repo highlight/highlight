@@ -2294,7 +2294,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
-	if sessionObj.Processed != nil && *sessionObj.Processed {
+	// If the session was previously excluded (as we do with new sessions by default),
+	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	if (sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
