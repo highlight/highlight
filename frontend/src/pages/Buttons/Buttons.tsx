@@ -40,9 +40,18 @@ export const Buttons = () => {
                     title="Introducing Superhuman"
                     src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
                 ></iframe>
-                <div className={'highlight-mask'}>This is masked.</div>
-                <div className={'highlight-block'}>This is blocked.</div>
-                <div className={'highlight-ignore'}>This is ignored.</div>
+                <div className={'highlight-mask'}>
+                This is masked.{' '}
+                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+            </div>
+                <div className={'highlight-block'}>
+                This is blocked.{' '}
+                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+            </div>
+                <div className={'highlight-ignore'}>
+                This is ignored.{' '}
+                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+            </div>
             </div>
             <div className={styles.buttonBody}>
                 <div>
