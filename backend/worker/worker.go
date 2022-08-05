@@ -750,17 +750,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
 	}
 
-	fmt.Print("::: visitFields :::")
-	fmt.Printf("%+v", visitFields)
-
 	sessionProperties := map[string]string{
 		"pages_visited": strconv.Itoa(len(visitFields)),
 		"landing_page":  visitFields[0].Value,
 		"exit_page":     visitFields[len(visitFields)-1].Value,
 	}
 
-	fmt.Printf("::: Appending properties: %+v\n", sessionProperties)
-	if err := w.PublicResolver.AppendProperties(s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+	if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d"), s.ID)
 	}
 
