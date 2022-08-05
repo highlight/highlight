@@ -71,6 +71,13 @@ const CUSTOM_FIELDS: CustomField[] = [
         },
     },
     {
+        type: SESSION_TYPE,
+        name: 'country',
+        options: {
+            type: 'text',
+        },
+    },
+    {
         type: CUSTOM_TYPE,
         name: 'viewed',
         options: {

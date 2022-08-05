@@ -411,7 +411,6 @@ const PopoutContent = ({
     type,
     ...props
 }: PopoutContentProps & SetVisible & OptionTypeBase) => {
-    console.log('::: TYPE', type);
     switch (type) {
         case 'select':
             return (
@@ -948,6 +947,7 @@ const LABEL_MAP: { [key: string]: string } = {
     'visited-url': 'Visited URL',
     visited_url: 'Visited URL',
     city: 'City',
+    country: 'Country',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
