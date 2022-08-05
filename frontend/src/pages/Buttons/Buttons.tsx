@@ -42,15 +42,15 @@ export const Buttons = () => {
                 ></iframe>
                 <div className={'highlight-mask'}>
                     This is masked.{' '}
-                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                    <img src={'/images/logo.png'} height={16} alt={'masked'} />
                 </div>
                 <div className={'highlight-block'}>
                     This is blocked.{' '}
-                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                    <img src={'/images/logo.png'} height={16} alt={'blocked'} />
                 </div>
                 <div className={'highlight-ignore'}>
                     This is ignored.{' '}
-                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                    <img src={'/images/logo.png'} height={16} alt={'ignored'} />
                 </div>
             </div>
             <div className={styles.buttonBody}>
