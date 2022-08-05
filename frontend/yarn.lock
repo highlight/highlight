@@ -3796,18 +3796,18 @@
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.25.tgz#7327d326d634f861457a6cfd012ca2ff84ce8e37"
   integrity sha512-KLyFRmB3BolxvaQ7eF19OT1sIgxxZl/MsdKZOHTrXeRF7rt14ujMki3+1WuDBeGS2a1PTooMW6ac+vZps4xwLg==
 
-"@highlight-run/rrweb-snapshot@1.1.27":
-  version "1.1.27"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.27.tgz#47be31a12495e8ba676c910b9ae62b204cdb8fc9"
-  integrity sha512-nR4tP1AXq96qJpMSJWyXRfA0zBTUy01w9iRQ+RAozaPpTmqjfRJ04MokhWyxlYxTM/hLzquaT97AqiC16Qd69Q==
+"@highlight-run/rrweb-snapshot@1.1.28":
+  version "1.1.28"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.28.tgz#5c9f24d6e29bdc4a61f95985d8fffa9b5f4b24ee"
+  integrity sha512-Hzl6uc9W2fzQwiAAona/pDaaMs8m9R5D3B+BaO/ECFB1xSSItVyJnacO1LM3hPQudRJwyr/H7Sanyk73ifxeNg==
 
-"@highlight-run/rrweb@2.1.4":
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.1.4.tgz#1c35f33358d0fac9d3eed0942d669ad9b295c34c"
-  integrity sha512-2jvfFItK71dG+zGYzdZWHWyuDjsKGYWsCdiCDbcPicytbO6KRdTlvXkBTxH9hVWFx/pUdDUKXoF2iGvE91gshw==
+"@highlight-run/rrweb@2.1.5":
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.1.5.tgz#73983ac8711711eb18bbbb1dd7671ff5780e61b6"
+  integrity sha512-SuAffjsy5LW6Pd0yps1MN3YoHfTR5g76t7/Gj0L2hu4YvNV1HKvrj3XWURHjWiktiKkSsEGIvdcgp4z6ZIOytQ==
   dependencies:
     "@highlight-run/rrdom" "0.1.17"
-    "@highlight-run/rrweb-snapshot" "1.1.27"
+    "@highlight-run/rrweb-snapshot" "1.1.28"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
