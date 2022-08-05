@@ -147,12 +147,19 @@ var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 var RedisProjectIds = []int{1}
 
 //Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
+func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
+	defer outerSpan.Finish()
+
+	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil {
 		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
+	loadSessionSpan.Finish()
 
 	modelFields := []*model.Field{}
 	projectID := session.ProjectID
@@ -166,12 +173,16 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 		}
 	}
 
-	err := r.AppendFields(modelFields, session)
+	err := r.AppendFields(outerCtx, modelFields, session)
+
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
 
 	r.AlertWorkerPool.SubmitRecover(func() {
+		alertWorkerSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+			tracer.ResourceName("go.sessions.AppendProperties.alertWorker"), tracer.Tag("sessionID", sessionID))
+		defer alertWorkerSpan.Finish()
 		// Sending Track Properties Alert
 		if propType != PropertyType.TRACK {
 			return
@@ -328,21 +339,58 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	return nil
 }
 
-func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
-	fieldsToAppend := []*model.Field{}
+func escapeSingleQuote(str string) string {
+	return strings.ReplaceAll(str, "'", "''")
+}
+
+func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
+	// Do nothing if no fields
+	if len(fields) == 0 {
+		return nil
+	}
+
+	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
+		tracer.ResourceName("go.sessions.AppendFields"), tracer.Tag("sessionID", session.ID))
+	defer outerSpan.Finish()
+
+	var fieldSql strings.Builder
 	for _, f := range fields {
-		field := model.Field{}
-		res := r.DB.Where(f).FirstOrCreate(&field)
-		if res.Error != nil {
-			return e.Wrap(res.Error, "error calling FirstOrCreate")
+		if fieldSql.Len() != 0 {
+			fieldSql.WriteString(" UNION\n")
 		}
-		// If the field was created, index it in OpenSearch
-		if res.RowsAffected > 0 {
-			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
-				return e.Wrap(err, "error indexing new field")
-			}
-		}
-		fieldsToAppend = append(fieldsToAppend, &field)
+		fieldSql.WriteString(fmt.Sprintf(`SELECT '%s', '%s', '%s', %d`,
+			escapeSingleQuote(f.Type),
+			escapeSingleQuote(f.Name),
+			escapeSingleQuote(f.Value),
+			f.ProjectID))
+	}
+
+	fieldsToAppend := []*model.Field{}
+	if err := r.DB.Raw(fmt.Sprintf(`
+		WITH records_to_insert as (
+			WITH cte (type, name, value, project_id) as (
+				%s
+			)
+			SELECT cte.type, cte.name, cte.value, cte.project_id
+			FROM cte
+			LEFT JOIN fields f
+			ON f.type = cte.type
+			AND f.name = cte.name
+			AND f.value = cte.value
+			AND f.project_id = cte.project_id
+			WHERE id is null
+		)
+		INSERT INTO fields (created_at, updated_at, type, name, value, project_id)
+		SELECT now(), now(), *
+		FROM records_to_insert
+		RETURNING *
+	`, fieldSql.String())).Find(&fieldsToAppend).Error; err != nil {
+		return e.Wrap(err, "error inserting new fields")
+	}
+
+	// Return early if no fields to append
+	if len(fieldsToAppend) == 0 {
+		return nil
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
@@ -1020,7 +1068,11 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionMinimal",
+		tracer.ResourceName("go.sessions.InitializeSessionMinimal"))
+	defer outerSpan.Finish()
+
 	// The clientID param was added in early July 2022. This check is needed until
 	// we are confident all clients are loading a version of the client script
 	// that sends this parameter.
@@ -1072,6 +1124,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       *clientID,
+		Excluded:                       &model.T, // A session is excluded by default until it receives events
 	}
 
 	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
@@ -1136,7 +1189,7 @@ func InitializeSessionMinimal(r *mutationResolver, projectVerboseID string, enab
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
 	}
-	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+	if err := r.AppendProperties(outerCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
@@ -1258,6 +1311,10 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 }
 
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
+		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionID", sessionID))
+	defer outerSpan.Finish()
+
 	obj, ok := userObject.(map[string]interface{})
 	if !ok {
 		return e.New("[IdentifySession] error converting userObject interface type")
@@ -1283,7 +1340,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		}
 	}
 
-	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
+	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 
@@ -1349,10 +1406,11 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("identified session: %s", session.Identifier)
 
-	r.AlertWorkerPool.SubmitRecover(func() {
+	func() {
+		defer util.Recover()
 		// Sending New User Alert
 		// if is not new user, return
-		if session.FirstTime == nil || !*session.FirstTime {
+		if !*firstTime {
 			return
 		}
 		var sessionAlerts []*model.SessionAlert
@@ -1400,11 +1458,15 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
 		}
-	})
+	}()
 	return nil
 }
 
-func (r *Resolver) AddTrackPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
+		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
+	defer outerSpan.Finish()
+
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1416,14 +1478,18 @@ func (r *Resolver) AddTrackPropertiesImpl(_ context.Context, sessionID int, prop
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
 	return nil
 }
 
-func (r *Resolver) AddSessionPropertiesImpl(_ context.Context, sessionID int, propertiesObject interface{}) error {
+func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddSessionPropertiesImpl",
+		tracer.ResourceName("go.sessions.AddSessionPropertiesImpl"))
+	defer outerSpan.Finish()
+
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return e.New("error converting userObject interface type")
@@ -1432,7 +1498,7 @@ func (r *Resolver) AddSessionPropertiesImpl(_ context.Context, sessionID int, pr
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.SESSION)
 	if err != nil {
 		return e.Wrap(err, "error adding set of properties to db")
 	}
@@ -2260,7 +2326,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
-	if sessionObj.Processed != nil && *sessionObj.Processed {
+	// If the session was previously excluded (as we do with new sessions by default),
+	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	if (sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,

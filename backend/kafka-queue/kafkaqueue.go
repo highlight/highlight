@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,8 +24,8 @@ const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	taskRetries           = 5
-	prefetchQueueCapacity = 8192
-	prefetchSizeBytes     = 8 * 1000 * 1000   // 8 MB
+	prefetchQueueCapacity = 128
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -69,19 +70,18 @@ func New(topic string, mode Mode) *Queue {
 		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
 	}
 
+	client := &kafka.Client{
+		Addr: kafka.TCP(brokers...),
+		Transport: &kafka.Transport{
+			SASL: mechanism,
+			TLS:  tlsConfig,
+		},
+	}
 	groupID := "group-default"
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-
-		client := &kafka.Client{
-			Addr: kafka.TCP(brokers...),
-			Transport: &kafka.Transport{
-				SASL: mechanism,
-				TLS:  tlsConfig,
-			},
-		}
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
@@ -92,37 +92,42 @@ func New(topic string, mode Mode) *Queue {
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
-		res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
-			Addr: kafka.TCP(brokers...),
-			Resources: []kafka.AlterConfigRequestResource{
-				{
-					ResourceType: kafka.ResourceTypeTopic,
-					ResourceName: topic,
-					Configs: []kafka.AlterConfigRequestConfig{
-						{
-							Name:  "delete.retention.ms",
-							Value: "604800000",
-						},
+	}
+
+	res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+		Addr: kafka.TCP(brokers...),
+		Resources: []kafka.AlterConfigRequestResource{
+			{
+				ResourceType: kafka.ResourceTypeTopic,
+				ResourceName: topic,
+				Configs: []kafka.AlterConfigRequestConfig{
+					{
+						Name:  "retention.ms",
+						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
+					},
+					{
+						Name:  "delete.retention.ms",
+						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
 					},
 				},
 			},
-		})
+		},
+	})
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to update topic retention"))
+	} else {
+		err = res.Errors[kafka.AlterConfigsResponseResource{
+			Type: int8(kafka.ResourceTypeTopic),
+			Name: topic,
+		}]
 		if err != nil {
-			log.Error(errors.Wrap(err, "failed to update topic retention"))
-		} else {
-			err = res.Errors[kafka.AlterConfigsResponseResource{
-				Type: int8(kafka.ResourceTypeTopic),
-				Name: topic,
-			}]
-			if err != nil {
-				log.Error(errors.Wrap(err, "topic retention failed server-side"))
-			}
+			log.Error(errors.Wrap(err, "topic retention failed server-side"))
 		}
 	}
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
 	if mode&1 == 1 {
-		log.Infof("initializing kafka producer for %s", topic)
+		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
@@ -148,7 +153,7 @@ func New(topic string, mode Mode) *Queue {
 		}
 	}
 	if (mode>>1)&1 == 1 {
-		log.Infof("initializing kafka consumer for %s", topic)
+		log.Debugf("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
@@ -228,7 +233,9 @@ func (p *Queue) Receive() (msg *Message) {
 	defer cancel()
 	m, err := p.kafkaC.ReadMessage(ctx)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to receive message"))
+		if err.Error() != "context deadline exceeded" {
+			log.Error(errors.Wrap(err, "failed to receive message"))
+		}
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)

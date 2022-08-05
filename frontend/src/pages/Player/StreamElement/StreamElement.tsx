@@ -150,7 +150,7 @@ export const StreamElement = ({
                                     <JsonViewer
                                         name={null}
                                         collapsed
-                                        src={e.data}
+                                        src={e.data as object}
                                     />
                                 </div>
                             ) : (

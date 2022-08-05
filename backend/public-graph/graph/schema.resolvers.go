@@ -32,7 +32,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.initializeSessionMinimal")
 	querySessionSpan.SetTag("projectVerboseID", organizationVerboseID)
-	session, err := InitializeSessionMinimal(r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID, clientID)
+	session, err := InitializeSessionMinimal(ctx, r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID, clientID)
 	querySessionSpan.Finish()
 
 	projectID := session.ProjectID
