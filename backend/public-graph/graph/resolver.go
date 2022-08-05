@@ -1755,6 +1755,19 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 	return nil
 }
 
+func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
+	projectID := sessionObj.ProjectID
+
+	errorFields := []*model.ErrorField{}
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToProcess.URL})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToProcess.Event})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: errorToProcess.Environment})
+
+	return errorFields
+}
+
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
@@ -1886,13 +1899,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 
 		//create error fields array
-		metaFields := []*model.ErrorField{}
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: sessionObj.Environment})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(sessionObj, errorToInsert), projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
@@ -2174,13 +2181,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			}
 
 			//create error fields array
-			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: errorToInsert.Environment})
-			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
 			if err != nil {
 				log.Error(e.Wrap(err, "Error updating error group"))
 				continue
