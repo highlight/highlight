@@ -141,7 +141,6 @@ var Models = []interface{}{
 	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
-	&SessionField{},
 	&ErrorComment{},
 	&CommentReply{},
 	&CommentFollower{},
@@ -606,14 +605,6 @@ type Field struct {
 	Value     string
 	ProjectID int       `json:"project_id"`
 	Sessions  []Session `gorm:"many2many:session_fields;"`
-}
-
-type SessionField struct {
-	ID        int `gorm:"type:bigint;default:nextval('session_fields_id_seq')" json:id`
-	SessionID int `gorm:"primaryKey"`
-	Session   Session
-	FieldID   int `gorm:"primaryKey"`
-	Field     Field
 }
 
 type ResourcesObject struct {
