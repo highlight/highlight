@@ -1,89 +1,80 @@
 {
-	"sourcegraph.defaultBranch": "master",
-	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": true,
-		"source.fixAll.stylelint": true
-	},
-	"go.formatTool": "gofmt",
-	"go.useLanguageServer": true,
-	"go.autocompleteUnimportedPackages": true,
-	"go.lintTool": "golangci-lint",
-	"go.lintFlags": [
-		"--fast"
-	],
-	"typescript.preferences.importModuleSpecifier": "non-relative",
-	"[go]": {
-		"editor.defaultFormatter": "golang.go"
-	},
-	"go.testEnvVars": {
-		"LOG_LEVEL": "debug",
-		"PSQL_HOST": "localhost",
-		"PSQL_PORT": "5432",
-		"PSQL_USER": "postgres",
-		"PSQL_PASSWORD": "postgres",
-		"ENVIRONMENT": "test"
-	},
-	"css.validate": false,
-	"less.validate": false,
-	"scss.validate": false,
-	"stylelint.enable": true,
-	"stylelint.validate": [
-		"css",
-		"less",
-		"postcss",
-		"scss"
-	],
-	"[graphql]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"[json]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.quickSuggestions": {
-			"strings": true
-		},
-		"editor.suggest.insertMode": "replace",
-		"gitlens.codeLens.scopes": [
-			"document"
-		],
-	},
-	"[less]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"[scss]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"editor.hover.enabled": true,
-	"editor.colorDecorators": true,
-	"[typescriptreact]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"openInGitHub.defaultBranch": "master",
-	"openInGitHub.defaultRemote": "origin",
-	"openInGithub.maxBuffer": 512000,
-	"openInGitHub.excludeCurrentRevision": false,
-	"liveshare.allowGuestDebugControl": true,
-	"liveshare.allowGuestTaskControl": true,
-	"files.exclude": {
-		"**/*.chunk.js": true,
-		"**/*.js.map": true,
-		"**/*.min.js": true,
-		"backend/errors/test-files/*": true,
-		"backend/private-graph/graph/generated/*": true,
-		"backend/public-graph/graph/generated/*": true,
-		"backend/go.sum": true,
-		"backend/event-parse/sample-events/*.json": true,
-		"**/*.scss.d.ts": true,
-		// "frontend/src/graph/generated/*": true,
-		"backend/payload/*": true,
-		"**/yarn-error.log": true
-	},
-	"cSpell.words": [
-		"Blocklist",
-		"interactable"
-	],
-	"[yaml]": {
-		"editor.defaultFormatter": "redhat.vscode-yaml"
-	},
+    "sourcegraph.defaultBranch": "master",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true,
+        "source.fixAll.stylelint": true
+    },
+    "go.formatTool": "gofmt",
+    "go.useLanguageServer": true,
+    "go.autocompleteUnimportedPackages": true,
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--fast"],
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "[go]": {
+        "editor.defaultFormatter": "golang.go"
+    },
+    "go.testEnvVars": {
+        "LOG_LEVEL": "debug",
+        "PSQL_HOST": "localhost",
+        "PSQL_PORT": "5432",
+        "PSQL_USER": "postgres",
+        "PSQL_PASSWORD": "postgres",
+        "ENVIRONMENT": "test"
+    },
+    "css.validate": false,
+    "less.validate": false,
+    "scss.validate": false,
+    "stylelint.enable": true,
+    "stylelint.validate": ["css", "less", "postcss", "scss"],
+    "[graphql]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.quickSuggestions": {
+            "strings": true
+        },
+        "editor.suggest.insertMode": "replace",
+        "gitlens.codeLens.scopes": ["document"]
+    },
+    "[less]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[scss]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.hover.enabled": true,
+    "editor.colorDecorators": true,
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "openInGitHub.defaultBranch": "master",
+    "openInGitHub.defaultRemote": "origin",
+    "openInGithub.maxBuffer": 512000,
+    "openInGitHub.excludeCurrentRevision": false,
+    "liveshare.allowGuestDebugControl": true,
+    "liveshare.allowGuestTaskControl": true,
+    "files.exclude": {
+        "**/*.chunk.js": true,
+        "**/*.js.map": true,
+        "**/*.min.js": true,
+        "backend/errors/test-files/*": true,
+        "backend/private-graph/graph/generated/*": true,
+        "backend/public-graph/graph/generated/*": true,
+        "backend/go.sum": true,
+        "backend/event-parse/sample-events/*.json": true,
+        "**/*.scss.d.ts": true,
+        // "frontend/src/graph/generated/*": true,
+        "backend/payload/*": true,
+        "**/yarn-error.log": true
+    },
+    "cSpell.words": ["Blocklist", "interactable"],
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[sql]": {
+        "editor.defaultFormatter": "mtxr.sqltools"
+    }
 }

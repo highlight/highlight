@@ -707,7 +707,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int, session *model.Session) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -842,7 +842,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		Os:          errorObj.OS,
 		Browser:     errorObj.Browser,
 		Timestamp:   errorObj.Timestamp,
-		Environment: session.Environment,
+		Environment: errorObj.Environment,
 	}
 	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
@@ -1892,7 +1892,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
 		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: sessionObj.Environment})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID, sessionObj)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
@@ -2179,8 +2179,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
 			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: sessionObj.Environment})
-			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID, sessionObj)
+			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: errorToInsert.Environment})
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
 			if err != nil {
 				log.Error(e.Wrap(err, "Error updating error group"))
 				continue
