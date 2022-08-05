@@ -1898,7 +1898,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   &v.RequestID,
 		}
 
-		//create error fields array
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(sessionObj, errorToInsert), projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
@@ -2180,7 +2179,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				IsBeacon:     isBeacon,
 			}
 
-			//create error fields array
 			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
 			if err != nil {
 				log.Error(e.Wrap(err, "Error updating error group"))
