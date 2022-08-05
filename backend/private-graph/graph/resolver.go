@@ -2145,6 +2145,38 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
+func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+	eventIndexStr := "(" + strconv.FormatInt(int64(cursor.EventIndex), 10)
+	vals, err := r.Redis.ZRangeByScoreWithScores(fmt.Sprintf("events-%d", s.ID), redis.ZRangeBy{
+		Min: eventIndexStr,
+		Max: "+inf",
+	}).Result()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving events from Redis"), nil
+	}
+
+	maxScore := 0
+	allEvents := make([]interface{}, 0)
+	for _, z := range vals {
+		intScore := int(z.Score)
+		// Beacon events have decimals, skip them
+		if z.Score != float64(intScore) {
+			continue
+		}
+		if intScore > maxScore {
+			maxScore = intScore
+		}
+		subEvents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(z.Member.(string)), &subEvents); err != nil {
+			return nil, e.Wrap(err, "error decoding event data"), nil
+		}
+		allEvents = append(allEvents, subEvents["events"]...)
+	}
+
+	nextCursor := EventsCursor{EventIndex: maxScore}
+	return allEvents, nil, &nextCursor
+}
+
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",

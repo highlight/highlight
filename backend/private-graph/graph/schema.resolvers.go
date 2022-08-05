@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -5981,6 +5981,9 @@ GROUP BY
 
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
+	var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+	var RedisProjectIds = []int{1}
+
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
 		defer close(ch)
@@ -6002,7 +6005,13 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
-			events, err, nextCursor := r.getEvents(ctx, session, cursor)
+			var events []interface{}
+			var nextCursor *EventsCursor
+			if UseRedis && lo.Contains(RedisProjectIds, session.ProjectID) {
+				events, err, nextCursor = r.getEventsRedis(ctx, session, cursor)
+			} else {
+				events, err, nextCursor = r.getEvents(ctx, session, cursor)
+			}
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return

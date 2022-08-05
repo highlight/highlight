@@ -5,4 +5,5 @@ export enum SESSION_STORAGE_KEYS {
     SESSION_SECURE_ID = 'sessionSecureID',
     USER_IDENTIFIER = 'highlightIdentifier',
     USER_OBJECT = 'highlightUserObject',
+    PAYLOAD_ID = 'payloadId',
 }

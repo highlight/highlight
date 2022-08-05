@@ -144,6 +144,7 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 const SessionReinitializeExpiry = time.Minute * 15
 
 var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+var RedisProjectIds = []int{1}
 
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
@@ -1926,6 +1927,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	var g errgroup.Group
 
+	payloadIdDeref := 0
+	if payloadId != nil {
+		payloadIdDeref = *payloadId
+	}
+
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
@@ -2003,26 +2009,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if UseRedis && projectID == 1 {
-				var builder strings.Builder
-				payloadIdDeref := 0
-				if payloadId != nil {
-					payloadIdDeref = *payloadId
-				}
-
-				beaconStr := ";"
+			if UseRedis && lo.Contains(RedisProjectIds, projectID) {
+				score := float64(payloadIdDeref)
 				if isBeacon {
-					beaconStr = "b"
+					score -= .5
 				}
-
-				builder.WriteString(beaconStr)
-				builder.Write(b)
 
 				// Add to sorted set without updating existing elements
-				r.Redis.ZAddNX(fmt.Sprintf("events-%d", sessionID), redis.Z{
-					Score:  float64(payloadIdDeref),
-					Member: builder.String(),
+				cmd := r.Redis.ZAddNX(fmt.Sprintf("events-%d", sessionID), redis.Z{
+					Score:  score,
+					Member: string(b),
 				})
+
+				if err := cmd.Err(); err != nil {
+					return e.Wrap(err, "error adding events payload in Redis")
+				}
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {

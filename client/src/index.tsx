@@ -367,7 +367,14 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
-        this._payloadId = 1;
+        this._payloadId =
+            Number(
+                window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)
+            ) ?? 1;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -1184,6 +1191,10 @@ export class Highlight {
 
         if (!isBeacon) {
             this._payloadId++;
+            window.sessionStorage.setItem(
+                SESSION_STORAGE_KEYS.PAYLOAD_ID,
+                this._payloadId.toString()
+            );
         }
 
         const highlightLogs = getHighlightLogs();

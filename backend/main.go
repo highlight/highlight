@@ -315,6 +315,11 @@ func main() {
 						StorageClient:   storage,
 						AlertWorkerPool: alertWorkerpool,
 						OpenSearch:      opensearchClient,
+						Redis: redis.NewClient(&redis.Options{
+							Addr:     redisEventsStagingEndpoint,
+							Password: "", // no password set
+							DB:       0,  // use default DB
+						}),
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -394,6 +399,11 @@ func main() {
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			Redis: redis.NewClient(&redis.Options{
+				Addr:     redisEventsStagingEndpoint,
+				Password: "", // no password set
+				DB:       0,  // use default DB
+			}),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
