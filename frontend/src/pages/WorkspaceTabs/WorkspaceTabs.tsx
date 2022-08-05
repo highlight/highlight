@@ -11,7 +11,7 @@ import styles from './WorkspaceTabs.module.scss';
 
 const BillingPage = React.lazy(() => import('../Billing/Billing'));
 
-type SettingsTab = 'team' | 'settings' | 'billing';
+type SettingsTab = 'team' | 'settings' | 'current-plan' | 'upgrade-plan';
 
 const getTitle = (tab: SettingsTab): string => {
     switch (tab) {
@@ -19,8 +19,10 @@ const getTitle = (tab: SettingsTab): string => {
             return 'Team';
         case 'settings':
             return 'Properties';
-        case 'billing':
-            return 'Billing';
+        case 'current-plan':
+            return 'Current Plan';
+        case 'upgrade-plan':
+            return 'Upgrade Plan';
     }
 };
 
@@ -31,8 +33,6 @@ export const WorkspaceTabs = () => {
         workspace_id: string;
         page_id: SettingsTab;
     }>();
-
-    <title>Workspace Team</title>;
 
     return (
         <>
@@ -63,8 +63,17 @@ export const WorkspaceTabs = () => {
                             panelContent: <WorkspaceSettings />,
                         },
                         {
-                            key: 'billing',
-                            title: getTitle('billing'),
+                            key: 'current-plan',
+                            title: getTitle('current-plan'),
+                            panelContent: (
+                                <Suspense fallback={null}>
+                                    <BillingPage />
+                                </Suspense>
+                            ),
+                        },
+                        {
+                            key: 'upgrade-plan',
+                            title: getTitle('upgrade-plan'),
                             panelContent: (
                                 <Suspense fallback={null}>
                                     <BillingPage />

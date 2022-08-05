@@ -27,6 +27,7 @@ type Session {
     environment: String
     app_version: String
     client_version: String
+    firstload_version: String
     client_config: String
     language: String!
     identifier: String!
@@ -119,7 +120,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -211,9 +212,10 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -245,6 +247,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -398,6 +401,7 @@ input DashboardParamsInput {
     units: String
     aggregator: MetricAggregator
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 input HistogramParamsInput {
@@ -756,6 +760,7 @@ type DashboardPayload {
     date: String!
     value: Float!
     aggregator: MetricAggregator
+    group: String
 }
 
 type HistogramBucket {
@@ -782,6 +787,7 @@ type CategoryHistogramPayload {
 
 enum DashboardChartType {
     Timeline
+    TimelineBar
     Histogram
 }
 
@@ -811,6 +817,7 @@ input DashboardMetricConfigInput {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 type DashboardMetricConfig {
@@ -828,6 +835,7 @@ type DashboardMetricConfig {
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilter!]
+    groups: [String!]
 }
 
 type DashboardDefinition {

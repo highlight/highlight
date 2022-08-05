@@ -1393,25 +1393,25 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@highlight-run/rrdom@>=0.1.14":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.14.tgz#d52b39327d29b904e49eaab6f1e6a13a41308a70"
-  integrity sha512-aN8Oy3zA7ABX6zDETXuvoI08TwSR7FJlhA8+8/ICe4CLVWqjdsJuFfPq+ZZ+FFN6BIdAtMot+NBfdDbp2d8PnA==
+"@highlight-run/rrdom@0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrdom/-/rrdom-0.1.16.tgz#e312fee7b6287ddb90e744b7a4664b5c25165655"
+  integrity sha512-TbJm20/Q65DMgSagYbB77P1VtfKiP/3u1epVxM1DSkF813ZWZuem/6YZjK7a0eHPQFzrvI1MZZDHJI7oqj0zWQ==
   dependencies:
-    "@highlight-run/rrweb-snapshot" ">=1.1.22"
+    "@highlight-run/rrweb-snapshot" "1.1.24"
 
-"@highlight-run/rrweb-snapshot@>=1.1.22":
-  version "1.1.22"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.22.tgz#7a8c3ffea74ede246dba17bf038528b7d3d0947f"
-  integrity sha512-w3yWlBA8D4kQ1gKxtI/VG8YyVa98DYmxX0kXKhYOg/HhTIdwuj14OxcUt0u1ZBRuqhZXGdsyAURacFkkZmWpIg==
+"@highlight-run/rrweb-snapshot@1.1.24":
+  version "1.1.24"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb-snapshot/-/rrweb-snapshot-1.1.24.tgz#da5144b126742b011ceb90eb768981ba2aad958c"
+  integrity sha512-4P7VILRcV4v3FFElbd7dXcj7qgvWNLjZHjZR1Ma3DGlzV3wXMScKqiRRNvm40tl64NQqi+8Iyjtn8qlsbeBheg==
 
-"@highlight-run/rrweb@2.0.17":
-  version "2.0.17"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.17.tgz#a8a8b28dcc18b08d3db8de52f3e69dcafee37bf8"
-  integrity sha512-SpS7Z1BqYtAalQ3DDOabrBRsxsrYxHThB26lf1VBX40D51O9hcLD85dgh0pmYGdgjwV2WeQi49ouiE4VLt3HGw==
+"@highlight-run/rrweb@2.0.20":
+  version "2.0.20"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-2.0.20.tgz#cd0dbb9f185f803f1531f87c2c539bda65ceaa0c"
+  integrity sha512-BXByqggfPd8Eg66Sybo4LCy+6388SWp+7UhUlpUaYdiHyX7BcdkmeoBZhJzxFYdi57oU4cZ6VkvKsWaZPmIgJQ==
   dependencies:
-    "@highlight-run/rrdom" ">=0.1.14"
-    "@highlight-run/rrweb-snapshot" ">=1.1.22"
+    "@highlight-run/rrdom" "0.1.16"
+    "@highlight-run/rrweb-snapshot" "1.1.24"
     "@types/css-font-loading-module" "0.0.7"
     "@xstate/fsm" "^1.4.0"
     base64-arraybuffer "^1.0.1"
@@ -3225,14 +3225,7 @@ create-require@^1.1.0:
   resolved "https://registry.yarnpkg.com/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
 
-cross-fetch@^3.0.4:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz#3a4040bc8941e653e0e9cf17f29ebcd177d3365c"
-  integrity sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ==
-  dependencies:
-    node-fetch "2.6.1"
-
-cross-fetch@^3.1.5:
+cross-fetch@^3.0.4, cross-fetch@^3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.1.5.tgz#e1389f44d9e7ba767907f7af8454787952ab534f"
   integrity sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==
@@ -6271,12 +6264,7 @@ node-domexception@1.0.0:
   resolved "https://registry.yarnpkg.com/node-domexception/-/node-domexception-1.0.0.tgz#6888db46a1f71c0b76b3f7555016b63fe64766e5"
   integrity sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==
 
-node-fetch@2.6.1, node-fetch@^2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
-  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
-
-node-fetch@2.6.7, node-fetch@^2.6.7:
+node-fetch@2.6.7, node-fetch@^2.6.1, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==

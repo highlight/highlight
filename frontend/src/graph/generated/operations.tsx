@@ -1608,7 +1608,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregator'
+                'date' | 'value' | 'aggregator' | 'group'
             >
         >
     >;
@@ -1813,6 +1813,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'has_errors'
             | 'within_billing_quota'
             | 'client_version'
+            | 'firstload_version'
             | 'client_config'
             | 'is_public'
             | 'event_counts'
@@ -2386,7 +2387,12 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
+            | 'id'
+            | 'name'
+            | 'secret'
+            | 'plan_tier'
+            | 'unlimited_members'
+            | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
@@ -3723,6 +3729,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'min_percentile'
                             | 'max_value'
                             | 'max_percentile'
+                            | 'groups'
                         > & {
                                 filters?: Types.Maybe<
                                     Array<

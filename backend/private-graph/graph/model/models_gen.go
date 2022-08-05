@@ -21,9 +21,10 @@ type Account struct {
 	Email                string     `json:"email"`
 	SubscriptionStart    *time.Time `json:"subscription_start"`
 	PlanTier             string     `json:"plan_tier"`
+	UnlimitedMembers     bool       `json:"unlimited_members"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	MemberCount          int        `json:"member_count"`
-	MemberLimit          int        `json:"member_limit"`
+	MemberLimit          *int       `json:"member_limit"`
 }
 
 type AccountDetails struct {
@@ -96,6 +97,7 @@ type DashboardMetricConfig struct {
 	MaxValue                 *float64           `json:"max_value"`
 	MaxPercentile            *float64           `json:"max_percentile"`
 	Filters                  []*MetricTagFilter `json:"filters"`
+	Groups                   []string           `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
@@ -113,6 +115,7 @@ type DashboardMetricConfigInput struct {
 	MaxValue                 *float64                `json:"max_value"`
 	MaxPercentile            *float64                `json:"max_percentile"`
 	Filters                  []*MetricTagFilterInput `json:"filters"`
+	Groups                   []string                `json:"groups"`
 }
 
 type DashboardParamsInput struct {
@@ -122,12 +125,14 @@ type DashboardParamsInput struct {
 	Units             *string                 `json:"units"`
 	Aggregator        *MetricAggregator       `json:"aggregator"`
 	Filters           []*MetricTagFilterInput `json:"filters"`
+	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
 	Date       string            `json:"date"`
 	Value      float64           `json:"value"`
 	Aggregator *MetricAggregator `json:"aggregator"`
+	Group      *string           `json:"group"`
 }
 
 type DateRangeInput struct {
@@ -265,7 +270,7 @@ type Plan struct {
 	Type         PlanType             `json:"type"`
 	Interval     SubscriptionInterval `json:"interval"`
 	Quota        int                  `json:"quota"`
-	MembersLimit int                  `json:"membersLimit"`
+	MembersLimit *int                 `json:"membersLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -382,18 +387,20 @@ type UserPropertyInput struct {
 type DashboardChartType string
 
 const (
-	DashboardChartTypeTimeline  DashboardChartType = "Timeline"
-	DashboardChartTypeHistogram DashboardChartType = "Histogram"
+	DashboardChartTypeTimeline    DashboardChartType = "Timeline"
+	DashboardChartTypeTimelineBar DashboardChartType = "TimelineBar"
+	DashboardChartTypeHistogram   DashboardChartType = "Histogram"
 )
 
 var AllDashboardChartType = []DashboardChartType{
 	DashboardChartTypeTimeline,
+	DashboardChartTypeTimelineBar,
 	DashboardChartTypeHistogram,
 }
 
 func (e DashboardChartType) IsValid() bool {
 	switch e {
-	case DashboardChartTypeTimeline, DashboardChartTypeHistogram:
+	case DashboardChartTypeTimeline, DashboardChartTypeTimelineBar, DashboardChartTypeHistogram:
 		return true
 	}
 	return false

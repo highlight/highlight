@@ -220,6 +220,7 @@ type Workspace struct {
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
+	UnlimitedMembers            bool   `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
 	BillingPeriodEnd            *time.Time
 	NextInvoiceDate             *time.Time
@@ -329,6 +330,7 @@ type DashboardMetric struct {
 	MaxValue                 *float64
 	MaxPercentile            *float64
 	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+	Groups                   pq.StringArray           `gorm:"type:text[]"`
 }
 
 type DashboardMetricFilter struct {
