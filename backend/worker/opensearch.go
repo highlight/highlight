@@ -105,10 +105,9 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 	}
 
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
-		Select("error_objects.id, error_objects.error_group_id, error_objects.url, error_objects.os, error_objects.browser, error_objects.timestamp, sessions.environment").
-		Joins("JOIN sessions ON error_objects.session_id = sessions.id").
 		Where(whereClause).
-		Order("error_objects.created_at asc").Rows()
+		Order("created_at asc").Rows()
+
 	if err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
