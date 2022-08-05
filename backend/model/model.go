@@ -1274,36 +1274,39 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	// table with no primary key. We use our own sequence to prevent assigning a
 	// value to old records.
 	if err := DB.Exec(`
-		BEGIN
-			IF NOT EXISTS
-				SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq'
-			THEN
-				CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
-			END IF;
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
+				THEN
+					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
+				END IF;
 		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating session_fields_id_seq")
 	}
 
 	if err := DB.Exec(`
-		BEGIN
-			IF NOT EXISTS
-				(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
-			THEN
-				ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
-			END IF;
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
+				END IF;
 		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error creating session_fields.id column")
 	}
 
 	if err := DB.Exec(`
-		BEGIN
-			IF NOT EXISTS
-				(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
-			THEN
-				ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
-			END IF;
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
+				THEN
+					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
+				END IF;
 		END $$;
 	`).Error; err != nil {
 		return nil, e.Wrap(err, "Error assigning default to session_fields.id")
