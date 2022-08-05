@@ -911,24 +911,34 @@ export class Highlight {
                     document.visibilityState === 'hidden' &&
                     'sendBeacon' in navigator
                 ) {
-                    this._sendPayload({
-                        isBeacon: true,
-                        sendFn: (payload) => {
-                            let blob = new Blob(
-                                [
-                                    JSON.stringify({
-                                        query: print(PushPayloadDocument),
-                                        variables: payload,
-                                    }),
-                                ],
-                                {
-                                    type: 'application/json',
-                                }
-                            );
-                            navigator.sendBeacon(`${this._backendUrl}`, blob);
-                            return Promise.resolve(0);
-                        },
-                    });
+                    try {
+                        this._sendPayload({
+                            isBeacon: true,
+                            sendFn: (payload) => {
+                                let blob = new Blob(
+                                    [
+                                        JSON.stringify({
+                                            query: print(PushPayloadDocument),
+                                            variables: payload,
+                                        }),
+                                    ],
+                                    {
+                                        type: 'application/json',
+                                    }
+                                );
+                                navigator.sendBeacon(
+                                    `${this._backendUrl}`,
+                                    blob
+                                );
+                                return Promise.resolve(0);
+                            },
+                        });
+                    } catch (e) {
+                        if (this._isOnLocalHost) {
+                            console.error(e);
+                            HighlightWarning('_sendPayload', e);
+                        }
+                    }
                 }
             });
 
