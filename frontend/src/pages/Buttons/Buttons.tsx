@@ -41,17 +41,17 @@ export const Buttons = () => {
                     src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
                 ></iframe>
                 <div className={'highlight-mask'}>
-                This is masked.{' '}
-                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
-            </div>
+                    This is masked.{' '}
+                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                </div>
                 <div className={'highlight-block'}>
-                This is blocked.{' '}
-                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
-            </div>
+                    This is blocked.{' '}
+                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                </div>
                 <div className={'highlight-ignore'}>
-                This is ignored.{' '}
-                <img src={'/images/logo.png'} height={16} alt={'asdf'} />
-            </div>
+                    This is ignored.{' '}
+                    <img src={'/images/logo.png'} height={16} alt={'asdf'} />
+                </div>
             </div>
             <div className={styles.buttonBody}>
                 <div>
