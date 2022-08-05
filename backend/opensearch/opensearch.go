@@ -591,10 +591,11 @@ type OpenSearchError struct {
 }
 
 type OpenSearchErrorObject struct {
-	Url       string    `json:"visited_url"`
-	Os        string    `json:"os_name"`
-	Browser   string    `json:"browser"`
-	Timestamp time.Time `json:"timestamp"`
+	Url         string    `json:"visited_url"`
+	Os          string    `json:"os_name"`
+	Browser     string    `json:"browser"`
+	Timestamp   time.Time `json:"timestamp"`
+	Environment string    `json:"environment"`
 }
 
 func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
