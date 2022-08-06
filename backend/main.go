@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -32,6 +31,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/redis_utils"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -121,8 +121,6 @@ func main() {
 	// initialize logger
 	log.SetReportCaller(true)
 
-	redisEventsStagingEndpoint := os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
-
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_ONPREM_BETA":
 		// default case, should only exist in main highlight prod
@@ -188,6 +186,8 @@ func main() {
 		log.Fatalf("error creating lambda client: %v", err)
 	}
 
+	redisClient := redis_utils.NewClient()
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -205,11 +205,7 @@ func main() {
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
-		Redis: redis.NewClient(&redis.Options{
-			Addr:     redisEventsStagingEndpoint,
-			Password: "", // no password set
-			DB:       0,  // use default DB
-		}),
+		Redis:                  redisClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -315,11 +311,7 @@ func main() {
 						StorageClient:   storage,
 						AlertWorkerPool: alertWorkerpool,
 						OpenSearch:      opensearchClient,
-						Redis: redis.NewClient(&redis.Options{
-							Addr:     redisEventsStagingEndpoint,
-							Password: "", // no password set
-							DB:       0,  // use default DB
-						}),
+						Redis:           redisClient,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -399,11 +391,7 @@ func main() {
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
-			Redis: redis.NewClient(&redis.Options{
-				Addr:     redisEventsStagingEndpoint,
-				Password: "", // no password set
-				DB:       0,  // use default DB
-			}),
+			Redis:           redisClient,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {

@@ -16,7 +16,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-redis/redis"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis_utils"
 
 	"gorm.io/gorm"
 
@@ -150,7 +152,7 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	var eventRows *sql.Rows
 	var err error
 	var numberOfRows int64 = 0
@@ -197,6 +199,59 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	manager.Events.Length = numberOfRows
+
+	return nil
+}
+
+func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	var numberOfRows int64 = 0
+	eventsWriter := manager.Events.Writer()
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+
+	vals, err := w.Resolver.Redis.ZRangeByScoreWithScores(fmt.Sprintf("events-%d", s.ID), redis.ZRangeBy{
+		Min: "-inf",
+		Max: "+inf",
+	}).Result()
+	if err != nil {
+		return errors.Wrap(err, "error retrieving events objects")
+	}
+
+	for _, z := range vals {
+		eventObject := model.EventsObject{
+			Events: z.Member.(string),
+		}
+		if err := eventsWriter.Write(&eventObject); err != nil {
+			return errors.Wrap(err, "error writing event row")
+		}
+		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
+		numberOfRows += 1
+		if writeChunks {
+			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+				return errors.Wrap(err, "error writing event chunk")
+			}
+		}
+	}
+
+	manager.Events.Length = numberOfRows
+
+	return nil
+}
+
+func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+
+	if redis_utils.UseRedis(s.ProjectID) {
+		if err := w.fetchEventsRedis(ctx, manager, s); err != nil {
+			return errors.Wrap(err, "error fetching events from Redis")
+		}
+	} else {
+		if err := w.fetchEventsSql(ctx, manager, s); err != nil {
+			return errors.Wrap(err, "error fetching events from SQL")
+		}
+	}
+
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
 	}
@@ -207,7 +262,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 	fileToS3 := manager.GetFile(payload.EventsChunked)
 	if writeChunks && fileToS3 != nil {
-		_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkIndex))
+		_, err := w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkIndex))
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}
@@ -219,7 +274,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		return errors.Wrap(err, "error retrieving resources objects")
 	}
 	resourceWriter := manager.Resources.Writer()
-	numberOfRows = 0
+	var numberOfRows int64 = 0
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)

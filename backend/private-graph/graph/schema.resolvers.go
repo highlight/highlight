@@ -5982,9 +5982,6 @@ GROUP BY
 
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
-	var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-	var RedisProjectIds = []int{1}
-
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
 		defer close(ch)
@@ -6008,11 +6005,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			}
 			var events []interface{}
 			var nextCursor *EventsCursor
-			if UseRedis && lo.Contains(RedisProjectIds, session.ProjectID) {
-				events, err, nextCursor = r.getEventsRedis(ctx, session, cursor)
-			} else {
-				events, err, nextCursor = r.getEvents(ctx, session, cursor)
-			}
+			events, err, nextCursor = r.getEvents(ctx, session, cursor)
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return

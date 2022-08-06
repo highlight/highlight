@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/highlight-run/highlight/backend/redis_utils"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -142,9 +142,6 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 // SessionReinitializeExpiry is the interval between two InitializeSession calls with
 // the same secureSessionID that should be treated as different sessions
 const SessionReinitializeExpiry = time.Minute * 15
-
-var UseRedis = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
-var RedisProjectIds = []int{1}
 
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
@@ -1392,7 +1389,9 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	if highlightSession && !backfill && len(session.ClientID) > 0 {
 		// Find past unidentified sessions and identify them.
 		backfillSessions := []*model.Session{}
-		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID, Identifier: "", Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID}).
+			Where("(identifier IS null OR identifier = '') AND (identified IS null OR identified = false)").
+			Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
 			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
 		}
 
@@ -2075,7 +2074,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if UseRedis && lo.Contains(RedisProjectIds, projectID) {
+			if redis_utils.UseRedis(projectID) {
 				score := float64(payloadIdDeref)
 				if isBeacon {
 					score -= .5
@@ -2097,7 +2096,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				}
 			}
 
-			// ZANETODO: should be max(current, new)
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
@@ -2301,7 +2299,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	if doUpdate {
 		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: &model.F,
 		}
 
 		// We only want to update the `HasErrors` field if the session has errors.
@@ -2309,14 +2307,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			fieldsToUpdate.HasErrors = &model.T
 
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "HasErrors").
 				Updates(&fieldsToUpdate).Error; err != nil {
 				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
 				return err
 			}
 		} else {
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded").
 				Updates(&fieldsToUpdate).Error; err != nil {
 				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 				return err

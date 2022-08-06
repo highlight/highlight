@@ -21,6 +21,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/redis_utils"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -2146,17 +2147,25 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
-	eventIndexStr := "(" + strconv.FormatInt(int64(cursor.EventIndex), 10)
+	eventObjectIndex := "-inf"
+	if cursor.EventObjectIndex != nil {
+		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
+	}
+
 	vals, err := r.Redis.ZRangeByScoreWithScores(fmt.Sprintf("events-%d", s.ID), redis.ZRangeBy{
-		Min: eventIndexStr,
+		Min: eventObjectIndex,
 		Max: "+inf",
 	}).Result()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving events from Redis"), nil
 	}
 
-	maxScore := 0
 	allEvents := make([]interface{}, 0)
+	if len(vals) == 0 {
+		return allEvents, nil, &cursor
+	}
+
+	maxScore := 0
 	for _, z := range vals {
 		intScore := int(z.Score)
 		// Beacon events have decimals, skip them
@@ -2173,11 +2182,19 @@ func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor 
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
 
-	nextCursor := EventsCursor{EventIndex: maxScore}
+	if cursor.EventIndex != 0 && cursor.EventIndex < len(allEvents) {
+		allEvents = allEvents[cursor.EventIndex:]
+	}
+
+	nextCursor := EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int(maxScore)}
+	log.Infof("live mode new cursor!: %d", maxScore)
 	return allEvents, nil, &nextCursor
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+	if redis_utils.UseRedis(s.ProjectID) {
+		return r.getEventsRedis(ctx, s, cursor)
+	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
