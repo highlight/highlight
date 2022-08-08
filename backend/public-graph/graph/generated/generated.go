@@ -422,7 +422,7 @@ type Mutation {
         is_beacon: Boolean
         has_session_unloaded: Boolean
         highlight_logs: String
-        payload_id: ID # Optional, for backwards compatibility with older clients
+        payload_id: ID # Optional for backwards compatibility with older clients
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     pushMetrics(metrics: [MetricInput]!): ID!
