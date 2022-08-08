@@ -20,7 +20,7 @@ const DashboardsRouter = () => {
     const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
-    const { data, loading } = useGetDashboardDefinitionsQuery({
+    const { data, loading, error } = useGetDashboardDefinitionsQuery({
         variables: { project_id },
     });
     const [upsertDashboardMutation] = useUpsertDashboardMutation({
@@ -29,7 +29,7 @@ const DashboardsRouter = () => {
 
     useEffect(() => {
         // if no dashboards exist, create a web vitals dashboard by default
-        if (!loading && !data?.dashboard_definitions?.length) {
+        if (!loading && !error && !data?.dashboard_definitions?.length) {
             upsertDashboardMutation({
                 variables: {
                     project_id,
@@ -39,7 +39,7 @@ const DashboardsRouter = () => {
                 },
             });
         }
-    }, [project_id, upsertDashboardMutation, loading, data]);
+    }, [project_id, upsertDashboardMutation, loading, error, data]);
 
     return (
         <DashboardsContextProvider

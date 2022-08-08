@@ -9,9 +9,15 @@ import {
     useGetAdminQuery,
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
+    useGetDashboardDefinitionsQuery,
+    useUpsertDashboardMutation,
 } from '@graph/hooks';
-import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
-import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable';
+import { namedOperations } from '@graph/operations';
+import { DashboardGrid } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
+import {
+    DEFAULT_HOME_DASHBOARD_LAYOUT,
+    HOME_DASHBOARD_CONFIGURATION,
+} from '@pages/Home/utils/HomePageUtils';
 import { dailyCountData } from '@util/dashboardCalculations';
 import { useIntegrated } from '@util/integrated';
 import { formatNumber } from '@util/numbers';
@@ -20,6 +26,7 @@ import { message } from 'antd';
 import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
+import { Layouts } from 'react-grid-layout';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
@@ -39,13 +46,10 @@ import WaitingAnimation from '../../lottie/waiting.json';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
-import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
 } from './components/HomePageFilters/HomePageFiltersContext';
-import KeyPerformanceIndicators from './components/KeyPerformanceIndicators/KeyPerformanceIndicators';
-import ReferrersTable from './components/ReferrersTable/ReferrersTable';
 import styles from './HomePage.module.scss';
 
 type DailyCount = {
@@ -66,6 +70,7 @@ const HomePage = () => {
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[1].value
     );
+    const [now] = useState(moment.now());
     const [hasData, setHasData] = useState<boolean>(true);
     const { integrated, loading: integratedLoading } = useIntegrated();
 
@@ -110,33 +115,22 @@ const HomePage = () => {
                                 defaultValue={timeFilter[1]}
                                 onSelect={setDateRangeLength}
                             />
-                            {/* DateRangePicker will be enabled when we do this: https://linear.app/highlight/issue/HIG-1601/date-picker-for-home-page-is-not-picking-the-right-date-with-custom */}
-                            {/* <DateRangePicker
-                                onChange={(_startDate, _endDate) => {
-                                    if (!_startDate || !_endDate) {
-                                        return;
-                                    }
-
-                                    const startDate = moment(_startDate);
-                                    const endDate = moment(_endDate);
-                                    const daysDifference = startDate.diff(
-                                        endDate,
-                                        'days'
-                                    );
-
-                                    setDateRangeLength(daysDifference);
-                                }}
-                            /> */}
                         </div>
                     </div>
-                    <KeyPerformanceIndicators />
                     <div className={styles.dashboardBody}>
-                        <SessionCountGraph />
-                        <ErrorCountGraph />
-                        <ReferrersTable />
-                        <ActiveUsersTable />
-                        <RageClicksForProjectTable />
-                        <TopRoutesTable />
+                        <HomePageDashboard
+                            dateRange={{
+                                start_date: moment(now)
+                                    .subtract(dateRangeLength, 'days')
+                                    .format(),
+                                end_date: moment(now).format(),
+                            }}
+                            setDateRange={(start: string, end: string) => {
+                                setDateRangeLength(
+                                    moment(end).diff(moment(start), 'day')
+                                );
+                            }}
+                        />
                     </div>
                     {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>
@@ -185,6 +179,67 @@ const HomePage = () => {
     );
 };
 
+const HomePageDashboard = ({
+    dateRange,
+    setDateRange,
+}: {
+    dateRange: { start_date: string; end_date: string };
+    setDateRange: (start: string, end: string, custom?: boolean) => void;
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const [layout, setLayout] = useState<Layouts>({ lg: [] });
+    const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
+    const { data, loading, error } = useGetDashboardDefinitionsQuery({
+        variables: { project_id },
+    });
+    const [upsertDashboardMutation] = useUpsertDashboardMutation({
+        refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
+    });
+    const dashboard = data?.dashboard_definitions.filter(
+        (d) => d?.name === 'Home'
+    )[0];
+
+    useEffect(() => {
+        // if no dashboards exist, create a web vitals dashboard by default
+        if (
+            !loading &&
+            !error &&
+            !data?.dashboard_definitions?.filter((d) => d?.name === 'Home')
+                ?.length
+        ) {
+            upsertDashboardMutation({
+                variables: {
+                    project_id,
+                    metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
+                    name: 'Home',
+                    layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
+                },
+            });
+        }
+    }, [project_id, upsertDashboardMutation, loading, error, data]);
+
+    useEffect(() => {
+        if (dashboard?.layout) {
+            setLayout(JSON.parse(dashboard.layout));
+        }
+    }, [dashboard, setLayout]);
+
+    if (loading || !dashboard) {
+        return null;
+    }
+    return (
+        <DashboardGrid
+            dashboard={dashboard}
+            updateDashboard={() => {}}
+            layout={layout}
+            setLayout={setLayout}
+            setCanSaveChanges={setCanSaveChanges}
+            dateRange={dateRange}
+            updateDateRange={setDateRange}
+        />
+    );
+};
+
 const timeFilter = [
     { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
@@ -193,7 +248,7 @@ const timeFilter = [
     { label: 'This year', value: 30 * 12 },
 ] as const;
 
-const SessionCountGraph = () => {
+export const SessionCountGraph = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -280,7 +335,7 @@ const SessionCountGraph = () => {
     );
 };
 
-const ErrorCountGraph = () => {
+export const ErrorCountGraph = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();

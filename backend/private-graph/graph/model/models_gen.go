@@ -83,39 +83,41 @@ type DashboardDefinition struct {
 }
 
 type DashboardMetricConfig struct {
-	Name                     string             `json:"name"`
-	Description              string             `json:"description"`
-	MaxGoodValue             float64            `json:"max_good_value"`
-	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
-	PoorValue                float64            `json:"poor_value"`
-	Units                    string             `json:"units"`
-	HelpArticle              string             `json:"help_article"`
-	ChartType                DashboardChartType `json:"chart_type"`
-	Aggregator               MetricAggregator   `json:"aggregator"`
-	MinValue                 *float64           `json:"min_value"`
-	MinPercentile            *float64           `json:"min_percentile"`
-	MaxValue                 *float64           `json:"max_value"`
-	MaxPercentile            *float64           `json:"max_percentile"`
-	Filters                  []*MetricTagFilter `json:"filters"`
-	Groups                   []string           `json:"groups"`
+	Name                     string                   `json:"name"`
+	Description              string                   `json:"description"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilter       `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
-	Name                     string                  `json:"name"`
-	Description              string                  `json:"description"`
-	MaxGoodValue             float64                 `json:"max_good_value"`
-	MaxNeedsImprovementValue float64                 `json:"max_needs_improvement_value"`
-	PoorValue                float64                 `json:"poor_value"`
-	Units                    string                  `json:"units"`
-	HelpArticle              string                  `json:"help_article"`
-	ChartType                DashboardChartType      `json:"chart_type"`
-	Aggregator               MetricAggregator        `json:"aggregator"`
-	MinValue                 *float64                `json:"min_value"`
-	MinPercentile            *float64                `json:"min_percentile"`
-	MaxValue                 *float64                `json:"max_value"`
-	MaxPercentile            *float64                `json:"max_percentile"`
-	Filters                  []*MetricTagFilterInput `json:"filters"`
-	Groups                   []string                `json:"groups"`
+	Name                     string                   `json:"name"`
+	Description              string                   `json:"description"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilterInput  `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardParamsInput struct {
@@ -604,6 +606,57 @@ func (e *MetricTagFilterOp) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricTagFilterOp) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricViewComponentType string
+
+const (
+	MetricViewComponentTypeKeyPerformanceGauge MetricViewComponentType = "KeyPerformanceGauge"
+	MetricViewComponentTypeSessionCountChart   MetricViewComponentType = "SessionCountChart"
+	MetricViewComponentTypeErrorCountChart     MetricViewComponentType = "ErrorCountChart"
+	MetricViewComponentTypeReferrersTable      MetricViewComponentType = "ReferrersTable"
+	MetricViewComponentTypeActiveUsersTable    MetricViewComponentType = "ActiveUsersTable"
+	MetricViewComponentTypeRageClicksTable     MetricViewComponentType = "RageClicksTable"
+	MetricViewComponentTypeTopRoutesTable      MetricViewComponentType = "TopRoutesTable"
+)
+
+var AllMetricViewComponentType = []MetricViewComponentType{
+	MetricViewComponentTypeKeyPerformanceGauge,
+	MetricViewComponentTypeSessionCountChart,
+	MetricViewComponentTypeErrorCountChart,
+	MetricViewComponentTypeReferrersTable,
+	MetricViewComponentTypeActiveUsersTable,
+	MetricViewComponentTypeRageClicksTable,
+	MetricViewComponentTypeTopRoutesTable,
+}
+
+func (e MetricViewComponentType) IsValid() bool {
+	switch e {
+	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable:
+		return true
+	}
+	return false
+}
+
+func (e MetricViewComponentType) String() string {
+	return string(e)
+}
+
+func (e *MetricViewComponentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricViewComponentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricViewComponentType", str)
+	}
+	return nil
+}
+
+func (e MetricViewComponentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

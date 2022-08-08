@@ -3063,6 +3063,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
+			ComponentType:            m.ComponentType,
 			ChartType:                m.ChartType,
 			Aggregator:               m.Aggregator,
 			MaxGoodValue:             m.MaxGoodValue,
@@ -5386,6 +5387,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
+				ComponentType:            metric.ComponentType,
 				ChartType:                metric.ChartType,
 				Aggregator:               metric.Aggregator,
 				MaxGoodValue:             metric.MaxGoodValue,

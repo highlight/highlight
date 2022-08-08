@@ -20,6 +20,7 @@ import {
 import {
     DashboardChartType,
     DashboardMetricConfig,
+    Maybe,
     MetricAggregator,
 } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -121,10 +122,12 @@ const DashboardCard = ({
                                                 'Click to learn more about this metric.'
                                             }
                                             onClick={() => {
-                                                window.open(
-                                                    metricConfig.help_article,
-                                                    '_blank'
-                                                );
+                                                if (metricConfig.help_article) {
+                                                    window.open(
+                                                        metricConfig.help_article,
+                                                        '_blank'
+                                                    );
+                                                }
                                             }}
                                         />
                                     )}
@@ -339,11 +342,11 @@ const ChartContainer = React.memo(
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
-        chartType: DashboardChartType;
-        aggregator: MetricAggregator;
-        maxGoodValue: number;
-        maxNeedsImprovementValue: number;
-        poorValue: number;
+        chartType?: Maybe<DashboardChartType>;
+        aggregator?: Maybe<MetricAggregator>;
+        maxGoodValue?: Maybe<number>;
+        maxNeedsImprovementValue?: Maybe<number>;
+        poorValue?: Maybe<number>;
         showEditModal: boolean;
         dateRange: Props['dateRange'];
         customDateRange: Props['customDateRange'];
@@ -531,7 +534,7 @@ const ChartContainer = React.memo(
             referenceLines = [
                 {
                     label: 'Goal',
-                    value: maxGoodValue,
+                    value: maxGoodValue || 0,
                     color: 'var(--color-green-300)',
                     onDrag:
                         setMaxGoodValue &&
@@ -541,7 +544,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Needs Improvement',
-                    value: maxNeedsImprovementValue,
+                    value: maxNeedsImprovementValue || 0,
                     color: 'var(--color-red-200)',
                     onDrag:
                         setMaxNeedsImprovementValue &&
@@ -551,7 +554,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Poor',
-                    value: poorValue,
+                    value: poorValue || 0,
                     color: 'var(--color-red-400)',
                     onDrag:
                         setPoorValue &&
@@ -600,11 +603,11 @@ const ChartContainer = React.memo(
                             count: 'var(--color-purple-500)',
                         }}
                         xAxisDataKeyName="range_end"
-                        xAxisLabel={metricConfig.units}
+                        xAxisLabel={metricConfig.units || undefined}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
-                        xAxisUnits={metricConfig.units}
+                        xAxisUnits={metricConfig.units || undefined}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />
@@ -633,7 +636,7 @@ const ChartContainer = React.memo(
                             interval: 0, // show all ticks
                         }}
                         lineColorMapping={LINE_COLORS}
-                        yAxisLabel={metricConfig.units}
+                        yAxisLabel={metricConfig.units || ''}
                         referenceAreaProps={{
                             x1: referenceArea.start,
                             x2: referenceArea.end,
@@ -695,7 +698,7 @@ const ChartContainer = React.memo(
                             scale: 'point',
                             interval: 0, // show all ticks
                         }}
-                        yAxisLabel={metricConfig.units}
+                        yAxisLabel={metricConfig.units || ''}
                     />
                 ) : null}
             </div>

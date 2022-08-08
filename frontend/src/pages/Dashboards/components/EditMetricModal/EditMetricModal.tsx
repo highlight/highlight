@@ -63,16 +63,16 @@ export const EditMetricModal = ({
     const [max, setMax] = useState<number>(
         metricConfig.max_value || metricConfig.max_percentile || 100
     );
-    const [units, setUnits] = useState<string>(metricConfig.units);
+    const [units, setUnits] = useState<string>(metricConfig.units || '');
     const [metricName, setMetricName] = useState<string>(metricConfig.name);
     const [description, setDescription] = useState<string>(
         metricConfig.description
     );
     const [chartType, setChartType] = useState<DashboardChartType>(
-        metricConfig.chart_type
+        metricConfig.chart_type || DashboardChartType.Timeline
     );
     const [aggregator, setAggregator] = useState<MetricAggregator>(
-        metricConfig.aggregator
+        metricConfig.aggregator || MetricAggregator.P50
     );
     const [filters, setFilters] = useState<MetricTagFilter[]>(
         metricConfig.filters || []

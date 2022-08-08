@@ -13,6 +13,7 @@ import {
 import PlusIcon from '@icons/PlusIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
+import { DashboardComponentCard } from '@pages/Dashboards/components/DashboardCard/DashboardComponentCard/DashboardComponentCard';
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext';
 import {
     DEFAULT_SINGLE_LAYOUT,
@@ -132,14 +133,6 @@ const DashboardPage = () => {
             name: dashboard?.name || '',
             layout: JSON.stringify(l),
         });
-    };
-
-    const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
-        setLayout({ lg: newLayout });
-
-        const newLayoutJSON = JSON.stringify(newLayout);
-        const layoutJSON = JSON.stringify(persistedLayout.lg);
-        setCanSaveChanges(layoutJSON !== newLayoutJSON);
     };
 
     if (!dashboard) {
@@ -269,34 +262,80 @@ const DashboardPage = () => {
                     </div>
                 </div>
             </div>
-            <div className={classNames(styles.gridContainer, styles.isEditing)}>
-                <ResponsiveGridLayout
-                    layouts={layout}
-                    cols={{
-                        lg: 12,
-                        md: 10,
-                        sm: 6,
-                        xs: 4,
-                        xxs: 2,
-                    }}
-                    breakpoints={{
-                        lg: 920,
-                        md: 900,
-                        sm: 768,
-                        xs: 480,
-                        xxs: 0,
-                    }}
-                    isDraggable
-                    isResizable
-                    containerPadding={[0, 0]}
-                    rowHeight={155}
-                    resizeHandles={['se']}
-                    draggableHandle="[data-drag-handle]"
-                    onDragStop={handleDashboardChange}
-                    onResizeStop={handleDashboardChange}
-                >
-                    {dashboard.metrics.map((metric, index) => (
-                        <div key={index.toString()}>
+            <DashboardGrid
+                dashboard={dashboard}
+                updateDashboard={pushNewMetricConfig}
+                layout={layout}
+                persistedLayout={persistedLayout}
+                setLayout={setLayout}
+                setCanSaveChanges={setCanSaveChanges}
+                dateRange={dateRange}
+                updateDateRange={updateDateRange}
+                customDateRange={customDateRange}
+            />
+        </LeadAlignLayout>
+    );
+};
+
+export const DashboardGrid = ({
+    dashboard,
+    updateDashboard,
+    layout,
+    persistedLayout,
+    setLayout,
+    setCanSaveChanges,
+    dateRange,
+    updateDateRange,
+    customDateRange,
+}: {
+    dashboard: DashboardDefinition;
+    updateDashboard: (dm: DashboardMetricConfig[]) => void;
+    layout: Layouts;
+    persistedLayout: Layouts;
+    setLayout: React.Dispatch<React.SetStateAction<Layouts>>;
+    setCanSaveChanges: React.Dispatch<React.SetStateAction<Boolean>>;
+    dateRange: { start_date: string; end_date: string };
+    updateDateRange: (start: string, end: string, custom?: boolean) => void;
+    customDateRange?: { label: string; value: number };
+}) => {
+    const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
+        setLayout({ lg: newLayout });
+
+        const newLayoutJSON = JSON.stringify(newLayout);
+        const layoutJSON = JSON.stringify(persistedLayout.lg);
+        setCanSaveChanges(layoutJSON !== newLayoutJSON);
+    };
+
+    return (
+        <div className={classNames(styles.gridContainer, styles.isEditing)}>
+            <ResponsiveGridLayout
+                layouts={layout}
+                cols={{
+                    lg: 12,
+                    md: 10,
+                    sm: 6,
+                    xs: 4,
+                    xxs: 2,
+                }}
+                breakpoints={{
+                    lg: 920,
+                    md: 900,
+                    sm: 768,
+                    xs: 480,
+                    xxs: 0,
+                }}
+                isDraggable
+                isResizable
+                containerPadding={[0, 0]}
+                rowHeight={155}
+                resizeHandles={['se']}
+                draggableHandle="[data-drag-handle]"
+                onDragStop={handleDashboardChange}
+                onResizeStop={handleDashboardChange}
+            >
+                {dashboard.metrics.map((metric, index) => (
+                    <div key={index.toString()}>
+                        {!metric.component_type ? (
                             <DashboardCard
                                 metricIdx={index}
                                 metricConfig={metric}
@@ -309,23 +348,28 @@ const DashboardPage = () => {
                                         ...dashboard.metrics[idx],
                                         ...value,
                                     };
-                                    pushNewMetricConfig(newMetrics);
+                                    updateDashboard(newMetrics);
                                 }}
                                 deleteMetric={(idx: number) => {
                                     const newMetrics = [...dashboard.metrics];
                                     newMetrics.splice(idx, 1);
-                                    pushNewMetricConfig(newMetrics);
+                                    updateDashboard(newMetrics);
                                 }}
                                 key={metric.name}
                                 customDateRange={customDateRange}
                                 dateRange={dateRange}
                                 setDateRange={updateDateRange}
                             />
-                        </div>
-                    ))}
-                </ResponsiveGridLayout>
-            </div>
-        </LeadAlignLayout>
+                        ) : (
+                            <DashboardComponentCard
+                                metricIdx={index}
+                                metricConfig={metric}
+                            />
+                        )}
+                    </div>
+                ))}
+            </ResponsiveGridLayout>
+        </div>
     );
 };
 

@@ -9576,7 +9576,7 @@ export const GetDashboardDefinitionsDocument = gql`
             project_id
             name
             metrics {
-                prebuilt
+                component_type
                 name
                 description
                 max_good_value

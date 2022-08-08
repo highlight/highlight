@@ -876,13 +876,14 @@ export enum MetricAggregator {
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
     description: Scalars['String'];
-    max_good_value: Scalars['Float'];
-    max_needs_improvement_value: Scalars['Float'];
-    poor_value: Scalars['Float'];
-    units: Scalars['String'];
-    help_article: Scalars['String'];
-    chart_type: DashboardChartType;
-    aggregator: MetricAggregator;
+    component_type?: Maybe<MetricViewComponentType>;
+    max_good_value?: Maybe<Scalars['Float']>;
+    max_needs_improvement_value?: Maybe<Scalars['Float']>;
+    poor_value?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
+    help_article?: Maybe<Scalars['String']>;
+    chart_type?: Maybe<DashboardChartType>;
+    aggregator?: Maybe<MetricAggregator>;
     min_value?: Maybe<Scalars['Float']>;
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
@@ -891,7 +892,7 @@ export type DashboardMetricConfigInput = {
     groups?: Maybe<Array<Scalars['String']>>;
 };
 
-export enum PrebuiltComponent {
+export enum MetricViewComponentType {
     KeyPerformanceGauge = 'KeyPerformanceGauge',
     SessionCountChart = 'SessionCountChart',
     ErrorCountChart = 'ErrorCountChart',
@@ -903,16 +904,16 @@ export enum PrebuiltComponent {
 
 export type DashboardMetricConfig = {
     __typename?: 'DashboardMetricConfig';
-    prebuilt?: Maybe<PrebuiltComponent>;
     name: Scalars['String'];
     description: Scalars['String'];
-    max_good_value: Scalars['Float'];
-    max_needs_improvement_value: Scalars['Float'];
-    poor_value: Scalars['Float'];
-    units: Scalars['String'];
-    help_article: Scalars['String'];
-    chart_type: DashboardChartType;
-    aggregator: MetricAggregator;
+    component_type?: Maybe<MetricViewComponentType>;
+    max_good_value?: Maybe<Scalars['Float']>;
+    max_needs_improvement_value?: Maybe<Scalars['Float']>;
+    poor_value?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
+    help_article?: Maybe<Scalars['String']>;
+    chart_type?: Maybe<DashboardChartType>;
+    aggregator?: Maybe<MetricAggregator>;
     min_value?: Maybe<Scalars['Float']>;
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
