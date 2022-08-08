@@ -645,6 +645,11 @@ export class Highlight {
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
+                const client = new ClientJS();
+                let fingerprint = 0;
+                if ('getFingerprint' in client) {
+                    fingerprint = client.getFingerprint();
+                }
                 try {
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
@@ -655,7 +660,7 @@ export class Highlight {
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
-                        id: clientID,
+                        id: fingerprint.toString(),
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
