@@ -72,6 +72,7 @@ type PopoutType =
     | 'multiselect'
     | 'creatable'
     | 'date_range'
+    | 'time_range'
     | 'range';
 interface PopoutContentProps {
     type: PopoutType;
@@ -87,6 +88,9 @@ interface PopoutProps {
 interface SetVisible {
     setVisible: (val: boolean) => void;
 }
+
+const TIME_MAX_LENGTH = 60;
+const RANGE_MAX_LENGTH = 200;
 
 const TOOLTIP_MESSAGE =
     'This property was automatically collected by Highlight';
@@ -273,7 +277,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
     return value!.split('_')[1];
 };
 
-const getLengthLabel = (value: string): string => {
+const getTimeLabel = (value: string): string => {
     const split = value.split('_');
     const start = Number(split[0]);
     const end = Number(split[1]);
@@ -281,6 +285,13 @@ const getLengthLabel = (value: string): string => {
     return ints
         ? `${start} and ${end} minutes`
         : `${start * 60} and ${end * 60} seconds`;
+};
+
+const getLengthLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = Number(split[0]);
+    const end = Number(split[1]);
+    return `${start} and ${end}`;
 };
 
 const getProcessedLabel = (value: string): string => {
@@ -376,7 +387,7 @@ const getOption = (props: any) => {
                         />
                     </div>
                     {(!!tooltipMessage ||
-                        type === 'session' ||
+                        type === SESSION_TYPE ||
                         type === CUSTOM_TYPE ||
                         type === ERROR_TYPE ||
                         type === ERROR_FIELD_TYPE ||
@@ -595,9 +606,10 @@ const PopoutContent = ({
                     }}
                 />
             );
-        case 'range':
+        case 'time_range':
             return (
                 <LengthInput
+                    type={type}
                     start={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[0])
@@ -606,8 +618,40 @@ const PopoutContent = ({
                     end={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[1])
-                            : 60
+                            : TIME_MAX_LENGTH
                     }
+                    max={TIME_MAX_LENGTH}
+                    onChange={(start, end) => {
+                        const value = `${start}_${end}`;
+
+                        onChange({
+                            kind: 'multi',
+                            options: [
+                                {
+                                    label: getTimeLabel(value),
+                                    value,
+                                },
+                            ],
+                        });
+                        setVisible(false);
+                    }}
+                />
+            );
+        case 'range':
+            return (
+                <LengthInput
+                    type={type}
+                    start={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[0])
+                            : 0
+                    }
+                    end={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[1])
+                            : RANGE_MAX_LENGTH
+                    }
+                    max={RANGE_MAX_LENGTH}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -703,6 +747,8 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
             return 'creatable';
         case 'between_date':
             return 'date_range';
+        case 'between_time':
+            return 'time_range';
         case 'between':
             return 'range';
         default:
@@ -788,6 +834,7 @@ const isNegative = (op: Operator): boolean =>
         'not_contains',
         'not_exists',
         'not_between',
+        'not_between_time',
         'not_between_date',
         'not_matches',
     ].includes(op);
@@ -801,6 +848,8 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches',
@@ -816,6 +865,8 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches any of',
@@ -842,6 +893,8 @@ const NEGATION_MAP: { [K in Operator]: Operator } = {
     not_exists: 'exists',
     between: 'not_between',
     not_between: 'between',
+    between_time: 'not_between_time',
+    not_between_time: 'between_time',
     between_date: 'not_between_date',
     not_between_date: 'between_date',
     matches: 'not_matches',
@@ -857,6 +910,8 @@ type Operator =
     | 'not_exists'
     | 'between'
     | 'not_between'
+    | 'between_time'
+    | 'not_between_time'
     | 'between_date'
     | 'not_between_date'
     | 'matches'
@@ -875,6 +930,8 @@ const OPERATORS: Operator[] = [
 
 export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
 
+export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time'];
+
 export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
 export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not'];
@@ -891,6 +948,7 @@ const LABEL_MAP: { [key: string]: string } = {
     'visited-url': 'Visited URL',
     visited_url: 'Visited URL',
     city: 'City',
+    country: 'Country',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
@@ -908,6 +966,9 @@ const LABEL_MAP: { [key: string]: string } = {
     timestamp: 'Date',
     has_rage_clicks: 'Has Rage Clicks',
     has_errors: 'Has Errors',
+    pages_visited: 'Pages Visited',
+    landing_page: 'Landing Page',
+    exit_page: 'Exit Page',
 };
 
 const getOperator = (
@@ -930,6 +991,7 @@ const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
 export const CUSTOM_TYPE = 'custom';
+export const SESSION_TYPE = 'session';
 export const ERROR_TYPE = 'error';
 export const ERROR_FIELD_TYPE = 'error-field';
 
@@ -974,6 +1036,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
+    custom_pages_visited: getLengthLabel,
     error_state: getStateLabel,
     'error-field_timestamp': getDateLabel,
 };
@@ -1115,7 +1178,14 @@ const QueryBuilder = ({
             }
 
             const type = getType(field.value);
-            if (![CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(type)) {
+            if (
+                ![
+                    CUSTOM_TYPE,
+                    SESSION_TYPE,
+                    ERROR_TYPE,
+                    ERROR_FIELD_TYPE,
+                ].includes(type)
+            ) {
                 return undefined;
             }
 
@@ -1196,7 +1266,7 @@ const QueryBuilder = ({
                                 },
                             },
                         };
-                    case 'between':
+                    case 'between_time':
                         return {
                             range: {
                                 [name]: {
@@ -1204,13 +1274,28 @@ const QueryBuilder = ({
                                         Number(value?.split('_')[0]) *
                                         60 *
                                         1000,
-                                    ...(Number(value?.split('_')[1]) === 60
+                                    ...(Number(value?.split('_')[1]) ===
+                                    TIME_MAX_LENGTH
                                         ? null
                                         : {
                                               lte:
                                                   Number(value?.split('_')[1]) *
                                                   60 *
                                                   1000,
+                                          }),
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: Number(value?.split('_')[0]),
+                                    ...(Number(value?.split('_')[1]) ===
+                                    RANGE_MAX_LENGTH
+                                        ? null
+                                        : {
+                                              lte: Number(value?.split('_')[1]),
                                           }),
                                 },
                             },

@@ -720,6 +720,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s)
 	}
 
+	visitFields := []model.Field{}
+	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
+		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
+	}
+
+	pagesVisited := len(visitFields)
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -730,6 +737,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			EventCounts:         &eventCountsString,
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
+			PagesVisited:        pagesVisited,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -741,6 +749,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
+		"pages_visited":   pagesVisited,
+		"landing_page":    visitFields[0].Value,
+		"exit_page":       visitFields[len(visitFields)-1].Value,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}

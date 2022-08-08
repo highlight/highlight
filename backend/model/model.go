@@ -468,6 +468,7 @@ type Session struct {
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
+	Country   string  `json:"country"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
@@ -517,6 +518,8 @@ type Session struct {
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
+	// Number of pages visited during a session
+	PagesVisited int
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
@@ -1176,7 +1179,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
 					THEN
 						ALTER TABLE metric_groups
@@ -1196,7 +1199,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
 					THEN
 						alter table dashboard_metric_filters
