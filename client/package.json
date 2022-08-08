@@ -44,7 +44,7 @@
     },
     "dependencies": {
         "@highlight-run/fingerprintjs": "^3.3.5",
-        "@highlight-run/rrweb": "2.1.6",
+        "@highlight-run/rrweb": "2.1.7",
         "@rollup/plugin-commonjs": "^22.0.1",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^13.3.0",
