@@ -21,3 +21,9 @@
         margin-bottom: var(--size-xxLarge);
     }
 }
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
