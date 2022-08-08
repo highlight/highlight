@@ -1176,7 +1176,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
 					THEN
 						ALTER TABLE metric_groups
@@ -1196,7 +1196,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
 					THEN
 						alter table dashboard_metric_filters
@@ -1273,44 +1273,44 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	// Create sequence for session_fields.id manually. This started as a join
 	// table with no primary key. We use our own sequence to prevent assigning a
 	// value to old records.
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF NOT EXISTS
-					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
-				THEN
-					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields_id_seq")
-	}
+	// if err := DB.Exec(`
+	// 	DO $$
+	// 		BEGIN
+	// 			IF NOT EXISTS
+	// 				(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
+	// 			THEN
+	// 				CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
+	// 			END IF;
+	// 	END $$;
+	// `).Error; err != nil {
+	// 	return nil, e.Wrap(err, "Error creating session_fields_id_seq")
+	// }
 
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF NOT EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
-				THEN
-					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields.id column")
-	}
+	// if err := DB.Exec(`
+	// 	DO $$
+	// 		BEGIN
+	// 			IF NOT EXISTS
+	// 				(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
+	// 			THEN
+	// 				ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
+	// 			END IF;
+	// 	END $$;
+	// `).Error; err != nil {
+	// 	return nil, e.Wrap(err, "Error creating session_fields.id column")
+	// }
 
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
-				THEN
-					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error assigning default to session_fields.id")
-	}
+	// if err := DB.Exec(`
+	// 	DO $$
+	// 		BEGIN
+	// 			IF EXISTS
+	// 				(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
+	// 			THEN
+	// 				ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
+	// 			END IF;
+	// 	END $$;
+	// `).Error; err != nil {
+	// 	return nil, e.Wrap(err, "Error assigning default to session_fields.id")
+	// }
 
 	sqlDB, err := DB.DB()
 	if err != nil {
