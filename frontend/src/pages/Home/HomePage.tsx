@@ -224,6 +224,10 @@ const HomePageDashboard = ({
         }
     }, [dashboard, setLayout]);
 
+    useEffect(() => {
+        console.log(layout);
+    }, [layout]);
+
     if (loading || !dashboard) {
         return null;
     }

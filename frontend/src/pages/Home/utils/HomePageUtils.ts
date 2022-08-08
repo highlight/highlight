@@ -41,7 +41,7 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 };
 
 const LAYOUT_ROW_WIDTH = 12;
-const LAYOUT_CHART_WIDTH = LAYOUT_ROW_WIDTH / 2;
+const LAYOUT_CHART_WIDTH = LAYOUT_ROW_WIDTH / 4;
 const DEFAULT_SINGLE_LAYOUT = {
     w: LAYOUT_CHART_WIDTH,
     h: 2,
@@ -54,48 +54,49 @@ const DEFAULT_SINGLE_LAYOUT = {
 };
 export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
     lg: [
-        DEFAULT_SINGLE_LAYOUT,
         {
             ...DEFAULT_SINGLE_LAYOUT,
-            x: 6,
+            w: 5,
+            h: 1,
+            x: 0,
             y: 0,
-            i: '1',
+            i: '0',
         },
         {
             ...DEFAULT_SINGLE_LAYOUT,
             x: 0,
-            y: 2,
+            y: 1,
+            i: '1',
+        },
+        {
+            ...DEFAULT_SINGLE_LAYOUT,
+            x: 3,
+            y: 1,
             i: '2',
         },
         {
             ...DEFAULT_SINGLE_LAYOUT,
             x: 6,
-            y: 2,
+            y: 0,
             i: '3',
         },
         {
             ...DEFAULT_SINGLE_LAYOUT,
-            x: 0,
-            y: 4,
+            x: 6,
+            y: 2,
             i: '4',
         },
         {
             ...DEFAULT_SINGLE_LAYOUT,
-            x: 6,
-            y: 4,
+            x: 9,
+            y: 0,
             i: '5',
         },
         {
             ...DEFAULT_SINGLE_LAYOUT,
-            x: 0,
-            y: 6,
+            x: 9,
+            y: 2,
             i: '6',
-        },
-        {
-            ...DEFAULT_SINGLE_LAYOUT,
-            x: 6,
-            y: 6,
-            i: '7',
         },
     ],
 };
