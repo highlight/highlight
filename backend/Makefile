@@ -1,5 +1,5 @@
 start:
-		doppler run -- air -c .air.toml
+		(redis-server & doppler run -- air -c .air.toml)
 debug:
 		doppler run -- dlv debug --headless --listen=:2345 --api-version=2 --accept-multiclient
 public-gen:
