@@ -39,7 +39,7 @@ import SessionShortcutListener from './listeners/session-shortcut/session-shortc
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import FingerprintJS, { Agent } from '@highlight-run/fingerprintjs';
 import {
     PerformanceListener,
     PerformancePayload,
@@ -164,6 +164,7 @@ export class Highlight {
      */
     numberOfFailedRequests!: number;
     logger!: Logger;
+    fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -198,6 +199,20 @@ export class Highlight {
         options: HighlightClassOptions,
         firstLoadListeners?: FirstLoadListeners
     ) {
+        // setup fingerprintjs as early as possible for it to run background tasks
+        // exclude sources that are slow and may block DOM rendering
+        this.fingerprintjs = FingerprintJS.load({
+            excludeSources: [
+                'fonts', // slow with lots of fonts
+                'domBlockers', // causes reflow, slow
+                'fontPreferences', // slow
+                'audio', //slow
+                'screenFrame', // causes reflow, slow
+                'timezone', // slow
+                'plugins', // very slow
+                'canvas', // slow
+            ],
+        });
         if (!options.sessionSecureID) {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
@@ -646,7 +661,7 @@ export class Highlight {
                 reloaded = true;
             } else {
                 try {
-                    const client = await FingerprintJS.load();
+                    const client = await this.fingerprintjs;
                     const fingerprint = await client.get();
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
