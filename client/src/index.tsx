@@ -39,6 +39,7 @@ import SessionShortcutListener from './listeners/session-shortcut/session-shortc
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import {
     PerformanceListener,
     PerformancePayload,
@@ -52,7 +53,6 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
-import { ClientJS } from 'clientjs';
 import {
     getPreviousSessionData,
     SessionData,
@@ -645,12 +645,9 @@ export class Highlight {
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
-                const client = new ClientJS();
-                let fingerprint = 0;
-                if ('getFingerprint' in client) {
-                    fingerprint = client.getFingerprint();
-                }
                 try {
+                    const client = await FingerprintJS.load();
+                    const fingerprint = await client.get();
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
@@ -660,7 +657,7 @@ export class Highlight {
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
-                        id: fingerprint.toString(),
+                        id: fingerprint.visitorId,
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,

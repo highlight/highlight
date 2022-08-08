@@ -914,6 +914,13 @@
     readable-stream "^3.4.0"
     send "^0.17.1"
 
+"@fingerprintjs/fingerprintjs@^3.3.4":
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/@fingerprintjs/fingerprintjs/-/fingerprintjs-3.3.4.tgz#5d65fe0ab7220195c436851d02b02f92ac3b5bec"
+  integrity sha512-px1imhVDAEp0pI7LBcsUYAMlGsJZxReXVsJbla6e1+hSePZU7oPEtauyGhJH0cSXrQS5w/uhu5btmltkUgvUTw==
+  dependencies:
+    tslib "^2.0.1"
+
 "@gar/promisify@^1.0.1":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
@@ -1928,11 +1935,6 @@
   integrity sha512-Vs0hm0vPahPMYi9tDjtP66llufgO3ST16WXaSTtDGEl9cewAl3AibmxWw6TINOqHPT9z0uABKAYjT9jNSg4npw==
   dependencies:
     "@babel/types" "^7.3.0"
-
-"@types/clientjs@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@types/clientjs/-/clientjs-0.2.0.tgz#9a7847ed304c191d7edd5daec4e716dbfcf34882"
-  integrity sha512-O3cGzu0RNSefR2eg48swjV0Mc9RFnQLeQfYyKDLaevFWg1UAFkjXGqF3K5PqbUZmxxZMNQGwfNbvePyTpUxuig==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -3025,16 +3027,6 @@ cli-width@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/cli-width/-/cli-width-3.0.0.tgz#a2f48437a2caa9a22436e794bf071ec9e61cedf6"
   integrity sha512-FxqpkPPwu1HjuN93Omfm4h8uIanXofW0RxVEW3k5RKx+mJJYSthzNhp32Kzxxy3YAEZ/Dc/EWN1vZRY0+kOhbw==
-
-clientjs@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/clientjs/-/clientjs-0.2.1.tgz#1b954a0afec9e6e1056f21a2c3107aca37fc2869"
-  integrity sha512-HN7yzgq8xMDjkNpSnpH3foMxaX5q9CUMcLAIsNwNnbJnuEhR8CDRxm22mEo+uQdiOUkCl5ZjdoN9lGBbL4jutQ==
-  dependencies:
-    globalthis "^1.0.2"
-    inherits "^2.0.4"
-    murmurhash-js "^1.0.0"
-    ua-parser-js "^0.7.30"
 
 cliui@^6.0.0:
   version "6.0.0"
@@ -4442,13 +4434,6 @@ globals@^13.15.0:
   integrity sha512-A1lrQfpNF+McdPOnnFqY3kSN0AFTy485bTi1bkLk4mVPODIUEcSfhHgRqA+QdXPksrSTTztYXx37NFV+GpGk3Q==
   dependencies:
     type-fest "^0.20.2"
-
-globalthis@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/globalthis/-/globalthis-1.0.3.tgz#5852882a52b80dc301b0660273e1ed082f0b6ccf"
-  integrity sha512-sFdI5LyBiNTHjRd7cGPWapiHWMOXKyuBNX/cWJ3NfzrZQVa8GI/8cofCl74AOVqq9W5kNmguTIzJ/1s2gyI9wA==
-  dependencies:
-    define-properties "^1.1.3"
 
 globby@^11.0.3, globby@^11.1.0:
   version "11.1.0"
@@ -6213,11 +6198,6 @@ ms@2.1.3, ms@^2.0.0, ms@^2.1.1, ms@^2.1.3:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
-
-murmurhash-js@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/murmurhash-js/-/murmurhash-js-1.0.0.tgz#b06278e21fc6c37fa5313732b0412bcb6ae15f51"
-  integrity sha512-TvmkNhkv8yct0SVBSy+o8wYzXjE4Zz3PCesbfs8HiCXXdcTuocApFv11UWlNFWKYsP2okqrhb7JNlSm9InBhIw==
 
 mute-stream@0.0.8:
   version "0.0.8"
@@ -8102,7 +8082,7 @@ tslib@^2, tslib@^2.0.3:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.1.0.tgz#da60860f1c2ecaa5703ab7d39bc05b6bf988b97a"
   integrity sha512-hcVC3wYEziELGGmEEXue7D75zbwIIVUMWAVbHItGPx0ziyXxrOMQx4rQEVEV45Ut/1IotuEvwqPopzIOkDMf0A==
 
-tslib@^2.0.0, tslib@^2.1.0, tslib@^2.4.0, tslib@~2.4.0:
+tslib@^2.0.0, tslib@^2.0.1, tslib@^2.1.0, tslib@^2.4.0, tslib@~2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.0.tgz#7cecaa7f073ce680a05847aa77be941098f36dc3"
   integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==
@@ -8186,11 +8166,6 @@ ua-parser-js@^0.7.18:
   version "0.7.24"
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.24.tgz#8d3ecea46ed4f1f1d63ec25f17d8568105dc027c"
   integrity sha512-yo+miGzQx5gakzVK3QFfN0/L9uVhosXBBO7qmnk7c2iw1IhL212wfA3zbnI54B0obGwC/5NWub/iT9sReMx+Fw==
-
-ua-parser-js@^0.7.30:
-  version "0.7.31"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.31.tgz#649a656b191dffab4f21d5e053e27ca17cbff5c6"
-  integrity sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==
 
 unc-path-regex@^0.1.2:
   version "0.1.2"
