@@ -52,6 +52,7 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
+import { ClientJS } from 'clientjs';
 import {
     getPreviousSessionData,
     SessionData,
