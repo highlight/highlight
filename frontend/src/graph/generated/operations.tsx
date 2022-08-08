@@ -2271,6 +2271,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
     page?: Types.Maybe<Types.Scalars['Int']>;
+    histogram?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2320,6 +2321,15 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                             >
                         >;
                     }
+            >;
+            histogram?: Types.Maybe<
+                { __typename?: 'SessionsHistogram' } & Pick<
+                    Types.SessionsHistogram,
+                    | 'labels'
+                    | 'sessions_without_errors'
+                    | 'sessions_with_errors'
+                    | 'total_sessions'
+                >
             >;
         };
 };

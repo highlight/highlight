@@ -5956,6 +5956,7 @@ export const GetSessionsOpenSearchDocument = gql`
         $query: String!
         $sort_desc: Boolean!
         $page: Int
+        $histogram: Boolean = false
     ) {
         sessions_opensearch(
             project_id: $project_id
@@ -6000,6 +6001,12 @@ export const GetSessionsOpenSearchDocument = gql`
                 last_user_interaction_time
             }
             totalCount
+            histogram @include(if: $histogram) {
+                labels
+                sessions_without_errors
+                sessions_with_errors
+                total_sessions
+            }
         }
     }
 `;
@@ -6021,6 +6028,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
  *      page: // value for 'page'
+ *      histogram: // value for 'histogram'
  *   },
  * });
  */
