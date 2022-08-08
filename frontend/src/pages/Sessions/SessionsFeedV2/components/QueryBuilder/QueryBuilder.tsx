@@ -384,7 +384,7 @@ const getOption = (props: any) => {
                         />
                     </div>
                     {(!!tooltipMessage ||
-                        type === 'session' ||
+                        type === SESSION_TYPE ||
                         type === CUSTOM_TYPE ||
                         type === ERROR_TYPE ||
                         type === ERROR_FIELD_TYPE ||
@@ -735,7 +735,6 @@ const SelectPopout = ({
     );
 };
 
-// TODO: Look at this
 const getPopoutType = (op: Operator | undefined): PopoutType => {
     switch (op) {
         case 'contains':
@@ -765,7 +764,6 @@ const QueryRule = ({
     onRemove,
     readonly,
 }: { rule: RuleProps } & RuleSettings) => {
-    console.log('::: RULE', rule);
     return (
         <div className={styles.ruleContainer}>
             <SelectPopout
@@ -1035,6 +1033,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
+    custom_pages_visited: getLengthLabel,
     error_state: getStateLabel,
     'error-field_timestamp': getDateLabel,
 };
@@ -1176,7 +1175,14 @@ const QueryBuilder = ({
             }
 
             const type = getType(field.value);
-            if (![CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(type)) {
+            if (
+                ![
+                    CUSTOM_TYPE,
+                    SESSION_TYPE,
+                    ERROR_TYPE,
+                    ERROR_FIELD_TYPE,
+                ].includes(type)
+            ) {
                 return undefined;
             }
 

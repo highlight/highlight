@@ -170,7 +170,7 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
         const min = params.length_range.min;
         const max = params.length_range.max;
         rules.push(
-            deserializeGroup('custom_active_length', 'between', [
+            deserializeGroup('custom_active_length', 'between_time', [
                 `${min}_${max}`,
             ])
         );

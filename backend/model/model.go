@@ -518,6 +518,8 @@ type Session struct {
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
+	// Number of pages visited during a session
+	PagesVisited int
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
