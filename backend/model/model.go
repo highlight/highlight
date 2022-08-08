@@ -1273,7 +1273,6 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		start = end
 	}
 
-	// TODO: Run these statements manually or pull out to a separate PR.
 	// Create sequence for session_fields.id manually. This started as a join
 	// table with no primary key. We use our own sequence to prevent assigning a
 	// value to old records.
@@ -1307,7 +1306,11 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				IF EXISTS
+<<<<<<< HEAD
 					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
+=======
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
+>>>>>>> 50bb0cb53f9bfde16320a714e0243842553f1ed5
 				THEN
 					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
 				END IF;

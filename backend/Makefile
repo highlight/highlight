@@ -20,6 +20,8 @@ test-and-coverage:
 		(ENVIRONMENT=test LOG_LEVEL=debug PSQL_HOST=localhost PSQL_PORT=5432 PSQL_USER=postgres PSQL_PASSWORD=postgres go test -p 1 -covermode=atomic -coverprofile=coverage.out ./... -v)
 init-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=init-opensearch)
+init-opensearch-sessions:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=init-opensearch-sessions)
 update-opensearch:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=update-opensearch)
 start-metric-monitor-watch:

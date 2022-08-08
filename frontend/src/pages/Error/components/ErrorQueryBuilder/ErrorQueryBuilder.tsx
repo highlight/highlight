@@ -66,6 +66,13 @@ const CUSTOM_FIELDS: CustomField[] = [
             type: 'text',
         },
     },
+    {
+        type: ERROR_FIELD_TYPE,
+        name: 'environment',
+        options: {
+            type: 'text',
+        },
+    },
 ];
 
 // If there is no query builder param (for segments saved

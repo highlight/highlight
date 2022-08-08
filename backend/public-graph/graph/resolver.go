@@ -872,10 +872,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	}
 
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
-		Url:       errorObj.URL,
-		Os:        errorObj.OS,
-		Browser:   errorObj.Browser,
-		Timestamp: errorObj.Timestamp,
+		Url:         errorObj.URL,
+		Os:          errorObj.OS,
+		Browser:     errorObj.Browser,
+		Timestamp:   errorObj.Timestamp,
+		Environment: errorObj.Environment,
 	}
 	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
@@ -1793,6 +1794,19 @@ func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID i
 	return nil
 }
 
+func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorObject) []*model.ErrorField {
+	projectID := sessionObj.ProjectID
+
+	errorFields := []*model.ErrorField{}
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToProcess.URL})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToProcess.Event})
+	errorFields = append(errorFields, &model.ErrorField{ProjectID: projectID, Name: "environment", Value: errorToProcess.Environment})
+
+	return errorFields
+}
+
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
@@ -1923,13 +1937,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   &v.RequestID,
 		}
 
-		//create error fields array
-		metaFields := []*model.ErrorField{}
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
-		metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, metaFields, projectID)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(sessionObj, errorToInsert), projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
@@ -2210,13 +2218,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				IsBeacon:     isBeacon,
 			}
 
-			//create error fields array
-			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{ProjectID: projectID, Name: "event", Value: errorToInsert.Event})
-			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, metaFields, projectID)
+			group, err := r.HandleErrorAndGroup(errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
 			if err != nil {
 				log.Error(e.Wrap(err, "Error updating error group"))
 				continue
@@ -2298,7 +2300,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
-	if sessionObj.Processed != nil && *sessionObj.Processed {
+	// If the session was previously excluded (as we do with new sessions by default),
+	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	if (sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.Excluded != nil && *sessionObj.Excluded) {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
