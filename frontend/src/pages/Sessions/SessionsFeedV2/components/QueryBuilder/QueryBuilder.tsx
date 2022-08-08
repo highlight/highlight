@@ -89,6 +89,9 @@ interface SetVisible {
     setVisible: (val: boolean) => void;
 }
 
+const TIME_MAX_LENGTH = 60;
+const RANGE_MAX_LENGTH = 200;
+
 const TOOLTIP_MESSAGE =
     'This property was automatically collected by Highlight';
 
@@ -615,9 +618,9 @@ const PopoutContent = ({
                     end={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[1])
-                            : 60
+                            : TIME_MAX_LENGTH
                     }
-                    max={60}
+                    max={TIME_MAX_LENGTH}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -646,9 +649,9 @@ const PopoutContent = ({
                     end={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[1])
-                            : 200
+                            : RANGE_MAX_LENGTH
                     }
-                    max={200}
+                    max={RANGE_MAX_LENGTH}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -1271,7 +1274,8 @@ const QueryBuilder = ({
                                         Number(value?.split('_')[0]) *
                                         60 *
                                         1000,
-                                    ...(Number(value?.split('_')[1]) === 60
+                                    ...(Number(value?.split('_')[1]) ===
+                                    TIME_MAX_LENGTH
                                         ? null
                                         : {
                                               lte:
@@ -1287,7 +1291,12 @@ const QueryBuilder = ({
                             range: {
                                 [name]: {
                                     gte: Number(value?.split('_')[0]),
-                                    lte: Number(value?.split('_')[1]),
+                                    ...(Number(value?.split('_')[1]) ===
+                                    RANGE_MAX_LENGTH
+                                        ? null
+                                        : {
+                                              lte: Number(value?.split('_')[1]),
+                                          }),
                                 },
                             },
                         };
