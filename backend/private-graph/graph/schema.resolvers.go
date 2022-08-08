@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -6003,9 +6003,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
-			var events []interface{}
-			var nextCursor *EventsCursor
-			events, err, nextCursor = r.getEvents(ctx, session, cursor)
+			events, err, nextCursor := r.getEvents(ctx, session, cursor)
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
