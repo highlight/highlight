@@ -1303,7 +1303,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL)
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
 				THEN
 					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
 				END IF;
