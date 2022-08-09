@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/timeseries"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
 
@@ -68,7 +69,7 @@ var (
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
 
-//  we inject this value at build time for on-prem
+// we inject this value at build time for on-prem
 var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime

@@ -141,7 +141,7 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 // the same secureSessionID that should be treated as different sessions
 const SessionReinitializeExpiry = time.Minute * 15
 
-//Change to AppendProperties(sessionId,properties,type)
+// Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
