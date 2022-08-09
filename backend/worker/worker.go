@@ -16,9 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/redis_utils"
+	"github.com/highlight-run/highlight/backend/redis"
 
 	"gorm.io/gorm"
 
@@ -208,18 +207,12 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	vals, err := w.Resolver.Redis.ZRangeByScoreWithScores(redis_utils.EventsKey(s.ID), redis.ZRangeBy{
-		Min: "-inf",
-		Max: "+inf",
-	}).Result()
+	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{})
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects")
 	}
 
-	for _, z := range vals {
-		eventObject := model.EventsObject{
-			Events: z.Member.(string),
-		}
+	for _, eventObject := range eventsObjects {
 		if err := eventsWriter.Write(&eventObject); err != nil {
 			return errors.Wrap(err, "error writing event row")
 		}
@@ -242,7 +235,7 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	if redis_utils.UseRedis(s.ProjectID) {
+	if redis.UseRedis(s.ProjectID) {
 		if err := w.fetchEventsRedis(ctx, manager, s); err != nil {
 			return errors.Wrap(err, "error fetching events from Redis")
 		}

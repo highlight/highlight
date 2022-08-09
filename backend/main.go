@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -31,7 +32,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/redis_utils"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -186,7 +186,7 @@ func main() {
 		log.Fatalf("error creating lambda client: %v", err)
 	}
 
-	redisClient := redis_utils.NewClient()
+	redisClient := redis.NewClient()
 
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)

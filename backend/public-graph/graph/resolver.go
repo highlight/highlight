@@ -14,8 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis"
-	"github.com/highlight-run/highlight/backend/redis_utils"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -2073,22 +2072,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if redis_utils.UseRedis(projectID) {
+			if redis.UseRedis(projectID) {
 				score := float64(payloadIdDeref)
 				// A little bit of a hack to encode
 				if isBeacon {
 					score += .5
 				}
 
-				// Add to sorted set without updating existing elements
-				cmd := r.Redis.ZAddNX(redis_utils.EventsKey(sessionID), redis.Z{
-					Score:  score,
-					Member: string(b),
-				})
+				r.Redis.AddEventPayload(sessionID, score, string(b))
 
-				if err := cmd.Err(); err != nil {
-					return e.Wrap(err, "error adding events payload in Redis")
-				}
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
 				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {

@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3310,7 +3310,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -5990,7 +5990,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
-		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		cursor := model.EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
 		for {
 			select {
 			case <-ctx.Done():

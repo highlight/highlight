@@ -19,9 +19,8 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
-	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/lambda"
-	"github.com/highlight-run/highlight/backend/redis_utils"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -76,15 +75,6 @@ type Resolver struct {
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
-}
-
-// For a given session, an EventCursor is the address of an event in the list of events,
-// that can be used for incremental fetching.
-// The EventIndex must always be specified, with the EventObjectIndex optionally
-// specified for optimization purposes.
-type EventsCursor struct {
-	EventIndex       int
-	EventObjectIndex *int
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -2146,56 +2136,9 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
-	// Session is live if the cursor is not the default
-	isLive := cursor != EventsCursor{}
-
-	eventObjectIndex := "-inf"
-	if cursor.EventObjectIndex != nil {
-		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
-	}
-
-	vals, err := r.Redis.ZRangeByScoreWithScores(redis_utils.EventsKey(s.ID), redis.ZRangeBy{
-		Min: eventObjectIndex,
-		Max: "+inf",
-	}).Result()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving events from Redis"), nil
-	}
-
-	allEvents := make([]interface{}, 0)
-	if len(vals) == 0 {
-		return allEvents, nil, &cursor
-	}
-
-	maxScore := 0
-	for idx, z := range vals {
-		intScore := int(z.Score)
-		// Beacon events have decimals, skip them if it's live mode or not the last event
-		if z.Score != float64(intScore) && (isLive || idx != len(vals)-1) {
-			continue
-		}
-		if intScore > maxScore {
-			maxScore = intScore
-		}
-		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(z.Member.(string)), &subEvents); err != nil {
-			return nil, e.Wrap(err, "error decoding event data"), nil
-		}
-		allEvents = append(allEvents, subEvents["events"]...)
-	}
-
-	if cursor.EventIndex != 0 && cursor.EventIndex < len(allEvents) {
-		allEvents = allEvents[cursor.EventIndex:]
-	}
-
-	nextCursor := EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int(maxScore)}
-	return allEvents, nil, &nextCursor
-}
-
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
-	if redis_utils.UseRedis(s.ProjectID) {
-		return r.getEventsRedis(ctx, s, cursor)
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+	if redis.UseRedis(s.ProjectID) {
+		return r.Redis.GetEvents(ctx, s, cursor)
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -2205,7 +2148,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 		if err != nil {
 			return nil, err, nil
 		}
-		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2232,7 +2175,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex == nil {
 		events = allEvents[cursor.EventIndex:]
 	}
-	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
 	return events, nil, &nextCursor
 }
