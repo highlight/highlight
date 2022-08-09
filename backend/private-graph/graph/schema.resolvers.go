@@ -1165,7 +1165,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 	})
 
@@ -1387,7 +1387,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {

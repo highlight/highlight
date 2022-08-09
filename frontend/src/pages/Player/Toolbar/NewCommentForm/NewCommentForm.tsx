@@ -257,7 +257,7 @@ export const NewCommentForm = ({
                     issue_description: selectedIssueService
                         ? issueDescription
                         : null,
-                    additional_context: `- From session URL: <${currentUrl}|${currentUrl}>`,
+                    additional_context: `• From session URL: <${currentUrl}|${currentUrl}>`,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
