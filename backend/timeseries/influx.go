@@ -57,7 +57,7 @@ type InfluxDB struct {
 	BucketPrefix string
 	org          string
 	orgID        string
-	client       influxdb2.Client
+	Client       influxdb2.Client
 	writeAPILock sync.Mutex
 	writeAPIs    map[string]api.WriteAPI
 	queryAPI     api.QueryAPI
@@ -83,7 +83,7 @@ func New() *InfluxDB {
 		BucketPrefix: bucketPrefix,
 		org:          org,
 		orgID:        *orgID,
-		client:       client,
+		Client:       client,
 		writeAPIs:    make(map[string]api.WriteAPI),
 		queryAPI:     queryAPI,
 	}
@@ -96,27 +96,27 @@ func (i *InfluxDB) GetBucket(bucket string) string {
 func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 	b := i.GetBucket(bucket)
 	// ignore bucket already exists error
-	_, _ = i.client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short metric expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64((DownsampleThreshold).Seconds()),
 		Type:         domain.RetentionRuleTypeExpire,
 	})
 	// create a downsample bucket. ignore bucket already exists error
 	downsampleB := b + downsampledBucketSuffix
-	_, _ = i.client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
+	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// 90 day metric expiry for downsampled data
 		EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
 		Type:         domain.RetentionRuleTypeExpire,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
-	tasks, err := i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+	tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
 		Name:  taskName,
 		OrgID: i.orgID,
 		Limit: 1,
 	})
 	if err == nil && len(tasks) < 1 {
 		// create a task to downsample data
-		_, _ = i.client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
+		_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
 		option task = {name: "%s", every: %dm}
 		from(bucket: "%s")
 			|> range(start: -task.every)
@@ -127,7 +127,7 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 	`, taskName, int(DownsampleInterval.Minutes()), b, Metrics, int(DownsampleInterval.Minutes()), MetricsAggMinute, downsampleB), i.orgID)
 	}
 	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
-	tasks, _ = i.client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+	tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
 		Name:  taskName,
 		OrgID: i.orgID,
 	})
@@ -136,11 +136,11 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 			return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
 		})
 		for _, t := range tasks[1:] {
-			_ = i.client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
+			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
 	}
 	// Get non-blocking write client
-	writeAPI := i.client.WriteAPI(i.org, b)
+	writeAPI := i.Client.WriteAPI(i.org, b)
 	// Get errors channel
 	errorsCh := writeAPI.Errors()
 	// Create go proc for reading and logging errors
@@ -232,5 +232,5 @@ func (i *InfluxDB) Stop() {
 		w.Flush()
 	}
 	// Ensures background processes finishes
-	i.client.Close()
+	i.Client.Close()
 }
