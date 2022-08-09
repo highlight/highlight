@@ -349,23 +349,24 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	defer outerSpan.Finish()
 
 	var fieldSql strings.Builder
-	for _, f := range fields {
-		if fieldSql.Len() != 0 {
+	defer fieldSql.Reset()
+
+	fieldSql.WriteString(`WITH records_to_insert as (
+		WITH cte (type, name, value, project_id) as (`)
+	for idx, f := range fields {
+		if idx != 0 {
 			fieldSql.WriteString(" UNION\n")
 		}
-		fieldSql.WriteString(fmt.Sprintf(`SELECT '%s', '%s', '%s', %d`,
-			escapeSingleQuote(f.Type),
-			escapeSingleQuote(f.Name),
-			escapeSingleQuote(f.Value),
-			f.ProjectID))
+		fieldSql.WriteString("SELECT '")
+		fieldSql.WriteString(escapeSingleQuote(f.Type))
+		fieldSql.WriteString("', '")
+		fieldSql.WriteString(escapeSingleQuote(f.Name))
+		fieldSql.WriteString("', '")
+		fieldSql.WriteString(escapeSingleQuote(f.Value))
+		fieldSql.WriteString("', ")
+		fieldSql.WriteString(strconv.FormatInt(int64(f.ProjectID), 10))
 	}
-
-	fieldsToAppend := []*model.Field{}
-	if err := r.DB.Raw(fmt.Sprintf(`
-		WITH records_to_insert as (
-			WITH cte (type, name, value, project_id) as (
-				%s
-			)
+	fieldSql.WriteString(`)
 			SELECT cte.type, cte.name, cte.value, cte.project_id
 			FROM cte
 			LEFT JOIN fields f
@@ -378,8 +379,10 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		INSERT INTO fields (created_at, updated_at, type, name, value, project_id)
 		SELECT now(), now(), *
 		FROM records_to_insert
-		RETURNING *
-	`, fieldSql.String())).Find(&fieldsToAppend).Error; err != nil {
+		RETURNING *`)
+
+	fieldsToAppend := []*model.Field{}
+	if err := r.DB.Raw(fieldSql.String()).Find(&fieldsToAppend).Error; err != nil {
 		return e.Wrap(err, "error inserting new fields")
 	}
 
