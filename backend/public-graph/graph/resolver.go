@@ -2076,12 +2076,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 			if redis_utils.UseRedis(projectID) {
 				score := float64(payloadIdDeref)
+				// A little bit of a hack to encode
 				if isBeacon {
-					score -= .5
+					score += .5
 				}
 
 				// Add to sorted set without updating existing elements
-				cmd := r.Redis.ZAddNX(fmt.Sprintf("events-%d", sessionID), redis.Z{
+				cmd := r.Redis.ZAddNX(redis_utils.EventsKey(sessionID), redis.Z{
 					Score:  score,
 					Member: string(b),
 				})

@@ -1199,13 +1199,11 @@ export class Highlight {
             payload_id: this._payloadId.toString(),
         };
 
-        if (!isBeacon) {
-            this._payloadId++;
-            window.sessionStorage.setItem(
-                SESSION_STORAGE_KEYS.PAYLOAD_ID,
-                this._payloadId.toString()
-            );
-        }
+        this._payloadId++;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
 
         const highlightLogs = getHighlightLogs();
         if (highlightLogs) {

@@ -2155,7 +2155,7 @@ func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor 
 		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
 	}
 
-	vals, err := r.Redis.ZRangeByScoreWithScores(fmt.Sprintf("events-%d", s.ID), redis.ZRangeBy{
+	vals, err := r.Redis.ZRangeByScoreWithScores(redis_utils.EventsKey(s.ID), redis.ZRangeBy{
 		Min: eventObjectIndex,
 		Max: "+inf",
 	}).Result()

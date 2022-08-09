@@ -1,6 +1,7 @@
 package redis_utils
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/go-redis/redis"
@@ -15,6 +16,10 @@ var (
 
 func UseRedis(projectId int) bool {
 	return useRedis && lo.Contains(redisProjectIds, projectId)
+}
+
+func EventsKey(sessionId int) string {
+	return fmt.Sprintf("events-%d", sessionId)
 }
 
 func NewClient() *redis.Client {

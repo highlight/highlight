@@ -208,7 +208,7 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	vals, err := w.Resolver.Redis.ZRangeByScoreWithScores(fmt.Sprintf("events-%d", s.ID), redis.ZRangeBy{
+	vals, err := w.Resolver.Redis.ZRangeByScoreWithScores(redis_utils.EventsKey(s.ID), redis.ZRangeBy{
 		Min: "-inf",
 		Max: "+inf",
 	}).Result()
