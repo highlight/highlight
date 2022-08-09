@@ -17,7 +17,23 @@ export declare type SamplingStrategy = {
      * a number between 1 and 60, will record an image snapshots in a web-worker a (maximum) number of times per second.
      * Number is only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
      */
-    canvas: 'all' | number;
+    canvas?: 'all' | number;
+    /**
+     * A quality at which to take canvas snapshots. See https://developer.mozilla.org/en-US/docs/Web/API/createImageBitmap
+     */
+    canvasQuality?: 'pixelated' | 'low' | 'medium' | 'high';
+    /**
+     * A multiplier resolution at which to take canvas snapshots.
+     */
+    canvasFactor?: number;
+    /**
+     * The maximum dimension to take canvas snapshots at.
+     * This setting takes precedence over resizeFactor if the resulting image size
+     * from the resizeFactor calculation is larger than this value.
+     * Eg: set to 600 to ensure that the canvas is saved with images no larger than 600px
+     * in either dimension (while preserving the original canvas aspect ratio).
+     */
+    canvasMaxSnapshotDimension?: number;
 };
 
 export declare type HighlightOptions = {
