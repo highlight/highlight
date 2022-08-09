@@ -10,7 +10,7 @@ import (
 var (
 	useRedis                   = os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
-	redisProjectIds            = []int{1}
+	redisProjectIds            = []int{} // Disabled for all projects for now
 )
 
 func UseRedis(projectId int) bool {

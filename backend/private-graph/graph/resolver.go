@@ -2147,6 +2147,9 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+	// Session is live if the cursor is not the default
+	isLive := cursor != EventsCursor{}
+
 	eventObjectIndex := "-inf"
 	if cursor.EventObjectIndex != nil {
 		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
@@ -2166,10 +2169,10 @@ func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor 
 	}
 
 	maxScore := 0
-	for _, z := range vals {
+	for idx, z := range vals {
 		intScore := int(z.Score)
-		// Beacon events have decimals, skip them
-		if z.Score != float64(intScore) {
+		// Beacon events have decimals, skip them if it's live mode or not the last event
+		if z.Score != float64(intScore) && (isLive || idx != len(vals)-1) {
 			continue
 		}
 		if intScore > maxScore {
@@ -2187,7 +2190,6 @@ func (r *Resolver) getEventsRedis(ctx context.Context, s *model.Session, cursor 
 	}
 
 	nextCursor := EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int(maxScore)}
-	log.Infof("live mode new cursor!: %d", maxScore)
 	return allEvents, nil, &nextCursor
 }
 
