@@ -1657,6 +1657,7 @@ export type MutationCreateSessionCommentArgs = {
     issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
     tags: Array<Maybe<SessionCommentTagInput>>;
+    additional_context?: Maybe<Scalars['String']>;
 };
 
 export type MutationCreateIssueForSessionCommentArgs = {
