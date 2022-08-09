@@ -42,6 +42,11 @@
         a {
             margin-right: var(--size-medium);
         }
+
+        @media (max-width: 1350px) {
+            align-items: start;
+            flex-direction: column;
+        }
     }
 }
 
