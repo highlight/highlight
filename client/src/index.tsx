@@ -39,6 +39,7 @@ import SessionShortcutListener from './listeners/session-shortcut/session-shortc
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
+import FingerprintJS, { Agent } from '@highlight-run/fingerprintjs';
 import {
     PerformanceListener,
     PerformancePayload,
@@ -52,7 +53,6 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
-import { ClientJS } from 'clientjs';
 import {
     getPreviousSessionData,
     SessionData,
@@ -164,6 +164,7 @@ export class Highlight {
      */
     numberOfFailedRequests!: number;
     logger!: Logger;
+    fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -198,6 +199,20 @@ export class Highlight {
         options: HighlightClassOptions,
         firstLoadListeners?: FirstLoadListeners
     ) {
+        // setup fingerprintjs as early as possible for it to run background tasks
+        // exclude sources that are slow and may block DOM rendering
+        this.fingerprintjs = FingerprintJS.load({
+            excludeSources: [
+                'fonts', // slow with lots of fonts
+                'domBlockers', // causes reflow, slow
+                'fontPreferences', // slow
+                'audio', //slow
+                'screenFrame', // causes reflow, slow
+                'timezone', // slow
+                'plugins', // very slow
+                'canvas', // slow
+            ],
+        });
         if (!options.sessionSecureID) {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
@@ -645,12 +660,9 @@ export class Highlight {
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
-                const client = new ClientJS();
-                let fingerprint = 0;
-                if ('getFingerprint' in client) {
-                    fingerprint = client.getFingerprint();
-                }
                 try {
+                    const client = await this.fingerprintjs;
+                    const fingerprint = await client.get();
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
@@ -660,7 +672,7 @@ export class Highlight {
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
-                        id: fingerprint.toString(),
+                        id: fingerprint.visitorId,
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
