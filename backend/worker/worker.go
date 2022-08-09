@@ -750,10 +750,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
 		"pages_visited":   pagesVisited,
-		"landing_page":    visitFields[0].Value,
-		"exit_page":       visitFields[len(visitFields)-1].Value,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"landing_page": visitFields[0].Value,
+		"exit_page":    visitFields[len(visitFields)-1].Value,
+	}
+	if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 	}
 
 	// Update session count on dailydb
