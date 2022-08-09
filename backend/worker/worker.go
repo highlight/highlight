@@ -758,7 +758,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"landing_page": visitFields[0].Value,
 		"exit_page":    visitFields[len(visitFields)-1].Value,
 	}
-	w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION)
+	if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d"), s.ID)
+	}
 
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
