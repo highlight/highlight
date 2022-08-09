@@ -750,11 +750,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
 		"pages_visited":   pagesVisited,
-		"landing_page":    visitFields[0].Value,
-		"exit_page":       visitFields[len(visitFields)-1].Value,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
+
+	sessionProperties := map[string]string{
+		"landing_page": visitFields[0].Value,
+		"exit_page":    visitFields[len(visitFields)-1].Value,
+	}
+	w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION)
 
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
