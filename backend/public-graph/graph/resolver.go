@@ -334,25 +334,61 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	return nil
 }
 
+func escapeSingleQuote(str string) string {
+	return strings.ReplaceAll(str, "'", "''")
+}
+
 func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
+	// Do nothing if no fields
+	if len(fields) == 0 {
+		return nil
+	}
+
 	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
-		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
+		tracer.ResourceName("go.sessions.AppendFields"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
+	var fieldSql strings.Builder
+	defer fieldSql.Reset()
+
+	fieldSql.WriteString(`WITH records_to_insert as (
+		WITH cte (type, name, value, project_id) as (`)
+	for idx, f := range fields {
+		if idx != 0 {
+			fieldSql.WriteString(" UNION\n")
+		}
+		fieldSql.WriteString("SELECT '")
+		fieldSql.WriteString(escapeSingleQuote(f.Type))
+		fieldSql.WriteString("', '")
+		fieldSql.WriteString(escapeSingleQuote(f.Name))
+		fieldSql.WriteString("', '")
+		fieldSql.WriteString(escapeSingleQuote(f.Value))
+		fieldSql.WriteString("', ")
+		fieldSql.WriteString(strconv.FormatInt(int64(f.ProjectID), 10))
+	}
+	fieldSql.WriteString(`)
+			SELECT cte.type, cte.name, cte.value, cte.project_id
+			FROM cte
+			LEFT JOIN fields f
+			ON f.type = cte.type
+			AND f.name = cte.name
+			AND f.value = cte.value
+			AND f.project_id = cte.project_id
+			WHERE id is null
+		)
+		INSERT INTO fields (created_at, updated_at, type, name, value, project_id)
+		SELECT now(), now(), *
+		FROM records_to_insert
+		RETURNING *`)
+
 	fieldsToAppend := []*model.Field{}
-	for _, f := range fields {
-		field := model.Field{}
-		res := r.DB.Where(f).FirstOrCreate(&field)
-		if res.Error != nil {
-			return e.Wrap(res.Error, "error calling FirstOrCreate")
-		}
-		// If the field was created, index it in OpenSearch
-		if res.RowsAffected > 0 {
-			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
-				return e.Wrap(err, "error indexing new field")
-			}
-		}
-		fieldsToAppend = append(fieldsToAppend, &field)
+	if err := r.DB.Raw(fieldSql.String()).Find(&fieldsToAppend).Error; err != nil {
+		return e.Wrap(err, "error inserting new fields")
+	}
+
+	// Return early if no fields to append
+	if len(fieldsToAppend) == 0 {
+		return nil
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
