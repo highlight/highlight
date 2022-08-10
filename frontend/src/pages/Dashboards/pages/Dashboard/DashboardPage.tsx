@@ -287,6 +287,7 @@ export const DashboardGrid = ({
     dateRange,
     updateDateRange,
     customDateRange,
+    containerStyles,
 }: {
     dashboard: DashboardDefinition;
     updateDashboard: (dm: DashboardMetricConfig[]) => void;
@@ -297,6 +298,7 @@ export const DashboardGrid = ({
     dateRange: { start_date: string; end_date: string };
     updateDateRange: (start: string, end: string, custom?: boolean) => void;
     customDateRange?: { label: string; value: number };
+    containerStyles?: React.CSSProperties;
 }) => {
     const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
         setLayout({ lg: newLayout });
@@ -307,7 +309,10 @@ export const DashboardGrid = ({
     };
 
     return (
-        <div className={classNames(styles.gridContainer, styles.isEditing)}>
+        <div
+            className={classNames(styles.gridContainer, styles.isEditing)}
+            style={containerStyles}
+        >
             <ResponsiveGridLayout
                 layouts={layout}
                 cols={{
@@ -327,7 +332,7 @@ export const DashboardGrid = ({
                 isDraggable
                 isResizable
                 containerPadding={[0, 0]}
-                rowHeight={155}
+                rowHeight={115}
                 resizeHandles={['se']}
                 draggableHandle="[data-drag-handle]"
                 onDragStop={handleDashboardChange}

@@ -101,6 +101,7 @@ const ActiveUsersTable = () => {
                 </div>
             }
             noTitleBottomMargin
+            full
         >
             <ProgressBarTable
                 loading={loading}

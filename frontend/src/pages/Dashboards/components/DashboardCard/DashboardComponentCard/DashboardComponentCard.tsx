@@ -18,7 +18,7 @@ export const DashboardComponentCard = ({
 }) => {
     const componentType = metricConfig.component_type;
     return (
-        <div>
+        <div className={classNames(styles.card, styles.componentCard)}>
             <div
                 className={classNames(
                     styles.draggable,

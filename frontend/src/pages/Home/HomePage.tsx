@@ -240,6 +240,7 @@ const HomePageDashboard = ({
             setCanSaveChanges={setCanSaveChanges}
             dateRange={dateRange}
             updateDateRange={setDateRange}
+            containerStyles={{ padding: 0 }}
         />
     );
 };
@@ -313,7 +314,7 @@ export const SessionCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Sessions per Day">
+        <Card title="Sessions per Day" full>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -386,7 +387,7 @@ export const ErrorCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Errors per Day">
+        <Card title="Errors per Day" full>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
@@ -418,7 +419,7 @@ const DailyChart = ({
     const gradientId = `${name}-colorUv`;
 
     return (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={275}>
             <ComposedChart
                 width={500}
                 height={300}

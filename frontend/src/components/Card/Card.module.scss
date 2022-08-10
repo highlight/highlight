@@ -14,6 +14,11 @@
         padding: 0;
     }
 
+    &.full {
+        height: 100%;
+        width: 100%;
+    }
+
     h2,
     .cardHeader {
         font-size: 22px !important;

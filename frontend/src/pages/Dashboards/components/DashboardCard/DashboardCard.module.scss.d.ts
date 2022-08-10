@@ -6,6 +6,7 @@ export const cardHeader: string;
 export const chartButtons: string;
 export const chartInner: string;
 export const chartWrapper: string;
+export const componentCard: string;
 export const createNewAlertRow: string;
 export const description: string;
 export const draggable: string;
