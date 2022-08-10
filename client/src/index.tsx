@@ -1185,6 +1185,22 @@ export class Highlight {
         const messages = [...this._firstLoadListeners.messages];
         const errors = [...this._firstLoadListeners.errors];
 
+        // if it is time to take a full snapshot,
+        // ensure the snapshot is at the beginning of the next payload
+        if (!isBeacon) {
+            const now = new Date().getTime();
+            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+            // take a full snapshot and reset the counters
+            if (
+                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
+                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
+            ) {
+                record.takeFullSnapshot();
+                this._eventBytesSinceSnapshot = 0;
+                this._lastSnapshotTime = now;
+            }
+        }
+
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
@@ -1224,17 +1240,6 @@ export class Highlight {
 
             this._eventBytesSinceSnapshot =
                 this._eventBytesSinceSnapshot + eventsSize;
-            const now = new Date().getTime();
-            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
-            // take a full snapshot and reset the counters
-            if (
-                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
-                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
-            ) {
-                record.takeFullSnapshot();
-                this._eventBytesSinceSnapshot = 0;
-                this._lastSnapshotTime = now;
-            }
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
