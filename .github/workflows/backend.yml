@@ -21,7 +21,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
             - uses: dorny/paths-filter@v2
               id: filter
               with:
@@ -38,7 +38,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
     code-quality-check:
         needs: code-setup
         runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
             - name: Format
               run: if [ "$(gofmt -l -d ./backend | wc -l)" -gt 0 ]; then exit 1; fi
             - name: Run linter
@@ -67,7 +67,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
             - name: copy backend
               run: |
                 mkdir tmp
@@ -94,7 +94,7 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
             - name: Build binary
               run: cd backend/ && go build .
     test:
@@ -127,6 +127,6 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
-                go-version: '>=1.18.x'
+                go-version: '1.18'
             - name: Run tests
               run: cd backend && go test -p 1 ./... -v
