@@ -2079,7 +2079,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					score += .5
 				}
 
-				r.Redis.AddEventPayload(sessionID, score, string(b))
+				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
+					return e.Wrap(err, "error adding event payload")
+				}
 
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
