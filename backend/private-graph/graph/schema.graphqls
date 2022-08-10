@@ -568,7 +568,7 @@ input SanitizedAdminInput {
 }
 
 type SessionsHistogram {
-    labels: [String!]!
+    bucket_start_times: [Timestamp!]!
     sessions_without_errors: [Int64!]!
     sessions_with_errors: [Int64!]!
     total_sessions: [Int64!]!

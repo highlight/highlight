@@ -2325,7 +2325,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
             histogram?: Types.Maybe<
                 { __typename?: 'SessionsHistogram' } & Pick<
                     Types.SessionsHistogram,
-                    | 'labels'
+                    | 'bucket_start_times'
                     | 'sessions_without_errors'
                     | 'sessions_with_errors'
                     | 'total_sessions'

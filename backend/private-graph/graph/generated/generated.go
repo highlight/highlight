@@ -798,7 +798,7 @@ type ComplexityRoot struct {
 	}
 
 	SessionsHistogram struct {
-		Labels                func(childComplexity int) int
+		BucketStartTimes      func(childComplexity int) int
 		SessionsWithErrors    func(childComplexity int) int
 		SessionsWithoutErrors func(childComplexity int) int
 		TotalSessions         func(childComplexity int) int
@@ -5748,12 +5748,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
-	case "SessionsHistogram.labels":
-		if e.complexity.SessionsHistogram.Labels == nil {
+	case "SessionsHistogram.bucket_start_times":
+		if e.complexity.SessionsHistogram.BucketStartTimes == nil {
 			break
 		}
 
-		return e.complexity.SessionsHistogram.Labels(childComplexity), true
+		return e.complexity.SessionsHistogram.BucketStartTimes(childComplexity), true
 
 	case "SessionsHistogram.sessions_with_errors":
 		if e.complexity.SessionsHistogram.SessionsWithErrors == nil {
@@ -6787,7 +6787,7 @@ input SanitizedAdminInput {
 }
 
 type SessionsHistogram {
-    labels: [String!]!
+    bucket_start_times: [Timestamp!]!
     sessions_without_errors: [Int64!]!
     sessions_with_errors: [Int64!]!
     total_sessions: [Int64!]!
@@ -41057,8 +41057,8 @@ func (ec *executionContext) fieldContext_SessionResults_histogram(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "labels":
-				return ec.fieldContext_SessionsHistogram_labels(ctx, field)
+			case "bucket_start_times":
+				return ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
 			case "sessions_without_errors":
 				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
 			case "sessions_with_errors":
@@ -41072,8 +41072,8 @@ func (ec *executionContext) fieldContext_SessionResults_histogram(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionsHistogram_labels(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionsHistogram_labels(ctx, field)
+func (ec *executionContext) _SessionsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41086,7 +41086,7 @@ func (ec *executionContext) _SessionsHistogram_labels(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Labels, nil
+		return obj.BucketStartTimes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41098,19 +41098,19 @@ func (ec *executionContext) _SessionsHistogram_labels(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]time.Time)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionsHistogram_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SessionsHistogram",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -52627,9 +52627,9 @@ func (ec *executionContext) _SessionsHistogram(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SessionsHistogram")
-		case "labels":
+		case "bucket_start_times":
 
-			out.Values[i] = ec._SessionsHistogram_labels(ctx, field, obj)
+			out.Values[i] = ec._SessionsHistogram_bucket_start_times(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -55986,6 +55986,38 @@ func (ec *executionContext) marshalNTimestamp2timeᚐTime(ctx context.Context, s
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx context.Context, v interface{}) ([]time.Time, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]time.Time, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTimestamp2timeᚐTime(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []time.Time) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNTimestamp2timeᚐTime(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNTimestamp2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {

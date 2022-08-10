@@ -2,7 +2,6 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import Histogram, { Series } from '@components/Histogram/Histogram';
 import {
     PAGE_SIZE,
     Pagination,
@@ -66,12 +65,6 @@ export const SessionFeed = React.memo(() => {
         setShowDetailedSessionView,
         showDetailedSessionView,
     } = usePlayerConfiguration();
-    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
-        []
-    );
-    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
-        []
-    );
 
     const [
         sessionFeedIsInTopScrollPosition,
@@ -221,44 +214,6 @@ export const SessionFeed = React.memo(() => {
         setSearchParams,
     ]);
 
-    useEffect(() => {
-        let seriesList: Series[] = [];
-        const bucketTimes: number[] = [];
-        if (sessionResults?.histogram) {
-            let bucketTime = 1;
-            console.log(
-                'Rich',
-                sessionResults.histogram.sessions_without_errors.length
-            );
-            sessionResults.histogram.sessions_without_errors.forEach(() => {
-                bucketTimes.push(bucketTime++);
-            });
-            bucketTimes.push(bucketTime++);
-            seriesList = [
-                {
-                    label: 'Sessions without Errors',
-                    color: '--color-purple',
-                    counts: sessionResults.histogram.sessions_without_errors,
-                },
-                {
-                    label: 'Sessions with Errors',
-                    color: '--color-red-600',
-                    counts: sessionResults.histogram.sessions_with_errors,
-                },
-            ];
-            console.log(
-                'Rich',
-                JSON.stringify(seriesList),
-                JSON.stringify(bucketTimes),
-                seriesList[0].counts.length,
-                seriesList[1].counts.length,
-                bucketTimes.length
-            );
-        }
-        setHistogramSeriesList(seriesList);
-        setHistogramBucketTimes(bucketTimes);
-    }, [sessionResults]);
-
     const filteredSessions = useMemo(() => {
         if (loading) {
             return sessionResults.sessions;
@@ -285,19 +240,6 @@ export const SessionFeed = React.memo(() => {
                 <SegmentPickerForPlayer />
                 <SessionsQueryBuilder />
             </div>
-            {histogramSeriesList.length > 0 && histogramBucketTimes.length > 0 && (
-                <div className={styles.histogramContainer}>
-                    <Histogram
-                        onAreaChanged={() => {}}
-                        onBucketClicked={() => {}}
-                        seriesList={histogramSeriesList}
-                        timeFormatter={() => ''}
-                        bucketTimes={histogramBucketTimes}
-                        tooltipContent={() => null}
-                        gotoAction={() => {}}
-                    />
-                </div>
-            )}
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (

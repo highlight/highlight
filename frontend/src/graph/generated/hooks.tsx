@@ -6002,7 +6002,7 @@ export const GetSessionsOpenSearchDocument = gql`
             }
             totalCount
             histogram @include(if: $histogram) {
-                labels
+                bucket_start_times
                 sessions_without_errors
                 sessions_with_errors
                 total_sessions

@@ -622,7 +622,7 @@ export type SanitizedAdminInput = {
 
 export type SessionsHistogram = {
     __typename?: 'SessionsHistogram';
-    labels: Array<Scalars['String']>;
+    bucket_start_times: Array<Scalars['Timestamp']>;
     sessions_without_errors: Array<Scalars['Int64']>;
     sessions_with_errors: Array<Scalars['Int64']>;
     total_sessions: Array<Scalars['Int64']>;

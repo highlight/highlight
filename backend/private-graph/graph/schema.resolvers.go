@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4268,7 +4268,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			Field:            "created_at",
 			CalendarInterval: "day",
 			SortOrder:        "asc",
-			Format:           "yyyy-MM-dd",
+			Format:           "epoch_millis",
 			SubAggregation: &opensearch.TermsAggregation{
 				Field:   "has_errors",
 				Missing: ptr.String("false"),
@@ -4324,9 +4324,14 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}
 
 	if histogramRequested {
-		date_labels, no_errors_counts, with_errors_counts, total_counts := []string{}, []int64{}, []int64{}, []int64{}
+		bucket_start_times, no_errors_counts, with_errors_counts, total_counts := []time.Time{}, []int64{}, []int64{}, []int64{}
 		for _, date_bucket := range aggs {
-			date_labels = append(date_labels, date_bucket.Key)
+			unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+			if err != nil {
+				log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+				break
+			}
+			bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
 			total_counts = append(total_counts, date_bucket.DocCount)
 			no_errors, with_errors := int64(0), int64(0)
 			for _, errors_bucket := range date_bucket.SubAggregationResults {
@@ -4341,7 +4346,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		}
 
 		returnValue.Histogram = &model.SessionsHistogram{
-			Labels:                date_labels,
+			BucketStartTimes:      bucket_start_times,
 			SessionsWithoutErrors: no_errors_counts,
 			SessionsWithErrors:    with_errors_counts,
 			TotalSessions:         total_counts,

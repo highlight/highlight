@@ -459,10 +459,10 @@ type EmailSignup struct {
 }
 
 type SessionsHistogram struct {
-	Labels                []string `json:"labels"`
-	SessionsWithoutErrors []int64  `json:"sessions_without_errors"`
-	SessionsWithErrors    []int64  `json:"sessions_with_errors"`
-	TotalSessions         []int64  `json:"total_sessions"`
+	BucketStartTimes      []time.Time `json:"bucket_start_times"`
+	SessionsWithoutErrors []int64     `json:"sessions_without_errors"`
+	SessionsWithErrors    []int64     `json:"sessions_with_errors"`
+	TotalSessions         []int64     `json:"total_sessions"`
 }
 
 type SessionResults struct {

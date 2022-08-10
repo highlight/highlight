@@ -15,7 +15,6 @@ export const feedWrapper: string;
 export const filtersContainer: string;
 export const fixedContent: string;
 export const hasScrolled: string;
-export const histogramContainer: string;
 export const hoverBorderLeft: string;
 export const hoverBorderOn: string;
 export const hoverBorderRight: string;
