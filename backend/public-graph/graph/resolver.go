@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -1056,16 +1057,17 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
 
-	var fingerprintInt int = 0
-	if val, err := strconv.Atoi(fingerprint); err == nil {
-		fingerprintInt = val
+	fpHash := fnv.New32a()
+	defer fpHash.Reset()
+	if _, err := fpHash.Write([]byte(fingerprint)); err != nil {
+		log.Errorf("failed to hash fingerprint to int: %s", err)
 	}
 
 	deviceDetails := GetDeviceDetails(userAgent)
 	n := time.Now()
 	session := &model.Session{
 		ProjectID:                      projectID,
-		Fingerprint:                    fingerprintInt,
+		Fingerprint:                    int(fpHash.Sum32()),
 		OSName:                         deviceDetails.OSName,
 		OSVersion:                      deviceDetails.OSVersion,
 		BrowserName:                    deviceDetails.BrowserName,
