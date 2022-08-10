@@ -217,7 +217,7 @@ export const SessionCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Sessions per Day" full>
+        <Card title="Sessions" full>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -290,7 +290,7 @@ export const ErrorCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Errors per Day" full>
+        <Card title="Errors" full>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}

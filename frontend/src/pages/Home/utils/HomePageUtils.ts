@@ -8,14 +8,14 @@ export const HOME_DASHBOARD_CONFIGURATION: {
         description: 'Key App Visitor Metrics',
         component_type: MetricViewComponentType.KeyPerformanceGauge,
     },
-    SessionsPerDay: {
-        name: 'SessionsPerDay',
-        description: 'Sessions per Day',
+    Sessions: {
+        name: 'Sessions',
+        description: 'Sessions',
         component_type: MetricViewComponentType.SessionCountChart,
     },
-    ErrorsPerDay: {
-        name: 'ErrorsPerDay',
-        description: 'Errors per Day',
+    Errors: {
+        name: 'Errors',
+        description: 'Errors',
         component_type: MetricViewComponentType.ErrorCountChart,
     },
     TopReferrers: {

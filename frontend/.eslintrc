@@ -41,7 +41,6 @@
     "@typescript-eslint/no-unused-vars": "warn",
     "unused-imports/no-unused-imports-ts": "error",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "no-console": "warn",
     "no-restricted-imports": [
       "error",
       {

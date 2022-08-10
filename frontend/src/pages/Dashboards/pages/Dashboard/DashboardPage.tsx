@@ -150,16 +150,32 @@ const DashboardPage = ({
 
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
-    const pushNewMetricConfig = (nm: DashboardMetricConfig[]) => {
-        const newPos = { ...DEFAULT_SINGLE_LAYOUT };
-        newPos.i = (nm.length - 1).toString();
-        newPos.x = ((nm.length - 1) * LAYOUT_CHART_WIDTH) % LAYOUT_ROW_WIDTH;
-        newPos.y = Math.floor(
-            ((nm.length - 1) * LAYOUT_CHART_WIDTH) / LAYOUT_ROW_WIDTH
-        );
-        const l = { lg: [...layout.lg, newPos].slice(0, nm.length) };
+    const pushNewMetricConfig = (
+        nm: DashboardMetricConfig[],
+        newLayout?: Layouts
+    ) => {
+        let l: Layouts;
+        if (newLayout) {
+            l = newLayout;
+        } else {
+            const newPos = { ...DEFAULT_SINGLE_LAYOUT };
+            newPos.i = (nm.length - 1).toString();
+            newPos.y = Math.max(...layout.lg.map((l) => l.y));
+            newPos.x =
+                Math.max(
+                    ...layout.lg.filter((l) => l.y === newPos.y).map((l) => l.x)
+                ) + LAYOUT_CHART_WIDTH;
+            // wrap in case we can't fit on this current row
+            if (newPos.x > LAYOUT_ROW_WIDTH - LAYOUT_CHART_WIDTH) {
+                newPos.y += 1;
+                newPos.x = 0;
+            }
+            l = {
+                lg: [...layout.lg, newPos].slice(0, nm.length),
+            };
+        }
         updateDashboard({
-            id,
+            id: dashboard?.id || id,
             metrics: nm,
             name: dashboard?.name || '',
             layout: JSON.stringify(l),
@@ -203,7 +219,7 @@ const DashboardPage = ({
                                             );
 
                                             updateDashboard({
-                                                id: id,
+                                                id: dashboard.id || id,
                                                 name: dashboard.name,
                                                 metrics: dashboard.metrics,
                                                 layout: newLayout,
@@ -326,7 +342,7 @@ export const DashboardGrid = ({
     containerStyles,
 }: {
     dashboard: DashboardDefinition;
-    updateDashboard: (dm: DashboardMetricConfig[]) => void;
+    updateDashboard: (dm: DashboardMetricConfig[], newLayout?: Layouts) => void;
     layout: Layouts;
     persistedLayout: Layouts;
     setLayout: React.Dispatch<React.SetStateAction<Layouts>>;
@@ -394,7 +410,11 @@ export const DashboardGrid = ({
                                 deleteMetric={(idx: number) => {
                                     const newMetrics = [...dashboard.metrics];
                                     newMetrics.splice(idx, 1);
-                                    updateDashboard(newMetrics);
+                                    const newLgLayout = [...layout.lg];
+                                    newLgLayout.splice(idx, 1);
+                                    updateDashboard(newMetrics, {
+                                        lg: newLgLayout,
+                                    });
                                 }}
                                 key={metric.name}
                                 customDateRange={customDateRange}
