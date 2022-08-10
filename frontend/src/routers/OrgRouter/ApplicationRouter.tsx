@@ -11,7 +11,6 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'));
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'));
 import ErrorPage from '../../pages/Error/ErrorPage';
-import HomePage from '../../pages/Home/HomePage';
 import Player from '../../pages/Player/PlayerPage';
 import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings';
 
@@ -49,6 +48,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:project_id/dashboards">
                     <DashboardsRouter />
                 </Route>
+                <Route path="/:project_id/home">
+                    <DashboardsRouter />
+                </Route>
                 <Route path="/:project_id/setup">
                     <SetupRouter integrated={integrated} />
                 </Route>
@@ -64,9 +66,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <Suspense fallback={null}>
                         <HitTargets />
                     </Suspense>
-                </Route>
-                <Route path="/:project_id/home">
-                    <HomePage />
                 </Route>
                 <Route path="/:project_id">
                     {integrated ? (

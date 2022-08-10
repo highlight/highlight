@@ -17,6 +17,7 @@ import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -86,7 +87,12 @@ const ActiveUsersTable = () => {
     return (
         <Card
             title={
-                <div className={homePageStyles.chartHeaderWrapper}>
+                <div
+                    className={classNames(
+                        homePageStyles.chartHeaderWrapper,
+                        homePageStyles.smallMargin
+                    )}
+                >
                     <h3 id={homePageStyles.h3}>Top Users</h3>
                     <Input
                         allowClear

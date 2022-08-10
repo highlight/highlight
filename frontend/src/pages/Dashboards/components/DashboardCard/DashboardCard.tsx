@@ -596,7 +596,7 @@ const ChartContainer = React.memo(
                     </div>
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
-                        height={235}
+                        height={275}
                         data={histogramData?.metrics_histogram?.buckets || []}
                         referenceLines={referenceLines}
                         barColorMapping={{
@@ -613,7 +613,7 @@ const ChartContainer = React.memo(
                     />
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
-                        height={235}
+                        height={275}
                         syncId="dashboardChart"
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
@@ -675,7 +675,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.TimelineBar ? (
                     <CategoricalBarChart
                         syncId="dashboardChart"
-                        height={235}
+                        height={275}
                         stacked
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({

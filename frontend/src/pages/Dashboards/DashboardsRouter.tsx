@@ -8,6 +8,7 @@ import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/D
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
+import HomePage from '@pages/Home/HomePage';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
 import React, { useEffect } from 'react';
@@ -63,6 +64,9 @@ const DashboardsRouter = () => {
                 <title>Dashboards</title>
             </Helmet>
             <Switch>
+                <Route exact path={`/:project_id/home`}>
+                    <HomePage />
+                </Route>
                 <Route exact path={path}>
                     <DashboardsHomePage />
                 </Route>

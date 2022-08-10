@@ -3,21 +3,13 @@ import DemoWorkspaceButton, {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetAdminQuery,
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
-    useGetDashboardDefinitionsQuery,
-    useUpsertDashboardMutation,
 } from '@graph/hooks';
-import { namedOperations } from '@graph/operations';
-import { DashboardGrid } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
-import {
-    DEFAULT_HOME_DASHBOARD_LAYOUT,
-    HOME_DASHBOARD_CONFIGURATION,
-} from '@pages/Home/utils/HomePageUtils';
+import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import { dailyCountData } from '@util/dashboardCalculations';
 import { useIntegrated } from '@util/integrated';
 import { formatNumber } from '@util/numbers';
@@ -26,7 +18,6 @@ import { message } from 'antd';
 import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
-import { Layouts } from 'react-grid-layout';
 import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory } from 'react-router-dom';
@@ -70,7 +61,6 @@ const HomePage = () => {
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[1].value
     );
-    const [now] = useState(moment.now());
     const [hasData, setHasData] = useState<boolean>(true);
     const { integrated, loading: integratedLoading } = useIntegrated();
 
@@ -87,49 +77,28 @@ const HomePage = () => {
             </Helmet>
             <div className={styles.dashboardWrapper}>
                 <div className={styles.dashboard}>
-                    <div className={styles.headerContainer}>
-                        <div>
-                            <h2>
-                                {integrated
-                                    ? `${
-                                          adminData?.admin?.name
-                                              ? `Hey ${
-                                                    adminData.admin.name.split(
-                                                        ' '
-                                                    )[0]
-                                                }, welcome`
-                                              : `Welcome`
-                                      } back to Highlight.`
-                                    : 'Welcome to Highlight'}
-                            </h2>
-                            {integrated && (
-                                <p className={styles.subTitle}>
-                                    Here’s an overview of your team’s sessions
-                                    and errors.
-                                </p>
-                            )}
-                        </div>
-                        <div className={styles.filtersContainer}>
-                            <StandardDropdown
-                                data={timeFilter}
-                                defaultValue={timeFilter[1]}
-                                onSelect={setDateRangeLength}
-                            />
-                        </div>
-                    </div>
                     <div className={styles.dashboardBody}>
-                        <HomePageDashboard
-                            dateRange={{
-                                start_date: moment(now)
-                                    .subtract(dateRangeLength, 'days')
-                                    .format(),
-                                end_date: moment(now).format(),
-                            }}
-                            setDateRange={(start: string, end: string) => {
-                                setDateRangeLength(
-                                    moment(end).diff(moment(start), 'day')
-                                );
-                            }}
+                        <DashboardPage
+                            header={
+                                <div>
+                                    <h2>
+                                        {integrated
+                                            ? `${
+                                                  adminData?.admin?.name
+                                                      ? `Hey ${
+                                                            adminData.admin.name.split(
+                                                                ' '
+                                                            )[0]
+                                                        }, welcome`
+                                                      : `Welcome`
+                                              } back to Highlight.`
+                                            : 'Welcome to Highlight'}
+                                    </h2>
+                                </div>
+                            }
+                            lookbackDays={dateRangeLength}
+                            onChangeLookbackDays={setDateRangeLength}
+                            dashboardName={'Home'}
                         />
                     </div>
                     {!hasData && !integrated && (
@@ -176,72 +145,6 @@ const HomePage = () => {
                 </div>
             </div>
         </HomePageFiltersContext>
-    );
-};
-
-const HomePageDashboard = ({
-    dateRange,
-    setDateRange,
-}: {
-    dateRange: { start_date: string; end_date: string };
-    setDateRange: (start: string, end: string, custom?: boolean) => void;
-}) => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const [layout, setLayout] = useState<Layouts>({ lg: [] });
-    const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
-    const { data, loading, error } = useGetDashboardDefinitionsQuery({
-        variables: { project_id },
-    });
-    const [upsertDashboardMutation] = useUpsertDashboardMutation({
-        refetchQueries: [namedOperations.Query.GetDashboardDefinitions],
-    });
-    const dashboard = data?.dashboard_definitions.filter(
-        (d) => d?.name === 'Home'
-    )[0];
-
-    useEffect(() => {
-        // if no dashboards exist, create a web vitals dashboard by default
-        if (
-            !loading &&
-            !error &&
-            !data?.dashboard_definitions?.filter((d) => d?.name === 'Home')
-                ?.length
-        ) {
-            upsertDashboardMutation({
-                variables: {
-                    project_id,
-                    metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
-                    name: 'Home',
-                    layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
-                },
-            });
-        }
-    }, [project_id, upsertDashboardMutation, loading, error, data]);
-
-    useEffect(() => {
-        if (dashboard?.layout) {
-            setLayout(JSON.parse(dashboard.layout));
-        }
-    }, [dashboard, setLayout]);
-
-    useEffect(() => {
-        console.log(layout);
-    }, [layout]);
-
-    if (loading || !dashboard) {
-        return null;
-    }
-    return (
-        <DashboardGrid
-            dashboard={dashboard}
-            updateDashboard={() => {}}
-            layout={layout}
-            setLayout={setLayout}
-            setCanSaveChanges={setCanSaveChanges}
-            dateRange={dateRange}
-            updateDateRange={setDateRange}
-            containerStyles={{ padding: 0 }}
-        />
     );
 };
 

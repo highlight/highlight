@@ -44,7 +44,19 @@ const timeFilters = [
     { label: 'Last 30 days', value: 30 * 24 * 60 },
 ] as { label: string; value: number }[];
 
-const DashboardPage = () => {
+const DashboardPage = ({
+    dashboardName,
+    lookbackDays,
+    onChangeLookbackDays,
+    header,
+    containerStyles,
+}: {
+    dashboardName?: string;
+    lookbackDays?: number;
+    onChangeLookbackDays?: React.Dispatch<React.SetStateAction<number>>;
+    header?: React.ReactNode;
+    containerStyles?: React.CSSProperties;
+}) => {
     const history = useHistory<{ dashboardName: string }>();
     const { project_id, id } = useParams<{ project_id: string; id: string }>();
     const [dateRangeLength, setDateRangeLength] = useLocalStorage(
@@ -59,9 +71,10 @@ const DashboardPage = () => {
         start_date: string;
         end_date: string;
     }>({
-        start_date: moment()
-            .subtract(dateRangeLength.value, 'minutes')
-            .format(),
+        start_date: (lookbackDays
+            ? moment().subtract(lookbackDays, 'days')
+            : moment().subtract(dateRangeLength.value, 'minutes')
+        ).format(),
         end_date: moment().format(),
     });
 
@@ -97,13 +110,31 @@ const DashboardPage = () => {
     };
 
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
-    const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
+    const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
-        const dashboard = dashboards.find((d) => d?.id === id);
+        if (onChangeLookbackDays) {
+            onChangeLookbackDays(
+                Math.round(
+                    moment
+                        .duration(
+                            moment(dateRange.end_date).diff(
+                                moment(dateRange.start_date)
+                            )
+                        )
+                        .asDays()
+                )
+            );
+        }
+    }, [onChangeLookbackDays, dateRange]);
+
+    useEffect(() => {
+        const dashboard = dashboards.find((d) =>
+            dashboardName ? d?.name === dashboardName : d?.id === id
+        );
         if (dashboard) {
             const name = dashboard.name || '';
             setDashboard(dashboard);
@@ -115,7 +146,7 @@ const DashboardPage = () => {
             }
             history.replace({ state: { dashboardName: name } });
         }
-    }, [dashboards, history, id]);
+    }, [dashboardName, dashboards, history, id]);
 
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
@@ -143,16 +174,20 @@ const DashboardPage = () => {
         <LeadAlignLayout fullWidth className={styles.customLeadAlignLayout}>
             <div className={styles.dashboardPageFixedHeader}>
                 <div className={styles.headerPanel}>
-                    <div>
-                        <Breadcrumb
-                            getBreadcrumbName={(url) =>
-                                getDashboardsBreadcrumbNames(
-                                    history.location.state
-                                )(url)
-                            }
-                            linkRenderAs="h2"
-                        />
-                    </div>
+                    {header ? (
+                        header
+                    ) : (
+                        <div>
+                            <Breadcrumb
+                                getBreadcrumbName={(url) =>
+                                    getDashboardsBreadcrumbNames(
+                                        history.location.state
+                                    )(url)
+                                }
+                                linkRenderAs="h2"
+                            />
+                        </div>
+                    )}
                     <div className={styles.rightControllerSection}>
                         <div className={styles.dateRangePickerContainer}>
                             <>
@@ -272,6 +307,7 @@ const DashboardPage = () => {
                 dateRange={dateRange}
                 updateDateRange={updateDateRange}
                 customDateRange={customDateRange}
+                containerStyles={containerStyles}
             />
         </LeadAlignLayout>
     );
@@ -294,7 +330,7 @@ export const DashboardGrid = ({
     layout: Layouts;
     persistedLayout: Layouts;
     setLayout: React.Dispatch<React.SetStateAction<Layouts>>;
-    setCanSaveChanges: React.Dispatch<React.SetStateAction<Boolean>>;
+    setCanSaveChanges: React.Dispatch<React.SetStateAction<boolean>>;
     dateRange: { start_date: string; end_date: string };
     updateDateRange: (start: string, end: string, custom?: boolean) => void;
     customDateRange?: { label: string; value: number };

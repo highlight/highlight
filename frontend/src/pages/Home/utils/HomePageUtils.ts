@@ -44,7 +44,7 @@ const LAYOUT_ROW_WIDTH = 12;
 const LAYOUT_CHART_WIDTH = LAYOUT_ROW_WIDTH / 4;
 const DEFAULT_SINGLE_LAYOUT = {
     w: LAYOUT_CHART_WIDTH,
-    h: 2,
+    h: 3,
     x: 0,
     y: 0,
     i: '0',
@@ -83,7 +83,7 @@ export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
         {
             ...DEFAULT_SINGLE_LAYOUT,
             x: 6,
-            y: 2,
+            y: 3,
             i: '4',
         },
         {
@@ -95,7 +95,7 @@ export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
         {
             ...DEFAULT_SINGLE_LAYOUT,
             x: 9,
-            y: 2,
+            y: 3,
             i: '6',
         },
     ],

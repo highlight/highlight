@@ -10,6 +10,7 @@ import {
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetReferrersCountQuery } from '@graph/hooks';
 import SvgReferrer from '@icons/Referrer';
+import homePageStyles from '@pages/Home/HomePage.module.scss';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
@@ -64,7 +65,15 @@ const ReferrersTable = () => {
     }
 
     return (
-        <Card title="Top Referrers" noTitleBottomMargin full>
+        <Card
+            title={
+                <div className={homePageStyles.chartHeaderWrapper}>
+                    <h3 id={homePageStyles.h3}>Top Referrers</h3>
+                </div>
+            }
+            noTitleBottomMargin
+            full
+        >
             <ProgressBarTable
                 columns={Columns}
                 data={tableData}
