@@ -292,7 +292,8 @@ const DashboardPage = () => {
                     rowHeight={155}
                     resizeHandles={['se']}
                     draggableHandle="[data-drag-handle]"
-                    onLayoutChange={handleDashboardChange}
+                    onDragStop={handleDashboardChange}
+                    onResizeStop={handleDashboardChange}
                 >
                     {dashboard.metrics.map((metric, index) => (
                         <div key={index.toString()}>
