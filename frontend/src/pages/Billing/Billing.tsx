@@ -46,7 +46,7 @@ export const useBillingHook = ({
     workspace_id?: string;
     project_id?: string;
 }) => {
-    const { isAuthLoading, isHighlightAdmin } = useAuthContext();
+    const { isAuthLoading, isLoggedIn } = useAuthContext();
     const { data: projectData } = useGetProjectQuery({
         variables: { id: project_id || '' },
         skip: !project_id?.length || !!workspace_id?.length,
@@ -62,7 +62,7 @@ export const useBillingHook = ({
         },
         skip:
             isAuthLoading ||
-            !isHighlightAdmin ||
+            !isLoggedIn ||
             (!workspace_id?.length && !projectData?.workspace?.id),
     });
 
