@@ -20,7 +20,7 @@ type Client struct {
 
 var (
 	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
-	redisProjectIds            = []int{1} // Enabled for Highlight only
+	redisProjectIds            = []int{} // Disabled for all projects for now
 )
 
 func UseRedis(projectId int) bool {
