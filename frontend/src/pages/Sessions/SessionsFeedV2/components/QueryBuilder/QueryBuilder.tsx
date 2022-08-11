@@ -260,6 +260,15 @@ export const isAbsoluteTimeRange = (value?: string): boolean => {
     return !!value && value.includes('_');
 };
 
+export const serializeAbsoluteTimeRange = (
+    start: Date | undefined,
+    end: Date | undefined
+) => {
+    const startIso = moment(start).toISOString();
+    const endIso = moment(end).toISOString();
+    return `${startIso}_${endIso}`;
+};
+
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
     if (!isAbsoluteTimeRange(value)) {
@@ -280,6 +289,7 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
     }
     return value!.split('_')[1];
 };
+const timeFormatter = (t: number) => new Date(t).toLocaleString();
 
 const getTimeLabel = (value: string): string => {
     const split = value.split('_');
@@ -593,9 +603,7 @@ const PopoutContent = ({
                             : undefined
                     }
                     onChange={(start, end) => {
-                        const startIso = moment(start).toISOString();
-                        const endIso = moment(end).toISOString();
-                        const value = `${startIso}_${endIso}`;
+                        const value = serializeAbsoluteTimeRange(start, end);
 
                         onChange({
                             kind: 'multi',
@@ -1480,19 +1488,28 @@ const QueryBuilder = ({
         });
         setCurrentStep(1);
     };
-    const addRule = (rule: RuleProps) => {
-        setRules([...rules, rule]);
-        setCurrentRule(undefined);
-    };
-    const removeRule = (targetRule: RuleProps) =>
-        setRules(rules.filter((rule) => rule !== targetRule));
-    const updateRule = (targetRule: RuleProps, newProps: any) => {
-        setRules(
-            rules.map((rule) =>
-                rule !== targetRule ? rule : { ...rule, ...newProps }
-            )
-        );
-    };
+    const addRule = useCallback(
+        (rule: RuleProps) => {
+            setRules([...rules, rule]);
+            setCurrentRule(undefined);
+        },
+        [rules]
+    );
+    const removeRule = useCallback(
+        (targetRule: RuleProps) =>
+            setRules(rules.filter((rule) => rule !== targetRule)),
+        [rules]
+    );
+    const updateRule = useCallback(
+        (targetRule: RuleProps, newProps: any) => {
+            setRules(
+                rules.map((rule) =>
+                    rule !== targetRule ? rule : { ...rule, ...newProps }
+                )
+            );
+        },
+        [rules]
+    );
 
     const [isAnd, toggleIsAnd] = useToggle(true);
 
@@ -1624,6 +1641,35 @@ const QueryBuilder = ({
             });
         };
     };
+
+    const onAreaChanged = useCallback(
+        (left, right) => {
+            if (histogramBucketTimes.length <= right + 1 || !timeRangeRule)
+                return;
+            const newStartTime = histogramBucketTimes[left];
+            const newEndTime = histogramBucketTimes[right + 1];
+            const timeRange = serializeAbsoluteTimeRange(
+                new Date(newStartTime),
+                new Date(newEndTime)
+            );
+            updateRule(timeRangeRule, {
+                val: {
+                    kind: 'multi',
+                    options: [
+                        {
+                            label: getDateLabel(timeRange),
+                            value: timeRange,
+                        },
+                    ],
+                },
+            });
+        },
+        [histogramBucketTimes, timeRangeRule, updateRule]
+    );
+    const onBucketClicked = useCallback(
+        (bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
+        [onAreaChanged]
+    );
 
     // Track the current state of the query builder to detect changes
     const [qbState, setQbState] = useState<string | undefined>(undefined);
@@ -1972,10 +2018,10 @@ const QueryBuilder = ({
                 histogramSeriesList.length > 0 &&
                 histogramBucketTimes.length > 0 && (
                     <Histogram
-                        onAreaChanged={() => {}}
-                        onBucketClicked={() => {}}
+                        onAreaChanged={onAreaChanged}
+                        onBucketClicked={onBucketClicked}
                         seriesList={histogramSeriesList}
-                        timeFormatter={() => ''}
+                        timeFormatter={timeFormatter}
                         bucketTimes={histogramBucketTimes}
                         tooltipContent={() => null}
                         gotoAction={() => {}}
