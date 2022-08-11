@@ -97,7 +97,7 @@ const RageClicksForProjectTable = () => {
                     )}
                 >
                     <h3 id={homePageStyles.h3}>Rage Clicks</h3>
-                    <div style={{ paddingRight: 'var(--size-medium)' }}>
+                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
                         <Input
                             allowClear
                             placeholder="Search for user"

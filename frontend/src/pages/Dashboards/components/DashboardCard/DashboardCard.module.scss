@@ -36,6 +36,12 @@
     top: 18px;
 }
 
+.overlayButton {
+    position: absolute;
+    right: var(--size-xLarge);
+    top: var(--size-medium);
+}
+
 .button {
     justify-content: center;
 }

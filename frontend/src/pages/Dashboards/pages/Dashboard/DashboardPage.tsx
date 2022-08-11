@@ -360,6 +360,33 @@ export const DashboardGrid = ({
         setCanSaveChanges(layoutJSON !== newLayoutJSON);
     };
 
+    const updateMetric = (idx: number, value: DashboardMetricConfig) => {
+        const newMetrics = [...dashboard.metrics];
+        newMetrics[idx] = {
+            ...dashboard.metrics[idx],
+            ...value,
+        };
+        updateDashboard(newMetrics);
+    };
+
+    const deleteMetric = (idx: number) => {
+        const newMetrics = [...dashboard.metrics];
+        newMetrics.splice(idx, 1);
+        const lgLayout = [...layout.lg];
+        lgLayout.splice(idx, 1);
+        // reset new layout idxes because they should be incrementing
+        const newLgLayout = [];
+        for (let i = 0; i < lgLayout.length; i++) {
+            newLgLayout.push({
+                ...lgLayout[i],
+                i: i.toString(),
+            });
+        }
+        updateDashboard(newMetrics, {
+            lg: newLgLayout,
+        });
+    };
+
     return (
         <div
             className={classNames(styles.gridContainer, styles.isEditing)}
@@ -396,34 +423,8 @@ export const DashboardGrid = ({
                             <DashboardCard
                                 metricIdx={index}
                                 metricConfig={metric}
-                                updateMetric={(
-                                    idx: number,
-                                    value: DashboardMetricConfig
-                                ) => {
-                                    const newMetrics = [...dashboard.metrics];
-                                    newMetrics[idx] = {
-                                        ...dashboard.metrics[idx],
-                                        ...value,
-                                    };
-                                    updateDashboard(newMetrics);
-                                }}
-                                deleteMetric={(idx: number) => {
-                                    const newMetrics = [...dashboard.metrics];
-                                    newMetrics.splice(idx, 1);
-                                    const lgLayout = [...layout.lg];
-                                    lgLayout.splice(idx, 1);
-                                    // reset new layout idxes because they should be incrementing
-                                    const newLgLayout = [];
-                                    for (let i = 0; i < lgLayout.length; i++) {
-                                        newLgLayout.push({
-                                            ...lgLayout[i],
-                                            i: i.toString(),
-                                        });
-                                    }
-                                    updateDashboard(newMetrics, {
-                                        lg: newLgLayout,
-                                    });
-                                }}
+                                updateMetric={updateMetric}
+                                deleteMetric={deleteMetric}
                                 key={metric.name}
                                 customDateRange={customDateRange}
                                 dateRange={dateRange}
@@ -433,6 +434,8 @@ export const DashboardGrid = ({
                             <DashboardComponentCard
                                 metricIdx={index}
                                 metricConfig={metric}
+                                updateMetric={updateMetric}
+                                deleteMetric={deleteMetric}
                             />
                         )}
                     </div>

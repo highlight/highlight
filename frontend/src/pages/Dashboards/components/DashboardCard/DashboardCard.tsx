@@ -61,7 +61,7 @@ const LINE_COLORS = {
     [MetricAggregator.Count]: 'var(--color-green-500)',
 };
 
-type DeleteMetricFn = (idx: number) => void;
+export type DeleteMetricFn = (idx: number) => void;
 
 interface Props {
     metricIdx: number;
@@ -248,45 +248,18 @@ const DashboardCard = ({
                                 </div>
                             </div>
                         </div>
-                        <Modal
-                            visible={showDeleteModal}
+                        <DeleteMetricModal
+                            name={metricConfig.name}
+                            showDeleteModal={showDeleteModal}
+                            onDelete={() => {
+                                setShowDeleteModal(false);
+                                setShowEditModal(false);
+                                deleteMetric(metricIdx);
+                            }}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                             }}
-                            title={`Delete '${metricConfig.name}' Metric View?`}
-                            width={400}
-                        >
-                            <ModalBody>
-                                <p className={styles.description}>
-                                    Are you sure you want to delete this metric?
-                                </p>
-                                <div className={styles.actionsContainer}>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetricCancel"
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                        }}
-                                        type="default"
-                                        className={styles.button}
-                                    >
-                                        Don't Delete View
-                                    </Button>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetric"
-                                        danger
-                                        type="primary"
-                                        className={styles.button}
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                            setShowEditModal(false);
-                                            deleteMetric(metricIdx);
-                                        }}
-                                    >
-                                        Delete Metric View
-                                    </Button>
-                                </div>
-                            </ModalBody>
-                        </Modal>
+                        />
                         {updatingData && (
                             <LoadingBar height={2} width={'100%'} />
                         )}
@@ -316,6 +289,52 @@ const DashboardCard = ({
                 </div>
             </DashboardInnerCard>
         </>
+    );
+};
+
+export const DeleteMetricModal = ({
+    name,
+    showDeleteModal,
+    onDelete,
+    onCancel,
+}: {
+    name: string;
+    showDeleteModal: boolean;
+    onDelete: () => void;
+    onCancel: () => void;
+}) => {
+    return (
+        <Modal
+            visible={showDeleteModal}
+            onCancel={onCancel}
+            title={`Delete '${name}' Metric View?`}
+            width={600}
+        >
+            <ModalBody>
+                <p className={styles.description}>
+                    Are you sure you want to delete this metric?
+                </p>
+                <div className={styles.actionsContainer}>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetricCancel"
+                        onClick={onCancel}
+                        type="default"
+                        className={styles.button}
+                    >
+                        Don't Delete View
+                    </Button>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetric"
+                        danger
+                        type="primary"
+                        className={styles.button}
+                        onClick={onDelete}
+                    >
+                        Delete Metric View
+                    </Button>
+                </div>
+            </ModalBody>
+        </Modal>
     );
 };
 

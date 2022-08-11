@@ -94,7 +94,7 @@ const ActiveUsersTable = () => {
                     )}
                 >
                     <h3 id={homePageStyles.h3}>Top Users</h3>
-                    <div style={{ paddingRight: 'var(--size-medium)' }}>
+                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
                         <Input
                             allowClear
                             placeholder="Search for user"
