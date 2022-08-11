@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 	"github.com/influxdata/influxdb-client-go/v2/domain"
 	log "github.com/sirupsen/logrus"
-	"strings"
-	"time"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 	log.Info("done setting up db")
 
 	offset := 0
-	for true {
+	for {
 		buckets, _ := tdb.Client.BucketsAPI().GetBuckets(context.Background(), api.PagingWithOffset(offset))
 		if buckets == nil || len(*buckets) == 0 {
 			break
