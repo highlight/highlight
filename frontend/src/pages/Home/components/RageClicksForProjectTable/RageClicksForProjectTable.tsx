@@ -97,16 +97,18 @@ const RageClicksForProjectTable = () => {
                     )}
                 >
                     <h3 id={homePageStyles.h3}>Rage Clicks</h3>
-                    <Input
-                        allowClear
-                        placeholder="Search for user"
-                        value={filterSearchTerm}
-                        onChange={(event) => {
-                            setFilterSearchTerm(event.target.value);
-                        }}
-                        size="small"
-                        disabled={loading}
-                    />
+                    <div style={{ paddingRight: 'var(--size-medium)' }}>
+                        <Input
+                            allowClear
+                            placeholder="Search for user"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
             }
             full
