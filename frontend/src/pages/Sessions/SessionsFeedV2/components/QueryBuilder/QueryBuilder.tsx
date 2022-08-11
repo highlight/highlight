@@ -1700,19 +1700,28 @@ const QueryBuilder = ({
         readonly,
     ]);
 
+    const queriedEndTimeRef = useRef(
+        getAbsoluteEndTime(defaultTimeRangeRule.val?.options[0].value)
+    );
+    useEffect(() => {
+        if (searchResultsLoading) {
+            queriedEndTimeRef.current = getAbsoluteEndTime(
+                timeRangeRule?.val?.options[0].value
+            );
+        }
+    }, [searchResultsLoading, timeRangeRule]);
     useEffect(() => {
         let seriesList: Series[] = [];
-        const bucketTimes: number[] = [];
-        if (sessionResults?.histogram) {
-            let bucketTime = 1;
+        let bucketTimes: number[] = [];
+        if (sessionResults?.histogram && queriedEndTimeRef.current) {
             console.log(
                 'Rich',
                 sessionResults.histogram.sessions_without_errors.length
             );
-            sessionResults.histogram.sessions_without_errors.forEach(() => {
-                bucketTimes.push(bucketTime++);
-            });
-            bucketTimes.push(bucketTime++);
+            bucketTimes = sessionResults.histogram.bucket_start_times.map(
+                (startTime) => new Date(startTime).getTime()
+            );
+            bucketTimes.push(new Date(queriedEndTimeRef.current).getTime());
             seriesList = [
                 {
                     label: 'Sessions without Errors',
@@ -1726,7 +1735,7 @@ const QueryBuilder = ({
                 },
             ];
             console.log(
-                'Rich',
+                'Rich histogram',
                 JSON.stringify(seriesList),
                 JSON.stringify(bucketTimes),
                 seriesList[0].counts.length,
@@ -1736,7 +1745,7 @@ const QueryBuilder = ({
         }
         setHistogramSeriesList(seriesList);
         setHistogramBucketTimes(bucketTimes);
-    }, [sessionResults]);
+    }, [sessionResults?.histogram]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
