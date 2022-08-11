@@ -1137,9 +1137,9 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
-		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
-		log.Warnf("failed to initialized session, will not return error to client: %s", err)
-		return nil, nil
+		// Otherwise, it's likely a retry from the same machine after first initializeSession response timed out
+		// Return an error so the client tries again.
+		return nil, e.Wrap(err, "failed to initialize session")
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
