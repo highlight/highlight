@@ -632,6 +632,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
 	}
 
+	if len(userInteractionEvents) == 0 {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
+		return w.excludeSession(ctx, s)
+	}
+
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
 		Timestamp: accumulator.FirstEventTimestamp,
 	}, {
