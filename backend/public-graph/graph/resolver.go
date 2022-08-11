@@ -1135,11 +1135,11 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
 		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
+			// session expired. return error so the client starts a new session
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
-		// Otherwise, it's likely a retry from the same machine after first initializeSession response timed out
-		// Return an error so the client tries again.
-		return nil, e.Wrap(err, "failed to initialize session")
+		// otherwise, it's a retry for a session that already exists. return the existing session.
+		return sessionObj, nil
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
