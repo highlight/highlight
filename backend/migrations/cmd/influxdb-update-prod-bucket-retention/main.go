@@ -17,7 +17,7 @@ func main() {
 	log.Info("done setting up db")
 
 	offset := 0
-	for true {
+	for {
 		buckets, _ := tdb.Client.BucketsAPI().GetBuckets(context.Background(), api.PagingWithOffset(offset))
 		if buckets == nil || len(*buckets) == 0 {
 			break
