@@ -77,7 +77,7 @@
     },
     "scripts": {
         "start": "HTTPS=true doppler run -- craco start",
-        "styles": " tsm src -w",
+        "styles": "tsm src -w --logLevel=error",
         "gql": "graphql-codegen --config --watch codegen.yml",
         "gql:nowatch": "graphql-codegen --config codegen.yml",
         "build": "craco build",
