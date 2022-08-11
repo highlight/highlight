@@ -9,13 +9,14 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 )
 
 type Client struct {
-	redisClient *redis.Client
+	redisClient redis.Cmdable
 }
 
 var (
@@ -32,13 +33,22 @@ func EventsKey(sessionId int) string {
 }
 
 func NewClient() *Client {
-	return &Client{
-		redisClient: redis.NewClient(&redis.Options{
-			Addr:     redisEventsStagingEndpoint,
-			Password: "", // no password set
-			DB:       0,  // use default DB
-		}),
+	if util.IsDevOrTestEnv() {
+		return &Client{
+			redisClient: redis.NewClient(&redis.Options{
+				Addr:     redisEventsStagingEndpoint,
+				Password: "",
+			}),
+		}
+	} else {
+		return &Client{
+			redisClient: redis.NewClusterClient(&redis.ClusterOptions{
+				Addrs:    []string{redisEventsStagingEndpoint},
+				Password: "",
+			}),
+		}
 	}
+
 }
 
 func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]model.EventsObject, error, *model.EventsCursor) {
