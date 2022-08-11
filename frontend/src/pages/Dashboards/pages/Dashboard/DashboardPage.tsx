@@ -410,8 +410,16 @@ export const DashboardGrid = ({
                                 deleteMetric={(idx: number) => {
                                     const newMetrics = [...dashboard.metrics];
                                     newMetrics.splice(idx, 1);
-                                    const newLgLayout = [...layout.lg];
-                                    newLgLayout.splice(idx, 1);
+                                    const lgLayout = [...layout.lg];
+                                    lgLayout.splice(idx, 1);
+                                    // reset new layout idxes because they should be incrementing
+                                    const newLgLayout = [];
+                                    for (let i = 0; i < lgLayout.length; i++) {
+                                        newLgLayout.push({
+                                            ...lgLayout[i],
+                                            i: i.toString(),
+                                        });
+                                    }
                                     updateDashboard(newMetrics, {
                                         lg: newLgLayout,
                                     });

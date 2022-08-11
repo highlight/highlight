@@ -712,7 +712,6 @@ const ChartContainer = React.memo(
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
-        prevProps.metricIdx === nextProps.metricIdx &&
         prevProps.metricConfig.name === nextProps.metricConfig.name &&
         prevProps.metricConfig.chart_type ===
             nextProps.metricConfig.chart_type &&
