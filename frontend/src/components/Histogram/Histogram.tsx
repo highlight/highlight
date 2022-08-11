@@ -22,6 +22,7 @@ interface Props {
     timeFormatter: (value: number) => string;
     tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
     gotoAction?: (bucketIndex: number) => void;
+    timelineRef: React.RefObject<HTMLDivElement>;
 }
 
 const Histogram = React.memo(
@@ -33,6 +34,7 @@ const Histogram = React.memo(
         timeFormatter,
         tooltipContent,
         gotoAction,
+        timelineRef,
     }: Props) => {
         const [dragStart, setDragStart] = useState<number | undefined>();
         const [dragEnd, setDragEnd] = useState<number | undefined>();
@@ -106,7 +108,7 @@ const Histogram = React.memo(
             };
         }, [tooltipHidden, tooltipWantHidden]);
 
-        const CustomTooltip = ({ label }: any) => {
+        const EventTooltip = ({ label }: any) => {
             let inner;
             if (dragLeft !== undefined && dragRight !== undefined) {
                 const leftTime = timeFormatter(bucketStartTimes[dragLeft]);
@@ -151,7 +153,7 @@ const Histogram = React.memo(
 
         return (
             <div className={styles.container}>
-                <div className={styles.graphContainer}>
+                <div ref={timelineRef} className={styles.graphContainer}>
                     <AutoSizer>
                         {({ height, width }) => (
                             <BarChart
@@ -207,12 +209,12 @@ const Histogram = React.memo(
                                 }}
                             >
                                 <Tooltip
-                                    content={<CustomTooltip />}
+                                    content={<EventTooltip />}
                                     wrapperStyle={{
                                         bottom: '100%',
                                         top: 'none',
                                         position: 'absolute',
-                                        zIndex: 100,
+                                        zIndex: 400,
                                         overflow: 'auto',
                                         visibility: tooltipHidden
                                             ? 'hidden'

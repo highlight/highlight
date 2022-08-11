@@ -3,6 +3,7 @@ WITH eg_id_to_env as (
         jsonb_object_keys(environments::jsonb) AS env
     FROM error_groups
     WHERE environments IS NOT NULL
+        AND environments <> ''
 ),
 env_fields AS (
     SELECT id AS error_field_id,

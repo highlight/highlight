@@ -18,7 +18,7 @@ import { useParams } from '@util/react-router/useParams';
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
 import { getAnnotationColor, TimelineAnnotationColors } from '../../Toolbar';
@@ -365,14 +365,15 @@ const TimelineIndicatorsBarGraph = React.memo(
             [sessionIntervals]
         );
 
+        const timelineRef = useRef<HTMLDivElement>(null);
         if (sessionIntervals.length === 0) {
             return (
                 <>
-                    <div className={styles.histogramSkeleton}>
-                        <Skeleton height={62} />
-                    </div>
                     <div className={styles.scrubberSkeleton}>
                         <Skeleton height={40} />
+                    </div>
+                    <div className={styles.histogramSkeleton}>
+                        <Skeleton height={72} />
                     </div>
                 </>
             );
@@ -385,12 +386,25 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         return (
             <>
+                <Scrubber
+                    chartData={seriesState.chartData}
+                    getSliderPercent={getSliderPercent}
+                />
                 <div className={styles.histogramContainer}>
-                    <div className={styles.innerBounds}>
+                    <div
+                        className={styles.innerBounds}
+                        style={{
+                            width: timelineRef.current
+                                ? `calc(${timelineRef.current.clientWidth}px`
+                                : '100%',
+                        }}
+                    >
                         {relativePercent >= 0 && relativePercent <= 100 && (
                             <div
                                 className={styles.timeMarker}
-                                style={{ left: `${relativePercent}%` }}
+                                style={{
+                                    left: `${relativePercent}%`,
+                                }}
                             ></div>
                         )}
                     </div>
@@ -402,12 +416,9 @@ const TimelineIndicatorsBarGraph = React.memo(
                         bucketTimes={seriesState.bucketTimes}
                         tooltipContent={tooltipContent}
                         gotoAction={gotoAction}
+                        timelineRef={timelineRef}
                     />
                 </div>
-                <Scrubber
-                    chartData={seriesState.chartData}
-                    getSliderPercent={getSliderPercent}
-                />
             </>
         );
     }
