@@ -1818,6 +1818,25 @@ const QueryBuilder = ({
                                     updateRule(timeRangeRule, { val: val })
                                 }
                             />
+                            {!readonly &&
+                                timeRangeRule.val?.options[0].value !==
+                                    defaultTimeRangeRule.val?.options[0]
+                                        .value && (
+                                    <Button
+                                        trackingId="resetTimeRangeRule"
+                                        className={classNames(
+                                            styles.ruleItem,
+                                            styles.removeRule
+                                        )}
+                                        onClick={() =>
+                                            updateRule(timeRangeRule, {
+                                                val: defaultTimeRangeRule.val,
+                                            })
+                                        }
+                                    >
+                                        <SvgXIcon />
+                                    </Button>
+                                )}
                         </div>
                         {!readonly &&
                             !isAbsoluteTimeRange(
