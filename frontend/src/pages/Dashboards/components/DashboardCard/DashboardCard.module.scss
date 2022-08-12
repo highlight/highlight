@@ -1,4 +1,6 @@
 .card {
+    height: 100%;
+
     :global(.recharts-cartesian-axis-tick) {
         user-select: none;
     }

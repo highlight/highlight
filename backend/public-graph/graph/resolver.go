@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
 	"net/http"
 	"net/mail"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -55,6 +57,7 @@ type Resolver struct {
 	MailClient      *sendgrid.Client
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
+	Redis           *redis.Client
 }
 
 type Location struct {
@@ -1056,16 +1059,17 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
 
-	var fingerprintInt int = 0
-	if val, err := strconv.Atoi(fingerprint); err == nil {
-		fingerprintInt = val
+	fpHash := fnv.New32a()
+	defer fpHash.Reset()
+	if _, err := fpHash.Write([]byte(fingerprint)); err != nil {
+		log.Errorf("failed to hash fingerprint to int: %s", err)
 	}
 
 	deviceDetails := GetDeviceDetails(userAgent)
 	n := time.Now()
 	session := &model.Session{
 		ProjectID:                      projectID,
-		Fingerprint:                    fingerprintInt,
+		Fingerprint:                    int(fpHash.Sum32()),
 		OSName:                         deviceDetails.OSName,
 		OSVersion:                      deviceDetails.OSVersion,
 		BrowserName:                    deviceDetails.BrowserName,
@@ -1131,11 +1135,11 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
 		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
+			// session expired. return error so the client starts a new session
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
-		// Otherwise, it's likely a retry from the same machine after the first initializeSession() response timed out
-		log.Warnf("failed to initialized session, will not return error to client: %s", err)
-		return nil, nil
+		// otherwise, it's a retry for a session that already exists. return the existing session.
+		return sessionObj, nil
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
@@ -1358,7 +1362,9 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	if highlightSession && !backfill && len(session.ClientID) > 0 {
 		// Find past unidentified sessions and identify them.
 		backfillSessions := []*model.Session{}
-		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID, Identifier: "", Identified: false}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
+		if err := r.DB.Where(&model.Session{ClientID: session.ClientID, ProjectID: session.ProjectID}).
+			Where("(identifier IS null OR identifier = '') AND (identified IS null OR identified = false)").
+			Not(&model.Session{Model: model.Model{ID: sessionID}}).Find(&backfillSessions).Error; err != nil {
 			return e.Wrap(err, "[IdentifySession] error querying backfillSessions by clientID")
 		}
 
@@ -1930,7 +1936,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -1965,6 +1971,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	}
 
 	var g errgroup.Group
+
+	payloadIdDeref := 0
+	if payloadId != nil {
+		payloadIdDeref = *payloadId
+	}
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
@@ -2041,10 +2052,25 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
-			obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
-			if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
-				return e.Wrap(err, "error creating events object")
+
+			if redis.UseRedis(projectID) {
+				score := float64(payloadIdDeref)
+				// A little bit of a hack to encode
+				if isBeacon {
+					score += .5
+				}
+
+				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
+					return e.Wrap(err, "error adding event payload")
+				}
+
+			} else {
+				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
+				if err := r.DB.Table("events_objects_partitioned").Create(obj).Error; err != nil {
+					return e.Wrap(err, "error creating events object")
+				}
 			}
+
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
@@ -2242,7 +2268,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 
 	if doUpdate {
 		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, Chunked: &model.F, Excluded: &model.F,
+			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: &model.F,
 		}
 
 		// We only want to update the `HasErrors` field if the session has errors.
@@ -2250,14 +2276,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			fieldsToUpdate.HasErrors = &model.T
 
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded", "HasErrors").
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "HasErrors").
 				Updates(&fieldsToUpdate).Error; err != nil {
 				log.Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
 				return err
 			}
 		} else {
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Excluded").
+				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded").
 				Updates(&fieldsToUpdate).Error; err != nil {
 				log.Error(e.Wrap(err, "error updating session payload time and beacon time"))
 				return err

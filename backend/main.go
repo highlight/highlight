@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -185,6 +186,8 @@ func main() {
 		log.Fatalf("error creating lambda client: %v", err)
 	}
 
+	redisClient := redis.NewClient()
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -202,6 +205,7 @@ func main() {
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+		Redis:                  redisClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -307,6 +311,7 @@ func main() {
 						StorageClient:   storage,
 						AlertWorkerPool: alertWorkerpool,
 						OpenSearch:      opensearchClient,
+						Redis:           redisClient,
 					},
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
@@ -386,6 +391,7 @@ func main() {
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			Redis:           redisClient,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {

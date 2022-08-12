@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -147,6 +147,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			e.url AS visited_url,
 			s.fingerprint AS fingerprint,
 			s.identifier AS identifier,
+			s.environment,
 			s.user_properties,
 			e.request_id
 		FROM sessions AS s
@@ -3310,7 +3311,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -4288,17 +4289,36 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		return nil, nil
 	}
 
-	res := []*model.Field{}
+	aggQuery := `{"bool": {
+		"must": []
+	}}`
 
-	if err := r.DB.Raw(`
-		SELECT type, name
-		FROM fields_in_use_view f
-		WHERE project_id = ?
-	`, projectID).Scan(&res).Error; err != nil {
-		return nil, e.Wrap(err, "error querying field types for project")
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field:   "fields.Key.raw",
+			Include: pointy.String("(session|track|user)_.*"),
+			Size:    pointy.Int(100),
+		},
 	}
 
-	return res, nil
+	ignored := []struct{}{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return nil, err
+	}
+
+	keys := lo.Filter(
+		lo.Map(aggResults, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
+		func(key string, idx int) bool { return len(key) > 0 })
+
+	return lo.Map(keys, func(key string, idx int) *model.Field {
+		typ, name, _ := strings.Cut(key, "_")
+		return &model.Field{
+			Type: typ,
+			Name: name,
+		}
+	}), nil
 }
 
 // FieldsOpensearch is the resolver for the fields_opensearch field.
@@ -5990,7 +6010,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
-		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		cursor := model.EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
 		for {
 			select {
 			case <-ctx.Done():

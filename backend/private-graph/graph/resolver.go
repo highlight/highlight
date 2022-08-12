@@ -20,6 +20,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -73,15 +74,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	HubspotApi             HubspotApiInterface
-}
-
-// For a given session, an EventCursor is the address of an event in the list of events,
-// that can be used for incremental fetching.
-// The EventIndex must always be specified, with the EventObjectIndex optionally
-// specified for optimization purposes.
-type EventsCursor struct {
-	EventIndex       int
-	EventObjectIndex *int
+	Redis                  *redis.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -2152,7 +2145,10 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+	if redis.UseRedis(s.ProjectID) {
+		return r.Redis.GetEvents(ctx, s, cursor)
+	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2161,7 +2157,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 		if err != nil {
 			return nil, err, nil
 		}
-		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2188,7 +2184,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex == nil {
 		events = allEvents[cursor.EventIndex:]
 	}
-	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
 	return events, nil, &nextCursor
 }
