@@ -35,8 +35,11 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	session, err := InitializeSessionMinimal(ctx, r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID, clientID)
 	querySessionSpan.Finish()
 
-	projectID := session.ProjectID
-	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
+	projectID := 0
+	if session != nil {
+		projectID = session.ProjectID
+	}
+	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if err != nil {
 		log.Error(err)
