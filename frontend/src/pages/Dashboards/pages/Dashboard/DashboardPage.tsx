@@ -402,11 +402,11 @@ export const DashboardGrid = ({
                     xxs: 2,
                 }}
                 breakpoints={{
-                    lg: 920,
-                    md: 900,
-                    sm: 768,
-                    xs: 480,
-                    xxs: 0,
+                    lg: 1600,
+                    md: 1330,
+                    sm: 920,
+                    xs: 768,
+                    xxs: 480,
                 }}
                 isDraggable
                 isResizable
