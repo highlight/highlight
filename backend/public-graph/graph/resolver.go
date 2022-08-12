@@ -1142,7 +1142,7 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
-		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, session.ID)
+		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, sessionObj.ID)
 		return sessionObj, nil
 	}
 
