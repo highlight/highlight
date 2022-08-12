@@ -439,7 +439,7 @@ type ComplexityRoot struct {
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) int
+		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateSessionFeedbackAlert       func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
 		CreateTrackPropertiesAlert       func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
 		CreateUserPropertiesAlert        func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
@@ -944,7 +944,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
@@ -3011,7 +3011,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput), args["additional_context"].(*string)), true
 
 	case "Mutation.createSessionFeedbackAlert":
 		if e.complexity.Mutation.CreateSessionFeedbackAlert == nil {
@@ -7296,6 +7296,7 @@ type Mutation {
         issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+        additional_context: String
     ): SessionComment
     createIssueForSessionComment(
         project_id: ID!
@@ -8698,6 +8699,15 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["tags"] = arg17
+	var arg18 *string
+	if tmp, ok := rawArgs["additional_context"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("additional_context"))
+		arg18, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["additional_context"] = arg18
 	return args, nil
 }
 
@@ -24784,7 +24794,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput), fc.Args["additional_context"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

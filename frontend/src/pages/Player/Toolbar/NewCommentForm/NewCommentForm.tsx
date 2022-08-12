@@ -30,6 +30,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import INTEGRATIONS, {
     Integration,
 } from '@pages/IntegrationsPage/Integrations';
+import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import useLocalStorage from '@rehooks/local-storage';
@@ -79,6 +80,7 @@ export const NewCommentForm = ({
     const [createComment] = useCreateSessionCommentMutation();
     const [createErrorComment] = useCreateErrorCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
+    const { currentUrl } = useReplayerContext();
     const { project_id } = useParams<{ project_id: string }>();
     const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
         variables: { project_id },
@@ -255,6 +257,7 @@ export const NewCommentForm = ({
                     issue_description: selectedIssueService
                         ? issueDescription
                         : null,
+                    additional_context: `• From session URL: <${currentUrl}|${currentUrl}>`,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -520,11 +523,11 @@ export const NewCommentForm = ({
                             />
                             Create a new {issueServiceDetail?.name} issue
                         </h3>
-                        {/* 
+                        {/*
                             TODO: make this work with other issue providers (when added)
-                            Since Linear is the only issue integration we have right now, 
+                            Since Linear is the only issue integration we have right now,
                             this works fine. But, different issue providers will have different ideas
-                            of what teams are so there should be different select dropdowns for those. 
+                            of what teams are so there should be different select dropdowns for those.
                         */}
                         <Form.Item label={`${issueServiceDetail?.name} Team`}>
                             <Select

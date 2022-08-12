@@ -693,7 +693,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
@@ -725,6 +725,15 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		),
 	)
 
+	if additionalContext != nil {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
+
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return
 }
@@ -734,7 +743,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
 		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
@@ -754,7 +763,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int, additionalContext *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -762,7 +771,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -1805,7 +1814,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		  }
 		  success
 		}
-	  }	  
+	  }
 	`
 
 	type GraphQLVars struct {
@@ -2055,20 +2064,20 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 }
 
-func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -2112,7 +2121,7 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			})
 		}
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
