@@ -1302,8 +1302,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		userProperties["email"] = userIdentifier
 	}
 
-	userObj := make(map[string]string)
-
 	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
@@ -1312,6 +1310,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
+
+	userObj := make(map[string]string)
 	// get existing session user properties in case of multiple identify calls
 	if existingUserProps, err := session.GetUserProperties(); err == nil {
 		for k, v := range existingUserProps {
@@ -1399,7 +1399,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		time.Sleep(25 * time.Second)
 		// Sending New User Alert
 		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
 			return
 		}
