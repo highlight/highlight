@@ -395,7 +395,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                         className={styles.innerBounds}
                         style={{
                             width: timelineRef.current
-                                ? `calc(${timelineRef.current.clientWidth}px`
+                                ? `${timelineRef.current.clientWidth}px`
                                 : '100%',
                         }}
                     >
