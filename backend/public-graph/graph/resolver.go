@@ -1303,12 +1303,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	}
 
 	userObj := make(map[string]string)
-	for k, v := range obj {
-		if v != "" {
-			userProperties[k] = fmt.Sprintf("%v", v)
-			userObj[k] = fmt.Sprintf("%v", v)
-		}
-	}
 
 	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
 		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
@@ -1317,6 +1311,19 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	session := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
+	}
+	// get existing session user properties in case of multiple identify calls
+	if existingUserProps, err := session.GetUserProperties(); err == nil {
+		for k, v := range existingUserProps {
+			userObj[k] = v
+		}
+	}
+	// update overlapping new properties
+	for k, v := range obj {
+		if v != "" {
+			userProperties[k] = fmt.Sprintf("%v", v)
+			userObj[k] = fmt.Sprintf("%v", v)
+		}
 	}
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
@@ -1378,16 +1385,37 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("identified session: %s", session.Identifier)
 
-	func() {
+	go func() {
 		defer util.Recover()
-		// Sending New User Alert
 		// if is not new user, return
 		if !*firstTime {
 			return
 		}
+		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
+		// want to wait for the H.identify call to be able to create a better Slack message.
+		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
+		// A 25 second delay here gives this 5 seconds to complete in case this session
+		// is created right before the task is replaced.
+		time.Sleep(25 * time.Second)
+		// Sending New User Alert
 		var sessionAlerts []*model.SessionAlert
 		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
 			log.Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
+			return
+		}
+
+		refetchedSession := &model.Session{}
+		if err := r.DB.Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&refetchedSession).Error; err != nil {
+			retErr := e.Wrapf(err, "error reading from session %v", session.ID)
+			log.Error(retErr)
+			return
+		}
+		// get produced user properties from session
+		// these are refetched after the 25 sec sleep to allow multiple identify calls to be
+		// merged into one alert.
+		userProperties, err := refetchedSession.GetUserProperties()
+		if err != nil {
+			log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", refetchedSession.ProjectID))
 			return
 		}
 
@@ -1395,12 +1423,12 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 			// check if session was produced from an excluded environment
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", session.ProjectID))
+				log.Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", refetchedSession.ProjectID))
 				return
 			}
 			isExcludedEnvironment := false
 			for _, env := range excludedEnvironments {
-				if env != nil && *env == session.Environment {
+				if env != nil && *env == refetchedSession.Environment {
 					isExcludedEnvironment = true
 					break
 				}
@@ -1409,26 +1437,19 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 				return
 			}
 
-			// get produced user properties from session
-			userProperties, err := session.GetUserProperties()
-			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", session.ProjectID))
-				return
-			}
-
 			project := &model.Project{}
-			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+			if err := r.DB.Where(&model.Project{Model: model.Model{ID: refetchedSession.ProjectID}}).First(&project).Error; err != nil {
 				log.Error(e.Wrap(err, "error querying project"))
 				return
 			}
 
 			workspace, err := r.getWorkspace(project.WorkspaceID)
 			if err != nil {
-				log.Error(e.Wrapf(err, "[project_id: %d] error querying workspace", session.ProjectID))
+				log.Error(e.Wrapf(err, "[project_id: %d] error querying workspace", refetchedSession.ProjectID))
 				return
 			}
 
-			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject})
+			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
 		}
 	}()
 	return nil
