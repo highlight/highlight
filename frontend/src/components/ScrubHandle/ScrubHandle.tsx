@@ -8,14 +8,16 @@ import styles from './ScrubHandle.module.scss';
 
 interface Props {
     wrapperWidth: number;
+    bucketTimes: number[];
 }
 
-const ScrubHandle = React.memo(({ wrapperWidth }: Props) => {
+const ScrubHandle = React.memo(({ wrapperWidth, bucketTimes }: Props) => {
     const draggableRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
     const [dragTime, setDragTime] = useState(0);
 
-    const { time, setTime, sessionIntervals } = useReplayerContext();
+    const { time, setTime } = useReplayerContext();
     const { zoomAreaLeft, zoomAreaRight } = useToolbarItemsContext();
 
     useEffect(() => {
@@ -24,52 +26,64 @@ const ScrubHandle = React.memo(({ wrapperWidth }: Props) => {
         }
     }, [time, isDragging]);
 
+    useEffect(() => {
+        if (
+            bucketTimes.length &&
+            bucketTimes[0] <= dragTime &&
+            dragTime <= bucketTimes[bucketTimes.length - 1]
+        ) {
+            setIsVisible(true);
+        } else {
+            setIsVisible(false);
+        }
+    }, [bucketTimes, dragTime]);
+
     const getSliderFrac = useCallback(
         (time: number) => {
+            const bucketStartTimes = bucketTimes.slice(0, -1);
+            const bucketEndTimes = bucketTimes.slice(1);
+
             let sliderFrac = 0;
-            for (const interval of sessionIntervals) {
-                if (time < interval.endTime && time >= interval.startTime) {
-                    const segmentFrac =
-                        (time - interval.startTime) /
-                        (interval.endTime - interval.startTime);
-                    sliderFrac =
-                        segmentFrac *
-                            (interval.endPercent - interval.startPercent) +
-                        interval.startPercent;
+
+            for (let idx = 0; idx < bucketEndTimes.length; ++idx) {
+                const endTime = bucketEndTimes[idx];
+                const startTime = bucketStartTimes[idx];
+                if (time < endTime && time >= startTime) {
+                    const spaceFracPerBar = 1 / bucketStartTimes.length;
+                    const partialBarProgress =
+                        (time - startTime) / (endTime - startTime);
+                    sliderFrac = spaceFracPerBar * (idx + partialBarProgress);
                     break;
                 }
             }
+            if (time === bucketEndTimes.pop()) {
+                sliderFrac = 1;
+            }
             return sliderFrac;
         },
-        [sessionIntervals]
+        [bucketTimes]
     );
 
     const getCurrentTime = useCallback(
         (sliderFrac: number) => {
-            const progressFrac =
-                (sliderFrac * (zoomAreaRight - zoomAreaLeft) + zoomAreaLeft) /
-                100;
+            const bucketStartTimes = bucketTimes.slice(0, -1);
+            const bucketEndTimes = bucketTimes.slice(1);
 
-            let currentTime = 0;
+            const spaceFracPerBar = 1 / bucketStartTimes.length;
+            const idx = Math.floor(sliderFrac / spaceFracPerBar);
 
-            for (const interval of sessionIntervals) {
-                if (
-                    progressFrac < interval.endPercent &&
-                    progressFrac >= interval.startPercent
-                ) {
-                    const segmentFrac =
-                        (progressFrac - interval.startPercent) /
-                        (interval.endPercent - interval.startPercent);
-                    currentTime =
-                        segmentFrac * (interval.endTime - interval.startTime) +
-                        interval.startTime;
-                    break;
-                }
+            if (idx == bucketEndTimes.length) {
+                return bucketEndTimes.pop() || 0;
             }
+            const partialBarProgress = sliderFrac / spaceFracPerBar - idx;
 
+            const currentTime =
+                bucketStartTimes[idx] +
+                (bucketEndTimes[idx] - bucketStartTimes[idx]) *
+                    partialBarProgress;
             return currentTime;
         },
-        [sessionIntervals, zoomAreaLeft, zoomAreaRight]
+        [bucketTimes]
     );
 
     return (
@@ -78,14 +92,14 @@ const ScrubHandle = React.memo(({ wrapperWidth }: Props) => {
             axis="x"
             bounds={{ left: 0, right: wrapperWidth }}
             onStop={(e, data) => {
-                const sliderPercent = data.x / wrapperWidth;
-                const newTime = getCurrentTime(sliderPercent);
+                const sliderProgress = data.x / wrapperWidth;
+                const newTime = getCurrentTime(sliderProgress);
                 setTime(newTime);
                 setIsDragging(false);
             }}
             onDrag={(e, data) => {
-                const sliderPercent = data.x / wrapperWidth;
-                const newTime = getCurrentTime(sliderPercent);
+                const sliderProgress = data.x / wrapperWidth;
+                const newTime = getCurrentTime(sliderProgress);
                 setDragTime(newTime);
             }}
             onStart={() => {
@@ -99,7 +113,11 @@ const ScrubHandle = React.memo(({ wrapperWidth }: Props) => {
                 y: 0,
             }}
         >
-            <div className={styles.scrubHandleContainer} ref={draggableRef}>
+            <div
+                className={styles.scrubHandleContainer}
+                ref={draggableRef}
+                style={{ visibility: isVisible ? 'visible' : 'hidden' }}
+            >
                 <div className={styles.scrubHandle}>
                     <div className={styles.timeText}>
                         {MillisToMinutesAndSeconds(dragTime)}

@@ -46,7 +46,6 @@ const TimelineIndicatorsBarGraph = React.memo(
         } = useToolbarItemsContext();
         const { showPlayerAbsoluteTime } = usePlayerConfiguration();
         const {
-            time,
             sessionMetadata,
             setTime,
             setCurrentEvent,
@@ -357,6 +356,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                 <div className={styles.histogramContainer}>
                     <ScrubHandle
                         wrapperWidth={timelineRef.current?.clientWidth || 0}
+                        bucketTimes={seriesState.bucketTimes}
                     />
                     <Histogram
                         onAreaChanged={onAreaChanged}
