@@ -1128,17 +1128,21 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 
 	if err := r.DB.Create(session).Error; err != nil {
 		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			log.Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
 		}
 		sessionObj := &model.Session{}
 		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+			log.Errorf("error creating session, couldn't fetch session duplicate: %s", err)
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
 		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
 			// session expired. return error so the client starts a new session
+			log.Errorf("error creating session, session expired: %s", err)
 			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
+		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, session.ID)
 		return sessionObj, nil
 	}
 
