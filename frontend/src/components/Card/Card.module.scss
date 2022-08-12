@@ -3,10 +3,7 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
     overflow: hidden;
-    padding-bottom: var(--size-large);
-    padding-left: var(--size-large);
-    padding-right: var(--size-large);
-    padding-top: var(--size-large);
+    padding: var(--size-large);
     transition: border-color 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
     width: 100%;
 
@@ -16,7 +13,6 @@
 
     &.full {
         height: 100%;
-        width: 100%;
     }
 
     h2,

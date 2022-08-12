@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import {
     useGetDashboardDefinitionsQuery,
     useGetWorkspaceAdminsByProjectIdQuery,
@@ -9,6 +10,7 @@ import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics';
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage';
 import HomePage from '@pages/Home/HomePage';
+import HomePageV2 from '@pages/Home/HomePageV2';
 import {
     DEFAULT_HOME_DASHBOARD_LAYOUT,
     HOME_DASHBOARD_CONFIGURATION,
@@ -23,6 +25,7 @@ import { Route, Switch, useRouteMatch } from 'react-router-dom';
 const DashboardsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
+    const { isHighlightAdmin } = useAuthContext();
     const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
@@ -94,7 +97,7 @@ const DashboardsRouter = () => {
             </Helmet>
             <Switch>
                 <Route exact path={`/:project_id/home`}>
-                    <HomePage />
+                    {isHighlightAdmin ? <HomePageV2 /> : <HomePage />}
                 </Route>
                 <Route exact path={path}>
                     <DashboardsHomePage />

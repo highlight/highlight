@@ -15,7 +15,10 @@ import KeyPerformanceIndicators from '@pages/Home/components/KeyPerformanceIndic
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
 import ReferrersTable from '@pages/Home/components/ReferrersTable/ReferrersTable';
 import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable';
-import { ErrorCountGraph, SessionCountGraph } from '@pages/Home/HomePage';
+import {
+    ErrorCountGraph,
+    SessionCountGraph,
+} from '@pages/Home/utils/HomeCharts';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 

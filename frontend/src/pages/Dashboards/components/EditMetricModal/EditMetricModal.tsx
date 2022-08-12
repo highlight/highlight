@@ -128,7 +128,7 @@ export const EditMetricModal = ({
     >(metricConfig.component_type);
     const [chartType, setChartType] = useState<
         Maybe<DashboardChartType> | undefined
-    >(metricConfig.chart_type || DashboardChartType.Timeline);
+    >(metricConfig.chart_type);
     const [aggregator, setAggregator] = useState<MetricAggregator>(
         metricConfig.aggregator || MetricAggregator.P50
     );
@@ -136,6 +136,13 @@ export const EditMetricModal = ({
         metricConfig.filters || []
     );
     const [groups, setGroups] = useState<string[]>(metricConfig.groups || []);
+
+    useEffect(() => {
+        if (!metricConfig.component_type && !metricConfig.component_type) {
+            setChartType(DashboardChartType.Timeline);
+        }
+    }, [metricConfig.component_type, metricConfig.chart_type]);
+
     return (
         <Modal
             onCancel={onCancel}
@@ -329,14 +336,16 @@ export const EditMetricModal = ({
                         </>
                     ) : null}
 
-                    <section className={styles.section}>
-                        <h3>Filter by</h3>
-                        <TagFilters
-                            metricName={metricName}
-                            onSelectTags={(t) => setFilters(t)}
-                            currentTags={filters}
-                        />
-                    </section>
+                    {chartType ? (
+                        <section className={styles.section}>
+                            <h3>Filter by</h3>
+                            <TagFilters
+                                metricName={metricName}
+                                onSelectTags={(t) => setFilters(t)}
+                                currentTags={filters}
+                            />
+                        </section>
+                    ) : null}
 
                     {chartType === DashboardChartType.TimelineBar ? (
                         <section className={styles.section}>
