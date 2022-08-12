@@ -16,7 +16,6 @@ const BAR_RADIUS_PX = 2;
 
 interface Props {
     bucketTimes: number[];
-    onAreaChanged: (left: number, right: number) => void;
     onBucketClicked: (bucketIndex: number) => void;
     seriesList: Series[];
     timeFormatter: (value: number) => string;
@@ -27,7 +26,6 @@ interface Props {
 
 const Histogram = React.memo(
     ({
-        onAreaChanged,
         onBucketClicked,
         seriesList,
         bucketTimes,
@@ -187,13 +185,9 @@ const Histogram = React.memo(
                                 onMouseUp={() => {
                                     if (
                                         dragLeft !== undefined &&
-                                        dragRight !== undefined
+                                        dragRight === dragLeft
                                     ) {
-                                        if (dragLeft === dragRight) {
-                                            onBucketClicked(dragLeft);
-                                        } else {
-                                            onAreaChanged(dragLeft, dragRight);
-                                        }
+                                        onBucketClicked(dragLeft);
                                     }
                                     setDragStart(undefined);
                                     setDragEnd(undefined);

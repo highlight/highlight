@@ -236,27 +236,6 @@ const TimelineIndicatorsBarGraph = React.memo(
             [seriesState.bucketTimes, setTime]
         );
 
-        const onAreaChanged = useCallback(
-            (left, right) => {
-                setZoomAreaLeft(
-                    (zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
-                        (zoomAreaLeft ?? 0)
-                );
-                setZoomAreaRight(
-                    (zoomAreaRight - zoomAreaLeft) *
-                        (right * percentPerBar + percentPerBar) +
-                        zoomAreaLeft
-                );
-            },
-            [
-                percentPerBar,
-                setZoomAreaLeft,
-                setZoomAreaRight,
-                zoomAreaLeft,
-                zoomAreaRight,
-            ]
-        );
-
         const displayAggregate = useCallback(
             (
                 count: number,
@@ -359,7 +338,6 @@ const TimelineIndicatorsBarGraph = React.memo(
                         bucketTimes={seriesState.bucketTimes}
                     />
                     <Histogram
-                        onAreaChanged={onAreaChanged}
                         onBucketClicked={onBucketClicked}
                         seriesList={seriesState.eventsSeries}
                         timeFormatter={timeFormatter}
