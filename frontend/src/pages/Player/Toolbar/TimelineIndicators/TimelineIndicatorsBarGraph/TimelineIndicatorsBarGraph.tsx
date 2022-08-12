@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button';
 import Histogram, { Series } from '@components/Histogram/Histogram';
+import ScrubHandle from '@components/ScrubHandle/ScrubHandle';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
@@ -336,35 +337,6 @@ const TimelineIndicatorsBarGraph = React.memo(
             [seriesState.bucketTimes, setTime]
         );
 
-        const getSliderPercent = useCallback(
-            (time: number) => {
-                let sliderPercent = 0;
-                const numIntervals = sessionIntervals.length;
-                if (numIntervals > 0) {
-                    if (time < sessionIntervals[0].startTime) {
-                        return 0;
-                    }
-                    if (time > sessionIntervals[numIntervals - 1].endTime) {
-                        return 1;
-                    }
-                }
-                for (const interval of sessionIntervals) {
-                    if (time < interval.endTime && time >= interval.startTime) {
-                        const segmentPercent =
-                            (time - interval.startTime) /
-                            (interval.endTime - interval.startTime);
-                        sliderPercent =
-                            segmentPercent *
-                                (interval.endPercent - interval.startPercent) +
-                            interval.startPercent;
-                        return sliderPercent;
-                    }
-                }
-                return sliderPercent;
-            },
-            [sessionIntervals]
-        );
-
         const timelineRef = useRef<HTMLDivElement>(null);
         if (sessionIntervals.length === 0) {
             return (
@@ -379,35 +351,13 @@ const TimelineIndicatorsBarGraph = React.memo(
             );
         }
 
-        const sliderPercent = getSliderPercent(time);
-        const relativePercent =
-            (100 * (sliderPercent * 100 - zoomAreaLeft)) /
-            (zoomAreaRight - zoomAreaLeft);
-
         return (
             <>
-                <Scrubber
-                    chartData={seriesState.chartData}
-                    getSliderPercent={getSliderPercent}
-                />
+                <Scrubber chartData={seriesState.chartData} />
                 <div className={styles.histogramContainer}>
-                    <div
-                        className={styles.innerBounds}
-                        style={{
-                            width: timelineRef.current
-                                ? `${timelineRef.current.clientWidth}px`
-                                : '100%',
-                        }}
-                    >
-                        {relativePercent >= 0 && relativePercent <= 100 && (
-                            <div
-                                className={styles.timeMarker}
-                                style={{
-                                    left: `${relativePercent}%`,
-                                }}
-                            ></div>
-                        )}
-                    </div>
+                    <ScrubHandle
+                        wrapperWidth={timelineRef.current?.clientWidth || 0}
+                    />
                     <Histogram
                         onAreaChanged={onAreaChanged}
                         onBucketClicked={onBucketClicked}

@@ -3,7 +3,6 @@ import SvgDragIcon from '@icons/DragIcon';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
@@ -13,26 +12,23 @@ import styles from './Scrubber.module.scss';
 
 interface Props {
     chartData: any[];
-    getSliderPercent: (time: number) => number;
 }
 
 const ActivityGraphMemoized = React.memo(ActivityGraph);
 
-const Scrubber = ({ chartData, getSliderPercent }: Props) => {
+const Scrubber = ({ chartData }: Props) => {
     const {
         zoomAreaLeft,
         setZoomAreaLeft,
         zoomAreaRight,
         setZoomAreaRight,
     } = useToolbarItemsContext();
-    const { time, setTime, sessionIntervals } = useReplayerContext();
-    const draggableRef = useRef(null);
+    const { sessionIntervals } = useReplayerContext();
     const leftRef = useRef(null);
     const rightRef = useRef(null);
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
-    const [dragTime, setDragTime] = useState(0);
     const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft);
     const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight);
     const [zoomAreaLeftUrlParam, setZoomAreaLeftUrlParam] = useQueryParam(
@@ -43,7 +39,6 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
         'zoomEnd',
         NumberParam
     );
-    const [isDragging, setIsDragging] = useState(false);
     const [zoomHistory, setZoomHistory] = useState<[number, number][]>([]);
     const [eventCounts, setEventCounts] = useState<any[]>([]);
 
@@ -52,34 +47,6 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
             setEventCounts(chartData.map((d) => ({ value: d.count })));
         }
     }, [chartData]);
-
-    const getSliderTime = useCallback(
-        (sliderPercent: number) => {
-            let newTime = 0;
-            for (const interval of sessionIntervals) {
-                if (
-                    interval.endPercent === 1 ||
-                    (sliderPercent < interval.endPercent &&
-                        sliderPercent >= interval.startPercent)
-                ) {
-                    const segmentPercent =
-                        (sliderPercent - interval.startPercent) /
-                        (interval.endPercent - interval.startPercent);
-                    newTime =
-                        segmentPercent * interval.duration + interval.startTime;
-                    return newTime;
-                }
-            }
-            return newTime;
-        },
-        [sessionIntervals]
-    );
-
-    useEffect(() => {
-        if (!isDragging) {
-            setDragTime(time);
-        }
-    }, [time, isDragging]);
 
     useEffect(() => {
         setDragAreaLeft(zoomAreaLeft);
@@ -144,7 +111,6 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
     }, [setZoomAreaLeft, setZoomAreaRight, zoomHistory.length]);
 
     const isZoomed = zoomAreaLeft > 0 || zoomAreaRight < 100;
-    const curTime = MillisToMinutesAndSeconds(dragTime);
 
     const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth;
     const dragRightPixels = (dragAreaRight / 100) * wrapperWidth;
@@ -187,42 +153,6 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
                         disableAnimation
                     ></ActivityGraphMemoized>
                 </div>
-                <Draggable
-                    nodeRef={draggableRef}
-                    axis="x"
-                    bounds={{ left: 0, right: wrapperWidth }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setTime(newTime);
-                        setIsDragging(false);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setDragTime(newTime);
-                    }}
-                    onStart={() => {
-                        setIsDragging(true);
-                    }}
-                    position={{
-                        x: Math.max(
-                            getSliderPercent(dragTime) * wrapperWidth,
-                            0
-                        ),
-                        y: -28,
-                    }}
-                >
-                    <div
-                        className={styles.scrubHandleContainer}
-                        ref={draggableRef}
-                    >
-                        <div className={styles.scrubHandle}>
-                            <div className={styles.timeText}>{curTime}</div>
-                            <div className={styles.timeMarker}></div>
-                        </div>
-                    </div>
-                </Draggable>
                 <div className={styles.zoomer}>
                     <Draggable
                         nodeRef={leftRef}

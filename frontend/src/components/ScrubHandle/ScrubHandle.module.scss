@@ -1,0 +1,36 @@
+.scrubHandleContainer {
+    position: absolute;
+    z-index: 200;
+}
+
+.scrubHandle {
+    align-items: center;
+    background: var(--color-scrubber-scrub-handle);
+    border-radius: var(--border-radius);
+    cursor: ew-resize;
+    display: flex;
+    height: fit-content;
+    justify-content: center;
+    padding: 0 var(--size-xSmall);
+    position: absolute;
+    transform: translateX(-28px);
+    user-select: none;
+    width: 56px;
+    z-index: 200;
+}
+
+.timeMarker {
+    background: var(--color-scrubber-scrub-handle);
+    height: 56px;
+    position: absolute;
+    top: 24px;
+    width: 1px;
+    z-index: 200;
+}
+
+.timeText {
+    align-items: center;
+    color: var(--color-primary-background);
+    display: flex;
+    height: 24px;
+}

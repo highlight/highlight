@@ -18,19 +18,6 @@
     z-index: 300;
 }
 
-.timeMarker {
-    background: var(--color-scrubber-scrub-handle);
-    height: 100%;
-    position: absolute;
-    width: 2px;
-    z-index: 300;
-}
-
-.innerBounds {
-    height: 100%;
-    position: absolute;
-}
-
 .histogramSkeleton {
     margin-bottom: 26px;
 }

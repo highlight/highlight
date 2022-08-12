@@ -54,41 +54,6 @@
     z-index: 2;
 }
 
-.scrubHandleContainer {
-    position: absolute;
-    z-index: 200;
-}
-
-.scrubHandle {
-    align-items: center;
-    background: var(--color-scrubber-scrub-handle);
-    border-radius: var(--border-radius);
-    cursor: ew-resize;
-    display: flex;
-    height: fit-content;
-    justify-content: center;
-    padding: 0 var(--size-xSmall);
-    position: absolute;
-    top: -26px;
-    transform: translateX(-28px);
-    user-select: none;
-    width: 56px;
-    z-index: 200;
-}
-
-.timeMarker {
-    background: var(--color-scrubber-scrub-handle);
-    height: 44px;
-    position: absolute;
-    top: 20px;
-    width: 2px;
-    z-index: 200;
-}
-
-.timeText {
-    color: var(--color-primary-background);
-}
-
 .tickWrapper {
     cursor: pointer;
     display: inline-flex;

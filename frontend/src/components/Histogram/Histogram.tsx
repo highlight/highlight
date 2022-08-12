@@ -1,7 +1,7 @@
 import GoToButton from '@components/Button/GoToButton';
 import React, { useEffect, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts';
+import { Bar, BarChart, Cell, Tooltip } from 'recharts';
 
 import styles from './Histogram.module.scss';
 
@@ -271,13 +271,6 @@ const Histogram = React.memo(
                                         })}
                                     </Bar>
                                 ))}
-                                {dragStart !== undefined &&
-                                dragEnd !== undefined ? (
-                                    <ReferenceArea
-                                        x1={dragLeft}
-                                        x2={dragRight}
-                                    />
-                                ) : null}
                             </BarChart>
                         )}
                     </AutoSizer>
