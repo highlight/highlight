@@ -2,7 +2,7 @@
     "name": "highlight.run",
     "version": "4.3.4",
     "scripts": {
-        "build": "tsc && rollup -c",
+        "build": "rollup -c",
         "dev": "doppler run -- rollup -c -w",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
         "test": "jest --detectOpenHandles"
