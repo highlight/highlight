@@ -48,16 +48,21 @@ import { PageVisibilityListener } from './listeners/page-visibility-listener';
 import {
     clearHighlightLogs,
     getHighlightLogs,
-    logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
+import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
+import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
+import {
+    getGraphQLRequestWrapper,
+    MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
+} from './utils/graph';
+import { ReplayEventsInput } from './graph/generated/schemas';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -122,7 +127,7 @@ type Source = 'segment' | undefined;
 /**
  *  The amount of time to wait until sending the first payload.
  */
-const FIRST_SEND_FREQUENCY = 1000 * 1;
+const FIRST_SEND_FREQUENCY = 1000;
 /**
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
@@ -133,8 +138,6 @@ const SEND_FREQUENCY = 1000 * 2;
  * Maximum length of a session
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
-
-const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
 
 const HIGHLIGHT_URL = 'app.highlight.run';
 
@@ -150,9 +153,6 @@ const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 
 // Debounce duplicate visibility events
 const VISIBILITY_DEBOUNCE_MS = 100;
-
-// Initial backoff for retrying graphql requests.
-const INITIAL_BACKOFF = 300;
 
 export class Highlight {
     options!: HighlightClassOptions;
@@ -184,6 +184,7 @@ export class Highlight {
     sessionShortcut!: SessionShortcutOptions;
     /** The end-user's app version. This isn't Highlight's version. */
     appVersion!: string | undefined;
+    _worker!: HighlightClientRequestWorker;
     _optionsInternal!: HighlightClassOptionsInternal;
     _backendUrl!: string;
     _recordingStartTime!: number;
@@ -299,50 +300,29 @@ export class Highlight {
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
-        const graphQLRequestWrapper = async <T,>(
-            requestFn: () => Promise<T>,
-            operationName: string,
-            operationType?: string,
-            retries: number = 0
-        ): Promise<T> => {
-            try {
-                return await requestFn();
-            } catch (error: any) {
-                if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
-                    await new Promise((resolve) =>
-                        setTimeout(
-                            resolve,
-                            INITIAL_BACKOFF * Math.pow(2, retries)
-                        )
-                    );
-                    return await graphQLRequestWrapper(
-                        requestFn,
-                        operationName,
-                        operationType,
-                        retries + 1
-                    );
-                }
-                logForHighlight(
-                    '[' +
-                        (this.sessionData?.sessionSecureID ||
-                            this.options?.sessionSecureID) +
-                        '] Request failed after ' +
-                        retries +
-                        ' retries'
-                );
-                throw error;
-            }
-        };
-        this.graphqlSDK = getSdk(client, graphQLRequestWrapper);
+        this.graphqlSDK = getSdk(
+            client,
+            getGraphQLRequestWrapper(
+                this.sessionData?.sessionSecureID ||
+                    this.options?.sessionSecureID
+            )
+        );
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
 
+        this._worker = new HighlightClientWorker() as HighlightClientRequestWorker;
+        this._worker.onmessage = (e) => {
+            this._eventBytesSinceSnapshot += e.data.eventsSize;
+            this.logger.log(
+                `Web worker sent payloadID ${e.data.id} size ${e.data.eventsSize}.
+                Total since snapshot: ${this._eventBytesSinceSnapshot}`
+            );
+        };
+
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
-        } else if (typeof options.organizationID === 'number') {
-            this.organizationID = options.organizationID.toString();
         } else {
-            this.organizationID = '';
+            this.organizationID = options.organizationID.toString();
         }
         this.isRunningOnHighlight =
             this.organizationID === '1' || this.organizationID === '1jdkoe52';
@@ -465,11 +445,7 @@ export class Highlight {
                 invalidTypes.push({ [key]: value });
             }
             let asString: string;
-            if (value === undefined) {
-                asString = 'undefined';
-            } else if (value === null) {
-                asString = 'null';
-            } else if (typeof value === 'string') {
+            if (typeof value === 'string') {
                 asString = value;
             } else {
                 asString = stringify(value);
@@ -1072,9 +1048,7 @@ export class Highlight {
         const now = new Date().getTime();
         const { projectID, sessionSecureID } = this.sessionData;
         const relativeTimestamp = (now - this._recordingStartTime) / 1000;
-        const highlightUrl = `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
-
-        return highlightUrl;
+        return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
     }
 
     getCurrentSessionURL() {
@@ -1139,13 +1113,7 @@ export class Highlight {
                 return;
             }
             try {
-                await this._sendPayload({
-                    isBeacon: false,
-                    sendFn: (payload) =>
-                        this.graphqlSDK
-                            .PushPayload(payload)
-                            .then((res) => res.pushPayload ?? 0),
-                });
+                await this._sendPayload({ isBeacon: false });
                 this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
@@ -1222,7 +1190,7 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
+        sendFn?: (payload: PushPayloadMutationVariables) => Promise<number>;
     }): Promise<void> {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
@@ -1251,32 +1219,39 @@ export class Highlight {
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionSecureID: ${this.sessionData.sessionSecureID}`
         );
-
-        const resourcesString = JSON.stringify({ resources: resources });
-        const messagesString = stringify({ messages: messages });
-        let payload: PushPayloadMutationVariables = {
-            session_secure_id: this.sessionData.sessionSecureID,
-            events: { events } as ReplayEventsInput,
-            messages: messagesString,
-            resources: resourcesString,
-            errors,
-            is_beacon: isBeacon,
-            has_session_unloaded: this.hasSessionUnloaded,
-            payload_id: this._payloadId.toString(),
-        };
-
+        const highlightLogs = getHighlightLogs();
+        if (sendFn) {
+            await sendFn({
+                session_secure_id: this.sessionData.sessionSecureID,
+                events: { events } as ReplayEventsInput,
+                messages: stringify({ messages: messages }),
+                resources: JSON.stringify({ resources: resources }),
+                errors,
+                is_beacon: isBeacon,
+                has_session_unloaded: this.hasSessionUnloaded,
+                payload_id: this._payloadId.toString(),
+            });
+        } else {
+            this._worker.postMessage({
+                backend: this._backendUrl,
+                id: this._payloadId,
+                sessionSecureID:
+                    this.sessionData?.sessionSecureID ||
+                    this.options?.sessionSecureID,
+                events,
+                messages,
+                errors,
+                resourcesString: JSON.stringify({ resources: resources }),
+                isBeacon,
+                hasSessionUnloaded: this.hasSessionUnloaded,
+                highlightLogs: highlightLogs,
+            });
+        }
         this._payloadId++;
         window.sessionStorage.setItem(
             SESSION_STORAGE_KEYS.PAYLOAD_ID,
             this._payloadId.toString()
         );
-
-        const highlightLogs = getHighlightLogs();
-        if (highlightLogs) {
-            payload.highlight_logs = highlightLogs;
-        }
-
-        const eventsSize = await sendFn(payload);
 
         // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
         // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
@@ -1292,9 +1267,6 @@ export class Highlight {
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
             this.events = this.events.slice(events.length);
-
-            this._eventBytesSinceSnapshot =
-                this._eventBytesSinceSnapshot + eventsSize;
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
