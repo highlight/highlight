@@ -26,7 +26,7 @@ interface HighlightClientResponseWorker {
 }
 
 // `as any` because: https://github.com/Microsoft/TypeScript/issues/20595
-const worker: HighlightClientResponseWorker = self;
+const worker: HighlightClientResponseWorker = self as any;
 
 {
     let graphqlSDK: Sdk;

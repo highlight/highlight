@@ -55,7 +55,7 @@ import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
-import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
+import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker';
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
 import {
