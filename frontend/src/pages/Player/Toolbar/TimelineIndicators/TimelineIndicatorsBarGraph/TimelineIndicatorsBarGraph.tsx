@@ -28,6 +28,7 @@ import styles from './TimelineIndicatorsBarGraph.module.scss';
 interface Props {
     sessionIntervals: ParsedSessionInterval[];
     selectedTimelineAnnotationTypes: string[];
+    numberOfBars: number;
 }
 
 interface SeriesState {
@@ -37,7 +38,11 @@ interface SeriesState {
 }
 
 const TimelineIndicatorsBarGraph = React.memo(
-    ({ sessionIntervals, selectedTimelineAnnotationTypes }: Props) => {
+    ({
+        sessionIntervals,
+        selectedTimelineAnnotationTypes,
+        numberOfBars,
+    }: Props) => {
         const {
             zoomAreaLeft,
             setZoomAreaLeft,
@@ -87,10 +92,6 @@ const TimelineIndicatorsBarGraph = React.memo(
             },
             [sessionIntervals]
         );
-
-        const numberOfBars = 50;
-        const percentPerBar = 1 / numberOfBars;
-        const scale = zoomAreaRight - zoomAreaLeft;
 
         // Filter the events and map to a new relativeIntervalPercentage (since the window size has shrunk)
         const filterAndMap = useCallback(
@@ -179,15 +180,17 @@ const TimelineIndicatorsBarGraph = React.memo(
             combined.sessionEvents = filterAndMap(combined.sessionEvents);
             combined.comments = filterAndMap(combined.comments);
 
+            const progressPerBar = 1 / numberOfBars;
             const tempChartData = getEventsInTimeBucket(
                 combined,
                 selectedTimelineAnnotationTypes,
-                percentPerBar
+                progressPerBar
             );
 
             const tempBucketTimes: number[] = [];
+            const scale = zoomAreaRight - zoomAreaLeft;
             for (let i = 0; i <= numberOfBars; i++) {
-                const p = i * percentPerBar * scale + zoomAreaLeft;
+                const p = i * progressPerBar * scale + zoomAreaLeft;
                 tempBucketTimes.push(getTimeFromPercent(p) ?? 0);
             }
 
@@ -211,11 +214,11 @@ const TimelineIndicatorsBarGraph = React.memo(
         }, [
             filterAndMap,
             getTimeFromPercent,
-            percentPerBar,
-            scale,
+            numberOfBars,
             selectedTimelineAnnotationTypes,
             sessionIntervals,
             zoomAreaLeft,
+            zoomAreaRight,
         ]);
 
         const timeFormatter = useCallback(

@@ -5,8 +5,6 @@
     display: flex;
     height: 40px;
     justify-content: center;
-    padding-left: var(--size-medium);
-    padding-right: var(--size-medium);
     position: relative;
     width: 100%;
 }
@@ -34,9 +32,6 @@
 }
 
 .zoomArea {
-    background: var(--color-scrubber-zoom-region);
-    border: 2px solid var(--color-scrubber-zoom-region-border);
-    border-radius: 5px;
     height: 32px;
     position: relative;
     width: 100%;
@@ -48,8 +43,9 @@
 }
 
 .zoomAreaMask {
-    background-color: var(--color-primary-background);
+    background-color: var(--color-activity-graph-mask);
     height: 32px;
+    opacity: 0.1;
     position: absolute;
     z-index: 2;
 }
