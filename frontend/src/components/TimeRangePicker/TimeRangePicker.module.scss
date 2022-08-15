@@ -1,0 +1,52 @@
+$width: 200px;
+$height: 40px;
+
+.container {
+    position: relative;
+    width: $width;
+
+    &.open {
+        border-radius: var(--size-xSmall) 0;
+    }
+}
+
+.input {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xSmall);
+    height: $height;
+    padding: var(--size-xSmall) var(--size-small);
+    width: 100%;
+}
+
+.dateOptionsContainer {
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xSmall);
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--size-xSmall));
+    width: 100%;
+}
+
+.dateOptions {
+    width: 100%;
+}
+
+.dateOption {
+    border-bottom: 1px solid var(--color-gray-300);
+    cursor: pointer;
+    padding: var(--size-xSmall) var(--size-small);
+
+    &:hover {
+        background: var(--color-gray-100);
+    }
+}
+
+.datepickerContainer {
+    // Subtract the 7px of padding that comes on the datepicker.
+    padding: var(--size-xSmall) calc(var(--size-small) - 7px);
+}
+
+.datepicker {
+    width: 100%;
+}

@@ -3,13 +3,14 @@ import 'react-resizable/css/styles.css';
 
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
 import Button from '@components/Button/Button/Button';
-import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
+import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker';
 import {
     Admin,
     DashboardDefinition,
     DashboardMetricConfig,
 } from '@graph/schemas';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import PlusIcon from '@icons/PlusIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
@@ -20,7 +21,6 @@ import {
     LAYOUT_CHART_WIDTH,
     LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics';
-import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -33,67 +33,10 @@ import styles from './DashboardPage.module.scss';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-const timeFilters = [
-    { label: 'Last 5 minutes', value: 5 },
-    { label: 'Last 15 minutes', value: 15 },
-    { label: 'Last 1 hours', value: 60 },
-    { label: 'Last 6 hours', value: 6 * 60 },
-    { label: 'Last 24 hours', value: 24 * 60 },
-    { label: 'Last 7 days', value: 7 * 24 * 60 },
-    { label: 'Last 30 days', value: 30 * 24 * 60 },
-] as { label: string; value: number }[];
-
 const DashboardPage = () => {
     const history = useHistory<{ dashboardName: string }>();
-    const { project_id, id } = useParams<{ project_id: string; id: string }>();
-    const [dateRangeLength, setDateRangeLength] = useLocalStorage(
-        `highlight-dashboard-${project_id}-${id}-date-range-v2`,
-        timeFilters[1]
-    );
-    const [customDateRange, setCustomDateRange] = React.useState<{
-        label: string;
-        value: number;
-    }>();
-    const [dateRange, setDateRange] = React.useState<{
-        start_date: string;
-        end_date: string;
-    }>({
-        start_date: moment()
-            .subtract(dateRangeLength.value, 'minutes')
-            .format(),
-        end_date: moment().format(),
-    });
-
-    const updateDateRange = (start: string, end: string, custom = false) => {
-        const startDate = moment(start);
-        const endDate = moment(end);
-        const minutesDiff = moment
-            .duration(endDate.diff(startDate))
-            .asMinutes();
-
-        const roundedEnd = roundDate(endDate, Math.min(1, minutesDiff));
-        const roundedStart = roundDate(startDate, Math.min(1, minutesDiff));
-
-        if (custom) {
-            const customDateRange = {
-                label: `${startDate.format('MMM D, LT')} - ${endDate.format(
-                    'MMM D, LT'
-                )}`,
-                value: 0,
-            };
-
-            setCustomDateRange(customDateRange);
-        } else {
-            setCustomDateRange(undefined);
-        }
-
-        setDateRange({
-            start_date: moment(roundedStart).format(
-                'YYYY-MM-DDTHH:mm:00.000000000Z'
-            ),
-            end_date: roundedEnd.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
-        });
-    };
+    const { id } = useParams<{ project_id: string; id: string }>();
+    const { timeRange: dateRange } = useDataTimeRange();
 
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
@@ -215,7 +158,8 @@ const DashboardPage = () => {
                                     }}
                                 />
                             </Button>
-                            <StandardDropdown
+                            <TimeRangePicker />
+                            {/* <StandardDropdown
                                 data={
                                     customDateRange
                                         ? [customDateRange, ...timeFilters]
@@ -239,7 +183,7 @@ const DashboardPage = () => {
                                     );
                                 }}
                                 className={styles.dateRangePicker}
-                            />
+                            /> */}
                         </div>
                     </div>
                 </div>
@@ -260,11 +204,11 @@ const DashboardPage = () => {
                         Results are{' '}
                         <span
                             className={classNames({
-                                [styles.liveColored]: !customDateRange,
-                                [styles.absoluteColored]: customDateRange,
+                                [styles.liveColored]: !dateRange.absolute,
+                                [styles.absoluteColored]: dateRange.absolute,
                             })}
                         >
-                            {customDateRange ? ` Absolute` : ` Live`}
+                            {dateRange.absolute ? ` Absolute` : ` Live`}
                         </span>
                     </div>
                 </div>
@@ -317,9 +261,6 @@ const DashboardPage = () => {
                                     pushNewMetricConfig(newMetrics);
                                 }}
                                 key={metric.name}
-                                customDateRange={customDateRange}
-                                dateRange={dateRange}
-                                setDateRange={updateDateRange}
                             />
                         </div>
                     ))}
