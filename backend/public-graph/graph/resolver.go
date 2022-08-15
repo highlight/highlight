@@ -342,20 +342,55 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
+	type appendedField struct {
+		model.Field
+		IsInsert bool `json:"is_insert"`
+	}
+
 	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
-		field := model.Field{}
-		res := r.DB.Where(f).FirstOrCreate(&field)
+		field := appendedField{}
+		res := r.DB.Raw(`
+			WITH new_fields AS (
+				INSERT INTO fields (created_at, updated_at, type, name, value, project_id)
+				SELECT NOW(), NOW(), @type, @name, @value, @project_id
+				WHERE NOT EXISTS (
+					SELECT *
+					FROM fields f
+					WHERE f.type = @type
+					AND f.name = @name
+					AND f.value = @value
+					AND f.project_id = @project_id
+				)
+				RETURNING *)
+			SELECT true as is_insert, *
+			FROM new_fields
+			UNION
+			SELECT false as is_insert, *
+			FROM fields f
+			WHERE f.type = @type
+			AND f.name = @name
+			AND f.value = @value
+			AND f.project_id = @project_id
+			ORDER BY id
+		`, map[string]interface{}{
+			"type":       f.Type,
+			"name":       f.Name,
+			"value":      f.Value,
+			"project_id": f.ProjectID}).First(&field)
+
 		if res.Error != nil {
 			return e.Wrap(res.Error, "error calling FirstOrCreate")
 		}
+
 		// If the field was created, index it in OpenSearch
-		if res.RowsAffected > 0 {
-			if err := r.OpenSearch.Index(opensearch.IndexFields, f.ID, nil, f); err != nil {
+		if field.IsInsert {
+			if err := r.OpenSearch.Index(opensearch.IndexFields, field.ID, nil, field); err != nil {
 				return e.Wrap(err, "error indexing new field")
 			}
 		}
-		fieldsToAppend = append(fieldsToAppend, &field)
+
+		fieldsToAppend = append(fieldsToAppend, &field.Field)
 	}
 
 	openSearchFields := make([]interface{}, len(fieldsToAppend))
