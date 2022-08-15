@@ -2,8 +2,12 @@ import React from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { Area, ComposedChart } from 'recharts';
 
+export interface ActivityGraphPoint {
+    value: number;
+}
+
 interface Props {
-    data: any[];
+    data: ActivityGraphPoint[];
     height?: number;
     disableAnimation?: boolean;
 }

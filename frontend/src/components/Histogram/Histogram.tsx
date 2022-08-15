@@ -1,93 +1,30 @@
-import GoToButton from '@components/Button/GoToButton';
+import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
+import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar';
 import React, { useEffect, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { Bar, BarChart, Cell, Tooltip } from 'recharts';
+import { Bar, BarChart, Tooltip } from 'recharts';
 
 import styles from './Histogram.module.scss';
-
-export interface Series {
-    label: string;
-    color: string; // Color as a css var e.g. --color-green-300
-    counts: number[];
-}
 
 const POPOVER_TIMEOUT_MS = 300;
 const BAR_RADIUS_PX = 2;
 
 interface Props {
-    bucketTimes: number[];
     onBucketClicked: (bucketIndex: number) => void;
-    seriesList: Series[];
-    timeFormatter: (value: number) => string;
     tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
-    gotoAction?: (bucketIndex: number) => void;
     timelineRef: React.RefObject<HTMLDivElement>;
+    buckets: EventBucket[];
+}
+
+export interface EventBucket {
+    [props: string]: number | string;
 }
 
 const Histogram = React.memo(
-    ({
-        onBucketClicked,
-        seriesList,
-        bucketTimes,
-        timeFormatter,
-        tooltipContent,
-        gotoAction,
-        timelineRef,
-    }: Props) => {
-        const [dragStart, setDragStart] = useState<number | undefined>();
-        const [dragEnd, setDragEnd] = useState<number | undefined>();
+    ({ buckets, onBucketClicked, tooltipContent, timelineRef }: Props) => {
+        const [activeLabel, setActiveLabel] = useState<number | undefined>();
         const [tooltipHidden, setTooltipHidden] = useState(true);
         const [tooltipWantHidden, setTooltipWantHidden] = useState(true);
-
-        let dragLeft: number | undefined;
-        let dragRight: number | undefined;
-        if (dragStart !== undefined && dragEnd !== undefined) {
-            dragLeft = Math.min(dragStart, dragEnd);
-            dragRight = Math.max(dragStart, dragEnd);
-        }
-
-        const bucketStartTimes = bucketTimes.slice(0, -1);
-        const bucketEndTimes = bucketTimes.slice(1);
-
-        // assert all series have the same length
-        const seriesLength = bucketStartTimes.length;
-        if (!seriesList.every((s) => s.counts.length === seriesLength)) {
-            console.log('seriesList', seriesList, seriesLength);
-            throw new Error('all series must have the same length');
-        }
-
-        const chartData: {
-            [key: string]: string | number;
-        }[] = [];
-        for (const {} of bucketStartTimes) {
-            chartData.push({});
-        }
-
-        for (const s of seriesList) {
-            for (let i = 0; i < seriesLength; i++) {
-                chartData[i][s.label] = s.counts[i];
-            }
-        }
-
-        const firstSeries: string[] = [];
-        const lastSeries: string[] = [];
-
-        const reversedSeriesList = seriesList.slice().reverse();
-        for (let i = 0; i < seriesLength; i++) {
-            const curData = chartData[i];
-            for (const s of seriesList) {
-                if (curData[s.label]) {
-                    firstSeries[i] = s.label;
-                    break;
-                }
-            }
-            for (const s of reversedSeriesList) {
-                if (curData[s.label]) {
-                    lastSeries[i] = s.label;
-                    break;
-                }
-            }
-        }
 
         useEffect(() => {
             // Return if we don't want the tooltip to be hidden or it's already hidden
@@ -107,32 +44,6 @@ const Histogram = React.memo(
         }, [tooltipHidden, tooltipWantHidden]);
 
         const EventTooltip = ({ label }: any) => {
-            let inner;
-            if (dragLeft !== undefined && dragRight !== undefined) {
-                const leftTime = timeFormatter(bucketStartTimes[dragLeft]);
-                const rightTime = timeFormatter(bucketEndTimes[dragRight]);
-                inner = (
-                    <div className={styles.title}>
-                        {leftTime} to {rightTime}
-                    </div>
-                );
-            } else {
-                const leftTime = timeFormatter(bucketStartTimes[label]);
-                const rightTime = timeFormatter(bucketEndTimes[label]);
-                inner = (
-                    <>
-                        <div className={styles.title}>
-                            {`${leftTime} to ${rightTime}`}
-                            {gotoAction && (
-                                <GoToButton onClick={() => gotoAction(label)} />
-                            )}
-                        </div>
-                        <div className={styles.popoverContent}>
-                            {tooltipContent(label)}
-                        </div>
-                    </>
-                );
-            }
             return (
                 <div
                     className={styles.tooltipPopover}
@@ -144,7 +55,9 @@ const Histogram = React.memo(
                         setTooltipWantHidden(true);
                     }}
                 >
-                    {inner}
+                    <div className={styles.popoverContent}>
+                        {tooltipContent(label)}
+                    </div>
                 </div>
             );
         };
@@ -155,7 +68,7 @@ const Histogram = React.memo(
                     <AutoSizer>
                         {({ height, width }) => (
                             <BarChart
-                                data={chartData}
+                                data={buckets}
                                 barGap={0}
                                 margin={{
                                     top: 0,
@@ -169,8 +82,7 @@ const Histogram = React.memo(
                                     if (!e) {
                                         return;
                                     }
-                                    setDragStart(e.activeLabel);
-                                    setDragEnd(e.activeLabel);
+                                    setActiveLabel(e.activeLabel);
                                 }}
                                 onMouseMove={(e: any) => {
                                     if (!e) {
@@ -178,23 +90,15 @@ const Histogram = React.memo(
                                     }
                                     setTooltipHidden(false);
                                     setTooltipWantHidden(false);
-                                    if (dragStart !== undefined) {
-                                        setDragEnd(e.activeLabel);
-                                    }
                                 }}
                                 onMouseUp={() => {
-                                    if (
-                                        dragLeft !== undefined &&
-                                        dragRight === dragLeft
-                                    ) {
-                                        onBucketClicked(dragLeft);
+                                    if (activeLabel !== undefined) {
+                                        onBucketClicked(activeLabel);
                                     }
-                                    setDragStart(undefined);
-                                    setDragEnd(undefined);
+                                    setActiveLabel(undefined);
                                 }}
                                 onMouseLeave={() => {
-                                    setDragStart(undefined);
-                                    setDragEnd(undefined);
+                                    setActiveLabel(undefined);
                                     setTooltipWantHidden(true);
                                 }}
                                 onMouseEnter={() => {
@@ -217,30 +121,30 @@ const Histogram = React.memo(
                                         pointerEvents: 'inherit',
                                     }}
                                     cursor={{
-                                        fill:
-                                            dragLeft !== undefined &&
-                                            dragRight !== undefined
-                                                ? 'transparent'
-                                                : 'rgba(204, 204, 204, .5)',
+                                        fill: 'rgba(204, 204, 204, .5)',
                                     }}
                                     allowEscapeViewBox={{
                                         x: false,
                                         y: false,
                                     }}
                                 />
-                                {seriesList.map((s) => (
+                                {EventsForTimeline.map((eventType) => (
                                     <Bar
                                         isAnimationActive={false}
-                                        key={s.label}
-                                        dataKey={s.label}
+                                        key={eventType}
+                                        dataKey={eventType}
                                         stackId="a"
-                                        fill={`var(${s.color})`}
+                                        fill={`var(${getAnnotationColor(
+                                            eventType
+                                        )})`}
                                     >
-                                        {chartData.map((entry, i) => {
+                                        {/* {chartData.map((entry, i) => {
                                             const isFirst =
-                                                firstSeries[i] === s.label;
+                                                firstSeries[i] ===
+                                                eventType.label;
                                             const isLast =
-                                                lastSeries[i] === s.label;
+                                                lastSeries[i] ===
+                                                eventType.label;
 
                                             return (
                                                 <Cell
@@ -262,7 +166,7 @@ const Histogram = React.memo(
                                                     ]}
                                                 />
                                             );
-                                        })}
+                                        })} */}
                                     </Bar>
                                 ))}
                             </BarChart>

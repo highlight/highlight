@@ -1,57 +1,48 @@
 import Button from '@components/Button/Button/Button';
-import Histogram, { Series } from '@components/Histogram/Histogram';
+import Histogram, { EventBucket } from '@components/Histogram/Histogram';
 import ScrubHandle from '@components/ScrubHandle/ScrubHandle';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
 import {
-    ParsedErrorObject,
-    ParsedHighlightEvent,
-    ParsedSessionComment,
+    ParsedEvent,
     ParsedSessionInterval,
     useReplayerContext,
 } from '@pages/Player/ReplayerContext';
 import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement';
-import Scrubber from '@pages/Player/Toolbar/Scrubber/Scrubber';
+import ProgressBar from '@pages/Player/Toolbar/ProgressBar/ProgressBar';
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
+import { ActivityGraphPoint } from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import { useParams } from '@util/react-router/useParams';
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
-import { MillisToMinutesAndSeconds } from '@util/time';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import timelineAnnotationStyles from '../../TimelineAnnotation/TimelineAnnotation.module.scss';
-import { getAnnotationColor, TimelineAnnotationColors } from '../../Toolbar';
+import { TimelineAnnotationColors } from '../../Toolbar';
 import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
-    sessionIntervals: ParsedSessionInterval[];
     selectedTimelineAnnotationTypes: string[];
     numberOfBars: number;
 }
 
-interface SeriesState {
-    bucketTimes: number[];
-    chartData: any[];
-    eventsSeries: Series[];
+interface SessionEvent {
+    eventType: string;
+    sessionLoc: number;
+    identifier?: string;
 }
 
 const TimelineIndicatorsBarGraph = React.memo(
-    ({
-        sessionIntervals,
-        selectedTimelineAnnotationTypes,
-        numberOfBars,
-    }: Props) => {
+    ({ selectedTimelineAnnotationTypes, numberOfBars }: Props) => {
         const {
             zoomAreaLeft,
             setZoomAreaLeft,
             zoomAreaRight,
             setZoomAreaRight,
         } = useToolbarItemsContext();
-        const { showPlayerAbsoluteTime } = usePlayerConfiguration();
         const {
             sessionMetadata,
+            sessionIntervals,
             setTime,
             setCurrentEvent,
         } = useReplayerContext();
@@ -64,225 +55,142 @@ const TimelineIndicatorsBarGraph = React.memo(
             setZoomAreaRight(100);
         }, [session_secure_id, setZoomAreaLeft, setZoomAreaRight]);
 
-        const [seriesState, setSeriesState] = useState<SeriesState>({
-            bucketTimes: [],
-            chartData: [],
-            eventsSeries: [],
-        });
-
-        const getTimeFromPercent = useCallback(
-            (percent: number): number | undefined => {
-                for (const interval of sessionIntervals) {
-                    if (
-                        interval.startPercent * 100 <= percent &&
-                        interval.endPercent * 100 >= percent
-                    ) {
-                        const globalPctInInterval =
-                            percent - interval.startPercent * 100;
-                        const intervalOffset =
-                            globalPctInInterval /
-                            (interval.endPercent - interval.startPercent) /
-                            100;
-                        const timeOffset =
-                            (interval.endTime - interval.startTime) *
-                            intervalOffset;
-                        return interval.startTime + timeOffset;
-                    }
-                }
-            },
-            [sessionIntervals]
+        const [events, setEvents] = useState<SessionEvent[]>([]);
+        const [activityData, setActivityData] = useState<ActivityGraphPoint[]>(
+            []
         );
-
-        // Filter the events and map to a new relativeIntervalPercentage (since the window size has shrunk)
-        const filterAndMap = useCallback(
-            <T extends { relativeIntervalPercentage?: number }>(
-                events: T[]
-            ): T[] =>
-                events
-                    .filter(
-                        (e) =>
-                            e.relativeIntervalPercentage !== undefined &&
-                            e.relativeIntervalPercentage >= zoomAreaLeft &&
-                            e.relativeIntervalPercentage <= zoomAreaRight
-                    )
-                    .map((e) => ({
-                        ...e,
-                        relativeIntervalPercentage:
-                            ((e.relativeIntervalPercentage! - zoomAreaLeft) /
-                                (zoomAreaRight - zoomAreaLeft)) *
-                            100,
-                    })),
-            [zoomAreaLeft, zoomAreaRight]
-        );
-
         useEffect(() => {
-            if (sessionIntervals.length == 0) {
+            const parsedEvents = sessionIntervals.reduce(
+                (acc, interval) =>
+                    acc.concat(
+                        parseSessionInterval(
+                            interval,
+                            selectedTimelineAnnotationTypes
+                        )
+                    ),
+                [] as SessionEvent[]
+            );
+            parsedEvents.sort((a: any, b: any) => -b.sessionLoc + a.sessionLoc);
+            setEvents(parsedEvents);
+
+            const eventBuckets = buildEventBuckets(
+                parsedEvents,
+                0,
+                1,
+                selectedTimelineAnnotationTypes,
+                numberOfBars
+            );
+
+            const activityData: ActivityGraphPoint[] = eventBuckets.map(
+                (bucket) => {
+                    let count = 0;
+                    for (const eventType of EventsForTimeline) {
+                        count += (bucket[eventType] as number) || 0;
+                    }
+                    return {
+                        value: count,
+                    };
+                }
+            );
+            setActivityData(activityData);
+        }, [numberOfBars, selectedTimelineAnnotationTypes, sessionIntervals]);
+
+        const [buckets, setBuckets] = useState<EventBucket[]>([]);
+        useEffect(() => {
+            if (!events.length) {
                 return;
             }
 
-            const startTime = sessionIntervals[0].startTime;
-            const endTime =
-                sessionIntervals[sessionIntervals.length - 1].endTime;
-
-            const combined = sessionIntervals.reduce(
-                (acc, interval) => {
-                    return {
-                        ...acc,
-                        errors: [
-                            ...acc.errors,
-                            ...interval.errors.map((e) => ({
-                                ...e,
-                                relativeIntervalPercentage:
-                                    interval.startPercent * 100 +
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                        (e.relativeIntervalPercentage ?? 0),
-                            })),
-                        ],
-                        sessionEvents: [
-                            ...acc.sessionEvents,
-                            ...interval.sessionEvents.map((e) => ({
-                                ...e,
-                                relativeIntervalPercentage:
-                                    interval.startPercent * 100 +
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                        (e.relativeIntervalPercentage ?? 0),
-                            })),
-                        ],
-                        comments: [
-                            ...acc.comments,
-                            ...interval.comments.map((e) => ({
-                                ...e,
-                                relativeIntervalPercentage:
-                                    interval.startPercent * 100 +
-                                    (interval.endPercent -
-                                        interval.startPercent) *
-                                        (e.relativeIntervalPercentage ?? 0),
-                            })),
-                        ],
-                    };
-                },
-                {
-                    startTime,
-                    endTime,
-                    duration: endTime - startTime,
-                    active: true,
-                    startPercent: 0,
-                    endPercent: 1,
-                    errors: [],
-                    sessionEvents: [],
-                    comments: [],
-                }
-            );
-
-            combined.errors = filterAndMap(combined.errors);
-            combined.sessionEvents = filterAndMap(combined.sessionEvents);
-            combined.comments = filterAndMap(combined.comments);
-
-            const progressPerBar = 1 / numberOfBars;
-            const tempChartData = getEventsInTimeBucket(
-                combined,
-                selectedTimelineAnnotationTypes,
-                progressPerBar
-            );
-
-            const tempBucketTimes: number[] = [];
-            const scale = zoomAreaRight - zoomAreaLeft;
-            for (let i = 0; i <= numberOfBars; i++) {
-                const p = i * progressPerBar * scale + zoomAreaLeft;
-                tempBucketTimes.push(getTimeFromPercent(p) ?? 0);
-            }
-
-            const tempEventsSeries = EventsForTimeline.map((eventType) => ({
-                label: eventType,
-                color: getAnnotationColor(eventType),
-                counts: new Array<number>(),
-            }));
-
-            for (const d of tempChartData) {
-                for (const s of tempEventsSeries) {
-                    s.counts.push(d[s.label] || 0);
+            const leftProgress = zoomAreaLeft / 100;
+            let firstIdx;
+            for (firstIdx = 0; firstIdx < events.length; ++firstIdx) {
+                if (leftProgress <= events[firstIdx].sessionLoc) {
+                    break;
                 }
             }
 
-            setSeriesState({
-                bucketTimes: tempBucketTimes,
-                chartData: tempChartData,
-                eventsSeries: tempEventsSeries,
-            });
+            const rightProgress = zoomAreaRight / 100;
+            let lastIdx;
+            for (lastIdx = events.length - 1; firstIdx >= 0; --lastIdx) {
+                if (rightProgress >= events[lastIdx].sessionLoc) {
+                    break;
+                }
+            }
+
+            setBuckets(
+                buildEventBuckets(
+                    events.slice(firstIdx, lastIdx + 1),
+                    leftProgress,
+                    rightProgress,
+                    selectedTimelineAnnotationTypes,
+                    numberOfBars
+                )
+            );
         }, [
-            filterAndMap,
-            getTimeFromPercent,
+            events,
             numberOfBars,
             selectedTimelineAnnotationTypes,
-            sessionIntervals,
             zoomAreaLeft,
             zoomAreaRight,
         ]);
 
-        const timeFormatter = useCallback(
-            (t: number) =>
-                showPlayerAbsoluteTime
-                    ? playerTimeToSessionAbsoluteTime({
-                          sessionStartTime: sessionMetadata.startTime,
-                          relativeTime: t,
-                      }).toString()
-                    : MillisToMinutesAndSeconds(t),
-            [sessionMetadata.startTime, showPlayerAbsoluteTime]
-        );
-
         const onBucketClicked = useCallback(
             (bucketIndex) => {
-                setTime(seriesState.bucketTimes[bucketIndex]);
+                const leftProgress = zoomAreaLeft / 100;
+                const rightProgress = zoomAreaRight / 100;
+                const relProgress = bucketIndex / numberOfBars;
+                const scale = rightProgress - leftProgress;
+                const newTime =
+                    (leftProgress + scale * relProgress) *
+                    sessionMetadata.totalTime;
+                setTime(newTime);
             },
-            [seriesState.bucketTimes, setTime]
+            [
+                numberOfBars,
+                sessionMetadata.totalTime,
+                setTime,
+                zoomAreaLeft,
+                zoomAreaRight,
+            ]
         );
 
         const displayAggregate = useCallback(
             (
                 count: number,
                 eventType: string,
-                firstEvent:
-                    | ParsedErrorObject
-                    | ParsedHighlightEvent
-                    | ParsedSessionComment
+                firstEventIdentifier?: string
             ) => {
                 const Icon = getPlayerEventIcon(eventType);
                 return (
-                    <>
-                        <Button
-                            className={classNames(
-                                timelineAnnotationStyles.title,
-                                styles.eventTitle
-                            )}
-                            type="text"
-                            trackingId="ViewEventDetail"
-                            onClick={() => {
-                                if ('identifier' in firstEvent) {
-                                    setCurrentEvent(firstEvent.identifier);
-                                }
+                    <Button
+                        className={classNames(
+                            timelineAnnotationStyles.title,
+                            styles.eventTitle
+                        )}
+                        type="text"
+                        trackingId="ViewEventDetail"
+                        onClick={() => {
+                            if (firstEventIdentifier) {
+                                setCurrentEvent(firstEventIdentifier);
+                            }
+                        }}
+                    >
+                        <span
+                            className={timelineAnnotationStyles.iconContainer}
+                            style={{
+                                background: `var(${
+                                    // @ts-ignore
+                                    TimelineAnnotationColors[eventType]
+                                })`,
+                                width: '30px',
+                                height: '30px',
                             }}
                         >
-                            <span
-                                className={
-                                    timelineAnnotationStyles.iconContainer
-                                }
-                                style={{
-                                    background: `var(${
-                                        // @ts-ignore
-                                        TimelineAnnotationColors[eventType]
-                                    })`,
-                                    width: '30px',
-                                    height: '30px',
-                                }}
-                            >
-                                {Icon}
-                            </span>
-                            {getTimelineEventDisplayName(eventType || '')}
-                            {count > 1 && ` x ${count}`}
-                        </Button>
-                    </>
+                            {Icon}
+                        </span>
+                        {getTimelineEventDisplayName(eventType || '')}
+                        {count > 1 && ` x ${count}`}
+                    </Button>
                 );
             },
             [setCurrentEvent]
@@ -293,13 +201,17 @@ const TimelineIndicatorsBarGraph = React.memo(
                 if (bucketIndex === undefined) {
                     return;
                 }
-                const bucket = seriesState.chartData[bucketIndex];
+                const bucket = buckets[bucketIndex];
                 const labels = [];
                 for (const e of EventsForTimeline) {
-                    const count = bucket[e];
-                    if (count > 0) {
-                        const firstEvent = bucket.firstEvent[e];
-                        labels.push(displayAggregate(count, e, firstEvent));
+                    const count = bucket[e] as number;
+                    const firstEventIdentifier = bucket[`${e}FirstId`] as
+                        | string
+                        | undefined;
+                    if (count > 0 && firstEventIdentifier) {
+                        labels.push(
+                            displayAggregate(count, e, firstEventIdentifier)
+                        );
                     }
                 }
                 if (labels.length === 0) {
@@ -308,14 +220,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                     return <>{labels}</>;
                 }
             },
-            [seriesState.chartData, displayAggregate]
-        );
-
-        const gotoAction = useCallback(
-            (bucketIndex) => {
-                setTime(seriesState.bucketTimes[bucketIndex]);
-            },
-            [seriesState.bucketTimes, setTime]
+            [buckets, displayAggregate]
         );
 
         const timelineRef = useRef<HTMLDivElement>(null);
@@ -334,19 +239,21 @@ const TimelineIndicatorsBarGraph = React.memo(
 
         return (
             <>
-                <Scrubber chartData={seriesState.chartData} />
+                <ProgressBar activityData={activityData} />
                 <div className={styles.histogramContainer}>
                     <ScrubHandle
                         wrapperWidth={timelineRef.current?.clientWidth || 0}
-                        bucketTimes={seriesState.bucketTimes}
+                        leftTime={
+                            (zoomAreaLeft / 100) * sessionMetadata.totalTime
+                        }
+                        rightTime={
+                            (zoomAreaRight / 100) * sessionMetadata.totalTime
+                        }
                     />
                     <Histogram
-                        onBucketClicked={onBucketClicked}
-                        seriesList={seriesState.eventsSeries}
-                        timeFormatter={timeFormatter}
-                        bucketTimes={seriesState.bucketTimes}
+                        buckets={buckets}
                         tooltipContent={tooltipContent}
-                        gotoAction={gotoAction}
+                        onBucketClicked={onBucketClicked}
                         timelineRef={timelineRef}
                     />
                 </div>
@@ -357,95 +264,103 @@ const TimelineIndicatorsBarGraph = React.memo(
 
 export default TimelineIndicatorsBarGraph;
 
-const getBucketKey = (
-    event: { relativeIntervalPercentage?: number },
-    numberOfBuckets: number
-) => {
-    let bucketKey = Math.floor(
-        ((event.relativeIntervalPercentage ?? 0) * numberOfBuckets) / 100
-    );
-    if (bucketKey >= numberOfBuckets) {
-        bucketKey = numberOfBuckets - 1;
-    }
-    if (bucketKey < 0) {
-        bucketKey = 0;
-    }
-    return bucketKey;
-};
-
-const getEventsInTimeBucket = (
+function parseSessionInterval(
     interval: ParsedSessionInterval,
-    selectedTimelineAnnotationTypes: string[],
-    percentPerBar: number
-) => {
-    const numberOfBuckets = Math.round(
-        (interval.endPercent - interval.startPercent) / percentPerBar
-    );
-    const data: { [key: string]: any } = {};
+    selectedTimelineAnnotationTypes: string[]
+): SessionEvent[] {
+    const events: SessionEvent[] = [];
 
-    for (let i = 0; i < numberOfBuckets; i++) {
-        data[i.toString()] = { firstEvent: {}, count: 0 };
+    if (!interval.active) {
+        return events;
     }
 
-    interval.sessionEvents.forEach((event) => {
+    const { endPercent: endProgress, startPercent: startProgress } = interval;
+    const intervalRange = endProgress - startProgress;
+
+    const getSessionLoc = (relPercentage: number) => {
+        return (intervalRange * (relPercentage || 0)) / 100 + startProgress;
+    };
+
+    interval.sessionEvents.forEach((event: ParsedEvent) => {
         if (event.type === 5 && event.relativeIntervalPercentage) {
             const eventType = event.data.tag;
 
-            if (!selectedTimelineAnnotationTypes.includes(eventType)) {
+            if (
+                !selectedTimelineAnnotationTypes.includes(eventType) ||
+                event.relativeIntervalPercentage === undefined
+            ) {
                 return;
             }
 
-            const bucketKey = getBucketKey(event, numberOfBuckets);
-            data[bucketKey].count++;
-
-            if (!(eventType in data[bucketKey])) {
-                data[bucketKey][eventType] = 1;
-                data[bucketKey].firstEvent[eventType] = event;
-            } else {
-                data[bucketKey][eventType]++;
-            }
+            events.push({
+                eventType,
+                sessionLoc: getSessionLoc(event.relativeIntervalPercentage),
+                identifier: event.identifier,
+            });
         }
     });
 
     if (selectedTimelineAnnotationTypes.includes('Errors')) {
-        interval.errors.forEach((error) => {
+        interval.errors.forEach((error: any) => {
             if (error.relativeIntervalPercentage === undefined) {
                 return;
             }
 
-            const bucketKey = getBucketKey(error, numberOfBuckets);
-            data[bucketKey].count++;
-
-            if (!('Errors' in data[bucketKey])) {
-                data[bucketKey]['Errors'] = 1;
-                data[bucketKey].firstEvent['Errors'] = error;
-            } else {
-                data[bucketKey]['Errors']++;
-            }
+            events.push({
+                eventType: 'Errors',
+                sessionLoc: getSessionLoc(error.relativeIntervalPercentage),
+            });
         });
     }
 
     if (selectedTimelineAnnotationTypes.includes('Comments')) {
-        interval.comments.forEach((comment) => {
+        interval.comments.forEach((comment: any) => {
             if (comment.relativeIntervalPercentage === undefined) {
                 return;
             }
 
-            const bucketKey = getBucketKey(comment, numberOfBuckets);
-            data[bucketKey].count++;
-
-            if (!('Comments' in data[bucketKey])) {
-                data[bucketKey]['Comments'] = 1;
-                data[bucketKey].firstEvent['Comments'] = comment;
-            } else {
-                data[bucketKey]['Comments']++;
-            }
+            events.push({
+                eventType: 'Comments',
+                sessionLoc: getSessionLoc(comment.relativeIntervalPercentage),
+            });
         });
     }
 
-    const res = Object.keys(data).map((key) => ({
-        ...data[key],
+    return events;
+}
+
+function buildEventBuckets(
+    events: SessionEvent[],
+    leftProgress: number,
+    rightProgress: number,
+    selectedTimelineAnnotationTypes: string[],
+    numberOfBuckets = 50
+): EventBucket[] {
+    const defaultEventCounts = Object.fromEntries(
+        Array.from(selectedTimelineAnnotationTypes).map((eventType) => [
+            eventType,
+            0,
+        ])
+    );
+    const buckets: any = Array.from({ length: numberOfBuckets }, (_, idx) => ({
+        label: idx,
+        ...defaultEventCounts,
     }));
 
-    return res;
-};
+    const scale = rightProgress - leftProgress;
+    for (const { eventType, sessionLoc, identifier } of events) {
+        const relProgress = (sessionLoc - leftProgress) / scale;
+        const bucketId = Math.max(
+            Math.min(
+                Math.floor(relProgress * numberOfBuckets),
+                numberOfBuckets - 1
+            ),
+            0
+        );
+        buckets[bucketId][eventType]++;
+        if (buckets[bucketId][eventType] == 1) {
+            buckets[bucketId][`${eventType}FirstId`] = identifier;
+        }
+    }
+    return buckets;
+}

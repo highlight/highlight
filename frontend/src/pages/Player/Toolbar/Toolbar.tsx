@@ -286,7 +286,6 @@ export const Toolbar = React.memo(() => {
             >
                 {histogramOn && (
                     <TimelineIndicatorsBarGraph
-                        sessionIntervals={sessionIntervals}
                         selectedTimelineAnnotationTypes={
                             selectedTimelineAnnotationTypes
                         }

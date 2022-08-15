@@ -2,21 +2,23 @@ import Button from '@components/Button/Button/Button';
 import SvgDragIcon from '@icons/DragIcon';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
-import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
+import ActivityGraph, {
+    ActivityGraphPoint,
+} from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { NumberParam, useQueryParam } from 'use-query-params';
 
-import styles from './Scrubber.module.scss';
+import styles from './ProgressBar.module.scss';
 
 interface Props {
-    chartData: any[];
+    activityData: ActivityGraphPoint[];
 }
 
 const ActivityGraphMemoized = React.memo(ActivityGraph);
 
-const Scrubber = ({ chartData }: Props) => {
+const ProgressBar = ({ activityData }: Props) => {
     const {
         zoomAreaLeft,
         setZoomAreaLeft,
@@ -40,13 +42,6 @@ const Scrubber = ({ chartData }: Props) => {
         NumberParam
     );
     const [zoomHistory, setZoomHistory] = useState<[number, number][]>([]);
-    const [eventCounts, setEventCounts] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (chartData) {
-            setEventCounts(chartData.map((d) => ({ value: d.count })));
-        }
-    }, [chartData]);
 
     useEffect(() => {
         setDragAreaLeft(zoomAreaLeft);
@@ -140,15 +135,9 @@ const Scrubber = ({ chartData }: Props) => {
                 </div>
             )}
             <div className={styles.innerBounds} ref={sliderWrapperRef}>
-                <div
-                    className={styles.activityGraphWrapper}
-                    style={{
-                        left: `${zoomAreaLeft}%`,
-                        width: `${zoomAreaRight - zoomAreaLeft}%`,
-                    }}
-                >
+                <div className={styles.activityGraphWrapper}>
                     <ActivityGraphMemoized
-                        data={eventCounts}
+                        data={activityData}
                         height={20}
                         disableAnimation
                     ></ActivityGraphMemoized>
@@ -276,4 +265,4 @@ const Scrubber = ({ chartData }: Props) => {
     );
 };
 
-export default Scrubber;
+export default ProgressBar;
