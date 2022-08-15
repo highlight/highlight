@@ -31,7 +31,6 @@ import {
     EditMetricModal,
     UpdateMetricFn,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal';
-import { roundDate } from '@pages/Dashboards/pages/Dashboard/DashboardPage';
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils';
 import { useParams } from '@util/react-router/useParams';
@@ -343,6 +342,7 @@ const ChartContainer = React.memo(
         const { project_id } = useParams<{ project_id: string }>();
         const [chartInitialLoading, setChartInitialLoading] = useState(true);
         const { timeRange, setTimeRange } = useDataTimeRange();
+        const { lookback: lookbackMinutes } = timeRange;
         const [
             histogramData,
             setHistogramData,
@@ -360,11 +360,6 @@ const ChartContainer = React.memo(
             format: string;
         }>({ ticks: [], format: '' });
         const refetchInterval = useRef<number>();
-        const lookbackMinutes = moment
-            .duration(
-                moment(timeRange.end_date).diff(moment(timeRange.start_date))
-            )
-            .asMinutes();
         const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS);
         const [
             loadTimeline,
@@ -449,14 +444,9 @@ const ChartContainer = React.memo(
             }
 
             const handler = () => {
-                // this ensures that even for large time ranges data will only be cached
-                // for up to 1 minutes (cache key is based on the arguments).
-                const startDate = roundDate(moment(new Date()), 1);
-                const endDate = roundDate(moment(new Date()), 1);
-
                 setTimeRange(
-                    startDate.subtract(lookbackMinutes + 1, 'minutes').format(),
-                    endDate.format()
+                    moment().subtract(lookbackMinutes, 'minutes').format(),
+                    moment().format()
                 );
             };
 

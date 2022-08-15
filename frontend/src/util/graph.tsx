@@ -8,7 +8,6 @@ import {
     InMemoryCache,
     split,
 } from '@apollo/client';
-import { makeVar } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -16,7 +15,6 @@ import { namedOperations } from '@graph/operations';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { persistCache } from 'apollo3-cache-persist';
 import Firebase from 'firebase/app';
-import moment from 'moment';
 
 const uri =
     process.env.REACT_APP_PRIVATE_GRAPH_URI ??
@@ -155,19 +153,4 @@ export const client = new ApolloClient({
     cache: cache,
     assumeImmutableResults: true,
     connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev',
-});
-
-// Reactive Variables
-const startDate = moment().format();
-
-// TODO: Consider storing just lookbackMinutes and calculating start/end based
-// on that. If absolute, assign an end date + lookback.
-export const dataTimeRange = makeVar<{
-    start_date: string;
-    end_date: string;
-    absolute: boolean;
-}>({
-    start_date: startDate,
-    end_date: moment(startDate).subtract(15, 'minutes').format(),
-    absolute: false,
 });

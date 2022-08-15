@@ -24,7 +24,6 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
-import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory } from 'react-router-dom';
@@ -268,14 +267,6 @@ const DashboardPage = () => {
             </div>
         </LeadAlignLayout>
     );
-};
-
-export const roundDate = (d: moment.Moment, toMinutes: number) => {
-    if (toMinutes <= 1) {
-        return moment(d.format('YYYY-MM-DDTHH:mm:00.000000000Z'));
-    }
-    const remainder = toMinutes - (d.minute() % toMinutes);
-    return d.add(remainder, 'minutes');
 };
 
 const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
