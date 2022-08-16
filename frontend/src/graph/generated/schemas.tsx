@@ -479,6 +479,11 @@ export type MetricTagFilterInput = {
     value: Scalars['String'];
 };
 
+export type DateHistogramOptions = {
+    calendar_interval: Scalars['String'];
+    time_zone: Scalars['String'];
+};
+
 export enum NetworkRequestAttribute {
     Method = 'method',
     InitiatorType = 'initiator_type',
@@ -1013,7 +1018,7 @@ export type Query = {
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
-    sessions_opensearch: SessionResults;
+    sessions_opensearch?: Maybe<SessionResults>;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
     error_fields_opensearch: Array<Scalars['String']>;
@@ -1233,6 +1238,7 @@ export type QuerySessions_OpensearchArgs = {
     query: Scalars['String'];
     sort_desc: Scalars['Boolean'];
     page?: Maybe<Scalars['Int']>;
+    histogram_options?: Maybe<DateHistogramOptions>;
 };
 
 export type QueryField_TypesArgs = {

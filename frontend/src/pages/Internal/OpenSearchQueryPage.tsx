@@ -357,7 +357,7 @@ const OpenSearchQueryPage: React.FC = () => {
             </div>
             {!sessionsLoading && (
                 <div>
-                    {sessionsData?.sessions_opensearch.totalCount ?? 0} results
+                    {sessionsData?.sessions_opensearch?.totalCount ?? 0} results
                 </div>
             )}
         </div>

@@ -5956,7 +5956,7 @@ export const GetSessionsOpenSearchDocument = gql`
         $query: String!
         $sort_desc: Boolean!
         $page: Int
-        $histogram: Boolean = false
+        $histogram_options: DateHistogramOptions = null
     ) {
         sessions_opensearch(
             project_id: $project_id
@@ -5964,6 +5964,7 @@ export const GetSessionsOpenSearchDocument = gql`
             query: $query
             sort_desc: $sort_desc
             page: $page
+            histogram_options: $histogram_options
         ) {
             sessions {
                 id
@@ -6001,7 +6002,7 @@ export const GetSessionsOpenSearchDocument = gql`
                 last_user_interaction_time
             }
             totalCount
-            histogram @include(if: $histogram) {
+            histogram {
                 bucket_start_times
                 sessions_without_errors
                 sessions_with_errors
@@ -6028,7 +6029,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
  *      page: // value for 'page'
- *      histogram: // value for 'histogram'
+ *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */

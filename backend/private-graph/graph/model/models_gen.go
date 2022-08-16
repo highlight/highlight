@@ -137,6 +137,11 @@ type DashboardPayload struct {
 	Group      *string           `json:"group"`
 }
 
+type DateHistogramOptions struct {
+	CalendarInterval string `json:"calendar_interval"`
+	TimeZone         string `json:"time_zone"`
+}
+
 type DateRangeInput struct {
 	StartDate *time.Time `json:"start_date"`
 	EndDate   *time.Time `json:"end_date"`

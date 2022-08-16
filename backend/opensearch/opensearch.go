@@ -118,6 +118,7 @@ type DateHistogramAggregation struct {
 	CalendarInterval string
 	SortOrder        string
 	Format           string
+	TimeZone         string
 	SubAggregation   Aggregation
 }
 
@@ -134,13 +135,14 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 				"order": {
 					"_key": "%s"
 				},
-				"format": "%s"
+				"format": "%s",
+				"time_zone": "%s"
 			},
 			"aggs": {
 				%s
 			}
 		}
-	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, subAggString)
+	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, subAggString)
 }
 
 type AggregationResult struct {

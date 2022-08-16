@@ -117,7 +117,7 @@ export const SessionFeed = React.memo(() => {
 
     // Get the unprocessedSessionsCount from either the SQL or OpenSearch query
     const unprocessedSessionsCount: number | undefined =
-        unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount;
+        unprocessedSessionsOpenSearch?.sessions_opensearch?.totalCount;
 
     const addSessions = (response: GetSessionsOpenSearchQuery) => {
         if (response?.sessions_opensearch) {
@@ -141,7 +141,13 @@ export const SessionFeed = React.memo(() => {
             page: page,
             project_id,
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-            histogram: true,
+            histogram_options: {
+                calendar_interval:
+                    backendSearchQuery?.histogramBucketSize || '',
+                time_zone:
+                    Intl.DateTimeFormat().resolvedOptions().timeZone ??
+                    'America/Los_Angeles',
+            },
         },
         onCompleted: addSessions,
         skip: !backendSearchQuery,

@@ -2271,67 +2271,69 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
     page?: Types.Maybe<Types.Scalars['Int']>;
-    histogram?: Types.Maybe<Types.Scalars['Boolean']>;
+    histogram_options?: Types.Maybe<Types.DateHistogramOptions>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
-    sessions_opensearch: { __typename?: 'SessionResults' } & Pick<
-        Types.SessionResults,
-        'totalCount'
-    > & {
-            sessions: Array<
-                { __typename?: 'Session' } & Pick<
-                    Types.Session,
-                    | 'id'
-                    | 'secure_id'
-                    | 'client_id'
-                    | 'fingerprint'
-                    | 'identifier'
-                    | 'identified'
-                    | 'os_name'
-                    | 'os_version'
-                    | 'browser_name'
-                    | 'browser_version'
-                    | 'city'
-                    | 'state'
-                    | 'postal'
-                    | 'created_at'
-                    | 'language'
-                    | 'length'
-                    | 'active_length'
-                    | 'enable_recording_network_contents'
-                    | 'viewed'
-                    | 'starred'
-                    | 'processed'
-                    | 'has_rage_clicks'
-                    | 'has_errors'
-                    | 'first_time'
-                    | 'user_properties'
-                    | 'event_counts'
-                    | 'last_user_interaction_time'
-                > & {
-                        fields?: Types.Maybe<
-                            Array<
-                                Types.Maybe<
-                                    { __typename?: 'Field' } & Pick<
-                                        Types.Field,
-                                        'name' | 'value' | 'type' | 'id'
+    sessions_opensearch?: Types.Maybe<
+        { __typename?: 'SessionResults' } & Pick<
+            Types.SessionResults,
+            'totalCount'
+        > & {
+                sessions: Array<
+                    { __typename?: 'Session' } & Pick<
+                        Types.Session,
+                        | 'id'
+                        | 'secure_id'
+                        | 'client_id'
+                        | 'fingerprint'
+                        | 'identifier'
+                        | 'identified'
+                        | 'os_name'
+                        | 'os_version'
+                        | 'browser_name'
+                        | 'browser_version'
+                        | 'city'
+                        | 'state'
+                        | 'postal'
+                        | 'created_at'
+                        | 'language'
+                        | 'length'
+                        | 'active_length'
+                        | 'enable_recording_network_contents'
+                        | 'viewed'
+                        | 'starred'
+                        | 'processed'
+                        | 'has_rage_clicks'
+                        | 'has_errors'
+                        | 'first_time'
+                        | 'user_properties'
+                        | 'event_counts'
+                        | 'last_user_interaction_time'
+                    > & {
+                            fields?: Types.Maybe<
+                                Array<
+                                    Types.Maybe<
+                                        { __typename?: 'Field' } & Pick<
+                                            Types.Field,
+                                            'name' | 'value' | 'type' | 'id'
+                                        >
                                     >
                                 >
-                            >
-                        >;
-                    }
-            >;
-            histogram?: Types.Maybe<
-                { __typename?: 'SessionsHistogram' } & Pick<
-                    Types.SessionsHistogram,
-                    | 'bucket_start_times'
-                    | 'sessions_without_errors'
-                    | 'sessions_with_errors'
-                    | 'total_sessions'
-                >
-            >;
-        };
+                            >;
+                        }
+                >;
+                histogram?: Types.Maybe<
+                    { __typename?: 'SessionsHistogram' } & Pick<
+                        Types.SessionsHistogram,
+                        | 'bucket_start_times'
+                        | 'sessions_without_errors'
+                        | 'sessions_with_errors'
+                        | 'total_sessions'
+                    >
+                >;
+            }
+    >;
 };
 
 export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{

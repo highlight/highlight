@@ -433,6 +433,12 @@ input MetricTagFilterInput {
     value: String!
 }
 
+input DateHistogramOptions {
+    # Options match https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html
+    calendar_interval: String!
+    time_zone: String!
+}
+
 enum NetworkRequestAttribute {
     method
     initiator_type
@@ -973,7 +979,8 @@ type Query {
         query: String!
         sort_desc: Boolean!
         page: Int
-    ): SessionResults!
+        histogram_options: DateHistogramOptions
+    ): SessionResults
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
         project_id: ID!

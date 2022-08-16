@@ -44,7 +44,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
-	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -4240,7 +4239,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int, histogramOptions *modelInputs.DateHistogramOptions) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -4253,8 +4252,6 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		sortOrder = "asc"
 	}
 
-	histogramRequested := slices.Contains(graphql.CollectAllFields(ctx), "histogram")
-
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
 		SortField:     ptr.String("created_at"),
@@ -4263,16 +4260,17 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}
 
-	if histogramRequested {
+	if histogramOptions != nil {
 		options.Aggregation = &opensearch.DateHistogramAggregation{
 			Field:            "created_at",
-			CalendarInterval: "day",
+			CalendarInterval: histogramOptions.CalendarInterval,
 			SortOrder:        "asc",
 			Format:           "epoch_millis",
 			SubAggregation: &opensearch.TermsAggregation{
 				Field:   "has_errors",
 				Missing: ptr.String("false"),
 			},
+			TimeZone: histogramOptions.TimeZone,
 		}
 	}
 
@@ -4323,7 +4321,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		Histogram:  nil,
 	}
 
-	if histogramRequested {
+	if histogramOptions != nil {
 		bucket_start_times, no_errors_counts, with_errors_counts, total_counts := []time.Time{}, []int64{}, []int64{}, []int64{}
 		for _, date_bucket := range aggs {
 			unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
