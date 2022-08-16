@@ -952,51 +952,59 @@ export class Highlight {
         }
     }
 
+    _visibilityHandler(visible: boolean) {
+        if (visible) {
+            this.logger.log(`Detected window visible. Resuming recording.`);
+            return this.initialize();
+        }
+        this.logger.log(`Detected window hidden. Pausing recording.`);
+        if ('sendBeacon' in navigator) {
+            try {
+                this._sendPayload({
+                    isBeacon: true,
+                    sendFn: (payload) => {
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                        return Promise.resolve(0);
+                    },
+                });
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                    HighlightWarning('_sendPayload', e);
+                }
+            }
+        }
+        this.stopRecording();
+    }
+
     _setupWindowListeners() {
         try {
             // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
             // as when switching tabs or apps on mobile. Non-blocking.
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState !== 'hidden') {
-                    this.logger.log(
-                        `Detected window visible. Resuming recording.`
-                    );
-                    this.initialize();
-                    return;
-                }
-                this.logger.log(`Detected window hidden. Pausing recording.`);
-                if ('sendBeacon' in navigator) {
-                    try {
-                        this._sendPayload({
-                            isBeacon: true,
-                            sendFn: (payload) => {
-                                let blob = new Blob(
-                                    [
-                                        JSON.stringify({
-                                            query: print(PushPayloadDocument),
-                                            variables: payload,
-                                        }),
-                                    ],
-                                    {
-                                        type: 'application/json',
-                                    }
-                                );
-                                navigator.sendBeacon(
-                                    `${this._backendUrl}`,
-                                    blob
-                                );
-                                return Promise.resolve(0);
-                            },
-                        });
-                    } catch (e) {
-                        if (this._isOnLocalHost) {
-                            console.error(e);
-                            HighlightWarning('_sendPayload', e);
-                        }
+            document.addEventListener('visibilitychange', () =>
+                this._visibilityHandler(document.visibilityState === 'visible')
+            );
+
+            // setup electron main thread window visiblity events listener
+            if (window.electron?.ipcRenderer) {
+                window.electron.ipcRenderer.on(
+                    'highlight.run',
+                    ({ visible }: { visible: boolean }) => {
+                        this._visibilityHandler(visible);
                     }
-                }
-                this.stopRecording();
-            });
+                );
+            }
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
@@ -1303,6 +1311,11 @@ export class Highlight {
 interface HighlightWindow extends Window {
     Highlight: Highlight;
     Intercom?: any;
+    electron?: {
+        ipcRenderer: {
+            on: (channel: string, listener: (...args: any[]) => void) => {};
+        };
+    };
 }
 
 declare var window: HighlightWindow;
