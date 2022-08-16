@@ -1035,10 +1035,6 @@ export class Highlight {
         }
     }
 
-    _inElectron() {
-        return navigator.userAgent.toLowerCase().indexOf(' electron/') > -1;
-    }
-
     /**
      * Stops Highlight from recording.
      * @param manual The end user requested to stop recording.
