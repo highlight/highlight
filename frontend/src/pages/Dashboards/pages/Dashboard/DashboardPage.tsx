@@ -158,31 +158,6 @@ const DashboardPage = () => {
                                 />
                             </Button>
                             <TimeRangePicker />
-                            {/* <StandardDropdown
-                                data={
-                                    customDateRange
-                                        ? [customDateRange, ...timeFilters]
-                                        : timeFilters
-                                }
-                                value={customDateRange || dateRangeLength}
-                                onSelect={(value) => {
-                                    const endDate = moment(new Date());
-                                    const startDate = moment(
-                                        new Date()
-                                    ).subtract(value, 'minutes');
-
-                                    updateDateRange(
-                                        startDate.format(),
-                                        endDate.format()
-                                    );
-                                    setDateRangeLength(
-                                        timeFilters.filter(
-                                            (f) => f.value === value
-                                        )[0]
-                                    );
-                                }}
-                                className={styles.dateRangePicker}
-                            /> */}
                         </div>
                     </div>
                 </div>

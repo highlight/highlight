@@ -1,9 +1,9 @@
-$width: 200px;
+$width: 170px;
 $height: 40px;
 
 .container {
+    min-width: $width;
     position: relative;
-    width: $width;
 
     &.open {
         border-radius: var(--size-xSmall) 0;
@@ -13,6 +13,7 @@ $height: 40px;
 .input {
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
+    cursor: pointer;
     height: $height;
     padding: var(--size-xSmall) var(--size-small);
     width: 100%;
@@ -22,20 +23,23 @@ $height: 40px;
     background: var(--color-white);
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
+    display: flex;
     position: absolute;
     right: 0;
     top: calc(100% + var(--size-xSmall));
-    width: 100%;
 }
 
 .dateOptions {
-    width: 100%;
+    width: $width;
 }
 
 .dateOption {
-    border-bottom: 1px solid var(--color-gray-300);
     cursor: pointer;
     padding: var(--size-xSmall) var(--size-small);
+
+    & + & {
+        border-top: 1px solid var(--color-gray-300);
+    }
 
     &:hover {
         background: var(--color-gray-100);
@@ -43,8 +47,11 @@ $height: 40px;
 }
 
 .datepickerContainer {
+    border-right: 1px solid var(--color-gray-300);
+    flex-shrink: 0;
     // Subtract the 7px of padding that comes on the datepicker.
-    padding: var(--size-xSmall) calc(var(--size-small) - 7px);
+    padding: var(--size-large);
+    width: 350px;
 }
 
 .datepicker {

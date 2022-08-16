@@ -18,25 +18,13 @@ export const DATE_OPTIONS: { [key: number]: string } = {
     43200: 'Last 30 days',
 };
 
-const DATE_FORMAT = 'DD MMM h:mm a';
+const DATE_FORMAT = 'DD MMM h:mm A';
 
 const TimeRangePicker: React.FC = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerOpen, setDatepickerOpen] = useState(false);
     const { timeRange, setTimeRange } = useDataTimeRange();
-
-    const difference = Math.floor(
-        Math.abs(
-            moment
-                .duration(
-                    moment(timeRange.start_date).diff(
-                        moment(timeRange.end_date)
-                    )
-                )
-                .asMinutes()
-        )
-    );
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -55,25 +43,70 @@ const TimeRangePicker: React.FC = () => {
         };
     }, [containerRef]);
 
-    console.log('::: DIFFERENCE :::', difference);
-    console.log('::: DATES :::', timeRange.start_date, timeRange.end_date);
+    useEffect(() => {
+        if (!open) {
+            setDatepickerOpen(false);
+        }
+    }, [open]);
 
-    const label = DATE_OPTIONS[difference] || 'Custom';
+    const label =
+        DATE_OPTIONS[timeRange.lookback] ||
+        `${moment(timeRange.start_date).format(DATE_FORMAT)} - ${moment(
+            timeRange.end_date
+        ).format(DATE_FORMAT)}`;
 
     return (
         <div
             className={classNames(styles.container, { [styles.open]: open })}
-            onClick={() => {
-                if (!open) {
-                    setOpen(true);
-                }
-            }}
             ref={containerRef}
         >
-            <div className={styles.input}>{label}</div>
+            <div className={styles.input} onClick={() => setOpen(!open)}>
+                {label}
+            </div>
 
             {open && (
                 <div className={classNames(styles.dateOptionsContainer)}>
+                    {datepickerOpen && (
+                        <div className={styles.datepickerContainer}>
+                            <h3>Set Custom Time Range</h3>
+                            <RangePicker
+                                getPopupContainer={() =>
+                                    containerRef?.current || document.body
+                                }
+                                className={styles.datepicker}
+                                showTime
+                                showNow
+                                format={DATE_FORMAT}
+                                value={[
+                                    moment(timeRange.start_date),
+                                    moment(timeRange.end_date),
+                                ]}
+                                onChange={(values) => {
+                                    if (!values) {
+                                        const endDate = moment().format();
+
+                                        setTimeRange(
+                                            moment(endDate)
+                                                .subtract(15, 'minutes')
+                                                .format(),
+                                            endDate
+                                        );
+                                    } else {
+                                        setTimeRange(
+                                            moment(values?.[0]).format(),
+                                            moment(values?.[1]).format(),
+                                            true
+                                        );
+                                    }
+                                }}
+                            />
+
+                            <hr />
+
+                            <p>TODO: Add info about supported text searches.</p>
+                        </div>
+                    )}
+
                     <div className={styles.dateOptions}>
                         {Object.keys(DATE_OPTIONS)
                             .map(Number) // convert string to number
@@ -98,35 +131,11 @@ const TimeRangePicker: React.FC = () => {
                                 </div>
                             ))}
 
-                        <div className={styles.datepickerContainer}>
-                            {/* <RangePicker
-                                className={styles.datepicker}
-                                showTime
-                                showNow
-                                open
-                                getPopupContainer={() =>
-                                    datepickerContainerRef?.current ||
-                                    document.body
-                                }
-                                size="small"
-                                bordered={false}
-                                allowClear={false}
-                                format={DATE_FORMAT}
-                                value={[moment(startDate), moment(endDate)]}
-                                onPanelChange={(value) => {
-                                    console.log('::: PANEL CHANGE :::', value);
-                                    // setEndDate(
-                                    //     dateStrings[0]
-                                    //         ? moment(dateStrings[0])
-                                    //         : undefined
-                                    // );
-                                    // setStartDate(
-                                    //     dateStrings[1]
-                                    //         ? moment(dateStrings[1])
-                                    //         : undefined
-                                    // );
-                                }}
-                            /> */}
+                        <div
+                            className={styles.dateOption}
+                            onClick={() => setDatepickerOpen(!datepickerOpen)}
+                        >
+                            Custom
                         </div>
                     </div>
                 </div>
