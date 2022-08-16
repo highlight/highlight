@@ -190,6 +190,7 @@ export class Highlight {
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    _hasPreviouslyInitialized!: boolean;
     _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
@@ -925,13 +926,30 @@ export class Highlight {
                 }, this._recordingStartTime)
             );
 
+            // ensure we only create document/window listeners once
+            if (this._hasPreviouslyInitialized) {
+                return;
+            }
+
             // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
             // as when switching tabs or apps on mobile. Non-blocking.
             document.addEventListener('visibilitychange', () => {
-                if (
-                    document.visibilityState === 'hidden' &&
-                    'sendBeacon' in navigator
-                ) {
+                if (document.visibilityState !== 'hidden') {
+                    if (this._inElectron()) {
+                        this.logger.log(
+                            `Detected window visible in electron environment. Starting recording.`
+                        );
+                        this.initialize();
+                    }
+                    return;
+                }
+                if (this._inElectron()) {
+                    this.logger.log(
+                        `Detected window hidden in electron environment. Stopping recording.`
+                    );
+                    this.stopRecording();
+                }
+                if ('sendBeacon' in navigator) {
                     try {
                         this._sendPayload({
                             isBeacon: true,
@@ -1004,6 +1022,12 @@ export class Highlight {
                 );
             });
         }
+
+        this._hasPreviouslyInitialized = true;
+    }
+
+    _inElectron() {
+        return navigator.userAgent.toLowerCase().indexOf(' electron/') > -1;
     }
 
     /**
