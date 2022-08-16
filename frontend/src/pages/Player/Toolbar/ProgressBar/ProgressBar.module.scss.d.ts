@@ -2,8 +2,6 @@ export const activityGraphWrapper: string;
 export const handleContainer: string;
 export const handleLeft: string;
 export const handleRight: string;
-export const inactiveArea: string;
-export const inactiveContainer: string;
 export const inactivePopover: string;
 export const inactivePopoverDescription: string;
 export const inactivePopoverTime: string;

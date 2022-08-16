@@ -61,3 +61,22 @@
     display: flex;
     font-weight: 700;
 }
+
+.inactiveArea {
+    background: var(--color-scrubber-inactive-region);
+    height: 100%;
+    pointer-events: all;
+    position: absolute;
+    top: calc(-1 * var(--size-xSmall));
+    transition-duration: 300ms;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
+.inactivePeriods {
+    pointer-events: none;
+    position: absolute;
+    z-index: 5;
+}

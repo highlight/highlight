@@ -289,7 +289,7 @@ export const Toolbar = React.memo(() => {
                         selectedTimelineAnnotationTypes={
                             selectedTimelineAnnotationTypes
                         }
-                        numberOfBars={50}
+                        numberOfBuckets={50}
                     />
                 )}
                 {!histogramOn && (

@@ -240,26 +240,6 @@ const ProgressBar = ({ activityData }: Props) => {
                         }}
                     ></div>
                 </div>
-                <div className={styles.inactiveContainer}>
-                    {sessionIntervals.map((i) => {
-                        if (i.active) {
-                            return null;
-                        }
-
-                        return (
-                            <div
-                                key={i.startPercent}
-                                className={styles.inactiveArea}
-                                style={{
-                                    left: `${i.startPercent * 100}%`,
-                                    width: `${
-                                        (i.endPercent - i.startPercent) * 100
-                                    }%`,
-                                }}
-                            ></div>
-                        );
-                    })}
-                </div>
             </div>
         </div>
     );

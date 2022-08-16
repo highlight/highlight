@@ -1,5 +1,8 @@
 import Button from '@components/Button/Button/Button';
-import Histogram, { EventBucket } from '@components/Histogram/Histogram';
+import Histogram, {
+    EventBucket,
+    InactivityPeriod,
+} from '@components/Histogram/Histogram';
 import ScrubHandle from '@components/ScrubHandle/ScrubHandle';
 import { Skeleton } from '@components/Skeleton/Skeleton';
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils';
@@ -23,7 +26,7 @@ import styles from './TimelineIndicatorsBarGraph.module.scss';
 
 interface Props {
     selectedTimelineAnnotationTypes: string[];
-    numberOfBars: number;
+    numberOfBuckets: number;
 }
 
 interface SessionEvent {
@@ -33,7 +36,7 @@ interface SessionEvent {
 }
 
 const TimelineIndicatorsBarGraph = React.memo(
-    ({ selectedTimelineAnnotationTypes, numberOfBars }: Props) => {
+    ({ selectedTimelineAnnotationTypes, numberOfBuckets }: Props) => {
         const {
             zoomAreaLeft,
             setZoomAreaLeft,
@@ -41,7 +44,7 @@ const TimelineIndicatorsBarGraph = React.memo(
             setZoomAreaRight,
         } = useToolbarItemsContext();
         const {
-            sessionMetadata,
+            sessionMetadata: { totalTime },
             sessionIntervals,
             setTime,
             setCurrentEvent,
@@ -60,16 +63,18 @@ const TimelineIndicatorsBarGraph = React.memo(
             []
         );
         useEffect(() => {
-            const parsedEvents = sessionIntervals.reduce(
-                (acc, interval) =>
-                    acc.concat(
-                        parseSessionInterval(
-                            interval,
-                            selectedTimelineAnnotationTypes
-                        )
-                    ),
-                [] as SessionEvent[]
-            );
+            const parsedEvents = sessionIntervals
+                .filter((session) => session.active)
+                .reduce(
+                    (acc, interval) =>
+                        acc.concat(
+                            parseSessionInterval(
+                                interval,
+                                selectedTimelineAnnotationTypes
+                            )
+                        ),
+                    [] as SessionEvent[]
+                );
             parsedEvents.sort((a: any, b: any) => -b.sessionLoc + a.sessionLoc);
             setEvents(parsedEvents);
 
@@ -78,24 +83,27 @@ const TimelineIndicatorsBarGraph = React.memo(
                 0,
                 1,
                 selectedTimelineAnnotationTypes,
-                numberOfBars
+                numberOfBuckets
             );
 
             const activityData: ActivityGraphPoint[] = eventBuckets.map(
                 (bucket) => {
-                    let count = 0;
-                    for (const eventType of EventsForTimeline) {
-                        count += (bucket[eventType] as number) || 0;
-                    }
                     return {
-                        value: count,
+                        value: bucket.totalCount as number,
                     };
                 }
             );
             setActivityData(activityData);
-        }, [numberOfBars, selectedTimelineAnnotationTypes, sessionIntervals]);
+        }, [
+            numberOfBuckets,
+            selectedTimelineAnnotationTypes,
+            sessionIntervals,
+        ]);
 
         const [buckets, setBuckets] = useState<EventBucket[]>([]);
+        const [inactivityData, setInactivityData] = useState<
+            InactivityPeriod[]
+        >([]);
         useEffect(() => {
             if (!events.length) {
                 return;
@@ -117,19 +125,57 @@ const TimelineIndicatorsBarGraph = React.memo(
                 }
             }
 
-            setBuckets(
-                buildEventBuckets(
-                    events.slice(firstIdx, lastIdx + 1),
-                    leftProgress,
-                    rightProgress,
-                    selectedTimelineAnnotationTypes,
-                    numberOfBars
-                )
+            const eventBuckets = buildEventBuckets(
+                events.slice(firstIdx, lastIdx + 1),
+                leftProgress,
+                rightProgress,
+                selectedTimelineAnnotationTypes,
+                numberOfBuckets
             );
+            setBuckets(eventBuckets);
+
+            const inactivityPeriods: InactivityPeriod[] = sessionIntervals
+                .filter((session) => {
+                    const isInactive = !session.active;
+                    const endsInside =
+                        leftProgress <= session.endPercent &&
+                        session.endPercent <= rightProgress;
+                    const beginsInside =
+                        session.startPercent >= leftProgress &&
+                        session.startPercent <= rightProgress;
+
+                    const isFullCover =
+                        session.startPercent <= leftProgress &&
+                        rightProgress <= session.endPercent;
+
+                    return (
+                        isInactive &&
+                        (beginsInside || endsInside || isFullCover)
+                    );
+                })
+                .map((session) => {
+                    const start = Math.max(session.startPercent, leftProgress);
+                    const end = Math.min(session.endPercent, rightProgress);
+
+                    const scale = rightProgress - leftProgress;
+
+                    const relStart = (start - leftProgress) / scale;
+
+                    const relWidth = (end - start) / scale;
+
+                    return {
+                        relStart,
+                        relWidth,
+                    };
+                })
+                .filter(({ relWidth }) => relWidth > 0);
+
+            setInactivityData(inactivityPeriods);
         }, [
             events,
-            numberOfBars,
+            numberOfBuckets,
             selectedTimelineAnnotationTypes,
+            sessionIntervals,
             zoomAreaLeft,
             zoomAreaRight,
         ]);
@@ -138,20 +184,13 @@ const TimelineIndicatorsBarGraph = React.memo(
             (bucketIndex) => {
                 const leftProgress = zoomAreaLeft / 100;
                 const rightProgress = zoomAreaRight / 100;
-                const relProgress = bucketIndex / numberOfBars;
+                const relProgress = bucketIndex / numberOfBuckets;
                 const scale = rightProgress - leftProgress;
                 const newTime =
-                    (leftProgress + scale * relProgress) *
-                    sessionMetadata.totalTime;
+                    (leftProgress + scale * relProgress) * totalTime;
                 setTime(newTime);
             },
-            [
-                numberOfBars,
-                sessionMetadata.totalTime,
-                setTime,
-                zoomAreaLeft,
-                zoomAreaRight,
-            ]
+            [numberOfBuckets, totalTime, setTime, zoomAreaLeft, zoomAreaRight]
         );
 
         const displayAggregate = useCallback(
@@ -174,6 +213,7 @@ const TimelineIndicatorsBarGraph = React.memo(
                                 setCurrentEvent(firstEventIdentifier);
                             }
                         }}
+                        key={eventType}
                     >
                         <span
                             className={timelineAnnotationStyles.iconContainer}
@@ -204,6 +244,9 @@ const TimelineIndicatorsBarGraph = React.memo(
                 const bucket = buckets[bucketIndex];
                 const labels = [];
                 for (const e of EventsForTimeline) {
+                    if (!bucket || !bucket.hasOwnProperty(e)) {
+                        break;
+                    }
                     const count = bucket[e] as number;
                     const firstEventIdentifier = bucket[`${e}FirstId`] as
                         | string
@@ -223,7 +266,8 @@ const TimelineIndicatorsBarGraph = React.memo(
             [buckets, displayAggregate]
         );
 
-        const timelineRef = useRef<HTMLDivElement>(null);
+        const histogramRef = useRef<HTMLDivElement>(null);
+        const middleStripRef = useRef<HTMLDivElement>(null);
         if (sessionIntervals.length === 0) {
             return (
                 <>
@@ -240,21 +284,19 @@ const TimelineIndicatorsBarGraph = React.memo(
         return (
             <>
                 <ProgressBar activityData={activityData} />
-                <div className={styles.histogramContainer}>
+                <div ref={middleStripRef} className={styles.histogramContainer}>
                     <ScrubHandle
-                        wrapperWidth={timelineRef.current?.clientWidth || 0}
-                        leftTime={
-                            (zoomAreaLeft / 100) * sessionMetadata.totalTime
-                        }
-                        rightTime={
-                            (zoomAreaRight / 100) * sessionMetadata.totalTime
-                        }
+                        wrapperWidth={histogramRef.current?.clientWidth || 0}
+                        leftTime={(zoomAreaLeft / 100) * totalTime}
+                        rightTime={(zoomAreaRight / 100) * totalTime}
                     />
                     <Histogram
                         buckets={buckets}
+                        inactivityData={inactivityData}
                         tooltipContent={tooltipContent}
                         onBucketClicked={onBucketClicked}
-                        timelineRef={timelineRef}
+                        histogramRef={histogramRef}
+                        containerRef={middleStripRef}
                     />
                 </div>
             </>
@@ -269,10 +311,6 @@ function parseSessionInterval(
     selectedTimelineAnnotationTypes: string[]
 ): SessionEvent[] {
     const events: SessionEvent[] = [];
-
-    if (!interval.active) {
-        return events;
-    }
 
     const { endPercent: endProgress, startPercent: startProgress } = interval;
     const intervalRange = endProgress - startProgress;
@@ -345,6 +383,7 @@ function buildEventBuckets(
     const buckets: any = Array.from({ length: numberOfBuckets }, (_, idx) => ({
         label: idx,
         ...defaultEventCounts,
+        totalCount: 0,
     }));
 
     const scale = rightProgress - leftProgress;
@@ -358,6 +397,7 @@ function buildEventBuckets(
             0
         );
         buckets[bucketId][eventType]++;
+        buckets[bucketId].totalCount++;
         if (buckets[bucketId][eventType] == 1) {
             buckets[bucketId][`${eventType}FirstId`] = identifier;
         }

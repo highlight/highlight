@@ -112,25 +112,3 @@
 .inactivePopoverTime {
     font-size: 10px;
 }
-
-.inactiveArea {
-    background: var(--color-scrubber-inactive-region);
-    // border-radius: 5px;
-    height: 32px;
-    position: absolute;
-    top: -34px;
-    transition-duration: 300ms;
-
-    &:hover {
-        transform: scale(1.1);
-    }
-}
-
-.inactiveContainer {
-    height: 6px;
-    padding-left: var(--size-medium);
-    padding-right: var(--size-medium);
-    position: absolute;
-    top: 28px;
-    width: 100%;
-}
