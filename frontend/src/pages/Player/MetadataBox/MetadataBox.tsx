@@ -390,7 +390,7 @@ const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
             enhanced_user_details?.avatar !== '') ||
         (!!enhanced_user_details?.bio && enhanced_user_details?.bio !== '') ||
         (!!enhanced_user_details?.name && enhanced_user_details?.name !== '') ||
-        enhanced_user_details?.socials?.length ||
+        hasDiverseSocialLinks(enhancedData) ||
         0 > 0
     );
 };
