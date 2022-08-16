@@ -18,12 +18,32 @@ export const DATE_OPTIONS: { [key: number]: string } = {
     43200: 'Last 30 days',
 };
 
+const UNITS = [
+    'm',
+    'minute',
+    'minutes',
+    'h',
+    'hour',
+    'hours',
+    'd',
+    'day',
+    'days',
+    'w',
+    'week',
+    'weeks',
+    'm',
+    'month',
+    'months',
+];
+
 const DATE_FORMAT = 'DD MMM h:mm A';
 
 const TimeRangePicker: React.FC = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const formRef = useRef<HTMLFormElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerOpen, setDatepickerOpen] = useState(false);
+    const [customDateRange, setCustomDateRange] = useState('');
     const { timeRange, setTimeRange } = useDataTimeRange();
 
     useEffect(() => {
@@ -49,6 +69,7 @@ const TimeRangePicker: React.FC = () => {
         }
     }, [open]);
 
+    // TODO: Add logic for determining label based on how long the duration is.
     const label =
         DATE_OPTIONS[timeRange.lookback] ||
         `${moment(timeRange.start_date).format(DATE_FORMAT)} - ${moment(
@@ -60,7 +81,7 @@ const TimeRangePicker: React.FC = () => {
             className={classNames(styles.container, { [styles.open]: open })}
             ref={containerRef}
         >
-            <div className={styles.input} onClick={() => setOpen(!open)}>
+            <div className={styles.label} onClick={() => setOpen(!open)}>
                 {label}
             </div>
 
@@ -72,6 +93,9 @@ const TimeRangePicker: React.FC = () => {
                             <RangePicker
                                 getPopupContainer={() =>
                                     containerRef?.current || document.body
+                                }
+                                disabledDate={(current) =>
+                                    current && current > moment().endOf('day')
                                 }
                                 className={styles.datepicker}
                                 showTime
@@ -101,13 +125,53 @@ const TimeRangePicker: React.FC = () => {
                                 }}
                             />
 
-                            <hr />
-
-                            <p>TODO: Add info about supported text searches.</p>
+                            <div className={styles.customDateRange}>
+                                <h3>Custom Date Range</h3>
+                            </div>
                         </div>
                     )}
 
                     <div className={styles.dateOptions}>
+                        <form
+                            className={styles.dateOption}
+                            onSubmit={(e) => {
+                                e.preventDefault();
+
+                                const offset = customDateRange.replace(
+                                    /\D/g,
+                                    ''
+                                );
+                                const unit = customDateRange
+                                    .replace(offset, '')
+                                    .trim();
+
+                                if (UNITS.indexOf(unit) === -1) {
+                                    return;
+                                }
+
+                                const endDate = moment().format();
+
+                                setTimeRange(
+                                    moment(endDate)
+                                        .subtract(offset, unit as any)
+                                        .format(),
+                                    endDate
+                                );
+
+                                setCustomDateRange('');
+                            }}
+                        >
+                            <input
+                                autoFocus
+                                className={styles.input}
+                                value={customDateRange}
+                                onChange={(e) =>
+                                    setCustomDateRange(e.target.value)
+                                }
+                                placeholder={`"1w", "7 days", or "37m"`}
+                            />
+                        </form>
+
                         {Object.keys(DATE_OPTIONS)
                             .map(Number) // convert string to number
                             .map((offset, index) => (
