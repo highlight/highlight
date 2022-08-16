@@ -38,7 +38,11 @@ const UNITS = [
 
 const DATE_FORMAT = 'DD MMM h:mm A';
 
-const TimeRangePicker: React.FC = () => {
+interface Props {
+    inputRef: React.MutableRefObject<HTMLInputElement | null>;
+}
+
+const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerOpen, setDatepickerOpen] = useState(false);
@@ -68,15 +72,19 @@ const TimeRangePicker: React.FC = () => {
         }
     }, [open]);
 
-    // TODO: Add logic for determining label based on how long the duration is.
     const label = buildDateRangeLabel(timeRange);
 
+    // TODO: Make options tabbable.
     return (
         <div
             className={classNames(styles.container, { [styles.open]: open })}
             ref={containerRef}
         >
-            <div className={styles.label} onClick={() => setOpen(!open)}>
+            <div
+                className={styles.label}
+                onClick={() => setOpen(!open)}
+                ref={inputRef}
+            >
                 {label}
             </div>
 
@@ -208,7 +216,7 @@ const buildDateRangeLabel = (range: any) => {
         ).format(DATE_FORMAT)}`;
     }
 
-    if (range.lookback <= 60) {
+    if (range.lookback < 60) {
         return `${range.lookback} minutes`;
     } else if (range.lookback < 60 * 24) {
         const diff = range.lookback / 60;
