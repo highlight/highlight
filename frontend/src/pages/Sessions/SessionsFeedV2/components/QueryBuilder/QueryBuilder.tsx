@@ -2044,6 +2044,7 @@ const QueryBuilder = ({
                         bucketTimes={histogramBucketTimes}
                         tooltipContent={() => null}
                         gotoAction={() => {}}
+                        loading={searchResultsLoading}
                     />
                 )}
         </>
