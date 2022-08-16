@@ -2,7 +2,6 @@ $width: 200px;
 $height: 40px;
 
 .container {
-    min-width: $width;
     position: relative;
 
     &.open {
@@ -17,8 +16,8 @@ $height: 40px;
     display: flex;
     height: $height;
     justify-content: space-between;
+    min-width: $width;
     padding: var(--size-xSmall) var(--size-small);
-    width: 100%;
 }
 
 .label {
@@ -30,6 +29,7 @@ $height: 40px;
     background: var(--color-gray-100);
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
+    margin-left: var(--size-small);
     padding: 0 var(--size-xSmall);
 
     pre {

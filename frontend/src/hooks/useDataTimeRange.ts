@@ -2,7 +2,7 @@ import { makeVar, useReactiveVar } from '@apollo/client';
 import moment from 'moment';
 
 const defaultEndDate = moment().format();
-const defaultLookback = 15;
+export const defaultLookback = 15;
 
 export interface DataTimeRange {
     start_date: string;

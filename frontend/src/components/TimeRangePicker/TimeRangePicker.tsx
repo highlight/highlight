@@ -42,7 +42,7 @@ const DATE_FORMAT = 'DD MMM h:mm A';
 const TimeRangePicker: React.FC = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
-    const [datepickerOpen, setDatepickerOpen] = useState(false);
+    const [datepickerPanelOpen, setDatepickerPanelOpen] = useState(false);
     const [customDateRange, setCustomDateRange] = useState('');
     const { timeRange, setTimeRange } = useDataTimeRange();
 
@@ -73,7 +73,7 @@ const TimeRangePicker: React.FC = () => {
         if (open) {
             document.addEventListener('keydown', handleKeyDown);
         } else {
-            setDatepickerOpen(false);
+            setDatepickerPanelOpen(false);
         }
 
         return () => {
@@ -92,8 +92,6 @@ const TimeRangePicker: React.FC = () => {
 
     const label = buildDateRangeLabel(timeRange);
 
-    // TODO: Make options tabbable.`
-    // TODO: Consider using dropdown component.
     return (
         <div
             className={classNames(styles.container, { [styles.open]: open })}
@@ -111,7 +109,7 @@ const TimeRangePicker: React.FC = () => {
 
             {open && (
                 <div className={classNames(styles.dateOptionsContainer)}>
-                    {datepickerOpen && (
+                    {datepickerPanelOpen && (
                         <div className={styles.datepickerContainer}>
                             <h3>Set Custom Time Range</h3>
                             <RangePicker
@@ -122,6 +120,8 @@ const TimeRangePicker: React.FC = () => {
                                     current && current > moment().endOf('day')
                                 }
                                 className={styles.datepicker}
+                                open
+                                autoFocus
                                 showTime
                                 showNow
                                 format={DATE_FORMAT}
@@ -145,6 +145,11 @@ const TimeRangePicker: React.FC = () => {
                                             moment(values?.[1]).format(),
                                             true
                                         );
+                                    }
+                                }}
+                                onCalendarChange={(_, __, { range }) => {
+                                    if (range === 'end') {
+                                        setOpen(false);
                                     }
                                 }}
                             />
@@ -222,7 +227,9 @@ const TimeRangePicker: React.FC = () => {
                         <button
                             className={styles.dateOption}
                             tabIndex={0}
-                            onClick={() => setDatepickerOpen(!datepickerOpen)}
+                            onClick={() =>
+                                setDatepickerPanelOpen(!datepickerPanelOpen)
+                            }
                         >
                             Custom
                         </button>
