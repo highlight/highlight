@@ -1,6 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage';
-import { useEffect, useMemo } from 'react';
-import { useWindowSize } from 'react-use';
+import { useMemo } from 'react';
 
 import { DevToolTabType } from '../../Toolbar/DevToolsContext/DevToolsContext';
 import { EventsForTimeline } from '.';
@@ -78,16 +77,6 @@ const usePlayerConfiguration = () => {
     const showDetailedSessionView = useMemo(() => _showDetailedSessionView, [
         _showDetailedSessionView,
     ]);
-
-    const { width } = useWindowSize();
-
-    useEffect(() => {
-        if (showLeftPanel && width <= 1300) {
-            setShowRightPanel(false);
-        } else if (width <= 840) {
-            setShowRightPanel(false);
-        }
-    }, [setShowRightPanel, showLeftPanel, width]);
 
     return {
         showLeftPanel,
