@@ -625,6 +625,11 @@ export class Highlight {
             }
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
+            // only fetch session data from local storage on the first `initialize` call
+            if (!this.sessionData && storedSessionData) {
+                this.sessionData = storedSessionData;
+                reloaded = true;
+            }
 
             const recordingStartTime = window.sessionStorage.getItem(
                 SESSION_STORAGE_KEYS.RECORDING_START_TIME
@@ -664,11 +669,9 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (storedSessionData) {
-                this.sessionData = storedSessionData;
+            if (this.sessionData.sessionSecureID) {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
-                reloaded = true;
             } else {
                 try {
                     const client = await this.fingerprintjs;
@@ -925,30 +928,43 @@ export class Highlight {
                     this.addCustomEvent('Performance', stringify(payload));
                 }, this._recordingStartTime)
             );
-
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
+        }
+        try {
             // ensure we only create document/window listeners once
             if (this._hasPreviouslyInitialized) {
                 return;
             }
+            this._setupWindowListeners();
+        } finally {
+            this._hasPreviouslyInitialized = true;
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
+        }
+    }
 
+    _setupWindowListeners() {
+        try {
             // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
             // as when switching tabs or apps on mobile. Non-blocking.
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState !== 'hidden') {
-                    if (this._inElectron()) {
-                        this.logger.log(
-                            `Detected window visible in electron environment. Starting recording.`
-                        );
-                        this.initialize();
-                    }
+                    this.logger.log(
+                        `Detected window visible. Resuming recording.`
+                    );
+                    this.initialize();
                     return;
                 }
-                if (this._inElectron()) {
-                    this.logger.log(
-                        `Detected window hidden in electron environment. Stopping recording.`
-                    );
-                    this.stopRecording();
-                }
+                this.logger.log(`Detected window hidden. Pausing recording.`);
                 if ('sendBeacon' in navigator) {
                     try {
                         this._sendPayload({
@@ -979,6 +995,7 @@ export class Highlight {
                         }
                     }
                 }
+                this.stopRecording();
             });
 
             // Clear the timer so it doesn't block the next page navigation.
@@ -988,19 +1005,13 @@ export class Highlight {
                     clearTimeout(this.pushPayloadTimerId);
                 }
             });
-            if (
-                this.sessionData.projectID &&
-                this.sessionData.sessionSecureID
-            ) {
-                this.ready = true;
-                this.state = 'Recording';
-            }
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
-                HighlightWarning('initializeSession', e);
+                HighlightWarning('initializeSession _setupWindowListeners', e);
             }
         }
+
         window.addEventListener('beforeunload', () => {
             this.addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
@@ -1022,8 +1033,6 @@ export class Highlight {
                 );
             });
         }
-
-        this._hasPreviouslyInitialized = true;
     }
 
     _inElectron() {
