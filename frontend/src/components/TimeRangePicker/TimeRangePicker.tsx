@@ -40,7 +40,6 @@ const DATE_FORMAT = 'DD MMM h:mm A';
 
 const TimeRangePicker: React.FC = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const formRef = useRef<HTMLFormElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerOpen, setDatepickerOpen] = useState(false);
     const [customDateRange, setCustomDateRange] = useState('');
@@ -70,11 +69,7 @@ const TimeRangePicker: React.FC = () => {
     }, [open]);
 
     // TODO: Add logic for determining label based on how long the duration is.
-    const label =
-        DATE_OPTIONS[timeRange.lookback] ||
-        `${moment(timeRange.start_date).format(DATE_FORMAT)} - ${moment(
-            timeRange.end_date
-        ).format(DATE_FORMAT)}`;
+    const label = buildDateRangeLabel(timeRange);
 
     return (
         <div
@@ -124,10 +119,6 @@ const TimeRangePicker: React.FC = () => {
                                     }
                                 }}
                             />
-
-                            <div className={styles.customDateRange}>
-                                <h3>Custom Date Range</h3>
-                            </div>
                         </div>
                     )}
 
@@ -159,6 +150,7 @@ const TimeRangePicker: React.FC = () => {
                                 );
 
                                 setCustomDateRange('');
+                                setOpen(false);
                             }}
                         >
                             <input
@@ -206,6 +198,28 @@ const TimeRangePicker: React.FC = () => {
             )}
         </div>
     );
+};
+
+// TODO: Types
+const buildDateRangeLabel = (range: any) => {
+    if (range.absolute) {
+        return `${moment(range.start_date).format(DATE_FORMAT)} - ${moment(
+            range.end_date
+        ).format(DATE_FORMAT)}`;
+    }
+
+    if (range.lookback <= 60) {
+        return `${range.lookback} minutes`;
+    } else if (range.lookback < 60 * 24) {
+        const diff = range.lookback / 60;
+        return `${diff} ${diff > 1 ? 'hours' : 'hour'}`;
+    } else if (range.lookback < 60 * 24 * 7) {
+        const diff = range.lookback / (60 * 24);
+        return `${diff} ${diff > 1 ? 'days' : 'day'}`;
+    } else if (range.lookback < 60 * 24 * 30) {
+        const diff = range.lookback / (60 * 24 * 7);
+        return `${diff} ${diff > 1 ? 'weeks' : 'week'}`;
+    }
 };
 
 export default TimeRangePicker;

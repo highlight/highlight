@@ -1,6 +1,4 @@
 export const container: string;
-export const customDateRange: string;
-export const customDateRangeButton: string;
 export const dateOption: string;
 export const dateOptions: string;
 export const dateOptionsContainer: string;
