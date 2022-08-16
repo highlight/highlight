@@ -342,59 +342,37 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
-	type appendedField struct {
-		model.Field
-		IsInsert bool `json:"is_insert"`
+	if err := r.DB.
+		Clauses(clause.Returning{}, clause.OnConflict{
+			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
+			DoNothing: true}).
+		Create(&fields).Error; err != nil {
+		return e.Wrap(err, "error inserting new fields")
 	}
 
-	fieldsToAppend := []*model.Field{}
+	// New fields have an ID after the insert above
+	newFields := lo.Filter(fields, func(field *model.Field, _ int) bool {
+		return field.ID != 0
+	})
+
+	for _, field := range newFields {
+		if err := r.OpenSearch.Index(opensearch.IndexFields, field.ID, nil, field); err != nil {
+			return e.Wrap(err, "error indexing new field")
+		}
+	}
+
+	var allFields []*model.Field
+	inClause := [][]interface{}{}
 	for _, f := range fields {
-		field := appendedField{}
-		res := r.DB.Raw(`
-			WITH new_fields AS (
-				INSERT INTO fields (created_at, updated_at, type, name, value, project_id)
-				SELECT NOW(), NOW(), @type, @name, @value, @project_id
-				WHERE NOT EXISTS (
-					SELECT *
-					FROM fields f
-					WHERE f.type = @type
-					AND f.name = @name
-					AND f.value = @value
-					AND f.project_id = @project_id
-				)
-				RETURNING *)
-			SELECT true as is_insert, *
-			FROM new_fields
-			UNION
-			SELECT false as is_insert, *
-			FROM fields f
-			WHERE f.type = @type
-			AND f.name = @name
-			AND f.value = @value
-			AND f.project_id = @project_id
-			ORDER BY id
-		`, map[string]interface{}{
-			"type":       f.Type,
-			"name":       f.Name,
-			"value":      f.Value,
-			"project_id": f.ProjectID}).First(&field)
-
-		if res.Error != nil {
-			return e.Wrap(res.Error, "error calling FirstOrCreate")
-		}
-
-		// If the field was created, index it in OpenSearch
-		if field.IsInsert {
-			if err := r.OpenSearch.Index(opensearch.IndexFields, field.ID, nil, field); err != nil {
-				return e.Wrap(err, "error indexing new field")
-			}
-		}
-
-		fieldsToAppend = append(fieldsToAppend, &field.Field)
+		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
+	}
+	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).
+		Find(&allFields).Error; err != nil {
+		return e.Wrap(err, "error retrieving all fields")
 	}
 
-	openSearchFields := make([]interface{}, len(fieldsToAppend))
-	for i, field := range fieldsToAppend {
+	openSearchFields := make([]interface{}, len(allFields))
+	for i, field := range allFields {
 		openSearchFields[i] = opensearch.OpenSearchField{
 			Field:    field,
 			Key:      field.Type + "_" + field.Name,
@@ -405,15 +383,15 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error appending session fields")
 	}
 
-	sort.Slice(fieldsToAppend, func(i, j int) bool {
-		return fieldsToAppend[i].ID < fieldsToAppend[j].ID
+	sort.Slice(allFields, func(i, j int) bool {
+		return allFields[i].ID < allFields[j].ID
 	})
 
 	var entries []struct {
 		SessionID int
 		FieldID   int
 	}
-	for _, f := range fieldsToAppend {
+	for _, f := range allFields {
 		entries = append(entries, struct {
 			SessionID int
 			FieldID   int
