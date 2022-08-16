@@ -21,7 +21,6 @@ import {
     LAYOUT_CHART_WIDTH,
     LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics';
-import { useDashboardKeyboardShortcuts } from '@pages/Dashboards/pages/Dashboard/utils';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
@@ -37,7 +36,6 @@ const DashboardPage = () => {
     const history = useHistory<{ dashboardName: string }>();
     const { id } = useParams<{ project_id: string; id: string }>();
     const { timeRange: dateRange } = useDataTimeRange();
-    const { timepickerRef } = useDashboardKeyboardShortcuts();
 
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
@@ -159,7 +157,7 @@ const DashboardPage = () => {
                                     }}
                                 />
                             </Button>
-                            <TimeRangePicker inputRef={timepickerRef} />
+                            <TimeRangePicker />
                         </div>
                     </div>
                 </div>

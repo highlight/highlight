@@ -10,13 +10,33 @@ $height: 40px;
     }
 }
 
-.label {
+.labelContainer {
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
     cursor: pointer;
+    display: flex;
     height: $height;
+    justify-content: space-between;
     padding: var(--size-xSmall) var(--size-small);
     width: 100%;
+}
+
+.label {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.hotkeyHelp {
+    background: var(--color-gray-100);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xSmall);
+    padding: 0 var(--size-xSmall);
+
+    pre {
+        font-family: var(--monospace-font-family);
+        font-size: 12px;
+        margin: 0;
+    }
 }
 
 .input {
@@ -40,14 +60,19 @@ $height: 40px;
 }
 
 .dateOption {
+    background: transparent;
+    border: 0;
     cursor: pointer;
     padding: var(--size-xSmall) var(--size-small);
+    text-align: left;
+    width: 100%;
 
     & + & {
         border-top: 1px solid var(--color-gray-300);
     }
 
-    &:hover {
+    &:hover,
+    &:focus {
         background: var(--color-gray-100);
     }
 }

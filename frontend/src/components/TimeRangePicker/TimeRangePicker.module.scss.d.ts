@@ -4,6 +4,8 @@ export const dateOptions: string;
 export const dateOptionsContainer: string;
 export const datepicker: string;
 export const datepickerContainer: string;
+export const hotkeyHelp: string;
 export const input: string;
 export const label: string;
+export const labelContainer: string;
 export const open: string;

@@ -4,12 +4,14 @@ import moment from 'moment';
 const defaultEndDate = moment().format();
 const defaultLookback = 15;
 
-const dataTimeRange = makeVar<{
+export interface DataTimeRange {
     start_date: string;
     end_date: string;
     lookback: number;
     absolute: boolean;
-}>({
+}
+
+const dataTimeRange = makeVar<DataTimeRange>({
     start_date: moment(defaultEndDate)
         .subtract(defaultLookback, 'minutes')
         .format(),

@@ -1,8 +1,9 @@
-import useDataTimeRange from '@hooks/useDataTimeRange';
+import useDataTimeRange, { DataTimeRange } from '@hooks/useDataTimeRange';
 import { DatePicker } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const { RangePicker } = DatePicker;
 
@@ -38,11 +39,7 @@ const UNITS = [
 
 const DATE_FORMAT = 'DD MMM h:mm A';
 
-interface Props {
-    inputRef: React.MutableRefObject<HTMLInputElement | null>;
-}
-
-const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
+const TimeRangePicker: React.FC = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerOpen, setDatepickerOpen] = useState(false);
@@ -67,25 +64,49 @@ const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
     }, [containerRef]);
 
     useEffect(() => {
-        if (!open) {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setOpen(false);
+            }
+        };
+
+        if (open) {
+            document.addEventListener('keydown', handleKeyDown);
+        } else {
             setDatepickerOpen(false);
         }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, [open]);
+
+    useHotkeys(
+        't',
+        (e) => {
+            e.preventDefault();
+            setOpen(!open);
+        },
+        []
+    );
 
     const label = buildDateRangeLabel(timeRange);
 
-    // TODO: Make options tabbable.
+    // TODO: Make options tabbable.`
+    // TODO: Consider using dropdown component.
     return (
         <div
             className={classNames(styles.container, { [styles.open]: open })}
             ref={containerRef}
         >
             <div
-                className={styles.label}
+                className={styles.labelContainer}
                 onClick={() => setOpen(!open)}
-                ref={inputRef}
             >
-                {label}
+                <span className={styles.label}>{label}</span>
+                <span className={styles.hotkeyHelp}>
+                    <pre>t</pre>
+                </span>
             </div>
 
             {open && (
@@ -133,6 +154,7 @@ const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
                     <div className={styles.dateOptions}>
                         <form
                             className={styles.dateOption}
+                            tabIndex={0}
                             onSubmit={(e) => {
                                 e.preventDefault();
 
@@ -175,9 +197,11 @@ const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
                         {Object.keys(DATE_OPTIONS)
                             .map(Number) // convert string to number
                             .map((offset, index) => (
-                                <div
+                                <button
                                     className={styles.dateOption}
+                                    tabIndex={0}
                                     key={index}
+                                    type="button"
                                     onClick={() => {
                                         setOpen(false);
 
@@ -192,15 +216,16 @@ const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
                                     }}
                                 >
                                     {DATE_OPTIONS[offset]}
-                                </div>
+                                </button>
                             ))}
 
-                        <div
+                        <button
                             className={styles.dateOption}
+                            tabIndex={0}
                             onClick={() => setDatepickerOpen(!datepickerOpen)}
                         >
                             Custom
-                        </div>
+                        </button>
                     </div>
                 </div>
             )}
@@ -208,24 +233,28 @@ const TimeRangePicker: React.FC<Props> = ({ inputRef }) => {
     );
 };
 
-// TODO: Types
-const buildDateRangeLabel = (range: any) => {
+const HOUR = 60;
+const DAY = 60 * 24;
+const WEEK = 60 * 24 * 7;
+const MONTH = 60 * 24 * 30;
+
+const buildDateRangeLabel = (range: DataTimeRange) => {
     if (range.absolute) {
         return `${moment(range.start_date).format(DATE_FORMAT)} - ${moment(
             range.end_date
         ).format(DATE_FORMAT)}`;
     }
 
-    if (range.lookback < 60) {
+    if (range.lookback < HOUR) {
         return `${range.lookback} minutes`;
-    } else if (range.lookback < 60 * 24) {
-        const diff = range.lookback / 60;
+    } else if (range.lookback < DAY) {
+        const diff = range.lookback / HOUR;
         return `${diff} ${diff > 1 ? 'hours' : 'hour'}`;
-    } else if (range.lookback < 60 * 24 * 7) {
-        const diff = range.lookback / (60 * 24);
+    } else if (range.lookback < WEEK) {
+        const diff = range.lookback / DAY;
         return `${diff} ${diff > 1 ? 'days' : 'day'}`;
-    } else if (range.lookback < 60 * 24 * 30) {
-        const diff = range.lookback / (60 * 24 * 7);
+    } else if (range.lookback < MONTH) {
+        const diff = range.lookback / WEEK;
         return `${diff} ${diff > 1 ? 'weeks' : 'week'}`;
     }
 };
