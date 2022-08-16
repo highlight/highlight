@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -17,8 +15,12 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -72,15 +74,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	HubspotApi             HubspotApiInterface
-}
-
-// For a given session, an EventCursor is the address of an event in the list of events,
-// that can be used for incremental fetching.
-// The EventIndex must always be specified, with the EventObjectIndex optionally
-// specified for optimization purposes.
-type EventsCursor struct {
-	EventIndex       int
-	EventObjectIndex *int
+	Redis                  *redis.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -699,7 +693,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
@@ -731,6 +725,15 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		),
 	)
 
+	if additionalContext != nil {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
+
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return
 }
@@ -740,7 +743,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
 		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
@@ -760,7 +763,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int, additionalContext *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -768,7 +771,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -1811,7 +1814,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		  }
 		  success
 		}
-	  }	  
+	  }
 	`
 
 	type GraphQLVars struct {
@@ -2061,20 +2064,20 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 }
 
-func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -2118,7 +2121,7 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			})
 		}
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
@@ -2142,7 +2145,10 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+	if redis.UseRedis(s.ProjectID) {
+		return r.Redis.GetEvents(ctx, s, cursor)
+	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2151,7 +2157,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 		if err != nil {
 			return nil, err, nil
 		}
-		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2178,7 +2184,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex == nil {
 		events = allEvents[cursor.EventIndex:]
 	}
-	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
 	return events, nil, &nextCursor
 }

@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -1050,7 +1050,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1163,10 +1163,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
-			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 	})
 
@@ -1309,7 +1309,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session", nil)
 	}
 	if len(sessionComment.Followers) > 0 {
 		var threadIDs []int
@@ -1385,10 +1385,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1529,7 +1529,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error", nil)
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
 		var threadIDs []int
@@ -3253,9 +3253,9 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	if err := r.DB.Raw(`
 	select a.id as id, max(a.name) as name, max(a.email) as email, max(s.created_at) as last_active
 	from workspace_admins wa
-	inner join admins a on wa.admin_id = a.id 
-	inner join sessions s on s.identifier = a.email 
-	where wa.workspace_id = ? and s.project_id = 1 
+	inner join admins a on wa.admin_id = a.id
+	inner join sessions s on s.identifier = a.email
+	where wa.workspace_id = ? and s.project_id = 1
 	group by a.id
 	`, workspaceID).Scan(&members).Error; err != nil {
 		return nil, e.Errorf("error querying members: %v", err)
@@ -3311,7 +3311,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -4289,17 +4289,36 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		return nil, nil
 	}
 
-	res := []*model.Field{}
+	aggQuery := `{"bool": {
+		"must": []
+	}}`
 
-	if err := r.DB.Raw(`
-		SELECT type, name
-		FROM fields_in_use_view f
-		WHERE project_id = ?
-	`, projectID).Scan(&res).Error; err != nil {
-		return nil, e.Wrap(err, "error querying field types for project")
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field:   "fields.Key.raw",
+			Include: pointy.String("(session|track|user)_.*"),
+			Size:    pointy.Int(100),
+		},
 	}
 
-	return res, nil
+	ignored := []struct{}{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return nil, err
+	}
+
+	keys := lo.Filter(
+		lo.Map(aggResults, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
+		func(key string, idx int) bool { return len(key) > 0 })
+
+	return lo.Map(keys, func(key string, idx int) *model.Field {
+		typ, name, _ := strings.Cut(key, "_")
+		return &model.Field{
+			Type: typ,
+			Name: name,
+		}
+	}), nil
 }
 
 // FieldsOpensearch is the resolver for the fields_opensearch field.
@@ -5991,7 +6010,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
-		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		cursor := model.EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
 		for {
 			select {
 			case <-ctx.Done():

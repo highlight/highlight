@@ -17,12 +17,14 @@ import (
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+// InitializeSession is the resolver for the initializeSession field.
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string, clientID *string) (*model.Session, error) {
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
@@ -33,8 +35,11 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	session, err := InitializeSessionMinimal(ctx, r, organizationVerboseID, enableStrictPrivacy, enableRecordingNetworkContents, clientVersion, firstloadVersion, clientConfig, environment, appVersion, fingerprint, userAgentString, acceptLanguageString, ip, sessionSecureID, clientID)
 	querySessionSpan.Finish()
 
-	projectID := session.ProjectID
-	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_id:%d", projectID)}, 1)
+	projectID := 0
+	if session != nil {
+		projectID = session.ProjectID
+	}
+	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if err != nil {
 		log.Error(err)
@@ -59,6 +64,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	return session, err
 }
 
+// IdentifySession is the resolver for the identifySession field.
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.IdentifySession,
@@ -71,6 +77,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	return &sessionID, err
 }
 
+// AddTrackProperties is the resolver for the addTrackProperties field.
 func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddTrackProperties,
@@ -82,6 +89,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	return &sessionID, err
 }
 
+// AddSessionProperties is the resolver for the addSessionProperties field.
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionProperties,
@@ -93,7 +101,8 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, err
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
+// PushPayload is the resolver for the pushPayload field.
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	sessionObj := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
 		// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
@@ -102,6 +111,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		// Drop solitaired payloads because they are causing ingestion issues
 		return size.Of(events), nil
 	}
+
+	if payloadID == nil {
+		payloadID = pointy.Int(0)
+	}
+
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
@@ -113,10 +127,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			IsBeacon:           isBeacon,
 			HasSessionUnloaded: hasSessionUnloaded,
 			HighlightLogs:      highlightLogs,
+			PayloadID:          payloadID,
 		}}, strconv.Itoa(sessionID))
 	return size.Of(events), err
 }
 
+// PushBackendPayload is the resolver for the pushBackendPayload field.
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
 	for _, backendError := range errors {
 		session := &model.Session{}
@@ -138,10 +154,12 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 	return nil, nil
 }
 
+// PushMetrics is the resolver for the pushMetrics field.
 func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
 	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
+// MarkBackendSetup is the resolver for the markBackendSetup field.
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error) {
 	session := &model.Session{}
 	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).First(&session).Error; err != nil {
@@ -155,6 +173,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID
 	return session.ProjectID, err
 }
 
+// AddSessionFeedback is the resolver for the addSessionFeedback field.
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
 	metadata := make(map[string]interface{})
 
@@ -263,6 +282,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	return feedbackComment.ID, nil
 }
 
+// Ignore is the resolver for the ignore field.
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
 }

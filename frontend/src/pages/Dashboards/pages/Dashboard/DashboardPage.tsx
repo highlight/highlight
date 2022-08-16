@@ -98,6 +98,7 @@ const DashboardPage = () => {
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<Boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
+    const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
 
     useEffect(() => {
@@ -107,7 +108,9 @@ const DashboardPage = () => {
             setDashboard(dashboard);
             setNewMetrics(dashboard.metrics);
             if (dashboard.layout?.length) {
-                setLayout(JSON.parse(dashboard.layout));
+                const parsedLayout = JSON.parse(dashboard.layout);
+                setLayout(parsedLayout);
+                setPersistedLayout(parsedLayout);
             }
             history.replace({ state: { dashboardName: name } });
         }
@@ -131,9 +134,12 @@ const DashboardPage = () => {
         });
     };
 
-    const handleDashboardChange = (layout: ReactGridLayout.Layout[]) => {
-        setLayout({ lg: layout });
-        setCanSaveChanges(true);
+    const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
+        setLayout({ lg: newLayout });
+
+        const newLayoutJSON = JSON.stringify(newLayout);
+        const layoutJSON = JSON.stringify(persistedLayout.lg);
+        setCanSaveChanges(layoutJSON !== newLayoutJSON);
     };
 
     if (!dashboard) {
@@ -168,17 +174,14 @@ const DashboardPage = () => {
                                                 layout
                                             );
 
-                                            if (
-                                                dashboard &&
-                                                newLayout !== dashboard.layout
-                                            ) {
-                                                updateDashboard({
-                                                    id: id,
-                                                    name: dashboard.name,
-                                                    metrics: dashboard.metrics,
-                                                    layout: newLayout,
-                                                });
-                                            }
+                                            updateDashboard({
+                                                id: id,
+                                                name: dashboard.name,
+                                                metrics: dashboard.metrics,
+                                                layout: newLayout,
+                                            });
+
+                                            setPersistedLayout(layout);
 
                                             message.success(
                                                 'Dashboard layout updated!',
@@ -291,7 +294,6 @@ const DashboardPage = () => {
                     draggableHandle="[data-drag-handle]"
                     onDragStop={handleDashboardChange}
                     onResizeStop={handleDashboardChange}
-                    onResize={handleDashboardChange}
                 >
                     {dashboard.metrics.map((metric, index) => (
                         <div key={index.toString()}>

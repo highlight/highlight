@@ -127,6 +127,7 @@ export type MutationPushPayloadArgs = {
     highlight_logs?: InputMaybe<Scalars['String']>;
     is_beacon?: InputMaybe<Scalars['Boolean']>;
     messages: Scalars['String'];
+    payload_id?: InputMaybe<Scalars['ID']>;
     resources: Scalars['String'];
     session_id: Scalars['ID'];
 };
@@ -179,6 +180,7 @@ export type PushPayloadMutationVariables = Exact<{
     is_beacon?: InputMaybe<Scalars['Boolean']>;
     has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
     highlight_logs?: InputMaybe<Scalars['String']>;
+    payload_id?: InputMaybe<Scalars['ID']>;
 }>;
 
 export type PushPayloadMutation = {
@@ -280,6 +282,7 @@ export const PushPayloadDocument = gql`
         $is_beacon: Boolean
         $has_session_unloaded: Boolean
         $highlight_logs: String
+        $payload_id: ID
     ) {
         pushPayload(
             session_id: $session_id
@@ -290,6 +293,7 @@ export const PushPayloadDocument = gql`
             is_beacon: $is_beacon
             has_session_unloaded: $has_session_unloaded
             highlight_logs: $highlight_logs
+            payload_id: $payload_id
         )
     }
 `;

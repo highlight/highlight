@@ -1136,6 +1136,7 @@ type Mutation {
         issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+        additional_context: String
     ): SessionComment
     createIssueForSessionComment(
         project_id: ID!

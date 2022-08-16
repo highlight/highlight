@@ -28,6 +28,7 @@ import (
 
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
+	S3SessionsStagingBucketName = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
 	S3ResourcesBucketName       = os.Getenv("AWS_S3_RESOURCES_BUCKET")
 	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")

@@ -27,6 +27,7 @@ type PushPayloadArgs struct {
 	IsBeacon           *bool
 	HasSessionUnloaded *bool
 	HighlightLogs      *string
+	PayloadID          *int
 }
 
 type InitializeSessionArgs struct {

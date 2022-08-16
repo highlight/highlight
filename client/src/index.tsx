@@ -39,6 +39,7 @@ import SessionShortcutListener from './listeners/session-shortcut/session-shortc
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
+import FingerprintJS, { Agent } from '@highlight-run/fingerprintjs';
 import {
     PerformanceListener,
     PerformancePayload,
@@ -52,7 +53,6 @@ import {
 import { GenerateSecureID } from './utils/secure-id';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
-import { ClientJS } from 'clientjs';
 import {
     getPreviousSessionData,
     SessionData,
@@ -164,6 +164,7 @@ export class Highlight {
      */
     numberOfFailedRequests!: number;
     logger!: Logger;
+    fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
@@ -189,6 +190,7 @@ export class Highlight {
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -198,6 +200,20 @@ export class Highlight {
         options: HighlightClassOptions,
         firstLoadListeners?: FirstLoadListeners
     ) {
+        // setup fingerprintjs as early as possible for it to run background tasks
+        // exclude sources that are slow and may block DOM rendering
+        this.fingerprintjs = FingerprintJS.load({
+            excludeSources: [
+                'fonts', // slow with lots of fonts
+                'domBlockers', // causes reflow, slow
+                'fontPreferences', // slow
+                'audio', //slow
+                'screenFrame', // causes reflow, slow
+                'timezone', // slow
+                'plugins', // very slow
+                'canvas', // slow
+            ],
+        });
         if (!options.sessionSecureID) {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
@@ -366,6 +382,14 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
+        this._payloadId =
+            Number(
+                window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)
+            ) ?? 1;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -645,12 +669,9 @@ export class Highlight {
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
                 reloaded = true;
             } else {
-                const client = new ClientJS();
-                let fingerprint = 0;
-                if ('getFingerprint' in client) {
-                    fingerprint = client.getFingerprint();
-                }
                 try {
+                    const client = await this.fingerprintjs;
+                    const fingerprint = await client.get();
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
@@ -660,7 +681,7 @@ export class Highlight {
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
-                        id: fingerprint.toString(),
+                        id: fingerprint.visitorId,
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
@@ -1173,6 +1194,22 @@ export class Highlight {
         const messages = [...this._firstLoadListeners.messages];
         const errors = [...this._firstLoadListeners.errors];
 
+        // if it is time to take a full snapshot,
+        // ensure the snapshot is at the beginning of the next payload
+        if (!isBeacon) {
+            const now = new Date().getTime();
+            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+            // take a full snapshot and reset the counters
+            if (
+                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
+                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
+            ) {
+                record.takeFullSnapshot();
+                this._eventBytesSinceSnapshot = 0;
+                this._lastSnapshotTime = now;
+            }
+        }
+
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
@@ -1187,7 +1224,15 @@ export class Highlight {
             errors,
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
+            payload_id: this._payloadId.toString(),
         };
+
+        this._payloadId++;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
+
         const highlightLogs = getHighlightLogs();
         if (highlightLogs) {
             payload.highlight_logs = highlightLogs;
@@ -1212,17 +1257,6 @@ export class Highlight {
 
             this._eventBytesSinceSnapshot =
                 this._eventBytesSinceSnapshot + eventsSize;
-            const now = new Date().getTime();
-            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
-            // take a full snapshot and reset the counters
-            if (
-                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
-                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
-            ) {
-                record.takeFullSnapshot();
-                this._eventBytesSinceSnapshot = 0;
-                this._lastSnapshotTime = now;
-            }
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
