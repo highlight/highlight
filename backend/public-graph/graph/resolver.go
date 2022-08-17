@@ -2310,9 +2310,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 	// Update only if any of these fields are changing
-	// Update the PayloadUpdatedAt field only if it's been >10s since the last one
+	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		now.Sub(*sessionObj.PayloadUpdatedAt) > 10*time.Second ||
+		now.Sub(*sessionObj.PayloadUpdatedAt) > 15*time.Second ||
 		beaconTime != nil ||
 		hasSessionUnloaded != sessionObj.HasUnloaded ||
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
