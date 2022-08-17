@@ -951,7 +951,7 @@ export class Highlight {
         }
     }
 
-    _visibilityHandler(visible: boolean) {
+    _visibilityHandler(hidden: boolean) {
         if (
             new Date().getTime() - this._lastVisibilityChangeTime <
             VISIBILITY_DEBOUNCE_MS
@@ -959,14 +959,14 @@ export class Highlight {
             return;
         }
         this._lastVisibilityChangeTime = new Date().getTime();
-        if (visible) {
+        if (!hidden) {
             this.logger.log(`Detected window visible. Resuming recording.`);
             this.initialize();
-            this.addCustomEvent('TabHidden', visible);
+            this.addCustomEvent('TabHidden', false);
             return;
         }
         this.logger.log(`Detected window hidden. Pausing recording.`);
-        this.addCustomEvent('TabHidden', visible);
+        this.addCustomEvent('TabHidden', true);
         if ('sendBeacon' in navigator) {
             try {
                 this._sendPayload({
@@ -1004,7 +1004,7 @@ export class Highlight {
                 window.electron.ipcRenderer.on(
                     'highlight.run',
                     ({ visible }: { visible: boolean }) => {
-                        this._visibilityHandler(visible);
+                        this._visibilityHandler(!visible);
                     }
                 );
                 this.logger.log('Set up Electron highlight.run events.');
@@ -1012,7 +1012,7 @@ export class Highlight {
                 // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
                 // as when switching tabs or apps on mobile. Non-blocking.
                 PageVisibilityListener((isTabHidden) =>
-                    this._visibilityHandler(!isTabHidden)
+                    this._visibilityHandler(isTabHidden)
                 );
                 this.logger.log('Set up document visibility listener.');
             }
