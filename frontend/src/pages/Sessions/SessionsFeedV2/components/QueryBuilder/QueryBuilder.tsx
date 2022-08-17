@@ -4,6 +4,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { BaseSearchContext } from '@context/BaseSearchContext';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -1145,31 +1146,31 @@ export type FetchFieldVariables =
       >
     | undefined;
 
-interface QueryBuilderProps {
-    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+interface QueryBuilderProps<T> {
+    searchContext: BaseSearchContext<T>;
     timeRangeField: SelectOption;
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
     getQueryFromParams: (params: any) => QueryBuilderState;
-    searchParams: any;
-    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
     readonly?: boolean;
-    searchResultsLoading: boolean;
 }
 
 const QueryBuilder = ({
-    setSearchQuery,
+    searchContext,
     timeRangeField,
     customFields,
     fetchFields,
     fieldData,
     getQueryFromParams,
-    searchParams,
-    setSearchParams,
     readonly,
-    searchResultsLoading,
-}: QueryBuilderProps) => {
+}: QueryBuilderProps<any>) => {
+    const {
+        setSearchQuery,
+        searchParams,
+        setSearchParams,
+        searchResultsLoading,
+    } = searchContext;
     const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
