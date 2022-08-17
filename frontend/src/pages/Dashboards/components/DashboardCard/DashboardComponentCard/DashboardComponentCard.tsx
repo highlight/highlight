@@ -22,6 +22,16 @@ import {
 import classNames from 'classnames';
 import React, { useState } from 'react';
 
+export const PrebuiltComponentMap: { [key: string]: React.ReactNode } = {
+    [MetricViewComponentType.KeyPerformanceGauge]: <KeyPerformanceIndicators />,
+    [MetricViewComponentType.SessionCountChart]: <SessionCountGraph />,
+    [MetricViewComponentType.ErrorCountChart]: <ErrorCountGraph />,
+    [MetricViewComponentType.ReferrersTable]: <ReferrersTable />,
+    [MetricViewComponentType.ActiveUsersTable]: <ActiveUsersTable />,
+    [MetricViewComponentType.RageClicksTable]: <RageClicksForProjectTable />,
+    [MetricViewComponentType.TopRoutesTable]: <TopRoutesTable />,
+};
+
 export const DashboardComponentCard = ({
     metricIdx,
     metricConfig,
@@ -80,21 +90,7 @@ export const DashboardComponentCard = ({
             >
                 <SvgDragIcon />
             </div>
-            {componentType === MetricViewComponentType.KeyPerformanceGauge ? (
-                <KeyPerformanceIndicators />
-            ) : componentType === MetricViewComponentType.SessionCountChart ? (
-                <SessionCountGraph />
-            ) : componentType === MetricViewComponentType.ErrorCountChart ? (
-                <ErrorCountGraph />
-            ) : componentType === MetricViewComponentType.ReferrersTable ? (
-                <ReferrersTable />
-            ) : componentType === MetricViewComponentType.ActiveUsersTable ? (
-                <ActiveUsersTable />
-            ) : componentType === MetricViewComponentType.RageClicksTable ? (
-                <RageClicksForProjectTable />
-            ) : componentType === MetricViewComponentType.TopRoutesTable ? (
-                <TopRoutesTable />
-            ) : null}
+            {componentType && PrebuiltComponentMap[componentType]}
         </div>
     );
 };

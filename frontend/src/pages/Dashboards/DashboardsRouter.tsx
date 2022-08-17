@@ -45,9 +45,9 @@ const DashboardsRouter = () => {
             data?.dashboard_definitions?.length
         ) {
             if (
-                !data?.dashboard_definitions?.filter(
+                !data?.dashboard_definitions?.some(
                     (d) => d?.name === 'Web Vitals'
-                )?.length
+                )
             ) {
                 upsertDashboardMutation({
                     variables: {
@@ -58,10 +58,7 @@ const DashboardsRouter = () => {
                     },
                 }).catch(H.consumeError);
             }
-            if (
-                !data?.dashboard_definitions?.filter((d) => d?.name === 'Home')
-                    ?.length
-            ) {
+            if (!data?.dashboard_definitions?.some((d) => d?.name === 'Home')) {
                 upsertDashboardMutation({
                     variables: {
                         project_id,

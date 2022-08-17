@@ -138,7 +138,7 @@ export const EditMetricModal = ({
     const [groups, setGroups] = useState<string[]>(metricConfig.groups || []);
 
     useEffect(() => {
-        if (!metricConfig.component_type && !metricConfig.component_type) {
+        if (!metricConfig.component_type && !metricConfig.chart_type) {
             setChartType(DashboardChartType.Timeline);
         }
     }, [metricConfig.component_type, metricConfig.chart_type]);
