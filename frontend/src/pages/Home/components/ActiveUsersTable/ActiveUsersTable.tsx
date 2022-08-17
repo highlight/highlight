@@ -198,15 +198,21 @@ const Columns: ColumnsType<any> = [
         render: (percent, record) => {
             return (
                 <ProgressBarTableRowGroup alignment="ending">
-                    <ProgressBarTablePercentage percent={percent * 100} />
-                    <Tooltip title="Total active time the user has spent on your app">
-                        <ProgressBarTablePill
-                            displayValue={`${formatShortTime(
-                                record.total_active_time / 1000
-                            )}`}
-                            icon={<SvgClockIcon />}
-                        />
-                    </Tooltip>
+                    <div className={styles.timeRow}>
+                        <ProgressBarTablePercentage percent={percent * 100} />
+                        <Tooltip title="Total active time the user has spent on your app">
+                            <ProgressBarTablePill
+                                displayValue={`${formatShortTime(
+                                    record.total_active_time / 1000,
+                                    ['d', 'h', 'm', 's'],
+                                    '',
+                                    1,
+                                    true
+                                )}`}
+                                icon={<SvgClockIcon />}
+                            />
+                        </Tooltip>
+                    </div>
                 </ProgressBarTableRowGroup>
             );
         },

@@ -29,7 +29,7 @@ const DashboardsRouter = () => {
     const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
-    const { data, loading, error } = useGetDashboardDefinitionsQuery({
+    const { data, loading, error, called } = useGetDashboardDefinitionsQuery({
         variables: { project_id },
     });
     const [upsertDashboardMutation] = useUpsertDashboardMutation({
@@ -38,12 +38,7 @@ const DashboardsRouter = () => {
 
     useEffect(() => {
         // create default dashboards
-        if (
-            project_id &&
-            !loading &&
-            !error &&
-            data?.dashboard_definitions?.length
-        ) {
+        if (project_id && !loading && !error && called) {
             if (
                 !data?.dashboard_definitions?.some(
                     (d) => d?.name === 'Web Vitals'
@@ -69,7 +64,7 @@ const DashboardsRouter = () => {
                 }).catch(H.consumeError);
             }
         }
-    }, [project_id, upsertDashboardMutation, loading, error, data]);
+    }, [project_id, upsertDashboardMutation, loading, error, data, called]);
 
     return (
         <DashboardsContextProvider

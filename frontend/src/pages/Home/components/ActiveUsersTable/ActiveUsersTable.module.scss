@@ -9,3 +9,10 @@
         white-space: nowrap;
     }
 }
+
+.timeRow {
+    display: flex;
+    column-gap: var(--size-xxSmall);
+    justify-content: center;
+    width: 100%;
+}
