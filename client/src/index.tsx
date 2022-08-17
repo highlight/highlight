@@ -375,6 +375,7 @@ export class Highlight {
         this.events = [];
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
+        this._hasPreviouslyInitialized = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -387,6 +388,7 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
+        this._lastVisibilityChangeTime = new Date().getTime();
         this._payloadId =
             Number(
                 window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)
@@ -630,7 +632,7 @@ export class Highlight {
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
-            if (!this.sessionData && storedSessionData) {
+            if (!this.sessionData.sessionID && storedSessionData) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             }
