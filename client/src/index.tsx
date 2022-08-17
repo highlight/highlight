@@ -990,12 +990,6 @@ export class Highlight {
 
     _setupWindowListeners() {
         try {
-            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-            // as when switching tabs or apps on mobile. Non-blocking.
-            document.addEventListener('visibilitychange', () =>
-                this._visibilityHandler(document.visibilityState === 'visible')
-            );
-
             // setup electron main thread window visiblity events listener
             if (window.electron?.ipcRenderer) {
                 window.electron.ipcRenderer.on(
@@ -1004,6 +998,16 @@ export class Highlight {
                         this._visibilityHandler(visible);
                     }
                 );
+                this.logger.log('Set up Electron highlight.run events.');
+            } else {
+                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+                // as when switching tabs or apps on mobile. Non-blocking.
+                document.addEventListener('visibilitychange', () =>
+                    this._visibilityHandler(
+                        document.visibilityState === 'visible'
+                    )
+                );
+                this.logger.log('Set up document visibility listener.');
             }
 
             // Clear the timer so it doesn't block the next page navigation.
