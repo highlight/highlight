@@ -148,6 +148,9 @@ const PROPERTY_MAX_LENGTH = 2000;
 const MIN_SNAPSHOT_BYTES = 10e6;
 const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 
+// Debounce duplicate visibility events
+const VISIBILITY_DEBOUNCE_MS = 100;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -186,6 +189,7 @@ export class Highlight {
     _firstLoadListeners!: FirstLoadListeners;
     _eventBytesSinceSnapshot!: number;
     _lastSnapshotTime!: number;
+    _lastVisibilityChangeTime!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
@@ -856,11 +860,6 @@ export class Highlight {
                 })
             );
             this.listeners.push(
-                PageVisibilityListener((isTabHidden) => {
-                    this.addCustomEvent('TabHidden', isTabHidden);
-                })
-            );
-            this.listeners.push(
                 ClickListener((clickTarget, event) => {
                     if (clickTarget) {
                         this.addCustomEvent('Click', clickTarget);
@@ -953,11 +952,21 @@ export class Highlight {
     }
 
     _visibilityHandler(visible: boolean) {
+        if (
+            new Date().getTime() - this._lastVisibilityChangeTime <
+            VISIBILITY_DEBOUNCE_MS
+        ) {
+            return;
+        }
+        this._lastVisibilityChangeTime = new Date().getTime();
         if (visible) {
             this.logger.log(`Detected window visible. Resuming recording.`);
-            return this.initialize();
+            this.initialize();
+            this.addCustomEvent('TabHidden', visible);
+            return;
         }
         this.logger.log(`Detected window hidden. Pausing recording.`);
+        this.addCustomEvent('TabHidden', visible);
         if ('sendBeacon' in navigator) {
             try {
                 this._sendPayload({
@@ -1002,10 +1011,8 @@ export class Highlight {
             } else {
                 // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
                 // as when switching tabs or apps on mobile. Non-blocking.
-                document.addEventListener('visibilitychange', () =>
-                    this._visibilityHandler(
-                        document.visibilityState === 'visible'
-                    )
+                PageVisibilityListener((isTabHidden) =>
+                    this._visibilityHandler(!isTabHidden)
                 );
                 this.logger.log('Set up document visibility listener.');
             }
