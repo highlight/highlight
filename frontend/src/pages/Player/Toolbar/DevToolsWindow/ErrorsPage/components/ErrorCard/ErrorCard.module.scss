@@ -41,22 +41,26 @@
     align-items: baseline;
     display: flex;
     gap: var(--size-small);
-    margin-bottom: var(--size-xSmall);
 }
 
-.description {
+.details {
+    display: flex;
+    gap: var(--size-medium);
     overflow-wrap: anywhere;
     white-space: break-spaces;
+    p {
+        color: var(--color-gray-500);
+    }
 }
 
 .goToButton {
+    align-self: center;
+    margin-left: auto;
     visibility: hidden;
 }
 
-.actions {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-xSmall);
+.content {
+    width: 100%;
 }
 
 .currentIndicatorWrapper {
