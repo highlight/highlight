@@ -18,11 +18,11 @@ const ErrorDescription = ({ errorGroup, errorObject }: Props) => {
     const body = getErrorBody(event);
     return (
         <>
-            <JsonOrTextCard jsonOrText={body} title={'Error Body'} />
+            <JsonOrTextCard jsonOrText={body} title={'Description'} />
             {errorObject?.payload && errorObject?.payload !== 'null' && (
                 <JsonOrTextCard
                     jsonOrText={errorObject.payload}
-                    title={'Error Context'}
+                    title={'Context'}
                 />
             )}
         </>
