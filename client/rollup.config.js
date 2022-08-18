@@ -34,6 +34,7 @@ const basePlugins = [
     webWorkerLoader({
         targetPlatform: 'browser',
         inline: true,
+        sourceMap,
     }),
     typescript(),
     json(),

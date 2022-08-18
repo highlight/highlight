@@ -55,7 +55,6 @@ import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
-import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker';
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
 import {
@@ -63,6 +62,11 @@ import {
     MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
 } from './utils/graph';
 import { ReplayEventsInput } from './graph/generated/schemas';
+
+// silence typescript warning in firstload build since firstload imports client code
+// but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
+// @ts-ignore
+import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
