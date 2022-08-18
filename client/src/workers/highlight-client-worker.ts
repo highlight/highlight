@@ -96,7 +96,7 @@ function stringifyProperties(
     let numberOfFailedRequests: number = 0;
     let debug: boolean = false;
     let recordingStartTime: number = 0;
-    let logger = new Logger(false, 'worker');
+    let logger = new Logger(false, '[worker]');
 
     const shouldSendRequest = (): boolean => {
         return (
@@ -127,16 +127,6 @@ function stringifyProperties(
             hasSessionUnloaded,
             highlightLogs,
         } = msg;
-
-        if (!graphqlSDK) {
-            const client = new GraphQLClient(backend, {
-                headers: {},
-            });
-            graphqlSDK = getSdk(
-                client,
-                getGraphQLRequestWrapper(sessionSecureID)
-            );
-        }
 
         const messagesString = stringify({ messages: messages });
         let payload: PushPayloadMutationVariables = {
@@ -261,16 +251,25 @@ function stringifyProperties(
     };
 
     worker.onmessage = async function (e) {
+        if (e.data.message.type === MessageType.Initialize) {
+            backend = e.data.message.backend;
+            sessionSecureID = e.data.message.sessionSecureID;
+            debug = e.data.message.debug;
+            recordingStartTime = e.data.message.recordingStartTime;
+            logger.debug = debug;
+            graphqlSDK = getSdk(
+                new GraphQLClient(backend, {
+                    headers: {},
+                }),
+                getGraphQLRequestWrapper(sessionSecureID)
+            );
+            return;
+        }
         if (!shouldSendRequest()) {
             return;
         }
         try {
-            if (e.data.message.type === MessageType.Initialize) {
-                backend = e.data.message.backend;
-                sessionSecureID = e.data.message.sessionSecureID;
-                debug = e.data.message.debug;
-                logger = new Logger(e.data.message.debug, 'worker');
-            } else if (e.data.message.type === MessageType.AsyncEvents) {
+            if (e.data.message.type === MessageType.AsyncEvents) {
                 await processAsyncEventsMessage(
                     e.data.message as AsyncEventsMessage
                 );
