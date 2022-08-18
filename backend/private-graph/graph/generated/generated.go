@@ -173,6 +173,7 @@ type ComplexityRoot struct {
 	DashboardMetricConfig struct {
 		Aggregator               func(childComplexity int) int
 		ChartType                func(childComplexity int) int
+		ComponentType            func(childComplexity int) int
 		Description              func(childComplexity int) int
 		Filters                  func(childComplexity int) int
 		Groups                   func(childComplexity int) int
@@ -439,7 +440,7 @@ type ComplexityRoot struct {
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateRageClickAlert             func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) int
+		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
 		CreateSessionFeedbackAlert       func(childComplexity int, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) int
 		CreateTrackPropertiesAlert       func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) int
 		CreateUserPropertiesAlert        func(childComplexity int, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow int) int
@@ -944,7 +945,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
-	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
@@ -1625,6 +1626,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardMetricConfig.ChartType(childComplexity), true
+
+	case "DashboardMetricConfig.component_type":
+		if e.complexity.DashboardMetricConfig.ComponentType == nil {
+			break
+		}
+
+		return e.complexity.DashboardMetricConfig.ComponentType(childComplexity), true
 
 	case "DashboardMetricConfig.description":
 		if e.complexity.DashboardMetricConfig.Description == nil {
@@ -3011,7 +3019,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["project_id"].(int), args["session_secure_id"].(string), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admins"].([]*model.SanitizedAdminInput), args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string), args["issue_title"].(*string), args["issue_description"].(*string), args["issue_team_id"].(*string), args["integrations"].([]*model.IntegrationType), args["tags"].([]*model.SessionCommentTagInput), args["additional_context"].(*string)), true
 
 	case "Mutation.createSessionFeedbackAlert":
 		if e.complexity.Mutation.CreateSessionFeedbackAlert == nil {
@@ -6965,13 +6973,14 @@ enum MetricAggregator {
 input DashboardMetricConfigInput {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float
@@ -6980,16 +6989,27 @@ input DashboardMetricConfigInput {
     groups: [String!]
 }
 
+enum MetricViewComponentType {
+    KeyPerformanceGauge
+    SessionCountChart
+    ErrorCountChart
+    ReferrersTable
+    ActiveUsersTable
+    RageClicksTable
+    TopRoutesTable
+}
+
 type DashboardMetricConfig {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float
@@ -7296,6 +7316,7 @@ type Mutation {
         issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+        additional_context: String
     ): SessionComment
     createIssueForSessionComment(
         project_id: ID!
@@ -8698,6 +8719,15 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["tags"] = arg17
+	var arg18 *string
+	if tmp, ok := rawArgs["additional_context"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("additional_context"))
+		arg18, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["additional_context"] = arg18
 	return args, nil
 }
 
@@ -15415,6 +15445,8 @@ func (ec *executionContext) fieldContext_DashboardDefinition_metrics(ctx context
 				return ec.fieldContext_DashboardMetricConfig_name(ctx, field)
 			case "description":
 				return ec.fieldContext_DashboardMetricConfig_description(ctx, field)
+			case "component_type":
+				return ec.fieldContext_DashboardMetricConfig_component_type(ctx, field)
 			case "max_good_value":
 				return ec.fieldContext_DashboardMetricConfig_max_good_value(ctx, field)
 			case "max_needs_improvement_value":
@@ -15618,6 +15650,47 @@ func (ec *executionContext) fieldContext_DashboardMetricConfig_description(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _DashboardMetricConfig_component_type(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardMetricConfig_component_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ComponentType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.MetricViewComponentType)
+	fc.Result = res
+	return ec.marshalOMetricViewComponentType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricViewComponentType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardMetricConfig_component_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardMetricConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MetricViewComponentType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DashboardMetricConfig_max_good_value(ctx context.Context, field graphql.CollectedField, obj *model.DashboardMetricConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DashboardMetricConfig_max_good_value(ctx, field)
 	if err != nil {
@@ -15639,14 +15712,11 @@ func (ec *executionContext) _DashboardMetricConfig_max_good_value(ctx context.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_max_good_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15683,14 +15753,11 @@ func (ec *executionContext) _DashboardMetricConfig_max_needs_improvement_value(c
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_max_needs_improvement_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15727,14 +15794,11 @@ func (ec *executionContext) _DashboardMetricConfig_poor_value(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_poor_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15771,14 +15835,11 @@ func (ec *executionContext) _DashboardMetricConfig_units(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_units(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15815,14 +15876,11 @@ func (ec *executionContext) _DashboardMetricConfig_help_article(ctx context.Cont
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_help_article(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15859,14 +15917,11 @@ func (ec *executionContext) _DashboardMetricConfig_chart_type(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(model.DashboardChartType)
+	res := resTmp.(*model.DashboardChartType)
 	fc.Result = res
-	return ec.marshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, field.Selections, res)
+	return ec.marshalODashboardChartType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_chart_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -15903,14 +15958,11 @@ func (ec *executionContext) _DashboardMetricConfig_aggregator(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(model.MetricAggregator)
+	res := resTmp.(*model.MetricAggregator)
 	fc.Result = res
-	return ec.marshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
+	return ec.marshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DashboardMetricConfig_aggregator(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -24784,7 +24836,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, fc.Args["project_id"].(int), fc.Args["session_secure_id"].(string), fc.Args["session_timestamp"].(int), fc.Args["text"].(string), fc.Args["text_for_email"].(string), fc.Args["x_coordinate"].(float64), fc.Args["y_coordinate"].(float64), fc.Args["tagged_admins"].([]*model.SanitizedAdminInput), fc.Args["tagged_slack_users"].([]*model.SanitizedSlackChannelInput), fc.Args["session_url"].(string), fc.Args["time"].(float64), fc.Args["author_name"].(string), fc.Args["session_image"].(*string), fc.Args["issue_title"].(*string), fc.Args["issue_description"].(*string), fc.Args["issue_team_id"].(*string), fc.Args["integrations"].([]*model.IntegrationType), fc.Args["tags"].([]*model.SessionCommentTagInput), fc.Args["additional_context"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -44865,7 +44917,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters", "groups"}
+	fieldsInOrder := [...]string{"name", "description", "component_type", "max_good_value", "max_needs_improvement_value", "poor_value", "units", "help_article", "chart_type", "aggregator", "min_value", "min_percentile", "max_value", "max_percentile", "filters", "groups"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -44888,11 +44940,19 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			if err != nil {
 				return it, err
 			}
+		case "component_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("component_type"))
+			it.ComponentType, err = ec.unmarshalOMetricViewComponentType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricViewComponentType(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "max_good_value":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_good_value"))
-			it.MaxGoodValue, err = ec.unmarshalNFloat2float64(ctx, v)
+			it.MaxGoodValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44900,7 +44960,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max_needs_improvement_value"))
-			it.MaxNeedsImprovementValue, err = ec.unmarshalNFloat2float64(ctx, v)
+			it.MaxNeedsImprovementValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44908,7 +44968,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("poor_value"))
-			it.PoorValue, err = ec.unmarshalNFloat2float64(ctx, v)
+			it.PoorValue, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44916,7 +44976,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("units"))
-			it.Units, err = ec.unmarshalNString2string(ctx, v)
+			it.Units, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44924,7 +44984,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("help_article"))
-			it.HelpArticle, err = ec.unmarshalNString2string(ctx, v)
+			it.HelpArticle, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44932,7 +44992,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("chart_type"))
-			it.ChartType, err = ec.unmarshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, v)
+			it.ChartType, err = ec.unmarshalODashboardChartType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44940,7 +45000,7 @@ func (ec *executionContext) unmarshalInputDashboardMetricConfigInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("aggregator"))
-			it.Aggregator, err = ec.unmarshalNMetricAggregator2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
+			it.Aggregator, err = ec.unmarshalOMetricAggregator2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricAggregator(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46518,55 +46578,38 @@ func (ec *executionContext) _DashboardMetricConfig(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "component_type":
+
+			out.Values[i] = ec._DashboardMetricConfig_component_type(ctx, field, obj)
+
 		case "max_good_value":
 
 			out.Values[i] = ec._DashboardMetricConfig_max_good_value(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "max_needs_improvement_value":
 
 			out.Values[i] = ec._DashboardMetricConfig_max_needs_improvement_value(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "poor_value":
 
 			out.Values[i] = ec._DashboardMetricConfig_poor_value(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "units":
 
 			out.Values[i] = ec._DashboardMetricConfig_units(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "help_article":
 
 			out.Values[i] = ec._DashboardMetricConfig_help_article(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "chart_type":
 
 			out.Values[i] = ec._DashboardMetricConfig_chart_type(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "aggregator":
 
 			out.Values[i] = ec._DashboardMetricConfig_aggregator(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "min_value":
 
 			out.Values[i] = ec._DashboardMetricConfig_min_value(ctx, field, obj)
@@ -53467,16 +53510,6 @@ func (ec *executionContext) marshalNDailySessionCount2ᚕᚖgithubᚗcomᚋhighl
 	return ret
 }
 
-func (ec *executionContext) unmarshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx context.Context, v interface{}) (model.DashboardChartType, error) {
-	var res model.DashboardChartType
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDashboardChartType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx context.Context, sel ast.SelectionSet, v model.DashboardChartType) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNDashboardDefinition2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardDefinition(ctx context.Context, sel ast.SelectionSet, v []*model.DashboardDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -56211,6 +56244,22 @@ func (ec *executionContext) marshalODailySessionCount2ᚖgithubᚗcomᚋhighligh
 	return ec._DailySessionCount(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalODashboardChartType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx context.Context, v interface{}) (*model.DashboardChartType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.DashboardChartType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODashboardChartType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardChartType(ctx context.Context, sel ast.SelectionSet, v *model.DashboardChartType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) marshalODashboardDefinition2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardDefinition(ctx context.Context, sel ast.SelectionSet, v *model.DashboardDefinition) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -56802,6 +56851,22 @@ func (ec *executionContext) unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋ
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOMetricViewComponentType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricViewComponentType(ctx context.Context, v interface{}) (*model.MetricViewComponentType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.MetricViewComponentType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMetricViewComponentType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricViewComponentType(ctx context.Context, sel ast.SelectionSet, v *model.MetricViewComponentType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalONamedCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNamedCount(ctx context.Context, sel ast.SelectionSet, v []*model.NamedCount) graphql.Marshaler {

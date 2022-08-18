@@ -8,10 +8,14 @@ import {
     ProgressBarTableRowGroup,
     ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
+import { useGetRageClicksForProjectQuery } from '@graph/hooks';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -19,9 +23,6 @@ import { useHistory } from 'react-router-dom';
 import Input from '../../../../components/Input/Input';
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useGetRageClicksForProjectQuery } from '../../../../graph/generated/hooks';
-import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './RageClicksForProjectTable.module.scss';
@@ -89,20 +90,28 @@ const RageClicksForProjectTable = () => {
     return (
         <Card
             title={
-                <div className={homePageStyles.chartHeaderWrapper}>
+                <div
+                    className={classNames(
+                        homePageStyles.chartHeaderWrapper,
+                        homePageStyles.smallMargin
+                    )}
+                >
                     <h3 id={homePageStyles.h3}>Rage Clicks</h3>
-                    <Input
-                        allowClear
-                        placeholder="Search for user"
-                        value={filterSearchTerm}
-                        onChange={(event) => {
-                            setFilterSearchTerm(event.target.value);
-                        }}
-                        size="small"
-                        disabled={loading}
-                    />
+                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
+                        <Input
+                            allowClear
+                            placeholder="Search for user"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
             }
+            full
         >
             <ProgressBarTable
                 loading={loading}

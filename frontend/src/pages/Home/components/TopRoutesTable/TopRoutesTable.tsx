@@ -50,6 +50,7 @@ const TopRoutesTable = () => {
                 </div>
             }
             noTitleBottomMargin
+            full
         >
             <ProgressBarTable
                 loading={loading}

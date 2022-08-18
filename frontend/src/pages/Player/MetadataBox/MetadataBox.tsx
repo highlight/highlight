@@ -317,17 +317,19 @@ export const UserDetailsBox = React.memo(
                                     {data?.enhanced_user_details?.bio}
                                 </p>
                             )}
-                            <div className={styles.enhancedLinksGrid}>
-                                {data?.enhanced_user_details?.socials?.map(
-                                    (e) =>
-                                        e && (
-                                            <SocialComponent
-                                                socialLink={e}
-                                                key={e.type}
-                                            />
-                                        )
-                                )}
-                            </div>
+                            {hasDiverseSocialLinks(data) && (
+                                <div className={styles.enhancedLinksGrid}>
+                                    {data?.enhanced_user_details?.socials?.map(
+                                        (e) =>
+                                            e && (
+                                                <SocialComponent
+                                                    socialLink={e}
+                                                    key={e.type}
+                                                />
+                                            )
+                                    )}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
@@ -388,7 +390,33 @@ const hasEnrichedData = (enhancedData?: GetEnhancedUserDetailsQuery) => {
             enhanced_user_details?.avatar !== '') ||
         (!!enhanced_user_details?.bio && enhanced_user_details?.bio !== '') ||
         (!!enhanced_user_details?.name && enhanced_user_details?.name !== '') ||
-        enhanced_user_details?.socials?.length ||
+        hasDiverseSocialLinks(enhancedData) ||
         0 > 0
     );
+};
+
+const hasDiverseSocialLinks = (enhancedData?: GetEnhancedUserDetailsQuery) => {
+    if (!enhancedData) {
+        return false;
+    }
+
+    const { enhanced_user_details } = enhancedData;
+    if (!enhanced_user_details) {
+        return false;
+    }
+
+    const { socials } = enhanced_user_details;
+    if (!socials) {
+        return false;
+    }
+
+    if (!socials.length) {
+        return false;
+    }
+
+    if (socials.length === 1 && socials[0]?.type === SocialType.Site) {
+        return false;
+    }
+
+    return true;
 };

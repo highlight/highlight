@@ -1359,6 +1359,7 @@ export const CreateSessionCommentDocument = gql`
         $issue_title: String
         $issue_team_id: String
         $issue_description: String
+        $additional_context: String
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1379,6 +1380,7 @@ export const CreateSessionCommentDocument = gql`
             issue_title: $issue_title
             issue_team_id: $issue_team_id
             issue_description: $issue_description
+            additional_context: $additional_context
         ) {
             id
             timestamp
@@ -1437,6 +1439,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      additional_context: // value for 'additional_context'
  *   },
  * });
  */
@@ -9573,6 +9576,7 @@ export const GetDashboardDefinitionsDocument = gql`
             project_id
             name
             metrics {
+                component_type
                 name
                 description
                 max_good_value

@@ -1452,6 +1452,7 @@ query GetDashboardDefinitions($project_id: ID!) {
         project_id
         name
         metrics {
+            component_type
             name
             description
             max_good_value

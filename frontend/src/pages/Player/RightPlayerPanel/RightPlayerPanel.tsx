@@ -4,6 +4,7 @@ import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
+import { useWindowSize } from 'react-use';
 
 import Tabs from '../../../components/Tabs/Tabs';
 import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton';
@@ -19,13 +20,23 @@ import styles from './RightPlayerPanel.module.scss';
 const RightPlayerPanel = React.memo(() => {
     const {
         showRightPanel: showRightPanelPreference,
+        showLeftPanel,
         setShowRightPanel,
+        setShowLeftPanel,
     } = usePlayerConfiguration();
     const { showBanner } = useGlobalContext();
     const { canViewSession } = useReplayerContext();
     const { setSelectedRightPanelTab, detailedPanel } = usePlayerUIContext();
 
     const showRightPanel = showRightPanelPreference && canViewSession;
+
+    const { width } = useWindowSize();
+
+    useEffect(() => {
+        if (showRightPanel && showLeftPanel && width <= 1300) {
+            setShowRightPanel(false);
+        }
+    }, [setShowRightPanel, showLeftPanel, showRightPanel, width]);
 
     useEffect(() => {
         const commentId = new URLSearchParams(location.search).get(
@@ -57,7 +68,11 @@ const RightPlayerPanel = React.memo(() => {
                     direction="right"
                     isOpen={showRightPanel}
                     onClick={() => {
-                        setShowRightPanel(!showRightPanel);
+                        const isOpen = !showRightPanel;
+                        if (isOpen && width <= 1300) {
+                            setShowLeftPanel(false);
+                        }
+                        setShowRightPanel(isOpen);
                     }}
                 />
                 {showRightPanel && (

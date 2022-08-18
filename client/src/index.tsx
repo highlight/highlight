@@ -148,6 +148,9 @@ const PROPERTY_MAX_LENGTH = 2000;
 const MIN_SNAPSHOT_BYTES = 10e6;
 const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 
+// Debounce duplicate visibility events
+const VISIBILITY_DEBOUNCE_MS = 100;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -186,10 +189,12 @@ export class Highlight {
     _firstLoadListeners!: FirstLoadListeners;
     _eventBytesSinceSnapshot!: number;
     _lastSnapshotTime!: number;
+    _lastVisibilityChangeTime!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    _hasPreviouslyInitialized!: boolean;
     _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
@@ -370,6 +375,7 @@ export class Highlight {
         this.events = [];
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
+        this._hasPreviouslyInitialized = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -382,6 +388,7 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
+        this._lastVisibilityChangeTime = new Date().getTime();
         this._payloadId =
             Number(
                 window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)
@@ -624,6 +631,11 @@ export class Highlight {
             }
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
+            // only fetch session data from local storage on the first `initialize` call
+            if (!this.sessionData.sessionID && storedSessionData) {
+                this.sessionData = storedSessionData;
+                reloaded = true;
+            }
 
             const recordingStartTime = window.sessionStorage.getItem(
                 SESSION_STORAGE_KEYS.RECORDING_START_TIME
@@ -663,11 +675,9 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (storedSessionData) {
-                this.sessionData = storedSessionData;
+            if (this.sessionData.sessionSecureID) {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
-                reloaded = true;
             } else {
                 try {
                     const client = await this.fingerprintjs;
@@ -852,11 +862,6 @@ export class Highlight {
                 })
             );
             this.listeners.push(
-                PageVisibilityListener((isTabHidden) => {
-                    this.addCustomEvent('TabHidden', isTabHidden);
-                })
-            );
-            this.listeners.push(
                 ClickListener((clickTarget, event) => {
                     if (clickTarget) {
                         this.addCustomEvent('Click', clickTarget);
@@ -924,44 +929,95 @@ export class Highlight {
                     this.addCustomEvent('Performance', stringify(payload));
                 }, this._recordingStartTime)
             );
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
+        }
+        try {
+            // ensure we only create document/window listeners once
+            if (this._hasPreviouslyInitialized) {
+                return;
+            }
+            this._setupWindowListeners();
+        } finally {
+            this._hasPreviouslyInitialized = true;
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
+        }
+    }
 
-            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-            // as when switching tabs or apps on mobile. Non-blocking.
-            document.addEventListener('visibilitychange', () => {
-                if (
-                    document.visibilityState === 'hidden' &&
-                    'sendBeacon' in navigator
-                ) {
-                    try {
-                        this._sendPayload({
-                            isBeacon: true,
-                            sendFn: (payload) => {
-                                let blob = new Blob(
-                                    [
-                                        JSON.stringify({
-                                            query: print(PushPayloadDocument),
-                                            variables: payload,
-                                        }),
-                                    ],
-                                    {
-                                        type: 'application/json',
-                                    }
-                                );
-                                navigator.sendBeacon(
-                                    `${this._backendUrl}`,
-                                    blob
-                                );
-                                return Promise.resolve(0);
-                            },
-                        });
-                    } catch (e) {
-                        if (this._isOnLocalHost) {
-                            console.error(e);
-                            HighlightWarning('_sendPayload', e);
-                        }
-                    }
+    _visibilityHandler(hidden: boolean) {
+        if (
+            new Date().getTime() - this._lastVisibilityChangeTime <
+            VISIBILITY_DEBOUNCE_MS
+        ) {
+            return;
+        }
+        this._lastVisibilityChangeTime = new Date().getTime();
+        if (!hidden) {
+            this.logger.log(`Detected window visible. Resuming recording.`);
+            this.initialize();
+            this.addCustomEvent('TabHidden', false);
+            return;
+        }
+        this.logger.log(`Detected window hidden. Pausing recording.`);
+        this.addCustomEvent('TabHidden', true);
+        if ('sendBeacon' in navigator) {
+            try {
+                this._sendPayload({
+                    isBeacon: true,
+                    sendFn: (payload) => {
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                        return Promise.resolve(0);
+                    },
+                });
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                    HighlightWarning('_sendPayload', e);
                 }
-            });
+            }
+        }
+        this.stopRecording();
+    }
+
+    _setupWindowListeners() {
+        try {
+            // setup electron main thread window visiblity events listener
+            if (window.electron?.ipcRenderer) {
+                window.electron.ipcRenderer.on(
+                    'highlight.run',
+                    ({ visible }: { visible: boolean }) => {
+                        this._visibilityHandler(!visible);
+                    }
+                );
+                this.logger.log('Set up Electron highlight.run events.');
+            } else {
+                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+                // as when switching tabs or apps on mobile. Non-blocking.
+                PageVisibilityListener((isTabHidden) =>
+                    this._visibilityHandler(isTabHidden)
+                );
+                this.logger.log('Set up document visibility listener.');
+            }
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
@@ -970,19 +1026,13 @@ export class Highlight {
                     clearTimeout(this.pushPayloadTimerId);
                 }
             });
-            if (
-                this.sessionData.projectID &&
-                this.sessionData.sessionSecureID
-            ) {
-                this.ready = true;
-                this.state = 'Recording';
-            }
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
-                HighlightWarning('initializeSession', e);
+                HighlightWarning('initializeSession _setupWindowListeners', e);
             }
         }
+
         window.addEventListener('beforeunload', () => {
             this.addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
@@ -1274,6 +1324,11 @@ export class Highlight {
 interface HighlightWindow extends Window {
     Highlight: Highlight;
     Intercom?: any;
+    electron?: {
+        ipcRenderer: {
+            on: (channel: string, listener: (...args: any[]) => void) => {};
+        };
+    };
 }
 
 declare var window: HighlightWindow;

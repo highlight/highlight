@@ -73,10 +73,10 @@ export function getMetricValueScore(
         'max_good_value' | 'max_needs_improvement_value'
     >
 ): MetricValueScore {
-    if (value <= max_good_value) {
+    if (max_good_value && value <= max_good_value) {
         return MetricValueScore.Good;
     }
-    if (value <= max_needs_improvement_value) {
+    if (max_needs_improvement_value && value <= max_needs_improvement_value) {
         return MetricValueScore.NeedsImprovement;
     }
 
@@ -111,7 +111,7 @@ function getInfoTooltipText(
         >
             {message}{' '}
             <a
-                href={configuration.help_article}
+                href={configuration.help_article || ''}
                 target="_blank"
                 rel="noreferrer"
             >
@@ -199,16 +199,16 @@ const getScorePosition = (
         case MetricValueScore.Good:
             offset = 0;
             min = 0;
-            max = configuration.max_good_value;
+            max = configuration.max_good_value || 1;
             break;
         case MetricValueScore.NeedsImprovement:
             offset = OFFSET_AMOUNT;
-            min = configuration.max_good_value;
-            max = configuration.max_needs_improvement_value;
+            min = configuration.max_good_value || 1;
+            max = configuration.max_needs_improvement_value || 5;
             break;
         case MetricValueScore.Poor:
             offset = OFFSET_AMOUNT * 2;
-            min = configuration.max_needs_improvement_value;
+            min = configuration.max_needs_improvement_value || 10;
             max = Infinity;
             break;
     }

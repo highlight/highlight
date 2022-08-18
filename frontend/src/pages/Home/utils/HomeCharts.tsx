@@ -1,28 +1,26 @@
 import Card from '@components/Card/Card';
-import DemoWorkspaceButton, {
+import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
-    useGetAdminQuery,
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '@graph/hooks';
-import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable';
-import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable';
+import { useHomePageFiltersContext } from '@pages/Home/components/HomePageFilters/HomePageFiltersContext';
+import styles from '@pages/Home/HomePage.module.scss';
+import { SessionPageSearchParams } from '@pages/Player/utils/utils';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { dailyCountData } from '@util/dashboardCalculations';
-import { useIntegrated } from '@util/integrated';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import Lottie from 'lottie-react';
-import moment from 'moment';
+import moment from 'moment/moment';
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import {
     Area,
     CartesianGrid,
@@ -34,144 +32,13 @@ import {
     YAxis,
 } from 'recharts';
 
-import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
-import WaitingAnimation from '../../lottie/waiting.json';
-import { SessionPageSearchParams } from '../Player/utils/utils';
-import { EmptySessionsSearchParams } from '../Sessions/EmptySessionsSearchParams';
-import { useSearchContext } from '../Sessions/SearchContext/SearchContext';
-import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
-import {
-    HomePageFiltersContext,
-    useHomePageFiltersContext,
-} from './components/HomePageFilters/HomePageFiltersContext';
-import KeyPerformanceIndicators from './components/KeyPerformanceIndicators/KeyPerformanceIndicators';
-import ReferrersTable from './components/ReferrersTable/ReferrersTable';
-import styles from './HomePage.module.scss';
-
 type DailyCount = {
     date: string;
     count: number;
     label: string;
 };
 
-const HomePage = () => {
-    const { loading: adminLoading, data: adminData } = useGetAdminQuery({
-        skip: false,
-    });
-    const { project_id } = useParams<{ project_id: string }>();
-    const projectIdRemapped =
-        project_id === DEMO_WORKSPACE_APPLICATION_ID
-            ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-            : project_id;
-    const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[1].value
-    );
-    const [hasData, setHasData] = useState<boolean>(true);
-    const { integrated, loading: integratedLoading } = useIntegrated();
-
-    if (integratedLoading || adminLoading) {
-        return null;
-    }
-
-    return (
-        <HomePageFiltersContext
-            value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
-        >
-            <Helmet>
-                <title>Home</title>
-            </Helmet>
-            <div className={styles.dashboardWrapper}>
-                <div
-                    className={styles.dashboard}
-                    style={{ padding: '120px 80px 80px' }}
-                >
-                    <div className={styles.headerContainer}>
-                        <div>
-                            <h2>
-                                {integrated
-                                    ? `${
-                                          adminData?.admin?.name
-                                              ? `Hey ${
-                                                    adminData.admin.name.split(
-                                                        ' '
-                                                    )[0]
-                                                }, welcome`
-                                              : `Welcome`
-                                      } back to Highlight.`
-                                    : 'Welcome to Highlight'}
-                            </h2>
-                            {integrated && (
-                                <p className={styles.subTitle}>
-                                    Here’s an overview of your team’s sessions
-                                    and errors.
-                                </p>
-                            )}
-                        </div>
-                        <div className={styles.filtersContainer}>
-                            <StandardDropdown
-                                data={timeFilter}
-                                defaultValue={timeFilter[1]}
-                                onSelect={setDateRangeLength}
-                            />
-                        </div>
-                    </div>
-                    <KeyPerformanceIndicators />
-                    <div className={styles.dashboardBody}>
-                        <SessionCountGraph />
-                        <ErrorCountGraph />
-                        <ReferrersTable />
-                        <ActiveUsersTable />
-                        <RageClicksForProjectTable />
-                        <TopRoutesTable />
-                    </div>
-                    {!hasData && !integrated && (
-                        <div className={styles.noDataContainer}>
-                            <ElevatedCard
-                                title={
-                                    integrated
-                                        ? "You're too fast!"
-                                        : 'Waiting for Installation...'
-                                }
-                                animation={
-                                    <Lottie animationData={WaitingAnimation} />
-                                }
-                            >
-                                <p>
-                                    {integrated ? (
-                                        "We're still processing your sessions and errors. Check back here later."
-                                    ) : (
-                                        <>
-                                            Please follow the{' '}
-                                            <Link
-                                                to={`/${projectIdRemapped}/setup`}
-                                            >
-                                                setup instructions
-                                            </Link>{' '}
-                                            to install Highlight. It should take
-                                            less than a minute for us to detect
-                                            installation.
-                                            <div
-                                                className={
-                                                    styles.demoWorkspaceButton
-                                                }
-                                            >
-                                                <DemoWorkspaceButton
-                                                    integrated={integrated}
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                </p>
-                            </ElevatedCard>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </HomePageFiltersContext>
-    );
-};
-
-const timeFilter = [
+export const HomePageTimeFilter = [
     { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
@@ -179,7 +46,7 @@ const timeFilter = [
     { label: 'This year', value: 30 * 12 },
 ] as const;
 
-const SessionCountGraph = () => {
+export const SessionCountGraph = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -240,7 +107,7 @@ const SessionCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Sessions per Day">
+        <Card title="Sessions" full>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -266,7 +133,7 @@ const SessionCountGraph = () => {
     );
 };
 
-const ErrorCountGraph = () => {
+export const ErrorCountGraph = () => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -313,7 +180,7 @@ const ErrorCountGraph = () => {
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Errors per Day">
+        <Card title="Errors" full>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
@@ -345,7 +212,7 @@ const DailyChart = ({
     const gradientId = `${name}-colorUv`;
 
     return (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={275}>
             <ComposedChart
                 width={500}
                 height={300}
@@ -432,5 +299,3 @@ const DailyChart = ({
         </ResponsiveContainer>
     );
 };
-
-export default HomePage;

@@ -20,6 +20,7 @@ import {
 import {
     DashboardChartType,
     DashboardMetricConfig,
+    Maybe,
     MetricAggregator,
 } from '@graph/schemas';
 import useDataTimeRange from '@hooks/useDataTimeRange';
@@ -60,7 +61,7 @@ const LINE_COLORS = {
     [MetricAggregator.Count]: 'var(--color-green-500)',
 };
 
-type DeleteMetricFn = (idx: number) => void;
+export type DeleteMetricFn = (idx: number) => void;
 
 interface Props {
     metricIdx: number;
@@ -111,10 +112,12 @@ const DashboardCard = ({
                                                 'Click to learn more about this metric.'
                                             }
                                             onClick={() => {
-                                                window.open(
-                                                    metricConfig.help_article,
-                                                    '_blank'
-                                                );
+                                                if (metricConfig.help_article) {
+                                                    window.open(
+                                                        metricConfig.help_article,
+                                                        '_blank'
+                                                    );
+                                                }
                                             }}
                                         />
                                     )}
@@ -235,45 +238,18 @@ const DashboardCard = ({
                                 </div>
                             </div>
                         </div>
-                        <Modal
-                            visible={showDeleteModal}
+                        <DeleteMetricModal
+                            name={metricConfig.name}
+                            showDeleteModal={showDeleteModal}
+                            onDelete={() => {
+                                setShowDeleteModal(false);
+                                setShowEditModal(false);
+                                deleteMetric(metricIdx);
+                            }}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                             }}
-                            title={`Delete '${metricConfig.name}' Metric View?`}
-                            width={400}
-                        >
-                            <ModalBody>
-                                <p className={styles.description}>
-                                    Are you sure you want to delete this metric?
-                                </p>
-                                <div className={styles.actionsContainer}>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetricCancel"
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                        }}
-                                        type="default"
-                                        className={styles.button}
-                                    >
-                                        Don't Delete View
-                                    </Button>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetric"
-                                        danger
-                                        type="primary"
-                                        className={styles.button}
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                            setShowEditModal(false);
-                                            deleteMetric(metricIdx);
-                                        }}
-                                    >
-                                        Delete Metric View
-                                    </Button>
-                                </div>
-                            </ModalBody>
-                        </Modal>
+                        />
                         {updatingData && (
                             <LoadingBar height={2} width={'100%'} />
                         )}
@@ -303,6 +279,52 @@ const DashboardCard = ({
     );
 };
 
+export const DeleteMetricModal = ({
+    name,
+    showDeleteModal,
+    onDelete,
+    onCancel,
+}: {
+    name: string;
+    showDeleteModal: boolean;
+    onDelete: () => void;
+    onCancel: () => void;
+}) => {
+    return (
+        <Modal
+            visible={showDeleteModal}
+            onCancel={onCancel}
+            title={`Delete '${name}' Metric View?`}
+            width={600}
+        >
+            <ModalBody>
+                <p className={styles.description}>
+                    Are you sure you want to delete this metric?
+                </p>
+                <div className={styles.actionsContainer}>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetricCancel"
+                        onClick={onCancel}
+                        type="default"
+                        className={styles.button}
+                    >
+                        Don't Delete View
+                    </Button>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetric"
+                        danger
+                        type="primary"
+                        className={styles.button}
+                        onClick={onDelete}
+                    >
+                        Delete Metric View
+                    </Button>
+                </div>
+            </ModalBody>
+        </Modal>
+    );
+};
+
 const ChartContainer = React.memo(
     ({
         metricIdx,
@@ -323,11 +345,11 @@ const ChartContainer = React.memo(
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
-        chartType: DashboardChartType;
-        aggregator: MetricAggregator;
-        maxGoodValue: number;
-        maxNeedsImprovementValue: number;
-        poorValue: number;
+        chartType?: Maybe<DashboardChartType>;
+        aggregator?: Maybe<MetricAggregator>;
+        maxGoodValue?: Maybe<number>;
+        maxNeedsImprovementValue?: Maybe<number>;
+        poorValue?: Maybe<number>;
         showEditModal: boolean;
         setMaxGoodValue?: (v: number) => void;
         setMaxNeedsImprovementValue?: (v: number) => void;
@@ -504,7 +526,7 @@ const ChartContainer = React.memo(
             referenceLines = [
                 {
                     label: 'Goal',
-                    value: maxGoodValue,
+                    value: maxGoodValue || 0,
                     color: 'var(--color-green-300)',
                     onDrag:
                         setMaxGoodValue &&
@@ -514,7 +536,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Needs Improvement',
-                    value: maxNeedsImprovementValue,
+                    value: maxNeedsImprovementValue || 0,
                     color: 'var(--color-red-200)',
                     onDrag:
                         setMaxNeedsImprovementValue &&
@@ -524,7 +546,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Poor',
-                    value: poorValue,
+                    value: poorValue || 0,
                     color: 'var(--color-red-400)',
                     onDrag:
                         setPoorValue &&
@@ -561,29 +583,29 @@ const ChartContainer = React.memo(
                 !histogramData?.metrics_histogram?.buckets.length ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
-                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here soon after integrating.`}
                         />
                     </div>
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
-                        height={235}
+                        height={275}
                         data={histogramData?.metrics_histogram?.buckets || []}
                         referenceLines={referenceLines}
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
                         xAxisDataKeyName="range_end"
-                        xAxisLabel={metricConfig.units}
+                        xAxisLabel={metricConfig.units || undefined}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
-                        xAxisUnits={metricConfig.units}
+                        xAxisUnits={metricConfig.units || undefined}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
-                        height={235}
+                        height={275}
                         syncId="dashboardChart"
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
@@ -606,7 +628,7 @@ const ChartContainer = React.memo(
                             interval: 0, // show all ticks
                         }}
                         lineColorMapping={LINE_COLORS}
-                        yAxisLabel={metricConfig.units}
+                        yAxisLabel={metricConfig.units || ''}
                         referenceAreaProps={{
                             x1: referenceArea.start,
                             x2: referenceArea.end,
@@ -645,7 +667,7 @@ const ChartContainer = React.memo(
                 ) : chartType === DashboardChartType.TimelineBar ? (
                     <CategoricalBarChart
                         syncId="dashboardChart"
-                        height={235}
+                        height={275}
                         stacked
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
@@ -668,7 +690,7 @@ const ChartContainer = React.memo(
                             scale: 'point',
                             interval: 0, // show all ticks
                         }}
-                        yAxisLabel={metricConfig.units}
+                        yAxisLabel={metricConfig.units || ''}
                     />
                 ) : null}
             </div>
@@ -682,7 +704,6 @@ const ChartContainer = React.memo(
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
-        prevProps.metricIdx === nextProps.metricIdx &&
         prevProps.metricConfig.name === nextProps.metricConfig.name &&
         prevProps.metricConfig.chart_type ===
             nextProps.metricConfig.chart_type &&

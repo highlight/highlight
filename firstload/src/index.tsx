@@ -17,6 +17,7 @@ import {
 } from './types/types';
 import HighlightSegmentMiddleware from './integrations/segment';
 import { GenerateSecureID } from '../../client/src/utils/secure-id';
+import configureElectronHighlight from './environments/electron';
 
 initializeFetchListener();
 
@@ -357,4 +358,8 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage();
 
-export { HighlightSegmentMiddleware, HighlightOptions };
+export {
+    HighlightSegmentMiddleware,
+    HighlightOptions,
+    configureElectronHighlight,
+};

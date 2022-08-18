@@ -1,18 +1,20 @@
 {
     "name": "highlight.run",
-    "version": "4.3.2",
+    "version": "4.3.4",
     "scripts": {
         "build": "tsc && rollup -c",
         "dev": "doppler run -- rollup -c -w",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
         "test": "jest --detectOpenHandles"
     },
-    "main": "dist/firstload/src/index.js",
+    "main": "dist/index.js",
     "types": "dist/firstload/src/index.d.ts",
     "license": "MIT",
     "devDependencies": {
+        "@rollup/plugin-commonjs": "^22.0.1",
         "@rollup/plugin-json": "^4.1.0",
         "@rollup/plugin-node-resolve": "^13.3.0",
+        "@rollup/plugin-replace": "^4.0.0",
         "@rollup/plugin-typescript": "^8.3.3",
         "@types/chrome": "^0.0.144",
         "@types/jest": "^26.0.24",
@@ -29,10 +31,6 @@
         "rollup-plugin-web-worker-loader": "^1.6.1",
         "tslib": "^2.4.0",
         "typescript": "^4.0.3"
-    },
-    "dependencies": {
-        "@rollup/plugin-commonjs": "^22.0.1",
-        "@rollup/plugin-replace": "^4.0.0"
     },
     "setupFiles": [
         "./tests/jest.overrides.js"

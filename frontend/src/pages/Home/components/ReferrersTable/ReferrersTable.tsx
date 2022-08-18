@@ -8,7 +8,11 @@ import {
     ProgressBarTablePill,
     ProgressBarTableRowGroup,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
+import { useGetReferrersCountQuery } from '@graph/hooks';
 import SvgReferrer from '@icons/Referrer';
+import homePageStyles from '@pages/Home/HomePage.module.scss';
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -17,9 +21,6 @@ import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
-import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
-import { EmptySessionsSearchParams } from '../../../Sessions/EmptySessionsSearchParams';
-import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
@@ -64,7 +65,15 @@ const ReferrersTable = () => {
     }
 
     return (
-        <Card title="Top Referrers" noTitleBottomMargin>
+        <Card
+            title={
+                <div className={homePageStyles.chartHeaderWrapper}>
+                    <h3 id={homePageStyles.h3}>Top Referrers</h3>
+                </div>
+            }
+            noTitleBottomMargin
+            full
+        >
             <ProgressBarTable
                 columns={Columns}
                 data={tableData}

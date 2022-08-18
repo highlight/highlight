@@ -17,6 +17,7 @@ import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import React, { useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
@@ -86,21 +87,29 @@ const ActiveUsersTable = () => {
     return (
         <Card
             title={
-                <div className={homePageStyles.chartHeaderWrapper}>
+                <div
+                    className={classNames(
+                        homePageStyles.chartHeaderWrapper,
+                        homePageStyles.smallMargin
+                    )}
+                >
                     <h3 id={homePageStyles.h3}>Top Users</h3>
-                    <Input
-                        allowClear
-                        placeholder="Search for user"
-                        value={filterSearchTerm}
-                        onChange={(event) => {
-                            setFilterSearchTerm(event.target.value);
-                        }}
-                        size="small"
-                        disabled={loading}
-                    />
+                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
+                        <Input
+                            allowClear
+                            placeholder="Search for user"
+                            value={filterSearchTerm}
+                            onChange={(event) => {
+                                setFilterSearchTerm(event.target.value);
+                            }}
+                            size="small"
+                            disabled={loading}
+                        />
+                    </div>
                 </div>
             }
             noTitleBottomMargin
+            full
         >
             <ProgressBarTable
                 loading={loading}
@@ -189,15 +198,21 @@ const Columns: ColumnsType<any> = [
         render: (percent, record) => {
             return (
                 <ProgressBarTableRowGroup alignment="ending">
-                    <ProgressBarTablePercentage percent={percent * 100} />
-                    <Tooltip title="Total active time the user has spent on your app">
-                        <ProgressBarTablePill
-                            displayValue={`${formatShortTime(
-                                record.total_active_time / 1000
-                            )}`}
-                            icon={<SvgClockIcon />}
-                        />
-                    </Tooltip>
+                    <div className={styles.timeRow}>
+                        <ProgressBarTablePercentage percent={percent * 100} />
+                        <Tooltip title="Total active time the user has spent on your app">
+                            <ProgressBarTablePill
+                                displayValue={`${formatShortTime(
+                                    record.total_active_time / 1000,
+                                    ['d', 'h', 'm', 's'],
+                                    '',
+                                    1,
+                                    true
+                                )}`}
+                                icon={<SvgClockIcon />}
+                            />
+                        </Tooltip>
+                    </div>
                 </ProgressBarTableRowGroup>
             );
         },

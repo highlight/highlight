@@ -339,6 +339,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     issue_title?: Types.Maybe<Types.Scalars['String']>;
     issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
+    additional_context?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -3716,6 +3717,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                     metrics: Array<
                         { __typename?: 'DashboardMetricConfig' } & Pick<
                             Types.DashboardMetricConfig,
+                            | 'component_type'
                             | 'name'
                             | 'description'
                             | 'max_good_value'
