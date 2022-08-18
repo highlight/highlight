@@ -62,12 +62,13 @@ import {
     MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
 } from './utils/graph';
 import { ReplayEventsInput } from './graph/generated/schemas';
+import { MessageType, PropertyType, Source } from './workers/types';
+import { Logger } from './logger';
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
-import { MessageType, PropertyType, Source } from './workers/types';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -75,20 +76,6 @@ export const HighlightWarning = (context: string, msg: any) => {
 
 enum LOCAL_STORAGE_KEYS {
     CLIENT_ID = 'highlightClientID',
-}
-
-class Logger {
-    debug: boolean | undefined;
-
-    constructor(debug?: boolean) {
-        this.debug = debug;
-    }
-
-    log(...data: any[]) {
-        if (this.debug) {
-            console.log.apply(console, [`[${Date.now()}]`, ...data]);
-        }
-    }
 }
 
 export type HighlightClassOptions = {
@@ -138,8 +125,6 @@ const SEND_FREQUENCY = 1000 * 2;
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 const HIGHLIGHT_URL = 'app.highlight.run';
-
-const PROPERTY_MAX_LENGTH = 2000;
 
 /*
  * Don't take another full snapshot unless it's been at least
@@ -320,6 +305,11 @@ export class Highlight {
                     this._eventBytesSinceSnapshot / 1000000
                 }MB`
                 );
+            } else if (e.data.response?.type === MessageType.CustomEvent) {
+                this.addCustomEvent(
+                    e.data.response.tag,
+                    e.data.response.payload
+                );
             }
         };
 
@@ -379,27 +369,13 @@ export class Highlight {
         );
     }
 
-    async identify(user_identifier: string, user_object = {}, source?: Source) {
+    identify(user_identifier: string, user_object = {}, source?: Source) {
         if (!user_identifier || user_identifier === '') {
             console.warn(
                 `Highlight's identify() call was passed an empty identifier.`,
                 { user_identifier, user_object }
             );
             return;
-        }
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        if (source === 'segment') {
-            this.addCustomEvent(
-                'Segment Identify',
-                stringify({ user_identifier, ...user_object })
-            );
-        } else {
-            this.addCustomEvent(
-                'Identify',
-                stringify({ user_identifier, ...user_object })
-            );
         }
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
@@ -411,76 +387,14 @@ export class Highlight {
             SESSION_STORAGE_KEYS.USER_OBJECT,
             JSON.stringify(user_object)
         );
-        try {
-            const stringified = this._stringifyProperties(user_object, 'user');
-            await this.graphqlSDK.identifySession({
-                session_secure_id: this.sessionData.sessionSecureID,
-                user_identifier: this.sessionData.userIdentifier,
-                user_object: stringified,
-            });
-            const sourceString = source === 'segment' ? source : 'default';
-            this.logger.log(
-                `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
-                    user_object
-                )} @ ${publicGraphURI}`
-            );
-            this.numberOfFailedRequests = 0;
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-            }
-            this.numberOfFailedRequests += 1;
-        }
-    }
-
-    _stringifyProperties(
-        properties_object: any,
-        type: 'session' | 'track' | 'user'
-    ) {
-        const stringifiedObj: any = {};
-        const invalidTypes: any[] = [];
-        const tooLong: any[] = [];
-        for (const [key, value] of Object.entries(properties_object)) {
-            if (value === undefined || value === null) {
-                continue;
-            }
-
-            if (!['number', 'string', 'boolean'].includes(typeof value)) {
-                invalidTypes.push({ [key]: value });
-            }
-            let asString: string;
-            if (typeof value === 'string') {
-                asString = value;
-            } else {
-                asString = stringify(value);
-            }
-            if (asString.length > PROPERTY_MAX_LENGTH) {
-                tooLong.push({ [key]: value });
-                asString = asString.substring(0, PROPERTY_MAX_LENGTH);
-            }
-
-            stringifiedObj[key] = asString;
-        }
-
-        // Skipping logging for 'session' type because they're generated by Highlight
-        // (e.g. visited-url > 2000 characters)
-        if (type !== 'session') {
-            if (invalidTypes.length > 0) {
-                console.warn(
-                    `Highlight was passed one or more ${type} properties not of type string, number, or boolean.`,
-                    invalidTypes
-                );
-            }
-
-            if (tooLong.length > 0) {
-                console.warn(
-                    `Highlight was passed one or more ${type} properties exceeding 2000 characters, which will be truncated.`,
-                    tooLong
-                );
-            }
-        }
-
-        return stringifiedObj;
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Identify,
+                userIdentifier: user_identifier,
+                userObject: user_object,
+                source,
+            },
+        });
     }
 
     async pushCustomError(message: string, payload?: string) {
@@ -521,72 +435,14 @@ export class Highlight {
         });
     }
 
-    async addProperties(properties_obj = {}, typeArg?: PropertyType) {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
-        if (typeArg?.type === 'session') {
-            try {
-                const stringified = this._stringifyProperties(
-                    properties_obj,
-                    'session'
-                );
-                await this.graphqlSDK.addSessionProperties({
-                    session_secure_id: this.sessionData.sessionSecureID,
-                    properties_object: stringified,
-                });
-                this.logger.log(
-                    `AddSessionProperties to session (${
-                        this.sessionData.sessionSecureID
-                    }) w/ obj: ${JSON.stringify(
-                        properties_obj
-                    )} @ ${publicGraphURI}`
-                );
-                this.numberOfFailedRequests = 0;
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
-            }
-        }
-        // Track properties are properties that users define; rn, either through segment or manually.
-        else {
-            if (typeArg?.source === 'segment') {
-                this.addCustomEvent<string>(
-                    'Segment Track',
-                    stringify(properties_obj)
-                );
-            } else {
-                this.addCustomEvent<string>('Track', stringify(properties_obj));
-            }
-            try {
-                const stringified = this._stringifyProperties(
-                    properties_obj,
-                    'track'
-                );
-                await this.graphqlSDK.addTrackProperties({
-                    session_secure_id: this.sessionData.sessionSecureID,
-                    properties_object: stringified,
-                });
-                const sourceString =
-                    typeArg?.source === 'segment' ? typeArg.source : 'default';
-                this.logger.log(
-                    `AddTrackProperties to session (${
-                        this.sessionData.sessionSecureID
-                    }, source: ${sourceString}) w/ obj: ${stringify(
-                        properties_obj
-                    )} @ ${publicGraphURI}`
-                );
-                this.numberOfFailedRequests = 0;
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
-            }
-        }
+    addProperties(properties_obj = {}, typeArg?: PropertyType) {
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Properties,
+                propertiesObject: properties_obj,
+                propertyType: typeArg,
+            },
+        });
     }
 
     async initialize(): Promise<undefined> {
@@ -691,6 +547,15 @@ export class Highlight {
   `,
                         gr.initializeSession
                     );
+                    this._worker.postMessage({
+                        message: {
+                            type: MessageType.Initialize,
+                            sessionSecureID: this.sessionData.sessionSecureID,
+                            backend: this._backendUrl,
+                            debug: !!this.debugOptions.clientInteractions,
+                            recordingStartTime: this._recordingStartTime,
+                        },
+                    });
                     if (this.sessionData.userIdentifier) {
                         this.identify(
                             this.sessionData.userIdentifier,
@@ -700,19 +565,19 @@ export class Highlight {
                     this.numberOfFailedRequests = 0;
                     const { getDeviceDetails } = getPerformanceMethods();
                     if (getDeviceDetails) {
-                        const deviceDetails = getDeviceDetails();
-                        this.graphqlSDK.pushMetrics({
-                            metrics: [
-                                {
-                                    name: 'DeviceMemory',
-                                    value: deviceDetails.deviceMemory,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
-                                    category: 'Device',
-                                    group: window.location.href,
-                                    timestamp: new Date().toISOString(),
-                                },
-                            ],
+                        this._worker.postMessage({
+                            message: {
+                                type: MessageType.Metrics,
+                                metrics: [
+                                    {
+                                        name: 'DeviceMemory',
+                                        value: getDeviceDetails().deviceMemory,
+                                        category: 'Device',
+                                        group: window.location.href,
+                                        timestamp: new Date(),
+                                    },
+                                ],
+                            },
                         });
                     }
                 } catch (e) {
@@ -1085,33 +950,20 @@ export class Highlight {
         user_name?: string;
         user_email?: string;
     }) {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        try {
-            this.graphqlSDK.addSessionFeedback({
-                session_secure_id: this.sessionData.sessionSecureID,
-                timestamp,
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Feedback,
                 verbatim,
-                user_email: user_email || this.sessionData.userIdentifier,
-                // @ts-expect-error
-                user_name: user_name || this.sessionData.userObject?.name,
-            });
-
-            this.numberOfFailedRequests = 0;
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-            }
-            this.numberOfFailedRequests += 1;
-        }
+                timestamp,
+                userName: user_name || this.sessionData.userIdentifier,
+                userEmail:
+                    user_email || (this.sessionData.userObject as any)?.name,
+            },
+        });
     }
 
     // Reset the events array and push to a backend.
     async _save() {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
         try {
             if (!this.sessionData.sessionSecureID) {
                 return;
@@ -1157,14 +1009,6 @@ export class Highlight {
         }
     }
 
-    _shouldSendRequest(): boolean {
-        return (
-            this._recordingStartTime !== 0 &&
-            this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
-            this.sessionData.sessionSecureID !== ''
-        );
-    }
-
     /**
      * This proxy should be used instead of rrweb's native addCustomEvent.
      * The proxy makes sure recording has started before emitting a custom event.
@@ -1195,7 +1039,7 @@ export class Highlight {
     }: {
         isBeacon: boolean;
         sendFn?: (payload: PushPayloadMutationVariables) => Promise<number>;
-    }): Promise<void> {
+    }) {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
             this._recordingStartTime
@@ -1237,10 +1081,6 @@ export class Highlight {
             });
         } else {
             this._worker.postMessage({
-                backend: this._backendUrl,
-                sessionSecureID:
-                    this.sessionData?.sessionSecureID ||
-                    this.options?.sessionSecureID,
                 message: {
                     type: MessageType.AsyncEvents,
                     id: this._payloadId,

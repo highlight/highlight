@@ -18,20 +18,15 @@ export enum MessageType {
     Properties,
     Metrics,
     Feedback,
+    CustomEvent,
 }
 
 export type InitializeMessage = {
     type: MessageType.Initialize;
-    organizationID: string;
-    enableStrictPrivacy: boolean;
-    enableRecordingNetworkContents: boolean;
-    clientVersion: string;
-    firstloadVersion: string;
-    clientConfig: any;
-    environment: string;
-    id: string;
-    appVersion: string;
-    clientID: string;
+    backend: string;
+    sessionSecureID: string;
+    debug: boolean;
+    recordingStartTime: number;
 };
 
 export type AsyncEventsMessage = {
@@ -69,7 +64,7 @@ export type MetricsMessage = {
     type: MessageType.Metrics;
     metrics: {
         name: string;
-        value: string;
+        value: number;
         category: 'WebVital' | 'Device';
         group: string;
         timestamp: Date;
@@ -84,9 +79,13 @@ export type FeedbackMessage = {
     userEmail?: string;
 };
 
+export type CustomEventResponse = {
+    type: MessageType.CustomEvent;
+    tag: string;
+    payload: any;
+};
+
 export type HighlightClientWorkerParams = {
-    backend: string;
-    sessionSecureID: string;
     message:
         | InitializeMessage
         | AsyncEventsMessage
@@ -97,5 +96,5 @@ export type HighlightClientWorkerParams = {
 };
 
 export type HighlightClientWorkerResponse = {
-    response?: AsyncEventsResponse;
+    response?: AsyncEventsResponse | CustomEventResponse;
 };
