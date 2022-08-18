@@ -368,6 +368,7 @@ export type ErrorMetadata = {
     identifier?: Maybe<Scalars['String']>;
     user_properties?: Maybe<Scalars['String']>;
     request_id?: Maybe<Scalars['String']>;
+    payload?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {

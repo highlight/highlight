@@ -275,6 +275,7 @@ type ComplexityRoot struct {
 		Fingerprint     func(childComplexity int) int
 		Identifier      func(childComplexity int) int
 		Os              func(childComplexity int) int
+		Payload         func(childComplexity int) int
 		RequestID       func(childComplexity int) int
 		SessionID       func(childComplexity int) int
 		SessionSecureID func(childComplexity int) int
@@ -2150,6 +2151,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.Os(childComplexity), true
+
+	case "ErrorMetadata.payload":
+		if e.complexity.ErrorMetadata.Payload == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Payload(childComplexity), true
 
 	case "ErrorMetadata.request_id":
 		if e.complexity.ErrorMetadata.RequestID == nil {
@@ -6488,6 +6496,7 @@ type ErrorMetadata {
     identifier: String
     user_properties: String
     request_id: String
+    payload: String
 }
 
 type ErrorTrace {
@@ -18389,6 +18398,8 @@ func (ec *executionContext) fieldContext_ErrorGroup_metadata_log(ctx context.Con
 				return ec.fieldContext_ErrorMetadata_user_properties(ctx, field)
 			case "request_id":
 				return ec.fieldContext_ErrorMetadata_request_id(ctx, field)
+			case "payload":
+				return ec.fieldContext_ErrorMetadata_payload(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorMetadata", field.Name)
 		},
@@ -19192,6 +19203,47 @@ func (ec *executionContext) _ErrorMetadata_request_id(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_ErrorMetadata_request_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorMetadata_payload(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorMetadata_payload(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payload, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorMetadata_payload(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorMetadata",
 		Field:      field,
@@ -47317,6 +47369,10 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 		case "request_id":
 
 			out.Values[i] = ec._ErrorMetadata_request_id(ctx, field, obj)
+
+		case "payload":
+
+			out.Values[i] = ec._ErrorMetadata_payload(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

@@ -881,6 +881,7 @@ query GetErrorGroup($secure_id: String!) {
             identifier
             user_properties
             request_id
+            payload
         }
         fields {
             name
