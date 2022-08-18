@@ -419,6 +419,10 @@ func (w *Worker) PublicWorker() {
 	wg.Wait()
 }
 
+func (w *Worker) Migrate() {
+	model.MigrateDB(w.Resolver.DB)
+}
+
 // Delete data for any sessions created > 4 hours ago
 // if all session data has been written to s3
 func (w *Worker) DeleteCompletedSessions() {
@@ -1213,6 +1217,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "migrate":
+		return w.Migrate
 	default:
 		log.Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

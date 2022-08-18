@@ -1066,262 +1066,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 
-	log.Printf("running db migration ... \n")
-	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
-		return nil, e.Wrap(err, "Error installing pgcrypto")
-	}
-	// Unguessable, cryptographically random url-safe ID for users to share links
-	if err := DB.Exec(`
-		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
-		BEGIN
-			result := encode(gen_random_bytes(21), 'base64');
-			result := replace(result, '+', '0');
-			result := replace(result, '/', '1');
-			result := replace(result, '=', '');
-		END;
-		$$ LANGUAGE PLPGSQL;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating secure_id_generator")
-	}
-
-	if err := DB.AutoMigrate(
-		Models...,
-	); err != nil {
-		return nil, e.Wrap(err, "Error migrating db")
-	}
-
-	// Add unique constraint to daily_error_counts
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				BEGIN
-					ALTER TABLE daily_error_counts
-					ADD CONSTRAINT date_project_id_error_type_uniq
-						UNIQUE (date, project_id, error_type);
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
-				END;
-			END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
-	}
-
-	// Drop the null constraint on error_fingerprints.error_group_id
-	// This is necessary for replacing the error_groups.fingerprints association through GORM
-	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
-	if err := DB.Exec(`
-		DO $$
-		BEGIN
-			IF EXISTS
-				(select * from information_schema.columns where table_name = 'error_fingerprints' and column_name = 'error_group_id' and is_nullable = 'NO')
-			THEN
-				ALTER TABLE error_fingerprints
-    				ALTER COLUMN error_group_id DROP NOT NULL;
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
-	}
-
-	if err := DB.Exec(`
-		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_session_counts_view AS
-			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
-			FROM sessions
-			WHERE excluded <> true
-			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
-			AND processed = true
-			GROUP BY 1, 2;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
-	}
-
-	if err := DB.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_daily_session_counts_view_project_id_date')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
-	}
-
-	if err := DB.Exec(`
-		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
-		SELECT DISTINCT f.type, f.name, f.project_id
-		FROM fields f
-		WHERE type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		);
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
-	}
-
-	if err := DB.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
-	}
-
-	if err := DB.Exec(fmt.Sprintf(`
-		DO $$
-			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
-					THEN
-						ALTER TABLE metric_groups
-						ADD CONSTRAINT %s
-							UNIQUE (group_name, session_id);
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'metric_groups.%s already exists';
-				END;
-			END $$;
-	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
-	}
-
-	if err := DB.Exec(fmt.Sprintf(`
-		DO $$
-			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
-					THEN
-						alter table dashboard_metric_filters
-							add constraint %[1]s
-								foreign key (metric_id) references dashboard_metrics (id)
-									on update cascade on delete cascade;
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
-				END;
-			END $$;
-	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
-	}
-
-	if err := DB.Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
-		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
-	}
-
-	// If sessions_id_seq is not greater than 30000000, set it
-	if err := DB.Exec(`
-		SELECT
-		CASE
-			WHEN not exists(SELECT last_value FROM sessions_id_seq WHERE last_value >= ?)
-				THEN setval('sessions_id_seq', ?)
-			ELSE 0
-		END;
-	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
-		return nil, e.Wrap(err, "Error setting session id sequence to 30000000")
-	}
-
-	if err := DB.Exec(`
-		CREATE TABLE IF NOT EXISTS events_objects_partitioned
-		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
-		PARTITION BY RANGE (session_id);
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating events_objects_partitioned")
-	}
-
-	// if err := DB.Exec(`
-	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
-	// 	ON events_objects_partitioned (session_id);
-	// `).Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
-	// }
-
-	var lastVal int
-	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
-		return nil, e.Wrap(err, "Error selecting max session id")
-	}
-	partitionSize := 100000
-	start := lastVal / partitionSize * partitionSize
-
-	// Make sure partitions are created for the next 1m sessions
-	for i := 0; i < 10; i++ {
-		end := start + partitionSize
-		sql := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
-			PARTITION OF events_objects_partitioned
-			FOR VALUES FROM (%d) TO (%d);
-		`, start, start, end)
-
-		if err := DB.Exec(sql).Error; err != nil {
-			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
-		}
-
-		start = end
-	}
-
-	// Create sequence for session_fields.id manually. This started as a join
-	// table with no primary key. We use our own sequence to prevent assigning a
-	// value to old records.
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF NOT EXISTS
-					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
-				THEN
-					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields_id_seq")
-	}
-
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF NOT EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
-				THEN
-					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields.id column")
-	}
-
-	if err := DB.Exec(`
-		DO $$
-			BEGIN
-				IF EXISTS
-					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
-				THEN
-					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
-				END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error assigning default to session_fields.id")
-	}
-
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
 	sqlDB.SetMaxOpenConns(15)
 
+	// TODO: should this be moved to migrate as well?
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
 		fallthrough
@@ -1346,8 +1097,263 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		}
 	}
 
-	log.Printf("finished db migration. \n")
+	log.Printf("Finished setting up DB. \n")
 	return DB, nil
+}
+
+func MigrateDB(DB *gorm.DB) {
+	log.Printf("Running DB migrations... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error installing pgcrypto"))
+	}
+
+	// Unguessable, cryptographically random url-safe ID for users to share links
+	if err := DB.Exec(`
+		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
+		BEGIN
+			result := encode(gen_random_bytes(21), 'base64');
+			result := replace(result, '+', '0');
+			result := replace(result, '/', '1');
+			result := replace(result, '=', '');
+		END;
+		$$ LANGUAGE PLPGSQL;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating secure_id_generator"))
+	}
+
+	if err := DB.AutoMigrate(
+		Models...,
+	); err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error migrating db"))
+	}
+
+	// Add unique constraint to daily_error_counts
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				BEGIN
+					ALTER TABLE daily_error_counts
+					ADD CONSTRAINT date_project_id_error_type_uniq
+						UNIQUE (date, project_id, error_type);
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'daily_error_counts.date_project_id_error_type_uniq already exists';
+				END;
+			END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error adding unique constraint on daily_error_counts"))
+	}
+
+	// Drop the null constraint on error_fingerprints.error_group_id
+	// This is necessary for replacing the error_groups.fingerprints association through GORM
+	// (not sure if this is a GORM bug or due to our GORM / Postgres version)
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS
+				(select * from information_schema.columns where table_name = 'error_fingerprints' and column_name = 'error_group_id' and is_nullable = 'NO')
+			THEN
+				ALTER TABLE error_fingerprints
+    				ALTER COLUMN error_group_id DROP NOT NULL;
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id"))
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS daily_session_counts_view AS
+			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
+			FROM sessions
+			WHERE excluded <> true
+			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
+			AND processed = true
+			GROUP BY 1, 2;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating daily_session_counts_view"))
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_daily_session_counts_view_project_id_date')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_session_counts_view_project_id_date ON daily_session_counts_view (project_id, date);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date"))
+	}
+
+	if err := DB.Exec(`
+		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
+		SELECT DISTINCT f.type, f.name, f.project_id
+		FROM fields f
+		WHERE type IS NOT null
+		AND EXISTS (
+			SELECT 1
+			FROM session_fields sf
+			WHERE f.id = sf.field_id
+		);
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating daily_session_counts_view"))
+	}
+
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
+			THEN
+				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name"))
+	}
+
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
+					THEN
+						ALTER TABLE metric_groups
+						ADD CONSTRAINT %s
+							UNIQUE (group_name, session_id);
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'metric_groups.%s already exists';
+				END;
+			END $$;
+	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error adding unique constraint on metric_groups"))
+	}
+
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
+					THEN
+						alter table dashboard_metric_filters
+							add constraint %[1]s
+								foreign key (metric_id) references dashboard_metrics (id)
+									on update cascade on delete cascade;
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
+				END;
+			END $$;
+	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters"))
+	}
+
+	if err := DB.Exec(`
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
+		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating error_fields_md5_idx"))
+	}
+
+	// If sessions_id_seq is not greater than 30000000, set it
+	if err := DB.Exec(`
+		SELECT
+		CASE
+			WHEN not exists(SELECT last_value FROM sessions_id_seq WHERE last_value >= ?)
+				THEN setval('sessions_id_seq', ?)
+			ELSE 0
+		END;
+	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error setting session id sequence to 30000000"))
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS events_objects_partitioned
+		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY RANGE (session_id);
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating events_objects_partitioned"))
+	}
+
+	// if err := DB.Exec(`
+	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
+	// 	ON events_objects_partitioned (session_id);
+	// `).Error; err != nil {
+	// 	log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating events_objects_partitioned_session_id"))
+	// }
+
+	var lastVal int
+	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error selecting max session id"))
+	}
+	partitionSize := 100000
+	start := lastVal / partitionSize * partitionSize
+
+	// Make sure partitions are created for the next 1m sessions
+	for i := 0; i < 10; i++ {
+		end := start + partitionSize
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
+			PARTITION OF events_objects_partitioned
+			FOR VALUES FROM (%d) TO (%d);
+		`, start, start, end)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			log.Fatalf("Error setting up DB: %v", e.Wrapf(err, "Error creating partitioned events_objects for index %d", i))
+		}
+
+		start = end
+	}
+
+	// Create sequence for session_fields.id manually. This started as a join
+	// table with no primary key. We use our own sequence to prevent assigning a
+	// value to old records.
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
+				THEN
+					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating session_fields_id_seq"))
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error creating session_fields.id column"))
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		log.Fatalf("Error setting up DB: %v", e.Wrap(err, "Error assigning default to session_fields.id"))
+	}
+
+	log.Printf("Finished running DB migrations. \n")
 }
 
 // Implement JSONB interface
