@@ -1,0 +1,18 @@
+.metadataContainer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-small);
+    height: 100%;
+}
+
+.contextSection {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.contextCard {
+    border: 0;
+    font-size: 12px;
+    padding: 0;
+}

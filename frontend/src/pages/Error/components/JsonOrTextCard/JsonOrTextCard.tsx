@@ -1,4 +1,4 @@
-import Card from '@components/Card/Card';
+import Card, { CardProps } from '@components/Card/Card';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
 import { parseOptionalJSON } from '@util/string';
 import React, { useState } from 'react';
@@ -6,12 +6,12 @@ import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from '../../ErrorPage.module.scss';
 
-interface Props {
+type Props = {
     jsonOrText: string;
     title?: string;
-}
+} & CardProps;
 
-const JsonOrTextCard = ({ jsonOrText, title }: Props) => {
+const JsonOrTextCard = ({ jsonOrText, title, ...props }: Props) => {
     const [showExpandButton, setShowExpandButton] = useState(true);
     const [eventLineExpand, setEventLineExpand] = useState(false);
     const content = parseOptionalJSON(jsonOrText || '');
@@ -24,6 +24,7 @@ const JsonOrTextCard = ({ jsonOrText, title }: Props) => {
                     ? title
                     : `${title} as JSON`
             }
+            {...props}
         >
             {typeof content !== 'object' ? (
                 <>

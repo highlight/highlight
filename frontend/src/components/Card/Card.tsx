@@ -3,14 +3,14 @@ import React from 'react';
 
 import styles from './Card.module.scss';
 
-type Props = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
+export type CardProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
     noPadding?: boolean;
     title?: string | React.ReactNode;
     interactable?: boolean;
     noTitleBottomMargin?: boolean;
 };
 
-const Card: React.FC<Props> = ({
+const Card: React.FC<CardProps> = ({
     title,
     children,
     noPadding = false,
