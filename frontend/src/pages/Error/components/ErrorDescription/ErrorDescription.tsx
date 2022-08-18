@@ -1,4 +1,5 @@
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
+import { getErrorBody } from '@util/errors/errorUtils';
 import React from 'react';
 
 import {
@@ -14,45 +15,18 @@ interface Props {
 
 const ErrorDescription = ({ errorGroup, errorObject }: Props) => {
     const event = errorObject?.event ?? errorGroup?.event;
-    const jsonOrText = formatErrorDescription(event);
+    const body = getErrorBody(event);
     return (
-        <JsonOrTextCard
-            jsonOrText={jsonOrText.toString()}
-            title={'Error Body'}
-        />
+        <>
+            <JsonOrTextCard jsonOrText={body} title={'Error Body'} />
+            {errorObject?.payload && errorObject?.payload !== 'null' && (
+                <JsonOrTextCard
+                    jsonOrText={errorObject.payload}
+                    title={'Error Context'}
+                />
+            )}
+        </>
     );
 };
 
 export default ErrorDescription;
-
-const formatErrorDescription = (rawEvent: any) => {
-    let event = rawEvent;
-
-    if (event.length === 1) {
-        const firstEvent = event[0];
-        if (firstEvent) {
-            if (
-                firstEvent[0] === '"' &&
-                firstEvent[firstEvent.length - 1] === '"'
-            ) {
-                event = firstEvent.slice(1, -1);
-
-                return event;
-            }
-        }
-    }
-    const textToRender = `[${event}]`;
-    let isJson = true;
-
-    try {
-        JSON.parse(textToRender);
-    } catch {
-        isJson = false;
-    }
-
-    if (isJson) {
-        return textToRender;
-    }
-
-    return rawEvent || '';
-};

@@ -1,6 +1,7 @@
 import Card from '@components/Card/Card';
 import JsonViewer from '@components/JsonViewer/JsonViewer';
-import React, { useEffect, useState } from 'react';
+import { parseOptionalJSON } from '@util/string';
+import React, { useState } from 'react';
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from '../../ErrorPage.module.scss';
@@ -13,32 +14,18 @@ interface Props {
 const JsonOrTextCard = ({ jsonOrText, title }: Props) => {
     const [showExpandButton, setShowExpandButton] = useState(true);
     const [eventLineExpand, setEventLineExpand] = useState(false);
-    const [textAsJson, setTextAsJson] = useState<null | any>(null);
-
-    useEffect(() => {
-        if (jsonOrText) {
-            try {
-                const json = JSON.parse(jsonOrText);
-                if (typeof json === 'object') {
-                    setTextAsJson(json);
-                }
-            } catch {
-                setTextAsJson(null);
-            }
-        }
-    }, [jsonOrText]);
-
+    const content = parseOptionalJSON(jsonOrText || '');
     return (
         <Card
             title={
                 !title
                     ? undefined
-                    : textAsJson === null
+                    : typeof content !== 'object'
                     ? title
                     : `${title} as JSON`
             }
         >
-            {textAsJson === null ? (
+            {typeof content !== 'object' ? (
                 <>
                     <LinesEllipsis
                         text={jsonOrText}
@@ -60,7 +47,7 @@ const JsonOrTextCard = ({ jsonOrText, title }: Props) => {
                     )}
                 </>
             ) : (
-                <JsonViewer src={textAsJson} collapsed={2} />
+                <JsonViewer src={content} collapsed={2} />
             )}
         </Card>
     );

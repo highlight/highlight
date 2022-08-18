@@ -1,6 +1,6 @@
 import Tag from '@components/Tag/Tag';
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas';
-import { getErrorTitle } from '@util/errors/errorUtils';
+import { getErrorBody } from '@util/errors/errorUtils';
 import React, { useEffect, useState } from 'react';
 
 import { getHeaderFromError } from '../../ErrorPage';
@@ -27,7 +27,7 @@ const ErrorTitle = ({
     useEffect(() => {
         if (headerText) {
             if (event) {
-                const title = getErrorTitle(event);
+                const title = getErrorBody(event);
                 if (title) {
                     setHeaderTextAsJson(title);
                 } else {

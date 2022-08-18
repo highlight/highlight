@@ -13,7 +13,7 @@ import SvgFileText2Icon from '@icons/FileText2Icon';
 import SvgTrashIcon from '@icons/TrashIcon';
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
 import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations';
-import { getErrorTitle } from '@util/errors/errorUtils';
+import { getErrorBody } from '@util/errors/errorUtils';
 import { Menu } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
@@ -93,7 +93,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 
     const defaultIssueTitle = useMemo(() => {
         if (errorGroup?.error_group?.event) {
-            return getErrorTitle(errorGroup?.error_group?.event);
+            return getErrorBody(errorGroup?.error_group?.event);
         }
         return `Issue from this bug`;
     }, [errorGroup]);

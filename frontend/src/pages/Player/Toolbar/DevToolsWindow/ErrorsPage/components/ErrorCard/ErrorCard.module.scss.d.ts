@@ -1,5 +1,5 @@
-export const actions: string;
 export const active: string;
+export const content: string;
 export const currentIndicator: string;
 export const currentIndicatorWrapper: string;
 export const description: string;

@@ -26,7 +26,6 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { secure_id: error.error_group_secure_id },
     });
-    //     const { data, loading } = { data: undefined, loading: true };
     const history = useHistory();
     const { project_id } = useParams<{ project_id: string }>();
     const projectIdRemapped =

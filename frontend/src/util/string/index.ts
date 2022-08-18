@@ -72,3 +72,16 @@ export const bytesToPrettyString = (
 
     return bytes.toFixed(decimalPoints) + ' ' + units[u];
 };
+
+export function parseOptionalJSON(text: string): any {
+    let parsed: any = text;
+    try {
+        const json = JSON.parse(text);
+        if (typeof json === 'object') {
+            parsed = json;
+        }
+    } catch {
+        parsed = text;
+    }
+    return parsed;
+}
