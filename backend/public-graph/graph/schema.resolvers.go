@@ -42,7 +42,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if err != nil {
-		log.Error(err)
+		fields := log.Fields{}
+		if session != nil {
+			fields["session_id"] = session.ID
+			fields["project_id"] = session.ProjectID
+		}
+		log.WithFields(fields).Error(err)
 		if !util.IsDevEnv() {
 			specifiedSecureID := ""
 			if sessionSecureID != nil {
