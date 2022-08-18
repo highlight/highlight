@@ -86,6 +86,8 @@
 
 .eventText {
     color: var(--color-gray-500);
+    display: flex;
+    gap: var(--size-xSmall);
     margin-bottom: 30px;
 }
 

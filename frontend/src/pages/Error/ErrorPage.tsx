@@ -13,6 +13,7 @@ import {
 import { ErrorGroup, Maybe } from '@graph/schemas';
 import SvgBugIcon from '@icons/BugIcon';
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
+import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext';
 import {
     CreateModalType,
     ErrorCreateCommentModal,
@@ -54,8 +55,8 @@ import {
 } from '../Errors/ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
-import ErrorDescription from './components/ErrorDescription/ErrorDescription';
-import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorBody from './components/ErrorBody/ErrorBody';
+import { parseErrorDescriptionList } from './components/ErrorBody/utils/utils';
 import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers';
 import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
@@ -286,9 +287,12 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         }}
                                     />
                                 ) : (
-                                    <ErrorDescription
-                                        errorGroup={data?.error_group}
-                                    />
+                                    <>
+                                        <ErrorBody
+                                            errorGroup={data?.error_group}
+                                        />
+                                        <ErrorContext errorGroupData={data} />
+                                    </>
                                 )}
                             </div>
                             {loading ? (

@@ -113,14 +113,14 @@ const ErrorCard = React.memo(
                             />
                         )}
                     </div>
-                    <div className={styles.description}>
+                    <div className={styles.details}>
                         <div
                             onClick={(e) => {
                                 e.stopPropagation();
                             }}
                             style={{ flexBasis: context ? '245px' : 'auto' }}
                         >
-                            <p>Description</p>
+                            <p>Body</p>
                             {typeof body === 'object' ? (
                                 <JsonViewer src={body} collapsed={1} />
                             ) : (

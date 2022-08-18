@@ -11,7 +11,7 @@ import { useHistory } from 'react-router';
 
 import Button from '../../../../../../../components/Button/Button/Button';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
-import ErrorDescription from '../../../../../../Error/components/ErrorDescription/ErrorDescription';
+import ErrorBody from '../../../../../../Error/components/ErrorBody/ErrorBody';
 import ErrorTitle from '../../../../../../Error/components/ErrorTitle/ErrorTitle';
 import StackTraceSection from '../../../../../../Error/components/StackTraceSection/StackTraceSection';
 import { ErrorFrequencyGraph } from '../../../../../../Error/ErrorPage';
@@ -68,9 +68,9 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
                         )}
                     </div>
 
-                    <div className={styles.errorDescriptionContainer}>
+                    <div className={styles.errorBodyContainer}>
                         {data ? (
-                            <ErrorDescription
+                            <ErrorBody
                                 errorGroup={data.error_group}
                                 errorObject={error}
                             />
