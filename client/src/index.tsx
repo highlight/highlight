@@ -770,14 +770,6 @@ export class Highlight {
                     ) {
                         return;
                     }
-                    // if we keep failing to create a session, try again with a different secureID
-                    // because the session may already exist but be too old to use the same one
-                    if (
-                        this.numberOfFailedRequests >=
-                        MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS / 2
-                    ) {
-                        this.options.sessionSecureID = GenerateSecureID();
-                    }
                     return await this.initialize();
                 }
             }
