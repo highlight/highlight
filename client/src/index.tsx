@@ -151,6 +151,9 @@ const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 // Debounce duplicate visibility events
 const VISIBILITY_DEBOUNCE_MS = 100;
 
+// Initial backoff for retrying graphql requests.
+const INITIAL_BACKOFF = 300;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -302,16 +305,10 @@ export class Highlight {
             operationType?: string,
             retries: number = 0
         ): Promise<T> => {
-            const MAX_RETRIES = 5;
-            const INITIAL_BACKOFF = 300;
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (
-                    (!error?.response?.status ||
-                        error?.response?.status >= 500) &&
-                    retries < MAX_RETRIES
-                ) {
+                if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
@@ -613,7 +610,7 @@ export class Highlight {
         }
     }
 
-    async initialize() {
+    async initialize(): Promise<undefined> {
         if (
             navigator?.webdriver ||
             navigator?.userAgent?.includes('Googlebot') ||
@@ -632,7 +629,11 @@ export class Highlight {
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
-            if (!this.sessionData.sessionID && storedSessionData) {
+            if (
+                (!this.sessionData.sessionID ||
+                    !this.sessionData.sessionSecureID) &&
+                storedSessionData
+            ) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             }
