@@ -1241,12 +1241,23 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				IF
 					(SELECT pg_try_advisory_xact_lock(%d))
 				THEN
-					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
-					PARTITION OF events_objects_partitioned
-					FOR VALUES FROM (%d) TO (%d);
+					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
+						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+					);
+					IF NOT EXISTS (
+						SELECT 1
+						FROM pg_inherits
+						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
+						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
+						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
+					THEN
+						ALTER TABLE events_objects_partitioned
+						ATTACH PARTITION events_objects_partitioned_%d
+						FOR VALUES FROM (%d) TO (%d);
+					END IF;
 				END IF;
 			END $$;
-		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, end)
+		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
 
 		if err := DB.Exec(sql).Error; err != nil {
 			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
