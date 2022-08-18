@@ -30,6 +30,20 @@ jobs:
               run: |
                 docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            # Edit and deploy migrate worker
+            - name: Replace image label for migrate worker service
+              id: image-migrate-worker
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                task-definition: deploy/migrate-worker-service.json
+                container-name: highlight-backend
+                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
+            - name: Deploy to Amazon ECS migrate worker service
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                task-definition: ${{ steps.image-migrate-worker.outputs.task-definition }}
+                service: migrate-worker-service
+                cluster: highlight-production-cluster
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task
               id: image-private-graph
@@ -99,18 +113,4 @@ jobs:
               with:
                 task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
                 service: public-worker-service
-                cluster: highlight-production-cluster
-            # Edit and deploy migrate worker
-            - name: Replace image label for migrate worker service
-              id: image-migrate-worker
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                task-definition: deploy/migrate-worker-service.json
-                container-name: highlight-backend
-                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
-            - name: Deploy to Amazon ECS migrate worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                task-definition: ${{ steps.image-migrate-worker.outputs.task-definition }}
-                service: migrate-worker-service
                 cluster: highlight-production-cluster
