@@ -1122,20 +1122,6 @@ func (w *Worker) RefreshMaterializedViews() {
 	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
-
-	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
-		if err != nil {
-			return err
-		}
-
-		return tx.Exec(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
-		`).Error
-
-	}); err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
-	}
 }
 
 func (w *Worker) BackfillStackFrames() {
