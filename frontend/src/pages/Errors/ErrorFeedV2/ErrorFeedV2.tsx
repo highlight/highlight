@@ -37,7 +37,7 @@ export const ErrorFeedV2 = () => {
         0
     );
     const {
-        searchQuery,
+        backendSearchQuery,
         page,
         setPage,
         searchResultsLoading,
@@ -50,14 +50,14 @@ export const ErrorFeedV2 = () => {
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
     useEffect(() => {
-        if (searchQuery) {
+        if (backendSearchQuery) {
             setSearchResultsLoading(true);
         }
-    }, [searchQuery, page, setSearchResultsLoading]);
+    }, [backendSearchQuery, page, setSearchResultsLoading]);
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
-            query: searchQuery,
+            query: backendSearchQuery?.searchQuery || '',
             count: PAGE_SIZE,
             page,
             project_id,
@@ -72,7 +72,7 @@ export const ErrorFeedV2 = () => {
             }
             setSearchResultsLoading(false);
         },
-        skip: !searchQuery,
+        skip: !backendSearchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
 

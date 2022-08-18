@@ -1,3 +1,14 @@
+import moment from 'moment';
+
+export type BackendSearchQuery =
+    | undefined
+    | {
+          searchQuery: string;
+          startDate: moment.Moment;
+          endDate: moment.Moment;
+          histogramBucketSize: string;
+      };
+
 export type BaseSearchContext<T> = {
     /** Local changes to the segment parameters that might not be persisted to the database. */
     searchParams: T;
@@ -8,8 +19,10 @@ export type BaseSearchContext<T> = {
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
     /** The query sent to the backend */
-    searchQuery: string;
-    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+    backendSearchQuery: BackendSearchQuery;
+    setBackendSearchQuery: React.Dispatch<
+        React.SetStateAction<BackendSearchQuery>
+    >;
     page?: number;
     setPage: React.Dispatch<React.SetStateAction<number | undefined>>;
     searchResultsLoading: boolean;
