@@ -284,8 +284,6 @@ function stringifyProperties(
                 await processMetricsMessage(e.data.message as MetricsMessage);
             } else if (e.data.message.type === MessageType.Feedback) {
                 await processFeedbackMessage(e.data.message as FeedbackMessage);
-            } else {
-                console.error('invalid message received', e.data);
             }
             numberOfFailedRequests = 0;
         } catch (e) {

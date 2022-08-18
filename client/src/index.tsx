@@ -547,15 +547,6 @@ export class Highlight {
   `,
                         gr.initializeSession
                     );
-                    this._worker.postMessage({
-                        message: {
-                            type: MessageType.Initialize,
-                            sessionSecureID: this.sessionData.sessionSecureID,
-                            backend: this._backendUrl,
-                            debug: !!this.debugOptions.clientInteractions,
-                            recordingStartTime: this._recordingStartTime,
-                        },
-                    });
                     if (this.sessionData.userIdentifier) {
                         this.identify(
                             this.sessionData.userIdentifier,
@@ -587,6 +578,15 @@ export class Highlight {
                     this.numberOfFailedRequests += 1;
                 }
             }
+            this._worker.postMessage({
+                message: {
+                    type: MessageType.Initialize,
+                    sessionSecureID: this.sessionData.sessionSecureID,
+                    backend: this._backendUrl,
+                    debug: !!this.debugOptions.clientInteractions,
+                    recordingStartTime: this._recordingStartTime,
+                },
+            });
             if (this.pushPayloadTimerId) {
                 clearTimeout(this.pushPayloadTimerId);
             }
