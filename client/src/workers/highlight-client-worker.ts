@@ -1,6 +1,8 @@
 import {
+    AsyncEventsMessage,
     HighlightClientWorkerParams,
     HighlightClientWorkerResponse,
+    MessageType,
 } from './types';
 import stringify from 'json-stringify-safe';
 import {
@@ -30,11 +32,12 @@ const worker: HighlightClientResponseWorker = self as any;
 
 {
     let graphqlSDK: Sdk;
-    worker.onmessage = async function (e) {
+    let backend: string;
+    let sessionSecureID: string;
+
+    const processAsyncEventsMessage = async (msg: AsyncEventsMessage) => {
         const {
-            backend,
             id,
-            sessionSecureID,
             events,
             messages,
             errors,
@@ -42,7 +45,7 @@ const worker: HighlightClientResponseWorker = self as any;
             isBeacon,
             hasSessionUnloaded,
             highlightLogs,
-        } = e.data;
+        } = msg;
 
         if (!graphqlSDK) {
             const client = new GraphQLClient(backend, {
@@ -73,6 +76,20 @@ const worker: HighlightClientResponseWorker = self as any;
             .PushPayload(payload)
             .then((res) => res.pushPayload ?? 0);
 
-        worker.postMessage({ id, eventsSize });
+        worker.postMessage({
+            response: { type: MessageType.AsyncEvents, id, eventsSize },
+        });
+    };
+
+    worker.onmessage = async function (e) {
+        backend = e.data.backend;
+        sessionSecureID = e.data.sessionSecureID;
+        if (e.data.message.type === MessageType.AsyncEvents) {
+            await processAsyncEventsMessage(
+                e.data.message as AsyncEventsMessage
+            );
+        } else {
+            console.error('invalid message received', e.data);
+        }
     };
 }

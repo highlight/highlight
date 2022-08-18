@@ -67,6 +67,7 @@ import { ReplayEventsInput } from './graph/generated/schemas';
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
+import { MessageType, PropertyType, Source } from './workers/types';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -120,13 +121,6 @@ type HighlightClassOptionsInternal = Omit<
     HighlightClassOptions,
     'firstloadVersion'
 >;
-
-type PropertyType = {
-    type?: 'track' | 'session';
-    source?: Source;
-};
-
-type Source = 'segment' | undefined;
 
 /**
  *  The amount of time to wait until sending the first payload.
@@ -316,11 +310,17 @@ export class Highlight {
 
         this._worker = new HighlightClientWorker() as HighlightClientRequestWorker;
         this._worker.onmessage = (e) => {
-            this._eventBytesSinceSnapshot += e.data.eventsSize;
-            this.logger.log(
-                `Web worker sent payloadID ${e.data.id} size ${e.data.eventsSize}.
-                Total since snapshot: ${this._eventBytesSinceSnapshot}`
-            );
+            if (e.data.response?.type === MessageType.AsyncEvents) {
+                this._eventBytesSinceSnapshot += e.data.response.eventsSize;
+                this.logger.log(
+                    `Web worker sent payloadID ${e.data.response.id} size ${
+                        e.data.response.eventsSize
+                    }.
+                Total since snapshot: ${
+                    this._eventBytesSinceSnapshot / 1000000
+                }MB`
+                );
+            }
         };
 
         if (typeof options.organizationID === 'string') {
@@ -1238,17 +1238,20 @@ export class Highlight {
         } else {
             this._worker.postMessage({
                 backend: this._backendUrl,
-                id: this._payloadId,
                 sessionSecureID:
                     this.sessionData?.sessionSecureID ||
                     this.options?.sessionSecureID,
-                events,
-                messages,
-                errors,
-                resourcesString: JSON.stringify({ resources: resources }),
-                isBeacon,
-                hasSessionUnloaded: this.hasSessionUnloaded,
-                highlightLogs: highlightLogs,
+                message: {
+                    type: MessageType.AsyncEvents,
+                    id: this._payloadId,
+                    events,
+                    messages,
+                    errors,
+                    resourcesString: JSON.stringify({ resources: resources }),
+                    isBeacon,
+                    hasSessionUnloaded: this.hasSessionUnloaded,
+                    highlightLogs: highlightLogs,
+                },
             });
         }
         this._payloadId++;
