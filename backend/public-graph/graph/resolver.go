@@ -1145,6 +1145,11 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 			log.Errorf("error creating session, couldn't fetch session duplicate: %s", err)
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
+		if projectID != sessionObj.ProjectID {
+			// ensure the fetched session is for this same project
+			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", *sessionSecureID, sessionObj.ProjectID)
+			return nil, e.Wrap(err, fmt.Sprintf("error creating session, fetched session for another project."))
+		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
 		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, sessionObj.ID)
 		return sessionObj, nil
