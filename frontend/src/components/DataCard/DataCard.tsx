@@ -3,16 +3,21 @@ import React from 'react';
 
 import styles from './DataCard.module.scss';
 
-interface Props {
+type Props = {
     title: string | React.ReactNode;
     /** Should the card span the full available width. */
     fullWidth?: boolean;
-}
+} & Omit<React.HTMLAttributes<HTMLDivElement>, 'title'>;
 
-const DataCard: React.FC<Props> = ({ children, title, fullWidth = false }) => {
+const DataCard: React.FC<Props> = ({
+    children,
+    title,
+    fullWidth = false,
+    ...props
+}) => {
     return (
         <article
-            className={classNames(styles.card, {
+            className={classNames(styles.card, props.className, {
                 [styles.fullWidth]: fullWidth,
             })}
         >

@@ -10,7 +10,7 @@ import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
 import useLocalStorage from '@rehooks/local-storage';
-import { getErrorTitle } from '@util/errors/errorUtils';
+import { getErrorBody } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
@@ -202,7 +202,7 @@ const ErrorCardV2 = ({
                                     'highlight-block'
                                 )}
                             >
-                                {getErrorTitle(errorGroup?.event)}
+                                {getErrorBody(errorGroup?.event)}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>

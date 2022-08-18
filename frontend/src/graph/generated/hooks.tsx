@@ -7083,6 +7083,7 @@ export const GetErrorGroupDocument = gql`
                 identifier
                 user_properties
                 request_id
+                payload
             }
             fields {
                 name

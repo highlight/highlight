@@ -169,6 +169,7 @@ type ErrorMetadata struct {
 	Identifier      *string    `json:"identifier"`
 	UserProperties  *string    `json:"user_properties"`
 	RequestID       *string    `json:"request_id"`
+	Payload         *string    `json:"payload"`
 }
 
 type ErrorSearchParamsInput struct {

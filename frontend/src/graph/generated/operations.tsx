@@ -2765,6 +2765,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'identifier'
                             | 'user_properties'
                             | 'request_id'
+                            | 'payload'
                         >
                     >
                 >;
