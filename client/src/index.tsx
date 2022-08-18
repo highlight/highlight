@@ -308,11 +308,7 @@ export class Highlight {
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (
-                    (!error?.response?.status ||
-                        error?.response?.status >= 500) &&
-                    retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS
-                ) {
+                if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
@@ -756,21 +752,7 @@ export class Highlight {
                     if (this._isOnLocalHost) {
                         console.error(e);
                     }
-                    await new Promise((resolve) =>
-                        setTimeout(
-                            resolve,
-                            INITIAL_BACKOFF *
-                                Math.pow(2, this.numberOfFailedRequests)
-                        )
-                    );
                     this.numberOfFailedRequests += 1;
-                    if (
-                        this.numberOfFailedRequests >
-                        MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS
-                    ) {
-                        return;
-                    }
-                    return await this.initialize();
                 }
             }
             if (this.pushPayloadTimerId) {
