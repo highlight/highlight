@@ -277,7 +277,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     />
                                 )}
                             </div>
-                            <div className={styles.eventText}>
+                            <div
+                                className={classNames(
+                                    styles.eventText,
+                                    styles.sectionRow,
+                                    styles.fieldWrapper
+                                )}
+                            >
                                 {loading ? (
                                     <Skeleton
                                         count={1}
@@ -304,7 +310,12 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     }}
                                 />
                             ) : (
-                                <div className={styles.sectionRow}>
+                                <div
+                                    className={classNames(
+                                        styles.sectionRow,
+                                        styles.fieldWrapper
+                                    )}
+                                >
                                     <div className={styles.sectionItem}>
                                         <ErrorDistributionChart
                                             errorGroup={data?.error_group}

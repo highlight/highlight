@@ -86,13 +86,10 @@
 
 .eventText {
     color: var(--color-gray-500);
-    display: flex;
-    gap: var(--size-xSmall);
-    margin-bottom: 30px;
 }
 
 .fieldWrapper {
-    margin-bottom: 30px;
+    margin-bottom: var(--size-large);
 }
 
 .subSection {
@@ -120,22 +117,13 @@
 
 .sectionRow {
     display: flex;
-    margin-bottom: var(--size-medium);
+    gap: var(--size-xSmall);
     width: 100%;
 }
 
 .sectionItem {
     display: inline-block;
-    padding: 0 5px;
     width: 50%;
-}
-
-.sectionItem:first-child {
-    padding-left: 0;
-}
-
-.sectionItem:last-child {
-    padding-right: 0;
 }
 
 .snippetHeadingTwo {
