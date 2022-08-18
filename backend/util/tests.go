@@ -48,7 +48,9 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	if err := db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error; err != nil {
 		return nil, e.Wrap(err, "error creating db")
 	}
-	return model.SetupDB(dbName)
+	DB, err := model.SetupDB(dbName)
+	model.MigrateDB(DB)
+	return DB, err
 }
 
 func ClearTablesInDB(db *gorm.DB) error {
