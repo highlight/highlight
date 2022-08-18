@@ -244,26 +244,63 @@ const HOUR = 60;
 const DAY = 60 * 24;
 const WEEK = 60 * 24 * 7;
 const MONTH = 60 * 24 * 30;
+type Units = 'minute' | 'hour' | 'day' | 'week' | 'month';
 
 const buildDateRangeLabel = (range: DataTimeRange) => {
+    let diff: number = range.lookback;
+    let unit: Units = 'minute';
+
     if (range.absolute) {
-        return `${moment(range.start_date).format(DATE_FORMAT)} - ${moment(
-            range.end_date
-        ).format(DATE_FORMAT)}`;
+        return absoluteFormat(range);
     }
 
     if (range.lookback < HOUR) {
-        return `${range.lookback} minutes`;
+        unit = 'minute';
+        diff = range.lookback;
     } else if (range.lookback < DAY) {
-        const diff = range.lookback / HOUR;
-        return `${diff} ${diff > 1 ? 'hours' : 'hour'}`;
+        unit = 'hour';
+        diff = range.lookback / HOUR;
     } else if (range.lookback < WEEK) {
-        const diff = range.lookback / DAY;
-        return `${diff} ${diff > 1 ? 'days' : 'day'}`;
+        unit = 'day';
+        diff = range.lookback / DAY;
     } else if (range.lookback < MONTH) {
-        const diff = range.lookback / WEEK;
-        return `${diff} ${diff > 1 ? 'weeks' : 'week'}`;
+        unit = 'week';
+        diff = range.lookback / WEEK;
+
+        // Return days when not an exact number of weeks.
+        if (diff % 1 !== 0) {
+            unit = 'day';
+            diff = range.lookback / DAY;
+        }
+    } else {
+        unit = 'month';
+
+        // Calculation isn't as straightforward for months, so use moment.
+        diff = moment(range.end_date).diff(
+            moment(range.start_date),
+            'months',
+            true
+        );
+
+        // Round to a month when the diff is very close to a whole number, which
+        // sometimes happens when selecting full months.
+        if (diff.toFixed(2).split('.')[1] === '00') {
+            diff = Math.round(diff);
+        }
     }
+
+    // Display a range if we don't have a whole number.
+    if (diff % 1 !== 0) {
+        return absoluteFormat(range);
+    }
+
+    return `${diff} ${diff > 1 ? `${unit}s` : unit}`;
+};
+
+const absoluteFormat = (range: DataTimeRange) => {
+    return `${moment(range.start_date).format(DATE_FORMAT)} - ${moment(
+        range.end_date
+    ).format(DATE_FORMAT)}`;
 };
 
 export default TimeRangePicker;
