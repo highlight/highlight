@@ -6,6 +6,11 @@
     }
 }
 
+.componentCard {
+    height: 100%;
+    width: 100%;
+}
+
 .noDataContainer {
     align-items: center;
     display: flex;
@@ -23,6 +28,18 @@
     cursor: move;
     display: flex;
     justify-content: center;
+}
+
+.draggableOverlay {
+    position: absolute;
+    right: var(--size-medium);
+    top: 18px;
+}
+
+.overlayButton {
+    position: absolute;
+    right: var(--size-xLarge);
+    top: var(--size-medium);
 }
 
 .button {

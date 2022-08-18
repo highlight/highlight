@@ -41,10 +41,12 @@ const DashboardsHomePage = () => {
                     <Table
                         columns={TABLE_COLUMNS}
                         loading={loading}
-                        dataSource={dashboards.map((d) => ({
-                            ...d,
-                            allAdmins,
-                        }))}
+                        dataSource={dashboards
+                            .filter((d) => d?.name !== 'Home')
+                            .map((d) => ({
+                                ...d,
+                                allAdmins,
+                            }))}
                         pagination={false}
                         showHeader={false}
                         rowHasPadding

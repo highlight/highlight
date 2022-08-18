@@ -3,7 +3,7 @@
 }
 
 .dashboard {
-    padding: 120px 80px 80px;
+    padding: 0;
 }
 
 .subTitle {
@@ -13,6 +13,7 @@
 .chartHeaderWrapper {
     align-items: center;
     display: flex;
+    height: 15px;
     justify-content: space-between;
     margin-bottom: var(--size-medium);
 
@@ -22,6 +23,10 @@
 
     :global(.ant-input-affix-wrapper) {
         width: 150px;
+    }
+
+    &.smallMargin {
+        margin-bottom: var(--size-medium);
     }
 }
 

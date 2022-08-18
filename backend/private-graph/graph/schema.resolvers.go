@@ -3063,6 +3063,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
+			ComponentType:            m.ComponentType,
 			ChartType:                m.ChartType,
 			Aggregator:               m.Aggregator,
 			MaxGoodValue:             m.MaxGoodValue,
@@ -5367,7 +5368,10 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Order("updated_at DESC").Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics", func(db *gorm.DB) *gorm.DB {
+		db = db.Order("id ASC")
+		return db
+	}).Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
@@ -5386,6 +5390,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
+				ComponentType:            metric.ComponentType,
 				ChartType:                metric.ChartType,
 				Aggregator:               metric.Aggregator,
 				MaxGoodValue:             metric.MaxGoodValue,

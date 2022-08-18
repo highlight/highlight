@@ -2369,7 +2369,7 @@ func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.Da
 			EndDate:   &end,
 		},
 		ResolutionMinutes: pointy.Int(60),
-		Units:             pointy.String(metric.Units),
+		Units:             metric.Units,
 		Aggregator:        &agg,
 	})
 	if err != nil {

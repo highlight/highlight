@@ -317,14 +317,15 @@ type DashboardMetric struct {
 	Model
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
-	ChartType                modelInputs.DashboardChartType
-	Aggregator               modelInputs.MetricAggregator `gorm:"default:P50"`
 	Description              string
-	MaxGoodValue             float64
-	MaxNeedsImprovementValue float64
-	PoorValue                float64
-	Units                    string
-	HelpArticle              string
+	ComponentType            *modelInputs.MetricViewComponentType
+	ChartType                *modelInputs.DashboardChartType
+	Aggregator               *modelInputs.MetricAggregator `gorm:"default:P50"`
+	MaxGoodValue             *float64
+	MaxNeedsImprovementValue *float64
+	PoorValue                *float64
+	Units                    *string
+	HelpArticle              *string
 	MinValue                 *float64
 	MinPercentile            *float64
 	MaxValue                 *float64

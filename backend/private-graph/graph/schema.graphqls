@@ -805,13 +805,14 @@ enum MetricAggregator {
 input DashboardMetricConfigInput {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float
@@ -820,16 +821,27 @@ input DashboardMetricConfigInput {
     groups: [String!]
 }
 
+enum MetricViewComponentType {
+    KeyPerformanceGauge
+    SessionCountChart
+    ErrorCountChart
+    ReferrersTable
+    ActiveUsersTable
+    RageClicksTable
+    TopRoutesTable
+}
+
 type DashboardMetricConfig {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float

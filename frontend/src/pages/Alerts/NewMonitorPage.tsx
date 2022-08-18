@@ -47,7 +47,7 @@ const NewMonitorPage = ({
     const [slackChannels, setSlackChannels] = useState<string[]>([]);
     const [emails, setEmails] = useState<string[]>([]);
     const [units, setUnits] = useState<string>(
-        WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units
+        WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units || ''
     );
     const [createMonitor] = useCreateMetricMonitorMutation({
         variables: {
@@ -81,7 +81,7 @@ const NewMonitorPage = ({
     };
 
     useEffect(() => {
-        if (config) {
+        if (config?.max_good_value) {
             setThreshold(config.max_good_value);
         }
     }, [config]);
