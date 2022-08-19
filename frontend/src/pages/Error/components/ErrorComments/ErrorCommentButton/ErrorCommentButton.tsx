@@ -15,12 +15,12 @@ export function ErrorCommentButton({
     children,
 }: React.PropsWithChildren<Props>) {
     if (!children)
-        children = (
-            <>
-                <SvgAnnotationDotsIcon />
-                <span>Comment</span>
-            </>
-        );
+        // list the default text in an array to avoid
+        // an automatic addition of <span> that breaks styling
+        children = [
+            <SvgAnnotationDotsIcon key={0} />,
+            <span key={1}>Comment</span>,
+        ];
     return (
         <Button
             type="primary"

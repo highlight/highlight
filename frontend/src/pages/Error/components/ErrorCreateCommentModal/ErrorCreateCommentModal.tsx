@@ -26,7 +26,14 @@ export const ErrorCreateCommentModal = ({
     const { error_secure_id } = useParams<{
         error_secure_id: string;
     }>();
+
     const { innerWidth, innerHeight } = useWindowSize();
+
+    const currentUrl = `${
+        window.location.port !== ''
+            ? 'https://app.highlight.run'
+            : window.location.origin
+    }${window.location.pathname}`;
 
     return (
         <NewCommentModal
@@ -49,6 +56,7 @@ export const ErrorCreateCommentModal = ({
             commentTime={0}
             error_secure_id={error_secure_id}
             errorTitle={data?.error_group?.event?.join('')}
+            currentUrl={currentUrl}
         />
     );
 };
