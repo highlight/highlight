@@ -217,7 +217,6 @@ const Histogram = React.memo(
                                         visibility: tooltipHidden
                                             ? 'hidden'
                                             : 'visible',
-                                        scale: 1,
                                         pointerEvents: 'inherit',
                                     }}
                                     cursor={{
