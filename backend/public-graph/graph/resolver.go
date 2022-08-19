@@ -1155,7 +1155,7 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		return sessionObj, nil
 	}
 
-	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier, "client_id": session.ClientID}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
@@ -1412,7 +1412,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		doBackfillSpan.Finish()
 	}
 
-	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
+	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier, "client_id": session.ClientID}).
 		Infof("identified session: %s", session.Identifier)
 
 	go func() {
