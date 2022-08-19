@@ -371,7 +371,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, w.getSessionID(task.IdentifySession.SessionID, task.IdentifySession.SessionSecureID), task.AddTrackProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, w.getSessionID(task.AddTrackProperties.SessionID, task.AddTrackProperties.SessionSecureID), task.AddTrackProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
 			return err
 		}
@@ -379,7 +379,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, w.getSessionID(task.IdentifySession.SessionID, task.IdentifySession.SessionSecureID), task.AddSessionProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, w.getSessionID(task.AddSessionProperties.SessionID, task.AddSessionProperties.SessionSecureID), task.AddSessionProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
 			return err
 		}
