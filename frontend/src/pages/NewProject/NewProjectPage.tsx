@@ -189,11 +189,13 @@ const NewProjectPage = () => {
                                 type="default"
                             >
                                 Already Have a Workspace?{' '}
-                                {!loading && !!data && (
-                                    <Dot className={styles.workspaceCount}>
-                                        {data.workspaces_count}
-                                    </Dot>
-                                )}
+                                {!loading &&
+                                    !!data &&
+                                    data.workspaces_count !== 0 && (
+                                        <Dot className={styles.workspaceCount}>
+                                            {data.workspaces_count}
+                                        </Dot>
+                                    )}
                             </ButtonLink>
                         )}
                         {!isWorkspace &&
