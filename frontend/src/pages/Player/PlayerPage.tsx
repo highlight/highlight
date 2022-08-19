@@ -76,6 +76,7 @@ const Player = ({ integrated }: Props) => {
         isPlayerReady,
         session,
         isLoadingEvents,
+        currentUrl,
     } = player;
     const resources = useResources(session);
     const {
@@ -468,6 +469,7 @@ const Player = ({ integrated }: Props) => {
                         onCancel={() => {
                             setCommentModalPosition(undefined);
                         }}
+                        currentUrl={currentUrl}
                     />
                 </div>
             </ReplayerContextProvider>
