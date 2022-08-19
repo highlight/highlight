@@ -11,7 +11,7 @@ export interface DataTimeRange {
     absolute: boolean;
 }
 
-const dataTimeRange = makeVar<DataTimeRange>({
+const setDataTimeRange = makeVar<DataTimeRange>({
     start_date: moment(defaultEndDate)
         .subtract(defaultLookback, 'minutes')
         .format(),
@@ -21,13 +21,13 @@ const dataTimeRange = makeVar<DataTimeRange>({
 });
 
 const useDataTimeRange = () => {
-    const timeRange = useReactiveVar(dataTimeRange);
+    const timeRange = useReactiveVar(setDataTimeRange);
     const setTimeRange = (start: string, end: string, absolute = false) => {
         const endDate = moment(end);
         const startDate = moment(start);
         const lookback = moment.duration(endDate.diff(startDate)).asMinutes();
 
-        dataTimeRange({
+        setDataTimeRange({
             start_date: startDate.format('YYYY-MM-DDTHH:mm:00.000000000Z'),
             end_date: endDate.format('YYYY-MM-DDTHH:mm:59.999999999Z'),
             lookback,
