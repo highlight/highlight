@@ -66,12 +66,13 @@ export type Mutation = {
     initializeSession?: Maybe<Session>;
     markBackendSetup: Scalars['ID'];
     pushBackendPayload?: Maybe<Scalars['Any']>;
-    pushMetrics: Scalars['ID'];
+    pushMetrics: Scalars['Int'];
     pushPayload: Scalars['Int'];
 };
 
 export type MutationAddSessionFeedbackArgs = {
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
     timestamp: Scalars['Timestamp'];
     user_email?: InputMaybe<Scalars['String']>;
     user_name?: InputMaybe<Scalars['String']>;
@@ -80,16 +81,19 @@ export type MutationAddSessionFeedbackArgs = {
 
 export type MutationAddSessionPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type MutationAddTrackPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type MutationIdentifySessionArgs = {
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
     user_identifier: Scalars['String'];
     user_object?: InputMaybe<Scalars['Any']>;
 };
@@ -129,7 +133,8 @@ export type MutationPushPayloadArgs = {
     messages: Scalars['String'];
     payload_id?: InputMaybe<Scalars['ID']>;
     resources: Scalars['String'];
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type Query = {
@@ -154,7 +159,7 @@ export type ReplayEventsInput = {
 
 export type Session = {
     __typename?: 'Session';
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     organization_id: Scalars['ID'];
     project_id: Scalars['ID'];
     secure_id: Scalars['String'];
@@ -172,7 +177,7 @@ export type StackFrameInput = {
 };
 
 export type PushPayloadMutationVariables = Exact<{
-    session_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
     events: ReplayEventsInput;
     messages: Scalars['String'];
     resources: Scalars['String'];
@@ -189,7 +194,7 @@ export type PushPayloadMutation = {
 };
 
 export type IdentifySessionMutationVariables = Exact<{
-    session_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
     user_identifier: Scalars['String'];
     user_object?: InputMaybe<Scalars['Any']>;
 }>;
@@ -200,7 +205,7 @@ export type IdentifySessionMutation = {
 };
 
 export type AddSessionPropertiesMutationVariables = Exact<{
-    session_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
     properties_object?: InputMaybe<Scalars['Any']>;
 }>;
 
@@ -215,11 +220,11 @@ export type PushMetricsMutationVariables = Exact<{
 
 export type PushMetricsMutation = {
     __typename?: 'Mutation';
-    pushMetrics: string;
+    pushMetrics: number;
 };
 
 export type AddTrackPropertiesMutationVariables = Exact<{
-    session_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
     properties_object?: InputMaybe<Scalars['Any']>;
 }>;
 
@@ -229,7 +234,7 @@ export type AddTrackPropertiesMutation = {
 };
 
 export type AddSessionFeedbackMutationVariables = Exact<{
-    session_id: Scalars['ID'];
+    session_secure_id: Scalars['String'];
     user_name?: InputMaybe<Scalars['String']>;
     user_email?: InputMaybe<Scalars['String']>;
     verbatim: Scalars['String'];
@@ -242,6 +247,7 @@ export type AddSessionFeedbackMutation = {
 };
 
 export type InitializeSessionMutationVariables = Exact<{
+    session_secure_id: Scalars['String'];
     organization_verbose_id: Scalars['String'];
     enable_strict_privacy: Scalars['Boolean'];
     enable_recording_network_contents: Scalars['Boolean'];
@@ -251,7 +257,6 @@ export type InitializeSessionMutationVariables = Exact<{
     environment: Scalars['String'];
     id: Scalars['String'];
     appVersion?: InputMaybe<Scalars['String']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
     client_id?: InputMaybe<Scalars['String']>;
 }>;
 
@@ -259,7 +264,6 @@ export type InitializeSessionMutation = {
     __typename?: 'Mutation';
     initializeSession?: {
         __typename?: 'Session';
-        id: string;
         secure_id: string;
         organization_id: string;
         project_id: string;
@@ -274,7 +278,7 @@ export type IgnoreQuery = { __typename?: 'Query'; ignore?: any | null };
 
 export const PushPayloadDocument = gql`
     mutation PushPayload(
-        $session_id: ID!
+        $session_secure_id: String!
         $events: ReplayEventsInput!
         $messages: String!
         $resources: String!
@@ -285,7 +289,7 @@ export const PushPayloadDocument = gql`
         $payload_id: ID
     ) {
         pushPayload(
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             events: $events
             messages: $messages
             resources: $resources
@@ -299,21 +303,24 @@ export const PushPayloadDocument = gql`
 `;
 export const IdentifySessionDocument = gql`
     mutation identifySession(
-        $session_id: ID!
+        $session_secure_id: String!
         $user_identifier: String!
         $user_object: Any
     ) {
         identifySession(
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             user_identifier: $user_identifier
             user_object: $user_object
         )
     }
 `;
 export const AddSessionPropertiesDocument = gql`
-    mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
+    mutation addSessionProperties(
+        $session_secure_id: String!
+        $properties_object: Any
+    ) {
         addSessionProperties(
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             properties_object: $properties_object
         )
     }
@@ -324,23 +331,26 @@ export const PushMetricsDocument = gql`
     }
 `;
 export const AddTrackPropertiesDocument = gql`
-    mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
+    mutation addTrackProperties(
+        $session_secure_id: String!
+        $properties_object: Any
+    ) {
         addTrackProperties(
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             properties_object: $properties_object
         )
     }
 `;
 export const AddSessionFeedbackDocument = gql`
     mutation addSessionFeedback(
-        $session_id: ID!
+        $session_secure_id: String!
         $user_name: String
         $user_email: String
         $verbatim: String!
         $timestamp: Timestamp!
     ) {
         addSessionFeedback(
-            session_id: $session_id
+            session_secure_id: $session_secure_id
             user_name: $user_name
             user_email: $user_email
             verbatim: $verbatim
@@ -350,6 +360,7 @@ export const AddSessionFeedbackDocument = gql`
 `;
 export const InitializeSessionDocument = gql`
     mutation initializeSession(
+        $session_secure_id: String!
         $organization_verbose_id: String!
         $enable_strict_privacy: Boolean!
         $enable_recording_network_contents: Boolean!
@@ -359,10 +370,10 @@ export const InitializeSessionDocument = gql`
         $environment: String!
         $id: String!
         $appVersion: String
-        $session_secure_id: String
         $client_id: String
     ) {
         initializeSession(
+            session_secure_id: $session_secure_id
             organization_verbose_id: $organization_verbose_id
             enable_strict_privacy: $enable_strict_privacy
             enable_recording_network_contents: $enable_recording_network_contents
@@ -372,10 +383,8 @@ export const InitializeSessionDocument = gql`
             environment: $environment
             appVersion: $appVersion
             fingerprint: $id
-            session_secure_id: $session_secure_id
             client_id: $client_id
         ) {
-            id
             secure_id
             organization_id
             project_id

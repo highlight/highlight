@@ -42,7 +42,6 @@ func BenchmarkQueue_Submit(b *testing.B) {
 				err := writer.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
-						SessionID: -1,
 						Events: model.ReplayEventsInput{
 							Events: []*model.ReplayEventInput{{
 								Type:      0,
@@ -76,8 +75,8 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					continue
 				} else if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
-				} else if msg.PushPayload.SessionID != -1 {
-					b.Errorf("expected to consume dummy session -1")
+				} else if msg.PushPayload.SessionID != nil {
+					b.Errorf("expected to consume dummy session")
 				}
 			}
 			recWg.Done()

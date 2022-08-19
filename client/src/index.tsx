@@ -359,7 +359,6 @@ export class Highlight {
         };
         this._onToggleFeedbackFormVisibility = () => {};
         this.sessionData = {
-            sessionID: 0,
             sessionSecureID: '',
             projectID: 0,
             sessionStartTime: Date.now(),
@@ -431,7 +430,7 @@ export class Highlight {
         try {
             const stringified = this._stringifyProperties(user_object, 'user');
             await this.graphqlSDK.identifySession({
-                session_id: this.sessionData.sessionID.toString(),
+                session_secure_id: this.sessionData.sessionSecureID,
                 user_identifier: this.sessionData.userIdentifier,
                 user_object: stringified,
             });
@@ -554,12 +553,12 @@ export class Highlight {
                     'session'
                 );
                 await this.graphqlSDK.addSessionProperties({
-                    session_id: this.sessionData.sessionID.toString(),
+                    session_secure_id: this.sessionData.sessionSecureID,
                     properties_object: stringified,
                 });
                 this.logger.log(
                     `AddSessionProperties to session (${
-                        this.sessionData.sessionID
+                        this.sessionData.sessionSecureID
                     }) w/ obj: ${JSON.stringify(
                         properties_obj
                     )} @ ${publicGraphURI}`
@@ -588,14 +587,14 @@ export class Highlight {
                     'track'
                 );
                 await this.graphqlSDK.addTrackProperties({
-                    session_id: this.sessionData.sessionID.toString(),
+                    session_secure_id: this.sessionData.sessionSecureID,
                     properties_object: stringified,
                 });
                 const sourceString =
                     typeArg?.source === 'segment' ? typeArg.source : 'default';
                 this.logger.log(
                     `AddTrackProperties to session (${
-                        this.sessionData.sessionID
+                        this.sessionData.sessionSecureID
                     }, source: ${sourceString}) w/ obj: ${stringify(
                         properties_obj
                     )} @ ${publicGraphURI}`
@@ -629,11 +628,7 @@ export class Highlight {
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
-            if (
-                (!this.sessionData.sessionID ||
-                    !this.sessionData.sessionSecureID) &&
-                storedSessionData
-            ) {
+            if (this.sessionData.sessionSecureID && storedSessionData) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             }
@@ -697,14 +692,6 @@ export class Highlight {
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
                     });
-                    this.sessionData.sessionID = parseInt(
-                        gr?.initializeSession?.id || '0'
-                    );
-                    if (!this.sessionData.sessionID) {
-                        this.logger.log(`Highlight Session Initialization got
-  session ID ${this.sessionData.sessionID} as response: ${JSON.stringify(gr)}.
-                        `);
-                    }
                     this.sessionData.sessionSecureID =
                         gr?.initializeSession?.secure_id || '';
                     window.sessionStorage.setItem(
@@ -719,7 +706,7 @@ export class Highlight {
   Remote: ${publicGraphURI}
   Friendly Project ID: ${this.organizationID}
   Short Project ID: ${this.sessionData.projectID}
-  SessionID: ${this.sessionData.sessionID}
+  SessionSecureID: ${this.sessionData.sessionSecureID}
   Session Data:
   `,
                         gr.initializeSession
@@ -1125,7 +1112,7 @@ export class Highlight {
         }
         try {
             this.graphqlSDK.addSessionFeedback({
-                session_id: this.sessionData.sessionID.toString(),
+                session_secure_id: this.sessionData.sessionSecureID,
                 timestamp,
                 verbatim,
                 user_email: user_email || this.sessionData.userIdentifier,
@@ -1148,7 +1135,7 @@ export class Highlight {
             return;
         }
         try {
-            if (!this.sessionData.sessionID) {
+            if (!this.sessionData.sessionSecureID) {
                 return;
             }
             try {
@@ -1202,7 +1189,7 @@ export class Highlight {
         return (
             this._recordingStartTime !== 0 &&
             this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
-            this.sessionData.sessionID !== 0
+            this.sessionData.sessionSecureID !== ''
         );
     }
 
@@ -1262,13 +1249,13 @@ export class Highlight {
         }
 
         this.logger.log(
-            `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+            `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionSecureID: ${this.sessionData.sessionSecureID}`
         );
 
         const resourcesString = JSON.stringify({ resources: resources });
         const messagesString = stringify({ messages: messages });
         let payload: PushPayloadMutationVariables = {
-            session_id: this.sessionData.sessionID.toString(),
+            session_secure_id: this.sessionData.sessionSecureID,
             events: { events } as ReplayEventsInput,
             messages: messagesString,
             resources: resourcesString,

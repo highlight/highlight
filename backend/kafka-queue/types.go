@@ -19,7 +19,8 @@ const (
 )
 
 type PushPayloadArgs struct {
-	SessionID          int
+	SessionID          *int
+	SessionSecureID    *string
 	Events             customModels.ReplayEventsInput
 	Messages           string
 	Resources          string
@@ -31,21 +32,25 @@ type PushPayloadArgs struct {
 }
 
 type InitializeSessionArgs struct {
-	SessionID int
-	IP        string
+	SessionID       int
+	SessionSecureID *string
+	IP              string
 }
 
 type IdentifySessionArgs struct {
-	SessionID      int
-	UserIdentifier string
-	UserObject     interface{}
+	SessionID       *int
+	SessionSecureID *string
+	UserIdentifier  string
+	UserObject      interface{}
 }
 type AddTrackPropertiesArgs struct {
-	SessionID        int
+	SessionID        *int
+	SessionSecureID  *string
 	PropertiesObject interface{}
 }
 type AddSessionPropertiesArgs struct {
-	SessionID        int
+	SessionID        *int
+	SessionSecureID  *string
 	PropertiesObject interface{}
 }
 type PushBackendPayloadArgs struct {
