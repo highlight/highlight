@@ -14,6 +14,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
+import { GetHistogramBucketSize } from '@util/time';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -1166,7 +1167,7 @@ const QueryBuilder = ({
     readonly,
 }: QueryBuilderProps<any>) => {
     const {
-        setSearchQuery,
+        setBackendSearchQuery,
         searchParams,
         setSearchParams,
         searchResultsLoading,
@@ -1514,6 +1515,26 @@ const QueryBuilder = ({
         return results;
     };
 
+    const setSearchQuery = useCallback(
+        (searchQuery: string) => {
+            if (!timeRangeRule) return;
+            const startDate = moment(
+                getAbsoluteStartTime(timeRangeRule.val?.options[0].value)
+            );
+            const endDate = moment(
+                getAbsoluteEndTime(timeRangeRule.val?.options[0].value)
+            );
+            setBackendSearchQuery({
+                searchQuery,
+                startDate,
+                endDate,
+                histogramBucketSize: GetHistogramBucketSize(
+                    moment.duration(endDate.diff(startDate))
+                ),
+            });
+        },
+        [setBackendSearchQuery, timeRangeRule]
+    );
     const getOperatorOptionsCallback = (
         options: FieldOptions | undefined,
         val: OnChangeInput

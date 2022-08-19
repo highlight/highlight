@@ -6,6 +6,7 @@ import {
     STARTING_PAGE,
 } from '@components/Pagination/Pagination';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
 import {
     useGetDailyErrorFrequencyQuery,
     useGetErrorGroupQuery,
@@ -165,7 +166,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
     const [
         showCreateCommentModal,
         setShowCreateCommentModal,
@@ -213,8 +217,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
-                searchQuery,
-                setSearchQuery,
+                backendSearchQuery,
+                setBackendSearchQuery,
                 page,
                 setPage,
                 searchResultsLoading,

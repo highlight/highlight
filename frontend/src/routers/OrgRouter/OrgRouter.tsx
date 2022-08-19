@@ -12,6 +12,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
@@ -178,7 +179,10 @@ export const ProjectRouter = () => {
         undefined
     );
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
 
     const [
         queryBuilderInput,
@@ -351,8 +355,8 @@ export const ProjectRouter = () => {
                         setShowStarredSessions,
                         selectedSegment,
                         setSelectedSegment,
-                        searchQuery,
-                        setSearchQuery,
+                        backendSearchQuery,
+                        setBackendSearchQuery,
                         queryBuilderInput,
                         setQueryBuilderInput,
                         isQuickSearchOpen,
