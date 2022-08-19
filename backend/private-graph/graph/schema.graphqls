@@ -27,6 +27,7 @@ type Session {
     environment: String
     app_version: String
     client_version: String
+    firstload_version: String
     client_config: String
     language: String!
     identifier: String!
@@ -119,7 +120,7 @@ type Plan {
     type: PlanType!
     interval: SubscriptionInterval!
     quota: Int!
-    membersLimit: Int!
+    membersLimit: Int
 }
 
 enum PlanType {
@@ -211,9 +212,10 @@ type Account {
     email: String!
     subscription_start: Timestamp
     plan_tier: String!
+    unlimited_members: Boolean!
     stripe_customer_id: String!
     member_count: Int!
-    member_limit: Int!
+    member_limit: Int
 }
 
 type AccountDetailsMember {
@@ -245,6 +247,7 @@ type Workspace {
     secret: String
     projects: [Project]!
     plan_tier: String!
+    unlimited_members: Boolean!
     trial_end_date: Timestamp
     billing_period_end: Timestamp
     next_invoice_date: Timestamp
@@ -325,6 +328,7 @@ type ErrorMetadata {
     identifier: String
     user_properties: String
     request_id: String
+    payload: String
 }
 
 type ErrorTrace {
@@ -398,6 +402,7 @@ input DashboardParamsInput {
     units: String
     aggregator: MetricAggregator
     filters: [MetricTagFilterInput!]
+    groups: [String!]
 }
 
 input HistogramParamsInput {
@@ -756,6 +761,7 @@ type DashboardPayload {
     date: String!
     value: Float!
     aggregator: MetricAggregator
+    group: String
 }
 
 type HistogramBucket {
@@ -782,6 +788,7 @@ type CategoryHistogramPayload {
 
 enum DashboardChartType {
     Timeline
+    TimelineBar
     Histogram
 }
 
@@ -799,35 +806,49 @@ enum MetricAggregator {
 input DashboardMetricConfigInput {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilterInput!]
+    groups: [String!]
+}
+
+enum MetricViewComponentType {
+    KeyPerformanceGauge
+    SessionCountChart
+    ErrorCountChart
+    ReferrersTable
+    ActiveUsersTable
+    RageClicksTable
+    TopRoutesTable
 }
 
 type DashboardMetricConfig {
     name: String!
     description: String!
-    max_good_value: Float!
-    max_needs_improvement_value: Float!
-    poor_value: Float!
-    units: String!
-    help_article: String!
-    chart_type: DashboardChartType!
-    aggregator: MetricAggregator!
+    component_type: MetricViewComponentType
+    max_good_value: Float
+    max_needs_improvement_value: Float
+    poor_value: Float
+    units: String
+    help_article: String
+    chart_type: DashboardChartType
+    aggregator: MetricAggregator
     min_value: Float
     min_percentile: Float
     max_value: Float
     max_percentile: Float
     filters: [MetricTagFilter!]
+    groups: [String!]
 }
 
 type DashboardDefinition {
@@ -1128,6 +1149,7 @@ type Mutation {
         issue_team_id: String
         integrations: [IntegrationType]!
         tags: [SessionCommentTagInput]!
+        additional_context: String
     ): SessionComment
     createIssueForSessionComment(
         project_id: ID!

@@ -1,10 +1,8 @@
-import * as Types from './schemas';
-
 import { GraphQLClient } from 'graphql-request';
 import * as Dom from 'graphql-request/dist/types.dom';
-import { print } from 'graphql';
 import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
     [K in keyof T]: T[K];
 };
@@ -20,147 +18,118 @@ export type Scalars = {
     Int: number;
     Float: number;
     Any: any;
-    Timestamp: any;
     Int64: any;
-};
-
-export type Session = {
-    __typename?: 'Session';
-    id: Scalars['ID'];
-    secure_id: Scalars['String'];
-    organization_id: Scalars['ID'];
-    project_id: Scalars['ID'];
-};
-
-export type StackFrameInput = {
-    functionName?: Maybe<Scalars['String']>;
-    args?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    fileName?: Maybe<Scalars['String']>;
-    lineNumber?: Maybe<Scalars['Int']>;
-    columnNumber?: Maybe<Scalars['Int']>;
-    isEval?: Maybe<Scalars['Boolean']>;
-    isNative?: Maybe<Scalars['Boolean']>;
-    source?: Maybe<Scalars['String']>;
-};
-
-export type ErrorObjectInput = {
-    event: Scalars['String'];
-    type: Scalars['String'];
-    url: Scalars['String'];
-    source: Scalars['String'];
-    lineNumber: Scalars['Int'];
-    columnNumber: Scalars['Int'];
-    stackTrace: Array<Maybe<StackFrameInput>>;
-    timestamp: Scalars['Timestamp'];
-    payload?: Maybe<Scalars['String']>;
+    Timestamp: any;
 };
 
 export type BackendErrorObjectInput = {
-    session_secure_id: Scalars['String'];
-    request_id: Scalars['String'];
     event: Scalars['String'];
-    type: Scalars['String'];
-    url: Scalars['String'];
+    payload?: InputMaybe<Scalars['String']>;
+    request_id: Scalars['String'];
+    session_secure_id: Scalars['String'];
     source: Scalars['String'];
     stackTrace: Scalars['String'];
     timestamp: Scalars['Timestamp'];
-    payload?: Maybe<Scalars['String']>;
+    type: Scalars['String'];
+    url: Scalars['String'];
+};
+
+export type ErrorObjectInput = {
+    columnNumber: Scalars['Int'];
+    event: Scalars['String'];
+    lineNumber: Scalars['Int'];
+    payload?: InputMaybe<Scalars['String']>;
+    source: Scalars['String'];
+    stackTrace: Array<InputMaybe<StackFrameInput>>;
+    timestamp: Scalars['Timestamp'];
+    type: Scalars['String'];
+    url: Scalars['String'];
 };
 
 export type MetricInput = {
-    session_secure_id: Scalars['String'];
-    group?: Maybe<Scalars['String']>;
+    category?: InputMaybe<Scalars['String']>;
+    group?: InputMaybe<Scalars['String']>;
     name: Scalars['String'];
-    value: Scalars['Float'];
-    category?: Maybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     timestamp: Scalars['Timestamp'];
-    type?: Maybe<Scalars['Any']>;
-    url?: Maybe<Scalars['String']>;
-};
-
-export type ReplayEventInput = {
-    type: Scalars['Int'];
-    timestamp: Scalars['Float'];
-    _sid: Scalars['Float'];
-    data: Scalars['Any'];
-};
-
-export type ReplayEventsInput = {
-    events: Array<Maybe<ReplayEventInput>>;
+    type?: InputMaybe<Scalars['Any']>;
+    url?: InputMaybe<Scalars['String']>;
+    value: Scalars['Float'];
 };
 
 export type Mutation = {
     __typename?: 'Mutation';
-    initializeSession?: Maybe<Session>;
-    identifySession?: Maybe<Scalars['ID']>;
-    addTrackProperties?: Maybe<Scalars['ID']>;
+    addSessionFeedback: Scalars['ID'];
     addSessionProperties?: Maybe<Scalars['ID']>;
-    pushPayload: Scalars['Int'];
+    addTrackProperties?: Maybe<Scalars['ID']>;
+    identifySession?: Maybe<Scalars['ID']>;
+    initializeSession?: Maybe<Session>;
+    markBackendSetup: Scalars['ID'];
     pushBackendPayload?: Maybe<Scalars['Any']>;
     pushMetrics: Scalars['ID'];
-    markBackendSetup: Scalars['ID'];
-    addSessionFeedback: Scalars['ID'];
+    pushPayload: Scalars['Int'];
 };
 
-export type MutationInitializeSessionArgs = {
-    organization_verbose_id: Scalars['String'];
-    enable_strict_privacy: Scalars['Boolean'];
-    enable_recording_network_contents: Scalars['Boolean'];
-    clientVersion: Scalars['String'];
-    firstloadVersion: Scalars['String'];
-    clientConfig: Scalars['String'];
-    environment: Scalars['String'];
-    appVersion?: Maybe<Scalars['String']>;
-    fingerprint: Scalars['String'];
-    session_secure_id?: Maybe<Scalars['String']>;
-    client_id?: Maybe<Scalars['String']>;
+export type MutationAddSessionFeedbackArgs = {
+    session_id: Scalars['ID'];
+    timestamp: Scalars['Timestamp'];
+    user_email?: InputMaybe<Scalars['String']>;
+    user_name?: InputMaybe<Scalars['String']>;
+    verbatim: Scalars['String'];
+};
+
+export type MutationAddSessionPropertiesArgs = {
+    properties_object?: InputMaybe<Scalars['Any']>;
+    session_id: Scalars['ID'];
+};
+
+export type MutationAddTrackPropertiesArgs = {
+    properties_object?: InputMaybe<Scalars['Any']>;
+    session_id: Scalars['ID'];
 };
 
 export type MutationIdentifySessionArgs = {
     session_id: Scalars['ID'];
     user_identifier: Scalars['String'];
-    user_object?: Maybe<Scalars['Any']>;
+    user_object?: InputMaybe<Scalars['Any']>;
 };
 
-export type MutationAddTrackPropertiesArgs = {
-    session_id: Scalars['ID'];
-    properties_object?: Maybe<Scalars['Any']>;
-};
-
-export type MutationAddSessionPropertiesArgs = {
-    session_id: Scalars['ID'];
-    properties_object?: Maybe<Scalars['Any']>;
-};
-
-export type MutationPushPayloadArgs = {
-    session_id: Scalars['ID'];
-    events: ReplayEventsInput;
-    messages: Scalars['String'];
-    resources: Scalars['String'];
-    errors: Array<Maybe<ErrorObjectInput>>;
-    is_beacon?: Maybe<Scalars['Boolean']>;
-    has_session_unloaded?: Maybe<Scalars['Boolean']>;
-    highlight_logs?: Maybe<Scalars['String']>;
-};
-
-export type MutationPushBackendPayloadArgs = {
-    errors: Array<Maybe<BackendErrorObjectInput>>;
-};
-
-export type MutationPushMetricsArgs = {
-    metrics: Array<Maybe<MetricInput>>;
+export type MutationInitializeSessionArgs = {
+    appVersion?: InputMaybe<Scalars['String']>;
+    clientConfig: Scalars['String'];
+    clientVersion: Scalars['String'];
+    client_id?: InputMaybe<Scalars['String']>;
+    enable_recording_network_contents: Scalars['Boolean'];
+    enable_strict_privacy: Scalars['Boolean'];
+    environment: Scalars['String'];
+    fingerprint: Scalars['String'];
+    firstloadVersion: Scalars['String'];
+    organization_verbose_id: Scalars['String'];
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type MutationMarkBackendSetupArgs = {
     session_secure_id: Scalars['String'];
 };
 
-export type MutationAddSessionFeedbackArgs = {
+export type MutationPushBackendPayloadArgs = {
+    errors: Array<InputMaybe<BackendErrorObjectInput>>;
+};
+
+export type MutationPushMetricsArgs = {
+    metrics: Array<InputMaybe<MetricInput>>;
+};
+
+export type MutationPushPayloadArgs = {
+    errors: Array<InputMaybe<ErrorObjectInput>>;
+    events: ReplayEventsInput;
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+    highlight_logs?: InputMaybe<Scalars['String']>;
+    is_beacon?: InputMaybe<Scalars['Boolean']>;
+    messages: Scalars['String'];
+    payload_id?: InputMaybe<Scalars['ID']>;
+    resources: Scalars['String'];
     session_id: Scalars['ID'];
-    user_name?: Maybe<Scalars['String']>;
-    user_email?: Maybe<Scalars['String']>;
-    verbatim: Scalars['String'];
-    timestamp: Scalars['Timestamp'];
 };
 
 export type Query = {
@@ -172,110 +141,136 @@ export type QueryIgnoreArgs = {
     id: Scalars['ID'];
 };
 
-export type PushPayloadMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    events: Types.ReplayEventsInput;
-    messages: Types.Scalars['String'];
-    resources: Types.Scalars['String'];
-    errors:
-        | Array<Types.Maybe<Types.ErrorObjectInput>>
-        | Types.Maybe<Types.ErrorObjectInput>;
-    is_beacon?: Types.Maybe<Types.Scalars['Boolean']>;
-    has_session_unloaded?: Types.Maybe<Types.Scalars['Boolean']>;
-    highlight_logs?: Types.Maybe<Types.Scalars['String']>;
-}>;
-
-export type PushPayloadMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'pushPayload'
->;
-
-export type IdentifySessionMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    user_identifier: Types.Scalars['String'];
-    user_object?: Types.Maybe<Types.Scalars['Any']>;
-}>;
-
-export type IdentifySessionMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'identifySession'
->;
-
-export type AddSessionPropertiesMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    properties_object?: Types.Maybe<Types.Scalars['Any']>;
-}>;
-
-export type AddSessionPropertiesMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'addSessionProperties'
->;
-
-export type PushMetricsMutationVariables = Types.Exact<{
-    metrics:
-        | Array<Types.Maybe<Types.MetricInput>>
-        | Types.Maybe<Types.MetricInput>;
-}>;
-
-export type PushMetricsMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'pushMetrics'
->;
-
-export type AddTrackPropertiesMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    properties_object?: Types.Maybe<Types.Scalars['Any']>;
-}>;
-
-export type AddTrackPropertiesMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'addTrackProperties'
->;
-
-export type AddSessionFeedbackMutationVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-    user_name?: Types.Maybe<Types.Scalars['String']>;
-    user_email?: Types.Maybe<Types.Scalars['String']>;
-    verbatim: Types.Scalars['String'];
-    timestamp: Types.Scalars['Timestamp'];
-}>;
-
-export type AddSessionFeedbackMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'addSessionFeedback'
->;
-
-export type InitializeSessionMutationVariables = Types.Exact<{
-    organization_verbose_id: Types.Scalars['String'];
-    enable_strict_privacy: Types.Scalars['Boolean'];
-    enable_recording_network_contents: Types.Scalars['Boolean'];
-    clientVersion: Types.Scalars['String'];
-    firstloadVersion: Types.Scalars['String'];
-    clientConfig: Types.Scalars['String'];
-    environment: Types.Scalars['String'];
-    id: Types.Scalars['String'];
-    appVersion?: Types.Maybe<Types.Scalars['String']>;
-    session_secure_id?: Types.Maybe<Types.Scalars['String']>;
-    client_id?: Types.Maybe<Types.Scalars['String']>;
-}>;
-
-export type InitializeSessionMutation = { __typename?: 'Mutation' } & {
-    initializeSession?: Types.Maybe<
-        { __typename?: 'Session' } & Pick<
-            Types.Session,
-            'id' | 'secure_id' | 'organization_id' | 'project_id'
-        >
-    >;
+export type ReplayEventInput = {
+    _sid: Scalars['Float'];
+    data: Scalars['Any'];
+    timestamp: Scalars['Float'];
+    type: Scalars['Int'];
 };
 
-export type IgnoreQueryVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
+export type ReplayEventsInput = {
+    events: Array<InputMaybe<ReplayEventInput>>;
+};
+
+export type Session = {
+    __typename?: 'Session';
+    id: Scalars['ID'];
+    organization_id: Scalars['ID'];
+    project_id: Scalars['ID'];
+    secure_id: Scalars['String'];
+};
+
+export type StackFrameInput = {
+    args?: InputMaybe<Array<InputMaybe<Scalars['Any']>>>;
+    columnNumber?: InputMaybe<Scalars['Int']>;
+    fileName?: InputMaybe<Scalars['String']>;
+    functionName?: InputMaybe<Scalars['String']>;
+    isEval?: InputMaybe<Scalars['Boolean']>;
+    isNative?: InputMaybe<Scalars['Boolean']>;
+    lineNumber?: InputMaybe<Scalars['Int']>;
+    source?: InputMaybe<Scalars['String']>;
+};
+
+export type PushPayloadMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    events: ReplayEventsInput;
+    messages: Scalars['String'];
+    resources: Scalars['String'];
+    errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>;
+    is_beacon?: InputMaybe<Scalars['Boolean']>;
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>;
+    highlight_logs?: InputMaybe<Scalars['String']>;
+    payload_id?: InputMaybe<Scalars['ID']>;
 }>;
 
-export type IgnoreQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'ignore'
->;
+export type PushPayloadMutation = {
+    __typename?: 'Mutation';
+    pushPayload: number;
+};
+
+export type IdentifySessionMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    user_identifier: Scalars['String'];
+    user_object?: InputMaybe<Scalars['Any']>;
+}>;
+
+export type IdentifySessionMutation = {
+    __typename?: 'Mutation';
+    identifySession?: string | null;
+};
+
+export type AddSessionPropertiesMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    properties_object?: InputMaybe<Scalars['Any']>;
+}>;
+
+export type AddSessionPropertiesMutation = {
+    __typename?: 'Mutation';
+    addSessionProperties?: string | null;
+};
+
+export type PushMetricsMutationVariables = Exact<{
+    metrics: Array<InputMaybe<MetricInput>> | InputMaybe<MetricInput>;
+}>;
+
+export type PushMetricsMutation = {
+    __typename?: 'Mutation';
+    pushMetrics: string;
+};
+
+export type AddTrackPropertiesMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    properties_object?: InputMaybe<Scalars['Any']>;
+}>;
+
+export type AddTrackPropertiesMutation = {
+    __typename?: 'Mutation';
+    addTrackProperties?: string | null;
+};
+
+export type AddSessionFeedbackMutationVariables = Exact<{
+    session_id: Scalars['ID'];
+    user_name?: InputMaybe<Scalars['String']>;
+    user_email?: InputMaybe<Scalars['String']>;
+    verbatim: Scalars['String'];
+    timestamp: Scalars['Timestamp'];
+}>;
+
+export type AddSessionFeedbackMutation = {
+    __typename?: 'Mutation';
+    addSessionFeedback: string;
+};
+
+export type InitializeSessionMutationVariables = Exact<{
+    organization_verbose_id: Scalars['String'];
+    enable_strict_privacy: Scalars['Boolean'];
+    enable_recording_network_contents: Scalars['Boolean'];
+    clientVersion: Scalars['String'];
+    firstloadVersion: Scalars['String'];
+    clientConfig: Scalars['String'];
+    environment: Scalars['String'];
+    id: Scalars['String'];
+    appVersion?: InputMaybe<Scalars['String']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
+    client_id?: InputMaybe<Scalars['String']>;
+}>;
+
+export type InitializeSessionMutation = {
+    __typename?: 'Mutation';
+    initializeSession?: {
+        __typename?: 'Session';
+        id: string;
+        secure_id: string;
+        organization_id: string;
+        project_id: string;
+    } | null;
+};
+
+export type IgnoreQueryVariables = Exact<{
+    id: Scalars['ID'];
+}>;
+
+export type IgnoreQuery = { __typename?: 'Query'; ignore?: any | null };
 
 export const PushPayloadDocument = gql`
     mutation PushPayload(
@@ -287,6 +282,7 @@ export const PushPayloadDocument = gql`
         $is_beacon: Boolean
         $has_session_unloaded: Boolean
         $highlight_logs: String
+        $payload_id: ID
     ) {
         pushPayload(
             session_id: $session_id
@@ -297,6 +293,7 @@ export const PushPayloadDocument = gql`
             is_beacon: $is_beacon
             has_session_unloaded: $has_session_unloaded
             highlight_logs: $highlight_logs
+            payload_id: $payload_id
         )
     }
 `;
@@ -391,9 +388,18 @@ export const IgnoreDocument = gql`
     }
 `;
 
-export type SdkFunctionWrapper = <T>(action: () => Promise<T>) => Promise<T>;
+export type SdkFunctionWrapper = <T>(
+    action: (requestHeaders?: Record<string, string>) => Promise<T>,
+    operationName: string,
+    operationType?: string
+) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (sdkFunction) => sdkFunction();
+const defaultWrapper: SdkFunctionWrapper = (
+    action,
+    _operationName,
+    _operationType
+) => action();
+
 export function getSdk(
     client: GraphQLClient,
     withWrapper: SdkFunctionWrapper = defaultWrapper
@@ -403,96 +409,119 @@ export function getSdk(
             variables: PushPayloadMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<PushPayloadMutation> {
-            return withWrapper(() =>
-                client.request<PushPayloadMutation>(
-                    print(PushPayloadDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<PushPayloadMutation>(
+                        PushPayloadDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'PushPayload',
+                'mutation'
             );
         },
         identifySession(
             variables: IdentifySessionMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<IdentifySessionMutation> {
-            return withWrapper(() =>
-                client.request<IdentifySessionMutation>(
-                    print(IdentifySessionDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<IdentifySessionMutation>(
+                        IdentifySessionDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'identifySession',
+                'mutation'
             );
         },
         addSessionProperties(
             variables: AddSessionPropertiesMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<AddSessionPropertiesMutation> {
-            return withWrapper(() =>
-                client.request<AddSessionPropertiesMutation>(
-                    print(AddSessionPropertiesDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<AddSessionPropertiesMutation>(
+                        AddSessionPropertiesDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'addSessionProperties',
+                'mutation'
             );
         },
         pushMetrics(
             variables: PushMetricsMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<PushMetricsMutation> {
-            return withWrapper(() =>
-                client.request<PushMetricsMutation>(
-                    print(PushMetricsDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<PushMetricsMutation>(
+                        PushMetricsDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'pushMetrics',
+                'mutation'
             );
         },
         addTrackProperties(
             variables: AddTrackPropertiesMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<AddTrackPropertiesMutation> {
-            return withWrapper(() =>
-                client.request<AddTrackPropertiesMutation>(
-                    print(AddTrackPropertiesDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<AddTrackPropertiesMutation>(
+                        AddTrackPropertiesDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'addTrackProperties',
+                'mutation'
             );
         },
         addSessionFeedback(
             variables: AddSessionFeedbackMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<AddSessionFeedbackMutation> {
-            return withWrapper(() =>
-                client.request<AddSessionFeedbackMutation>(
-                    print(AddSessionFeedbackDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<AddSessionFeedbackMutation>(
+                        AddSessionFeedbackDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'addSessionFeedback',
+                'mutation'
             );
         },
         initializeSession(
             variables: InitializeSessionMutationVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<InitializeSessionMutation> {
-            return withWrapper(() =>
-                client.request<InitializeSessionMutation>(
-                    print(InitializeSessionDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<InitializeSessionMutation>(
+                        InitializeSessionDocument,
+                        variables,
+                        { ...requestHeaders, ...wrappedRequestHeaders }
+                    ),
+                'initializeSession',
+                'mutation'
             );
         },
         Ignore(
             variables: IgnoreQueryVariables,
             requestHeaders?: Dom.RequestInit['headers']
         ): Promise<IgnoreQuery> {
-            return withWrapper(() =>
-                client.request<IgnoreQuery>(
-                    print(IgnoreDocument),
-                    variables,
-                    requestHeaders
-                )
+            return withWrapper(
+                (wrappedRequestHeaders) =>
+                    client.request<IgnoreQuery>(IgnoreDocument, variables, {
+                        ...requestHeaders,
+                        ...wrappedRequestHeaders,
+                    }),
+                'Ignore',
+                'query'
             );
         },
     };

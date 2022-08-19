@@ -44,6 +44,7 @@ export type Session = {
     environment?: Maybe<Scalars['String']>;
     app_version?: Maybe<Scalars['String']>;
     client_version?: Maybe<Scalars['String']>;
+    firstload_version?: Maybe<Scalars['String']>;
     client_config?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
@@ -144,7 +145,7 @@ export type Plan = {
     type: PlanType;
     interval: SubscriptionInterval;
     quota: Scalars['Int'];
-    membersLimit: Scalars['Int'];
+    membersLimit?: Maybe<Scalars['Int']>;
 };
 
 export enum PlanType {
@@ -241,9 +242,10 @@ export type Account = {
     email: Scalars['String'];
     subscription_start?: Maybe<Scalars['Timestamp']>;
     plan_tier: Scalars['String'];
+    unlimited_members: Scalars['Boolean'];
     stripe_customer_id: Scalars['String'];
     member_count: Scalars['Int'];
-    member_limit: Scalars['Int'];
+    member_limit?: Maybe<Scalars['Int']>;
 };
 
 export type AccountDetailsMember = {
@@ -279,6 +281,7 @@ export type Workspace = {
     secret?: Maybe<Scalars['String']>;
     projects: Array<Maybe<Project>>;
     plan_tier: Scalars['String'];
+    unlimited_members: Scalars['Boolean'];
     trial_end_date?: Maybe<Scalars['Timestamp']>;
     billing_period_end?: Maybe<Scalars['Timestamp']>;
     next_invoice_date?: Maybe<Scalars['Timestamp']>;
@@ -365,6 +368,7 @@ export type ErrorMetadata = {
     identifier?: Maybe<Scalars['String']>;
     user_properties?: Maybe<Scalars['String']>;
     request_id?: Maybe<Scalars['String']>;
+    payload?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {
@@ -443,6 +447,7 @@ export type DashboardParamsInput = {
     units?: Maybe<Scalars['String']>;
     aggregator?: Maybe<MetricAggregator>;
     filters?: Maybe<Array<MetricTagFilterInput>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
 
 export type HistogramParamsInput = {
@@ -823,6 +828,7 @@ export type DashboardPayload = {
     date: Scalars['String'];
     value: Scalars['Float'];
     aggregator?: Maybe<MetricAggregator>;
+    group?: Maybe<Scalars['String']>;
 };
 
 export type HistogramBucket = {
@@ -853,6 +859,7 @@ export type CategoryHistogramPayload = {
 
 export enum DashboardChartType {
     Timeline = 'Timeline',
+    TimelineBar = 'TimelineBar',
     Histogram = 'Histogram',
 }
 
@@ -870,36 +877,50 @@ export enum MetricAggregator {
 export type DashboardMetricConfigInput = {
     name: Scalars['String'];
     description: Scalars['String'];
-    max_good_value: Scalars['Float'];
-    max_needs_improvement_value: Scalars['Float'];
-    poor_value: Scalars['Float'];
-    units: Scalars['String'];
-    help_article: Scalars['String'];
-    chart_type: DashboardChartType;
-    aggregator: MetricAggregator;
+    component_type?: Maybe<MetricViewComponentType>;
+    max_good_value?: Maybe<Scalars['Float']>;
+    max_needs_improvement_value?: Maybe<Scalars['Float']>;
+    poor_value?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
+    help_article?: Maybe<Scalars['String']>;
+    chart_type?: Maybe<DashboardChartType>;
+    aggregator?: Maybe<MetricAggregator>;
     min_value?: Maybe<Scalars['Float']>;
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
     filters?: Maybe<Array<MetricTagFilterInput>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
+
+export enum MetricViewComponentType {
+    KeyPerformanceGauge = 'KeyPerformanceGauge',
+    SessionCountChart = 'SessionCountChart',
+    ErrorCountChart = 'ErrorCountChart',
+    ReferrersTable = 'ReferrersTable',
+    ActiveUsersTable = 'ActiveUsersTable',
+    RageClicksTable = 'RageClicksTable',
+    TopRoutesTable = 'TopRoutesTable',
+}
 
 export type DashboardMetricConfig = {
     __typename?: 'DashboardMetricConfig';
     name: Scalars['String'];
     description: Scalars['String'];
-    max_good_value: Scalars['Float'];
-    max_needs_improvement_value: Scalars['Float'];
-    poor_value: Scalars['Float'];
-    units: Scalars['String'];
-    help_article: Scalars['String'];
-    chart_type: DashboardChartType;
-    aggregator: MetricAggregator;
+    component_type?: Maybe<MetricViewComponentType>;
+    max_good_value?: Maybe<Scalars['Float']>;
+    max_needs_improvement_value?: Maybe<Scalars['Float']>;
+    poor_value?: Maybe<Scalars['Float']>;
+    units?: Maybe<Scalars['String']>;
+    help_article?: Maybe<Scalars['String']>;
+    chart_type?: Maybe<DashboardChartType>;
+    aggregator?: Maybe<MetricAggregator>;
     min_value?: Maybe<Scalars['Float']>;
     min_percentile?: Maybe<Scalars['Float']>;
     max_value?: Maybe<Scalars['Float']>;
     max_percentile?: Maybe<Scalars['Float']>;
     filters?: Maybe<Array<MetricTagFilter>>;
+    groups?: Maybe<Array<Scalars['String']>>;
 };
 
 export type DashboardDefinition = {
@@ -1649,6 +1670,7 @@ export type MutationCreateSessionCommentArgs = {
     issue_team_id?: Maybe<Scalars['String']>;
     integrations: Array<Maybe<IntegrationType>>;
     tags: Array<Maybe<SessionCommentTagInput>>;
+    additional_context?: Maybe<Scalars['String']>;
 };
 
 export type MutationCreateIssueForSessionCommentArgs = {

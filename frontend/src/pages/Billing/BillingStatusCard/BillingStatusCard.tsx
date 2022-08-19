@@ -10,6 +10,7 @@ import {
 } from '@graph/schemas';
 import { BILLING_PLANS } from '@pages/Billing/BillingPlanCard/BillingConfig';
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils';
+import { formatNumberWithDelimiters } from '@util/numbers';
 import { Divider } from 'antd';
 import {
     add,
@@ -24,7 +25,6 @@ import {
 import moment from 'moment';
 import React from 'react';
 
-import { formatNumberWithDelimiters } from '../../../util/numbers';
 import styles from './BillingStatusCard.module.scss';
 
 const SESSIONS_PRICE_PER_THOUSAND = 5;
@@ -78,6 +78,9 @@ export const BillingStatusCard = ({
 
     let membersOverage = memberCount - memberLimit;
     if (membersOverage < 0) {
+        membersOverage = 0;
+    }
+    if (!memberLimit) {
         membersOverage = 0;
     }
 
@@ -206,7 +209,11 @@ export const BillingStatusCard = ({
                                 </strong>{' '}
                                 members (
                                 <strong>
-                                    {formatNumberWithDelimiters(memberLimit)}
+                                    {memberLimit > 0
+                                        ? formatNumberWithDelimiters(
+                                              memberLimit
+                                          )
+                                        : 'unlimited'}
                                 </strong>{' '}
                                 are included with your plan).
                             </span>

@@ -62,6 +62,13 @@ const options: HighlightOptions = {
             apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
         },
     },
+    enableSegmentIntegration: true,
+    enableCanvasRecording: true,
+    samplingStrategy: {
+        canvas: 1,
+    },
+    inlineStylesheet: true,
+    inlineImages: true,
     scriptUrl: 'https://static.highlight.run/beta/index.js',
     sessionShortcut: 'alt+1,command+`,alt+esc',
 };

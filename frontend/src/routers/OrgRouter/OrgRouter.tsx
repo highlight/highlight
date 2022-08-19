@@ -1,3 +1,5 @@
+import 'firebase/auth';
+
 import { useAuthContext } from '@authentication/AuthContext';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
@@ -10,6 +12,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
@@ -24,7 +27,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import classNames from 'classnames';
-import firebase from 'firebase';
+import Firebase from 'firebase/app';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -77,8 +80,7 @@ export const ProjectRouter = () => {
             process.env.REACT_APP_PRIVATE_GRAPH_URI ??
             window.location.origin + '/private';
         let intervalId: NodeJS.Timeout;
-        firebase
-            .auth()
+        Firebase.auth()
             .currentUser?.getIdToken()
             .then((t) => {
                 const fetchToken = () => {
@@ -163,6 +165,9 @@ export const ProjectRouter = () => {
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
+        false
+    );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
     const [page, setPage] = useState<number>();
@@ -174,7 +179,10 @@ export const ProjectRouter = () => {
         undefined
     );
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
 
     const [
         queryBuilderInput,
@@ -347,14 +355,16 @@ export const ProjectRouter = () => {
                         setShowStarredSessions,
                         selectedSegment,
                         setSelectedSegment,
-                        searchQuery,
-                        setSearchQuery,
+                        backendSearchQuery,
+                        setBackendSearchQuery,
                         queryBuilderInput,
                         setQueryBuilderInput,
                         isQuickSearchOpen,
                         setIsQuickSearchOpen,
                         page,
                         setPage,
+                        searchResultsLoading,
+                        setSearchResultsLoading,
                     }}
                 >
                     <Header />

@@ -4,7 +4,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-xxLarge);
+    height: 100%;
     margin-bottom: var(--size-xxLarge);
     padding: var(--size-large);
-    width: fit-content;
+    width: 100%;
 }

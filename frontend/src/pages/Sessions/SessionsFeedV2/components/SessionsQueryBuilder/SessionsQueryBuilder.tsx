@@ -18,6 +18,8 @@ import QueryBuilder, {
     RuleProps,
     SelectOption,
     serializeRules,
+    SESSION_TYPE,
+    TIME_OPERATORS,
     VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { useParams } from '@util/react-router/useParams';
@@ -42,8 +44,37 @@ const CUSTOM_FIELDS: CustomField[] = [
         type: CUSTOM_TYPE,
         name: 'active_length',
         options: {
+            operators: TIME_OPERATORS,
+            type: 'long',
+        },
+    },
+    {
+        type: CUSTOM_TYPE,
+        name: 'pages_visited',
+        options: {
             operators: RANGE_OPERATORS,
             type: 'long',
+        },
+    },
+    {
+        type: SESSION_TYPE,
+        name: 'landing_page',
+        options: {
+            type: 'text',
+        },
+    },
+    {
+        type: SESSION_TYPE,
+        name: 'exit_page',
+        options: {
+            type: 'text',
+        },
+    },
+    {
+        type: SESSION_TYPE,
+        name: 'country',
+        options: {
+            type: 'text',
         },
     },
     {
@@ -139,7 +170,7 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
         const min = params.length_range.min;
         const max = params.length_range.max;
         rules.push(
-            deserializeGroup('custom_active_length', 'between', [
+            deserializeGroup('custom_active_length', 'between_time', [
                 `${min}_${max}`,
             ])
         );
@@ -214,11 +245,6 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 
 const SessionsQueryBuilder = React.memo(
     ({ readonly }: { readonly?: boolean }) => {
-        const {
-            setSearchQuery,
-            searchParams,
-            setSearchParams,
-        } = useSearchContext();
         const { refetch } = useGetFieldsOpensearchQuery({
             skip: true,
         });
@@ -234,14 +260,12 @@ const SessionsQueryBuilder = React.memo(
 
         return (
             <QueryBuilder
-                setSearchQuery={setSearchQuery}
+                searchContext={useSearchContext()}
                 timeRangeField={TIME_RANGE_FIELD}
                 customFields={CUSTOM_FIELDS}
                 fetchFields={fetchFields}
                 fieldData={fieldData}
                 getQueryFromParams={getQueryFromParams}
-                searchParams={searchParams}
-                setSearchParams={setSearchParams}
                 readonly={readonly}
             />
         );

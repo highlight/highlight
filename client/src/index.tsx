@@ -6,7 +6,8 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-} from '@highlight-run/rrweb/dist/types';
+    SamplingStrategy,
+} from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
     ConsoleMethods,
@@ -33,12 +34,12 @@ import { SegmentIntegrationListener } from './listeners/segment-integration-list
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
-import 'clientjs';
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys';
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener';
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener';
 import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget';
 import { getPerformanceMethods } from './utils/performance/performance';
+import FingerprintJS, { Agent } from '@highlight-run/fingerprintjs';
 import {
     PerformanceListener,
     PerformancePayload,
@@ -56,6 +57,7 @@ import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
+import publicGraphURI from 'consts:publicGraphURI';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -91,6 +93,9 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     enableCanvasRecording?: boolean;
+    samplingStrategy?: SamplingStrategy;
+    inlineImages?: boolean;
+    inlineStylesheet?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
     appVersion?: string;
@@ -143,6 +148,12 @@ const PROPERTY_MAX_LENGTH = 2000;
 const MIN_SNAPSHOT_BYTES = 10e6;
 const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 
+// Debounce duplicate visibility events
+const VISIBILITY_DEBOUNCE_MS = 100;
+
+// Initial backoff for retrying graphql requests.
+const INITIAL_BACKOFF = 300;
+
 export class Highlight {
     options!: HighlightClassOptions;
     /** Determines if the client is running on a Highlight property (e.g. frontend). */
@@ -159,9 +170,13 @@ export class Highlight {
      */
     numberOfFailedRequests!: number;
     logger!: Logger;
+    fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
     enableStrictPrivacy!: boolean;
     enableCanvasRecording!: boolean;
+    samplingStrategy!: SamplingStrategy;
+    inlineImages!: boolean;
+    inlineStylesheet!: boolean;
     debugOptions!: DebugOptions;
     listeners!: listenerHandler[];
     firstloadVersion!: string;
@@ -177,10 +192,13 @@ export class Highlight {
     _firstLoadListeners!: FirstLoadListeners;
     _eventBytesSinceSnapshot!: number;
     _lastSnapshotTime!: number;
+    _lastVisibilityChangeTime!: number;
     pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined;
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    _hasPreviouslyInitialized!: boolean;
+    _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
         return new Highlight(options);
@@ -190,10 +208,26 @@ export class Highlight {
         options: HighlightClassOptions,
         firstLoadListeners?: FirstLoadListeners
     ) {
+        // setup fingerprintjs as early as possible for it to run background tasks
+        // exclude sources that are slow and may block DOM rendering
+        this.fingerprintjs = FingerprintJS.load({
+            excludeSources: [
+                'fonts', // slow with lots of fonts
+                'domBlockers', // causes reflow, slow
+                'fontPreferences', // slow
+                'audio', //slow
+                'screenFrame', // causes reflow, slow
+                'timezone', // slow
+                'plugins', // very slow
+                'canvas', // slow
+            ],
+        });
         if (!options.sessionSecureID) {
             // Firstload versions before 3.0.1 did not have this property
             options.sessionSecureID = GenerateSecureID();
         }
+        // default to inlining stylesheets to help with recording accuracy
+        options.inlineStylesheet = true;
         this.options = options;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
@@ -254,35 +288,39 @@ export class Highlight {
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.enableCanvasRecording = options.enableCanvasRecording || false;
+        this.inlineImages = options.inlineImages || false;
+        this.inlineStylesheet = options.inlineStylesheet || false;
+        this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
-            process.env.PUBLIC_GRAPH_URI ||
+            publicGraphURI ||
             'https://pub.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         const graphQLRequestWrapper = async <T,>(
             requestFn: () => Promise<T>,
+            operationName: string,
+            operationType?: string,
             retries: number = 0
         ): Promise<T> => {
-            const MAX_RETRIES = 5;
-            const INITIAL_BACKOFF = 300;
             try {
                 return await requestFn();
             } catch (error: any) {
-                if (
-                    (!error?.response?.status ||
-                        error?.response?.status >= 500) &&
-                    retries < MAX_RETRIES
-                ) {
+                if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
                     await new Promise((resolve) =>
                         setTimeout(
                             resolve,
                             INITIAL_BACKOFF * Math.pow(2, retries)
                         )
                     );
-                    return await graphQLRequestWrapper(requestFn, retries + 1);
+                    return await graphQLRequestWrapper(
+                        requestFn,
+                        operationName,
+                        operationType,
+                        retries + 1
+                    );
                 }
                 logForHighlight(
                     '[' +
@@ -334,6 +372,7 @@ export class Highlight {
         this.events = [];
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
+        this._hasPreviouslyInitialized = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -346,6 +385,15 @@ export class Highlight {
 
         this._eventBytesSinceSnapshot = 0;
         this._lastSnapshotTime = new Date().getTime();
+        this._lastVisibilityChangeTime = new Date().getTime();
+        this._payloadId =
+            Number(
+                window.sessionStorage.getItem(SESSION_STORAGE_KEYS.PAYLOAD_ID)
+            ) ?? 1;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -391,7 +439,7 @@ export class Highlight {
             this.logger.log(
                 `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
                     user_object
-                )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                )} @ ${publicGraphURI}`
             );
             this.numberOfFailedRequests = 0;
         } catch (e) {
@@ -512,9 +560,9 @@ export class Highlight {
                 this.logger.log(
                     `AddSessionProperties to session (${
                         this.sessionData.sessionID
-                    }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                        process.env.PUBLIC_GRAPH_URI
-                    }`
+                    }) w/ obj: ${JSON.stringify(
+                        properties_obj
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
@@ -550,7 +598,7 @@ export class Highlight {
                         this.sessionData.sessionID
                     }, source: ${sourceString}) w/ obj: ${stringify(
                         properties_obj
-                    )} @ ${process.env.PUBLIC_GRAPH_URI}`
+                    )} @ ${publicGraphURI}`
                 );
                 this.numberOfFailedRequests = 0;
             } catch (e) {
@@ -562,7 +610,7 @@ export class Highlight {
         }
     }
 
-    async initialize() {
+    async initialize(): Promise<undefined> {
         if (
             navigator?.webdriver ||
             navigator?.userAgent?.includes('Googlebot') ||
@@ -580,6 +628,15 @@ export class Highlight {
             }
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
+            // only fetch session data from local storage on the first `initialize` call
+            if (
+                (!this.sessionData.sessionID ||
+                    !this.sessionData.sessionSecureID) &&
+                storedSessionData
+            ) {
+                this.sessionData = storedSessionData;
+                reloaded = true;
+            }
 
             const recordingStartTime = window.sessionStorage.getItem(
                 SESSION_STORAGE_KEYS.RECORDING_START_TIME
@@ -619,19 +676,13 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (storedSessionData) {
-                this.sessionData = storedSessionData;
+            if (this.sessionData.sessionSecureID) {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
-                reloaded = true;
             } else {
-                // @ts-ignore
-                const client = new ClientJS();
-                let fingerprint = 0;
-                if ('getFingerprint' in client) {
-                    fingerprint = client.getFingerprint();
-                }
                 try {
+                    const client = await this.fingerprintjs;
+                    const fingerprint = await client.get();
                     const gr = await this.graphqlSDK.initializeSession({
                         organization_verbose_id: this.organizationID,
                         enable_strict_privacy: this.enableStrictPrivacy,
@@ -641,7 +692,7 @@ export class Highlight {
                         firstloadVersion: this.firstloadVersion,
                         clientConfig: JSON.stringify(this._optionsInternal),
                         environment: this.environment,
-                        id: fingerprint.toString(),
+                        id: fingerprint.visitorId,
                         appVersion: this.appVersion,
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
@@ -665,7 +716,7 @@ export class Highlight {
                     );
                     this.logger.log(
                         `Loaded Highlight
-  Remote: ${process.env.PUBLIC_GRAPH_URI}
+  Remote: ${publicGraphURI}
   Friendly Project ID: ${this.organizationID}
   Short Project ID: ${this.sessionData.projectID}
   SessionID: ${this.sessionData.sessionID}
@@ -722,9 +773,12 @@ export class Highlight {
                     enableStrictPrivacy: this.enableStrictPrivacy,
                     maskAllInputs: this.enableStrictPrivacy,
                     recordCanvas: this.enableCanvasRecording,
+                    sampling: this.samplingStrategy,
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
+                    inlineImages: this.inlineImages,
+                    inlineStylesheet: this.inlineStylesheet,
                     plugins: [getRecordSequentialIdPlugin()],
                 });
                 if (recordStop) {
@@ -809,11 +863,6 @@ export class Highlight {
                 })
             );
             this.listeners.push(
-                PageVisibilityListener((isTabHidden) => {
-                    this.addCustomEvent('TabHidden', isTabHidden);
-                })
-            );
-            this.listeners.push(
                 ClickListener((clickTarget, event) => {
                     if (clickTarget) {
                         this.addCustomEvent('Click', clickTarget);
@@ -881,34 +930,95 @@ export class Highlight {
                     this.addCustomEvent('Performance', stringify(payload));
                 }, this._recordingStartTime)
             );
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
+        }
+        try {
+            // ensure we only create document/window listeners once
+            if (this._hasPreviouslyInitialized) {
+                return;
+            }
+            this._setupWindowListeners();
+        } finally {
+            this._hasPreviouslyInitialized = true;
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
+        }
+    }
 
-            // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-            // as when switching tabs or apps on mobile. Non-blocking.
-            document.addEventListener('visibilitychange', () => {
-                if (
-                    document.visibilityState === 'hidden' &&
-                    'sendBeacon' in navigator
-                ) {
-                    this._sendPayload({
-                        isBeacon: true,
-                        sendFn: (payload) => {
-                            let blob = new Blob(
-                                [
-                                    JSON.stringify({
-                                        query: print(PushPayloadDocument),
-                                        variables: payload,
-                                    }),
-                                ],
-                                {
-                                    type: 'application/json',
-                                }
-                            );
-                            navigator.sendBeacon(`${this._backendUrl}`, blob);
-                            return Promise.resolve(0);
-                        },
-                    });
+    _visibilityHandler(hidden: boolean) {
+        if (
+            new Date().getTime() - this._lastVisibilityChangeTime <
+            VISIBILITY_DEBOUNCE_MS
+        ) {
+            return;
+        }
+        this._lastVisibilityChangeTime = new Date().getTime();
+        if (!hidden) {
+            this.logger.log(`Detected window visible. Resuming recording.`);
+            this.initialize();
+            this.addCustomEvent('TabHidden', false);
+            return;
+        }
+        this.logger.log(`Detected window hidden. Pausing recording.`);
+        this.addCustomEvent('TabHidden', true);
+        if ('sendBeacon' in navigator) {
+            try {
+                this._sendPayload({
+                    isBeacon: true,
+                    sendFn: (payload) => {
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                        return Promise.resolve(0);
+                    },
+                });
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                    HighlightWarning('_sendPayload', e);
                 }
-            });
+            }
+        }
+        this.stopRecording();
+    }
+
+    _setupWindowListeners() {
+        try {
+            // setup electron main thread window visiblity events listener
+            if (window.electron?.ipcRenderer) {
+                window.electron.ipcRenderer.on(
+                    'highlight.run',
+                    ({ visible }: { visible: boolean }) => {
+                        this._visibilityHandler(!visible);
+                    }
+                );
+                this.logger.log('Set up Electron highlight.run events.');
+            } else {
+                // Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+                // as when switching tabs or apps on mobile. Non-blocking.
+                PageVisibilityListener((isTabHidden) =>
+                    this._visibilityHandler(isTabHidden)
+                );
+                this.logger.log('Set up document visibility listener.');
+            }
 
             // Clear the timer so it doesn't block the next page navigation.
             window.addEventListener('beforeunload', () => {
@@ -917,19 +1027,13 @@ export class Highlight {
                     clearTimeout(this.pushPayloadTimerId);
                 }
             });
-            if (
-                this.sessionData.projectID &&
-                this.sessionData.sessionSecureID
-            ) {
-                this.ready = true;
-                this.state = 'Recording';
-            }
         } catch (e) {
             if (this._isOnLocalHost) {
                 console.error(e);
-                HighlightWarning('initializeSession', e);
+                HighlightWarning('initializeSession _setupWindowListeners', e);
             }
         }
+
         window.addEventListener('beforeunload', () => {
             this.addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
@@ -1141,6 +1245,22 @@ export class Highlight {
         const messages = [...this._firstLoadListeners.messages];
         const errors = [...this._firstLoadListeners.errors];
 
+        // if it is time to take a full snapshot,
+        // ensure the snapshot is at the beginning of the next payload
+        if (!isBeacon) {
+            const now = new Date().getTime();
+            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+            // take a full snapshot and reset the counters
+            if (
+                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
+                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
+            ) {
+                record.takeFullSnapshot();
+                this._eventBytesSinceSnapshot = 0;
+                this._lastSnapshotTime = now;
+            }
+        }
+
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );
@@ -1155,7 +1275,15 @@ export class Highlight {
             errors,
             is_beacon: isBeacon,
             has_session_unloaded: this.hasSessionUnloaded,
+            payload_id: this._payloadId.toString(),
         };
+
+        this._payloadId++;
+        window.sessionStorage.setItem(
+            SESSION_STORAGE_KEYS.PAYLOAD_ID,
+            this._payloadId.toString()
+        );
+
         const highlightLogs = getHighlightLogs();
         if (highlightLogs) {
             payload.highlight_logs = highlightLogs;
@@ -1180,17 +1308,6 @@ export class Highlight {
 
             this._eventBytesSinceSnapshot =
                 this._eventBytesSinceSnapshot + eventsSize;
-            const now = new Date().getTime();
-            // After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
-            // take a full snapshot and reset the counters
-            if (
-                this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
-                now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
-            ) {
-                record.takeFullSnapshot();
-                this._eventBytesSinceSnapshot = 0;
-                this._lastSnapshotTime = now;
-            }
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length
@@ -1208,6 +1325,11 @@ export class Highlight {
 interface HighlightWindow extends Window {
     Highlight: Highlight;
     Intercom?: any;
+    electron?: {
+        ipcRenderer: {
+            on: (channel: string, listener: (...args: any[]) => void) => {};
+        };
+    };
 }
 
 declare var window: HighlightWindow;

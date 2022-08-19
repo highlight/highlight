@@ -15,10 +15,10 @@
         background: var(--color-gray-400);
         background-image: none;
         border-radius: var(--size-small);
-        bottom: calc(var(--size-medium)) !important;
+        bottom: var(--size-small) !important;
         height: var(--size-small);
         opacity: 0;
-        right: calc(var(--size-small)) !important;
+        right: var(--size-small) !important;
         transform: unset !important;
         transition: opacity 0.2s ease-in-out;
         width: var(--size-small);
@@ -31,8 +31,7 @@
 
 .customLeadAlignLayout {
     margin: 0;
-    padding: 0;
-    padding-top: 80px;
+    padding: 80px 0 0;
 }
 
 .headerPanel {

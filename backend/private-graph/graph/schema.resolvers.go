@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -138,7 +138,8 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id,
+		SELECT
+			s.id AS session_id,
 			s.secure_id AS session_secure_id,
 			e.id AS error_id,
 			e.timestamp,
@@ -147,21 +148,43 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			e.url AS visited_url,
 			s.fingerprint AS fingerprint,
 			s.identifier AS identifier,
+			s.environment,
 			s.user_properties,
-			e.request_id
-		FROM sessions AS s
-		INNER JOIN (
-			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url, request_id
-			FROM error_objects
-			WHERE error_group_id = ?
-			ORDER BY session_id DESC
-			LIMIT 20
-		) AS e
-		ON s.id = e.session_id
-		WHERE s.excluded <> true
-		ORDER BY s.updated_at DESC
-		LIMIT 20;
-	`, obj.ID).Scan(&metadataLogs)
+			e.request_id,
+			e.payload
+		FROM
+			sessions AS s
+			INNER JOIN (
+			SELECT
+				DISTINCT ON (session_id) session_id,
+				id,
+				timestamp,
+				url,
+				payload,
+				request_id
+			FROM
+				error_objects
+			WHERE
+				error_group_id = ?
+				AND project_id = ?
+			ORDER BY
+				session_id DESC
+			LIMIT
+				20
+			) AS e ON s.id = e.session_id
+		WHERE
+			s.excluded <> true 
+			AND s.has_errors = true
+			AND s.project_id = ?
+		ORDER BY
+			s.updated_at DESC
+		LIMIT
+			20;	
+	`,
+		obj.ID,
+		obj.ProjectID,
+		obj.ProjectID,
+	).Scan(&metadataLogs)
 	return metadataLogs, nil
 }
 
@@ -965,7 +988,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		pricingInterval = pricing.SubscriptionIntervalAnnual
 	}
 
-	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval)
+	// default to unlimited members pricing
+	prices, err := pricing.GetStripePrices(r.StripeClient, planType, pricingInterval, true)
 	if err != nil {
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
@@ -980,7 +1004,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		}
 
 		subscriptionItem := subscription.Items.Data[0]
-		productType, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
+		productType, _, _, _ := pricing.GetProductMetadata(subscriptionItem.Price)
 		if productType == nil || *productType != pricing.ProductTypeBase {
 			return nil, e.New("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product")
 		}
@@ -1048,7 +1072,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	// All viewers can leave a comment, including guests
@@ -1161,10 +1185,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
-			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session")
+			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
 		}
 	})
 
@@ -1307,7 +1331,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session", nil)
 	}
 	if len(sessionComment.Followers) > 0 {
 		var threadIDs []int
@@ -1383,10 +1407,10 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	viewLink := fmt.Sprintf("%v", errorURL)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error")
+		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1527,7 +1551,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error", nil)
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
 		var threadIDs []int
@@ -3052,7 +3076,6 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	for _, m := range metrics {
 		var filters []*model.DashboardMetricFilter
 		for _, f := range m.Filters {
-			log.Warnf("filter %+v", f)
 			filters = append(filters, &model.DashboardMetricFilter{
 				Tag:   f.Tag,
 				Op:    f.Op,
@@ -3062,6 +3085,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 		dashboardMetric := model.DashboardMetric{
 			Name:                     m.Name,
 			Description:              m.Description,
+			ComponentType:            m.ComponentType,
 			ChartType:                m.ChartType,
 			Aggregator:               m.Aggregator,
 			MaxGoodValue:             m.MaxGoodValue,
@@ -3074,6 +3098,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 			MaxValue:                 m.MaxValue,
 			MaxPercentile:            m.MaxPercentile,
 			Filters:                  filters,
+			Groups:                   m.Groups,
 		}
 		if err := r.DB.Model(&dashboard).Association("Metrics").Append(&dashboardMetric); err != nil {
 			return -1, e.Wrap(err, "error updating fields")
@@ -3102,7 +3127,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 
 	accounts := []*modelInputs.Account{}
 	if err := r.DB.Raw(`
-		SELECT w.id, w.name, w.plan_tier, w.stripe_customer_id,
+		SELECT w.id, w.name, w.plan_tier, w.unlimited_members, w.stripe_customer_id,
 		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then count else 0 end), 0) as session_count_cur,
 		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '1 month' and sc.date < COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then count else 0 end), 0) as session_count_prev,
 		COALESCE(SUM(case when sc.date >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '2 months' and sc.date < COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '1 month' then count else 0 end), 0) as session_count_prev_prev,
@@ -3190,8 +3215,8 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 			account.SessionLimit = pricing.TypeToQuota(planTier)
 		}
 
-		if account.MemberLimit == 0 {
-			account.MemberLimit = pricing.TypeToMemberLimit(planTier)
+		if account.MemberLimit != nil && *account.MemberLimit == 0 {
+			account.MemberLimit = pricing.TypeToMemberLimit(planTier, account.UnlimitedMembers)
 		}
 	}
 
@@ -3251,9 +3276,9 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 	if err := r.DB.Raw(`
 	select a.id as id, max(a.name) as name, max(a.email) as email, max(s.created_at) as last_active
 	from workspace_admins wa
-	inner join admins a on wa.admin_id = a.id 
-	inner join sessions s on s.identifier = a.email 
-	where wa.workspace_id = ? and s.project_id = 1 
+	inner join admins a on wa.admin_id = a.id
+	inner join sessions s on s.identifier = a.email
+	where wa.workspace_id = ? and s.project_id = 1
 	group by a.id
 	`, workspaceID).Scan(&members).Error; err != nil {
 		return nil, e.Errorf("error querying members: %v", err)
@@ -3309,7 +3334,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	events, err, _ := r.getEvents(ctx, session, EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -4287,17 +4312,36 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		return nil, nil
 	}
 
-	res := []*model.Field{}
+	aggQuery := `{"bool": {
+		"must": []
+	}}`
 
-	if err := r.DB.Raw(`
-		SELECT type, name
-		FROM fields_in_use_view f
-		WHERE project_id = ?
-	`, projectID).Scan(&res).Error; err != nil {
-		return nil, e.Wrap(err, "error querying field types for project")
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field:   "fields.Key.raw",
+			Include: pointy.String("(session|track|user)_.*"),
+			Size:    pointy.Int(100),
+		},
 	}
 
-	return res, nil
+	ignored := []struct{}{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return nil, err
+	}
+
+	keys := lo.Filter(
+		lo.Map(aggResults, func(ar opensearch.AggregationResult, idx int) string { return ar.Key }),
+		func(key string, idx int) bool { return len(key) > 0 })
+
+	return lo.Map(keys, func(key string, idx int) *model.Field {
+		typ, name, _ := strings.Cut(key, "_")
+		return &model.Field{
+			Type: typ,
+			Name: name,
+		}
+	}), nil
 }
 
 // FieldsOpensearch is the resolver for the fields_opensearch field.
@@ -4548,9 +4592,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		sessionLimit = *workspace.MonthlySessionLimit
 	}
 
-	membersLimit := pricing.TypeToMemberLimit(planType)
-	if workspace.MonthlyMembersLimit != nil {
-		membersLimit = *workspace.MonthlyMembersLimit
+	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
+	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
+		membersLimit = workspace.MonthlyMembersLimit
 	}
 
 	details := &modelInputs.BillingDetails{
@@ -5346,7 +5390,10 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 	}
 
 	var dashboards []*model.Dashboard
-	if err := r.DB.Order("updated_at DESC").Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
+	if err := r.DB.Order("updated_at DESC").Preload("Metrics", func(db *gorm.DB) *gorm.DB {
+		db = db.Order("id ASC")
+		return db
+	}).Preload("Metrics.Filters").Where(&model.Dashboard{ProjectID: projectID}).Find(&dashboards).Error; err != nil {
 		return nil, err
 	}
 
@@ -5365,6 +5412,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			metrics = append(metrics, &modelInputs.DashboardMetricConfig{
 				Name:                     metric.Name,
 				Description:              metric.Description,
+				ComponentType:            metric.ComponentType,
 				ChartType:                metric.ChartType,
 				Aggregator:               metric.Aggregator,
 				MaxGoodValue:             metric.MaxGoodValue,
@@ -5377,6 +5425,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 				MaxValue:                 metric.MaxValue,
 				MaxPercentile:            metric.MaxPercentile,
 				Filters:                  filters,
+				Groups:                   metric.Groups,
 			})
 		}
 		results = append(results, &modelInputs.DashboardDefinition{
@@ -5443,10 +5492,14 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 		return nil, err
 	}
 
+	metrics, _ := r.SuggestedMetrics(ctx, projectID, "")
+
 	return lo.Filter(lo.Map(results, func(t *timeseries.Result, _ int) string {
 		return t.Value.(string)
 	}), func(t string, _ int) bool {
-		return !strings.HasPrefix(t, "_")
+		// filter out metrics from possible metric tags
+		_, isMetric := lo.Find(metrics, func(m string) bool { return t == m })
+		return !strings.HasPrefix(t, "_") && !isMetric
 	}), nil
 }
 
@@ -5489,6 +5542,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -5514,7 +5568,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		do(q:%f)
 	  ])
 		  |> sort()
-  `, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, div, minPercentile, maxPercentile)
+  `, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, div, minPercentile, maxPercentile)
 		histogramRangeQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 		histogramRangeQuerySpan.SetTag("projectID", projectID)
 		histogramRangeQuerySpan.SetTag("metricName", metricName)
@@ -5557,7 +5611,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
           %s|> group()
 		  |> histogram(bins: linearBins(start: %f, width: %f, count: %d, infinity: true))
           |> map(fn: (r) => ({r with le: r.le / %f}))
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), timeseries.Metrics, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, histogramPayload.Min*div, bucketSize*div, numBuckets, div)
 	histogramQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryHistogram")
 	histogramQuerySpan.SetTag("projectID", projectID)
 	histogramQuerySpan.SetTag("metricName", metricName)
@@ -5983,7 +6037,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
-		cursor := EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		cursor := model.EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
 		for {
 			select {
 			case <-ctx.Done():

@@ -21,9 +21,10 @@ type Account struct {
 	Email                string     `json:"email"`
 	SubscriptionStart    *time.Time `json:"subscription_start"`
 	PlanTier             string     `json:"plan_tier"`
+	UnlimitedMembers     bool       `json:"unlimited_members"`
 	StripeCustomerID     string     `json:"stripe_customer_id"`
 	MemberCount          int        `json:"member_count"`
-	MemberLimit          int        `json:"member_limit"`
+	MemberLimit          *int       `json:"member_limit"`
 }
 
 type AccountDetails struct {
@@ -82,37 +83,41 @@ type DashboardDefinition struct {
 }
 
 type DashboardMetricConfig struct {
-	Name                     string             `json:"name"`
-	Description              string             `json:"description"`
-	MaxGoodValue             float64            `json:"max_good_value"`
-	MaxNeedsImprovementValue float64            `json:"max_needs_improvement_value"`
-	PoorValue                float64            `json:"poor_value"`
-	Units                    string             `json:"units"`
-	HelpArticle              string             `json:"help_article"`
-	ChartType                DashboardChartType `json:"chart_type"`
-	Aggregator               MetricAggregator   `json:"aggregator"`
-	MinValue                 *float64           `json:"min_value"`
-	MinPercentile            *float64           `json:"min_percentile"`
-	MaxValue                 *float64           `json:"max_value"`
-	MaxPercentile            *float64           `json:"max_percentile"`
-	Filters                  []*MetricTagFilter `json:"filters"`
+	Name                     string                   `json:"name"`
+	Description              string                   `json:"description"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilter       `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardMetricConfigInput struct {
-	Name                     string                  `json:"name"`
-	Description              string                  `json:"description"`
-	MaxGoodValue             float64                 `json:"max_good_value"`
-	MaxNeedsImprovementValue float64                 `json:"max_needs_improvement_value"`
-	PoorValue                float64                 `json:"poor_value"`
-	Units                    string                  `json:"units"`
-	HelpArticle              string                  `json:"help_article"`
-	ChartType                DashboardChartType      `json:"chart_type"`
-	Aggregator               MetricAggregator        `json:"aggregator"`
-	MinValue                 *float64                `json:"min_value"`
-	MinPercentile            *float64                `json:"min_percentile"`
-	MaxValue                 *float64                `json:"max_value"`
-	MaxPercentile            *float64                `json:"max_percentile"`
-	Filters                  []*MetricTagFilterInput `json:"filters"`
+	Name                     string                   `json:"name"`
+	Description              string                   `json:"description"`
+	ComponentType            *MetricViewComponentType `json:"component_type"`
+	MaxGoodValue             *float64                 `json:"max_good_value"`
+	MaxNeedsImprovementValue *float64                 `json:"max_needs_improvement_value"`
+	PoorValue                *float64                 `json:"poor_value"`
+	Units                    *string                  `json:"units"`
+	HelpArticle              *string                  `json:"help_article"`
+	ChartType                *DashboardChartType      `json:"chart_type"`
+	Aggregator               *MetricAggregator        `json:"aggregator"`
+	MinValue                 *float64                 `json:"min_value"`
+	MinPercentile            *float64                 `json:"min_percentile"`
+	MaxValue                 *float64                 `json:"max_value"`
+	MaxPercentile            *float64                 `json:"max_percentile"`
+	Filters                  []*MetricTagFilterInput  `json:"filters"`
+	Groups                   []string                 `json:"groups"`
 }
 
 type DashboardParamsInput struct {
@@ -122,12 +127,14 @@ type DashboardParamsInput struct {
 	Units             *string                 `json:"units"`
 	Aggregator        *MetricAggregator       `json:"aggregator"`
 	Filters           []*MetricTagFilterInput `json:"filters"`
+	Groups            []string                `json:"groups"`
 }
 
 type DashboardPayload struct {
 	Date       string            `json:"date"`
 	Value      float64           `json:"value"`
 	Aggregator *MetricAggregator `json:"aggregator"`
+	Group      *string           `json:"group"`
 }
 
 type DateRangeInput struct {
@@ -162,6 +169,7 @@ type ErrorMetadata struct {
 	Identifier      *string    `json:"identifier"`
 	UserProperties  *string    `json:"user_properties"`
 	RequestID       *string    `json:"request_id"`
+	Payload         *string    `json:"payload"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -265,7 +273,7 @@ type Plan struct {
 	Type         PlanType             `json:"type"`
 	Interval     SubscriptionInterval `json:"interval"`
 	Quota        int                  `json:"quota"`
-	MembersLimit int                  `json:"membersLimit"`
+	MembersLimit *int                 `json:"membersLimit"`
 }
 
 type RageClickEventForProject struct {
@@ -382,18 +390,20 @@ type UserPropertyInput struct {
 type DashboardChartType string
 
 const (
-	DashboardChartTypeTimeline  DashboardChartType = "Timeline"
-	DashboardChartTypeHistogram DashboardChartType = "Histogram"
+	DashboardChartTypeTimeline    DashboardChartType = "Timeline"
+	DashboardChartTypeTimelineBar DashboardChartType = "TimelineBar"
+	DashboardChartTypeHistogram   DashboardChartType = "Histogram"
 )
 
 var AllDashboardChartType = []DashboardChartType{
 	DashboardChartTypeTimeline,
+	DashboardChartTypeTimelineBar,
 	DashboardChartTypeHistogram,
 }
 
 func (e DashboardChartType) IsValid() bool {
 	switch e {
-	case DashboardChartTypeTimeline, DashboardChartTypeHistogram:
+	case DashboardChartTypeTimeline, DashboardChartTypeTimelineBar, DashboardChartTypeHistogram:
 		return true
 	}
 	return false
@@ -597,6 +607,57 @@ func (e *MetricTagFilterOp) UnmarshalGQL(v interface{}) error {
 }
 
 func (e MetricTagFilterOp) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type MetricViewComponentType string
+
+const (
+	MetricViewComponentTypeKeyPerformanceGauge MetricViewComponentType = "KeyPerformanceGauge"
+	MetricViewComponentTypeSessionCountChart   MetricViewComponentType = "SessionCountChart"
+	MetricViewComponentTypeErrorCountChart     MetricViewComponentType = "ErrorCountChart"
+	MetricViewComponentTypeReferrersTable      MetricViewComponentType = "ReferrersTable"
+	MetricViewComponentTypeActiveUsersTable    MetricViewComponentType = "ActiveUsersTable"
+	MetricViewComponentTypeRageClicksTable     MetricViewComponentType = "RageClicksTable"
+	MetricViewComponentTypeTopRoutesTable      MetricViewComponentType = "TopRoutesTable"
+)
+
+var AllMetricViewComponentType = []MetricViewComponentType{
+	MetricViewComponentTypeKeyPerformanceGauge,
+	MetricViewComponentTypeSessionCountChart,
+	MetricViewComponentTypeErrorCountChart,
+	MetricViewComponentTypeReferrersTable,
+	MetricViewComponentTypeActiveUsersTable,
+	MetricViewComponentTypeRageClicksTable,
+	MetricViewComponentTypeTopRoutesTable,
+}
+
+func (e MetricViewComponentType) IsValid() bool {
+	switch e {
+	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable:
+		return true
+	}
+	return false
+}
+
+func (e MetricViewComponentType) String() string {
+	return string(e)
+}
+
+func (e *MetricViewComponentType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = MetricViewComponentType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid MetricViewComponentType", str)
+	}
+	return nil
+}
+
+func (e MetricViewComponentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -19,6 +19,7 @@ interface Props {
     mask?: boolean;
     title?: string;
     errorTitle?: string;
+    currentUrl?: string;
 }
 export function NewCommentModal({
     newCommentModalRef,
@@ -32,6 +33,7 @@ export function NewCommentModal({
     mask,
     title,
     errorTitle,
+    currentUrl,
 }: Props) {
     return (
         <Modal
@@ -80,6 +82,7 @@ export function NewCommentModal({
                     session_secure_id={session_secure_id}
                     errorTitle={errorTitle}
                     modalHeader={title}
+                    currentUrl={currentUrl}
                 />
             </div>
         </Modal>

@@ -1,32 +1,37 @@
 {
     "name": "highlight.run",
-    "version": "4.2.9",
+    "version": "4.3.4",
     "scripts": {
-        "build": "webpack --mode=production --config=./webpack.config.js",
-        "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
+        "build": "tsc && rollup -c",
+        "dev": "doppler run -- rollup -c -w",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
-        "analyze": "webpack --mode=production --config=./webpack.config.js --json --profile > dist/firstload/src/stats.json && yarn webpack-bundle-analyzer dist/firstload/src/stats.json",
         "test": "jest --detectOpenHandles"
     },
-    "main": "dist/firstload/src/index.js",
+    "main": "dist/index.js",
     "types": "dist/firstload/src/index.d.ts",
     "license": "MIT",
     "devDependencies": {
-        "@babel/preset-env": "^7.14.7",
-        "@babel/preset-typescript": "^7.14.5",
+        "@rollup/plugin-commonjs": "^22.0.1",
+        "@rollup/plugin-json": "^4.1.0",
+        "@rollup/plugin-node-resolve": "^13.3.0",
+        "@rollup/plugin-replace": "^4.0.0",
+        "@rollup/plugin-typescript": "^8.3.3",
         "@types/chrome": "^0.0.144",
         "@types/jest": "^26.0.24",
+        "esbuild": "^0.14.47",
         "jest": "^27.0.6",
         "jest-fail-on-console": "^2.0.4",
         "prettier": "^2.2.1",
-        "ts-loader": "^8.0.4",
-        "typescript": "^4.0.3",
-        "webpack": "^4.44.1",
-        "webpack-bundle-analyzer": "^4.4.2",
-        "webpack-cli": "^3.3.12",
-        "webpack-dev-server": "^3.11.0"
+        "rollup": "^2.75.7",
+        "rollup-plugin-consts": "^1.1.0",
+        "rollup-plugin-dev": "^2.0.4",
+        "rollup-plugin-esbuild": "^4.9.1",
+        "rollup-plugin-filesize": "^9.1.2",
+        "rollup-plugin-terser": "^7.0.2",
+        "rollup-plugin-web-worker-loader": "^1.6.1",
+        "tslib": "^2.4.0",
+        "typescript": "^4.0.3"
     },
-    "dependencies": {},
     "setupFiles": [
         "./tests/jest.overrides.js"
     ]

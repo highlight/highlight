@@ -32,17 +32,30 @@ export function formatShortTime(
     val: number,
     formats = ['d', 'h', 'm', 's'],
     space = '',
-    toFixedValue?: number
+    toFixedValue?: number,
+    single?: boolean
 ) {
     const { days, hours, minutes, seconds, ms } = parseTime(val);
     let t = '';
 
-    if (days > 0 && formats.indexOf('d') !== -1) t += `${days}d${space}`;
-    if (hours > 0 && formats.indexOf('h') !== -1) t += `${hours}h${space}`;
-    if (minutes > 0 && formats.indexOf('m') !== -1) t += `${minutes}m${space}`;
-    if (seconds > 0 && formats.indexOf('s') !== -1) t += `${seconds}s${space}`;
-    if (ms > 0 && formats.indexOf('ms') !== -1)
-        t += `${ms.toFixed(toFixedValue)}${space}ms`;
+    for (const { unit, format } of [
+        { unit: days, format: 'd' },
+        { unit: hours, format: 'h' },
+        { unit: minutes, format: 'm' },
+        { unit: seconds, format: 's' },
+        { unit: ms, format: 'ms' },
+    ]) {
+        let u = unit.toString();
+        if (format === 'ms') {
+            u = unit.toFixed(toFixedValue);
+        }
+        if (unit > 0 && formats.indexOf(format) !== -1) {
+            t += `${u}${format}${space}`;
+            if (single) {
+                break;
+            }
+        }
+    }
 
     if (!t) {
         return `0${formats[formats.length - 1]}`;

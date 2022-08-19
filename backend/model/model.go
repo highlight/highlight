@@ -46,7 +46,8 @@ var (
 )
 
 const (
-	SUGGESTION_LIMIT_CONSTANT = 8
+	SUGGESTION_LIMIT_CONSTANT       = 8
+	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
 )
 
 var AlertType = struct {
@@ -220,6 +221,7 @@ type Workspace struct {
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
+	UnlimitedMembers            bool   `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
 	BillingPeriodEnd            *time.Time
 	NextInvoiceDate             *time.Time
@@ -316,19 +318,21 @@ type DashboardMetric struct {
 	Model
 	DashboardID              int `gorm:"index;not null;"`
 	Name                     string
-	ChartType                modelInputs.DashboardChartType
-	Aggregator               modelInputs.MetricAggregator `gorm:"default:P50"`
 	Description              string
-	MaxGoodValue             float64
-	MaxNeedsImprovementValue float64
-	PoorValue                float64
-	Units                    string
-	HelpArticle              string
+	ComponentType            *modelInputs.MetricViewComponentType
+	ChartType                *modelInputs.DashboardChartType
+	Aggregator               *modelInputs.MetricAggregator `gorm:"default:P50"`
+	MaxGoodValue             *float64
+	MaxNeedsImprovementValue *float64
+	PoorValue                *float64
+	Units                    *string
+	HelpArticle              *string
 	MinValue                 *float64
 	MinPercentile            *float64
 	MaxValue                 *float64
 	MaxPercentile            *float64
 	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+	Groups                   pq.StringArray           `gorm:"type:text[]"`
 }
 
 type DashboardMetricFilter struct {
@@ -466,6 +470,7 @@ type Session struct {
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
+	Country   string  `json:"country"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
@@ -515,6 +520,8 @@ type Session struct {
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
+	// Number of pages visited during a session
+	PagesVisited int
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
@@ -597,12 +604,12 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 type Field struct {
 	Model
 	// 'user_property', 'session_property'.
-	Type string
+	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.
-	Name string
+	Name string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email@email.com'
-	Value     string
-	ProjectID int       `json:"project_id"`
+	Value     string    `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
+	ProjectID int       `json:"project_id" gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	Sessions  []Session `gorm:"many2many:session_fields;"`
 }
 
@@ -1143,38 +1150,11 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
-	if err := DB.Exec(`
-		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
-		SELECT DISTINCT f.type, f.name, f.project_id
-		FROM fields f
-		WHERE type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		);
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
-	}
-
-	if err := DB.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
-	}
-
 	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
 					THEN
 						ALTER TABLE metric_groups
@@ -1194,7 +1174,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		DO $$
 			BEGIN
 				BEGIN
-					IF NOT EXISTS 
+					IF NOT EXISTS
 						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
 					THEN
 						alter table dashboard_metric_filters
@@ -1256,16 +1236,76 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	for i := 0; i < 10; i++ {
 		end := start + partitionSize
 		sql := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
-			PARTITION OF events_objects_partitioned
-			FOR VALUES FROM (%d) TO (%d);
-		`, start, start, end)
+			DO $$
+			BEGIN
+				IF
+					(SELECT pg_try_advisory_xact_lock(%d))
+				THEN
+					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
+						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+					);
+					IF NOT EXISTS (
+						SELECT 1
+						FROM pg_inherits
+						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
+						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
+						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
+					THEN
+						ALTER TABLE events_objects_partitioned
+						ATTACH PARTITION events_objects_partitioned_%d
+						FOR VALUES FROM (%d) TO (%d);
+					END IF;
+				END IF;
+			END $$;
+		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
 
 		if err := DB.Exec(sql).Error; err != nil {
 			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
 		}
 
 		start = end
+	}
+
+	// Create sequence for session_fields.id manually. This started as a join
+	// table with no primary key. We use our own sequence to prevent assigning a
+	// value to old records.
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
+				THEN
+					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating session_fields_id_seq")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating session_fields.id column")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return nil, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
 	sqlDB, err := DB.DB()
@@ -1729,6 +1769,15 @@ func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
 		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
 	}
 	return sanitizedExcludeRules, nil
+}
+
+// For a given session, an EventCursor is the address of an event in the list of events,
+// that can be used for incremental fetching.
+// The EventIndex must always be specified, with the EventObjectIndex optionally
+// specified for optimization purposes.
+type EventsCursor struct {
+	EventIndex       int
+	EventObjectIndex *int
 }
 
 type SendWelcomeSlackMessageInput struct {

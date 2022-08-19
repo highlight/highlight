@@ -1,5 +1,6 @@
 import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Button from '@components/Button/Button/Button';
+import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar';
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import LineChart, { Reference } from '@components/LineChart/LineChart';
@@ -19,6 +20,7 @@ import {
 import {
     DashboardChartType,
     DashboardMetricConfig,
+    Maybe,
     MetricAggregator,
 } from '@graph/schemas';
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon';
@@ -48,7 +50,18 @@ export const UNIT_OPTIONS = [
     { label: 'No Units', value: '' },
 ];
 
-type DeleteMetricFn = (idx: number) => void;
+const LINE_COLORS = {
+    [MetricAggregator.Max]: 'var(--color-red-500)',
+    [MetricAggregator.P99]: 'var(--color-red-400)',
+    [MetricAggregator.P95]: 'var(--color-orange-500)',
+    [MetricAggregator.P90]: 'var(--color-orange-400)',
+    [MetricAggregator.P75]: 'var(--color-green-600)',
+    [MetricAggregator.P50]: 'var(--color-blue-400)',
+    [MetricAggregator.Avg]: 'var(--color-gray-400)',
+    [MetricAggregator.Count]: 'var(--color-green-500)',
+};
+
+export type DeleteMetricFn = (idx: number) => void;
 
 interface Props {
     metricIdx: number;
@@ -109,10 +122,12 @@ const DashboardCard = ({
                                                 'Click to learn more about this metric.'
                                             }
                                             onClick={() => {
-                                                window.open(
-                                                    metricConfig.help_article,
-                                                    '_blank'
-                                                );
+                                                if (metricConfig.help_article) {
+                                                    window.open(
+                                                        metricConfig.help_article,
+                                                        '_blank'
+                                                    );
+                                                }
                                             }}
                                         />
                                     )}
@@ -233,45 +248,18 @@ const DashboardCard = ({
                                 </div>
                             </div>
                         </div>
-                        <Modal
-                            visible={showDeleteModal}
+                        <DeleteMetricModal
+                            name={metricConfig.name}
+                            showDeleteModal={showDeleteModal}
+                            onDelete={() => {
+                                setShowDeleteModal(false);
+                                setShowEditModal(false);
+                                deleteMetric(metricIdx);
+                            }}
                             onCancel={() => {
                                 setShowDeleteModal(false);
                             }}
-                            title={`Delete '${metricConfig.name}' Metric View?`}
-                            width={400}
-                        >
-                            <ModalBody>
-                                <p className={styles.description}>
-                                    Are you sure you want to delete this metric?
-                                </p>
-                                <div className={styles.actionsContainer}>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetricCancel"
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                        }}
-                                        type="default"
-                                        className={styles.button}
-                                    >
-                                        Don't Delete View
-                                    </Button>
-                                    <Button
-                                        trackingId="ConfirmDeleteDashboardMetric"
-                                        danger
-                                        type="primary"
-                                        className={styles.button}
-                                        onClick={() => {
-                                            setShowDeleteModal(false);
-                                            setShowEditModal(false);
-                                            deleteMetric(metricIdx);
-                                        }}
-                                    >
-                                        Delete Metric View
-                                    </Button>
-                                </div>
-                            </ModalBody>
-                        </Modal>
+                        />
                         {updatingData && (
                             <LoadingBar height={2} width={'100%'} />
                         )}
@@ -304,6 +292,52 @@ const DashboardCard = ({
     );
 };
 
+export const DeleteMetricModal = ({
+    name,
+    showDeleteModal,
+    onDelete,
+    onCancel,
+}: {
+    name: string;
+    showDeleteModal: boolean;
+    onDelete: () => void;
+    onCancel: () => void;
+}) => {
+    return (
+        <Modal
+            visible={showDeleteModal}
+            onCancel={onCancel}
+            title={`Delete '${name}' Metric View?`}
+            width={600}
+        >
+            <ModalBody>
+                <p className={styles.description}>
+                    Are you sure you want to delete this metric?
+                </p>
+                <div className={styles.actionsContainer}>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetricCancel"
+                        onClick={onCancel}
+                        type="default"
+                        className={styles.button}
+                    >
+                        Don't Delete View
+                    </Button>
+                    <Button
+                        trackingId="ConfirmDeleteDashboardMetric"
+                        danger
+                        type="primary"
+                        className={styles.button}
+                        onClick={onDelete}
+                    >
+                        Delete Metric View
+                    </Button>
+                </div>
+            </ModalBody>
+        </Modal>
+    );
+};
+
 const ChartContainer = React.memo(
     ({
         metricIdx,
@@ -327,11 +361,11 @@ const ChartContainer = React.memo(
     }: {
         metricIdx: number;
         metricConfig: DashboardMetricConfig;
-        chartType: DashboardChartType;
-        aggregator: MetricAggregator;
-        maxGoodValue: number;
-        maxNeedsImprovementValue: number;
-        poorValue: number;
+        chartType?: Maybe<DashboardChartType>;
+        aggregator?: Maybe<MetricAggregator>;
+        maxGoodValue?: Maybe<number>;
+        maxNeedsImprovementValue?: Maybe<number>;
+        poorValue?: Maybe<number>;
         showEditModal: boolean;
         dateRange: Props['dateRange'];
         customDateRange: Props['customDateRange'];
@@ -385,6 +419,7 @@ const ChartContainer = React.memo(
                     resolution_minutes: resolutionMinutes,
                     units: metricConfig.units,
                     filters: metricConfig.filters,
+                    groups: metricConfig.groups,
                 },
             },
             fetchPolicy: 'cache-first',
@@ -429,7 +464,10 @@ const ChartContainer = React.memo(
                 } else {
                     loadHistogram();
                 }
-            } else if (chartType === DashboardChartType.Timeline) {
+            } else if (
+                chartType === DashboardChartType.Timeline ||
+                chartType === DashboardChartType.TimelineBar
+            ) {
                 if (refetchTimeline) {
                     refetchTimeline().catch(console.error);
                 } else {
@@ -515,7 +553,7 @@ const ChartContainer = React.memo(
             referenceLines = [
                 {
                     label: 'Goal',
-                    value: maxGoodValue,
+                    value: maxGoodValue || 0,
                     color: 'var(--color-green-300)',
                     onDrag:
                         setMaxGoodValue &&
@@ -525,7 +563,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Needs Improvement',
-                    value: maxNeedsImprovementValue,
+                    value: maxNeedsImprovementValue || 0,
                     color: 'var(--color-red-200)',
                     onDrag:
                         setMaxNeedsImprovementValue &&
@@ -535,7 +573,7 @@ const ChartContainer = React.memo(
                 },
                 {
                     label: 'Poor',
-                    value: poorValue,
+                    value: poorValue || 0,
                     color: 'var(--color-red-400)',
                     onDrag:
                         setPoorValue &&
@@ -549,7 +587,10 @@ const ChartContainer = React.memo(
         return (
             <div
                 className={classNames({
-                    [styles.blurChart]: timelineLoading || histogramLoading,
+                    [styles.blurChart]:
+                        timelineLoading ||
+                        histogramLoading ||
+                        chartInitialLoading,
                 })}
             >
                 <EditMetricModal
@@ -564,40 +605,40 @@ const ChartContainer = React.memo(
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
                 />
-                {chartInitialLoading ? (
-                    <Skeleton height={235} />
-                ) : !timelineData?.metrics_timeline.length &&
-                  !histogramData?.metrics_histogram?.buckets.length ? (
+                {!chartInitialLoading &&
+                !timelineData?.metrics_timeline.length &&
+                !histogramData?.metrics_histogram?.buckets.length ? (
                     <div className={styles.noDataContainer}>
                         <EmptyCardPlaceholder
-                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here a few hours after integrating.`}
+                            message={`Doesn't look like we've gotten any ${metricConfig.name} data from your app yet. This is normal! You should start seeing data here soon after integrating.`}
                         />
                     </div>
                 ) : chartType === DashboardChartType.Histogram ? (
                     <BarChartV2
-                        height={235}
+                        height={275}
                         data={histogramData?.metrics_histogram?.buckets || []}
                         referenceLines={referenceLines}
                         barColorMapping={{
                             count: 'var(--color-purple-500)',
                         }}
                         xAxisDataKeyName="range_end"
-                        xAxisLabel={metricConfig.units}
+                        xAxisLabel={metricConfig.units || undefined}
                         xAxisTickFormatter={(value: number) =>
                             value < 1 ? value.toFixed(2) : value.toFixed(0)
                         }
-                        xAxisUnits={metricConfig.units}
+                        xAxisUnits={metricConfig.units || undefined}
                         yAxisLabel={'occurrences'}
                         yAxisKeys={['count']}
                     />
                 ) : chartType === DashboardChartType.Timeline ? (
                     <LineChart
-                        height={235}
+                        height={275}
                         syncId="dashboardChart"
                         data={(timelineData?.metrics_timeline || []).map(
                             (x) => ({
                                 date: x?.date,
-                                [x?.aggregator ||
+                                [x?.group ||
+                                x?.aggregator ||
                                 MetricAggregator.Avg]: x?.value,
                             })
                         )}
@@ -613,17 +654,8 @@ const ChartContainer = React.memo(
                             scale: 'point',
                             interval: 0, // show all ticks
                         }}
-                        lineColorMapping={{
-                            [MetricAggregator.Max]: 'var(--color-red-500)',
-                            [MetricAggregator.P99]: 'var(--color-red-400)',
-                            [MetricAggregator.P95]: 'var(--color-orange-500)',
-                            [MetricAggregator.P90]: 'var(--color-orange-400)',
-                            [MetricAggregator.P75]: 'var(--color-green-600)',
-                            [MetricAggregator.P50]: 'var(--color-blue-400)',
-                            [MetricAggregator.Avg]: 'var(--color-gray-400)',
-                            [MetricAggregator.Count]: 'var(--color-green-500)',
-                        }}
-                        yAxisLabel={metricConfig.units}
+                        lineColorMapping={LINE_COLORS}
+                        yAxisLabel={metricConfig.units || ''}
                         referenceAreaProps={{
                             x1: referenceArea.start,
                             x2: referenceArea.end,
@@ -659,6 +691,34 @@ const ChartContainer = React.memo(
                             setReferenceArea({ start: '', end: '' });
                         }}
                     />
+                ) : chartType === DashboardChartType.TimelineBar ? (
+                    <CategoricalBarChart
+                        syncId="dashboardChart"
+                        height={275}
+                        stacked
+                        data={(timelineData?.metrics_timeline || []).map(
+                            (x) => ({
+                                date: x?.date,
+                                [x?.group ||
+                                x?.aggregator ||
+                                MetricAggregator.Avg]: x?.value,
+                            })
+                        )}
+                        referenceLines={referenceLines}
+                        barColorMapping={LINE_COLORS}
+                        xAxisDataKeyName="date"
+                        xAxisTickFormatter={(tickItem) =>
+                            moment(tickItem).format(timelineTicks.format)
+                        }
+                        xAxisProps={{
+                            ticks: timelineTicks.ticks,
+                            tickCount: timelineTicks.ticks.length,
+                            domain: ['dataMin', 'dataMax'],
+                            scale: 'point',
+                            interval: 0, // show all ticks
+                        }}
+                        yAxisLabel={metricConfig.units || ''}
+                    />
                 ) : null}
             </div>
         );
@@ -671,7 +731,6 @@ const ChartContainer = React.memo(
         prevProps.maxNeedsImprovementValue ===
             nextProps.maxNeedsImprovementValue &&
         prevProps.poorValue === nextProps.poorValue &&
-        prevProps.metricIdx === nextProps.metricIdx &&
         prevProps.metricConfig.name === nextProps.metricConfig.name &&
         prevProps.metricConfig.chart_type ===
             nextProps.metricConfig.chart_type &&
@@ -687,6 +746,10 @@ const ChartContainer = React.memo(
         _.isEqual(
             prevProps.metricConfig.filters,
             nextProps.metricConfig.filters
+        ) &&
+        _.isEqual(
+            prevProps.metricConfig.groups,
+            nextProps.metricConfig.groups
         ) &&
         _.isEqual(prevProps.dateRange, nextProps.dateRange)
 );

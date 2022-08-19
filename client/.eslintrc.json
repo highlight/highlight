@@ -5,8 +5,14 @@
         "browser": true,
         "node": true
     },
-    "parser": "babel-eslint",
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "allowImportExportEverywhere": true
+    },
     "rules": {
-        "strict": 2
+        "strict": 2,
+        "no-empty": "off",
+        "no-unused-vars": "off"
     }
 }

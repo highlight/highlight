@@ -1,3 +1,4 @@
+import { BaseSearchContext } from '@context/BaseSearchContext';
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { createContext } from '@util/context/context';
 import React from 'react';
@@ -37,15 +38,7 @@ export type QueryBuilderInput =
     | (QueryBuilderState & { type: QueryBuilderType })
     | undefined;
 
-interface SearchContext {
-    /** Local changes to the segment parameters that might not be persisted to the database. */
-    searchParams: SearchParams;
-    setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
-    /** The parameters that are persisted to the database. These params are saved to a segment. */
-    existingParams: SearchParams;
-    setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
-    segmentName: string | null;
-    setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
+type SearchContext = BaseSearchContext<SearchParams> & {
     showStarredSessions: boolean;
     setShowStarredSessions: React.Dispatch<React.SetStateAction<boolean>>;
     selectedSegment: { value: string; id: string } | undefined;
@@ -57,18 +50,13 @@ interface SearchContext {
               }
             | undefined
     ) => void;
-    /** The query string sent to the backend */
-    searchQuery: string;
-    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
     queryBuilderInput: QueryBuilderInput;
     setQueryBuilderInput: React.Dispatch<
         React.SetStateAction<QueryBuilderInput>
     >;
     isQuickSearchOpen: boolean;
     setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    page?: number;
-    setPage: React.Dispatch<React.SetStateAction<number | undefined>>;
-}
+};
 
 export const showLiveSessions = (searchParams: SearchParams): boolean => {
     // If query is defined, check if it allows live sessions

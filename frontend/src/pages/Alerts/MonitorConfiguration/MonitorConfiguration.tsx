@@ -138,8 +138,9 @@ const MonitorConfiguration = ({
             const pointsToGenerate = 100;
             return Array.from(new Array(pointsToGenerate)).map((_, index) => {
                 const randomValue =
-                    Math.random() * (config.max_needs_improvement_value * 0.7) +
-                    config.max_good_value * 0.2;
+                    Math.random() *
+                        ((config.max_needs_improvement_value || 1) * 0.7) +
+                    (config.max_good_value || 2) * 0.2;
                 return {
                     value: randomValue,
                     date: moment(now)

@@ -10,7 +10,7 @@ import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
 import useLocalStorage from '@rehooks/local-storage';
-import { getErrorTitle } from '@util/errors/errorUtils';
+import { getErrorBody } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
@@ -36,24 +36,28 @@ export const ErrorFeedV2 = () => {
         `errorsCount-project-${project_id}`,
         0
     );
-    const { searchQuery, page, setPage } = useErrorSearchContext();
+    const {
+        backendSearchQuery,
+        page,
+        setPage,
+        searchResultsLoading,
+        setSearchResultsLoading,
+    } = useErrorSearchContext();
     const projectHasManyErrors = errorsCount > PAGE_SIZE;
 
     const [
         errorFeedIsInTopScrollPosition,
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
-    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
-    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     useEffect(() => {
-        if (searchQuery) {
-            setShowLoadingSkeleton(true);
+        if (backendSearchQuery) {
+            setSearchResultsLoading(true);
         }
-    }, [searchQuery, page]);
+    }, [backendSearchQuery, page, setSearchResultsLoading]);
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
-            query: searchQuery,
+            query: backendSearchQuery?.searchQuery || '',
             count: PAGE_SIZE,
             page,
             project_id,
@@ -66,9 +70,9 @@ export const ErrorFeedV2 = () => {
                 );
                 setErrorsCount(r?.error_groups_opensearch.totalCount);
             }
-            setShowLoadingSkeleton(false);
+            setSearchResultsLoading(false);
         },
-        skip: !searchQuery,
+        skip: !backendSearchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
 
@@ -105,7 +109,7 @@ export const ErrorFeedV2 = () => {
                     })}
                     onScroll={onFeedScrollListener}
                 >
-                    {showLoadingSkeleton ? (
+                    {searchResultsLoading ? (
                         <Skeleton
                             height={110}
                             count={3}
@@ -198,7 +202,7 @@ const ErrorCardV2 = ({
                                     'highlight-block'
                                 )}
                             >
-                                {getErrorTitle(errorGroup?.event)}
+                                {getErrorBody(errorGroup?.event)}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>

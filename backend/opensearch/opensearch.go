@@ -73,6 +73,8 @@ type Aggregation interface {
 type TermsAggregation struct {
 	Field          string
 	SubAggregation Aggregation
+	Include        *string
+	Size           *int
 }
 
 func (t *TermsAggregation) GetAggsString() string {
@@ -80,16 +82,29 @@ func (t *TermsAggregation) GetAggsString() string {
 	if t.SubAggregation != nil {
 		subAggString = t.SubAggregation.GetAggsString()
 	}
+
+	includePart := ""
+	if t.Include != nil {
+		includePart = fmt.Sprintf(`, "include": "%s"`, *t.Include)
+	}
+
+	sizePart := ""
+	if t.Size != nil {
+		sizePart = fmt.Sprintf(`, "size": %d`, *t.Size)
+	}
+
 	return fmt.Sprintf(`
 		"aggregate": {
 			"terms": {
 				"field": "%s"
+				%s
+				%s
 			},
 			"aggs": {
 				%s
 			}
 		}
-	`, t.Field, subAggString)
+	`, t.Field, includePart, sizePart, subAggString)
 }
 
 type DateHistogramAggregation struct {
@@ -591,10 +606,11 @@ type OpenSearchError struct {
 }
 
 type OpenSearchErrorObject struct {
-	Url       string    `json:"visited_url"`
-	Os        string    `json:"os_name"`
-	Browser   string    `json:"browser"`
-	Timestamp time.Time `json:"timestamp"`
+	Url         string    `json:"visited_url"`
+	Os          string    `json:"os_name"`
+	Browser     string    `json:"browser"`
+	Timestamp   time.Time `json:"timestamp"`
+	Environment string    `json:"environment"`
 }
 
 func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {

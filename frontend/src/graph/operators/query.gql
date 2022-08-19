@@ -64,6 +64,7 @@ query GetMetricsTimeline(
         date
         value
         aggregator
+        group
     }
 }
 
@@ -210,6 +211,7 @@ query GetSession($secure_id: String!) {
         has_errors
         within_billing_quota
         client_version
+        firstload_version
         client_config
         is_public
         event_counts
@@ -644,6 +646,7 @@ query GetWorkspace($id: ID!) {
         name
         secret
         plan_tier
+        unlimited_members
         clearbit_enabled
         projects {
             id
@@ -777,6 +780,7 @@ query GetProject($id: ID!) {
         rage_click_radius_pixels
         rage_click_count
         backend_domains
+        secret
     }
     workspace: workspace_for_project(project_id: $id) {
         id
@@ -877,6 +881,7 @@ query GetErrorGroup($secure_id: String!) {
             identifier
             user_properties
             request_id
+            payload
         }
         fields {
             name
@@ -1448,6 +1453,7 @@ query GetDashboardDefinitions($project_id: ID!) {
         project_id
         name
         metrics {
+            component_type
             name
             description
             max_good_value
@@ -1466,6 +1472,7 @@ query GetDashboardDefinitions($project_id: ID!) {
                 op
                 tag
             }
+            groups
         }
         last_admin_to_edit_id
         layout

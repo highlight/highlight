@@ -250,6 +250,7 @@ mutation CreateSessionComment(
     $issue_title: String
     $issue_team_id: String
     $issue_description: String
+    $additional_context: String
 ) {
     createSessionComment(
         project_id: $project_id
@@ -270,6 +271,7 @@ mutation CreateSessionComment(
         issue_title: $issue_title
         issue_team_id: $issue_team_id
         issue_description: $issue_description
+        additional_context: $additional_context
     ) {
         id
         timestamp
@@ -596,15 +598,15 @@ mutation CreateMetricMonitor(
 mutation UpdateMetricMonitor(
     $metric_monitor_id: ID!
     $project_id: ID!
-    $name: String!
-    $aggregator: MetricAggregator!
-    $threshold: Float!
+    $name: String
+    $aggregator: MetricAggregator
+    $threshold: Float
     $units: String
     $periodMinutes: Int
-    $metric_to_monitor: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $disabled: Boolean!
+    $metric_to_monitor: String
+    $slack_channels: [SanitizedSlackChannelInput]
+    $emails: [String]
+    $disabled: Boolean
 ) {
     updateMetricMonitor(
         metric_monitor_id: $metric_monitor_id
@@ -1222,8 +1224,18 @@ mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
     modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
 }
 
-mutation UpsertDashboard($id: ID, $project_id: ID!, $name: String!,
-                         $metrics: [DashboardMetricConfigInput!]!, $layout: String) {
-    upsertDashboard(id: $id, project_id: $project_id, name: $name,
-                    metrics: $metrics, layout: $layout)
+mutation UpsertDashboard(
+    $id: ID
+    $project_id: ID!
+    $name: String!
+    $metrics: [DashboardMetricConfigInput!]!
+    $layout: String
+) {
+    upsertDashboard(
+        id: $id
+        project_id: $project_id
+        name: $name
+        metrics: $metrics
+        layout: $layout
+    )
 }

@@ -107,6 +107,7 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 	rows, err := w.Resolver.DB.Model(&model.ErrorObject{}).
 		Where(whereClause).
 		Order("created_at asc").Rows()
+
 	if err != nil {
 		log.Fatalf("OPENSEARCH_ERROR error retrieving objects: %+v", err)
 	}
@@ -118,10 +119,11 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 		}
 
 		os := opensearch.OpenSearchErrorObject{
-			Url:       eo.URL,
-			Os:        eo.OS,
-			Browser:   eo.Browser,
-			Timestamp: eo.Timestamp,
+			Url:         eo.URL,
+			Os:          eo.OS,
+			Browser:     eo.Browser,
+			Timestamp:   eo.Timestamp,
+			Environment: eo.Environment,
 		}
 
 		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eo.ID, pointy.Int(eo.ErrorGroupID), os); err != nil {
@@ -183,7 +185,12 @@ const NESTED_FIELD_MAPPINGS = `
 			"properties": {
 				"Key": {
 					"type": "keyword",
-					"normalizer": "lowercase"
+					"normalizer": "lowercase",
+					"fields": {
+						"raw": { 
+						  "type":  "keyword"
+						}
+					}
 				},
 				"KeyValue": {
 					"type": "keyword",

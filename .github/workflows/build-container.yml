@@ -13,7 +13,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.18.x'
+          go-version: '1.18'
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:

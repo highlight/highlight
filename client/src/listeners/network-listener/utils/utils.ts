@@ -1,4 +1,5 @@
 import { RequestResponsePair } from './models';
+import publicGraphURI from 'consts:publicGraphURI';
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request';
 
@@ -116,9 +117,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
 const isHighlightNetworkResourceFilter = (name: string, backendUrl: string) =>
-    name
-        .toLocaleLowerCase()
-        .includes(process.env.PUBLIC_GRAPH_URI ?? 'highlight.run') ||
+    name.toLocaleLowerCase().includes(publicGraphURI ?? 'highlight.run') ||
     name.toLocaleLowerCase().includes('highlight.run') ||
     name.toLocaleLowerCase().includes(backendUrl);
 

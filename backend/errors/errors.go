@@ -210,6 +210,12 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
 			return nil, err
 		}
+		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
+		if err != nil || smap == nil {
+			// what we expected to be a source map is not. don't store it in s3
+			err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
+			return nil, err
+		}
 		_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))

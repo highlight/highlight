@@ -260,8 +260,21 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                             setIsInteractingWithMessages(false);
                         }}
                         ref={virtuoso}
-                        overscan={4320}
-                        increaseViewportBy={4320}
+                        overscan={1024}
+                        increaseViewportBy={1024}
+                        components={{
+                            ScrollSeekPlaceholder: () => (
+                                <div
+                                    style={{
+                                        height: 36,
+                                    }}
+                                />
+                            ),
+                        }}
+                        scrollSeekConfiguration={{
+                            enter: (v) => v > 512,
+                            exit: (v) => v < 128,
+                        }}
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
@@ -329,23 +342,22 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
     );
 });
 
-const ConsoleRender = ({
-    m,
-    searchTerm,
-}: {
-    m: Array<any> | string;
-    searchTerm: string;
-}) => {
-    const input: Array<any> = typeof m === 'string' ? [m] : m;
-    const result: Array<string | object> = processMessageStrings(input);
+const ConsoleRender = React.memo(
+    ({ m, searchTerm }: { m: Array<any> | string; searchTerm: string }) => {
+        const input: Array<any> = typeof m === 'string' ? [m] : m;
+        const result: Array<string | object> = processMessageStrings(input);
 
-    return (
-        <div>
-            {result.map((r) =>
-                typeof r === 'object' ? (
-                    <JsonViewer name="Object" collapsed src={r} />
-                ) : typeof r === 'string' ? (
-                    searchTerm === '' ? (
+        // if the message is large, do not linkify as this may freeze the UI
+        return (
+            <div>
+                {result.map((r) =>
+                    typeof r === 'object' ? (
+                        <JsonViewer name="Object" collapsed src={r} />
+                    ) : r.length > 1024 ? (
+                        <div className={styles.messageText}>
+                            <p>{r}</p>
+                        </div>
+                    ) : searchTerm === '' ? (
                         <Linkify>{r}</Linkify>
                     ) : (
                         <div className={styles.messageText}>
@@ -356,15 +368,14 @@ const ConsoleRender = ({
                             />
                         </div>
                     )
-                ) : (
-                    <div className={styles.messageText}>
-                        <Linkify>{JSON.stringify(r)}</Linkify>
-                    </div>
-                )
-            )}
-        </div>
-    );
-};
+                )}
+            </div>
+        );
+    },
+    (prevProps, nextProps) =>
+        _.isEqual(prevProps.m, nextProps.m) &&
+        prevProps.searchTerm === nextProps.searchTerm
+);
 
 const processMessageStrings = (
     message: Array<string | object>

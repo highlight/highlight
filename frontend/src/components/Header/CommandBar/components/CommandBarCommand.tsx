@@ -1,6 +1,7 @@
 import React from 'react';
 import { Command } from 'react-command-palette';
 import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc';
+import { default as sanitizeHtml } from 'sanitize-html';
 
 import SvgUsersIcon from '../../../../static/UsersIcon';
 import styles from './CommandBarCommand.module.scss';
@@ -15,7 +16,11 @@ const CommandBarCommand = (suggestion: Props) => {
     let baseComponent = (
         <div className={styles.suggestion}>
             <span className={styles.category}>{getIcon(category)}</span>{' '}
-            <span dangerouslySetInnerHTML={{ __html: highlight[0] || name }} />
+            <span
+                dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(highlight[0] || name),
+                }}
+            />
         </div>
     );
 
@@ -23,7 +28,11 @@ const CommandBarCommand = (suggestion: Props) => {
         baseComponent = (
             <div className={styles.suggestion}>
                 <span className={styles.category}>{getIcon(category)}</span>{' '}
-                <span dangerouslySetInnerHTML={{ __html: highlight || name }} />
+                <span
+                    dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(highlight || name),
+                    }}
+                />
             </div>
         );
     }

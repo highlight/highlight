@@ -18,9 +18,11 @@ import {
 import {
     DashboardChartType,
     DashboardMetricConfig,
+    Maybe,
     MetricAggregator,
     MetricTagFilter,
     MetricTagFilterOp,
+    MetricViewComponentType,
 } from '@graph/schemas';
 import SaveIcon from '@icons/SaveIcon';
 import TrashIcon from '@icons/TrashIcon';
@@ -31,6 +33,59 @@ import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import styles from './EditMetricModal.module.scss';
+
+const CHART_TYPES = [
+    {
+        title: 'Time Series / Line',
+        description: `Line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`,
+        chartType: DashboardChartType.Timeline,
+    },
+    {
+        title: 'Time Series / Bar',
+        description: `Bar graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`,
+        chartType: DashboardChartType.TimelineBar,
+    },
+    {
+        title: 'Distribution / Bar',
+        description: `Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and view outliers.`,
+        chartType: DashboardChartType.Histogram,
+    },
+    {
+        title: 'Key Visitor Metrics',
+        description: `Top metrics about visits to your app.`,
+        componentType: MetricViewComponentType.KeyPerformanceGauge,
+    },
+    {
+        title: 'Session Count',
+        description: `Number of sessions over time.`,
+        componentType: MetricViewComponentType.SessionCountChart,
+    },
+    {
+        title: 'Error Count',
+        description: `Number of errors over time.`,
+        componentType: MetricViewComponentType.ErrorCountChart,
+    },
+    {
+        title: 'App Referrers',
+        description: `Top web referrers.`,
+        componentType: MetricViewComponentType.ReferrersTable,
+    },
+    {
+        title: 'Active Users',
+        description: `Top identified users.`,
+        componentType: MetricViewComponentType.ActiveUsersTable,
+    },
+    {
+        title: 'Rage Clicks',
+        description: `Instances of rage clicks.`,
+        componentType: MetricViewComponentType.RageClicksTable,
+    },
+    {
+        title: 'Top Routes',
+        description: `Most accessed routes.`,
+        componentType: MetricViewComponentType.TopRoutesTable,
+    },
+];
 
 export type UpdateMetricFn = (
     idx: number,
@@ -63,20 +118,31 @@ export const EditMetricModal = ({
     const [max, setMax] = useState<number>(
         metricConfig.max_value || metricConfig.max_percentile || 100
     );
-    const [units, setUnits] = useState<string>(metricConfig.units);
+    const [units, setUnits] = useState<string>(metricConfig.units || '');
     const [metricName, setMetricName] = useState<string>(metricConfig.name);
     const [description, setDescription] = useState<string>(
         metricConfig.description
     );
-    const [chartType, setChartType] = useState<DashboardChartType>(
-        metricConfig.chart_type
-    );
+    const [componentType, setComponentType] = useState<
+        Maybe<MetricViewComponentType> | undefined
+    >(metricConfig.component_type);
+    const [chartType, setChartType] = useState<
+        Maybe<DashboardChartType> | undefined
+    >(metricConfig.chart_type);
     const [aggregator, setAggregator] = useState<MetricAggregator>(
-        metricConfig.aggregator
+        metricConfig.aggregator || MetricAggregator.P50
     );
     const [filters, setFilters] = useState<MetricTagFilter[]>(
         metricConfig.filters || []
     );
+    const [groups, setGroups] = useState<string[]>(metricConfig.groups || []);
+
+    useEffect(() => {
+        if (!metricConfig.component_type && !metricConfig.chart_type) {
+            setChartType(DashboardChartType.Timeline);
+        }
+    }, [metricConfig.component_type, metricConfig.chart_type]);
+
     return (
         <Modal
             onCancel={onCancel}
@@ -98,8 +164,10 @@ export const EditMetricModal = ({
                                 metricConfig.max_needs_improvement_value,
                             poor_value: metricConfig.poor_value,
                             chart_type: chartType,
-                            aggregator: aggregator,
-                            filters: filters,
+                            component_type: componentType,
+                            aggregator,
+                            filters,
+                            groups,
                             ...(minValue
                                 ? { min_value: min }
                                 : { min_percentile: min / 100 }),
@@ -133,32 +201,33 @@ export const EditMetricModal = ({
                     <section className={styles.section}>
                         <h3>Metric View Type</h3>
                         <div className={styles.typesContainer}>
-                            <CardSelect
-                                title="Time Series / Line"
-                                description={`Time-based line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`}
-                                descriptionClass={styles.typeSubheader}
-                                isSelected={
-                                    chartType === DashboardChartType.Timeline
-                                }
-                                onClick={() =>
-                                    setChartType(DashboardChartType.Timeline)
-                                }
-                            />
-                            <CardSelect
-                                title="Distribution / Bar"
-                                description={`Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and what are potential outliers.`}
-                                descriptionClass={styles.typeSubheader}
-                                isSelected={
-                                    chartType === DashboardChartType.Histogram
-                                }
-                                onClick={() =>
-                                    setChartType(DashboardChartType.Histogram)
-                                }
-                            />
+                            {CHART_TYPES.map((c) => (
+                                <CardSelect
+                                    key={c.title}
+                                    title={c.title}
+                                    description={c.description}
+                                    descriptionClass={styles.typeSubheader}
+                                    isSelected={
+                                        componentType
+                                            ? componentType === c.componentType
+                                            : chartType === c.chartType
+                                    }
+                                    onClick={() => {
+                                        if (c.componentType) {
+                                            setChartType(undefined);
+                                            setComponentType(c.componentType);
+                                        } else {
+                                            setChartType(c.chartType);
+                                            setComponentType(undefined);
+                                        }
+                                    }}
+                                />
+                            ))}
                         </div>
                     </section>
 
-                    {chartType === DashboardChartType.Timeline ? (
+                    {chartType === DashboardChartType.Timeline ||
+                    chartType === DashboardChartType.TimelineBar ? (
                         <section className={styles.section}>
                             <div className={styles.metricViewDetails}>
                                 <div className={styles.metricViewDetail}>
@@ -267,14 +336,27 @@ export const EditMetricModal = ({
                         </>
                     ) : null}
 
-                    <section className={styles.section}>
-                        <h3>Filters</h3>
-                        <TagFilters
-                            metricName={metricName}
-                            onSelectTags={(t) => setFilters(t)}
-                            currentTags={filters}
-                        />
-                    </section>
+                    {chartType ? (
+                        <section className={styles.section}>
+                            <h3>Filter by</h3>
+                            <TagFilters
+                                metricName={metricName}
+                                onSelectTags={(t) => setFilters(t)}
+                                currentTags={filters}
+                            />
+                        </section>
+                    ) : null}
+
+                    {chartType === DashboardChartType.TimelineBar ? (
+                        <section className={styles.section}>
+                            <h3>Group by</h3>
+                            <TagGroups
+                                metricName={metricName}
+                                onSelectGroups={(g) => setGroups(g)}
+                                currentGroups={groups}
+                            />
+                        </section>
+                    ) : null}
 
                     <CardFormActionsContainer>
                         <div className={styles.submitRow}>
@@ -334,6 +416,48 @@ const UnitsSelector = ({
             }
             onSelect={(value) => setUnits(value)}
         />
+    );
+};
+
+export const TagGroups = ({
+    metricName,
+    onSelectGroups,
+    currentGroups,
+}: {
+    metricName: string;
+    onSelectGroups: (tags: string[]) => void;
+    currentGroups: string[];
+}) => {
+    const { project_id } = useParams<{ project_id: string }>();
+    const { data } = useGetMetricTagsQuery({
+        variables: {
+            project_id,
+            metric_name: metricName,
+        },
+    });
+    const currentGroup = currentGroups[0];
+    return (
+        <>
+            <div className={styles.groupsRow} key={`tag-group-${currentGroup}`}>
+                <SimpleSearchSelect
+                    options={data?.metric_tags || []}
+                    value={currentGroup}
+                    onSelect={(v) => {
+                        onSelectGroups([v]);
+                    }}
+                />
+                <Button
+                    trackingId={'EditMetricRemoveTagGroup'}
+                    className={styles.removeTagFilterButton}
+                    disabled={!currentGroup?.length}
+                    onClick={() => {
+                        onSelectGroups([]);
+                    }}
+                >
+                    <TrashIcon />
+                </Button>
+            </div>
+        </>
     );
 };
 

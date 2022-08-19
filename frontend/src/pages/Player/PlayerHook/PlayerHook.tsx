@@ -620,6 +620,30 @@ export const usePlayer = (): ReplayerContextInterface => {
             scriptLink.crossOrigin = 'anonymous';
             r.iframe.contentDocument.head.appendChild(scriptLink);
         }
+        // Add missing stylesheets for Mazumago
+        // Context: https://linear.app/highlight/issue/HIG-2441/mazumago-styling-issue
+        if (
+            (project_id === '1026' ||
+                project_id === '1028' ||
+                project_id === '1017') &&
+            r.iframe.contentDocument
+        ) {
+            const cssRoboto = document.createElement('link');
+            cssRoboto.href =
+                'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap';
+            cssRoboto.rel = 'stylesheet';
+            r.iframe.contentDocument.head.appendChild(cssRoboto);
+            const cssIcons = document.createElement('link');
+            cssIcons.href =
+                'https://fonts.googleapis.com/icon?family=Material+Icons';
+            cssIcons.rel = 'stylesheet';
+            r.iframe.contentDocument.head.appendChild(cssIcons);
+            const scriptLink = document.createElement('script');
+            scriptLink.src =
+                'https://unpkg.com/@mui/material@5.9.0/umd/material-ui.production.min.js';
+            scriptLink.crossOrigin = 'anonymous';
+            r.iframe.contentDocument.head.appendChild(scriptLink);
+        }
     };
 
     // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.

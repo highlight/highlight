@@ -10,7 +10,7 @@ import {
 } from '@pages/Player/StreamElement/Renderers/WebVitals/components/Metric';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     CartesianGrid,
     Label,
@@ -103,21 +103,23 @@ const LineChart = ({
     onMouseMove,
     onMouseUp,
 }: Props) => {
-    const nonXAxisKeys =
-        data.length > 0
-            ? Object.keys(data[0]).filter(
-                  (keyName) =>
-                      keyName !== xAxisDataKeyName && keyName !== '__typename'
-              )
-            : [];
     const { min, max } = findDataDomain(data);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
-    const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(
-        nonXAxisKeys
-    );
+    const [dataTypesToShow, setDataTypesToShow] = useState<string[]>([]);
     const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag);
     const [showTooltip, setShowTooltip] = React.useState(false);
+
+    const isNonXAxisKey = useCallback(
+        (keyName) => keyName !== xAxisDataKeyName && keyName !== '__typename',
+        [xAxisDataKeyName]
+    );
+
+    useEffect(() => {
+        if (data.length > 0) {
+            setDataTypesToShow(Object.keys(data[0]).filter(isNonXAxisKey));
+        }
+    }, [data, isNonXAxisKey]);
 
     return (
         <>
@@ -250,7 +252,10 @@ const LineChart = ({
                             )}
                         </ReferenceLine>
                     ))}
-                    {nonXAxisKeys.map((key) => (
+                    {(data.length > 0
+                        ? Object.keys(data[0]).filter(isNonXAxisKey)
+                        : []
+                    ).map((key) => (
                         <Line
                             hide={!dataTypesToShow.includes(key)}
                             key={key}
@@ -286,60 +291,58 @@ export const CustomTooltip = ({
 }) => {
     return (
         <>
-            <div>
+            <p className={styles.tooltipEntry}>
+                {payload[0].payload.date && (
+                    <div className={styles.tooltipRow}>
+                        {moment(payload[0].payload.date).format(
+                            'MMMM Do YYYY, h:mm A'
+                        )}
+                    </div>
+                )}
                 {payload.reverse().map((entry: any) => {
                     return (
-                        <p key={entry.dataKey} className={styles.tooltipEntry}>
-                            {entry.payload.date && (
-                                <div className={styles.tooltipRow}>
-                                    {moment(entry.payload.date).format(
-                                        'MMMM Do YYYY, h:mm A'
-                                    )}
-                                </div>
-                            )}
-                            <div className={styles.tooltipRow}>
-                                <div
-                                    className={styles.legendIcon}
-                                    style={{
-                                        background: entry.color,
-                                    }}
-                                ></div>
-                                <div className={styles.tooltipRow}>
-                                    <span>
-                                        <span className={styles.tooltipValue}>
-                                            {entry.value.toFixed(precision)}
-                                        </span>{' '}
-                                        {yAxisLabel}
-                                        {entry?.payload.range_start ? (
-                                            <>
-                                                {' in '}
-                                                {entry.payload.range_start.toFixed(
-                                                    precision
-                                                )}
-                                                {units} -{' '}
-                                                {entry.payload.range_end.toFixed(
-                                                    precision
-                                                )}
-                                                {units}
-                                            </>
-                                        ) : null}
-                                    </span>
-                                    {referenceLines?.length === 2
-                                        ? getScoreIcon(
-                                              getMetricValueScore(entry.value, {
-                                                  max_good_value: referenceLines![0]
-                                                      .value,
-                                                  max_needs_improvement_value: referenceLines![1]
-                                                      .value,
-                                              })
-                                          )
-                                        : undefined}
-                                </div>
-                            </div>
-                        </p>
+                        <div key={entry.dataKey} className={styles.tooltipGrid}>
+                            <span>{entry.dataKey}</span>
+                            <div
+                                className={styles.legendIcon}
+                                style={{
+                                    background: entry.color,
+                                }}
+                            ></div>
+                            <span>
+                                <span className={styles.tooltipValue}>
+                                    {entry.value.toFixed(precision)}
+                                </span>{' '}
+                                {yAxisLabel}
+                                {entry?.payload.range_start ? (
+                                    <>
+                                        {' in '}
+                                        {entry.payload.range_start.toFixed(
+                                            precision
+                                        )}
+                                        {units} -{' '}
+                                        {entry.payload.range_end.toFixed(
+                                            precision
+                                        )}
+                                        {units}
+                                    </>
+                                ) : null}
+                            </span>
+                            {referenceLines?.length &&
+                            referenceLines?.length >= 2
+                                ? getScoreIcon(
+                                      getMetricValueScore(entry.value, {
+                                          max_good_value: referenceLines![0]
+                                              .value,
+                                          max_needs_improvement_value: referenceLines![1]
+                                              .value,
+                                      })
+                                  )
+                                : undefined}
+                        </div>
                     );
                 })}
-            </div>
+            </p>
         </>
     );
 };

@@ -226,7 +226,12 @@ const WorkspaceTeam = () => {
                     Invite Member
                 </Button>
             </div>
-            <div className={styles.memberCardWrapper}>
+            <div
+                className={classNames(
+                    styles.memberCardWrapper,
+                    'highlight-mask'
+                )}
+            >
                 <Card noPadding>
                     <Table
                         columns={

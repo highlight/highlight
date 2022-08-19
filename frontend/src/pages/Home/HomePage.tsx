@@ -81,7 +81,10 @@ const HomePage = () => {
                 <title>Home</title>
             </Helmet>
             <div className={styles.dashboardWrapper}>
-                <div className={styles.dashboard}>
+                <div
+                    className={styles.dashboard}
+                    style={{ padding: '120px 80px 80px' }}
+                >
                     <div className={styles.headerContainer}>
                         <div>
                             <h2>
@@ -110,23 +113,6 @@ const HomePage = () => {
                                 defaultValue={timeFilter[1]}
                                 onSelect={setDateRangeLength}
                             />
-                            {/* DateRangePicker will be enabled when we do this: https://linear.app/highlight/issue/HIG-1601/date-picker-for-home-page-is-not-picking-the-right-date-with-custom */}
-                            {/* <DateRangePicker
-                                onChange={(_startDate, _endDate) => {
-                                    if (!_startDate || !_endDate) {
-                                        return;
-                                    }
-
-                                    const startDate = moment(_startDate);
-                                    const endDate = moment(_endDate);
-                                    const daysDifference = startDate.diff(
-                                        endDate,
-                                        'days'
-                                    );
-
-                                    setDateRangeLength(daysDifference);
-                                }}
-                            /> */}
                         </div>
                     </div>
                     <KeyPerformanceIndicators />

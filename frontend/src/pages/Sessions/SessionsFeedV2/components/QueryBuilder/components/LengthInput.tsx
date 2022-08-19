@@ -12,21 +12,30 @@ import styles from './LengthInput.module.scss';
 interface LengthInputProps {
     start: number;
     end: number;
+    max: number;
+    type: string;
     onChange: (start: number, end: number) => void;
 }
 
-export const LengthInput = ({ start, end, onChange }: LengthInputProps) => {
+export const LengthInput = ({
+    start,
+    end,
+    type,
+    max,
+    onChange,
+}: LengthInputProps) => {
     const [localMin, setLocalMin] = useState(start);
     const [localMax, setLocalMax] = useState(end);
     const [showAdvanced, toggleShowAdvanced] = useToggle(false);
+    const isTime = type !== 'range';
 
     const updateSearchParams = () => {
         onChange(Math.min(localMin, localMax), Math.max(localMin, localMax));
     };
 
-    const marks = {
+    const marks: { [key: string]: string } = {
         0: '0',
-        60: '60+',
+        [max]: `${max}+`,
     };
 
     useEffect(() => {
@@ -38,23 +47,28 @@ export const LengthInput = ({ start, end, onChange }: LengthInputProps) => {
         <div className={styles.sessionLengthInput}>
             <div className={styles.headerContainer}>
                 <span className={styles.sessionLengthInputLabel}>
-                    Length {!showAdvanced ? '(minutes)' : '(seconds)'}
+                    Length{' '}
+                    {isTime && (!showAdvanced ? '(minutes)' : '(seconds)')}
                 </span>
-                <Button
-                    trackingId="showAdvancedLengthInput"
-                    type="text"
-                    size="small"
-                    onClick={() => {
-                        toggleShowAdvanced();
-                    }}
-                >
-                    Advanced
-                </Button>
+                {isTime && (
+                    <Button
+                        trackingId="showAdvancedLengthInput"
+                        type="text"
+                        size="small"
+                        onClick={() => {
+                            toggleShowAdvanced();
+                        }}
+                    >
+                        Advanced
+                    </Button>
+                )}
             </div>
-            {showAdvanced ? (
+            {isTime && showAdvanced ? (
                 <AdvancedLengthInput
                     start={start}
                     end={end}
+                    type={type}
+                    max={max}
                     onChange={(min, max) => {
                         setLocalMin(min);
                         setLocalMax(max);
@@ -70,7 +84,7 @@ export const LengthInput = ({ start, end, onChange }: LengthInputProps) => {
                     }
                     disabled={false}
                     min={0}
-                    max={60}
+                    max={max}
                     marks={marks}
                     value={[localMin, localMax]}
                     onChange={([min, max]) => {

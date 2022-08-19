@@ -1359,6 +1359,7 @@ export const CreateSessionCommentDocument = gql`
         $issue_title: String
         $issue_team_id: String
         $issue_description: String
+        $additional_context: String
     ) {
         createSessionComment(
             project_id: $project_id
@@ -1379,6 +1380,7 @@ export const CreateSessionCommentDocument = gql`
             issue_title: $issue_title
             issue_team_id: $issue_team_id
             issue_description: $issue_description
+            additional_context: $additional_context
         ) {
             id
             timestamp
@@ -1437,6 +1439,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      issue_title: // value for 'issue_title'
  *      issue_team_id: // value for 'issue_team_id'
  *      issue_description: // value for 'issue_description'
+ *      additional_context: // value for 'additional_context'
  *   },
  * });
  */
@@ -2331,15 +2334,15 @@ export const UpdateMetricMonitorDocument = gql`
     mutation UpdateMetricMonitor(
         $metric_monitor_id: ID!
         $project_id: ID!
-        $name: String!
-        $aggregator: MetricAggregator!
-        $threshold: Float!
+        $name: String
+        $aggregator: MetricAggregator
+        $threshold: Float
         $units: String
         $periodMinutes: Int
-        $metric_to_monitor: String!
-        $slack_channels: [SanitizedSlackChannelInput]!
-        $emails: [String]!
-        $disabled: Boolean!
+        $metric_to_monitor: String
+        $slack_channels: [SanitizedSlackChannelInput]
+        $emails: [String]
+        $disabled: Boolean
     ) {
         updateMetricMonitor(
             metric_monitor_id: $metric_monitor_id
@@ -4206,6 +4209,7 @@ export const GetMetricsTimelineDocument = gql`
             date
             value
             aggregator
+            group
         }
     }
 `;
@@ -4712,6 +4716,7 @@ export const GetSessionDocument = gql`
             has_errors
             within_billing_quota
             client_version
+            firstload_version
             client_config
             is_public
             event_counts
@@ -6200,6 +6205,7 @@ export const GetWorkspaceDocument = gql`
             name
             secret
             plan_tier
+            unlimited_members
             clearbit_enabled
             projects {
                 id
@@ -6778,6 +6784,7 @@ export const GetProjectDocument = gql`
             rage_click_radius_pixels
             rage_click_count
             backend_domains
+            secret
         }
         workspace: workspace_for_project(project_id: $id) {
             id
@@ -7076,6 +7083,7 @@ export const GetErrorGroupDocument = gql`
                 identifier
                 user_properties
                 request_id
+                payload
             }
             fields {
                 name
@@ -9569,6 +9577,7 @@ export const GetDashboardDefinitionsDocument = gql`
             project_id
             name
             metrics {
+                component_type
                 name
                 description
                 max_good_value
@@ -9587,6 +9596,7 @@ export const GetDashboardDefinitionsDocument = gql`
                     op
                     tag
                 }
+                groups
             }
             last_admin_to_edit_id
             layout

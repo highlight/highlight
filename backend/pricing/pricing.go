@@ -11,6 +11,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -20,8 +21,9 @@ import (
 )
 
 const (
-	highlightProductType string = "highlightProductType"
-	highlightProductTier string = "highlightProductTier"
+	highlightProductType             string = "highlightProductType"
+	highlightProductTier             string = "highlightProductTier"
+	highlightProductUnlimitedMembers string = "highlightProductUnlimitedMembers"
 )
 
 type ProductType string
@@ -98,18 +100,21 @@ func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (i
 	return queriedSessionsOverQuota, nil
 }
 
-func TypeToMemberLimit(planType backend.PlanType) int {
+func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
+	if unlimitedMembers {
+		return nil
+	}
 	switch planType {
 	case backend.PlanTypeFree:
-		return 2
+		return pointy.Int(2)
 	case backend.PlanTypeBasic:
-		return 2
+		return pointy.Int(2)
 	case backend.PlanTypeStartup:
-		return 8
+		return pointy.Int(8)
 	case backend.PlanTypeEnterprise:
-		return 15
+		return pointy.Int(15)
 	default:
-		return 2
+		return pointy.Int(2)
 	}
 }
 
@@ -142,20 +147,6 @@ func FromPriceID(priceID string) backend.PlanType {
 	return backend.PlanTypeFree
 }
 
-func ToPriceID(plan backend.PlanType) string {
-	switch plan {
-	case backend.PlanTypeFree:
-		return os.Getenv("FREE_PLAN_PRICE_ID")
-	case backend.PlanTypeBasic:
-		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case backend.PlanTypeStartup:
-		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case backend.PlanTypeEnterprise:
-		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
-	}
-	return ""
-}
-
 // MustUpgradeForClearbit shows when tier is insufficient for Clearbit.
 func MustUpgradeForClearbit(tier string) bool {
 	pt := backend.PlanType(tier)
@@ -163,12 +154,16 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval) string {
-	return fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
+func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (result string) {
+	result = fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
+	if unlimitedMembers {
+		result += "|UNLIMITED_MEMBERS"
+	}
+	return
 }
 
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
-func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, SubscriptionInterval) {
+func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, bool, SubscriptionInterval) {
 	interval := SubscriptionIntervalMonthly
 	if price.Recurring != nil && price.Recurring.Interval == stripe.PriceRecurringIntervalYear {
 		interval = SubscriptionIntervalAnnual
@@ -179,7 +174,7 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, S
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
 		base := ProductTypeBase
-		return &base, &oldTier, interval
+		return &base, &oldTier, false, interval
 	}
 
 	var productTypePtr *ProductType
@@ -195,7 +190,14 @@ func GetProductMetadata(price *stripe.Price) (*ProductType, *backend.PlanType, S
 		tierPtr = &tier
 	}
 
-	return productTypePtr, tierPtr, interval
+	unlimitedMembers := false
+	if unlimitedMembersStr, ok := price.Product.Metadata[highlightProductUnlimitedMembers]; ok {
+		if unlimitedMembersStr == "true" {
+			unlimitedMembers = true
+		}
+	}
+
+	return productTypePtr, tierPtr, unlimitedMembers, interval
 }
 
 // Products are too nested in the Subscription model to be added through the API
@@ -229,8 +231,8 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval) (map[ProductType]*stripe.Price, error) {
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval)
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool) (map[ProductType]*stripe.Price, error) {
+	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers)
 
 	sessionsLookupKey := string(ProductTypeSessions)
 	membersLookupKey := string(ProductTypeMembers)
@@ -261,10 +263,6 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	}
 
 	return priceMap, nil
-}
-
-func ReportUsageForProduct(DB *gorm.DB, stripeClient *client.API, workspaceID int, productType ProductType) error {
-	return reportUsage(DB, stripeClient, workspaceID, &productType, true)
 }
 
 func ReportUsageForWorkspace(DB *gorm.DB, stripeClient *client.API, workspaceID int) error {
@@ -312,7 +310,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - subscription has multiple products")
 	}
 	subscriptionItem := subscription.Items.Data[0]
-	_, productTier, interval := GetProductMetadata(subscriptionItem.Price)
+	_, productTier, _, interval := GetProductMetadata(subscriptionItem.Price)
 	if productTier == nil {
 		return e.New("STRIPE_INTEGRATION_ERROR cannot report usage - product has no tier")
 	}
@@ -340,7 +338,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		}
 	}
 
-	prices, err := GetStripePrices(stripeClient, *productTier, interval)
+	prices, err := GetStripePrices(stripeClient, *productTier, interval, workspace.UnlimitedMembers)
 	if err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to get Stripe prices")
 	}
@@ -358,7 +356,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 
 	invoiceLines := map[ProductType]*stripe.InvoiceLine{}
 	for _, line := range invoice.Lines.Data {
-		productType, _, _ := GetProductMetadata(line.Price)
+		productType, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
 			invoiceLines[*productType] = line
 		}
@@ -368,17 +366,17 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		newPrice := prices[ProductTypeMembers]
 		meter := GetMembersMeter(DB, workspaceID)
 
-		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier))
+		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier), workspace.UnlimitedMembers)
 		if workspace.MonthlyMembersLimit != nil {
-			limit = *workspace.MonthlyMembersLimit
+			limit = workspace.MonthlyMembersLimit
 		}
 
 		overage := int64(0)
-		if meter > int64(limit) {
-			overage = meter - int64(limit)
+		if limit != nil && meter > int64(*limit) {
+			overage = meter - int64(*limit)
 		}
 
-		log.Infof("reporting members usage for workspace %d", workspaceID)
+		log.Infof("reporting members usage for workspace %d. %d members, %d overage", workspaceID, meter, overage)
 		if membersLine, ok := invoiceLines[ProductTypeMembers]; ok {
 			if _, err := stripeClient.InvoiceItems.Update(membersLine.InvoiceItem, &stripe.InvoiceItemParams{
 				Price:    &newPrice.ID,
@@ -409,7 +407,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		if reportToHubspot && !util.IsDevEnv() {
 			go func() {
 				api := hubspotAPI.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), DB)
-				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{hubspot.Property{
+				if err := api.UpdateCompanyProperty(workspaceID, []hubspot.Property{{
 					Name:     "highlight_session_count",
 					Property: "highlight_session_count",
 					Value:    meter,

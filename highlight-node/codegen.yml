@@ -11,9 +11,6 @@ generates:
   # Create operations based on queries
   src/graph/generated/operations.ts:
     documents: "src/**/**.gql"
-    preset: import-types
-    presetConfig:
-      typesPath: ./schemas
     plugins:
       - typescript
       - typescript-operations

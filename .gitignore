@@ -20,6 +20,8 @@ yalc.lock
 **/.nvmrc
 
 backend/backend
+backend/__debug_bin
+backend/dump.rdb
 
 # Editor Artifacts
 **/.idea

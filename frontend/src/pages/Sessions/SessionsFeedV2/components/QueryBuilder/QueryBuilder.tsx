@@ -4,6 +4,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { BaseSearchContext } from '@context/BaseSearchContext';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -13,6 +14,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
+import { GetHistogramBucketSize } from '@util/time';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -72,6 +74,7 @@ type PopoutType =
     | 'multiselect'
     | 'creatable'
     | 'date_range'
+    | 'time_range'
     | 'range';
 interface PopoutContentProps {
     type: PopoutType;
@@ -87,6 +90,9 @@ interface PopoutProps {
 interface SetVisible {
     setVisible: (val: boolean) => void;
 }
+
+const TIME_MAX_LENGTH = 60;
+const RANGE_MAX_LENGTH = 200;
 
 const TOOLTIP_MESSAGE =
     'This property was automatically collected by Highlight';
@@ -247,9 +253,14 @@ const getDateLabel = (value: string): string => {
     const endStr = moment(end).format('MMM D');
     return `${startStr} to ${endStr}`;
 };
+
+export const isAbsoluteTimeRange = (value?: string): boolean => {
+    return !!value && value.includes('_');
+};
+
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', subtract it from current time
         const amount = parseInt(value.split(' ')[0]);
         const unit = value.split(' ')[1].toLowerCase();
@@ -261,14 +272,14 @@ export const getAbsoluteStartTime = (value?: string): string | null => {
 };
 export const getAbsoluteEndTime = (value?: string): string | null => {
     if (!value) return null;
-    if (!value.includes('_')) {
+    if (!isAbsoluteTimeRange(value)) {
         // value is a relative duration such as '7 days', use current time as end of range
         return moment().toISOString();
     }
     return value!.split('_')[1];
 };
 
-const getLengthLabel = (value: string): string => {
+const getTimeLabel = (value: string): string => {
     const split = value.split('_');
     const start = Number(split[0]);
     const end = Number(split[1]);
@@ -276,6 +287,13 @@ const getLengthLabel = (value: string): string => {
     return ints
         ? `${start} and ${end} minutes`
         : `${start * 60} and ${end * 60} seconds`;
+};
+
+const getLengthLabel = (value: string): string => {
+    const split = value.split('_');
+    const start = Number(split[0]);
+    const end = Number(split[1]);
+    return `${start} and ${end}`;
 };
 
 const getProcessedLabel = (value: string): string => {
@@ -371,7 +389,7 @@ const getOption = (props: any) => {
                         />
                     </div>
                     {(!!tooltipMessage ||
-                        type === 'session' ||
+                        type === SESSION_TYPE ||
                         type === CUSTOM_TYPE ||
                         type === ERROR_TYPE ||
                         type === ERROR_FIELD_TYPE ||
@@ -590,9 +608,10 @@ const PopoutContent = ({
                     }}
                 />
             );
-        case 'range':
+        case 'time_range':
             return (
                 <LengthInput
+                    type={type}
                     start={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[0])
@@ -601,8 +620,40 @@ const PopoutContent = ({
                     end={
                         value?.kind === 'multi'
                             ? Number(value.options[0]?.value.split('_')[1])
-                            : 60
+                            : TIME_MAX_LENGTH
                     }
+                    max={TIME_MAX_LENGTH}
+                    onChange={(start, end) => {
+                        const value = `${start}_${end}`;
+
+                        onChange({
+                            kind: 'multi',
+                            options: [
+                                {
+                                    label: getTimeLabel(value),
+                                    value,
+                                },
+                            ],
+                        });
+                        setVisible(false);
+                    }}
+                />
+            );
+        case 'range':
+            return (
+                <LengthInput
+                    type={type}
+                    start={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[0])
+                            : 0
+                    }
+                    end={
+                        value?.kind === 'multi'
+                            ? Number(value.options[0]?.value.split('_')[1])
+                            : RANGE_MAX_LENGTH
+                    }
+                    max={RANGE_MAX_LENGTH}
                     onChange={(start, end) => {
                         const value = `${start}_${end}`;
 
@@ -698,6 +749,8 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
             return 'creatable';
         case 'between_date':
             return 'date_range';
+        case 'between_time':
+            return 'time_range';
         case 'between':
             return 'range';
         default:
@@ -783,6 +836,7 @@ const isNegative = (op: Operator): boolean =>
         'not_contains',
         'not_exists',
         'not_between',
+        'not_between_time',
         'not_between_date',
         'not_matches',
     ].includes(op);
@@ -796,6 +850,8 @@ const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches',
@@ -811,6 +867,8 @@ const LABEL_MAP_MULTI: { [K in Operator]: string } = {
     not_exists: 'does not exist',
     between: 'is between',
     not_between: 'is not between',
+    between_time: 'is between',
+    not_between_time: 'is not between',
     between_date: 'is between',
     not_between_date: 'is not between',
     matches: 'matches any of',
@@ -837,6 +895,8 @@ const NEGATION_MAP: { [K in Operator]: Operator } = {
     not_exists: 'exists',
     between: 'not_between',
     not_between: 'between',
+    between_time: 'not_between_time',
+    not_between_time: 'between_time',
     between_date: 'not_between_date',
     not_between_date: 'between_date',
     matches: 'not_matches',
@@ -852,6 +912,8 @@ type Operator =
     | 'not_exists'
     | 'between'
     | 'not_between'
+    | 'between_time'
+    | 'not_between_time'
     | 'between_date'
     | 'not_between_date'
     | 'matches'
@@ -870,6 +932,8 @@ const OPERATORS: Operator[] = [
 
 export const RANGE_OPERATORS: Operator[] = ['between', 'not_between'];
 
+export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time'];
+
 export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date'];
 
 export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not'];
@@ -886,6 +950,7 @@ const LABEL_MAP: { [key: string]: string } = {
     'visited-url': 'Visited URL',
     visited_url: 'Visited URL',
     city: 'City',
+    country: 'Country',
     created_at: 'Date',
     device_id: 'Device ID',
     os_version: 'OS Version',
@@ -903,6 +968,9 @@ const LABEL_MAP: { [key: string]: string } = {
     timestamp: 'Date',
     has_rage_clicks: 'Has Rage Clicks',
     has_errors: 'Has Errors',
+    pages_visited: 'Pages Visited',
+    landing_page: 'Landing Page',
+    exit_page: 'Exit Page',
 };
 
 const getOperator = (
@@ -925,6 +993,7 @@ const isSingle = (val: OnChangeInput) =>
     !(val?.kind === 'multi' && val.options.length > 1);
 
 export const CUSTOM_TYPE = 'custom';
+export const SESSION_TYPE = 'session';
 export const ERROR_TYPE = 'error';
 export const ERROR_FIELD_TYPE = 'error-field';
 
@@ -969,6 +1038,7 @@ const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
     custom_processed: getProcessedLabel,
     custom_created_at: getDateLabel,
     custom_active_length: getLengthLabel,
+    custom_pages_visited: getLengthLabel,
     error_state: getStateLabel,
     'error-field_timestamp': getDateLabel,
 };
@@ -1077,29 +1147,31 @@ export type FetchFieldVariables =
       >
     | undefined;
 
-interface QueryBuilderProps {
-    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+interface QueryBuilderProps<T> {
+    searchContext: BaseSearchContext<T>;
     timeRangeField: SelectOption;
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
     getQueryFromParams: (params: any) => QueryBuilderState;
-    searchParams: any;
-    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
     readonly?: boolean;
 }
 
 const QueryBuilder = ({
-    setSearchQuery,
+    searchContext,
     timeRangeField,
     customFields,
     fetchFields,
     fieldData,
     getQueryFromParams,
-    searchParams,
-    setSearchParams,
     readonly,
-}: QueryBuilderProps) => {
+}: QueryBuilderProps<any>) => {
+    const {
+        setBackendSearchQuery,
+        searchParams,
+        setSearchParams,
+        searchResultsLoading,
+    } = searchContext;
     const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
@@ -1108,7 +1180,14 @@ const QueryBuilder = ({
             }
 
             const type = getType(field.value);
-            if (![CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(type)) {
+            if (
+                ![
+                    CUSTOM_TYPE,
+                    SESSION_TYPE,
+                    ERROR_TYPE,
+                    ERROR_FIELD_TYPE,
+                ].includes(type)
+            ) {
                 return undefined;
             }
 
@@ -1189,7 +1268,7 @@ const QueryBuilder = ({
                                 },
                             },
                         };
-                    case 'between':
+                    case 'between_time':
                         return {
                             range: {
                                 [name]: {
@@ -1197,13 +1276,28 @@ const QueryBuilder = ({
                                         Number(value?.split('_')[0]) *
                                         60 *
                                         1000,
-                                    ...(Number(value?.split('_')[1]) === 60
+                                    ...(Number(value?.split('_')[1]) ===
+                                    TIME_MAX_LENGTH
                                         ? null
                                         : {
                                               lte:
                                                   Number(value?.split('_')[1]) *
                                                   60 *
                                                   1000,
+                                          }),
+                                },
+                            },
+                        };
+                    case 'between':
+                        return {
+                            range: {
+                                [name]: {
+                                    gte: Number(value?.split('_')[0]),
+                                    ...(Number(value?.split('_')[1]) ===
+                                    RANGE_MAX_LENGTH
+                                        ? null
+                                        : {
+                                              lte: Number(value?.split('_')[1]),
                                           }),
                                 },
                             },
@@ -1347,13 +1441,16 @@ const QueryBuilder = ({
             kind: 'multi',
             options: [
                 {
-                    label: 'Last 7 days',
-                    value: '7 days',
+                    label: 'Last 30 days',
+                    value: '30 days',
                 },
             ],
         },
     };
     const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule]);
+    const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(
+        false
+    );
     const timeRangeRule = useMemo<RuleProps | undefined>(
         () => rules.find((rule) => rule.field?.value === timeRangeField.value),
         [rules, timeRangeField.value]
@@ -1418,6 +1515,26 @@ const QueryBuilder = ({
         return results;
     };
 
+    const setSearchQuery = useCallback(
+        (searchQuery: string) => {
+            if (!timeRangeRule) return;
+            const startDate = moment(
+                getAbsoluteStartTime(timeRangeRule.val?.options[0].value)
+            );
+            const endDate = moment(
+                getAbsoluteEndTime(timeRangeRule.val?.options[0].value)
+            );
+            setBackendSearchQuery({
+                searchQuery,
+                startDate,
+                endDate,
+                histogramBucketSize: GetHistogramBucketSize(
+                    moment.duration(endDate.diff(startDate))
+                ),
+            });
+        },
+        [setBackendSearchQuery, timeRangeRule]
+    );
     const getOperatorOptionsCallback = (
         options: FieldOptions | undefined,
         val: OnChangeInput
@@ -1502,6 +1619,19 @@ const QueryBuilder = ({
     // Track the current state of the query builder to detect changes
     const [qbState, setQbState] = useState<string | undefined>(undefined);
 
+    useEffect(() => {
+        if (searchResultsLoading === false) {
+            const timer = setTimeout(() => {
+                setSyncButtonDisabled(false);
+            }, 5000);
+            return () => {
+                clearTimeout(timer);
+            };
+        } else {
+            setSyncButtonDisabled(true);
+        }
+    }, [searchResultsLoading]);
+
     // If the search query is updated externally, set the rules and `isAnd` toggle based on it
     useEffect(() => {
         if (!!searchParams.query && searchParams.query !== qbState) {
@@ -1573,39 +1703,46 @@ const QueryBuilder = ({
     if (!timeRangeRule) {
         addRule(defaultTimeRangeRule);
     }
+
     return (
         <div className={styles.builderContainer}>
-            <div>
+            {timeRangeRule && (
                 <div className={styles.rulesContainer}>
-                    {timeRangeRule && (
+                    <div className={styles.ruleContainer}>
                         <TimeRangeFilter
                             rule={timeRangeRule}
                             onChangeValue={(val) =>
                                 updateRule(timeRangeRule, { val: val })
                             }
                         />
-                    )}
-                    {!readonly && (
-                        <Button
-                            className={styles.syncButton}
-                            onClick={() => {
-                                const query = parseGroup(isAnd, rules);
-                                setSearchQuery(JSON.stringify(query));
-                            }}
-                            loading={false}
-                            trackingId={'RefreshSearchResults'}
-                        >
-                            <Tooltip
-                                title={
-                                    'Refetch the latest results of your query.'
-                                }
+                    </div>
+                    {!readonly &&
+                        !isAbsoluteTimeRange(
+                            timeRangeRule.val?.options[0].value
+                        ) && (
+                            <Button
+                                className={classNames(
+                                    styles.ruleItem,
+                                    styles.syncButton
+                                )}
+                                onClick={() => {
+                                    const query = parseGroup(isAnd, rules);
+                                    setSearchQuery(JSON.stringify(query));
+                                }}
+                                disabled={syncButtonDisabled}
+                                trackingId={'RefreshSearchResults'}
                             >
-                                <Reload width="12px" height="12px" />
-                            </Tooltip>
-                        </Button>
-                    )}
+                                <Tooltip
+                                    title={
+                                        'Refetch the latest results of your query.'
+                                    }
+                                >
+                                    <Reload width="1em" height="1em" />
+                                </Tooltip>
+                            </Button>
+                        )}
                 </div>
-            </div>
+            )}
             <div>
                 {filterRules.length > 0 && (
                     <div className={styles.rulesContainer}>

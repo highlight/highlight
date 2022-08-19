@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext';
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils';
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils';
 import { bytesToPrettyString } from '@util/string';
@@ -6,7 +7,6 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
-import { useAuthContext } from '../../../authentication/AuthContext';
 import DataCard from '../../../components/DataCard/DataCard';
 import KeyValueTable, {
     KeyValueTableRow,
@@ -36,15 +36,12 @@ const MetadataPanel = () => {
 
     useEffect(() => {
         const fields = session?.fields?.filter((f) => {
-            if (
+            return (
                 f &&
                 f.type === 'user' &&
                 f.name !== 'identifier' &&
                 f.value.length
-            ) {
-                return true;
-            }
-            return false;
+            );
         }) as Field[];
         setParsedFields(fields);
     }, [session?.fields]);
@@ -156,8 +153,13 @@ const MetadataPanel = () => {
             });
         }
         sessionData.push({
-            keyDisplayValue: 'Firstload Version',
+            keyDisplayValue: 'Client Version',
             valueDisplayValue: session?.client_version || 'Unknown',
+            renderType: 'string',
+        });
+        sessionData.push({
+            keyDisplayValue: 'Firstload Version',
+            valueDisplayValue: session?.firstload_version || 'Unknown',
             renderType: 'string',
         });
         if (session?.client_config) {

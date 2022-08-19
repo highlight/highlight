@@ -63,7 +63,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
-            console.log('keydown', e.key);
             if (e.key == 'Escape') {
                 setVisible(false);
             }

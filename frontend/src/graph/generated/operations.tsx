@@ -339,6 +339,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     issue_title?: Types.Maybe<Types.Scalars['String']>;
     issue_team_id?: Types.Maybe<Types.Scalars['String']>;
     issue_description?: Types.Maybe<Types.Scalars['String']>;
+    additional_context?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -701,19 +702,21 @@ export type CreateMetricMonitorMutation = { __typename?: 'Mutation' } & {
 export type UpdateMetricMonitorMutationVariables = Types.Exact<{
     metric_monitor_id: Types.Scalars['ID'];
     project_id: Types.Scalars['ID'];
-    name: Types.Scalars['String'];
-    aggregator: Types.MetricAggregator;
-    threshold: Types.Scalars['Float'];
+    name?: Types.Maybe<Types.Scalars['String']>;
+    aggregator?: Types.Maybe<Types.MetricAggregator>;
+    threshold?: Types.Maybe<Types.Scalars['Float']>;
     units?: Types.Maybe<Types.Scalars['String']>;
     periodMinutes?: Types.Maybe<Types.Scalars['Int']>;
-    metric_to_monitor: Types.Scalars['String'];
-    slack_channels:
+    metric_to_monitor?: Types.Maybe<Types.Scalars['String']>;
+    slack_channels?: Types.Maybe<
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    emails:
+        | Types.Maybe<Types.SanitizedSlackChannelInput>
+    >;
+    emails?: Types.Maybe<
         | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    disabled: Types.Scalars['Boolean'];
+        | Types.Maybe<Types.Scalars['String']>
+    >;
+    disabled?: Types.Maybe<Types.Scalars['Boolean']>;
 }>;
 
 export type UpdateMetricMonitorMutation = { __typename?: 'Mutation' } & {
@@ -1606,7 +1609,7 @@ export type GetMetricsTimelineQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DashboardPayload' } & Pick<
                 Types.DashboardPayload,
-                'date' | 'value' | 'aggregator'
+                'date' | 'value' | 'aggregator' | 'group'
             >
         >
     >;
@@ -1811,6 +1814,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'has_errors'
             | 'within_billing_quota'
             | 'client_version'
+            | 'firstload_version'
             | 'client_config'
             | 'is_public'
             | 'event_counts'
@@ -2384,7 +2388,12 @@ export type GetWorkspaceQuery = { __typename?: 'Query' } & {
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
             Types.Workspace,
-            'id' | 'name' | 'secret' | 'plan_tier' | 'clearbit_enabled'
+            | 'id'
+            | 'name'
+            | 'secret'
+            | 'plan_tier'
+            | 'unlimited_members'
+            | 'clearbit_enabled'
         > & {
                 projects: Array<
                     Types.Maybe<
@@ -2615,6 +2624,7 @@ export type GetProjectQuery = { __typename?: 'Query' } & {
             | 'rage_click_radius_pixels'
             | 'rage_click_count'
             | 'backend_domains'
+            | 'secret'
         >
     >;
     workspace?: Types.Maybe<
@@ -2755,6 +2765,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'identifier'
                             | 'user_properties'
                             | 'request_id'
+                            | 'payload'
                         >
                     >
                 >;
@@ -3707,6 +3718,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                     metrics: Array<
                         { __typename?: 'DashboardMetricConfig' } & Pick<
                             Types.DashboardMetricConfig,
+                            | 'component_type'
                             | 'name'
                             | 'description'
                             | 'max_good_value'
@@ -3720,6 +3732,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
                             | 'min_percentile'
                             | 'max_value'
                             | 'max_percentile'
+                            | 'groups'
                         > & {
                                 filters?: Types.Maybe<
                                     Array<

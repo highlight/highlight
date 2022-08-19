@@ -58,6 +58,7 @@ interface Props {
     error_secure_id?: string;
     errorTitle?: string;
     modalHeader?: string;
+    currentUrl?: string;
 }
 
 enum CommentFormSection {
@@ -75,6 +76,7 @@ export const NewCommentForm = ({
     error_secure_id,
     errorTitle,
     modalHeader,
+    currentUrl,
 }: Props) => {
     const [createComment] = useCreateSessionCommentMutation();
     const [createErrorComment] = useCreateErrorCommentMutation();
@@ -254,6 +256,11 @@ export const NewCommentForm = ({
                     issue_title: selectedIssueService ? issueTitle : null,
                     issue_description: selectedIssueService
                         ? issueDescription
+                        : null,
+                    additional_context: currentUrl
+                        ? `• From ${
+                              error_secure_id ? 'error' : 'session'
+                          } URL: <${currentUrl}|${currentUrl}>`
                         : null,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
@@ -520,11 +527,11 @@ export const NewCommentForm = ({
                             />
                             Create a new {issueServiceDetail?.name} issue
                         </h3>
-                        {/* 
+                        {/*
                             TODO: make this work with other issue providers (when added)
-                            Since Linear is the only issue integration we have right now, 
+                            Since Linear is the only issue integration we have right now,
                             this works fine. But, different issue providers will have different ideas
-                            of what teams are so there should be different select dropdowns for those. 
+                            of what teams are so there should be different select dropdowns for those.
                         */}
                         <Form.Item label={`${issueServiceDetail?.name} Team`}>
                             <Select
@@ -589,10 +596,10 @@ export const NewCommentForm = ({
                                 }}
                             >
                                 {section === CommentFormSection.NewIssueForm ? (
-                                    <>
-                                        <ArrowLeftIcon />
-                                        Go back
-                                    </>
+                                    [
+                                        <ArrowLeftIcon key={0} />,
+                                        <span key={1}>Go back</span>,
+                                    ]
                                 ) : (
                                     <>Cancel</>
                                 )}
@@ -641,12 +648,12 @@ export const NewCommentForm = ({
                             >
                                 {selectedIssueService &&
                                 section === CommentFormSection.CommentForm ? (
-                                    <>
-                                        Next
-                                        <ArrowRightIcon />
-                                    </>
+                                    [
+                                        <span key={0}>Next</span>,
+                                        <ArrowRightIcon key={1} />,
+                                    ]
                                 ) : (
-                                    <>Post</>
+                                    <span>Post</span>
                                 )}
                             </Button>
                         </div>
