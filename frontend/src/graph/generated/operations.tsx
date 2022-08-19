@@ -2426,7 +2426,16 @@ export type GetWorkspacesQuery = { __typename?: 'Query' } & {
                 { __typename?: 'Workspace' } & Pick<
                     Types.Workspace,
                     'id' | 'name'
-                >
+                > & {
+                        projects: Array<
+                            Types.Maybe<
+                                { __typename?: 'Project' } & Pick<
+                                    Types.Project,
+                                    'id'
+                                >
+                            >
+                        >;
+                    }
             >
         >
     >;
@@ -2527,7 +2536,16 @@ export type GetProjectDropdownOptionsQuery = { __typename?: 'Query' } & {
                 { __typename?: 'Workspace' } & Pick<
                     Types.Workspace,
                     'id' | 'name'
-                >
+                > & {
+                        projects: Array<
+                            Types.Maybe<
+                                { __typename?: 'Project' } & Pick<
+                                    Types.Project,
+                                    'id'
+                                >
+                            >
+                        >;
+                    }
             >
         >
     >;
@@ -2566,7 +2584,16 @@ export type GetWorkspaceDropdownOptionsQuery = { __typename?: 'Query' } & {
                 { __typename?: 'Workspace' } & Pick<
                     Types.Workspace,
                     'id' | 'name'
-                >
+                > & {
+                        projects: Array<
+                            Types.Maybe<
+                                { __typename?: 'Project' } & Pick<
+                                    Types.Project,
+                                    'id'
+                                >
+                            >
+                        >;
+                    }
             >
         >
     >;

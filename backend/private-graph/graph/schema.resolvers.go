@@ -4752,17 +4752,16 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	}
 
 	joinableWorkspaces := []*model.Workspace{}
-	if err := r.DB.Raw(`
-			SELECT *
-			FROM workspaces
-			WHERE id NOT IN (
-			    SELECT workspace_id
-			    FROM workspace_admins
-			    WHERE admin_id = ?
-			    )
-				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
-			ORDER BY workspaces.name;
-		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(`id NOT IN (
+			SELECT workspace_id
+			FROM workspace_admins
+			WHERE admin_id = ?
+			)
+			AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))`, admin.ID, domain).
+		Order("workspaces.name").
+		Preload("Projects").
+		Find(&joinableWorkspaces).Error; err != nil {
 		return nil, e.Wrap(err, "error getting joinable workspaces")
 	}
 

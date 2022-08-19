@@ -323,7 +323,7 @@ export const ProjectRouter = () => {
 
     // if the user can join this workspace, give them that option via the ErrorState
     const joinableWorkspace = data?.joinable_workspaces
-        ?.filter((w) => w?.id === data?.workspace?.id)
+        ?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
         ?.pop();
 
     return (
