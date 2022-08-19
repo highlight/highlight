@@ -1529,7 +1529,7 @@ const QueryBuilder = ({
                 startDate,
                 endDate,
                 histogramBucketSize: GetHistogramBucketSize(
-                    moment.duration(startDate.diff(endDate))
+                    moment.duration(endDate.diff(startDate))
                 ),
             });
         },
