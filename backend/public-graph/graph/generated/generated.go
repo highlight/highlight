@@ -46,15 +46,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddSessionFeedback   func(childComplexity int, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
-		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
-		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
-		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
+		AddSessionFeedback   func(childComplexity int, sessionID *int, sessionSecureID *string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
+		AddSessionProperties func(childComplexity int, sessionID *int, sessionSecureID *string, propertiesObject interface{}) int
+		AddTrackProperties   func(childComplexity int, sessionID *int, sessionSecureID *string, propertiesObject interface{}) int
+		IdentifySession      func(childComplexity int, sessionID *int, sessionSecureID *string, userIdentifier string, userObject interface{}) int
 		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string, clientID *string) int
 		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
 		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
-		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) int
+		PushPayload          func(childComplexity int, sessionID *int, sessionSecureID *string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) int
 	}
 
 	Query struct {
@@ -71,14 +71,14 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, sessionSecureID *string, clientID *string) (*model1.Session, error)
-	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
-	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
+	IdentifySession(ctx context.Context, sessionID *int, sessionSecureID *string, userIdentifier string, userObject interface{}) (*int, error)
+	AddTrackProperties(ctx context.Context, sessionID *int, sessionSecureID *string, propertiesObject interface{}) (*int, error)
+	AddSessionProperties(ctx context.Context, sessionID *int, sessionSecureID *string, propertiesObject interface{}) (*int, error)
+	PushPayload(ctx context.Context, sessionID *int, sessionSecureID *string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
 	MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error)
-	AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
+	AddSessionFeedback(ctx context.Context, sessionID *int, sessionSecureID *string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -109,7 +109,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSessionFeedback(childComplexity, args["session_id"].(int), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time)), true
+		return e.complexity.Mutation.AddSessionFeedback(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["user_name"].(*string), args["user_email"].(*string), args["verbatim"].(string), args["timestamp"].(time.Time)), true
 
 	case "Mutation.addSessionProperties":
 		if e.complexity.Mutation.AddSessionProperties == nil {
@@ -121,7 +121,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSessionProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
+		return e.complexity.Mutation.AddSessionProperties(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["properties_object"].(interface{})), true
 
 	case "Mutation.addTrackProperties":
 		if e.complexity.Mutation.AddTrackProperties == nil {
@@ -133,7 +133,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddTrackProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
+		return e.complexity.Mutation.AddTrackProperties(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["properties_object"].(interface{})), true
 
 	case "Mutation.identifySession":
 		if e.complexity.Mutation.IdentifySession == nil {
@@ -145,7 +145,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_id"].(int), args["user_identifier"].(string), args["user_object"].(interface{})), true
+		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["user_identifier"].(string), args["user_object"].(interface{})), true
 
 	case "Mutation.initializeSession":
 		if e.complexity.Mutation.InitializeSession == nil {
@@ -205,7 +205,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string), args["payload_id"].(*int)), true
+		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(*int), args["session_secure_id"].(*string), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string), args["payload_id"].(*int)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -328,7 +328,7 @@ scalar Timestamp
 scalar Int64
 
 type Session {
-    id: ID!
+    id: ID
     secure_id: String!
     organization_id: ID!
     project_id: ID!
@@ -407,14 +407,16 @@ type Mutation {
         client_id: String
     ): Session
     identifySession(
-        session_id: ID!
+        session_id: ID,
+        session_secure_id: String,
         user_identifier: String!
         user_object: Any
     ): ID
-    addTrackProperties(session_id: ID!, properties_object: Any): ID
-    addSessionProperties(session_id: ID!, properties_object: Any): ID
+    addTrackProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
+    addSessionProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
     pushPayload(
-        session_id: ID!
+        session_id: ID
+        session_secure_id: String
         events: ReplayEventsInput!
         messages: String!
         resources: String!
@@ -425,10 +427,11 @@ type Mutation {
         payload_id: ID # Optional for backwards compatibility with older clients
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
-    pushMetrics(metrics: [MetricInput]!): ID!
+    pushMetrics(metrics: [MetricInput]!): Int!
     markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
-        session_id: ID!
+        session_id: ID
+        session_secure_id: String
         user_name: String
         user_email: String
         verbatim: String!
@@ -450,132 +453,168 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_addSessionFeedback_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 *int
 	if tmp, ok := rawArgs["session_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["session_id"] = arg0
 	var arg1 *string
-	if tmp, ok := rawArgs["user_name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_name"] = arg1
+	args["session_secure_id"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["user_email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_email"))
+	if tmp, ok := rawArgs["user_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_name"))
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_email"] = arg2
-	var arg3 string
+	args["user_name"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["user_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_email"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_email"] = arg3
+	var arg4 string
 	if tmp, ok := rawArgs["verbatim"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("verbatim"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["verbatim"] = arg3
-	var arg4 time.Time
+	args["verbatim"] = arg4
+	var arg5 time.Time
 	if tmp, ok := rawArgs["timestamp"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
-		arg4, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
+		arg5, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["timestamp"] = arg4
+	args["timestamp"] = arg5
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_addSessionProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 *int
 	if tmp, ok := rawArgs["session_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["session_id"] = arg0
-	var arg1 interface{}
-	if tmp, ok := rawArgs["properties_object"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("properties_object"))
-		arg1, err = ec.unmarshalOAny2interface(ctx, tmp)
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["properties_object"] = arg1
+	args["session_secure_id"] = arg1
+	var arg2 interface{}
+	if tmp, ok := rawArgs["properties_object"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("properties_object"))
+		arg2, err = ec.unmarshalOAny2interface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["properties_object"] = arg2
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_addTrackProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 *int
 	if tmp, ok := rawArgs["session_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["session_id"] = arg0
-	var arg1 interface{}
-	if tmp, ok := rawArgs["properties_object"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("properties_object"))
-		arg1, err = ec.unmarshalOAny2interface(ctx, tmp)
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["properties_object"] = arg1
+	args["session_secure_id"] = arg1
+	var arg2 interface{}
+	if tmp, ok := rawArgs["properties_object"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("properties_object"))
+		arg2, err = ec.unmarshalOAny2interface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["properties_object"] = arg2
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_identifySession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 *int
 	if tmp, ok := rawArgs["session_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["session_id"] = arg0
-	var arg1 string
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg1
+	var arg2 string
 	if tmp, ok := rawArgs["user_identifier"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_identifier"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_identifier"] = arg1
-	var arg2 interface{}
+	args["user_identifier"] = arg2
+	var arg3 interface{}
 	if tmp, ok := rawArgs["user_object"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_object"))
-		arg2, err = ec.unmarshalOAny2interface(ctx, tmp)
+		arg3, err = ec.unmarshalOAny2interface(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_object"] = arg2
+	args["user_object"] = arg3
 	return args, nil
 }
 
@@ -732,87 +771,96 @@ func (ec *executionContext) field_Mutation_pushMetrics_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
+	var arg0 *int
 	if tmp, ok := rawArgs["session_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["session_id"] = arg0
-	var arg1 model.ReplayEventsInput
+	var arg1 *string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg1
+	var arg2 model.ReplayEventsInput
 	if tmp, ok := rawArgs["events"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
-		arg1, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["events"] = arg1
-	var arg2 string
+	args["events"] = arg2
+	var arg3 string
 	if tmp, ok := rawArgs["messages"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("messages"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["messages"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["resources"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
 		arg3, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["resources"] = arg3
-	var arg4 []*model.ErrorObjectInput
+	args["messages"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["resources"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resources"] = arg4
+	var arg5 []*model.ErrorObjectInput
 	if tmp, ok := rawArgs["errors"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errors"))
-		arg4, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
+		arg5, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["errors"] = arg4
-	var arg5 *bool
+	args["errors"] = arg5
+	var arg6 *bool
 	if tmp, ok := rawArgs["is_beacon"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_beacon"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["is_beacon"] = arg5
-	var arg6 *bool
-	if tmp, ok := rawArgs["has_session_unloaded"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_session_unloaded"))
 		arg6, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["has_session_unloaded"] = arg6
-	var arg7 *string
+	args["is_beacon"] = arg6
+	var arg7 *bool
+	if tmp, ok := rawArgs["has_session_unloaded"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_session_unloaded"))
+		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["has_session_unloaded"] = arg7
+	var arg8 *string
 	if tmp, ok := rawArgs["highlight_logs"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("highlight_logs"))
-		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["highlight_logs"] = arg7
-	var arg8 *int
+	args["highlight_logs"] = arg8
+	var arg9 *int
 	if tmp, ok := rawArgs["payload_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_id"))
-		arg8, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		arg9, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["payload_id"] = arg8
+	args["payload_id"] = arg9
 	return args, nil
 }
 
@@ -960,7 +1008,7 @@ func (ec *executionContext) _Mutation_identifySession(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().IdentifySession(rctx, fc.Args["session_id"].(int), fc.Args["user_identifier"].(string),
+		return ec.resolvers.Mutation().IdentifySession(rctx, fc.Args["session_id"].(*int), fc.Args["session_secure_id"].(*string), fc.Args["user_identifier"].(string),
 			func() interface{} {
 				if fc.Args["user_object"] == nil {
 					return nil
@@ -1018,7 +1066,7 @@ func (ec *executionContext) _Mutation_addTrackProperties(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddTrackProperties(rctx, fc.Args["session_id"].(int),
+		return ec.resolvers.Mutation().AddTrackProperties(rctx, fc.Args["session_id"].(*int), fc.Args["session_secure_id"].(*string),
 			func() interface{} {
 				if fc.Args["properties_object"] == nil {
 					return nil
@@ -1076,7 +1124,7 @@ func (ec *executionContext) _Mutation_addSessionProperties(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSessionProperties(rctx, fc.Args["session_id"].(int),
+		return ec.resolvers.Mutation().AddSessionProperties(rctx, fc.Args["session_id"].(*int), fc.Args["session_secure_id"].(*string),
 			func() interface{} {
 				if fc.Args["properties_object"] == nil {
 					return nil
@@ -1134,7 +1182,7 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayload(rctx, fc.Args["session_id"].(int), fc.Args["events"].(model.ReplayEventsInput), fc.Args["messages"].(string), fc.Args["resources"].(string), fc.Args["errors"].([]*model.ErrorObjectInput), fc.Args["is_beacon"].(*bool), fc.Args["has_session_unloaded"].(*bool), fc.Args["highlight_logs"].(*string), fc.Args["payload_id"].(*int))
+		return ec.resolvers.Mutation().PushPayload(rctx, fc.Args["session_id"].(*int), fc.Args["session_secure_id"].(*string), fc.Args["events"].(model.ReplayEventsInput), fc.Args["messages"].(string), fc.Args["resources"].(string), fc.Args["errors"].([]*model.ErrorObjectInput), fc.Args["is_beacon"].(*bool), fc.Args["has_session_unloaded"].(*bool), fc.Args["highlight_logs"].(*string), fc.Args["payload_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1255,7 +1303,7 @@ func (ec *executionContext) _Mutation_pushMetrics(ctx context.Context, field gra
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_pushMetrics(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1265,7 +1313,7 @@ func (ec *executionContext) fieldContext_Mutation_pushMetrics(ctx context.Contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	defer func() {
@@ -1351,7 +1399,7 @@ func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSessionFeedback(rctx, fc.Args["session_id"].(int), fc.Args["user_name"].(*string), fc.Args["user_email"].(*string), fc.Args["verbatim"].(string), fc.Args["timestamp"].(time.Time))
+		return ec.resolvers.Mutation().AddSessionFeedback(rctx, fc.Args["session_id"].(*int), fc.Args["session_secure_id"].(*string), fc.Args["user_name"].(*string), fc.Args["user_email"].(*string), fc.Args["verbatim"].(string), fc.Args["timestamp"].(time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1594,14 +1642,11 @@ func (ec *executionContext) _Session_id(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalOID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4134,9 +4179,6 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_id(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "secure_id":
 
 			out.Values[i] = ec._Session_secure_id(ctx, field, obj)
@@ -5029,6 +5071,16 @@ func (ec *executionContext) unmarshalOErrorObjectInput2ᚖgithubᚗcomᚋhighlig
 	}
 	res, err := ec.unmarshalInputErrorObjectInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOID2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalIntID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {
