@@ -2008,6 +2008,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
+	if payloadId != nil && *payloadId%100 == 1 {
+		log.WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "identifier": sessionObj.Identifier, "client_id": sessionObj.ClientID}).
+			Infof("processing payload: %d", sessionObj.ID)
+	}
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
