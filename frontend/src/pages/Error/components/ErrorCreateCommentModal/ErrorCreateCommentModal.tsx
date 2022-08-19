@@ -24,7 +24,6 @@ export const ErrorCreateCommentModal = ({
 }: Props) => {
     const pRef = React.useRef<HTMLDivElement>(null);
     const { error_secure_id } = useParams<{
-        project_id: string;
         error_secure_id: string;
     }>();
 
