@@ -1177,6 +1177,7 @@ const QueryBuilder = ({
     readonly,
 }: QueryBuilderProps<any>) => {
     const {
+        backendSearchQuery,
         setBackendSearchQuery,
         searchParams,
         setSearchParams,
@@ -1746,28 +1747,18 @@ const QueryBuilder = ({
         readonly,
     ]);
 
-    const queriedEndTimeRef = useRef(
-        getAbsoluteEndTime(defaultTimeRangeRule.val?.options[0].value)
-    );
-    useEffect(() => {
-        if (searchResultsLoading) {
-            queriedEndTimeRef.current = getAbsoluteEndTime(
-                timeRangeRule?.val?.options[0].value
-            );
-        }
-    }, [searchResultsLoading, timeRangeRule]);
     useEffect(() => {
         let seriesList: Series[] = [];
         let bucketTimes: number[] = [];
-        if (sessionResults?.histogram && queriedEndTimeRef.current) {
-            console.log(
-                'Rich',
-                sessionResults.histogram.sessions_without_errors.length
-            );
+        if (
+            sessionResults?.histogram &&
+            backendSearchQuery &&
+            !searchResultsLoading
+        ) {
             bucketTimes = sessionResults.histogram.bucket_start_times.map(
-                (startTime) => new Date(startTime).getTime()
+                (startTime) => new Date(startTime).valueOf()
             );
-            bucketTimes.push(new Date(queriedEndTimeRef.current).getTime());
+            bucketTimes.push(backendSearchQuery.endDate.valueOf());
             seriesList = [
                 {
                     label: 'Sessions without Errors',
@@ -1780,18 +1771,10 @@ const QueryBuilder = ({
                     counts: sessionResults.histogram.sessions_with_errors,
                 },
             ];
-            console.log(
-                'Rich histogram',
-                JSON.stringify(seriesList),
-                JSON.stringify(bucketTimes),
-                seriesList[0].counts.length,
-                seriesList[1].counts.length,
-                bucketTimes.length
-            );
         }
         setHistogramSeriesList(seriesList);
         setHistogramBucketTimes(bucketTimes);
-    }, [sessionResults?.histogram]);
+    }, [backendSearchQuery, searchResultsLoading, sessionResults.histogram]);
 
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
