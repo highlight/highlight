@@ -21,14 +21,12 @@ jobs:
                 go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
-            - name: Print secret names
-              run: doppler secrets --only-names
-              env:
-                DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
             - name: Migrate database
               run: |
                 cd backend/
                 make migrate
+              env:
+                DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     changes:
         needs: migrate-database
         runs-on: ubuntu-latest
