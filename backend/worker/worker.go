@@ -317,7 +317,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) getSessionID(sessionID *int, sessionSecureID *string) (id int) {
-	if sessionID != nil {
+	if sessionID != nil && *sessionID > 0 {
 		id = *sessionID
 	} else {
 		session := &model.Session{}
