@@ -151,6 +151,7 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&WorkspaceAdmin{},
 	&WorkspaceInviteLink{},
 	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
@@ -233,6 +234,15 @@ type Workspace struct {
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
+}
+
+type WorkspaceAdmin struct {
+	AdminID     int        `gorm:"primaryKey"`
+	WorkspaceID int        `gorm:"primaryKey"`
+	CreatedAt   time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt   time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt   *time.Time `json:"deleted_at" deep:"-"`
+	Role        *string    `json:"role" gorm:"default:ADMIN"`
 }
 
 type WorkspaceInviteLink struct {

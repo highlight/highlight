@@ -2431,3 +2431,12 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
 }
+
+func (r *Resolver) GetWorkerMessageKey(sessionID *int, sessionSecureID *string) (partitionKey string) {
+	if sessionID != nil && *sessionID > 0 {
+		partitionKey = strconv.Itoa(*sessionID)
+	} else {
+		partitionKey = *sessionSecureID
+	}
+	return
+}

@@ -2839,20 +2839,17 @@
   resolved "https://registry.yarnpkg.com/@ctrl/tinycolor/-/tinycolor-3.4.0.tgz#c3c5ae543c897caa9c2a68630bed355be5f9990f"
   integrity sha512-JZButFdZ1+/xAfpguQHoabIXkcqRRKpMrWKBkpEZZyxfY9C1DpADFB8PEqGSTeFr135SaTRfKqGKx5xSCLI7ZQ==
 
-"@datadog/browser-core@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@datadog/browser-core/-/browser-core-4.0.1.tgz#00e62df8bf94c4e162471ea1ce43d8d4cff23ac0"
-  integrity sha512-2IOkbXyXiPIH+cv55NJSSms9U0ipQ2te0X/ZgMpVvlRDHhG0t1Nx/UUyaL3Sa1i3fRYAuAKJDCI/JAnEjn7zCw==
-  dependencies:
-    tslib "^1.10.0"
+"@datadog/browser-core@4.15.0":
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-core/-/browser-core-4.15.0.tgz#44efdec550c1923b61967490c7ac3fb93c390089"
+  integrity sha512-uLyCiksfrkrSdpYpfaS+e3feI0YQIRtJu5pEZpMrww9hvjY4XFdicG73Va8+O6WhZeGFfV13RMTlxWhsQSFA0w==
 
-"@datadog/browser-logs@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@datadog/browser-logs/-/browser-logs-4.0.1.tgz#3a84ab14f9d772d4c767a5500a3ca7f4c08de29a"
-  integrity sha512-RTTvsdBD2g0oYezm4lOXBr3TVv4EXADHyScrKq4TFK592S2bOKvxq+bzvAfDs8sikzHPlhAbTXzFdVjiI+Lhfw==
+"@datadog/browser-logs@^4.13.0":
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/@datadog/browser-logs/-/browser-logs-4.15.0.tgz#281637c55c9349f692a6c7a0d37a7cf5db3205c2"
+  integrity sha512-e+qdzThGNERIQc3CQZQsYPZIuClNbvjCie1fJEroy9d6vucMLLro2RjGTQtblIt7/BSZYMEMXRSa+uE5RdiUBA==
   dependencies:
-    "@datadog/browser-core" "4.0.1"
-    tslib "^1.10.0"
+    "@datadog/browser-core" "4.15.0"
 
 "@date-io/core@^1.3.13":
   version "1.3.13"
@@ -4276,10 +4273,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@stripe/stripe-js@^1.11.0":
-  version "1.12.1"
-  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-1.12.1.tgz#baa5f1d8cfdbda174a0419cb42d2f1c8d622a7eb"
-  integrity sha512-CE602Mzx6DnUHGrL+S9Kk7UK6674BCYlklh9F2NWU6ue0xdVzRTfFCuL5LHvs7Plicw5rsjuDhJ9sIdwFBVCIQ==
+"@stripe/stripe-js@^1.32.0":
+  version "1.32.0"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-js/-/stripe-js-1.32.0.tgz#4ecdd298db61ad9b240622eafed58da974bd210e"
+  integrity sha512-7EvBnbBfS1aynfLRmBFcuumHNGjKxnNkO47rorFBktqDYHwo7Yw6pfDW2iqq0R8r7i7XiJEdWPvvEgQAiDrx3A==
 
 "@surma/rollup-plugin-off-main-thread@^1.1.1":
   version "1.4.2"
@@ -18834,10 +18831,10 @@ url@^0.11.0:
     punycode "1.3.2"
     querystring "0.2.0"
 
-urs@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/urs/-/urs-0.0.7.tgz#2dbf320a68a54bbd67ab9c5ac103b0f2227ca6be"
-  integrity sha512-NDwuby5BP7D60RjHlow8Gch4yfglLdCpZagGeVDZNcL+jsA2v6RcBhPTJraqq1oQ1U3LT1bQfgmwgNUUIFht+g==
+urs@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/urs/-/urs-0.0.8.tgz#8a0e0b792073cdb7eec926d08ab1e017ffab3f66"
+  integrity sha512-LaSSPpr91XrVA3vW2zPupw4K6DSQEDKdL4yQZX1mO2fpljIMpB5zctrjRvxLurelWSgKsHsCmfHNCImscryirQ==
 
 use-composed-ref@^1.0.0:
   version "1.1.0"
@@ -18846,13 +18843,13 @@ use-composed-ref@^1.0.0:
   dependencies:
     ts-essentials "^2.0.3"
 
-use-http@^1.0.13:
-  version "1.0.16"
-  resolved "https://registry.yarnpkg.com/use-http/-/use-http-1.0.16.tgz#6d75f3e734abf990049c7a02b22d757c3abda883"
-  integrity sha512-t2/Q6Ic644Jn9z62sOVhfURXX58429NwgRDvJZikxhDjLG5FrZ0SLLxGgm4GYznOnKBqkXKVrhW/wdjwXkw1rA==
+use-http@^1.0.26:
+  version "1.0.26"
+  resolved "https://registry.yarnpkg.com/use-http/-/use-http-1.0.26.tgz#04faaa21a0389ff177531c7dfc2d73f021e6f3c4"
+  integrity sha512-yB0dXX2S0Doyiti/kHqMsvlShL3tlI8YkoEARao1OVFKrGvyXejmWvrYkEI+oVTPvUqGzOsHbNROY0qKDC88Pg==
   dependencies:
-    urs "^0.0.7"
-    use-ssr "^1.0.22"
+    urs "^0.0.8"
+    use-ssr "^1.0.24"
     utility-types "^3.10.0"
 
 use-isomorphic-layout-effect@^1.0.0:
@@ -18874,10 +18871,10 @@ use-query-params@^1.2.0:
   dependencies:
     serialize-query-params "^1.3.1"
 
-use-ssr@^1.0.22:
-  version "1.0.23"
-  resolved "https://registry.yarnpkg.com/use-ssr/-/use-ssr-1.0.23.tgz#3bde1e10cd01b3b61ab6386d7cddb72e74828bf8"
-  integrity sha512-5bvlssgROgPgIrnILJe2mJch4e2Id0/bVm1SQzqvPvEAXmlsinCCVHWK3a2iHcPat7PkdJHBo0gmSmODIz6tNA==
+use-ssr@^1.0.24:
+  version "1.0.24"
+  resolved "https://registry.yarnpkg.com/use-ssr/-/use-ssr-1.0.24.tgz#213a3df58f5ab9268e6fe1a57ad0a9de91e514d1"
+  integrity sha512-0MFps7ezL57/3o0yl4CvrHLlp9z20n1rQZV/lSRz7if+TUoM6POU1XdOvEjIgjgKeIhTEye1U0khrIYWCTWw4g==
 
 use@^3.1.0:
   version "3.1.1"
@@ -18911,8 +18908,6 @@ util@0.10.3:
   version "0.10.3"
   resolved "https://registry.yarnpkg.com/util/-/util-0.10.3.tgz#7afb1afe50805246489e3db7fe0ed379336ac0f9"
   integrity sha512-5KiHfsmkqacuKjkRkdV7SsfDJ2EGiPsK92s2MhNSY0craxjTdKTtqKsJaCWp4LW33ZZ0OPUv1WO/TFvNQRiQxQ==
-  dependencies:
-    inherits "2.0.1"
 
 util@^0.10.3:
   version "0.10.4"
