@@ -35,4 +35,4 @@ delete-completed-sessions:
 public-worker:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=public-worker)
 migrate:
-		(cd ./backend; go version)
+		(doppler run -- go run ./migrations/main.go)
