@@ -9,24 +9,6 @@ on:
             - '.github/workflows/backend.yml'
             - '!backend/migrations'
 jobs:
-    # Testing the migrate job.
-    migrate-database:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v3
-              with:
-                go-version-file: 'backend/go.mod'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v1
-            - name: Migrate database
-              run: |
-                cd backend/
-                make migrate
-              env:
-                DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     changes:
         needs: migrate-database
         runs-on: ubuntu-latest

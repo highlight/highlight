@@ -3,12 +3,31 @@ on:
     push:
         branches:
             - 'master'
+            - 'chris/hig-2559-make-migrations-run-in-ci'
         paths:
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
 jobs:
+    migrate-database:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v1
+            - name: Migrate database
+              run: |
+                cd backend/
+                make migrate
+              env:
+                DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
     deploy_backend:
+        needs: migrate-database
         runs-on: ubuntu-latest
         steps:
             - name: Check out the repo
@@ -30,24 +49,6 @@ jobs:
               run: |
                 docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                 docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            # Edit and deploy migrate worker
-            - name: Replace image label for migrate worker task
-              id: image-migrate-worker
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                task-definition: deploy/migrate-worker-task.json
-                container-name: highlight-backend
-                image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}
-            - name: Deploy to Amazon ECS migrate worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-              uses: smitp/amazon-ecs-run-task@v1
-              with:
-                task-definition: ${{ steps.image-migrate-worker.outputs.task-definition }}
-                cluster: highlight-production-cluster
-                count: 1
-                started-by: github-actions-${{ github.actor }}
-                wait-for-finish: true
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task
               id: image-private-graph
