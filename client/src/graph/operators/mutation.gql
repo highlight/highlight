@@ -1,5 +1,5 @@
 mutation PushPayload(
-    $session_id: ID!
+    $session_secure_id: String!
     $events: ReplayEventsInput!
     $messages: String!
     $resources: String!
@@ -10,7 +10,7 @@ mutation PushPayload(
     $payload_id: ID
 ) {
     pushPayload(
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         events: $events
         messages: $messages
         resources: $resources
@@ -23,20 +23,20 @@ mutation PushPayload(
 }
 
 mutation identifySession(
-    $session_id: ID!
+    $session_secure_id: String!
     $user_identifier: String!
     $user_object: Any
 ) {
     identifySession(
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         user_identifier: $user_identifier
         user_object: $user_object
     )
 }
 
-mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
+mutation addSessionProperties($session_secure_id: String!, $properties_object: Any) {
     addSessionProperties(
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         properties_object: $properties_object
     )
 }
@@ -45,22 +45,22 @@ mutation pushMetrics($metrics: [MetricInput]!) {
     pushMetrics(metrics: $metrics)
 }
 
-mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
+mutation addTrackProperties($session_secure_id: String!, $properties_object: Any) {
     addTrackProperties(
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         properties_object: $properties_object
     )
 }
 
 mutation addSessionFeedback(
-    $session_id: ID!
+    $session_secure_id: String!
     $user_name: String
     $user_email: String
     $verbatim: String!
     $timestamp: Timestamp!
 ) {
     addSessionFeedback(
-        session_id: $session_id
+        session_secure_id: $session_secure_id
         user_name: $user_name
         user_email: $user_email
         verbatim: $verbatim
@@ -69,6 +69,7 @@ mutation addSessionFeedback(
 }
 
 mutation initializeSession(
+    $session_secure_id: String!
     $organization_verbose_id: String!
     $enable_strict_privacy: Boolean!
     $enable_recording_network_contents: Boolean!
@@ -78,10 +79,10 @@ mutation initializeSession(
     $environment: String!
     $id: String!
     $appVersion: String
-    $session_secure_id: String
     $client_id: String
 ) {
     initializeSession(
+        session_secure_id: $session_secure_id
         organization_verbose_id: $organization_verbose_id
         enable_strict_privacy: $enable_strict_privacy
         enable_recording_network_contents: $enable_recording_network_contents
@@ -91,10 +92,8 @@ mutation initializeSession(
         environment: $environment
         appVersion: $appVersion
         fingerprint: $id
-        session_secure_id: $session_secure_id
         client_id: $client_id
     ) {
-        id
         secure_id
         organization_id
         project_id

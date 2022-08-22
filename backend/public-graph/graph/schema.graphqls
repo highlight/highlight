@@ -5,7 +5,7 @@ scalar Timestamp
 scalar Int64
 
 type Session {
-    id: ID!
+    id: ID
     secure_id: String!
     organization_id: ID!
     project_id: ID!
@@ -84,14 +84,16 @@ type Mutation {
         client_id: String
     ): Session
     identifySession(
-        session_id: ID!
+        session_id: ID,
+        session_secure_id: String,
         user_identifier: String!
         user_object: Any
     ): ID
-    addTrackProperties(session_id: ID!, properties_object: Any): ID
-    addSessionProperties(session_id: ID!, properties_object: Any): ID
+    addTrackProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
+    addSessionProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
     pushPayload(
-        session_id: ID!
+        session_id: ID
+        session_secure_id: String
         events: ReplayEventsInput!
         messages: String!
         resources: String!
@@ -102,10 +104,11 @@ type Mutation {
         payload_id: ID # Optional for backwards compatibility with older clients
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
-    pushMetrics(metrics: [MetricInput]!): ID!
+    pushMetrics(metrics: [MetricInput]!): Int!
     markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
-        session_id: ID!
+        session_id: ID
+        session_secure_id: String
         user_name: String
         user_email: String
         verbatim: String!

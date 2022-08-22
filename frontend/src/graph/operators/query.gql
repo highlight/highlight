@@ -663,6 +663,9 @@ query GetWorkspaces {
     joinable_workspaces {
         id
         name
+        projects {
+            id
+        }
     }
 }
 
@@ -721,6 +724,9 @@ query GetProjectDropdownOptions($project_id: ID!) {
     joinable_workspaces {
         id
         name
+        projects {
+            id
+        }
     }
 }
 
@@ -740,6 +746,9 @@ query GetWorkspaceDropdownOptions($workspace_id: ID!) {
     joinable_workspaces {
         id
         name
+        projects {
+            id
+        }
     }
 }
 
@@ -881,6 +890,7 @@ query GetErrorGroup($secure_id: String!) {
             identifier
             user_properties
             request_id
+            payload
         }
         fields {
             name

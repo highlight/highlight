@@ -30,7 +30,6 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import INTEGRATIONS, {
     Integration,
 } from '@pages/IntegrationsPage/Integrations';
-import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody';
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect';
 import useLocalStorage from '@rehooks/local-storage';
@@ -59,6 +58,7 @@ interface Props {
     error_secure_id?: string;
     errorTitle?: string;
     modalHeader?: string;
+    currentUrl?: string;
 }
 
 enum CommentFormSection {
@@ -76,11 +76,11 @@ export const NewCommentForm = ({
     error_secure_id,
     errorTitle,
     modalHeader,
+    currentUrl,
 }: Props) => {
     const [createComment] = useCreateSessionCommentMutation();
     const [createErrorComment] = useCreateErrorCommentMutation();
     const { admin, isLoggedIn } = useAuthContext();
-    const { currentUrl } = useReplayerContext();
     const { project_id } = useParams<{ project_id: string }>();
     const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
         variables: { project_id },
@@ -257,7 +257,11 @@ export const NewCommentForm = ({
                     issue_description: selectedIssueService
                         ? issueDescription
                         : null,
-                    additional_context: `• From session URL: <${currentUrl}|${currentUrl}>`,
+                    additional_context: currentUrl
+                        ? `• From ${
+                              error_secure_id ? 'error' : 'session'
+                          } URL: <${currentUrl}|${currentUrl}>`
+                        : null,
                 },
                 refetchQueries: [namedOperations.Query.GetSessionComments],
             });
@@ -592,10 +596,10 @@ export const NewCommentForm = ({
                                 }}
                             >
                                 {section === CommentFormSection.NewIssueForm ? (
-                                    <>
-                                        <ArrowLeftIcon />
-                                        Go back
-                                    </>
+                                    [
+                                        <ArrowLeftIcon key={0} />,
+                                        <span key={1}>Go back</span>,
+                                    ]
                                 ) : (
                                     <>Cancel</>
                                 )}
@@ -644,12 +648,12 @@ export const NewCommentForm = ({
                             >
                                 {selectedIssueService &&
                                 section === CommentFormSection.CommentForm ? (
-                                    <>
-                                        Next
-                                        <ArrowRightIcon />
-                                    </>
+                                    [
+                                        <span key={0}>Next</span>,
+                                        <ArrowRightIcon key={1} />,
+                                    ]
                                 ) : (
-                                    <>Post</>
+                                    <span>Post</span>
                                 )}
                             </Button>
                         </div>

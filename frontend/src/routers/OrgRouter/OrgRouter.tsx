@@ -12,6 +12,7 @@ import {
     AppLoadingState,
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import {
@@ -178,7 +179,10 @@ export const ProjectRouter = () => {
         undefined
     );
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
 
     const [
         queryBuilderInput,
@@ -319,7 +323,7 @@ export const ProjectRouter = () => {
 
     // if the user can join this workspace, give them that option via the ErrorState
     const joinableWorkspace = data?.joinable_workspaces
-        ?.filter((w) => w?.id === data?.workspace?.id)
+        ?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
         ?.pop();
 
     return (
@@ -351,8 +355,8 @@ export const ProjectRouter = () => {
                         setShowStarredSessions,
                         selectedSegment,
                         setSelectedSegment,
-                        searchQuery,
-                        setSearchQuery,
+                        backendSearchQuery,
+                        setBackendSearchQuery,
                         queryBuilderInput,
                         setQueryBuilderInput,
                         isQuickSearchOpen,

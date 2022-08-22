@@ -7,7 +7,6 @@ import { SESSION_STORAGE_KEYS } from './sessionStorageKeys';
 const SESSION_PUSH_THRESHOLD = 1000 * 55;
 
 export type SessionData = {
-    sessionID: number;
     sessionSecureID: string;
     projectID: number;
     sessionStartTime?: number;
@@ -22,7 +21,6 @@ export const getPreviousSessionData = (): SessionData | undefined => {
     );
     if (
         storedSessionData &&
-        storedSessionData.sessionID &&
         storedSessionData.lastPushTime &&
         Date.now() - storedSessionData.lastPushTime < SESSION_PUSH_THRESHOLD
     ) {

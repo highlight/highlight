@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -138,7 +138,8 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	var metadataLogs []*modelInputs.ErrorMetadata
 	r.DB.Raw(`
-		SELECT s.id AS session_id,
+		SELECT
+			s.id AS session_id,
 			s.secure_id AS session_secure_id,
 			e.id AS error_id,
 			e.timestamp,
@@ -149,20 +150,41 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			s.identifier AS identifier,
 			s.environment,
 			s.user_properties,
-			e.request_id
-		FROM sessions AS s
-		INNER JOIN (
-			SELECT DISTINCT ON (session_id) session_id, id, timestamp, url, request_id
-			FROM error_objects
-			WHERE error_group_id = ?
-			ORDER BY session_id DESC
-			LIMIT 20
-		) AS e
-		ON s.id = e.session_id
-		WHERE s.excluded <> true
-		ORDER BY s.updated_at DESC
-		LIMIT 20;
-	`, obj.ID).Scan(&metadataLogs)
+			e.request_id,
+			e.payload
+		FROM
+			sessions AS s
+			INNER JOIN (
+			SELECT
+				DISTINCT ON (session_id) session_id,
+				id,
+				timestamp,
+				url,
+				payload,
+				request_id
+			FROM
+				error_objects
+			WHERE
+				error_group_id = ?
+				AND project_id = ?
+			ORDER BY
+				session_id DESC
+			LIMIT
+				20
+			) AS e ON s.id = e.session_id
+		WHERE
+			s.excluded <> true 
+			AND s.has_errors = true
+			AND s.project_id = ?
+		ORDER BY
+			s.updated_at DESC
+		LIMIT
+			20;	
+	`,
+		obj.ID,
+		obj.ProjectID,
+		obj.ProjectID,
+	).Scan(&metadataLogs)
 	return metadataLogs, nil
 }
 
@@ -4730,17 +4752,16 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 	}
 
 	joinableWorkspaces := []*model.Workspace{}
-	if err := r.DB.Raw(`
-			SELECT *
-			FROM workspaces
-			WHERE id NOT IN (
-			    SELECT workspace_id
-			    FROM workspace_admins
-			    WHERE admin_id = ?
-			    )
-				AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))
-			ORDER BY workspaces.name;
-		`, admin.ID, domain).Find(&joinableWorkspaces).Error; err != nil {
+	if err := r.DB.Model(&model.Workspace{}).
+		Where(`id NOT IN (
+			SELECT workspace_id
+			FROM workspace_admins
+			WHERE admin_id = ?
+			)
+			AND jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))`, admin.ID, domain).
+		Order("workspaces.name").
+		Preload("Projects").
+		Find(&joinableWorkspaces).Error; err != nil {
 		return nil, e.Wrap(err, "error getting joinable workspaces")
 	}
 

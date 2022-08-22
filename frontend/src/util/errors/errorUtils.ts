@@ -1,4 +1,4 @@
-export const getErrorTitle = (event: any): string | null => {
+export function getErrorBody(event: any): string {
     try {
         if (Array.isArray(event)) {
             const firstValue = event[0];
@@ -25,4 +25,4 @@ export const getErrorTitle = (event: any): string | null => {
     }
 
     return event.toString();
-};
+}

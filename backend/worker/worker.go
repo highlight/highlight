@@ -316,6 +316,19 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
+func (w *Worker) getSessionID(sessionID *int, sessionSecureID *string) (id int) {
+	if sessionID != nil && *sessionID > 0 {
+		id = *sessionID
+	} else {
+		session := &model.Session{}
+		if err := w.Resolver.DB.Select("id").Where(&model.Session{SecureID: *sessionSecureID}).First(&session).Error; err != nil {
+			return 0
+		}
+		id = session.ID
+	}
+	return
+}
+
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
@@ -324,7 +337,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		if err := w.PublicResolver.ProcessPayload(
 			ctx,
-			task.PushPayload.SessionID,
+			w.getSessionID(task.PushPayload.SessionID, task.PushPayload.SessionSecureID),
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
@@ -350,7 +363,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.IdentifySession == nil {
 			break
 		}
-		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
+		if err := w.PublicResolver.IdentifySessionImpl(ctx, w.getSessionID(task.IdentifySession.SessionID, task.IdentifySession.SessionSecureID), task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			return err
 		}
@@ -358,7 +371,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, w.getSessionID(task.AddTrackProperties.SessionID, task.AddTrackProperties.SessionSecureID), task.AddTrackProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
 			return err
 		}
@@ -366,7 +379,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, w.getSessionID(task.AddSessionProperties.SessionID, task.AddSessionProperties.SessionSecureID), task.AddSessionProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
 			return err
 		}
@@ -1125,20 +1138,6 @@ func (w *Worker) RefreshMaterializedViews() {
 
 	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
-	}
-
-	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
-		if err != nil {
-			return err
-		}
-
-		return tx.Exec(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
-		`).Error
-
-	}); err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
 	}
 }
 

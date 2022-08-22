@@ -4,6 +4,7 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
+import { BaseSearchContext } from '@context/BaseSearchContext';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
 import { Exact, Field } from '@graph/schemas';
@@ -13,6 +14,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
 import { useParams } from '@util/react-router/useParams';
+import { GetHistogramBucketSize } from '@util/time';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -1145,31 +1147,31 @@ export type FetchFieldVariables =
       >
     | undefined;
 
-interface QueryBuilderProps {
-    setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+interface QueryBuilderProps<T> {
+    searchContext: BaseSearchContext<T>;
     timeRangeField: SelectOption;
     customFields: CustomField[];
     fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>;
     fieldData?: GetFieldTypesQuery;
     getQueryFromParams: (params: any) => QueryBuilderState;
-    searchParams: any;
-    setSearchParams: React.Dispatch<React.SetStateAction<any>>;
     readonly?: boolean;
-    searchResultsLoading: boolean;
 }
 
 const QueryBuilder = ({
-    setSearchQuery,
+    searchContext,
     timeRangeField,
     customFields,
     fetchFields,
     fieldData,
     getQueryFromParams,
-    searchParams,
-    setSearchParams,
     readonly,
-    searchResultsLoading,
-}: QueryBuilderProps) => {
+}: QueryBuilderProps<any>) => {
+    const {
+        setBackendSearchQuery,
+        searchParams,
+        setSearchParams,
+        searchResultsLoading,
+    } = searchContext;
     const { admin } = useAuthContext();
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
@@ -1513,6 +1515,26 @@ const QueryBuilder = ({
         return results;
     };
 
+    const setSearchQuery = useCallback(
+        (searchQuery: string) => {
+            if (!timeRangeRule) return;
+            const startDate = moment(
+                getAbsoluteStartTime(timeRangeRule.val?.options[0].value)
+            );
+            const endDate = moment(
+                getAbsoluteEndTime(timeRangeRule.val?.options[0].value)
+            );
+            setBackendSearchQuery({
+                searchQuery,
+                startDate,
+                endDate,
+                histogramBucketSize: GetHistogramBucketSize(
+                    moment.duration(endDate.diff(startDate))
+                ),
+            });
+        },
+        [setBackendSearchQuery, timeRangeRule]
+    );
     const getOperatorOptionsCallback = (
         options: FieldOptions | undefined,
         val: OnChangeInput

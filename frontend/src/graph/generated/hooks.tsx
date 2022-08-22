@@ -6272,6 +6272,9 @@ export const GetWorkspacesDocument = gql`
         joinable_workspaces {
             id
             name
+            projects {
+                id
+            }
         }
     }
 `;
@@ -6529,6 +6532,9 @@ export const GetProjectDropdownOptionsDocument = gql`
         joinable_workspaces {
             id
             name
+            projects {
+                id
+            }
         }
     }
 `;
@@ -6598,6 +6604,9 @@ export const GetWorkspaceDropdownOptionsDocument = gql`
         joinable_workspaces {
             id
             name
+            projects {
+                id
+            }
         }
     }
 `;
@@ -7083,6 +7092,7 @@ export const GetErrorGroupDocument = gql`
                 identifier
                 user_properties
                 request_id
+                payload
             }
             fields {
                 name

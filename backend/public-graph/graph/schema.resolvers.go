@@ -42,7 +42,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID)}, 1)
 
 	if err != nil {
-		log.Error(err)
+		fields := log.Fields{}
+		if session != nil {
+			fields["session_id"] = session.ID
+			fields["project_id"] = session.ProjectID
+		}
+		log.WithFields(fields).Error(err)
 		if !util.IsDevEnv() {
 			specifiedSecureID := ""
 			if sessionSecureID != nil {
@@ -56,58 +61,70 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
-				SessionID: session.ID,
-				IP:        ip,
-			}}, strconv.Itoa(session.ID))
+				SessionID:       session.ID,
+				SessionSecureID: sessionSecureID,
+				IP:              ip,
+			}}, r.GetWorkerMessageKey(&session.ID, sessionSecureID))
 	}
 
 	return session, err
 }
 
 // IdentifySession is the resolver for the identifySession field.
-func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
+func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID *int, sessionSecureID *string, userIdentifier string, userObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.IdentifySession,
 		IdentifySession: &kafkaqueue.IdentifySessionArgs{
-			SessionID:      sessionID,
-			UserIdentifier: userIdentifier,
-			UserObject:     userObject,
+			SessionID:       sessionID,
+			SessionSecureID: sessionSecureID,
+			UserIdentifier:  userIdentifier,
+			UserObject:      userObject,
 		},
-	}, strconv.Itoa(sessionID))
-	return &sessionID, err
+	}, r.GetWorkerMessageKey(sessionID, sessionSecureID))
+	return sessionID, err
 }
 
 // AddTrackProperties is the resolver for the addTrackProperties field.
-func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID *int, sessionSecureID *string, propertiesObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddTrackProperties,
 		AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
 			SessionID:        sessionID,
+			SessionSecureID:  sessionSecureID,
 			PropertiesObject: propertiesObject,
 		},
-	}, strconv.Itoa(sessionID))
-	return &sessionID, err
+	}, r.GetWorkerMessageKey(sessionID, sessionSecureID))
+	return sessionID, err
 }
 
 // AddSessionProperties is the resolver for the addSessionProperties field.
-func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID *int, sessionSecureID *string, propertiesObject interface{}) (*int, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionProperties,
 		AddSessionProperties: &kafkaqueue.AddSessionPropertiesArgs{
 			SessionID:        sessionID,
+			SessionSecureID:  sessionSecureID,
 			PropertiesObject: propertiesObject,
 		},
-	}, strconv.Itoa(sessionID))
-	return &sessionID, err
+	}, r.GetWorkerMessageKey(sessionID, sessionSecureID))
+	return sessionID, err
 }
 
 // PushPayload is the resolver for the pushPayload field.
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID *int, sessionSecureID *string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	sessionObj := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
-		// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
-		log.Error(e.Wrapf(err, "PushPayload couldn't find session with ID %d", sessionID))
-	} else if sessionObj.ProjectID == 1074 && sessionID%100 != 0 { // Ingest 1% of Solitaired payloads
+	if sessionID != nil {
+		if err := r.DB.Select("project_id", "id").Where(&model.Session{Model: model.Model{ID: *sessionID}}).First(&sessionObj).Error; err != nil {
+			// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
+			log.Error(e.Wrapf(err, "PushPayload couldn't find session with ID %d", *sessionID))
+		}
+	} else {
+		if err := r.DB.Select("project_id", "id").Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; err != nil {
+			// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
+			log.Error(e.Wrapf(err, "PushPayload couldn't find session with secureID %s", *sessionSecureID))
+		}
+	}
+	if sessionObj.ProjectID == 1074 && sessionObj.ID%10 != 0 { // Ingest 10% of Solitaired payloads
 		// Drop solitaired payloads because they are causing ingestion issues
 		return size.Of(events), nil
 	}
@@ -120,6 +137,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
 			SessionID:          sessionID,
+			SessionSecureID:    sessionSecureID,
 			Events:             events,
 			Messages:           messages,
 			Resources:          resources,
@@ -128,7 +146,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			HasSessionUnloaded: hasSessionUnloaded,
 			HighlightLogs:      highlightLogs,
 			PayloadID:          payloadID,
-		}}, strconv.Itoa(sessionID))
+		}}, r.GetWorkerMessageKey(sessionID, sessionSecureID))
 	return size.Of(events), err
 }
 
@@ -174,7 +192,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.
-func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
+func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID *int, sessionSecureID *string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error) {
 	metadata := make(map[string]interface{})
 
 	if userName != nil {
@@ -186,11 +204,17 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionID int
 	metadata["timestamp"] = timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
+	if sessionID != nil {
+		if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{Model: model.Model{ID: *sessionID}}).First(&session).Error; err != nil {
+			return -1, e.Wrap(err, "error querying session by sessionID for adding session feedback")
+		}
+	} else {
+		if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: *sessionSecureID}).First(&session).Error; err != nil {
+			return -1, e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
+		}
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: sessionID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
+	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return -1, e.Wrap(err, "error creating session feedback")
 	}

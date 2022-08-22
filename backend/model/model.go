@@ -46,7 +46,8 @@ var (
 )
 
 const (
-	SUGGESTION_LIMIT_CONSTANT = 8
+	SUGGESTION_LIMIT_CONSTANT       = 8
+	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
 )
 
 var AlertType = struct {
@@ -1299,10 +1300,28 @@ func MigrateDB(DB *gorm.DB) {
 	for i := 0; i < 10; i++ {
 		end := start + partitionSize
 		sql := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
-			PARTITION OF events_objects_partitioned
-			FOR VALUES FROM (%d) TO (%d);
-		`, start, start, end)
+			DO $$
+			BEGIN
+				IF
+					(SELECT pg_try_advisory_xact_lock(%d))
+				THEN
+					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
+						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+					);
+					IF NOT EXISTS (
+						SELECT 1
+						FROM pg_inherits
+						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
+						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
+						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
+					THEN
+						ALTER TABLE events_objects_partitioned
+						ATTACH PARTITION events_objects_partitioned_%d
+						FOR VALUES FROM (%d) TO (%d);
+					END IF;
+				END IF;
+			END $$;
+		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
 
 		if err := DB.Exec(sql).Error; err != nil {
 			log.Fatalf("Error setting up DB: %v", e.Wrapf(err, "Error creating partitioned events_objects for index %d", i))

@@ -118,12 +118,6 @@ export const getQueryFromParams = (
 };
 
 const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
-    const {
-        setSearchQuery,
-        searchParams,
-        setSearchParams,
-        searchResultsLoading,
-    } = useErrorSearchContext();
     const { refetch } = useGetErrorFieldsOpensearchQuery({
         skip: true,
     });
@@ -132,15 +126,12 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
 
     return (
         <QueryBuilder
-            setSearchQuery={setSearchQuery}
+            searchContext={useErrorSearchContext()}
             timeRangeField={TIME_RANGE_FIELD}
             customFields={CUSTOM_FIELDS}
             fetchFields={fetchFields}
             getQueryFromParams={getQueryFromParams}
-            searchParams={searchParams}
-            setSearchParams={setSearchParams}
             readonly={readonly}
-            searchResultsLoading={searchResultsLoading}
         />
     );
 };

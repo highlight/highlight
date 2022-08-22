@@ -245,12 +245,6 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 
 const SessionsQueryBuilder = React.memo(
     ({ readonly }: { readonly?: boolean }) => {
-        const {
-            setSearchQuery,
-            searchParams,
-            setSearchParams,
-            searchResultsLoading,
-        } = useSearchContext();
         const { refetch } = useGetFieldsOpensearchQuery({
             skip: true,
         });
@@ -266,16 +260,13 @@ const SessionsQueryBuilder = React.memo(
 
         return (
             <QueryBuilder
-                setSearchQuery={setSearchQuery}
+                searchContext={useSearchContext()}
                 timeRangeField={TIME_RANGE_FIELD}
                 customFields={CUSTOM_FIELDS}
                 fetchFields={fetchFields}
                 fieldData={fieldData}
                 getQueryFromParams={getQueryFromParams}
-                searchParams={searchParams}
-                setSearchParams={setSearchParams}
                 readonly={readonly}
-                searchResultsLoading={searchResultsLoading}
             />
         );
     }

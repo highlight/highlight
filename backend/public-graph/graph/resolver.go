@@ -140,10 +140,6 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
-// SessionReinitializeExpiry is the interval between two InitializeSession calls with
-// the same secureSessionID that should be treated as different sessions
-const SessionReinitializeExpiry = time.Minute * 15
-
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
@@ -1149,10 +1145,10 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 			log.Errorf("error creating session, couldn't fetch session duplicate: %s", err)
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
-		if time.Now().After(sessionObj.CreatedAt.Add(SessionReinitializeExpiry)) || projectID != sessionObj.ProjectID {
-			// session expired. return error so the client starts a new session
-			log.Errorf("error creating session, session expired: %s", err)
-			return nil, e.Wrap(err, fmt.Sprintf("error creating session, user agent: %s", userAgent))
+		if projectID != sessionObj.ProjectID {
+			// ensure the fetched session is for this same project
+			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", *sessionSecureID, sessionObj.ProjectID)
+			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
 		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, sessionObj.ID)
@@ -2434,4 +2430,13 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	}
 	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
+}
+
+func (r *Resolver) GetWorkerMessageKey(sessionID *int, sessionSecureID *string) (partitionKey string) {
+	if sessionID != nil && *sessionID > 0 {
+		partitionKey = strconv.Itoa(*sessionID)
+	} else {
+		partitionKey = *sessionSecureID
+	}
+	return
 }

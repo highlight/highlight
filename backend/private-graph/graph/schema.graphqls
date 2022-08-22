@@ -328,6 +328,7 @@ type ErrorMetadata {
     identifier: String
     user_properties: String
     request_id: String
+    payload: String
 }
 
 type ErrorTrace {

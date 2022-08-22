@@ -63,12 +63,13 @@ export type Mutation = {
     initializeSession?: Maybe<Session>;
     markBackendSetup: Scalars['ID'];
     pushBackendPayload?: Maybe<Scalars['Any']>;
-    pushMetrics: Scalars['ID'];
+    pushMetrics: Scalars['Int'];
     pushPayload: Scalars['Int'];
 };
 
 export type MutationAddSessionFeedbackArgs = {
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
     timestamp: Scalars['Timestamp'];
     user_email?: InputMaybe<Scalars['String']>;
     user_name?: InputMaybe<Scalars['String']>;
@@ -77,16 +78,19 @@ export type MutationAddSessionFeedbackArgs = {
 
 export type MutationAddSessionPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type MutationAddTrackPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type MutationIdentifySessionArgs = {
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
     user_identifier: Scalars['String'];
     user_object?: InputMaybe<Scalars['Any']>;
 };
@@ -126,7 +130,8 @@ export type MutationPushPayloadArgs = {
     messages: Scalars['String'];
     payload_id?: InputMaybe<Scalars['ID']>;
     resources: Scalars['String'];
-    session_id: Scalars['ID'];
+    session_id?: InputMaybe<Scalars['ID']>;
+    session_secure_id?: InputMaybe<Scalars['String']>;
 };
 
 export type Query = {
@@ -151,7 +156,7 @@ export type ReplayEventsInput = {
 
 export type Session = {
     __typename?: 'Session';
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     organization_id: Scalars['ID'];
     project_id: Scalars['ID'];
     secure_id: Scalars['String'];

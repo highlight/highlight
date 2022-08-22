@@ -6,6 +6,7 @@ import {
     STARTING_PAGE,
 } from '@components/Pagination/Pagination';
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
 import {
     useGetDailyErrorFrequencyQuery,
     useGetErrorGroupQuery,
@@ -13,6 +14,7 @@ import {
 import { ErrorGroup, Maybe } from '@graph/schemas';
 import SvgBugIcon from '@icons/BugIcon';
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
+import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext';
 import {
     CreateModalType,
     ErrorCreateCommentModal,
@@ -54,8 +56,8 @@ import {
 } from '../Errors/ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
-import ErrorDescription from './components/ErrorDescription/ErrorDescription';
-import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorBody from './components/ErrorBody/ErrorBody';
+import { parseErrorDescriptionList } from './components/ErrorBody/utils/utils';
 import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers';
 import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard';
 import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
@@ -164,7 +166,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
-    const [searchQuery, setSearchQuery] = useState('');
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
     const [
         showCreateCommentModal,
         setShowCreateCommentModal,
@@ -212,8 +217,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
-                searchQuery,
-                setSearchQuery,
+                backendSearchQuery,
+                setBackendSearchQuery,
                 page,
                 setPage,
                 searchResultsLoading,
@@ -276,7 +281,13 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     />
                                 )}
                             </div>
-                            <div className={styles.eventText}>
+                            <div
+                                className={classNames(
+                                    styles.eventText,
+                                    styles.sectionRow,
+                                    styles.fieldWrapper
+                                )}
+                            >
                                 {loading ? (
                                     <Skeleton
                                         count={1}
@@ -286,9 +297,12 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         }}
                                     />
                                 ) : (
-                                    <ErrorDescription
-                                        errorGroup={data?.error_group}
-                                    />
+                                    <>
+                                        <ErrorBody
+                                            errorGroup={data?.error_group}
+                                        />
+                                        <ErrorContext errorGroupData={data} />
+                                    </>
                                 )}
                             </div>
                             {loading ? (
@@ -300,7 +314,12 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                     }}
                                 />
                             ) : (
-                                <div className={styles.sectionRow}>
+                                <div
+                                    className={classNames(
+                                        styles.sectionRow,
+                                        styles.fieldWrapper
+                                    )}
+                                >
                                     <div className={styles.sectionItem}>
                                         <ErrorDistributionChart
                                             errorGroup={data?.error_group}

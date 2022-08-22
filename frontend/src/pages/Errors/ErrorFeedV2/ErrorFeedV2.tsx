@@ -10,7 +10,7 @@ import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
 import useLocalStorage from '@rehooks/local-storage';
-import { getErrorTitle } from '@util/errors/errorUtils';
+import { getErrorBody } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
@@ -37,7 +37,7 @@ export const ErrorFeedV2 = () => {
         0
     );
     const {
-        searchQuery,
+        backendSearchQuery,
         page,
         setPage,
         searchResultsLoading,
@@ -50,14 +50,14 @@ export const ErrorFeedV2 = () => {
         setErrorFeedIsInTopScrollPosition,
     ] = useState(true);
     useEffect(() => {
-        if (searchQuery) {
+        if (backendSearchQuery) {
             setSearchResultsLoading(true);
         }
-    }, [searchQuery, page, setSearchResultsLoading]);
+    }, [backendSearchQuery, page, setSearchResultsLoading]);
 
     const { loading } = useGetErrorGroupsOpenSearchQuery({
         variables: {
-            query: searchQuery,
+            query: backendSearchQuery?.searchQuery || '',
             count: PAGE_SIZE,
             page,
             project_id,
@@ -72,7 +72,7 @@ export const ErrorFeedV2 = () => {
             }
             setSearchResultsLoading(false);
         },
-        skip: !searchQuery,
+        skip: !backendSearchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
 
@@ -202,7 +202,7 @@ const ErrorCardV2 = ({
                                     'highlight-block'
                                 )}
                             >
-                                {getErrorTitle(errorGroup?.event)}
+                                {getErrorBody(errorGroup?.event)}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>
