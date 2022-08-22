@@ -78,7 +78,7 @@
                 "options": {
                     "dd_message_key": "log",
                     "provider": "ecs",
-                    "dd_service": "worker-service-migrate-worker",
+                    "dd_service": "worker-task-migrate-worker",
                     "Host": "http-intake.logs.datadoghq.com",
                     "TLS": "on",
                     "dd_source": "migrate-worker",
@@ -196,8 +196,8 @@
     "memory": "4096",
     "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "compatibilities": ["EC2", "FARGATE"],
-    "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/migrate-worker-service:1",
-    "family": "migrate-worker-service",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/migrate-database:1",
+    "family": "migrate-database",
     "requiresAttributes": [
         {
             "targetId": null,
@@ -215,7 +215,19 @@
             "targetId": null,
             "targetType": null,
             "value": null,
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
             "name": "com.amazonaws.ecs.capability.logging-driver.awsfirelens"
+        },
+        {
+            "targetId": null,
+            "targetType": null,
+            "value": null,
+            "name": "ecs.capability.secrets.ssm.bootstrap.log-driver"
         },
         {
             "targetId": null,
@@ -257,12 +269,6 @@
             "targetId": null,
             "targetType": null,
             "value": null,
-            "name": "ecs.capability.efsAuth"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
         },
         {
@@ -270,25 +276,17 @@
             "targetType": null,
             "value": null,
             "name": "ecs.capability.firelens.fluentbit"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "ecs.capability.efs"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
         }
     ],
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
+    "runtimePlatform": {
+        "operatingSystemFamily": "LINUX",
+        "cpuArchitecture": null
+    },
     "cpu": "1024",
-    "revision": 40,
+    "revision": 1,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
