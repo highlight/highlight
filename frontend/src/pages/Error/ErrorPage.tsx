@@ -10,6 +10,7 @@ import { BackendSearchQuery } from '@context/BaseSearchContext';
 import {
     useGetDailyErrorFrequencyQuery,
     useGetErrorGroupQuery,
+    useGetRecentErrorsQuery,
 } from '@graph/hooks';
 import { ErrorGroup, Maybe } from '@graph/schemas';
 import SvgBugIcon from '@icons/BugIcon';
@@ -89,6 +90,16 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             H.track('Viewed error', { is_guest: !isLoggedIn });
         },
     });
+
+    const {
+        data: recentErrorsData,
+        loading: recentErrorsLoading,
+        error: errorQueryingRecentErrors,
+    } = useGetRecentErrorsQuery({
+        variables: { secure_id: error_secure_id },
+        skip: !error_secure_id,
+    });
+
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-v2-${
@@ -232,8 +243,12 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
             <div
                 className={classNames(styles.errorPage, {
                     [styles.withoutLeftPanel]: !showLeftPanel,
-                    [styles.empty]: !error_secure_id || errorQueryingErrorGroup,
-                    [styles.withErrorState]: errorQueryingErrorGroup,
+                    [styles.empty]:
+                        !error_secure_id ||
+                        errorQueryingErrorGroup ||
+                        errorQueryingRecentErrors,
+                    [styles.withErrorState]:
+                        errorQueryingErrorGroup || errorQueryingRecentErrors,
                 })}
             >
                 <div
@@ -297,12 +312,20 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                         }}
                                     />
                                 ) : (
-                                    <>
-                                        <ErrorBody
-                                            errorGroup={data?.error_group}
-                                        />
-                                        <ErrorContext errorGroupData={data} />
-                                    </>
+                                    <ErrorBody errorGroup={data?.error_group} />
+                                )}
+                                {recentErrorsLoading ? (
+                                    <Skeleton
+                                        count={1}
+                                        style={{
+                                            height: '2ch',
+                                            marginBottom: 0,
+                                        }}
+                                    />
+                                ) : (
+                                    <ErrorContext
+                                        errorGroupData={recentErrorsData}
+                                    />
                                 )}
                             </div>
                             {loading ? (
@@ -451,11 +474,14 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                 />
                             </div>
                             <ErrorAffectedUsers
-                                errorGroup={data}
-                                loading={loading}
+                                recentErrors={recentErrorsData}
+                                loading={recentErrorsLoading}
+                                state={data?.error_group?.state}
                             />
                             <ErrorRightPanel
                                 errorGroup={data}
+                                recentErrors={recentErrorsData}
+                                recentErrorsLoading={recentErrorsLoading}
                                 deepLinkedCommentId={deepLinkedCommentId}
                                 parentRef={newCommentModalRef}
                                 onClickCreateComment={() => {
@@ -466,7 +492,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                             />
                         </div>
                     </>
-                ) : errorQueryingErrorGroup ? (
+                ) : errorQueryingErrorGroup || errorQueryingRecentErrors ? (
                     <ErrorState
                         shownWithHeader
                         message="This error does not exist or has not been made public."

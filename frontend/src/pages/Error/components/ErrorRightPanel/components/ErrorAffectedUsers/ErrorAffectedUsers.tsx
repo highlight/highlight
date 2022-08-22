@@ -4,7 +4,8 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { GetErrorGroupQuery } from '@graph/operations';
+import { GetRecentErrorsQuery } from '@graph/operations';
+import { ErrorState } from '@graph/schemas';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
 import React from 'react';
@@ -18,11 +19,12 @@ import { ErrorStateSelect } from '../../../../ErrorStateSelect/ErrorStateSelect'
 import styles from './ErrorAffectedUsers.module.scss';
 
 interface Props {
-    errorGroup?: GetErrorGroupQuery;
+    recentErrors?: GetRecentErrorsQuery;
     loading: boolean;
+    state?: ErrorState;
 }
 
-const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
+const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { project_id } = useParams<{ project_id: string }>();
     const projectIdRemapped =
@@ -33,17 +35,20 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
     let mostRecentAffectedSession;
     let uniqueUsers: string[] = [];
 
-    if (errorGroup?.error_group && errorGroup.error_group.metadata_log.length) {
-        numberOfAffectedSessions = errorGroup.error_group.metadata_log.length;
+    if (
+        recentErrors?.error_group &&
+        recentErrors.error_group.metadata_log.length
+    ) {
+        numberOfAffectedSessions = recentErrors.error_group.metadata_log.length;
         mostRecentAffectedSession;
 
-        const mostRecentAffectedSessionIndex = errorGroup.error_group.metadata_log.reduce(
+        const mostRecentAffectedSessionIndex = recentErrors.error_group.metadata_log.reduce(
             (acc, curr, index) => {
                 if (
-                    errorGroup?.error_group?.metadata_log?.length &&
-                    errorGroup.error_group?.metadata_log[acc] &&
+                    recentErrors?.error_group?.metadata_log?.length &&
+                    recentErrors.error_group?.metadata_log[acc] &&
                     curr?.timestamp >
-                        errorGroup.error_group.metadata_log[acc]?.timestamp
+                        recentErrors.error_group.metadata_log[acc]?.timestamp
                 ) {
                     return index;
                 }
@@ -53,11 +58,13 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
         );
 
         mostRecentAffectedSession =
-            errorGroup.error_group.metadata_log[mostRecentAffectedSessionIndex];
+            recentErrors.error_group.metadata_log[
+                mostRecentAffectedSessionIndex
+            ];
 
         uniqueUsers = new Array(
             ...new Set(
-                errorGroup.error_group.metadata_log.map(
+                recentErrors.error_group.metadata_log.map(
                     (session) =>
                         (session?.identifier || session?.fingerprint) as string
                 )
@@ -67,7 +74,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
 
     return (
         <Card className={styles.card}>
-            {loading || !errorGroup ? (
+            {loading || !recentErrors ? (
                 <Skeleton style={{ height: 193 }} />
             ) : (
                 <>
@@ -122,10 +129,7 @@ const ErrorAffectedUsers = ({ loading, errorGroup }: Props) => {
                         >
                             Session
                         </ButtonLink>
-                        <ErrorStateSelect
-                            state={errorGroup?.error_group?.state}
-                            loading={loading}
-                        />
+                        <ErrorStateSelect state={state} loading={loading} />
                     </div>
                 </>
             )}

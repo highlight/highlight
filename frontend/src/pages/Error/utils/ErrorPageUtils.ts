@@ -3,7 +3,7 @@ import { ErrorField } from '../../../graph/generated/schemas';
 
 type ErrorFieldMetadata = Pick<ErrorField, 'name' | 'value'>[];
 
-export const getErrorGroupMetadata = (
+export const getErrorGroupFields = (
     errorGroup: GetErrorGroupQuery | undefined
 ): ErrorFieldMetadata => {
     if (!errorGroup?.error_group?.fields) {

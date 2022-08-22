@@ -2750,6 +2750,27 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
+                fields?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'ErrorField' } & Pick<
+                                Types.ErrorField,
+                                'name' | 'value'
+                            >
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type GetRecentErrorsQueryVariables = Types.Exact<{
+    secure_id: Types.Scalars['String'];
+}>;
+
+export type GetRecentErrorsQuery = { __typename?: 'Query' } & {
+    error_group?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'secure_id'> & {
                 metadata_log: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorMetadata' } & Pick<
@@ -2766,16 +2787,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             | 'user_properties'
                             | 'request_id'
                             | 'payload'
-                        >
-                    >
-                >;
-                fields?: Types.Maybe<
-                    Array<
-                        Types.Maybe<
-                            { __typename?: 'ErrorField' } & Pick<
-                                Types.ErrorField,
-                                'name' | 'value'
-                            >
                         >
                     >
                 >;
@@ -3845,6 +3856,7 @@ export const namedOperations = {
         GetBillingDetails: 'GetBillingDetails' as const,
         GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
         GetErrorGroup: 'GetErrorGroup' as const,
+        GetRecentErrors: 'GetRecentErrors' as const,
         GetMessages: 'GetMessages' as const,
         GetResources: 'GetResources' as const,
         GetFieldSuggestion: 'GetFieldSuggestion' as const,

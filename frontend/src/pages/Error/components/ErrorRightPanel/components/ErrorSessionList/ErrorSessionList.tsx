@@ -3,20 +3,22 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { GetErrorGroupQuery } from '@graph/operations';
+import { GetRecentErrorsQuery } from '@graph/operations';
 import { Session } from '@graph/schemas';
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
 import { useParams } from '@util/react-router/useParams';
 import React, { useRef } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import MinimalSessionCard from '../../../../../Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard';
 
 interface Props {
-    errorGroup?: GetErrorGroupQuery;
+    recentErrors?: GetRecentErrorsQuery;
+    loading: boolean;
 }
 
-const ErrorSessionList = ({ errorGroup }: Props) => {
+const ErrorSessionList = ({ recentErrors, loading }: Props) => {
     const virtuoso = useRef<VirtuosoHandle>(null);
     const { isLoggedIn } = useAuthContext();
     const { project_id } = useParams<{ project_id: string }>();
@@ -25,7 +27,18 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    if (!errorGroup?.error_group?.metadata_log) {
+    if (loading) {
+        return (
+            <Skeleton
+                count={4}
+                height={35}
+                style={{
+                    marginTop: 8,
+                    marginBottom: 8,
+                }}
+            />
+        );
+    } else if (!recentErrors?.error_group?.metadata_log) {
         return null;
     }
 
@@ -33,7 +46,7 @@ const ErrorSessionList = ({ errorGroup }: Props) => {
         <Virtuoso
             ref={virtuoso}
             overscan={500}
-            data={errorGroup.error_group.metadata_log}
+            data={recentErrors.error_group.metadata_log}
             itemContent={(index, session) => (
                 <MinimalSessionCard
                     session={

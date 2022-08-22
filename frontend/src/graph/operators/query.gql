@@ -869,6 +869,18 @@ query GetErrorGroup($secure_id: String!) {
         }
         mapped_stack_trace
         stack_trace
+        fields {
+            name
+            value
+        }
+        error_frequency
+        is_public
+    }
+}
+
+query GetRecentErrors($secure_id: String!) {
+    error_group(secure_id: $secure_id) {
+        secure_id
         metadata_log {
             error_id
             session_secure_id
@@ -883,12 +895,6 @@ query GetErrorGroup($secure_id: String!) {
             request_id
             payload
         }
-        fields {
-            name
-            value
-        }
-        error_frequency
-        is_public
     }
 }
 

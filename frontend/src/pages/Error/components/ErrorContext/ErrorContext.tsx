@@ -1,5 +1,5 @@
 import Card from '@components/Card/Card';
-import { GetErrorGroupQuery } from '@graph/operations';
+import { GetRecentErrorsQuery } from '@graph/operations';
 import { ErrorObject } from '@graph/schemas';
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard';
 import React, { useMemo, useRef } from 'react';
@@ -8,7 +8,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import styles from './ErrorContext.module.scss';
 
 interface Props {
-    errorGroupData?: GetErrorGroupQuery;
+    errorGroupData?: GetRecentErrorsQuery;
     errorObject?: ErrorObject;
 }
 
