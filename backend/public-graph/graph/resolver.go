@@ -2433,7 +2433,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 }
 
 func (r *Resolver) GetWorkerMessageKey(sessionID *int, sessionSecureID *string) (partitionKey string) {
-	if sessionID != nil {
+	if sessionID != nil && *sessionID > 0 {
 		partitionKey = strconv.Itoa(*sessionID)
 	} else {
 		partitionKey = *sessionSecureID
