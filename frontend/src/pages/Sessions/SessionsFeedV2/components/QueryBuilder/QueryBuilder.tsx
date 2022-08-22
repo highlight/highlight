@@ -5,10 +5,13 @@ import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
-import { BaseSearchContext } from '@context/BaseSearchContext';
+import {
+    BackendSearchQuery,
+    BaseSearchContext,
+} from '@context/BaseSearchContext';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
-import { Exact, Field } from '@graph/schemas';
+import { Exact, Field, SessionsHistogram } from '@graph/schemas';
 import Reload from '@icons/Reload';
 import SvgXIcon from '@icons/XIcon';
 import { useReplayerContext } from '@pages/Player/ReplayerContext';
@@ -289,7 +292,6 @@ export const getAbsoluteEndTime = (value?: string): string | null => {
     }
     return value!.split('_')[1];
 };
-const timeFormatter = (t: number) => new Date(t).toLocaleString();
 
 const getTimeLabel = (value: string): string => {
     const split = value.split('_');
@@ -1167,6 +1169,76 @@ interface QueryBuilderProps<T> {
     readonly?: boolean;
 }
 
+const useQueryBuilderHistogram = (
+    backendSearchQuery: BackendSearchQuery,
+    searchResultsLoading: boolean,
+    updateTimeRangeRule: (startTime: Date, endTime: Date) => void,
+    histogramData?: SessionsHistogram
+) => {
+    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
+        []
+    );
+    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
+        []
+    );
+
+    useEffect(() => {
+        let seriesList: Series[] = [];
+        let bucketTimes: number[] = [];
+        if (backendSearchQuery && !searchResultsLoading && histogramData) {
+            bucketTimes = histogramData.bucket_start_times.map((startTime) =>
+                new Date(startTime).valueOf()
+            );
+            bucketTimes.push(backendSearchQuery.endDate.valueOf());
+            seriesList = [
+                {
+                    label: 'Sessions without Errors',
+                    color: '--color-purple',
+                    counts: histogramData.sessions_without_errors,
+                },
+                {
+                    label: 'Sessions with Errors',
+                    color: '--color-red-600',
+                    counts: histogramData.sessions_with_errors,
+                },
+            ];
+        }
+        setHistogramSeriesList(seriesList);
+        setHistogramBucketTimes(bucketTimes);
+    }, [backendSearchQuery, searchResultsLoading, histogramData]);
+
+    const onAreaChanged = useCallback(
+        (left, right) => {
+            // histogramBucketTimes should always be one longer than the number of buckets
+            if (histogramBucketTimes.length <= right + 1) return;
+            const newStartTime = new Date(histogramBucketTimes[left]);
+            const newEndTime = new Date(histogramBucketTimes[right + 1]);
+            updateTimeRangeRule(newStartTime, newEndTime);
+        },
+        [histogramBucketTimes, updateTimeRangeRule]
+    );
+    const onBucketClicked = useCallback(
+        (bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
+        [onAreaChanged]
+    );
+    const timeFormatter = (t: number) => new Date(t).toLocaleString();
+
+    return (
+        histogramSeriesList.length > 0 &&
+        histogramBucketTimes.length > 0 && (
+            <Histogram
+                onAreaChanged={onAreaChanged}
+                onBucketClicked={onBucketClicked}
+                seriesList={histogramSeriesList}
+                timeFormatter={timeFormatter}
+                bucketTimes={histogramBucketTimes}
+                tooltipContent={() => null}
+                loading={searchResultsLoading}
+            />
+        )
+    );
+};
+
 const QueryBuilder = ({
     searchContext,
     timeRangeField,
@@ -1185,12 +1257,6 @@ const QueryBuilder = ({
     } = searchContext;
     const { admin } = useAuthContext();
     const { sessionResults } = useReplayerContext();
-    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
-        []
-    );
-    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
-        []
-    );
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
             if (!field) {
@@ -1511,6 +1577,24 @@ const QueryBuilder = ({
         },
         [rules]
     );
+    const updateTimeRangeRule = useCallback(
+        (startTime: Date, endTime: Date) => {
+            if (!timeRangeRule) return;
+            const timeRange = serializeAbsoluteTimeRange(startTime, endTime);
+            updateRule(timeRangeRule, {
+                val: {
+                    kind: 'multi',
+                    options: [
+                        {
+                            label: getDateLabel(timeRange),
+                            value: timeRange,
+                        },
+                    ],
+                },
+            });
+        },
+        [timeRangeRule, updateRule]
+    );
 
     const [isAnd, toggleIsAnd] = useToggle(true);
 
@@ -1643,35 +1727,6 @@ const QueryBuilder = ({
         };
     };
 
-    const onAreaChanged = useCallback(
-        (left, right) => {
-            if (histogramBucketTimes.length <= right + 1 || !timeRangeRule)
-                return;
-            const newStartTime = histogramBucketTimes[left];
-            const newEndTime = histogramBucketTimes[right + 1];
-            const timeRange = serializeAbsoluteTimeRange(
-                new Date(newStartTime),
-                new Date(newEndTime)
-            );
-            updateRule(timeRangeRule, {
-                val: {
-                    kind: 'multi',
-                    options: [
-                        {
-                            label: getDateLabel(timeRange),
-                            value: timeRange,
-                        },
-                    ],
-                },
-            });
-        },
-        [histogramBucketTimes, timeRangeRule, updateRule]
-    );
-    const onBucketClicked = useCallback(
-        (bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
-        [onAreaChanged]
-    );
-
     // Track the current state of the query builder to detect changes
     const [qbState, setQbState] = useState<string | undefined>(undefined);
 
@@ -1747,37 +1802,15 @@ const QueryBuilder = ({
         readonly,
     ]);
 
-    useEffect(() => {
-        let seriesList: Series[] = [];
-        let bucketTimes: number[] = [];
-        if (
-            sessionResults?.histogram &&
-            backendSearchQuery &&
-            !searchResultsLoading
-        ) {
-            bucketTimes = sessionResults.histogram.bucket_start_times.map(
-                (startTime) => new Date(startTime).valueOf()
-            );
-            bucketTimes.push(backendSearchQuery.endDate.valueOf());
-            seriesList = [
-                {
-                    label: 'Sessions without Errors',
-                    color: '--color-purple',
-                    counts: sessionResults.histogram.sessions_without_errors,
-                },
-                {
-                    label: 'Sessions with Errors',
-                    color: '--color-red-600',
-                    counts: sessionResults.histogram.sessions_with_errors,
-                },
-            ];
-        }
-        setHistogramSeriesList(seriesList);
-        setHistogramBucketTimes(bucketTimes);
-    }, [backendSearchQuery, searchResultsLoading, sessionResults.histogram]);
-
     const [currentStep, setCurrentStep] = useState<number | undefined>(
         undefined
+    );
+
+    const histogram = useQueryBuilderHistogram(
+        backendSearchQuery,
+        searchResultsLoading,
+        updateTimeRangeRule,
+        sessionResults?.histogram ?? undefined
     );
 
     // Don't render anything if this is a readonly query builder and there are no rules
@@ -2016,20 +2049,7 @@ const QueryBuilder = ({
                     )}
                 </div>
             </div>
-            {!readonly &&
-                histogramSeriesList.length > 0 &&
-                histogramBucketTimes.length > 0 && (
-                    <Histogram
-                        onAreaChanged={onAreaChanged}
-                        onBucketClicked={onBucketClicked}
-                        seriesList={histogramSeriesList}
-                        timeFormatter={timeFormatter}
-                        bucketTimes={histogramBucketTimes}
-                        tooltipContent={() => null}
-                        gotoAction={() => {}}
-                        loading={searchResultsLoading}
-                    />
-                )}
+            {!readonly && histogram}
         </>
     );
 };
