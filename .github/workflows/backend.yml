@@ -19,7 +19,9 @@ jobs:
               uses: actions/setup-go@v3
               with:
                 go-version-file: 'backend/go.mod'
-            - run: go version
+            - run: |
+                cd backend/
+                make migrate
     changes:
         needs: migrate-database
         runs-on: ubuntu-latest
