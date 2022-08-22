@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - 'master'
-            - 'chris/hig-2559-make-migrations-run-in-ci'
         paths:
             - 'backend/**'
             - 'deploy/**'
