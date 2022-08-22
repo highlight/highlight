@@ -19,6 +19,7 @@ import { GraphQLClient } from 'graphql-request';
 import { getGraphQLRequestWrapper } from '../utils/graph';
 import {
     MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
+    NON_SERIALIZABLE_PROPS,
     PROPERTY_MAX_LENGTH,
 } from './constants';
 import { Logger } from '../logger';
@@ -51,7 +52,7 @@ function stringifyProperties(
             continue;
         }
 
-        if (!['number', 'string', 'boolean'].includes(typeof value)) {
+        if (!NON_SERIALIZABLE_PROPS.includes(typeof value)) {
             invalidTypes.push({ [key]: value });
         }
         let asString: string;
