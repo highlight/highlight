@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -10,8 +9,6 @@ import (
 
 func main() {
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
-	fmt.Printf("db: %+v", os.Getenv("PSQL_DB"))
-	log.Fatal("Error setting up the DB")
 	if err != nil {
 		log.Fatalf("Srror setting up DB: %v", err)
 	}
