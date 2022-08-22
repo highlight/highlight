@@ -233,6 +233,19 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
+func (r *Resolver) GetAdminRole(adminID int, workspaceID int) (string, error) {
+	var workspaceAdmin model.WorkspaceAdmin
+	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).First(&workspaceAdmin).Error; err != nil {
+		return "", e.Wrap(err, "error querying workspace_admin")
+	}
+	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
+		log.Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
+		return "", e.New("workspace_admin has invalid role")
+
+	}
+	return *workspaceAdmin.Role, nil
+}
+
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
 	workspace := &model.Workspace{}
 	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
@@ -1025,13 +1038,14 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	return ret, nil
 }
 
-func (r *Resolver) validateAdminRole(ctx context.Context) error {
+func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return e.Wrap(err, "error retrieving admin")
 	}
 
-	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+	role, err := r.GetAdminRole(admin.ID, workspaceID)
+	if err != nil || role != model.AdminRole.ADMIN {
 		return e.New("admin does not have role=ADMIN")
 	}
 

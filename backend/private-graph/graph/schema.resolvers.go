@@ -732,13 +732,9 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	admin, err := r.getCurrentAdmin(ctx)
+	err = r.validateAdminRole(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
-	}
-
-	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
-		return nil, e.New("A non-Admin role Admin tried changing an admin role.")
+		return nil, e.Wrap(err, "error retrieving admin user")
 	}
 
 	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{
@@ -756,13 +752,13 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 		return false, e.Wrap(err, "current admin is not in workspace")
 	}
 
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return false, e.Wrap(err, "error retrieving user")
-	}
-
-	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
-		return false, e.New("A non-Admin role Admin tried changing an admin role.")
 	}
 
 	if admin.ID == adminID {
@@ -948,7 +944,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
 	}
 
@@ -1060,7 +1056,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
@@ -2900,7 +2896,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	err = r.validateAdminRole(ctx)
+	err = r.validateAdminRole(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to modify meter overage settings")
 	}
@@ -5308,7 +5304,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		return "", e.Wrap(err, "admin does not have workspace access")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
@@ -5334,7 +5330,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, nil
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, nil
 	}
 
