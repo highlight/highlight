@@ -35,11 +35,11 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, e.Wrap(err, "error opening test db")
 	}
-	sqlDB, err := db.DB()
+	_, err = db.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving test db")
 	}
-	defer sqlDB.Close()
+	// defer sqlDB.Close()
 	// drop db if exists
 	if err := db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName)).Error; err != nil {
 		return nil, e.Wrap(err, "error dropping db")
