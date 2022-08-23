@@ -1077,10 +1077,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 
-	log.Printf("running db migration ... \n")
-	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
-		return nil, e.Wrap(err, "Error installing pgcrypto")
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
+	sqlDB.SetMaxOpenConns(15)
+
+	log.Printf("Finished setting up DB. \n")
+	return DB, nil
+}
+
+func MigrateDB(DB *gorm.DB) (bool, error) {
+	log.Printf("Running DB migrations... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return false, e.Wrap(err, "Error installing pgcrypto")
+	}
+
 	// Unguessable, cryptographically random url-safe ID for users to share links
 	if err := DB.Exec(`
 		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
@@ -1092,13 +1104,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		END;
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating secure_id_generator")
+		return false, e.Wrap(err, "Error creating secure_id_generator")
 	}
 
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
-		return nil, e.Wrap(err, "Error migrating db")
+		return false, e.Wrap(err, "Error migrating db")
 	}
 
 	// Add unique constraint to daily_error_counts
@@ -1115,7 +1127,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END;
 			END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+		return false, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
 	}
 
 	// Drop the null constraint on error_fingerprints.error_group_id
@@ -1132,7 +1144,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
+		return false, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
 	}
 
 	if err := DB.Exec(`
@@ -1144,7 +1156,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			AND processed = true
 			GROUP BY 1, 2;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+		return false, e.Wrap(err, "Error creating daily_session_counts_view")
 	}
 
 	if err := DB.Exec(`
@@ -1157,7 +1169,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -1177,7 +1189,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END;
 			END $$;
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on metric_groups")
+		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -1198,14 +1210,14 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END;
 			END $$;
 	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
+		return false, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
+		return false, e.Wrap(err, "Error creating error_fields_md5_idx")
 	}
 
 	// If sessions_id_seq is not greater than 30000000, set it
@@ -1217,7 +1229,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			ELSE 0
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
-		return nil, e.Wrap(err, "Error setting session id sequence to 30000000")
+		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
 	}
 
 	if err := DB.Exec(`
@@ -1225,19 +1237,19 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
 		PARTITION BY RANGE (session_id);
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating events_objects_partitioned")
+		return false, e.Wrap(err, "Error creating events_objects_partitioned")
 	}
 
 	// if err := DB.Exec(`
 	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
 	// 	ON events_objects_partitioned (session_id);
 	// `).Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
+	// 	return false, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
 	// }
 
 	var lastVal int
 	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
-		return nil, e.Wrap(err, "Error selecting max session id")
+		return false, e.Wrap(err, "Error selecting max session id")
 	}
 	partitionSize := 100000
 	start := lastVal / partitionSize * partitionSize
@@ -1270,7 +1282,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
 
 		if err := DB.Exec(sql).Error; err != nil {
-			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
+			return false, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
 		}
 
 		start = end
@@ -1289,7 +1301,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields_id_seq")
+		return false, e.Wrap(err, "Error creating session_fields_id_seq")
 	}
 
 	if err := DB.Exec(`
@@ -1302,7 +1314,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating session_fields.id column")
+		return false, e.Wrap(err, "Error creating session_fields.id column")
 	}
 
 	if err := DB.Exec(`
@@ -1315,14 +1327,8 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error assigning default to session_fields.id")
+		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
-
-	sqlDB, err := DB.DB()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving underlying sql db")
-	}
-	sqlDB.SetMaxOpenConns(15)
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
@@ -1348,8 +1354,9 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		}
 	}
 
-	log.Printf("finished db migration. \n")
-	return DB, nil
+	log.Printf("Finished running DB migrations.\n")
+
+	return true, nil
 }
 
 // Implement JSONB interface
