@@ -167,7 +167,7 @@ func main() {
 		log.Fatalf("Error setting up DB: %v", err)
 	}
 
-	if util.IsDevOrTestEnv() {
+	if util.IsDevEnv() {
 		_, err := model.MigrateDB(db)
 
 		if err != nil {
