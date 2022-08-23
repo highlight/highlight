@@ -95,7 +95,6 @@ mutation initializeSession(
         client_id: $client_id
     ) {
         secure_id
-        organization_id
         project_id
     }
 }

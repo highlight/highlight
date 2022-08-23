@@ -43,6 +43,12 @@ export type ErrorObjectInput = {
     url: Scalars['String'];
 };
 
+export type InitializeSessionResponse = {
+    __typename?: 'InitializeSessionResponse';
+    project_id: Scalars['ID'];
+    secure_id: Scalars['String'];
+};
+
 export type MetricInput = {
     category?: InputMaybe<Scalars['String']>;
     group?: InputMaybe<Scalars['String']>;
@@ -57,10 +63,10 @@ export type MetricInput = {
 export type Mutation = {
     __typename?: 'Mutation';
     addSessionFeedback: Scalars['ID'];
-    addSessionProperties?: Maybe<Scalars['ID']>;
-    addTrackProperties?: Maybe<Scalars['ID']>;
-    identifySession?: Maybe<Scalars['ID']>;
-    initializeSession?: Maybe<Session>;
+    addSessionProperties: Scalars['String'];
+    addTrackProperties: Scalars['String'];
+    identifySession: Scalars['String'];
+    initializeSession: InitializeSessionResponse;
     markBackendSetup: Scalars['ID'];
     pushBackendPayload?: Maybe<Scalars['Any']>;
     pushMetrics: Scalars['Int'];
@@ -68,8 +74,7 @@ export type Mutation = {
 };
 
 export type MutationAddSessionFeedbackArgs = {
-    session_id?: InputMaybe<Scalars['ID']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     timestamp: Scalars['Timestamp'];
     user_email?: InputMaybe<Scalars['String']>;
     user_name?: InputMaybe<Scalars['String']>;
@@ -78,19 +83,16 @@ export type MutationAddSessionFeedbackArgs = {
 
 export type MutationAddSessionPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id?: InputMaybe<Scalars['ID']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type MutationAddTrackPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
-    session_id?: InputMaybe<Scalars['ID']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type MutationIdentifySessionArgs = {
-    session_id?: InputMaybe<Scalars['ID']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
     user_identifier: Scalars['String'];
     user_object?: InputMaybe<Scalars['Any']>;
 };
@@ -106,7 +108,7 @@ export type MutationInitializeSessionArgs = {
     fingerprint: Scalars['String'];
     firstloadVersion: Scalars['String'];
     organization_verbose_id: Scalars['String'];
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type MutationMarkBackendSetupArgs = {
@@ -130,8 +132,7 @@ export type MutationPushPayloadArgs = {
     messages: Scalars['String'];
     payload_id?: InputMaybe<Scalars['ID']>;
     resources: Scalars['String'];
-    session_id?: InputMaybe<Scalars['ID']>;
-    session_secure_id?: InputMaybe<Scalars['String']>;
+    session_secure_id: Scalars['String'];
 };
 
 export type Query = {

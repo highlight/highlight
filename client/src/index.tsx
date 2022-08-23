@@ -692,8 +692,7 @@ export class Highlight {
                         session_secure_id: this.options.sessionSecureID,
                         client_id: clientID,
                     });
-                    this.sessionData.sessionSecureID =
-                        gr?.initializeSession?.secure_id || '';
+                    this.sessionData.sessionSecureID = this.options.sessionSecureID;
                     window.sessionStorage.setItem(
                         SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
                         this.sessionData.sessionSecureID
