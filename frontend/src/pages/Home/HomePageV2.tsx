@@ -64,8 +64,6 @@ const HomePageV2 = () => {
                                     </h2>
                                 </div>
                             }
-                            lookbackDays={dateRangeLength}
-                            onChangeLookbackDays={setDateRangeLength}
                             dashboardName={'Home'}
                         />
                     </div>

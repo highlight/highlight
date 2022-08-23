@@ -115,6 +115,7 @@
         "@graphql-codegen/typescript-react-apollo": "^2.2.1",
         "@svgr/cli": "^5.5.0",
         "@testing-library/jest-dom": "^5.1.0",
+        "@testing-library/react-hooks": "^8.0.1",
         "@types/classnames": "^2.2.11",
         "@types/color-hash": "^1.0.1",
         "@types/jest": "^27.0.1",
