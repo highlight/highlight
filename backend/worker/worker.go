@@ -1445,7 +1445,9 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
-		time.Sleep(5 * time.Second)
+		// sleep between 30s and 60s to ensure lots of worker containers do not cause
+		// db contention running this same query
+		time.Sleep(30*time.Second + time.Duration(30*float64(time.Second.Nanoseconds())*rand.Float64()))
 		var count int64
 		if err := db.Raw(`
 			SELECT COUNT(*)
