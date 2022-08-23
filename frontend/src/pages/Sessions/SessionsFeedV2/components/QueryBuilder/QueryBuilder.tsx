@@ -1280,6 +1280,7 @@ const useQueryBuilderHistogram = (
                 timeFormatter={timeFormatter}
                 bucketTimes={histogramBucketTimes}
                 tooltipContent={tooltipContent}
+                tooltipDelayMs={500}
                 loading={searchResultsLoading}
             />
         )

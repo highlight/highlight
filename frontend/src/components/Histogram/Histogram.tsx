@@ -22,6 +22,7 @@ interface Props {
     seriesList: Series[];
     timeFormatter: (value: number) => string;
     tooltipContent: (bucketIndex: number) => React.ReactNode;
+    tooltipDelayMs?: number;
     gotoAction?: (bucketIndex: number) => void;
     loading?: boolean;
 }
@@ -34,6 +35,7 @@ const Histogram = React.memo(
         bucketTimes,
         timeFormatter,
         tooltipContent,
+        tooltipDelayMs,
         gotoAction,
         loading,
     }: Props) => {
@@ -93,21 +95,23 @@ const Histogram = React.memo(
         }
 
         useEffect(() => {
-            // Return if we don't want the tooltip to be hidden or it's already hidden
+            // Return if tooltip is already in the state we want
             // Any existing timeout will be cleared
-            if (!tooltipWantHidden || tooltipHidden) {
+            if (tooltipWantHidden === tooltipHidden) {
                 return;
             }
 
             const id = setTimeout(
-                () => setTooltipHidden(true),
-                POPOVER_TIMEOUT_MS
+                tooltipWantHidden
+                    ? () => setTooltipHidden(true)
+                    : () => setTooltipHidden(false),
+                tooltipWantHidden ? POPOVER_TIMEOUT_MS : tooltipDelayMs || 0
             );
 
             return () => {
                 clearTimeout(id);
             };
-        }, [tooltipHidden, tooltipWantHidden]);
+        }, [tooltipHidden, tooltipWantHidden, tooltipDelayMs]);
 
         const CustomTooltip = ({ label }: any) => {
             let inner;
@@ -140,7 +144,6 @@ const Histogram = React.memo(
                 <div
                     className={styles.tooltipPopover}
                     onMouseOver={() => {
-                        setTooltipHidden(false);
                         setTooltipWantHidden(false);
                     }}
                     onMouseLeave={() => {
@@ -184,7 +187,6 @@ const Histogram = React.memo(
                                         if (!e) {
                                             return;
                                         }
-                                        setTooltipHidden(false);
                                         setTooltipWantHidden(false);
                                         if (dragStart !== undefined) {
                                             setDragEnd(e.activeLabel);
@@ -213,7 +215,6 @@ const Histogram = React.memo(
                                         setTooltipWantHidden(true);
                                     }}
                                     onMouseEnter={() => {
-                                        setTooltipHidden(false);
                                         setTooltipWantHidden(false);
                                     }}
                                 >
