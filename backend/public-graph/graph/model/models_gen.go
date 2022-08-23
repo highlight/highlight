@@ -30,6 +30,11 @@ type ErrorObjectInput struct {
 	Payload      *string            `json:"payload"`
 }
 
+type InitializeSessionResponse struct {
+	SecureID  string `json:"secure_id"`
+	ProjectID int    `json:"project_id"`
+}
+
 type MetricInput struct {
 	SessionSecureID string      `json:"session_secure_id"`
 	Group           *string     `json:"group"`

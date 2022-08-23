@@ -1043,21 +1043,14 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, userAgent string, acceptLanguage string, ip string, sessionSecureID *string, clientID *string) (*model.Session, error) {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionMinimal",
-		tracer.ResourceName("go.sessions.InitializeSessionMinimal"))
+func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
+		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
 	defer outerSpan.Finish()
 
-	// The clientID param was added in early July 2022. This check is needed until
-	// we are confident all clients are loading a version of the client script
-	// that sends this parameter.
-	if clientID == nil {
-		clientID = pointy.String("")
-	}
-
-	projectID, err := model.FromVerboseID(projectVerboseID)
+	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
-		log.Errorf("An unsupported verboseID was used: %s, %s", projectVerboseID, clientConfig)
+		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
@@ -1070,42 +1063,38 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 
 	fpHash := fnv.New32a()
 	defer fpHash.Reset()
-	if _, err := fpHash.Write([]byte(fingerprint)); err != nil {
+	if _, err := fpHash.Write([]byte(input.Fingerprint)); err != nil {
 		log.Errorf("failed to hash fingerprint to int: %s", err)
 	}
 
-	deviceDetails := GetDeviceDetails(userAgent)
+	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
 	session := &model.Session{
+		SecureID:                       input.SessionSecureID,
 		ProjectID:                      projectID,
 		Fingerprint:                    int(fpHash.Sum32()),
 		OSName:                         deviceDetails.OSName,
 		OSVersion:                      deviceDetails.OSVersion,
 		BrowserName:                    deviceDetails.BrowserName,
 		BrowserVersion:                 deviceDetails.BrowserVersion,
-		Language:                       acceptLanguage,
+		Language:                       input.AcceptLanguage,
 		WithinBillingQuota:             &model.T,
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
 		PayloadUpdatedAt:               &n,
-		EnableStrictPrivacy:            &enableStrictPrivacy,
-		EnableRecordingNetworkContents: &enableRecordingNetworkContents,
-		FirstloadVersion:               firstloadVersion,
-		ClientVersion:                  clientVersion,
-		ClientConfig:                   &clientConfig,
-		Environment:                    environment,
-		AppVersion:                     appVersion,
-		VerboseID:                      projectVerboseID,
+		EnableStrictPrivacy:            &input.EnableStrictPrivacy,
+		EnableRecordingNetworkContents: &input.EnableRecordingNetworkContents,
+		FirstloadVersion:               input.FirstloadVersion,
+		ClientVersion:                  input.ClientVersion,
+		ClientConfig:                   &input.ClientConfig,
+		Environment:                    input.Environment,
+		AppVersion:                     input.AppVersion,
+		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
-		ClientID:                       *clientID,
+		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
-	}
-
-	// Firstload secureID generation was added in firstload 3.0.1, Feb 2022
-	if sessionSecureID != nil {
-		session.SecureID = *sessionSecureID
 	}
 
 	// Get the user's ip, get geolocation data
@@ -1117,7 +1106,7 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 		State:     "",
 		Country:   "",
 	}
-	fetchedLocation, err := GetLocationFromIP(ip)
+	fetchedLocation, err := GetLocationFromIP(input.IP)
 	if err != nil || fetchedLocation == nil {
 		log.Errorf("error getting user's location: %v", err)
 	} else {
@@ -1136,22 +1125,22 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 	session.WithinBillingQuota = &withinBillingQuota
 
 	if err := r.DB.Create(session).Error; err != nil {
-		if sessionSecureID == nil || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+		if input.SessionSecureID == "" || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			log.Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
 		}
 		sessionObj := &model.Session{}
-		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: *sessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
+		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: input.SessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
 			log.Errorf("error creating session, couldn't fetch session duplicate: %s", err)
 			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
 		}
 		if projectID != sessionObj.ProjectID {
 			// ensure the fetched session is for this same project
-			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", *sessionSecureID, sessionObj.ProjectID)
+			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", input.SessionSecureID, sessionObj.ProjectID)
 			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
-		log.Warnf("returning existing session for duplicate secure id %s: %d", *sessionSecureID, sessionObj.ID)
+		log.Warnf("returning existing session for duplicate secure id %s: %d", input.SessionSecureID, sessionObj.ID)
 		return sessionObj, nil
 	}
 
@@ -1174,19 +1163,6 @@ func InitializeSessionMinimal(ctx context.Context, r *mutationResolver, projectV
 	}
 	if err := r.AppendProperties(outerCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
-	}
-
-	return session, nil
-}
-
-func (r *Resolver) InitializeSessionImplementation(sessionID int, ip string) (*model.Session, error) {
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
-		return nil, e.Wrap(err, "session doesn't exist")
-	}
-	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "project doesn't exist")
 	}
 
 	go func() {
@@ -2430,13 +2406,4 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	}
 	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), points)
 	return nil
-}
-
-func (r *Resolver) GetWorkerMessageKey(sessionID *int, sessionSecureID *string) (partitionKey string) {
-	if sessionID != nil && *sessionID > 0 {
-		partitionKey = strconv.Itoa(*sessionID)
-	} else {
-		partitionKey = *sessionSecureID
-	}
-	return
 }

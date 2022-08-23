@@ -316,16 +316,12 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) getSessionID(sessionID *int, sessionSecureID *string) (id int) {
-	if sessionID != nil && *sessionID > 0 {
-		id = *sessionID
-	} else {
-		session := &model.Session{}
-		if err := w.Resolver.DB.Select("id").Where(&model.Session{SecureID: *sessionSecureID}).First(&session).Error; err != nil {
-			return 0
-		}
-		id = session.ID
+func (w *Worker) getSessionID(sessionSecureID string) (id int) {
+	session := &model.Session{}
+	if err := w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+		return 0
 	}
+	id = session.ID
 	return
 }
 
@@ -337,7 +333,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		if err := w.PublicResolver.ProcessPayload(
 			ctx,
-			w.getSessionID(task.PushPayload.SessionID, task.PushPayload.SessionSecureID),
+			w.getSessionID(task.PushPayload.SessionSecureID),
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
@@ -353,9 +349,13 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.InitializeSession == nil {
 			break
 		}
-		if _, err := w.PublicResolver.InitializeSessionImplementation(
-			task.InitializeSession.SessionID,
-			task.InitializeSession.IP); err != nil {
+		s, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
+		tags := []string{fmt.Sprintf("success:%t", err == nil)}
+		if s != nil {
+			tags = append(tags, fmt.Sprintf("secure_id:%q", s.SecureID), fmt.Sprintf("project_id:%d", s.ProjectID))
+		}
+		hlog.Incr("worker.initializeSession.count", tags, 1)
+		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
 			return err
 		}
@@ -363,7 +363,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.IdentifySession == nil {
 			break
 		}
-		if err := w.PublicResolver.IdentifySessionImpl(ctx, w.getSessionID(task.IdentifySession.SessionID, task.IdentifySession.SessionSecureID), task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
+		if err := w.PublicResolver.IdentifySessionImpl(ctx, w.getSessionID(task.IdentifySession.SessionSecureID), task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			return err
 		}
@@ -371,7 +371,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, w.getSessionID(task.AddTrackProperties.SessionID, task.AddTrackProperties.SessionSecureID), task.AddTrackProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, w.getSessionID(task.AddTrackProperties.SessionSecureID), task.AddTrackProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
 			return err
 		}
@@ -379,7 +379,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, w.getSessionID(task.AddSessionProperties.SessionID, task.AddSessionProperties.SessionSecureID), task.AddSessionProperties.PropertiesObject); err != nil {
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, w.getSessionID(task.AddSessionProperties.SessionSecureID), task.AddSessionProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
 			return err
 		}

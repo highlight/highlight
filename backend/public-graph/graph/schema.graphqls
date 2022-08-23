@@ -69,8 +69,14 @@ input ReplayEventsInput {
     events: [ReplayEventInput]!
 }
 
+type InitializeSessionResponse {
+    secure_id: String!
+    project_id: ID!
+}
+
 type Mutation {
     initializeSession(
+        session_secure_id: String!
         organization_verbose_id: String!
         enable_strict_privacy: Boolean!
         enable_recording_network_contents: Boolean!
@@ -80,20 +86,17 @@ type Mutation {
         environment: String!
         appVersion: String
         fingerprint: String!
-        session_secure_id: String
-        client_id: String
-    ): Session
+        client_id: String!
+    ): InitializeSessionResponse!
     identifySession(
-        session_id: ID,
-        session_secure_id: String,
+        session_secure_id: String!,
         user_identifier: String!
         user_object: Any
-    ): ID
-    addTrackProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
-    addSessionProperties(session_id: ID, session_secure_id: String, properties_object: Any): ID
+    ): String!
+    addTrackProperties(session_secure_id: String!, properties_object: Any): String!
+    addSessionProperties(session_secure_id: String!, properties_object: Any): String!
     pushPayload(
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         events: ReplayEventsInput!
         messages: String!
         resources: String!
@@ -107,8 +110,7 @@ type Mutation {
     pushMetrics(metrics: [MetricInput]!): Int!
     markBackendSetup(session_secure_id: String!): ID!
     addSessionFeedback(
-        session_id: ID
-        session_secure_id: String
+        session_secure_id: String!
         user_name: String
         user_email: String
         verbatim: String!
