@@ -334,7 +334,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		sessionID, err := w.getSessionID(task.PushPayload.SessionSecureID)
 		if err != nil {
-			log.Error(err)
 			return err
 		}
 		if err := w.PublicResolver.ProcessPayload(
@@ -371,7 +370,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		sessionID, err := w.getSessionID(task.IdentifySession.SessionSecureID)
 		if err != nil {
-			log.Error(err)
 			return err
 		}
 		if err := w.PublicResolver.IdentifySessionImpl(ctx, sessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
@@ -384,7 +382,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		sessionID, err := w.getSessionID(task.AddTrackProperties.SessionSecureID)
 		if err != nil {
-			log.Error(err)
 			return err
 		}
 		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
@@ -397,7 +394,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		sessionID, err := w.getSessionID(task.AddSessionProperties.SessionSecureID)
 		if err != nil {
-			log.Error(err)
 			return err
 		}
 		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {

@@ -13,6 +13,7 @@ import (
 const InitialBackoff = 10 * time.Millisecond
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
+	log.Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
 		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
