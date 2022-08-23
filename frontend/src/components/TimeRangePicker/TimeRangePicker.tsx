@@ -9,15 +9,15 @@ const { RangePicker } = DatePicker;
 
 import styles from './TimeRangePicker.module.scss';
 
-export const DATE_OPTIONS: { [key: number]: string } = {
-    5: 'Last 5 minutes',
-    15: 'Last 15 minutes',
-    60: 'Last 1 hours',
-    360: 'Last 6 hours',
-    1440: 'Last 24 hours',
-    10080: 'Last 7 days',
-    43200: 'Last 30 days',
-};
+export const DATE_OPTIONS = [
+    { offset: 5, label: 'Last 5 minutes' },
+    { offset: 15, label: 'Last 15 minutes' },
+    { offset: 60, label: 'Last 1 hours' },
+    { offset: 360, label: 'Last 6 hours' },
+    { offset: 1440, label: 'Last 24 hours' },
+    { offset: 10080, label: 'Last 7 days' },
+    { offset: 43200, label: 'Last 30 days' },
+];
 
 const UNITS = [
     'm',
@@ -199,30 +199,28 @@ const TimeRangePicker: React.FC = () => {
                             />
                         </form>
 
-                        {Object.keys(DATE_OPTIONS)
-                            .map(Number) // convert string to number
-                            .map((offset, index) => (
-                                <button
-                                    className={styles.dateOption}
-                                    tabIndex={0}
-                                    key={index}
-                                    type="button"
-                                    onClick={() => {
-                                        setOpen(false);
+                        {DATE_OPTIONS.map((option) => (
+                            <button
+                                className={styles.dateOption}
+                                tabIndex={0}
+                                key={option.offset}
+                                type="button"
+                                onClick={() => {
+                                    setOpen(false);
 
-                                        const endDate = moment()
-                                            .startOf('minute')
-                                            .format();
-                                        const startDate = moment(endDate)
-                                            .subtract(offset, 'minutes')
-                                            .format();
+                                    const endDate = moment()
+                                        .startOf('minute')
+                                        .format();
+                                    const startDate = moment(endDate)
+                                        .subtract(option.offset, 'minutes')
+                                        .format();
 
-                                        setTimeRange(startDate, endDate);
-                                    }}
-                                >
-                                    {DATE_OPTIONS[offset]}
-                                </button>
-                            ))}
+                                    setTimeRange(startDate, endDate);
+                                }}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
 
                         <button
                             className={styles.dateOption}
