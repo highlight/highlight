@@ -279,7 +279,11 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		return nil, e.New("405: This invite link has expired.")
 	}
 
-	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
+	if err := r.DB.Create(&model.WorkspaceAdmin{
+		AdminID:     admin.ID,
+		WorkspaceID: workspace.ID,
+		Role:        inviteLink.InviteeRole,
+	}).Error; err != nil {
 		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
 
