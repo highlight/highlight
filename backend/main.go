@@ -167,6 +167,10 @@ func main() {
 		log.Fatalf("error setting up db: %v", err)
 	}
 
+	if util.IsDevOrTestEnv() {
+		model.MigrateDB(db)
+	}
+
 	tdb := timeseries.New()
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
