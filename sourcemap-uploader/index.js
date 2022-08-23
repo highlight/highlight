@@ -7,7 +7,6 @@ import { readFileSync, statSync } from "fs";
 import glob from "glob";
 import AWS from "aws-sdk";
 import fetch from "node-fetch";
-import { default as pjson } from "./package.json" assert { type: "json" };
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
@@ -22,8 +21,6 @@ const s3 = new AWS.S3({
   accessKeyId: "AKIASRAMI2JGSNAT247I",
   secretAccessKey: "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",
 });
-
-console.log("Running version: ", pjson.version);
 
 yargs(hideBin(process.argv))
   .command(
@@ -57,7 +54,12 @@ yargs(hideBin(process.argv))
           console.log(e);
         });
 
-      if (!res || !res.data || !res.data.api_key_to_org_id) {
+      if (
+        !res ||
+        !res.data ||
+        !res.data.api_key_to_org_id ||
+        res.data.api_key_to_org_id === "0"
+      ) {
         throw new Error("invalid api key");
       }
 
