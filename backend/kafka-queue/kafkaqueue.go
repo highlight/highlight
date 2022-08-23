@@ -138,7 +138,7 @@ func New(topic string, mode Mode) *Queue {
 			},
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
-			RequiredAcks: kafka.RequireOne,
+			RequiredAcks: kafka.RequireAll,
 			Compression:  kafka.Zstd,
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async: false,
