@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -140,7 +139,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*cus
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				SessionSecureID: backendError.SessionSecureID,
 				Errors:          errors,
-			}}, strconv.Itoa(session.ID))
+			}}, backendError.SessionSecureID)
 		if err != nil {
 			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", backendError.SessionSecureID))
 			continue
@@ -164,7 +163,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, sessionSecureID
 		Type: kafkaqueue.MarkBackendSetup,
 		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
 			ProjectID: session.ProjectID,
-		}}, strconv.Itoa(session.ID))
+		}}, sessionSecureID)
 	return session.ProjectID, err
 }
 
