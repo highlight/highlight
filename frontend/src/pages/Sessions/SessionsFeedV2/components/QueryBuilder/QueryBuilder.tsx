@@ -254,8 +254,8 @@ const getDateLabel = (value: string): string => {
     const split = value.split('_');
     const start = split[0];
     const end = split[1];
-    const startStr = moment(start).format('MMM D');
-    const endStr = moment(end).format('MMM D');
+    const startStr = moment(start).format('MMM D h:mm a');
+    const endStr = moment(end).format('MMM D h:mm a');
     return `${startStr} to ${endStr}`;
 };
 
@@ -1221,7 +1221,24 @@ const useQueryBuilderHistogram = (
         (bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
         [onAreaChanged]
     );
-    const timeFormatter = (t: number) => new Date(t).toLocaleString();
+    const timeFormatter = useCallback(
+        (t: number) => {
+            switch (backendSearchQuery?.histogramBucketSize) {
+                case 'minute':
+                case 'hour':
+                    return moment(t).format('MMM D h:mm a');
+                case 'day':
+                case 'week':
+                    return moment(t).format('MMMM D');
+                case 'month':
+                case 'quarter':
+                    return moment(t).format('MMMM');
+                default:
+                    return moment(t).format('MMMM D h:mm a');
+            }
+        },
+        [backendSearchQuery]
+    );
 
     return (
         (searchResultsLoading ||
@@ -1828,7 +1845,12 @@ const QueryBuilder = ({
             <div className={styles.builderContainer}>
                 {timeRangeRule && (
                     <div className={styles.rulesContainer}>
-                        <div className={styles.ruleContainer}>
+                        <div
+                            className={classNames(
+                                styles.ruleContainer,
+                                styles.timeRangeContainer
+                            )}
+                        >
                             <TimeRangeFilter
                                 rule={timeRangeRule}
                                 onChangeValue={(val) =>
