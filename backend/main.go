@@ -164,11 +164,15 @@ func main() {
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %v", err)
+		log.Fatalf("Error setting up DB: %v", err)
 	}
 
 	if util.IsDevOrTestEnv() {
-		model.MigrateDB(db)
+		_, err := model.MigrateDB(db)
+
+		if err != nil {
+			log.Fatalf("Error migrating DB: %v", err)
+		}
 	}
 
 	tdb := timeseries.New()
