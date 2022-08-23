@@ -1224,8 +1224,9 @@ const useQueryBuilderHistogram = (
     const timeFormatter = (t: number) => new Date(t).toLocaleString();
 
     return (
-        histogramSeriesList.length > 0 &&
-        histogramBucketTimes.length > 0 && (
+        (searchResultsLoading ||
+            (histogramSeriesList.length > 0 &&
+                histogramBucketTimes.length > 0)) && (
             <Histogram
                 onAreaChanged={onAreaChanged}
                 onBucketClicked={onBucketClicked}
