@@ -6,7 +6,6 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-    SamplingStrategy,
 } from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
@@ -16,6 +15,7 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../firstload/src/types/client';
+import { SamplingStrategy } from '../../firstload/src/types/types';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
 import ErrorStackParser from 'error-stack-parser';
@@ -48,16 +48,27 @@ import { PageVisibilityListener } from './listeners/page-visibility-listener';
 import {
     clearHighlightLogs,
     getHighlightLogs,
-    logForHighlight,
 } from './utils/highlight-logging';
 import { GenerateSecureID } from './utils/secure-id';
-import { ReplayEventsInput } from './graph/generated/schemas';
 import { getSimpleSelector } from './utils/dom';
 import {
     getPreviousSessionData,
     SessionData,
 } from './utils/sessionStorage/highlightSession';
+import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
+import {
+    getGraphQLRequestWrapper,
+    MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
+} from './utils/graph';
+import { ReplayEventsInput } from './graph/generated/schemas';
+import { MessageType, PropertyType, Source } from './workers/types';
+import { Logger } from './logger';
+
+// silence typescript warning in firstload build since firstload imports client code
+// but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
+// @ts-ignore
+import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -65,20 +76,6 @@ export const HighlightWarning = (context: string, msg: any) => {
 
 enum LOCAL_STORAGE_KEYS {
     CLIENT_ID = 'highlightClientID',
-}
-
-class Logger {
-    debug: boolean | undefined;
-
-    constructor(debug?: boolean) {
-        this.debug = debug;
-    }
-
-    log(...data: any[]) {
-        if (this.debug) {
-            console.log.apply(console, [`[${Date.now()}]`, ...data]);
-        }
-    }
 }
 
 export type HighlightClassOptions = {
@@ -112,17 +109,10 @@ type HighlightClassOptionsInternal = Omit<
     'firstloadVersion'
 >;
 
-type PropertyType = {
-    type?: 'track' | 'session';
-    source?: Source;
-};
-
-type Source = 'segment' | undefined;
-
 /**
  *  The amount of time to wait until sending the first payload.
  */
-const FIRST_SEND_FREQUENCY = 1000 * 1;
+const FIRST_SEND_FREQUENCY = 1000;
 /**
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
@@ -134,11 +124,7 @@ const SEND_FREQUENCY = 1000 * 2;
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
-const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5;
-
 const HIGHLIGHT_URL = 'app.highlight.run';
-
-const PROPERTY_MAX_LENGTH = 2000;
 
 /*
  * Don't take another full snapshot unless it's been at least
@@ -150,9 +136,6 @@ const MIN_SNAPSHOT_TIME = 4 * 60 * 1000;
 
 // Debounce duplicate visibility events
 const VISIBILITY_DEBOUNCE_MS = 100;
-
-// Initial backoff for retrying graphql requests.
-const INITIAL_BACKOFF = 300;
 
 export class Highlight {
     options!: HighlightClassOptions;
@@ -184,6 +167,7 @@ export class Highlight {
     sessionShortcut!: SessionShortcutOptions;
     /** The end-user's app version. This isn't Highlight's version. */
     appVersion!: string | undefined;
+    _worker!: HighlightClientRequestWorker;
     _optionsInternal!: HighlightClassOptionsInternal;
     _backendUrl!: string;
     _recordingStartTime!: number;
@@ -290,7 +274,12 @@ export class Highlight {
         this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.inlineImages = options.inlineImages || false;
         this.inlineStylesheet = options.inlineStylesheet || false;
-        this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
+        this.samplingStrategy = options.samplingStrategy || {
+            canvas: 5,
+            canvasQuality: 'low',
+            canvasFactor: 0.5,
+            canvasMaxSnapshotDimension: 960,
+        };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
@@ -299,50 +288,40 @@ export class Highlight {
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
-        const graphQLRequestWrapper = async <T,>(
-            requestFn: () => Promise<T>,
-            operationName: string,
-            operationType?: string,
-            retries: number = 0
-        ): Promise<T> => {
-            try {
-                return await requestFn();
-            } catch (error: any) {
-                if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
-                    await new Promise((resolve) =>
-                        setTimeout(
-                            resolve,
-                            INITIAL_BACKOFF * Math.pow(2, retries)
-                        )
-                    );
-                    return await graphQLRequestWrapper(
-                        requestFn,
-                        operationName,
-                        operationType,
-                        retries + 1
-                    );
-                }
-                logForHighlight(
-                    '[' +
-                        (this.sessionData?.sessionSecureID ||
-                            this.options?.sessionSecureID) +
-                        '] Request failed after ' +
-                        retries +
-                        ' retries'
-                );
-                throw error;
-            }
-        };
-        this.graphqlSDK = getSdk(client, graphQLRequestWrapper);
+        this.graphqlSDK = getSdk(
+            client,
+            getGraphQLRequestWrapper(
+                this.sessionData?.sessionSecureID ||
+                    this.options?.sessionSecureID
+            )
+        );
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
 
+        this._worker = new HighlightClientWorker() as HighlightClientRequestWorker;
+        this._worker.onmessage = (e) => {
+            if (e.data.response?.type === MessageType.AsyncEvents) {
+                this._eventBytesSinceSnapshot += e.data.response.eventsSize;
+                this.logger.log(
+                    `Web worker sent payloadID ${e.data.response.id} size ${
+                        e.data.response.eventsSize
+                    }.
+                Total since snapshot: ${
+                    this._eventBytesSinceSnapshot / 1000000
+                }MB`
+                );
+            } else if (e.data.response?.type === MessageType.CustomEvent) {
+                this.addCustomEvent(
+                    e.data.response.tag,
+                    e.data.response.payload
+                );
+            }
+        };
+
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
-        } else if (typeof options.organizationID === 'number') {
-            this.organizationID = options.organizationID.toString();
         } else {
-            this.organizationID = '';
+            this.organizationID = options.organizationID.toString();
         }
         this.isRunningOnHighlight =
             this.organizationID === '1' || this.organizationID === '1jdkoe52';
@@ -395,27 +374,13 @@ export class Highlight {
         );
     }
 
-    async identify(user_identifier: string, user_object = {}, source?: Source) {
+    identify(user_identifier: string, user_object = {}, source?: Source) {
         if (!user_identifier || user_identifier === '') {
             console.warn(
                 `Highlight's identify() call was passed an empty identifier.`,
                 { user_identifier, user_object }
             );
             return;
-        }
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        if (source === 'segment') {
-            this.addCustomEvent(
-                'Segment Identify',
-                stringify({ user_identifier, ...user_object })
-            );
-        } else {
-            this.addCustomEvent(
-                'Identify',
-                stringify({ user_identifier, ...user_object })
-            );
         }
         this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
@@ -427,80 +392,14 @@ export class Highlight {
             SESSION_STORAGE_KEYS.USER_OBJECT,
             JSON.stringify(user_object)
         );
-        try {
-            const stringified = this._stringifyProperties(user_object, 'user');
-            await this.graphqlSDK.identifySession({
-                session_secure_id: this.sessionData.sessionSecureID,
-                user_identifier: this.sessionData.userIdentifier,
-                user_object: stringified,
-            });
-            const sourceString = source === 'segment' ? source : 'default';
-            this.logger.log(
-                `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
-                    user_object
-                )} @ ${publicGraphURI}`
-            );
-            this.numberOfFailedRequests = 0;
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-            }
-            this.numberOfFailedRequests += 1;
-        }
-    }
-
-    _stringifyProperties(
-        properties_object: any,
-        type: 'session' | 'track' | 'user'
-    ) {
-        const stringifiedObj: any = {};
-        const invalidTypes: any[] = [];
-        const tooLong: any[] = [];
-        for (const [key, value] of Object.entries(properties_object)) {
-            if (value === undefined || value === null) {
-                continue;
-            }
-
-            if (!['number', 'string', 'boolean'].includes(typeof value)) {
-                invalidTypes.push({ [key]: value });
-            }
-            let asString: string;
-            if (value === undefined) {
-                asString = 'undefined';
-            } else if (value === null) {
-                asString = 'null';
-            } else if (typeof value === 'string') {
-                asString = value;
-            } else {
-                asString = stringify(value);
-            }
-            if (asString.length > PROPERTY_MAX_LENGTH) {
-                tooLong.push({ [key]: value });
-                asString = asString.substring(0, PROPERTY_MAX_LENGTH);
-            }
-
-            stringifiedObj[key] = asString;
-        }
-
-        // Skipping logging for 'session' type because they're generated by Highlight
-        // (e.g. visited-url > 2000 characters)
-        if (type !== 'session') {
-            if (invalidTypes.length > 0) {
-                console.warn(
-                    `Highlight was passed one or more ${type} properties not of type string, number, or boolean.`,
-                    invalidTypes
-                );
-            }
-
-            if (tooLong.length > 0) {
-                console.warn(
-                    `Highlight was passed one or more ${type} properties exceeding 2000 characters, which will be truncated.`,
-                    tooLong
-                );
-            }
-        }
-
-        return stringifiedObj;
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Identify,
+                userIdentifier: user_identifier,
+                userObject: user_object,
+                source,
+            },
+        });
     }
 
     async pushCustomError(message: string, payload?: string) {
@@ -541,72 +440,14 @@ export class Highlight {
         });
     }
 
-    async addProperties(properties_obj = {}, typeArg?: PropertyType) {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
-        if (typeArg?.type === 'session') {
-            try {
-                const stringified = this._stringifyProperties(
-                    properties_obj,
-                    'session'
-                );
-                await this.graphqlSDK.addSessionProperties({
-                    session_secure_id: this.sessionData.sessionSecureID,
-                    properties_object: stringified,
-                });
-                this.logger.log(
-                    `AddSessionProperties to session (${
-                        this.sessionData.sessionSecureID
-                    }) w/ obj: ${JSON.stringify(
-                        properties_obj
-                    )} @ ${publicGraphURI}`
-                );
-                this.numberOfFailedRequests = 0;
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
-            }
-        }
-        // Track properties are properties that users define; rn, either through segment or manually.
-        else {
-            if (typeArg?.source === 'segment') {
-                this.addCustomEvent<string>(
-                    'Segment Track',
-                    stringify(properties_obj)
-                );
-            } else {
-                this.addCustomEvent<string>('Track', stringify(properties_obj));
-            }
-            try {
-                const stringified = this._stringifyProperties(
-                    properties_obj,
-                    'track'
-                );
-                await this.graphqlSDK.addTrackProperties({
-                    session_secure_id: this.sessionData.sessionSecureID,
-                    properties_object: stringified,
-                });
-                const sourceString =
-                    typeArg?.source === 'segment' ? typeArg.source : 'default';
-                this.logger.log(
-                    `AddTrackProperties to session (${
-                        this.sessionData.sessionSecureID
-                    }, source: ${sourceString}) w/ obj: ${stringify(
-                        properties_obj
-                    )} @ ${publicGraphURI}`
-                );
-                this.numberOfFailedRequests = 0;
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
-            }
-        }
+    addProperties(properties_obj = {}, typeArg?: PropertyType) {
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Properties,
+                propertiesObject: properties_obj,
+                propertyType: typeArg,
+            },
+        });
     }
 
     async initialize(): Promise<undefined> {
@@ -628,7 +469,7 @@ export class Highlight {
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
-            if (this.sessionData.sessionSecureID && storedSessionData) {
+            if (!this.sessionData.sessionSecureID && storedSessionData) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             }
@@ -720,19 +561,19 @@ export class Highlight {
                     this.numberOfFailedRequests = 0;
                     const { getDeviceDetails } = getPerformanceMethods();
                     if (getDeviceDetails) {
-                        const deviceDetails = getDeviceDetails();
-                        this.graphqlSDK.pushMetrics({
-                            metrics: [
-                                {
-                                    name: 'DeviceMemory',
-                                    value: deviceDetails.deviceMemory,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
-                                    category: 'Device',
-                                    group: window.location.href,
-                                    timestamp: new Date().toISOString(),
-                                },
-                            ],
+                        this._worker.postMessage({
+                            message: {
+                                type: MessageType.Metrics,
+                                metrics: [
+                                    {
+                                        name: 'DeviceMemory',
+                                        value: getDeviceDetails().deviceMemory,
+                                        category: 'Device',
+                                        group: window.location.href,
+                                        timestamp: new Date(),
+                                    },
+                                ],
+                            },
                         });
                     }
                 } catch (e) {
@@ -742,6 +583,15 @@ export class Highlight {
                     this.numberOfFailedRequests += 1;
                 }
             }
+            this._worker.postMessage({
+                message: {
+                    type: MessageType.Initialize,
+                    sessionSecureID: this.sessionData.sessionSecureID,
+                    backend: this._backendUrl,
+                    debug: !!this.debugOptions.clientInteractions,
+                    recordingStartTime: this._recordingStartTime,
+                },
+            });
             if (this.pushPayloadTimerId) {
                 clearTimeout(this.pushPayloadTimerId);
             }
@@ -760,7 +610,15 @@ export class Highlight {
                     enableStrictPrivacy: this.enableStrictPrivacy,
                     maskAllInputs: this.enableStrictPrivacy,
                     recordCanvas: this.enableCanvasRecording,
-                    sampling: this.samplingStrategy,
+                    sampling: {
+                        canvas: {
+                            fps: this.samplingStrategy.canvas,
+                            resizeQuality: this.samplingStrategy.canvasQuality,
+                            resizeFactor: this.samplingStrategy.canvasFactor,
+                            maxSnapshotDimension: this.samplingStrategy
+                                .canvasMaxSnapshotDimension,
+                        },
+                    },
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
@@ -1072,9 +930,7 @@ export class Highlight {
         const now = new Date().getTime();
         const { projectID, sessionSecureID } = this.sessionData;
         const relativeTimestamp = (now - this._recordingStartTime) / 1000;
-        const highlightUrl = `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
-
-        return highlightUrl;
+        return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`;
     }
 
     getCurrentSessionURL() {
@@ -1107,45 +963,26 @@ export class Highlight {
         user_name?: string;
         user_email?: string;
     }) {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
-        try {
-            this.graphqlSDK.addSessionFeedback({
-                session_secure_id: this.sessionData.sessionSecureID,
-                timestamp,
+        this._worker.postMessage({
+            message: {
+                type: MessageType.Feedback,
                 verbatim,
-                user_email: user_email || this.sessionData.userIdentifier,
-                // @ts-expect-error
-                user_name: user_name || this.sessionData.userObject?.name,
-            });
-
-            this.numberOfFailedRequests = 0;
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-            }
-            this.numberOfFailedRequests += 1;
-        }
+                timestamp,
+                userName: user_name || this.sessionData.userIdentifier,
+                userEmail:
+                    user_email || (this.sessionData.userObject as any)?.name,
+            },
+        });
     }
 
     // Reset the events array and push to a backend.
     async _save() {
-        if (!this._shouldSendRequest()) {
-            return;
-        }
         try {
             if (!this.sessionData.sessionSecureID) {
                 return;
             }
             try {
-                await this._sendPayload({
-                    isBeacon: false,
-                    sendFn: (payload) =>
-                        this.graphqlSDK
-                            .PushPayload(payload)
-                            .then((res) => res.pushPayload ?? 0),
-                });
+                await this._sendPayload({ isBeacon: false });
                 this.hasPushedData = true;
                 this.numberOfFailedRequests = 0;
                 this.sessionData.lastPushTime = Date.now();
@@ -1185,14 +1022,6 @@ export class Highlight {
         }
     }
 
-    _shouldSendRequest(): boolean {
-        return (
-            this._recordingStartTime !== 0 &&
-            this.numberOfFailedRequests < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS &&
-            this.sessionData.sessionSecureID !== ''
-        );
-    }
-
     /**
      * This proxy should be used instead of rrweb's native addCustomEvent.
      * The proxy makes sure recording has started before emitting a custom event.
@@ -1222,8 +1051,8 @@ export class Highlight {
         sendFn,
     }: {
         isBeacon: boolean;
-        sendFn: (payload: PushPayloadMutationVariables) => Promise<number>;
-    }): Promise<void> {
+        sendFn?: (payload: PushPayloadMutationVariables) => Promise<number>;
+    }) {
         const resources = FirstLoadListeners.getRecordedNetworkResources(
             this._firstLoadListeners,
             this._recordingStartTime
@@ -1251,32 +1080,38 @@ export class Highlight {
         this.logger.log(
             `Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionSecureID: ${this.sessionData.sessionSecureID}`
         );
-
-        const resourcesString = JSON.stringify({ resources: resources });
-        const messagesString = stringify({ messages: messages });
-        let payload: PushPayloadMutationVariables = {
-            session_secure_id: this.sessionData.sessionSecureID,
-            events: { events } as ReplayEventsInput,
-            messages: messagesString,
-            resources: resourcesString,
-            errors,
-            is_beacon: isBeacon,
-            has_session_unloaded: this.hasSessionUnloaded,
-            payload_id: this._payloadId.toString(),
-        };
-
+        const highlightLogs = getHighlightLogs();
+        if (sendFn) {
+            await sendFn({
+                session_secure_id: this.sessionData.sessionSecureID,
+                events: { events } as ReplayEventsInput,
+                messages: stringify({ messages: messages }),
+                resources: JSON.stringify({ resources: resources }),
+                errors,
+                is_beacon: isBeacon,
+                has_session_unloaded: this.hasSessionUnloaded,
+                payload_id: this._payloadId.toString(),
+            });
+        } else {
+            this._worker.postMessage({
+                message: {
+                    type: MessageType.AsyncEvents,
+                    id: this._payloadId,
+                    events,
+                    messages,
+                    errors,
+                    resourcesString: JSON.stringify({ resources: resources }),
+                    isBeacon,
+                    hasSessionUnloaded: this.hasSessionUnloaded,
+                    highlightLogs: highlightLogs,
+                },
+            });
+        }
         this._payloadId++;
         window.sessionStorage.setItem(
             SESSION_STORAGE_KEYS.PAYLOAD_ID,
             this._payloadId.toString()
         );
-
-        const highlightLogs = getHighlightLogs();
-        if (highlightLogs) {
-            payload.highlight_logs = highlightLogs;
-        }
-
-        const eventsSize = await sendFn(payload);
 
         // If sendFn throws an exception, the data below will not be cleared, and it will be re-uploaded on the next PushPayload.
         // SendBeacon is not guaranteed to succeed, so we will treat it the same way.
@@ -1292,9 +1127,6 @@ export class Highlight {
             // 3. Network request made to push payload (Only includes N events)
             // 4. this.events is cleared (we lose M events)
             this.events = this.events.slice(events.length);
-
-            this._eventBytesSinceSnapshot =
-                this._eventBytesSinceSnapshot + eventsSize;
 
             this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
                 messages.length

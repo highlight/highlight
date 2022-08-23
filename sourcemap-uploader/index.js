@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-const { join, basename } = require("path");
-const { cwd } = require("process");
-const yargs = require("yargs/yargs");
-const { hideBin } = require("yargs/helpers");
-const { statSync, readFileSync } = require("fs");
-const glob = require("glob");
-const AWS = require("aws-sdk");
-const fetch = require("node-fetch");
+import { basename, join } from "path";
+import { cwd } from "process";
+import yargs from "yargs/yargs";
+import { hideBin } from "yargs/helpers";
+import { readFileSync, statSync } from "fs";
+import glob from "glob";
+import AWS from "aws-sdk";
+import fetch from "node-fetch";
+import { default as pjson } from "./package.json" assert { type: "json" };
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
@@ -22,7 +23,6 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
-var pjson = require("./package.json");
 console.log("Running version: ", pjson.version);
 
 yargs(hideBin(process.argv))
@@ -61,7 +61,7 @@ yargs(hideBin(process.argv))
         throw new Error("invalid api key");
       }
 
-      organizationId = res.data.api_key_to_org_id;
+      let organizationId = res.data.api_key_to_org_id;
 
       console.info(`Starting to upload source maps from ${path}`);
 
@@ -149,7 +149,7 @@ async function uploadFile(organizationId, version, filePath, fileName) {
     Body: fileContent,
   };
 
-  s3.upload(params, function (err, data) {
+  s3.upload(params, function (err) {
     if (err) {
       throw err;
     }
