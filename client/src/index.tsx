@@ -6,7 +6,6 @@ import {
 import {
     eventWithTime,
     listenerHandler,
-    SamplingStrategy,
 } from '@highlight-run/rrweb/typings/types';
 import { FirstLoadListeners } from './listeners/first-load-listeners';
 import {
@@ -16,6 +15,7 @@ import {
     NetworkRecordingOptions,
     SessionShortcutOptions,
 } from '../../firstload/src/types/client';
+import { SamplingStrategy } from '../../firstload/src/types/types';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
 import ErrorStackParser from 'error-stack-parser';
@@ -274,7 +274,12 @@ export class Highlight {
         this.enableCanvasRecording = options.enableCanvasRecording || false;
         this.inlineImages = options.inlineImages || false;
         this.inlineStylesheet = options.inlineStylesheet || false;
-        this.samplingStrategy = options.samplingStrategy || { canvas: 1 };
+        this.samplingStrategy = options.samplingStrategy || {
+            canvas: 5,
+            canvasQuality: 'low',
+            canvasFactor: 0.5,
+            canvasMaxSnapshotDimension: 960,
+        };
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
@@ -605,7 +610,15 @@ export class Highlight {
                     enableStrictPrivacy: this.enableStrictPrivacy,
                     maskAllInputs: this.enableStrictPrivacy,
                     recordCanvas: this.enableCanvasRecording,
-                    sampling: this.samplingStrategy,
+                    sampling: {
+                        canvas: {
+                            fps: this.samplingStrategy.canvas,
+                            resizeQuality: this.samplingStrategy.canvasQuality,
+                            resizeFactor: this.samplingStrategy.canvasFactor,
+                            maxSnapshotDimension: this.samplingStrategy
+                                .canvasMaxSnapshotDimension,
+                        },
+                    },
                     keepIframeSrcFn: (_src) => {
                         return true;
                     },
