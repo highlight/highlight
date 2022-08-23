@@ -33,6 +33,7 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
     yAxisLabel: string;
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
+    onClickHandler?: () => void;
 };
 
 const BarChartV2 = ({
@@ -52,6 +53,7 @@ const BarChartV2 = ({
     hideLegend = false,
     referenceAreaProps,
     xAxisProps,
+    onClickHandler,
 }: Props) => {
     yAxisKeys =
         yAxisKeys ||
@@ -89,6 +91,7 @@ const BarChartV2 = ({
                     width={500}
                     height={300}
                     data={data}
+                    onClick={onClickHandler}
                     margin={{
                         top: 42,
                         right: 4,

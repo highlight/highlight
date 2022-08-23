@@ -1,36 +1,25 @@
+import BarChartV2 from '@components/BarChartV2/BarCharV2';
 import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '@graph/hooks';
 import { useHomePageFiltersContext } from '@pages/Home/components/HomePageFilters/HomePageFiltersContext';
-import styles from '@pages/Home/HomePage.module.scss';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { dailyCountData } from '@util/dashboardCalculations';
-import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import moment from 'moment/moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
-import {
-    Area,
-    CartesianGrid,
-    ComposedChart,
-    Line,
-    ResponsiveContainer,
-    Tooltip as RechartsTooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
+import { ResponsiveContainer } from 'recharts';
 
 type DailyCount = {
     date: string;
@@ -206,96 +195,23 @@ const DailyChart = ({
     name: string;
     onClickHandler?: any;
 }) => {
-    const gridColor = 'none';
-    const labelColor = 'var(--color-gray-500)';
-
-    const gradientId = `${name}-colorUv`;
-
     return (
         <ResponsiveContainer width="100%" height={275}>
-            <ComposedChart
-                width={500}
-                height={300}
+            <BarChartV2
+                height={275}
                 data={data}
-                margin={{
-                    top: 0,
-                    right: 0,
-                    left: 0,
-                    bottom: 0,
+                barColorMapping={{
+                    count: lineColor,
                 }}
-                onClick={(payload: any) => {
-                    if (onClickHandler) {
-                        onClickHandler(payload);
-                    }
-                }}
-                className={styles.composedChart}
-            >
-                <defs>
-                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                            offset="5%"
-                            stopColor={lineColor}
-                            stopOpacity={0.2}
-                        />
-                        <stop
-                            offset="95%"
-                            stopColor="var(--color-primary-background)"
-                            stopOpacity={0.1}
-                        />
-                    </linearGradient>
-                </defs>
-                <CartesianGrid stroke={gridColor} />
-                <XAxis
-                    dataKey="date"
-                    interval="preserveStart"
-                    tickFormatter={(tickItem) => {
-                        return moment(tickItem, 'DD MMM YYYY').format('D MMM');
-                    }}
-                    tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-                    axisLine={{ stroke: gridColor }}
-                    dy={5}
-                />
-                <YAxis
-                    interval="preserveStart"
-                    width={45}
-                    allowDecimals={false}
-                    tickFormatter={(tickItem) => formatNumber(tickItem)}
-                    tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-                    axisLine={{ stroke: gridColor }}
-                    dx={-5}
-                />
-                <RechartsTooltip
-                    position={{ y: 0 }}
-                    contentStyle={{
-                        paddingBottom: '16px',
-                    }}
-                    itemStyle={{
-                        padding: 0,
-                    }}
-                    content={<RechartTooltip />}
-                />
-                <Line
-                    dataKey="count"
-                    stroke={lineColor}
-                    strokeWidth={1.5}
-                    type="monotone"
-                    dot={false}
-                    activeDot={{
-                        fill: lineColor,
-                        fillOpacity: 1,
-                    }}
-                ></Line>
-                <Area
-                    type="monotone"
-                    dataKey="count"
-                    strokeWidth={0}
-                    fillOpacity={1}
-                    fill={`url(#${gradientId})`}
-                    activeDot={false}
-                />
-            </ComposedChart>
+                xAxisDataKeyName="range_end"
+                xAxisLabel={name}
+                xAxisTickFormatter={(value: number) =>
+                    value < 1 ? value.toFixed(2) : value.toFixed(0)
+                }
+                yAxisLabel={'occurrences'}
+                yAxisKeys={['count']}
+                onClickHandler={onClickHandler}
+            />
         </ResponsiveContainer>
     );
 };
