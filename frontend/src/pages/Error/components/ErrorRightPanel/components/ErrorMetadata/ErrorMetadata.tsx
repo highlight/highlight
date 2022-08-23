@@ -1,4 +1,4 @@
-import { getErrorGroupMetadata } from '@pages/Error/utils/ErrorPageUtils';
+import { getErrorGroupFields } from '@pages/Error/utils/ErrorPageUtils';
 import React, { useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
@@ -16,7 +16,7 @@ interface Props {
 const ErrorMetadata = ({ errorGroup }: Props) => {
     const fieldsData: KeyValueTableRow[] = useMemo(
         () =>
-            getErrorGroupMetadata(errorGroup).map((field) => ({
+            getErrorGroupFields(errorGroup).map((field) => ({
                 keyDisplayValue: field?.name || '',
                 renderType: 'string',
                 valueDisplayValue: field?.value || '',

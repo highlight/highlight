@@ -1,4 +1,4 @@
-import { GetErrorGroupQuery } from '@graph/operations';
+import { GetErrorGroupQuery, GetRecentErrorsQuery } from '@graph/operations';
 import React from 'react';
 
 import Card from '../../../../components/Card/Card';
@@ -11,6 +11,8 @@ import styles from './ErrorRightPanel.module.scss';
 
 interface Props {
     errorGroup?: GetErrorGroupQuery;
+    recentErrors?: GetRecentErrorsQuery;
+    recentErrorsLoading: boolean;
     parentRef?: React.RefObject<HTMLDivElement>;
     onClickCreateComment?: () => void;
     deepLinkedCommentId?: string | null;
@@ -18,6 +20,8 @@ interface Props {
 
 const ErrorRightPanel = ({
     errorGroup,
+    recentErrors,
+    recentErrorsLoading,
     parentRef,
     onClickCreateComment,
     deepLinkedCommentId,
@@ -33,7 +37,10 @@ const ErrorRightPanel = ({
                         key: 'Sessions',
                         panelContent: (
                             <div className={styles.tabContainer}>
-                                <ErrorSessionList errorGroup={errorGroup} />
+                                <ErrorSessionList
+                                    recentErrors={recentErrors}
+                                    loading={recentErrorsLoading}
+                                />
                             </div>
                         ),
                     },

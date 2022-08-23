@@ -4,12 +4,12 @@ import {
     GetErrorGroupQueryMock1,
     GetErrorGroupQueryMock2,
 } from './__mocks__/GetErrorGroupQuery';
-import { getErrorGroupMetadata } from './ErrorPageUtils';
+import { getErrorGroupFields } from './ErrorPageUtils';
 
 describe('ErrorPageUtils', () => {
     describe('getErrorGroupMetadata', () => {
         it('should handle an undefined error group', () => {
-            const result = getErrorGroupMetadata({
+            const result = getErrorGroupFields({
                 error_group: {
                     fields: undefined,
                 },
@@ -19,7 +19,7 @@ describe('ErrorPageUtils', () => {
         });
 
         it('should handle an error group with duplicate fields', () => {
-            const result = getErrorGroupMetadata(
+            const result = getErrorGroupFields(
                 GetErrorGroupQueryMock1 as GetErrorGroupQuery
             );
 
@@ -30,7 +30,7 @@ describe('ErrorPageUtils', () => {
         });
 
         it('should group by the same keys', () => {
-            const result = getErrorGroupMetadata(
+            const result = getErrorGroupFields(
                 GetErrorGroupQueryMock2 as GetErrorGroupQuery
             );
 
