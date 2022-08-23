@@ -24,7 +24,7 @@ const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	taskRetries           = 5
-	prefetchQueueCapacity = 128
+	prefetchQueueCapacity = 8
 	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
@@ -103,11 +103,11 @@ func New(topic string, mode Mode) *Queue {
 				Configs: []kafka.AlterConfigRequestConfig{
 					{
 						Name:  "retention.ms",
-						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
+						Value: strconv.FormatInt((time.Hour * 12).Milliseconds(), 10),
 					},
 					{
 						Name:  "delete.retention.ms",
-						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
+						Value: strconv.FormatInt((time.Hour * 12).Milliseconds(), 10),
 					},
 				},
 			},
