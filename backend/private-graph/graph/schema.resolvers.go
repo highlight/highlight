@@ -4270,7 +4270,8 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 				Field:   "has_errors",
 				Missing: ptr.String("false"),
 			},
-			TimeZone: histogramOptions.TimeZone,
+			TimeZone:    histogramOptions.TimeZone,
+			MinDocCount: pointy.Int(0),
 		}
 	}
 

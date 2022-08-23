@@ -119,6 +119,7 @@ type DateHistogramAggregation struct {
 	SortOrder        string
 	Format           string
 	TimeZone         string
+	MinDocCount      *int // When set to 0, empty buckets will also be returned (otherwise they are omitted)
 	SubAggregation   Aggregation
 }
 
@@ -126,6 +127,10 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 	subAggString := ""
 	if d.SubAggregation != nil {
 		subAggString = d.SubAggregation.GetAggsString()
+	}
+	minDocCountString := ""
+	if d.MinDocCount != nil {
+		minDocCountString = fmt.Sprintf(`, "min_doc_count": "%d"`, *d.MinDocCount)
 	}
 	return fmt.Sprintf(`
 		"aggregate": {
@@ -137,12 +142,13 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 				},
 				"format": "%s",
 				"time_zone": "%s"
+				%s
 			},
 			"aggs": {
 				%s
 			}
 		}
-	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, subAggString)
+	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, minDocCountString, subAggString)
 }
 
 type AggregationResult struct {
