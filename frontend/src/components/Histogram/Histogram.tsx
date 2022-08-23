@@ -21,7 +21,7 @@ interface Props {
     onBucketClicked: (bucketIndex: number) => void;
     seriesList: Series[];
     timeFormatter: (value: number) => string;
-    tooltipContent: (bucketIndex: number | undefined) => React.ReactNode;
+    tooltipContent: (bucketIndex: number) => React.ReactNode;
     gotoAction?: (bucketIndex: number) => void;
     loading?: boolean;
 }
@@ -131,7 +131,7 @@ const Histogram = React.memo(
                             )}
                         </div>
                         <div className={styles.popoverContent}>
-                            {tooltipContent(label)}
+                            {label !== undefined && tooltipContent(label)}
                         </div>
                     </>
                 );

@@ -1239,6 +1239,9 @@ const useQueryBuilderHistogram = (
         },
         [backendSearchQuery]
     );
+    const tooltipContent = useCallback((bucketIndex: number) => {
+        return <div></div>;
+    }, []);
 
     return (
         (searchResultsLoading ||

@@ -307,10 +307,7 @@ const TimelineIndicatorsBarGraph = React.memo(
         );
 
         const tooltipContent = useCallback(
-            (bucketIndex: number | undefined) => {
-                if (bucketIndex === undefined) {
-                    return;
-                }
+            (bucketIndex: number) => {
                 const bucket = seriesState.chartData[bucketIndex];
                 const labels = [];
                 for (const e of EventsForTimeline) {
