@@ -469,7 +469,7 @@ export class Highlight {
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
-            if (this.sessionData.sessionSecureID && storedSessionData) {
+            if (!this.sessionData.sessionSecureID && storedSessionData) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             }
