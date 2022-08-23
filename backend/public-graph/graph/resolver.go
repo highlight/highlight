@@ -1987,15 +1987,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 
-	// we must drop solitaired payloads after kafka because
-	// before kafka, the session object is not yet created and
-	// we have no way to find out if a push payload is for solitaired
-	if sessionObj.ProjectID == 1074 && sessionObj.ID%10 != 0 {
-		// Ingest 10% of Solitaired payloads
-		// Drop solitaired payloads because they are causing ingestion issues
-		return nil
-	}
-
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
 		if sessionObj.ResumedAfterProcessedTime == nil {
