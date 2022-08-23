@@ -255,6 +255,13 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if err != nil {
 		return nil, e.New("500: error querying admin")
 	}
+	workspaceAdmin := &model.WorkspaceAdmin{}
+	if err := r.DB.Model(workspaceAdmin).Where(&model.WorkspaceAdmin{
+		AdminID:     admin.ID,
+		WorkspaceID: workspace.ID,
+	}).First(workspaceAdmin).Error; err != nil {
+		return nil, e.Wrap(err, "500: error querying workspaceAdmin")
+	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
 	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
@@ -285,6 +292,11 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		Role:        inviteLink.InviteeRole,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "500: error adding admin to association")
+	}
+
+	workspaceAdmin.Role = inviteLink.InviteeRole
+	if err := r.DB.Model(workspaceAdmin).Updates(&model.WorkspaceAdmin{Role: workspaceAdmin.Role}).Error; err != nil {
+		return nil, e.Wrap(err, "500: error saving admin role")
 	}
 
 	// Only delete the invite for specific-admin invites. Specific-admin invites are 1-time use only.
