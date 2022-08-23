@@ -8,30 +8,28 @@ describe('useDataTimeRange', () => {
 
         act(() => {
             result.current.setTimeRange(
-                '2022-08-23 09:00:15-05:00',
-                '2022-08-23 09:15:45-05:00'
+                '2022-08-23 09:00:15+00:00',
+                '2022-08-23 09:15:45+00:00'
             );
         });
-
         expect(result.current.timeRange.start_date).toEqual(
-            '2022-08-23T09:00:00.000000000-05:00'
+            '2022-08-23T09:00:00.000000000+00:00'
         );
         expect(result.current.timeRange.end_date).toEqual(
-            '2022-08-23T09:15:00.000000000-05:00'
+            '2022-08-23T09:15:00.000000000+00:00'
         );
 
         act(() => {
             result.current.setTimeRange(
-                '2022-08-23 09:00:45-05:00',
-                '2022-08-23 09:15:15-05:00'
+                '2022-08-23 09:00:45+00:00',
+                '2022-08-23 09:15:15+00:00'
             );
         });
-
         expect(result.current.timeRange.start_date).toEqual(
-            '2022-08-23T09:00:00.000000000-05:00'
+            '2022-08-23T09:00:00.000000000+00:00'
         );
         expect(result.current.timeRange.end_date).toEqual(
-            '2022-08-23T09:15:00.000000000-05:00'
+            '2022-08-23T09:15:00.000000000+00:00'
         );
     });
 
@@ -40,20 +38,18 @@ describe('useDataTimeRange', () => {
 
         act(() => {
             result.current.setTimeRange(
-                '2022-08-23 09:00:15-05:00',
-                '2022-08-23 09:15:45-05:00'
+                '2022-08-23 09:00:15+00:00',
+                '2022-08-23 09:15:45+00:00'
             );
         });
-
         expect(result.current.timeRange.lookback).toEqual(15);
 
         act(() => {
             result.current.setTimeRange(
-                '2022-08-23 09:00:45-05:00',
-                '2022-08-23 09:15:15-05:00'
+                '2022-08-23 09:00:45+00:00',
+                '2022-08-23 09:15:15+00:00'
             );
         });
-
         expect(result.current.timeRange.lookback).toEqual(15);
     });
 });
