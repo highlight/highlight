@@ -1192,12 +1192,12 @@ const useQueryBuilderHistogram = (
             bucketTimes.push(backendSearchQuery.endDate.valueOf());
             seriesList = [
                 {
-                    label: 'Sessions without Errors',
+                    label: 'Sessions without errors',
                     color: '--color-purple',
                     counts: histogramData.sessions_without_errors,
                 },
                 {
-                    label: 'Sessions with Errors',
+                    label: 'Sessions with errors',
                     color: '--color-red-600',
                     counts: histogramData.sessions_with_errors,
                 },
@@ -1239,9 +1239,29 @@ const useQueryBuilderHistogram = (
         },
         [backendSearchQuery]
     );
-    const tooltipContent = useCallback((bucketIndex: number) => {
-        return <div></div>;
-    }, []);
+    const tooltipContent = useCallback(
+        (bucketIndex: number) => {
+            const seriesTooltips = histogramSeriesList
+                .filter((series: Series) => series.counts[bucketIndex] > 0)
+                .map((series: Series, index: number) => (
+                    <div key={index} className={styles.histogramSeriesTooltip}>
+                        <span
+                            className={styles.histogramSeriesIcon}
+                            style={{
+                                background: `var(${series.color})`,
+                            }}
+                        ></span>
+                        {series.label} x {series.counts[bucketIndex]}
+                    </div>
+                ));
+            return (
+                <div className={styles.histogramTooltip}>
+                    {seriesTooltips.length > 0 ? seriesTooltips : 'No results'}
+                </div>
+            );
+        },
+        [histogramSeriesList]
+    );
 
     return (
         (searchResultsLoading ||
@@ -1253,7 +1273,7 @@ const useQueryBuilderHistogram = (
                 seriesList={histogramSeriesList}
                 timeFormatter={timeFormatter}
                 bucketTimes={histogramBucketTimes}
-                tooltipContent={() => null}
+                tooltipContent={tooltipContent}
                 loading={searchResultsLoading}
             />
         )
