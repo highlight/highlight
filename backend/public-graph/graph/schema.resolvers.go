@@ -96,16 +96,6 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 
 // PushPayload is the resolver for the pushPayload field.
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
-	sessionObj := &model.Session{}
-	if err := r.DB.Select("project_id", "id").Where(&model.Session{SecureID: sessionSecureID}).First(&sessionObj).Error; err != nil {
-		// No return because I don't want to change existing behavior - can handle the error the usual way after worker reads from Kafka
-		log.Error(e.Wrapf(err, "PushPayload couldn't find session with secureID %s", sessionSecureID))
-	}
-	if sessionObj.ProjectID == 1074 && sessionObj.ID%10 != 0 { // Ingest 10% of Solitaired payloads
-		// Drop solitaired payloads because they are causing ingestion issues
-		return size.Of(events), nil
-	}
-
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
