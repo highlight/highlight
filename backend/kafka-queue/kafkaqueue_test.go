@@ -75,7 +75,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					continue
 				} else if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
-				} else if msg.PushPayload.SessionID != nil {
+				} else if msg.PushPayload.SessionSecureID != "" {
 					b.Errorf("expected to consume dummy session")
 				}
 			}
