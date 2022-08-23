@@ -86,7 +86,7 @@ type Mutation {
         environment: String!
         appVersion: String
         fingerprint: String!
-        client_id: String
+        client_id: String!
     ): InitializeSessionResponse!
     identifySession(
         session_secure_id: String!,

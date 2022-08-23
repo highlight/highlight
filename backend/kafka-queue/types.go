@@ -44,7 +44,7 @@ type InitializeSessionArgs struct {
 	UserAgent                      string
 	AcceptLanguage                 string
 	IP                             string
-	ClientID                       *string
+	ClientID                       string
 }
 
 type IdentifySessionArgs struct {

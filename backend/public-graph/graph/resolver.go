@@ -1048,13 +1048,6 @@ func (r *Resolver) InitializeSessionImplementation(ctx context.Context, input *k
 		tracer.ResourceName("go.sessions.InitializeSessionImplementation"))
 	defer outerSpan.Finish()
 
-	// The clientID param was added in early July 2022. This check is needed until
-	// we are confident all clients are loading a version of the client script
-	// that sends this parameter.
-	if input.ClientID == nil {
-		input.ClientID = pointy.String("")
-	}
-
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
@@ -1100,7 +1093,7 @@ func (r *Resolver) InitializeSessionImplementation(ctx context.Context, input *k
 		Fields:                         []*model.Field{},
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
-		ClientID:                       *input.ClientID,
+		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
 	}
 
