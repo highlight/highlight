@@ -1223,6 +1223,12 @@ const useQueryBuilderHistogram = (
     );
     const timeFormatter = useCallback(
         (t: number) => {
+            if (
+                histogramBucketTimes.length > 0 &&
+                t === histogramBucketTimes[histogramBucketTimes.length - 1]
+            ) {
+                return moment(t).format('MMM D h:mm a');
+            }
             switch (backendSearchQuery?.histogramBucketSize) {
                 case 'minute':
                 case 'hour':
@@ -1237,7 +1243,7 @@ const useQueryBuilderHistogram = (
                     return moment(t).format('MMMM D h:mm a');
             }
         },
-        [backendSearchQuery]
+        [histogramBucketTimes, backendSearchQuery]
     );
     const tooltipContent = useCallback(
         (bucketIndex: number) => {
