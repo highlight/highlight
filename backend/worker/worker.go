@@ -349,7 +349,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.InitializeSession == nil {
 			break
 		}
-		s, err := w.PublicResolver.InitializeSessionImplementation(ctx, task.InitializeSession)
+		s, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
 		tags := []string{fmt.Sprintf("success:%t", err == nil)}
 		if s != nil {
 			tags = append(tags, fmt.Sprintf("secure_id:%q", s.SecureID), fmt.Sprintf("project_id:%d", s.ProjectID))

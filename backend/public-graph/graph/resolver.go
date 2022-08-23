@@ -1043,9 +1043,9 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func (r *Resolver) InitializeSessionImplementation(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImplementation",
-		tracer.ResourceName("go.sessions.InitializeSessionImplementation"))
+func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
+		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
 	defer outerSpan.Finish()
 
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
@@ -1125,7 +1125,7 @@ func (r *Resolver) InitializeSessionImplementation(ctx context.Context, input *k
 	session.WithinBillingQuota = &withinBillingQuota
 
 	if err := r.DB.Create(session).Error; err != nil {
-		if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+		if input.SessionSecureID == "" || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			log.Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
 		}
