@@ -101,7 +101,7 @@ export type MutationInitializeSessionArgs = {
     appVersion?: InputMaybe<Scalars['String']>;
     clientConfig: Scalars['String'];
     clientVersion: Scalars['String'];
-    client_id?: InputMaybe<Scalars['String']>;
+    client_id: Scalars['String'];
     enable_recording_network_contents: Scalars['Boolean'];
     enable_strict_privacy: Scalars['Boolean'];
     environment: Scalars['String'];

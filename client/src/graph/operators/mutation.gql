@@ -79,7 +79,7 @@ mutation initializeSession(
     $environment: String!
     $id: String!
     $appVersion: String
-    $client_id: String
+    $client_id: String!
 ) {
     initializeSession(
         session_secure_id: $session_secure_id

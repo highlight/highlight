@@ -104,7 +104,7 @@ export type MutationInitializeSessionArgs = {
     appVersion?: InputMaybe<Scalars['String']>;
     clientConfig: Scalars['String'];
     clientVersion: Scalars['String'];
-    client_id?: InputMaybe<Scalars['String']>;
+    client_id: Scalars['String'];
     enable_recording_network_contents: Scalars['Boolean'];
     enable_strict_privacy: Scalars['Boolean'];
     environment: Scalars['String'];
@@ -258,7 +258,7 @@ export type InitializeSessionMutationVariables = Exact<{
     environment: Scalars['String'];
     id: Scalars['String'];
     appVersion?: InputMaybe<Scalars['String']>;
-    client_id?: InputMaybe<Scalars['String']>;
+    client_id: Scalars['String'];
 }>;
 
 export type InitializeSessionMutation = {
@@ -370,7 +370,7 @@ export const InitializeSessionDocument = gql`
         $environment: String!
         $id: String!
         $appVersion: String
-        $client_id: String
+        $client_id: String!
     ) {
         initializeSession(
             session_secure_id: $session_secure_id
