@@ -35,11 +35,11 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, e.Wrap(err, "error opening test db")
 	}
-	_, err = db.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving test db")
 	}
-	// defer sqlDB.Close()
+	defer sqlDB.Close()
 	// drop db if exists
 	if err := db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName)).Error; err != nil {
 		return nil, e.Wrap(err, "error dropping db")
@@ -48,10 +48,12 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	if err := db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error; err != nil {
 		return nil, e.Wrap(err, "error creating db")
 	}
-	_, err = model.SetupDB(dbName)
+	// Setup database
+	db, err = model.SetupDB(dbName)
 	if err != nil {
 		return nil, e.Wrap(err, "error setting up test db")
 	}
+	// Migrate database
 	_, err = model.MigrateDB(db)
 	if err != nil {
 		return nil, e.Wrap(err, "error migrating test db")
