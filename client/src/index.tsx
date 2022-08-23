@@ -459,6 +459,14 @@ export class Highlight {
             this._firstLoadListeners?.stopListening();
             return;
         }
+
+        if (this.organizationID === '6glrjqg9') {
+            if (Math.random() > 0.1) {
+                this._firstLoadListeners?.stopListening();
+                return;
+            }
+        }
+
         try {
             if (this.feedbackWidgetOptions.enabled) {
                 const {
