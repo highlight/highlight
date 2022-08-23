@@ -10,7 +10,6 @@ on:
             - '!backend/migrations'
 jobs:
     changes:
-        needs: migrate-database
         runs-on: ubuntu-latest
         # Set job outputs to values from filter step
         outputs:
