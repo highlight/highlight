@@ -443,7 +443,6 @@ type Admin struct {
 	ErrorComments          []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	Workspaces             []Workspace      `gorm:"many2many:workspace_admins;"`
 	SlackIMChannelID       *string
-	Role                   *string `json:"role" gorm:"default:ADMIN"`
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
