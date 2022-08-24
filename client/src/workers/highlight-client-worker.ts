@@ -195,7 +195,6 @@ function stringifyProperties(
                     propertiesObject
                 )} @ ${backend}`
             );
-            numberOfFailedRequests = 0;
         }
         // Track properties are properties that users define; rn, either through segment or manually.
         else {
@@ -223,7 +222,6 @@ function stringifyProperties(
                     propertiesObject
                 )} @ ${backend}`
             );
-            numberOfFailedRequests = 0;
         }
     };
 

@@ -3,6 +3,7 @@ package kafka_queue
 import (
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/segmentio/kafka-go"
+	"time"
 )
 
 type PayloadType = int
@@ -16,6 +17,7 @@ const (
 	PushBackendPayload   PayloadType = iota
 	PushMetrics          PayloadType = iota
 	MarkBackendSetup     PayloadType = iota
+	AddSessionFeedback   PayloadType = iota
 )
 
 type PushPayloadArgs struct {
@@ -66,13 +68,25 @@ type PushBackendPayloadArgs struct {
 }
 
 type PushMetricsArgs struct {
+	SecureID string
+	// TODO(vkorolik) to be deprecated, replaced by secure id session lookup
 	SessionID int
 	ProjectID int
 	Metrics   []*customModels.MetricInput
 }
 
 type MarkBackendSetupArgs struct {
+	SecureID string
+	// TODO(vkorolik) to be deprecated, replaced by secure id session lookup
 	ProjectID int
+}
+
+type AddSessionFeedbackArgs struct {
+	SecureID  string
+	UserName  *string
+	UserEmail *string
+	Verbatim  string
+	Timestamp time.Time
 }
 
 type Message struct {
@@ -88,6 +102,7 @@ type Message struct {
 	PushBackendPayload   *PushBackendPayloadArgs
 	PushMetrics          *PushMetricsArgs
 	MarkBackendSetup     *MarkBackendSetupArgs
+	AddSessionFeedback   *AddSessionFeedbackArgs
 }
 
 type PartitionMessage struct {

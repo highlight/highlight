@@ -1256,7 +1256,15 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
+func (r *Resolver) MarkBackendSetupImpl(sessionSecureID string, projectID int) error {
+	if projectID == 0 {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "no session found for mark backend setup: %s", sessionSecureID))
+			return err
+		}
+		projectID = session.ProjectID
+	}
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
 		return e.Wrap(err, "error querying backend_setup flag")
@@ -1683,18 +1691,11 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		session := &model.Session{}
-		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-			log.Error(e.Wrapf(err, "no session found for push metrics: %s", secureID))
-			continue
-		}
-
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushMetrics,
 			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SessionID: session.ID,
-				ProjectID: session.ProjectID,
-				Metrics:   metrics,
+				SecureID: secureID,
+				Metrics:  metrics,
 			}}, secureID)
 		if err != nil {
 			log.Error(err)
@@ -1717,7 +1718,16 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+	if sessionID == 0 || projectID == 0 {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
+			return err
+		}
+		sessionID = session.ID
+		projectID = session.ProjectID
+	}
 	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
 		group := ""

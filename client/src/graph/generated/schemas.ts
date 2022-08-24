@@ -62,12 +62,12 @@ export type MetricInput = {
 
 export type Mutation = {
     __typename?: 'Mutation';
-    addSessionFeedback: Scalars['ID'];
+    addSessionFeedback: Scalars['String'];
     addSessionProperties: Scalars['String'];
     addTrackProperties: Scalars['String'];
     identifySession: Scalars['String'];
     initializeSession: InitializeSessionResponse;
-    markBackendSetup: Scalars['ID'];
+    markBackendSetup: Scalars['String'];
     pushBackendPayload?: Maybe<Scalars['Any']>;
     pushMetrics: Scalars['Int'];
     pushPayload: Scalars['Int'];
