@@ -245,6 +245,11 @@ type WorkspaceAdmin struct {
 	Role        *string    `json:"role" gorm:"default:ADMIN"`
 }
 
+type WorkspaceAdminRole struct {
+	Admin *Admin
+	Role  string
+}
+
 type WorkspaceInviteLink struct {
 	Model
 	WorkspaceID    *int

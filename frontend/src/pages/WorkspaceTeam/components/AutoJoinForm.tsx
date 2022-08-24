@@ -38,8 +38,8 @@ function AutoJoinForm({
                 setEmailOrigins(emailOrigins);
             }
             const allowedDomains: string[] = [];
-            d.admins.forEach((a) => {
-                const adminDomain = getEmailDomain(a?.email);
+            d.admins.forEach((wa) => {
+                const adminDomain = getEmailDomain(wa.admin?.email);
                 if (
                     adminDomain.length > 0 &&
                     !allowedDomains.includes(adminDomain)

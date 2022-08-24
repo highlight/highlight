@@ -242,24 +242,24 @@ const WorkspaceTeam = () => {
                                 : TABLE_COLUMNS.slice(0, 2)
                         }
                         loading={loading}
-                        dataSource={data?.admins?.map((member) => ({
-                            name: member?.name,
-                            email: member?.email,
-                            role: member?.role,
-                            photoUrl: member?.photo_url,
-                            id: member?.id,
-                            isSameAdmin: member?.id === admin?.id,
+                        dataSource={data?.admins?.map((wa) => ({
+                            name: wa.admin?.name,
+                            email: wa.admin?.email,
+                            role: wa.role,
+                            photoUrl: wa.admin?.photo_url,
+                            id: wa.admin?.id,
+                            isSameAdmin: wa.admin?.id === admin?.id,
                             onDeleteHandler: () =>
                                 deleteAdminFromWorkspace({
                                     variables: {
-                                        admin_id: member!.id,
+                                        admin_id: wa.admin!.id,
                                         workspace_id,
                                     },
                                 }),
                             onUpdateRoleHandler: (new_role: string) => {
                                 changeAdminRole({
                                     variables: {
-                                        admin_id: member!.id,
+                                        admin_id: wa.admin!.id,
                                         workspace_id,
                                         new_role,
                                     },
@@ -267,9 +267,9 @@ const WorkspaceTeam = () => {
 
                                 let messageText = '';
                                 const displayName =
-                                    member?.name ||
+                                    wa.admin?.name ||
                                     getDisplayNameFromEmail(
-                                        member?.email || ''
+                                        wa.admin?.email || ''
                                     );
                                 switch (new_role) {
                                     case AdminRole.Admin:

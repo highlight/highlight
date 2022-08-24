@@ -52,11 +52,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// Role is the resolver for the role field.
-func (r *adminResolver) Role(ctx context.Context, obj *model.Admin) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -240,11 +235,6 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
-}
-
-// Type is the resolver for the type field.
-func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 // ChannelsToNotify is the resolver for the channels_to_notify field.
@@ -3804,22 +3794,34 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 }
 
 // WorkspaceAdmins is the resolver for the workspace_admins field.
-func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
+func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.WorkspaceAdminRole, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
 
-	admins := []*model.Admin{}
+	var admins []*model.Admin
 	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
 		return nil, e.Wrap(err, "error getting admins for the workspace")
 	}
 
-	return admins, nil
+	var roles []*model.WorkspaceAdminRole
+	for _, admin := range admins {
+		role, err := r.GetAdminRole(admin.ID, workspace.ID)
+		if err != nil {
+			return nil, e.Wrap(err, "failed to retrieve admin role")
+		}
+		roles = append(roles, &model.WorkspaceAdminRole{
+			Admin: admin,
+			Role:  role,
+		})
+	}
+
+	return roles, nil
 }
 
 // WorkspaceAdminsByProjectID is the resolver for the workspace_admins_by_project_id field.
-func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
+func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.WorkspaceAdminRole, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3830,12 +3832,7 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 		return nil, nil
 	}
 
-	admins := []*model.Admin{}
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
-		return nil, e.Wrap(err, "error getting admins for the workspace by project id")
-	}
-
-	return admins, nil
+	return r.WorkspaceAdmins(ctx, workspace.ID)
 }
 
 // IsIntegrated is the resolver for the isIntegrated field.
@@ -6062,9 +6059,6 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
-// Admin returns generated.AdminResolver implementation.
-func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
-
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -6082,9 +6076,6 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
-
-// Metric returns generated.MetricResolver implementation.
-func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
 
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
@@ -6117,14 +6108,12 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
-type adminResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
-type metricResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

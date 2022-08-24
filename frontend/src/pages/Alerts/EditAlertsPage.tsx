@@ -67,7 +67,7 @@ const EditAlertsPage = () => {
                         alertsPayload?.is_integrated_with_slack || false
                     }
                     emailSuggestions={(alertsPayload?.admins || []).map(
-                        (admin) => admin!.email
+                        (wa) => wa.admin!.email
                     )}
                     //     @ts-expect-error
                     configuration={ALERT_CONFIGURATIONS[alert?.Type]}

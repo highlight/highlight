@@ -49,7 +49,9 @@ export const useAuthorization = (): AuthorizationInterface => {
                 return false;
             }
 
-            return AUTHORIZATION_POLICIES[policyName](admin);
+            // TODO(vkorolik)
+            return false;
+            // return AUTHORIZATION_POLICIES[policyName](admin);
         },
         [admin]
     );

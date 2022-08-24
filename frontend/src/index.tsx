@@ -20,13 +20,17 @@ import {
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { datadogLogs } from '@datadog/browser-logs';
-import { useGetAdminLazyQuery } from '@graph/hooks';
+import {
+    useGetWorkspaceAdminsByProjectIdLazyQuery,
+    useGetWorkspaceAdminsLazyQuery,
+} from '@graph/hooks';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
 import { showHiringMessage } from '@util/console/hiringMessage';
 import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -151,7 +155,7 @@ const App = () => {
                             }}
                         >
                             <LoadingPage />
-                            <AuthenticationRouter />
+                            <AuthenticationRoleRouter />
                         </AppLoadingContext>
                     </SkeletonTheme>
                 </QueryParamProvider>
@@ -160,11 +164,45 @@ const App = () => {
     );
 };
 
-const AuthenticationRouter = () => {
+const AuthenticationRoleRouter = () => {
+    const { workspace_id, project_id } = useParams<{
+        workspace_id: string;
+        project_id: string;
+    }>();
+    console.log('vadim', { workspace_id, project_id });
     const [
-        getAdminQuery,
-        { error: adminError, data: adminData, called, refetch },
-    ] = useGetAdminLazyQuery();
+        getWorkspaceAdminsByProjectIdQuery,
+        {
+            error: adminPError,
+            data: adminPData,
+            called: pCalled,
+            refetch: pRefetch,
+        },
+    ] = useGetWorkspaceAdminsByProjectIdLazyQuery();
+    const [
+        getWorkspaceAdminsQuery,
+        {
+            error: adminWError,
+            data: adminWData,
+            called: wCalled,
+            refetch: wRefetch,
+        },
+    ] = useGetWorkspaceAdminsLazyQuery();
+    let getAdminQuery, adminError, adminData, called, refetch;
+    if (workspace_id) {
+        getAdminQuery = getWorkspaceAdminsQuery;
+        adminError = adminWError;
+        adminData = adminWData;
+        called = wCalled;
+        refetch = wRefetch;
+    } else {
+        getAdminQuery = getWorkspaceAdminsByProjectIdQuery;
+        adminError = adminPError;
+        adminData = adminPData;
+        called = pCalled;
+        refetch = pRefetch;
+    }
+
     const { setLoadingState } = useAppLoadingContext();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);

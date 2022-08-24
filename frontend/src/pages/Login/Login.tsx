@@ -56,7 +56,6 @@ export const AuthAdminRouter = () => {
                         email: admin?.email,
                         user_id: admin?.uid,
                         sessionUrl,
-                        role: admin?.role,
                     });
                 })
                 .catch(() => {
@@ -66,7 +65,6 @@ export const AuthAdminRouter = () => {
                         hide_default_launcher: true,
                         email: admin?.email,
                         user_id: admin?.uid,
-                        role: admin?.role,
                     });
                 });
         }

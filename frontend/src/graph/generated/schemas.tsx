@@ -597,13 +597,18 @@ export type Admin = {
     email: Scalars['String'];
     phone?: Maybe<Scalars['String']>;
     photo_url?: Maybe<Scalars['String']>;
-    role: Scalars['String'];
     slack_im_channel_id?: Maybe<Scalars['String']>;
     email_verified?: Maybe<Scalars['Boolean']>;
     referral?: Maybe<Scalars['String']>;
     user_defined_role?: Maybe<Scalars['String']>;
     about_you_details_filled?: Maybe<Scalars['Boolean']>;
     user_defined_persona?: Maybe<Scalars['String']>;
+};
+
+export type WorkspaceAdminRole = {
+    __typename?: 'WorkspaceAdminRole';
+    admin: Admin;
+    role: Scalars['String'];
 };
 
 export type SanitizedAdmin = {
@@ -818,7 +823,6 @@ export type SessionPayload = {
 
 export type Metric = {
     __typename?: 'Metric';
-    type: Scalars['String'];
     name: Scalars['String'];
     value: Scalars['Float'];
 };
@@ -987,8 +991,8 @@ export type Query = {
     error_comments: Array<Maybe<ErrorComment>>;
     error_comments_for_admin: Array<Maybe<ErrorComment>>;
     error_comments_for_project: Array<Maybe<ErrorComment>>;
-    workspace_admins: Array<Maybe<Admin>>;
-    workspace_admins_by_project_id: Array<Maybe<Admin>>;
+    workspace_admins: Array<WorkspaceAdminRole>;
+    workspace_admins_by_project_id: Array<WorkspaceAdminRole>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     isBackendIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;

@@ -33,14 +33,12 @@ export const getCommentMentionSuggestions = (
     if (!suggestions) {
         return [];
     }
-    const mappedAdmins: CommentSuggestion[] = suggestions.admins.map(
-        (admin) => ({
-            id: admin!.id,
-            email: admin!.email,
-            name: admin?.name || '',
-            photoUrl: admin!.photo_url as string,
-        })
-    );
+    const mappedAdmins: CommentSuggestion[] = suggestions.admins.map((wa) => ({
+        id: wa.admin!.id,
+        email: wa.admin!.email,
+        name: wa.admin?.name || '',
+        photoUrl: wa.admin!.photo_url as string,
+    }));
 
     if (suggestions.slack_members.length === 0) {
         return mappedAdmins;

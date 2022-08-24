@@ -40,14 +40,12 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Admin() AdminResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
 	ErrorGroup() ErrorGroupResolver
 	ErrorObject() ErrorObjectResolver
 	ErrorSegment() ErrorSegmentResolver
-	Metric() MetricResolver
 	MetricMonitor() MetricMonitorResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -106,7 +104,6 @@ type ComplexityRoot struct {
 		Phone                 func(childComplexity int) int
 		PhotoURL              func(childComplexity int) int
 		Referral              func(childComplexity int) int
-		Role                  func(childComplexity int) int
 		SlackIMChannelID      func(childComplexity int) int
 		UID                   func(childComplexity int) int
 		UserDefinedPersona    func(childComplexity int) int
@@ -395,7 +392,6 @@ type ComplexityRoot struct {
 
 	Metric struct {
 		Name  func(childComplexity int) int
-		Type  func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
 
@@ -873,6 +869,11 @@ type ComplexityRoot struct {
 		UnlimitedMembers            func(childComplexity int) int
 	}
 
+	WorkspaceAdminRole struct {
+		Admin func(childComplexity int) int
+		Role  func(childComplexity int) int
+	}
+
 	WorkspaceInviteLink struct {
 		ExpirationDate func(childComplexity int) int
 		ID             func(childComplexity int) int
@@ -882,9 +883,6 @@ type ComplexityRoot struct {
 	}
 }
 
-type AdminResolver interface {
-	Role(ctx context.Context, obj *model1.Admin) (string, error)
-}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -915,9 +913,6 @@ type ErrorObjectResolver interface {
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
-}
-type MetricResolver interface {
-	Type(ctx context.Context, obj *model1.Metric) (string, error)
 }
 type MetricMonitorResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*model.SanitizedSlackChannel, error)
@@ -1013,8 +1008,8 @@ type QueryResolver interface {
 	ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model1.ErrorComment, error)
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
-	WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model1.Admin, error)
-	WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model1.Admin, error)
+	WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model1.WorkspaceAdminRole, error)
+	WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model1.WorkspaceAdminRole, error)
 	IsIntegrated(ctx context.Context, projectID int) (*bool, error)
 	IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error)
@@ -1365,13 +1360,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Referral(childComplexity), true
-
-	case "Admin.role":
-		if e.complexity.Admin.Role == nil {
-			break
-		}
-
-		return e.complexity.Admin.Role(childComplexity), true
 
 	case "Admin.slack_im_channel_id":
 		if e.complexity.Admin.SlackIMChannelID == nil {
@@ -2695,13 +2683,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Metric.Name(childComplexity), true
-
-	case "Metric.type":
-		if e.complexity.Metric.Type == nil {
-			break
-		}
-
-		return e.complexity.Metric.Type(childComplexity), true
 
 	case "Metric.value":
 		if e.complexity.Metric.Value == nil {
@@ -6043,6 +6024,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.UnlimitedMembers(childComplexity), true
 
+	case "WorkspaceAdminRole.admin":
+		if e.complexity.WorkspaceAdminRole.Admin == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceAdminRole.Admin(childComplexity), true
+
+	case "WorkspaceAdminRole.role":
+		if e.complexity.WorkspaceAdminRole.Role == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceAdminRole.Role(childComplexity), true
+
 	case "WorkspaceInviteLink.expiration_date":
 		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
 			break
@@ -6724,13 +6719,17 @@ type Admin {
     email: String!
     phone: String
     photo_url: String
-    role: String!
     slack_im_channel_id: String
     email_verified: Boolean
     referral: String
     user_defined_role: String
     about_you_details_filled: Boolean
     user_defined_persona: String
+}
+
+type WorkspaceAdminRole {
+    admin: Admin!
+    role: String!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -6932,7 +6931,6 @@ type SessionPayload {
 }
 
 type Metric {
-    type: String!
     name: String!
     value: Float!
 }
@@ -7102,8 +7100,8 @@ type Query {
     error_comments(error_group_secure_id: String!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
-    workspace_admins(workspace_id: ID!): [Admin]!
-    workspace_admins_by_project_id(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
+    workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
     isIntegrated(project_id: ID!): Boolean
     isBackendIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
@@ -13860,50 +13858,6 @@ func (ec *executionContext) fieldContext_Admin_photo_url(ctx context.Context, fi
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Admin_role(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Admin_role(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Admin().Role(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Admin_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Admin",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -22277,50 +22231,6 @@ func (ec *executionContext) fieldContext_LinearTeam_key(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Metric_type(ctx context.Context, field graphql.CollectedField, obj *model1.Metric) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Metric_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Metric().Type(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Metric_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Metric",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Metric_name(ctx context.Context, field graphql.CollectedField, obj *model1.Metric) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Metric_name(ctx, field)
 	if err != nil {
@@ -29661,8 +29571,6 @@ func (ec *executionContext) fieldContext_Query_web_vitals(ctx context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "type":
-				return ec.fieldContext_Metric_type(ctx, field)
 			case "name":
 				return ec.fieldContext_Metric_name(ctx, field)
 			case "value":
@@ -30248,9 +30156,9 @@ func (ec *executionContext) _Query_workspace_admins(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Admin)
+	res := resTmp.([]*model1.WorkspaceAdminRole)
 	fc.Result = res
-	return ec.marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalNWorkspaceAdminRole2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRoleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_workspace_admins(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30261,34 +30169,12 @@ func (ec *executionContext) fieldContext_Query_workspace_admins(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Admin_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Admin_name(ctx, field)
-			case "uid":
-				return ec.fieldContext_Admin_uid(ctx, field)
-			case "email":
-				return ec.fieldContext_Admin_email(ctx, field)
-			case "phone":
-				return ec.fieldContext_Admin_phone(ctx, field)
-			case "photo_url":
-				return ec.fieldContext_Admin_photo_url(ctx, field)
+			case "admin":
+				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
-				return ec.fieldContext_Admin_role(ctx, field)
-			case "slack_im_channel_id":
-				return ec.fieldContext_Admin_slack_im_channel_id(ctx, field)
-			case "email_verified":
-				return ec.fieldContext_Admin_email_verified(ctx, field)
-			case "referral":
-				return ec.fieldContext_Admin_referral(ctx, field)
-			case "user_defined_role":
-				return ec.fieldContext_Admin_user_defined_role(ctx, field)
-			case "about_you_details_filled":
-				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
-			case "user_defined_persona":
-				return ec.fieldContext_Admin_user_defined_persona(ctx, field)
+				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Admin", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
 	}
 	defer func() {
@@ -30331,9 +30217,9 @@ func (ec *executionContext) _Query_workspace_admins_by_project_id(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Admin)
+	res := resTmp.([]*model1.WorkspaceAdminRole)
 	fc.Result = res
-	return ec.marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalNWorkspaceAdminRole2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRoleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_workspace_admins_by_project_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30344,34 +30230,12 @@ func (ec *executionContext) fieldContext_Query_workspace_admins_by_project_id(ct
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Admin_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Admin_name(ctx, field)
-			case "uid":
-				return ec.fieldContext_Admin_uid(ctx, field)
-			case "email":
-				return ec.fieldContext_Admin_email(ctx, field)
-			case "phone":
-				return ec.fieldContext_Admin_phone(ctx, field)
-			case "photo_url":
-				return ec.fieldContext_Admin_photo_url(ctx, field)
+			case "admin":
+				return ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 			case "role":
-				return ec.fieldContext_Admin_role(ctx, field)
-			case "slack_im_channel_id":
-				return ec.fieldContext_Admin_slack_im_channel_id(ctx, field)
-			case "email_verified":
-				return ec.fieldContext_Admin_email_verified(ctx, field)
-			case "referral":
-				return ec.fieldContext_Admin_referral(ctx, field)
-			case "user_defined_role":
-				return ec.fieldContext_Admin_user_defined_role(ctx, field)
-			case "about_you_details_filled":
-				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
-			case "user_defined_persona":
-				return ec.fieldContext_Admin_user_defined_persona(ctx, field)
+				return ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Admin", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type WorkspaceAdminRole", field.Name)
 		},
 	}
 	defer func() {
@@ -33807,8 +33671,6 @@ func (ec *executionContext) fieldContext_Query_admin(ctx context.Context, field 
 				return ec.fieldContext_Admin_phone(ctx, field)
 			case "photo_url":
 				return ec.fieldContext_Admin_photo_url(ctx, field)
-			case "role":
-				return ec.fieldContext_Admin_role(ctx, field)
 			case "slack_im_channel_id":
 				return ec.fieldContext_Admin_slack_im_channel_id(ctx, field)
 			case "email_verified":
@@ -42908,6 +42770,120 @@ func (ec *executionContext) fieldContext_Workspace_clearbit_enabled(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _WorkspaceAdminRole_admin(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Admin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Admin)
+	fc.Result = res
+	return ec.marshalNAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceAdminRole_admin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceAdminRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Admin_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Admin_name(ctx, field)
+			case "uid":
+				return ec.fieldContext_Admin_uid(ctx, field)
+			case "email":
+				return ec.fieldContext_Admin_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_Admin_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_Admin_photo_url(ctx, field)
+			case "slack_im_channel_id":
+				return ec.fieldContext_Admin_slack_im_channel_id(ctx, field)
+			case "email_verified":
+				return ec.fieldContext_Admin_email_verified(ctx, field)
+			case "referral":
+				return ec.fieldContext_Admin_referral(ctx, field)
+			case "user_defined_role":
+				return ec.fieldContext_Admin_user_defined_role(ctx, field)
+			case "about_you_details_filled":
+				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
+			case "user_defined_persona":
+				return ec.fieldContext_Admin_user_defined_persona(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Admin", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkspaceAdminRole_role(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceAdminRole_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceAdminRole_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceAdminRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkspaceInviteLink_id(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_WorkspaceInviteLink_id(ctx, field)
 	if err != nil {
@@ -46124,28 +46100,28 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "name":
 
 			out.Values[i] = ec._Admin_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "uid":
 
 			out.Values[i] = ec._Admin_uid(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "email":
 
 			out.Values[i] = ec._Admin_email(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "phone":
 
@@ -46155,26 +46131,6 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Admin_photo_url(ctx, field, obj)
 
-		case "role":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Admin_role(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "slack_im_channel_id":
 
 			out.Values[i] = ec._Admin_slack_im_channel_id(ctx, field, obj)
@@ -48147,39 +48103,19 @@ func (ec *executionContext) _Metric(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Metric")
-		case "type":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Metric_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "name":
 
 			out.Values[i] = ec._Metric_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "value":
 
 			out.Values[i] = ec._Metric_value(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -52857,6 +52793,41 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var workspaceAdminRoleImplementors = []string{"WorkspaceAdminRole"}
+
+func (ec *executionContext) _WorkspaceAdminRole(ctx context.Context, sel ast.SelectionSet, obj *model1.WorkspaceAdminRole) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, workspaceAdminRoleImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkspaceAdminRole")
+		case "admin":
+
+			out.Values[i] = ec._WorkspaceAdminRole_admin(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "role":
+
+			out.Values[i] = ec._WorkspaceAdminRole_role(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var workspaceInviteLinkImplementors = []string{"WorkspaceInviteLink"}
 
 func (ec *executionContext) _WorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, obj *model1.WorkspaceInviteLink) graphql.Marshaler {
@@ -53296,42 +53267,14 @@ func (ec *executionContext) marshalNAccountDetailsMember2ᚖgithubᚗcomᚋhighl
 	return ec._AccountDetailsMember(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*model1.Admin) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
+func (ec *executionContext) marshalNAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *model1.Admin) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
 	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
+	return ec._Admin(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAdminAboutYouDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAdminAboutYouDetails(ctx context.Context, v interface{}) (model.AdminAboutYouDetails, error) {
@@ -55877,6 +55820,60 @@ func (ec *executionContext) marshalNWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑr
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNWorkspaceAdminRole2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkspaceAdminRole) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkspaceAdminRole2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkspaceAdminRole2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceAdminRole(ctx context.Context, sel ast.SelectionSet, v *model1.WorkspaceAdminRole) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._WorkspaceAdminRole(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNWorkspaceInviteLink2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, v model1.WorkspaceInviteLink) graphql.Marshaler {

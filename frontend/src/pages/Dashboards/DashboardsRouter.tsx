@@ -69,7 +69,7 @@ const DashboardsRouter = () => {
     return (
         <DashboardsContextProvider
             value={{
-                allAdmins: adminsData?.admins || [],
+                allAdmins: adminsData?.admins.map((wa) => wa.admin) || [],
                 dashboards: data?.dashboard_definitions || [],
                 updateDashboard: ({ id, name, metrics, layout }) => {
                     return upsertDashboardMutation({

@@ -4781,10 +4781,12 @@ export type GetSessionQueryResult = Apollo.QueryResult<
 export const GetWorkspaceAdminsByProjectIdDocument = gql`
     query GetWorkspaceAdminsByProjectId($project_id: ID!) {
         admins: workspace_admins_by_project_id(project_id: $project_id) {
-            id
-            name
-            email
-            photo_url
+            admin {
+                id
+                name
+                email
+                photo_url
+            }
             role
         }
     }
@@ -4841,10 +4843,12 @@ export type GetWorkspaceAdminsByProjectIdQueryResult = Apollo.QueryResult<
 export const GetWorkspaceAdminsDocument = gql`
     query GetWorkspaceAdmins($workspace_id: ID!) {
         admins: workspace_admins(workspace_id: $workspace_id) {
-            id
-            name
-            email
-            photo_url
+            admin {
+                id
+                name
+                email
+                photo_url
+            }
             role
         }
         workspace(id: $workspace_id) {
@@ -5445,7 +5449,9 @@ export const GetOnboardingStepsDocument = gql`
             slack_channels
         }
         admins: workspace_admins_by_project_id(project_id: $project_id) {
-            id
+            admin {
+                id
+            }
         }
         isIntegrated(project_id: $project_id)
         adminHasCreatedComment(admin_id: $admin_id)
@@ -6669,7 +6675,6 @@ export const GetAdminDocument = gql`
             phone
             photo_url
             slack_im_channel_id
-            role
             email_verified
             user_defined_role
             about_you_details_filled
@@ -9147,10 +9152,12 @@ export const GetAlertsPagePayloadDocument = gql`
             webhook_channel_id
         }
         admins: workspace_admins_by_project_id(project_id: $project_id) {
-            id
-            name
-            email
-            photo_url
+            admin {
+                id
+                name
+                email
+                photo_url
+            }
         }
         environment_suggestion(project_id: $project_id) {
             name
@@ -9416,10 +9423,12 @@ export type GetMetricMonitorsQueryResult = Apollo.QueryResult<
 export const GetCommentMentionSuggestionsDocument = gql`
     query GetCommentMentionSuggestions($project_id: ID!) {
         admins: workspace_admins_by_project_id(project_id: $project_id) {
-            id
-            name
-            email
-            photo_url
+            admin {
+                id
+                name
+                email
+                photo_url
+            }
         }
         slack_members(project_id: $project_id) {
             webhook_channel
