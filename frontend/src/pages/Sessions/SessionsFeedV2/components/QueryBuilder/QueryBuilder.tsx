@@ -18,7 +18,7 @@ import { GetHistogramBucketSize } from '@util/time';
 import { Checkbox } from 'antd';
 import classNames from 'classnames';
 import _ from 'lodash';
-import moment, { unitOfTime } from 'moment';
+import moment from 'moment';
 import React, {
     useCallback,
     useEffect,
@@ -241,10 +241,24 @@ const ScrolledTextHighlighter = ({
         />
     );
 };
+
+// Needed for back-compat purposes
+const getDurationFromValue = (value: string): moment.Duration => {
+    if (value === '7 days') {
+        return moment.duration(7, 'days');
+    } else if (value === '30 days') {
+        return moment.duration(30, 'days');
+    } else {
+        // value is a relative duration in ISO 8601 form
+        return moment.duration(value);
+    }
+};
+
 const getDateLabel = (value: string): string => {
     if (!value.includes('_')) {
-        // Value is a duration such as '7 days'
-        return 'Last ' + value;
+        // Value is a duration
+        const humanizedString = getDurationFromValue(value).humanize(); // 'a minute', 'a day', '7 days', etc
+        return 'Last ' + humanizedString.replace(/^a /, '');
     }
     const split = value.split('_');
     const start = split[0];
@@ -261,19 +275,14 @@ export const isAbsoluteTimeRange = (value?: string): boolean => {
 export const getAbsoluteStartTime = (value?: string): string | null => {
     if (!value) return null;
     if (!isAbsoluteTimeRange(value)) {
-        // value is a relative duration such as '7 days', subtract it from current time
-        const amount = parseInt(value.split(' ')[0]);
-        const unit = value.split(' ')[1].toLowerCase();
-        return moment()
-            .subtract(amount, unit as unitOfTime.DurationConstructor)
-            .toISOString();
+        return moment().subtract(getDurationFromValue(value)).toISOString();
     }
     return value!.split('_')[0];
 };
 export const getAbsoluteEndTime = (value?: string): string | null => {
     if (!value) return null;
     if (!isAbsoluteTimeRange(value)) {
-        // value is a relative duration such as '7 days', use current time as end of range
+        // value is a relative duration, use current time as end of range
         return moment().toISOString();
     }
     return value!.split('_')[1];
