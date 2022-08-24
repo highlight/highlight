@@ -421,6 +421,14 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
 			return err
 		}
+	case kafkaqueue.AddSessionFeedback:
+		if task.AddSessionFeedback == nil {
+			break
+		}
+		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
+			log.Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
+			return err
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}

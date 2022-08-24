@@ -68,16 +68,14 @@ type PushBackendPayloadArgs struct {
 }
 
 type PushMetricsArgs struct {
-	SecureID string
-	// TODO(vkorolik) to be deprecated, replaced by secure id session lookup
+	SecureID  string
 	SessionID int
 	ProjectID int
 	Metrics   []*customModels.MetricInput
 }
 
 type MarkBackendSetupArgs struct {
-	SecureID string
-	// TODO(vkorolik) to be deprecated, replaced by secure id session lookup
+	SecureID  string
 	ProjectID int
 }
 
