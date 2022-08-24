@@ -1256,7 +1256,15 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
+func (r *Resolver) MarkBackendSetupImpl(sessionSecureID string, projectID int) error {
+	if projectID == 0 {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "no session found for mark backend setup: %s", sessionSecureID))
+			return err
+		}
+		projectID = session.ProjectID
+	}
 	var backendSetupCount int64
 	if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
 		return e.Wrap(err, "error querying backend_setup flag")
@@ -1269,6 +1277,110 @@ func (r *Resolver) MarkBackendSetupImpl(projectID int) error {
 	return nil
 }
 
+func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queue.AddSessionFeedbackArgs) error {
+	metadata := make(map[string]interface{})
+
+	if input.UserName != nil {
+		metadata["name"] = *input.UserName
+	}
+	if input.UserEmail != nil {
+		metadata["email"] = *input.UserEmail
+	}
+	metadata["timestamp"] = input.Timestamp
+
+	session := &model.Session{}
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SecureID}).First(&session).Error; err != nil {
+		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
+	}
+
+	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
+	if err := r.DB.Create(feedbackComment).Error; err != nil {
+		return e.Wrap(err, "error creating session feedback")
+	}
+
+	var sessionFeedbackAlert model.SessionAlert
+	if err := r.DB.Raw(`
+			SELECT *
+			FROM session_alerts
+			WHERE project_id = ?
+				AND type = ?
+				AND disabled = false
+		`, session.ProjectID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"project_id": session.ProjectID, "secure_session_id": input.SecureID, "comment_id": feedbackComment.ID}).
+			Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+		return err
+	}
+
+	excludedEnvironments, err := sessionFeedbackAlert.GetExcludedEnvironments()
+	if err != nil {
+		log.Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
+		return err
+	}
+	for _, env := range excludedEnvironments {
+		if env != nil && *env == session.Environment {
+			return nil
+		}
+	}
+
+	commentsCount := int64(-1)
+	if sessionFeedbackAlert.ThresholdWindow == nil {
+		t := 30
+		sessionFeedbackAlert.ThresholdWindow = &t
+	}
+	if err := r.DB.Raw(`
+			SELECT COUNT(*)
+			FROM session_comments
+			WHERE project_id = ?
+				AND type = ?
+				AND created_at > ?
+		`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
+		time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
+		Scan(&commentsCount).Error; err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
+			Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
+		return err
+	}
+	if commentsCount+1 < int64(sessionFeedbackAlert.CountThreshold) {
+		return nil
+	}
+
+	var project model.Project
+	if err := r.DB.Raw(`
+			SELECT *
+			FROM projects
+			WHERE id = ?
+		`, session.ProjectID).Scan(&project).Error; err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
+			Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+		return err
+	}
+
+	identifier := "Someone"
+	if input.UserName != nil {
+		identifier = *input.UserName
+	} else if input.UserEmail != nil {
+		identifier = *input.UserEmail
+	}
+
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.WithError(err).
+			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+			Error(e.Wrap(err, "error fetching workspace"))
+	}
+
+	sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
+		Workspace:       workspace,
+		SessionSecureID: session.SecureID,
+		UserIdentifier:  identifier,
+		CommentID:       &feedbackComment.ID,
+		CommentText:     feedbackComment.Text,
+	})
+	return nil
+}
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionID", sessionID))
@@ -1682,18 +1794,11 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		session := &model.Session{}
-		if err := r.DB.Model(&session).Where(&model.Session{SecureID: secureID}).First(&session).Error; err != nil {
-			log.Error(e.Wrapf(err, "no session found for push metrics: %s", secureID))
-			continue
-		}
-
 		err := r.ProducerQueue.Submit(&kafka_queue.Message{
 			Type: kafka_queue.PushMetrics,
 			PushMetrics: &kafka_queue.PushMetricsArgs{
-				SessionID: session.ID,
-				ProjectID: session.ProjectID,
-				Metrics:   metrics,
+				SecureID: secureID,
+				Metrics:  metrics,
 			}}, secureID)
 		if err != nil {
 			log.Error(err)
@@ -1716,7 +1821,16 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(_ context.Context, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
+	if sessionID == 0 || projectID == 0 {
+		session := &model.Session{}
+		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+			log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
+			return err
+		}
+		sessionID = session.ID
+		projectID = session.ProjectID
+	}
 	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
 		group := ""

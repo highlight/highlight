@@ -57,10 +57,7 @@ import {
 } from './utils/sessionStorage/highlightSession';
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
-import {
-    getGraphQLRequestWrapper,
-    MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
-} from './utils/graph';
+import { getGraphQLRequestWrapper } from './utils/graph';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { MessageType, PropertyType, Source } from './workers/types';
 import { Logger } from './logger';
@@ -148,10 +145,6 @@ export class Highlight {
     sessionData!: SessionData;
     ready!: boolean;
     state!: 'NotRecording' | 'Recording';
-    /**
-     * The number of requests to public graph that have failed in a row.
-     */
-    numberOfFailedRequests!: number;
     logger!: Logger;
     fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
@@ -254,7 +247,6 @@ export class Highlight {
     }
 
     _initMembers(options: HighlightClassOptions) {
-        this.numberOfFailedRequests = 0;
         this.sessionShortcut = false;
         this._recordingStartTime = 0;
         this._isOnLocalHost = false;
@@ -461,18 +453,26 @@ export class Highlight {
         }
 
         try {
-            if (this.feedbackWidgetOptions.enabled) {
-                const {
-                    onToggleFeedbackFormVisibility,
-                } = initializeFeedbackWidget(this.feedbackWidgetOptions);
-                this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
-            }
             let storedSessionData = getPreviousSessionData();
             let reloaded = false;
             // only fetch session data from local storage on the first `initialize` call
             if (!this.sessionData.sessionSecureID && storedSessionData) {
                 this.sessionData = storedSessionData;
                 reloaded = true;
+            }
+            // disable recording for filtered projects while allowing for reloaded sessions
+            if (!reloaded && this.organizationID === '6glrjqg9') {
+                if (Math.random() > 0.1) {
+                    this._firstLoadListeners?.stopListening();
+                    return;
+                }
+            }
+
+            if (this.feedbackWidgetOptions.enabled) {
+                const {
+                    onToggleFeedbackFormVisibility,
+                } = initializeFeedbackWidget(this.feedbackWidgetOptions);
+                this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
             }
 
             const recordingStartTime = window.sessionStorage.getItem(
@@ -517,13 +517,6 @@ export class Highlight {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
             } else {
-                // disable recording for filtered projects while allowing for reloaded sessions
-                if (this.organizationID === '6glrjqg9') {
-                    if (Math.random() > 0.1) {
-                        this._firstLoadListeners?.stopListening();
-                        return;
-                    }
-                }
                 try {
                     const client = await this.fingerprintjs;
                     const fingerprint = await client.get();
@@ -565,7 +558,6 @@ export class Highlight {
                             this.sessionData.userObject
                         );
                     }
-                    this.numberOfFailedRequests = 0;
                     const { getDeviceDetails } = getPerformanceMethods();
                     if (getDeviceDetails) {
                         this._worker.postMessage({
@@ -587,7 +579,6 @@ export class Highlight {
                     if (this._isOnLocalHost) {
                         console.error(e);
                     }
-                    this.numberOfFailedRequests += 1;
                 }
             }
             this._worker.postMessage({
@@ -750,21 +741,20 @@ export class Highlight {
             this.listeners.push(
                 WebVitalsListener((data) => {
                     const { name, value } = data;
-                    try {
-                        this.graphqlSDK.pushMetrics({
+                    this._worker.postMessage({
+                        message: {
+                            type: MessageType.Metrics,
                             metrics: [
                                 {
                                     name,
                                     value,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
-                                    category: 'WebVital',
+                                    timestamp: new Date(),
                                     group: window.location.href,
-                                    timestamp: new Date().toISOString(),
+                                    category: 'WebVital',
                                 },
                             ],
-                        });
-                    } catch {}
+                        },
+                    });
                 })
             );
 
@@ -988,30 +978,22 @@ export class Highlight {
             if (!this.sessionData.sessionSecureID) {
                 return;
             }
-            try {
-                await this._sendPayload({ isBeacon: false });
-                this.hasPushedData = true;
-                this.numberOfFailedRequests = 0;
-                this.sessionData.lastPushTime = Date.now();
-                // Listeners are cleared when the user calls stop() manually.
-                if (this.listeners.length === 0) {
-                    return;
-                }
-                if (
-                    this.state === 'Recording' &&
-                    this.listeners &&
-                    this.sessionData.sessionStartTime &&
-                    Date.now() - this.sessionData.sessionStartTime >
-                        MAX_SESSION_LENGTH
-                ) {
-                    await this._reset();
-                    return;
-                }
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
+            await this._sendPayload({ isBeacon: false });
+            this.hasPushedData = true;
+            this.sessionData.lastPushTime = Date.now();
+            // Listeners are cleared when the user calls stop() manually.
+            if (this.listeners.length === 0) {
+                return;
+            }
+            if (
+                this.state === 'Recording' &&
+                this.listeners &&
+                this.sessionData.sessionStartTime &&
+                Date.now() - this.sessionData.sessionStartTime >
+                    MAX_SESSION_LENGTH
+            ) {
+                await this._reset();
+                return;
             }
         } catch (e) {
             if (this._isOnLocalHost) {

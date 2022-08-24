@@ -82,8 +82,8 @@ type MutationResolver interface {
 	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
 	PushBackendPayload(ctx context.Context, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
-	MarkBackendSetup(ctx context.Context, sessionSecureID string) (int, error)
-	AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (int, error)
+	MarkBackendSetup(ctx context.Context, sessionSecureID string) (string, error)
+	AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (string, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -450,14 +450,14 @@ type Mutation {
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     pushMetrics(metrics: [MetricInput]!): Int!
-    markBackendSetup(session_secure_id: String!): ID!
+    markBackendSetup(session_secure_id: String!): String!
     addSessionFeedback(
         session_secure_id: String!
         user_name: String
         user_email: String
         verbatim: String!
         timestamp: Timestamp!
-    ): ID!
+    ): String!
 }
 
 type Query {
@@ -1428,9 +1428,9 @@ func (ec *executionContext) _Mutation_markBackendSetup(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_markBackendSetup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1440,7 +1440,7 @@ func (ec *executionContext) fieldContext_Mutation_markBackendSetup(ctx context.C
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
@@ -1483,9 +1483,9 @@ func (ec *executionContext) _Mutation_addSessionFeedback(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addSessionFeedback(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1495,7 +1495,7 @@ func (ec *executionContext) fieldContext_Mutation_addSessionFeedback(ctx context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
