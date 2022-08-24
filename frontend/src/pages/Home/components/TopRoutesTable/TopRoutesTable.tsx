@@ -8,16 +8,19 @@ import { useGetNetworkHistogramQuery } from '@graph/hooks';
 import { NetworkRequestAttribute } from '@graph/schemas';
 import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
-import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './TopRoutesTable.module.scss';
 
-const TopRoutesTable = () => {
+const TopRoutesTable = ({
+    setUpdatingData,
+}: {
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -38,20 +41,16 @@ const TopRoutesTable = () => {
         },
     });
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
     }
 
     return (
-        <Card
-            title={
-                <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3 id={homePageStyles.h3}>Top Routes</h3>
-                </div>
-            }
-            noTitleBottomMargin
-            full
-        >
+        <Card full>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}

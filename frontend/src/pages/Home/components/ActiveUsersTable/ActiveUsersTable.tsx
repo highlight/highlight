@@ -17,20 +17,23 @@ import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import Input from '../../../../components/Input/Input';
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
 import styles from './ActiveUsersTable.module.scss';
 
-const ActiveUsersTable = () => {
+const ActiveUsersTable = ({
+    filterSearchTerm,
+    setUpdatingData,
+}: {
+    filterSearchTerm: string;
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const [tableData, setTableData] = useState<any[]>([]);
     const { project_id } = useParams<{
         project_id: string;
@@ -47,7 +50,6 @@ const ActiveUsersTable = () => {
     } = useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
-    const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetTopUsersQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },
@@ -70,6 +72,10 @@ const ActiveUsersTable = () => {
         },
     });
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     const filteredTableData = useMemo(() => {
         if (filterSearchTerm === '') {
             return tableData;
@@ -85,32 +91,7 @@ const ActiveUsersTable = () => {
     }
 
     return (
-        <Card
-            title={
-                <div
-                    className={classNames(
-                        homePageStyles.chartHeaderWrapper,
-                        homePageStyles.smallMargin
-                    )}
-                >
-                    <h3 id={homePageStyles.h3}>Top Users</h3>
-                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
-                        <Input
-                            allowClear
-                            placeholder="Search for user"
-                            value={filterSearchTerm}
-                            onChange={(event) => {
-                                setFilterSearchTerm(event.target.value);
-                            }}
-                            size="small"
-                            disabled={loading}
-                        />
-                    </div>
-                </div>
-            }
-            noTitleBottomMargin
-            full
-        >
+        <Card full>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}

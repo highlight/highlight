@@ -10,13 +10,12 @@ import {
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetReferrersCountQuery } from '@graph/hooks';
 import SvgReferrer from '@icons/Referrer';
-import homePageStyles from '@pages/Home/HomePage.module.scss';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
@@ -24,7 +23,11 @@ import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBa
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
-const ReferrersTable = () => {
+const ReferrersTable = ({
+    setUpdatingData,
+}: {
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const [tableData, setTableData] = useState<any[]>([]);
     const { project_id } = useParams<{
         project_id: string;
@@ -60,20 +63,16 @@ const ReferrersTable = () => {
         },
     });
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
     }
 
     return (
-        <Card
-            title={
-                <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3 id={homePageStyles.h3}>Top Referrers</h3>
-                </div>
-            }
-            noTitleBottomMargin
-            full
-        >
+        <Card full>
             <ProgressBarTable
                 columns={Columns}
                 data={tableData}

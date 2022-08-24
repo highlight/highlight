@@ -115,14 +115,20 @@ const HomePage = () => {
                             />
                         </div>
                     </div>
-                    <KeyPerformanceIndicators />
+                    <KeyPerformanceIndicators setUpdatingData={() => {}} />
                     <div className={styles.dashboardBody}>
                         <SessionCountGraph />
                         <ErrorCountGraph />
-                        <ReferrersTable />
-                        <ActiveUsersTable />
-                        <RageClicksForProjectTable />
-                        <TopRoutesTable />
+                        <ReferrersTable setUpdatingData={() => {}} />
+                        <ActiveUsersTable
+                            setUpdatingData={() => {}}
+                            filterSearchTerm={''}
+                        />
+                        <RageClicksForProjectTable
+                            setUpdatingData={() => {}}
+                            filterSearchTerm={''}
+                        />
+                        <TopRoutesTable setUpdatingData={() => {}} />
                     </div>
                     {!hasData && !integrated && (
                         <div className={styles.noDataContainer}>

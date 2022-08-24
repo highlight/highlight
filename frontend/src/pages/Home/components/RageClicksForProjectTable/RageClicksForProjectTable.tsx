@@ -15,19 +15,22 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
-import Input from '../../../../components/Input/Input';
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './RageClicksForProjectTable.module.scss';
 
-const RageClicksForProjectTable = () => {
+const RageClicksForProjectTable = ({
+    filterSearchTerm,
+    setUpdatingData,
+}: {
+    filterSearchTerm: string;
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const [tableData, setTableData] = useState<
         {
             key: string;
@@ -52,7 +55,6 @@ const RageClicksForProjectTable = () => {
     } = useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
-    const [filterSearchTerm, setFilterSearchTerm] = useState('');
 
     const { loading } = useGetRageClicksForProjectQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },
@@ -83,36 +85,16 @@ const RageClicksForProjectTable = () => {
         });
     }, [filterSearchTerm, tableData]);
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
     }
 
     return (
-        <Card
-            title={
-                <div
-                    className={classNames(
-                        homePageStyles.chartHeaderWrapper,
-                        homePageStyles.smallMargin
-                    )}
-                >
-                    <h3 id={homePageStyles.h3}>Rage Clicks</h3>
-                    <div style={{ paddingRight: 'var(--size-xxLarge)' }}>
-                        <Input
-                            allowClear
-                            placeholder="Search for user"
-                            value={filterSearchTerm}
-                            onChange={(event) => {
-                                setFilterSearchTerm(event.target.value);
-                            }}
-                            size="small"
-                            disabled={loading}
-                        />
-                    </div>
-                </div>
-            }
-            full
-        >
+        <Card full>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}

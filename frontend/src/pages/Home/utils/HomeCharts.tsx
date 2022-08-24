@@ -35,7 +35,11 @@ export const HomePageTimeFilter = [
     { label: 'This year', value: 30 * 12 },
 ] as const;
 
-export const SessionCountGraph = () => {
+export const SessionCountGraph = ({
+    setUpdatingData,
+}: {
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -93,10 +97,14 @@ export const SessionCountGraph = () => {
         refetch();
     }, [refetch, project_id]);
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Sessions" full>
+        <Card full>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -122,7 +130,11 @@ export const SessionCountGraph = () => {
     );
 };
 
-export const ErrorCountGraph = () => {
+export const ErrorCountGraph = ({
+    setUpdatingData,
+}: {
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const { project_id } = useParams<{
         project_id: string;
     }>();
@@ -166,10 +178,14 @@ export const ErrorCountGraph = () => {
         },
     });
 
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
+
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
-        <Card title="Errors" full>
+        <Card full>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}

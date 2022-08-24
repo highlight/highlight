@@ -7,7 +7,7 @@ import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchPa
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
@@ -15,7 +15,11 @@ import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceInd
 import styles from './KeyPerformanceIndicators.module.scss';
 import { formatLongNumber, formatShortTime } from './utils/utils';
 
-const KeyPerformanceIndicators = () => {
+const KeyPerformanceIndicators = ({
+    setUpdatingData,
+}: {
+    setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
     const { project_id } = useParams<{ project_id: string }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -33,6 +37,10 @@ const KeyPerformanceIndicators = () => {
             lookBackPeriod: dateRangeLength,
         },
     });
+
+    useEffect(() => {
+        setUpdatingData(loading);
+    }, [setUpdatingData, loading]);
 
     return (
         <div className={styles.keyPerformanceIndicatorsContainer}>
