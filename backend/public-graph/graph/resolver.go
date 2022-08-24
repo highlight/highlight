@@ -1291,10 +1291,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		userProperties["email"] = userIdentifier
 	}
 
-	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
-		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
-	}
-
 	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
@@ -1322,6 +1318,9 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	// set user properties to session in db
 	if err := session.SetUserProperties(userObj); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
+	}
+	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
+		log.Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 	setUserPropsSpan.Finish()
 
