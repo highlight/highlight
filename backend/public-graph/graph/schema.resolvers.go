@@ -28,29 +28,29 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	projectID, err := model.FromVerboseID(organizationVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
-		return nil, err
+	} else {
+		err = r.ProducerQueue.Submit(&kafkaqueue.Message{
+			Type: kafkaqueue.InitializeSession,
+			InitializeSession: &kafkaqueue.InitializeSessionArgs{
+				SessionSecureID:                sessionSecureID,
+				ProjectVerboseID:               organizationVerboseID,
+				EnableStrictPrivacy:            enableStrictPrivacy,
+				EnableRecordingNetworkContents: enableRecordingNetworkContents,
+				ClientVersion:                  clientVersion,
+				FirstloadVersion:               firstloadVersion,
+				ClientConfig:                   clientConfig,
+				Environment:                    environment,
+				AppVersion:                     appVersion,
+				Fingerprint:                    fingerprint,
+				UserAgent:                      userAgentString,
+				AcceptLanguage:                 acceptLanguageString,
+				IP:                             ip,
+				ClientID:                       clientID,
+			},
+		}, sessionSecureID)
 	}
-	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("session_secure_id:%s", sessionSecureID)}, 1)
 
-	err = r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.InitializeSession,
-		InitializeSession: &kafkaqueue.InitializeSessionArgs{
-			SessionSecureID:                sessionSecureID,
-			ProjectVerboseID:               organizationVerboseID,
-			EnableStrictPrivacy:            enableStrictPrivacy,
-			EnableRecordingNetworkContents: enableRecordingNetworkContents,
-			ClientVersion:                  clientVersion,
-			FirstloadVersion:               firstloadVersion,
-			ClientConfig:                   clientConfig,
-			Environment:                    environment,
-			AppVersion:                     appVersion,
-			Fingerprint:                    fingerprint,
-			UserAgent:                      userAgentString,
-			AcceptLanguage:                 acceptLanguageString,
-			IP:                             ip,
-			ClientID:                       clientID,
-		},
-	}, sessionSecureID)
+	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
 
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,
