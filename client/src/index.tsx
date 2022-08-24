@@ -517,68 +517,62 @@ export class Highlight {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
             } else {
-                try {
-                    const client = await this.fingerprintjs;
-                    const fingerprint = await client.get();
-                    const gr = await this.graphqlSDK.initializeSession({
-                        organization_verbose_id: this.organizationID,
-                        enable_strict_privacy: this.enableStrictPrivacy,
-                        enable_recording_network_contents: this
-                            ._firstLoadListeners.enableRecordingNetworkContents,
-                        clientVersion: packageJson['version'],
-                        firstloadVersion: this.firstloadVersion,
-                        clientConfig: JSON.stringify(this._optionsInternal),
-                        environment: this.environment,
-                        id: fingerprint.visitorId,
-                        appVersion: this.appVersion,
-                        session_secure_id: this.options.sessionSecureID,
-                        client_id: clientID,
+                const client = await this.fingerprintjs;
+                const fingerprint = await client.get();
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
+                    enable_recording_network_contents: this._firstLoadListeners
+                        .enableRecordingNetworkContents,
+                    clientVersion: packageJson['version'],
+                    firstloadVersion: this.firstloadVersion,
+                    clientConfig: JSON.stringify(this._optionsInternal),
+                    environment: this.environment,
+                    id: fingerprint.visitorId,
+                    appVersion: this.appVersion,
+                    session_secure_id: this.options.sessionSecureID,
+                    client_id: clientID,
+                });
+                this.sessionData.sessionSecureID = this.options.sessionSecureID;
+                window.sessionStorage.setItem(
+                    SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
+                    this.sessionData.sessionSecureID
+                );
+                this.sessionData.projectID = parseInt(
+                    gr?.initializeSession?.project_id || '0'
+                );
+                this.logger.log(
+                    `Loaded Highlight
+Remote: ${publicGraphURI}
+Friendly Project ID: ${this.organizationID}
+Short Project ID: ${this.sessionData.projectID}
+SessionSecureID: ${this.sessionData.sessionSecureID}
+Session Data:
+`,
+                    gr.initializeSession
+                );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
+                const { getDeviceDetails } = getPerformanceMethods();
+                if (getDeviceDetails) {
+                    this._worker.postMessage({
+                        message: {
+                            type: MessageType.Metrics,
+                            metrics: [
+                                {
+                                    name: 'DeviceMemory',
+                                    value: getDeviceDetails().deviceMemory,
+                                    category: 'Device',
+                                    group: window.location.href,
+                                    timestamp: new Date(),
+                                },
+                            ],
+                        },
                     });
-                    this.sessionData.sessionSecureID = this.options.sessionSecureID;
-                    window.sessionStorage.setItem(
-                        SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-                        this.sessionData.sessionSecureID
-                    );
-                    this.sessionData.projectID = parseInt(
-                        gr?.initializeSession?.project_id || '0'
-                    );
-                    this.logger.log(
-                        `Loaded Highlight
-  Remote: ${publicGraphURI}
-  Friendly Project ID: ${this.organizationID}
-  Short Project ID: ${this.sessionData.projectID}
-  SessionSecureID: ${this.sessionData.sessionSecureID}
-  Session Data:
-  `,
-                        gr.initializeSession
-                    );
-                    if (this.sessionData.userIdentifier) {
-                        this.identify(
-                            this.sessionData.userIdentifier,
-                            this.sessionData.userObject
-                        );
-                    }
-                    const { getDeviceDetails } = getPerformanceMethods();
-                    if (getDeviceDetails) {
-                        this._worker.postMessage({
-                            message: {
-                                type: MessageType.Metrics,
-                                metrics: [
-                                    {
-                                        name: 'DeviceMemory',
-                                        value: getDeviceDetails().deviceMemory,
-                                        category: 'Device',
-                                        group: window.location.href,
-                                        timestamp: new Date(),
-                                    },
-                                ],
-                            },
-                        });
-                    }
-                } catch (e) {
-                    if (this._isOnLocalHost) {
-                        console.error(e);
-                    }
                 }
             }
             this._worker.postMessage({

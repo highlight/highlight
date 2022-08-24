@@ -103,11 +103,11 @@ func New(topic string, mode Mode) *Queue {
 				Configs: []kafka.AlterConfigRequestConfig{
 					{
 						Name:  "retention.ms",
-						Value: strconv.FormatInt((time.Hour * 12).Milliseconds(), 10),
+						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
 					},
 					{
 						Name:  "delete.retention.ms",
-						Value: strconv.FormatInt((time.Hour * 12).Milliseconds(), 10),
+						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
 					},
 				},
 			},
@@ -219,7 +219,7 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 		},
 	)
 	if err != nil {
-		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
+		log.Errorf("failed to send message, size %d, key %s, type %d, err %s", size.Of(msgBytes), partitionKey, msg.Type, err.Error())
 		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
