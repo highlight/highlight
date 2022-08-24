@@ -2571,3 +2571,15 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 	}
 	return
 }
+
+func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
+	return &opensearch.DateHistogramAggregation{
+		Field:            field,
+		CalendarInterval: histogramOptions.CalendarInterval,
+		SortOrder:        "asc",
+		Format:           "epoch_millis",
+		SubAggregation:   subAggregation,
+		TimeZone:         histogramOptions.TimeZone,
+		MinDocCount:      pointy.Int(0),
+	}
+}

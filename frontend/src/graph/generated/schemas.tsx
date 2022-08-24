@@ -633,6 +633,12 @@ export type SessionsHistogram = {
     total_sessions: Array<Scalars['Int64']>;
 };
 
+export type ErrorsHistogram = {
+    __typename?: 'ErrorsHistogram';
+    bucket_start_times: Array<Scalars['Timestamp']>;
+    total_error_objects: Array<Scalars['Int64']>;
+};
+
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
@@ -644,6 +650,7 @@ export type ErrorResults = {
     __typename?: 'ErrorResults';
     error_groups: Array<ErrorGroup>;
     totalCount: Scalars['Int64'];
+    histogram?: Maybe<ErrorsHistogram>;
 };
 
 export type ExternalAttachment = {
@@ -1018,7 +1025,7 @@ export type Query = {
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
-    sessions_opensearch?: Maybe<SessionResults>;
+    sessions_opensearch: SessionResults;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
     error_fields_opensearch: Array<Scalars['String']>;
@@ -1107,6 +1114,7 @@ export type QueryError_Groups_OpensearchArgs = {
     count: Scalars['Int'];
     query: Scalars['String'];
     page?: Maybe<Scalars['Int']>;
+    histogram_options?: Maybe<DateHistogramOptions>;
 };
 
 export type QueryError_GroupArgs = {

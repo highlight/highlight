@@ -611,6 +611,7 @@ query GetErrorGroupsOpenSearch(
     $count: Int!
     $query: String!
     $page: Int
+    $histogram_options: DateHistogramOptions = null
 ) {
     error_groups_opensearch(
         project_id: $project_id
@@ -637,6 +638,10 @@ query GetErrorGroupsOpenSearch(
             error_frequency
         }
         totalCount
+        histogram {
+            bucket_start_times
+            total_error_objects
+        }
     }
 }
 

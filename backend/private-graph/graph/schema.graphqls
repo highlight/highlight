@@ -580,6 +580,11 @@ type SessionsHistogram {
     total_sessions: [Int64!]!
 }
 
+type ErrorsHistogram {
+    bucket_start_times: [Timestamp!]!
+    total_error_objects: [Int64!]!
+}
+
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
@@ -589,6 +594,7 @@ type SessionResults {
 type ErrorResults {
     error_groups: [ErrorGroup!]!
     totalCount: Int64!
+    histogram: ErrorsHistogram
 }
 
 # 2 way connector type between highlight objects and external integration objects
@@ -922,6 +928,7 @@ type Query {
         count: Int!
         query: String!
         page: Int
+        histogram_options: DateHistogramOptions
     ): ErrorResults!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
@@ -980,7 +987,7 @@ type Query {
         sort_desc: Boolean!
         page: Int
         histogram_options: DateHistogramOptions
-    ): SessionResults
+    ): SessionResults!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
         project_id: ID!

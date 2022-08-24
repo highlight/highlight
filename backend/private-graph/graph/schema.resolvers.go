@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3431,7 +3431,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, histogramOptions *modelInputs.DateHistogramOptions) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3449,8 +3449,11 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
+	if histogramOptions != nil {
+		options.Aggregation = GetDateHistogramAggregation(*histogramOptions, "error-field_timestamp", nil)
+	}
 
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3464,10 +3467,30 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	return &model.ErrorResults{
+	returnValue := &model.ErrorResults{
 		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
 		TotalCount:  resultCount,
-	}, nil
+	}
+
+	if histogramOptions != nil {
+		bucket_start_times, total_counts := []time.Time{}, []int64{}
+		for _, date_bucket := range aggs {
+			unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+			if err != nil {
+				log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+				break
+			}
+			bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
+			total_counts = append(total_counts, date_bucket.DocCount)
+		}
+
+		returnValue.Histogram = &model.ErrorsHistogram{
+			BucketStartTimes:  bucket_start_times,
+			TotalErrorObjects: total_counts,
+		}
+	}
+
+	return returnValue, nil
 }
 
 // ErrorGroup is the resolver for the error_group field.
@@ -4261,18 +4284,11 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}
 
 	if histogramOptions != nil {
-		options.Aggregation = &opensearch.DateHistogramAggregation{
-			Field:            "created_at",
-			CalendarInterval: histogramOptions.CalendarInterval,
-			SortOrder:        "asc",
-			Format:           "epoch_millis",
-			SubAggregation: &opensearch.TermsAggregation{
+		options.Aggregation = GetDateHistogramAggregation(*histogramOptions, "created_at",
+			&opensearch.TermsAggregation{
 				Field:   "has_errors",
 				Missing: ptr.String("false"),
-			},
-			TimeZone:    histogramOptions.TimeZone,
-			MinDocCount: pointy.Int(0),
-		}
+			})
 	}
 
 	if page != nil {
@@ -4350,7 +4366,6 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 			SessionsWithErrors:    with_errors_counts,
 			TotalSessions:         total_counts,
 		}
-
 	}
 
 	return returnValue, nil

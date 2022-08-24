@@ -6071,6 +6071,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
         $count: Int!
         $query: String!
         $page: Int
+        $histogram_options: DateHistogramOptions = null
     ) {
         error_groups_opensearch(
             project_id: $project_id
@@ -6097,6 +6098,10 @@ export const GetErrorGroupsOpenSearchDocument = gql`
                 error_frequency
             }
             totalCount
+            histogram {
+                bucket_start_times
+                total_error_objects
+            }
         }
     }
 `;
@@ -6117,6 +6122,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      page: // value for 'page'
+ *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */
