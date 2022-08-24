@@ -1028,6 +1028,8 @@ type Query {
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
+    admin_role(workspace_id: ID!): WorkspaceAdminRole
+    admin_role_by_project(project_id: ID!): WorkspaceAdminRole
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID

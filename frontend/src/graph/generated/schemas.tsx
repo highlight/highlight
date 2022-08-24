@@ -1044,6 +1044,8 @@ export type Query = {
     workspace_invite_links: WorkspaceInviteLink;
     workspace_for_project?: Maybe<Workspace>;
     admin?: Maybe<Admin>;
+    admin_role?: Maybe<WorkspaceAdminRole>;
+    admin_role_by_project?: Maybe<WorkspaceAdminRole>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     api_key_to_org_id?: Maybe<Scalars['ID']>;
@@ -1365,6 +1367,14 @@ export type QueryWorkspace_Invite_LinksArgs = {
 };
 
 export type QueryWorkspace_For_ProjectArgs = {
+    project_id: Scalars['ID'];
+};
+
+export type QueryAdmin_RoleArgs = {
+    workspace_id: Scalars['ID'];
+};
+
+export type QueryAdmin_Role_By_ProjectArgs = {
     project_id: Scalars['ID'];
 };
 

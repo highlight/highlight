@@ -3827,7 +3827,7 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 		return nil, nil
 	}
 
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, nil
 	}
@@ -5244,6 +5244,50 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	}
 	adminSpan.Finish()
 	return admin, nil
+}
+
+// AdminRole is the resolver for the admin_role field.
+func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.WorkspaceAdminRole, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := r.GetAdminRole(admin.ID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.WorkspaceAdminRole{
+		Admin: admin,
+		Role:  role,
+	}, nil
+}
+
+// AdminRoleByProject is the resolver for the admin_role_by_project field.
+func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (*model.WorkspaceAdminRole, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := r.GetAdminRole(admin.ID, workspace.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.WorkspaceAdminRole{
+		Admin: admin,
+		Role:  role,
+	}, nil
 }
 
 // Segments is the resolver for the segments field.

@@ -26,34 +26,32 @@ interface AuthorizationInterface {
  * Used to check if the current `Admin` is authorized.
  */
 export const useAuthorization = (): AuthorizationInterface => {
-    const { admin } = useAuthContext();
+    const { admin, workspaceRole } = useAuthContext();
 
     const checkRoleAccess = React.useCallback(
         ({ allowedRoles }: { allowedRoles: AdminRole[] }) => {
-            if (!admin) {
+            if (!workspaceRole) {
                 return false;
             }
             if (allowedRoles && allowedRoles.length > 0) {
                 // @ts-expect-error
-                return allowedRoles?.includes(admin.role);
+                return allowedRoles?.includes(workspaceRole);
             }
 
             return false;
         },
-        [admin]
+        [workspaceRole]
     );
 
     const checkPolicyAccess = React.useCallback(
         ({ policyName }: { policyName: PolicyName }) => {
-            if (!admin) {
+            if (!admin || !workspaceRole) {
                 return false;
             }
 
-            // TODO(vkorolik)
-            return false;
-            // return AUTHORIZATION_POLICIES[policyName](admin);
+            return AUTHORIZATION_POLICIES[policyName](admin, workspaceRole);
         },
-        [admin]
+        [admin, workspaceRole]
     );
 
     return { checkRoleAccess, checkPolicyAccess };

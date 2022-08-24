@@ -1,7 +1,8 @@
 import * as Types from './operations';
 
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import { gql } from '@apollo/client';
+
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
         events
@@ -6719,6 +6720,7 @@ export function useGetAdminLazyQuery(
         Types.GetAdminQueryVariables
     >(GetAdminDocument, baseOptions);
 }
+
 export type GetAdminQueryHookResult = ReturnType<typeof useGetAdminQuery>;
 export type GetAdminLazyQueryHookResult = ReturnType<
     typeof useGetAdminLazyQuery
@@ -6726,6 +6728,146 @@ export type GetAdminLazyQueryHookResult = ReturnType<
 export type GetAdminQueryResult = Apollo.QueryResult<
     Types.GetAdminQuery,
     Types.GetAdminQueryVariables
+>;
+export const GetAdminRoleDocument = gql`
+    query GetAdminRole($workspace_id: ID!) {
+        admin_role(workspace_id: $workspace_id) {
+            admin {
+                id
+                uid
+                name
+                email
+                phone
+                photo_url
+                slack_im_channel_id
+                email_verified
+                user_defined_role
+                about_you_details_filled
+            }
+            role
+        }
+    }
+`;
+
+/**
+ * __useGetAdminRoleQuery__
+ *
+ * To run a query within a React component, call `useGetAdminRoleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAdminRoleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAdminRoleQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetAdminRoleQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAdminRoleQuery,
+        Types.GetAdminRoleQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAdminRoleQuery,
+        Types.GetAdminRoleQueryVariables
+    >(GetAdminRoleDocument, baseOptions);
+}
+
+export function useGetAdminRoleLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAdminRoleQuery,
+        Types.GetAdminRoleQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAdminRoleQuery,
+        Types.GetAdminRoleQueryVariables
+    >(GetAdminRoleDocument, baseOptions);
+}
+
+export type GetAdminRoleQueryHookResult = ReturnType<
+    typeof useGetAdminRoleQuery
+>;
+export type GetAdminRoleLazyQueryHookResult = ReturnType<
+    typeof useGetAdminRoleLazyQuery
+>;
+export type GetAdminRoleQueryResult = Apollo.QueryResult<
+    Types.GetAdminRoleQuery,
+    Types.GetAdminRoleQueryVariables
+>;
+export const GetAdminRoleByProjectDocument = gql`
+    query GetAdminRoleByProject($project_id: ID!) {
+        admin_role_by_project(project_id: $project_id) {
+            admin {
+                id
+                uid
+                name
+                email
+                phone
+                photo_url
+                slack_im_channel_id
+                email_verified
+                user_defined_role
+                about_you_details_filled
+            }
+            role
+        }
+    }
+`;
+
+/**
+ * __useGetAdminRoleByProjectQuery__
+ *
+ * To run a query within a React component, call `useGetAdminRoleByProjectQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAdminRoleByProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAdminRoleByProjectQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetAdminRoleByProjectQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAdminRoleByProjectQuery,
+        Types.GetAdminRoleByProjectQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAdminRoleByProjectQuery,
+        Types.GetAdminRoleByProjectQueryVariables
+    >(GetAdminRoleByProjectDocument, baseOptions);
+}
+
+export function useGetAdminRoleByProjectLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAdminRoleByProjectQuery,
+        Types.GetAdminRoleByProjectQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAdminRoleByProjectQuery,
+        Types.GetAdminRoleByProjectQueryVariables
+    >(GetAdminRoleByProjectDocument, baseOptions);
+}
+
+export type GetAdminRoleByProjectQueryHookResult = ReturnType<
+    typeof useGetAdminRoleByProjectQuery
+>;
+export type GetAdminRoleByProjectLazyQueryHookResult = ReturnType<
+    typeof useGetAdminRoleByProjectLazyQuery
+>;
+export type GetAdminRoleByProjectQueryResult = Apollo.QueryResult<
+    Types.GetAdminRoleByProjectQuery,
+    Types.GetAdminRoleByProjectQueryVariables
 >;
 export const GetAdminAboutYouDocument = gql`
     query GetAdminAboutYou {

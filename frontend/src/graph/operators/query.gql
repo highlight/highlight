@@ -773,6 +773,42 @@ query GetAdmin {
     }
 }
 
+query GetAdminRole($workspace_id: ID!) {
+    admin_role(workspace_id: $workspace_id) {
+        admin {
+            id
+            uid
+            name
+            email
+            phone
+            photo_url
+            slack_im_channel_id
+            email_verified
+            user_defined_role
+            about_you_details_filled
+        }
+        role
+    }
+}
+
+query GetAdminRoleByProject($project_id: ID!) {
+    admin_role_by_project(project_id: $project_id) {
+        admin {
+            id
+            uid
+            name
+            email
+            phone
+            photo_url
+            slack_im_channel_id
+            email_verified
+            user_defined_role
+            about_you_details_filled
+        }
+        role
+    }
+}
+
 query GetAdminAboutYou {
     admin {
         id

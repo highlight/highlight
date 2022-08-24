@@ -2627,6 +2627,60 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetAdminRoleQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetAdminRoleQuery = { __typename?: 'Query' } & {
+    admin_role?: Types.Maybe<
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    | 'id'
+                    | 'uid'
+                    | 'name'
+                    | 'email'
+                    | 'phone'
+                    | 'photo_url'
+                    | 'slack_im_channel_id'
+                    | 'email_verified'
+                    | 'user_defined_role'
+                    | 'about_you_details_filled'
+                >;
+            }
+    >;
+};
+
+export type GetAdminRoleByProjectQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetAdminRoleByProjectQuery = { __typename?: 'Query' } & {
+    admin_role_by_project?: Types.Maybe<
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    | 'id'
+                    | 'uid'
+                    | 'name'
+                    | 'email'
+                    | 'phone'
+                    | 'photo_url'
+                    | 'slack_im_channel_id'
+                    | 'email_verified'
+                    | 'user_defined_role'
+                    | 'about_you_details_filled'
+                >;
+            }
+    >;
+};
+
 export type GetAdminAboutYouQueryVariables = Types.Exact<{
     [key: string]: never;
 }>;
@@ -3884,6 +3938,8 @@ export const namedOperations = {
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
+        GetAdminRole: 'GetAdminRole' as const,
+        GetAdminRoleByProject: 'GetAdminRoleByProject' as const,
         GetAdminAboutYou: 'GetAdminAboutYou' as const,
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,
