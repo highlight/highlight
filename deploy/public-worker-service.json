@@ -193,9 +193,12 @@
         }
     ],
     "placementConstraints": [],
-    "memory": "4096",
+    "memory": "8192",
     "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
-    "compatibilities": ["EC2", "FARGATE"],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
     "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-worker-service:1",
     "family": "public-worker-service",
     "requiresAttributes": [
