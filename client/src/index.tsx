@@ -460,13 +460,6 @@ export class Highlight {
             return;
         }
 
-        if (this.organizationID === '6glrjqg9') {
-            if (Math.random() > 0.1) {
-                this._firstLoadListeners?.stopListening();
-                return;
-            }
-        }
-
         try {
             if (this.feedbackWidgetOptions.enabled) {
                 const {
@@ -524,6 +517,13 @@ export class Highlight {
                 // set the session storage secure id in the options in case anything refers to that
                 this.options.sessionSecureID = this.sessionData.sessionSecureID;
             } else {
+                // disable recording for filtered projects while allowing for reloaded sessions
+                if (this.organizationID === '6glrjqg9') {
+                    if (Math.random() > 0.1) {
+                        this._firstLoadListeners?.stopListening();
+                        return;
+                    }
+                }
                 try {
                     const client = await this.fingerprintjs;
                     const fingerprint = await client.get();
