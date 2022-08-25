@@ -4198,19 +4198,6 @@
   dependencies:
     react "^16.7.0-alpha.0"
 
-"@rollup/plugin-commonjs@^22.0.1":
-  version "22.0.1"
-  resolved "https://registry.yarnpkg.com/@rollup/plugin-commonjs/-/plugin-commonjs-22.0.1.tgz#f7cb777d20de3eeeaf994f39080115c336bef810"
-  integrity sha512-dGfEZvdjDHObBiP5IvwTKMVeq/tBZGMBHZFMdIV1ClMM/YoWS34xrHFGfag9SN2ZtMgNZRFruqvxZQEa70O6nQ==
-  dependencies:
-    "@rollup/pluginutils" "^3.1.0"
-    commondir "^1.0.1"
-    estree-walker "^2.0.1"
-    glob "^7.1.6"
-    is-reference "^1.2.1"
-    magic-string "^0.25.7"
-    resolve "^1.17.0"
-
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-7.1.3.tgz#80de384edfbd7bfc9101164910f86078151a3eca"
@@ -4226,14 +4213,6 @@
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-replace/-/plugin-replace-2.4.2.tgz#a2d539314fbc77c244858faa523012825068510a"
   integrity sha512-IGcu+cydlUMZ5En85jxHH4qj2hta/11BHq95iHEyb2sbgiN0eCdzvUcHw5gt9pBL5lTi4JDYJ1acCoMGpTvEZg==
-  dependencies:
-    "@rollup/pluginutils" "^3.1.0"
-    magic-string "^0.25.7"
-
-"@rollup/plugin-replace@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@rollup/plugin-replace/-/plugin-replace-4.0.0.tgz#e34c457d6a285f0213359740b43f39d969b38a67"
-  integrity sha512-+rumQFiaNac9y64OHtkHGmdjm7us9bo1PlbgQfdihQtuNxzjpaB064HbRnewUOggLQxVCCyINfStkgmBeQpv1g==
   dependencies:
     "@rollup/pluginutils" "^3.1.0"
     magic-string "^0.25.7"
@@ -9041,11 +9020,6 @@ estree-walker@^1.0.1:
   resolved "https://registry.yarnpkg.com/estree-walker/-/estree-walker-1.0.1.tgz#31bc5d612c96b704106b477e6dd5d8aa138cb700"
   integrity sha512-1fMXF3YP4pZZVozF8j/ZLfvnR8NSIljt56UhbZ5PeeDmmGHpgpdwQt7ITlGvYaQukCvuBRMLEiKiYC+oeIg4cg==
 
-estree-walker@^2.0.1:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/estree-walker/-/estree-walker-2.0.2.tgz#52f010178c2a4c117a7757cfe942adb7d2da4cac"
-  integrity sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==
-
 esutils@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.3.tgz#74d2eb4de0b8da1293711910d50775b9b710ef64"
@@ -10247,13 +10221,10 @@ highlight.js@^10.4.1, highlight.js@~10.7.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
   integrity sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==
 
-highlight.run@4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.3.1.tgz#cc658d122924ed41810f0abf528af415f710b67e"
-  integrity sha512-rcdfHHBRpFXpyWAu5rcLVwc3zc+wl3aztrcovfoBOvby6KGbpTEKyZtKK/UE3m4/t2HgcEojYvMh8y2UFTDoWg==
-  dependencies:
-    "@rollup/plugin-commonjs" "^22.0.1"
-    "@rollup/plugin-replace" "^4.0.0"
+highlight.run@4.3.7:
+  version "4.3.7"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.3.7.tgz#ffce6e8250a9da7058804fbc53938492d055402d"
+  integrity sha512-mec5P4XKTFikIkhm+J/s7JADmV8WR3QW7d/JiffErVKBe54A/Pd2Ck3qOHXSDqM50qAUkEyLTPsnyfLA8znYhw==
 
 history@^4.9.0:
   version "4.10.1"
@@ -11132,13 +11103,6 @@ is-promise@^2.1.0:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/is-promise/-/is-promise-2.2.2.tgz#39ab959ccbf9a774cf079f7b40c7a26f763135f1"
   integrity sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==
-
-is-reference@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/is-reference/-/is-reference-1.2.1.tgz#8b2dac0b371f4bc994fdeaba9eb542d03002d0b7"
-  integrity sha512-U82MsXXiFIrjCK4otLT+o2NA2Cd2g5MLoOVXUZjIOhLurrRxpEXzI8O0KZHr3IjLvlAH1kTPYSuqer5T9ZVBKQ==
-  dependencies:
-    "@types/estree" "*"
 
 is-regex@^1.0.4, is-regex@^1.1.4:
   version "1.1.4"
