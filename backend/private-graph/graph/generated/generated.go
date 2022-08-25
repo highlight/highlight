@@ -78,6 +78,8 @@ type ComplexityRoot struct {
 		StripeCustomerID     func(childComplexity int) int
 		SubscriptionStart    func(childComplexity int) int
 		UnlimitedMembers     func(childComplexity int) int
+		ViewCountCur         func(childComplexity int) int
+		ViewCountPrev        func(childComplexity int) int
 	}
 
 	AccountDetails struct {
@@ -1235,6 +1237,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.UnlimitedMembers(childComplexity), true
+
+	case "Account.view_count_cur":
+		if e.complexity.Account.ViewCountCur == nil {
+			break
+		}
+
+		return e.complexity.Account.ViewCountCur(childComplexity), true
+
+	case "Account.view_count_prev":
+		if e.complexity.Account.ViewCountPrev == nil {
+			break
+		}
+
+		return e.complexity.Account.ViewCountPrev(childComplexity), true
 
 	case "AccountDetails.id":
 		if e.complexity.AccountDetails.ID == nil {
@@ -6380,7 +6396,9 @@ type Account {
     id: ID!
     name: String!
     session_count_cur: Int!
+    view_count_cur: Int!
     session_count_prev: Int!
+    view_count_prev: Int!
     session_count_prev_prev: Int!
     session_limit: Int!
     paid_prev: Int!
@@ -12630,6 +12648,50 @@ func (ec *executionContext) fieldContext_Account_session_count_cur(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Account_view_count_cur(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Account_view_count_cur(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ViewCountCur, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Account_view_count_cur(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Account",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Account_session_count_prev(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Account_session_count_prev(ctx, field)
 	if err != nil {
@@ -12662,6 +12724,50 @@ func (ec *executionContext) _Account_session_count_prev(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_Account_session_count_prev(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Account",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Account_view_count_prev(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Account_view_count_prev(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ViewCountPrev, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Account_view_count_prev(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Account",
 		Field:      field,
@@ -28651,8 +28757,12 @@ func (ec *executionContext) fieldContext_Query_accounts(ctx context.Context, fie
 				return ec.fieldContext_Account_name(ctx, field)
 			case "session_count_cur":
 				return ec.fieldContext_Account_session_count_cur(ctx, field)
+			case "view_count_cur":
+				return ec.fieldContext_Account_view_count_cur(ctx, field)
 			case "session_count_prev":
 				return ec.fieldContext_Account_session_count_prev(ctx, field)
+			case "view_count_prev":
+				return ec.fieldContext_Account_view_count_prev(ctx, field)
 			case "session_count_prev_prev":
 				return ec.fieldContext_Account_session_count_prev_prev(ctx, field)
 			case "session_limit":
@@ -45913,9 +46023,23 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "view_count_cur":
+
+			out.Values[i] = ec._Account_view_count_cur(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "session_count_prev":
 
 			out.Values[i] = ec._Account_session_count_prev(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "view_count_prev":
+
+			out.Values[i] = ec._Account_view_count_prev(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

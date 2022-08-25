@@ -204,7 +204,9 @@ type Account {
     id: ID!
     name: String!
     session_count_cur: Int!
+    view_count_cur: Int!
     session_count_prev: Int!
+    view_count_prev: Int!
     session_count_prev_prev: Int!
     session_limit: Int!
     paid_prev: Int!
