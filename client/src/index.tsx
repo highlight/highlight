@@ -207,12 +207,13 @@ export class Highlight {
         // default to inlining stylesheets to help with recording accuracy
         options.inlineStylesheet = true;
         this.options = options;
+        this.logger = new Logger(this.debugOptions.clientInteractions);
 
         let storedSessionData = getPreviousSessionData();
         this.reloaded = false;
         // only fetch session data from local storage on the first `initialize` call
         if (
-            !this.sessionData.sessionSecureID &&
+            !this.sessionData?.sessionSecureID &&
             storedSessionData?.sessionSecureID
         ) {
             this.sessionData = storedSessionData;
@@ -221,6 +222,12 @@ export class Highlight {
             this.logger.log(
                 `Tab reloaded, continuing previous session: ${this.sessionData.sessionSecureID}`
             );
+        } else {
+            this.sessionData = {
+                sessionSecureID: this.options.sessionSecureID,
+                projectID: 0,
+                sessionStartTime: Date.now(),
+            };
         }
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
@@ -290,7 +297,6 @@ export class Highlight {
             canvasFactor: 0.5,
             canvasMaxSnapshotDimension: 960,
         };
-        this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
             publicGraphURI ||
@@ -347,11 +353,6 @@ export class Highlight {
             onCancel: options.feedbackWidget?.onCancel,
         };
         this._onToggleFeedbackFormVisibility = () => {};
-        this.sessionData = {
-            sessionSecureID: '',
-            projectID: 0,
-            sessionStartTime: Date.now(),
-        };
         // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
