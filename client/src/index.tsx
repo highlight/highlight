@@ -174,6 +174,7 @@ export class Highlight {
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    reloaded!: boolean;
     _hasPreviouslyInitialized!: boolean;
     _payloadId!: number;
 
@@ -206,9 +207,38 @@ export class Highlight {
         // default to inlining stylesheets to help with recording accuracy
         options.inlineStylesheet = true;
         this.options = options;
+        if (typeof this.options?.debug === 'boolean') {
+            this.debugOptions = this.options.debug
+                ? { clientInteractions: true }
+                : {};
+        } else {
+            this.debugOptions = this.options?.debug ?? {};
+        }
+        this.logger = new Logger(this.debugOptions.clientInteractions);
+
+        let storedSessionData = getPreviousSessionData();
+        this.reloaded = false;
+        // only fetch session data from local storage on the first `initialize` call
+        if (
+            !this.sessionData?.sessionSecureID &&
+            storedSessionData?.sessionSecureID
+        ) {
+            this.sessionData = storedSessionData;
+            this.options.sessionSecureID = storedSessionData.sessionSecureID;
+            this.reloaded = true;
+            this.logger.log(
+                `Tab reloaded, continuing previous session: ${this.sessionData.sessionSecureID}`
+            );
+        } else {
+            this.sessionData = {
+                sessionSecureID: this.options.sessionSecureID,
+                projectID: 0,
+                sessionStartTime: Date.now(),
+            };
+        }
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners(options);
+            firstLoadListeners || new FirstLoadListeners(this.options);
         this._initMembers(this.options);
     }
 
@@ -238,6 +268,7 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
+        this.sessionData.sessionSecureID = this.options.sessionSecureID;
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
@@ -252,14 +283,6 @@ export class Highlight {
         this._recordingStartTime = 0;
         this._isOnLocalHost = false;
 
-        if (typeof options?.debug === 'boolean') {
-            this.debugOptions = options.debug
-                ? { clientInteractions: true }
-                : {};
-        } else {
-            this.debugOptions = options?.debug ?? {};
-        }
-
         this.ready = false;
         this.state = 'NotRecording';
         this.enableSegmentIntegration = !!options.enableSegmentIntegration;
@@ -273,7 +296,6 @@ export class Highlight {
             canvasFactor: 0.5,
             canvasMaxSnapshotDimension: 960,
         };
-        this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
             publicGraphURI ||
@@ -330,11 +352,6 @@ export class Highlight {
             onCancel: options.feedbackWidget?.onCancel,
         };
         this._onToggleFeedbackFormVisibility = () => {};
-        this.sessionData = {
-            sessionSecureID: '',
-            projectID: 0,
-            sessionStartTime: Date.now(),
-        };
         // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
@@ -454,15 +471,8 @@ export class Highlight {
         }
 
         try {
-            let storedSessionData = getPreviousSessionData();
-            let reloaded = false;
-            // only fetch session data from local storage on the first `initialize` call
-            if (!this.sessionData.sessionSecureID && storedSessionData) {
-                this.sessionData = storedSessionData;
-                reloaded = true;
-            }
             // disable recording for filtered projects while allowing for reloaded sessions
-            if (!reloaded && this.organizationID === '6glrjqg9') {
+            if (!this.reloaded && this.organizationID === '6glrjqg9') {
                 if (Math.random() > 0.1) {
                     this._firstLoadListeners?.stopListening();
                     return;
@@ -527,10 +537,9 @@ export class Highlight {
                 environment: this.environment,
                 id: fingerprint.visitorId,
                 appVersion: this.appVersion,
-                session_secure_id: this.options.sessionSecureID,
+                session_secure_id: this.sessionData.sessionSecureID,
                 client_id: clientID,
             });
-            this.sessionData.sessionSecureID = this.options.sessionSecureID;
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -674,9 +683,9 @@ Session Data:
             }
             this.listeners.push(
                 PathListener((url: string) => {
-                    if (reloaded) {
+                    if (this.reloaded) {
                         this.addCustomEvent<string>('Reload', url);
-                        reloaded = false;
+                        this.reloaded = false;
                         highlightThis.addProperties(
                             { reload: true },
                             { type: 'session' }
