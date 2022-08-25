@@ -9,18 +9,19 @@ import {
     ProgressBarTableRowGroup,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetReferrersCountQuery } from '@graph/hooks';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import SvgReferrer from '@icons/Referrer';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
 const ReferrersTable = ({
@@ -37,7 +38,7 @@ const ReferrersTable = ({
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const history = useHistory();
     const {
         setSearchParams,
@@ -46,7 +47,12 @@ const ReferrersTable = ({
     } = useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            lookBackPeriod: moment
+                .duration(timeRange.lookback, 'minutes')
+                .as('days'),
+        },
         onCompleted: (data) => {
             if (data.referrers) {
                 const transformedData = data.referrers.map(

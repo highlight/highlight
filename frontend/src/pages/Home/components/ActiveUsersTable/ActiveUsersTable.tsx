@@ -10,6 +10,7 @@ import {
     ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetTopUsersQuery } from '@graph/hooks';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import SvgClockIcon from '@icons/ClockIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
@@ -17,13 +18,13 @@ import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
 import styles from './ActiveUsersTable.module.scss';
 
@@ -48,11 +49,16 @@ const ActiveUsersTable = ({
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const history = useHistory();
 
     const { loading } = useGetTopUsersQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            lookBackPeriod: moment
+                .duration(timeRange.lookback, 'minutes')
+                .as('days'),
+        },
         fetchPolicy: 'no-cache',
         onCompleted: (data) => {
             if (data.topUsers) {

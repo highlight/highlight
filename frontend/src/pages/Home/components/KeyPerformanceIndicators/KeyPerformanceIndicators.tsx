@@ -3,14 +3,15 @@ import {
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import moment from 'moment';
 import React, { useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
 import styles from './KeyPerformanceIndicators.module.scss';
 import { formatLongNumber, formatShortTime } from './utils/utils';
@@ -25,7 +26,7 @@ const KeyPerformanceIndicators = ({
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const {
         setSearchParams,
         setSegmentName,
@@ -34,7 +35,9 @@ const KeyPerformanceIndicators = ({
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
         variables: {
             project_id,
-            lookBackPeriod: dateRangeLength,
+            lookBackPeriod: moment
+                .duration(timeRange.lookback, 'minutes')
+                .as('days'),
         },
     });
 

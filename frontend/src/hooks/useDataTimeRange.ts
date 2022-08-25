@@ -9,7 +9,7 @@ export const defaultLookback = 15;
 export interface DataTimeRange {
     start_date: string;
     end_date: string;
-    lookback: number;
+    lookback: number; // in minutes
     absolute: boolean;
 }
 

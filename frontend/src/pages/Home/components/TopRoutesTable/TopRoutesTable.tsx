@@ -6,14 +6,15 @@ import {
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetNetworkHistogramQuery } from '@graph/hooks';
 import { NetworkRequestAttribute } from '@graph/schemas';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
+import moment from 'moment';
 import React, { useEffect } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './TopRoutesTable.module.scss';
 
 const TopRoutesTable = ({
@@ -29,13 +30,15 @@ const TopRoutesTable = ({
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
 
     const { loading, data } = useGetNetworkHistogramQuery({
         variables: {
             project_id: projectIdRemapped,
             params: {
-                lookback_days: dateRangeLength,
+                lookback_days: moment
+                    .duration(timeRange.lookback, 'minutes')
+                    .as('days'),
                 attribute: NetworkRequestAttribute.Url,
             },
         },

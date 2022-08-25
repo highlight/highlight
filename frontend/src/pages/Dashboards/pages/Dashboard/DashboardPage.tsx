@@ -298,7 +298,7 @@ export const DashboardGrid = ({
                 isDraggable
                 isResizable
                 containerPadding={[0, 0]}
-                rowHeight={115}
+                rowHeight={85}
                 resizeHandles={['se']}
                 draggableHandle="[data-drag-handle]"
                 onDragStop={handleDashboardChange}

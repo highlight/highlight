@@ -9,19 +9,20 @@ import {
     ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns';
 import { useGetRageClicksForProjectQuery } from '@graph/hooks';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './RageClicksForProjectTable.module.scss';
 
 const RageClicksForProjectTable = ({
@@ -53,11 +54,16 @@ const RageClicksForProjectTable = ({
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const history = useHistory();
 
     const { loading } = useGetRageClicksForProjectQuery({
-        variables: { project_id, lookBackPeriod: dateRangeLength },
+        variables: {
+            project_id,
+            lookBackPeriod: moment
+                .duration(timeRange.lookback, 'minutes')
+                .as('days'),
+        },
         onCompleted: (data) => {
             if (data.rageClicksForProject) {
                 const transformedData = data.rageClicksForProject.map(
@@ -119,7 +125,10 @@ const RageClicksForProjectTable = ({
                     ) : (
                         <>
                             Woohoo! There are no rage clicks for the past{' '}
-                            {dateRangeLength} days!
+                            {moment
+                                .duration(timeRange.lookback, 'minutes')
+                                .as('days')}{' '}
+                            days!
                         </>
                     )
                 }

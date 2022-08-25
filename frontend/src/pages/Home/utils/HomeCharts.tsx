@@ -8,7 +8,7 @@ import {
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '@graph/hooks';
-import { useHomePageFiltersContext } from '@pages/Home/components/HomePageFilters/HomePageFiltersContext';
+import useDataTimeRange from '@hooks/useDataTimeRange';
 import { SessionPageSearchParams } from '@pages/Player/utils/utils';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
@@ -53,7 +53,7 @@ export const SessionCountGraph = ({
         setSegmentName,
         setSelectedSegment,
     } = useSearchContext();
-    const { dateRangeLength, setHasData } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
@@ -63,25 +63,32 @@ export const SessionCountGraph = ({
         variables: {
             project_id,
             date_range: {
-                start_date: moment
-                    .utc()
-                    .subtract(dateRangeLength, 'd')
-                    .startOf('day'),
-                end_date: moment.utc().startOf('day'),
+                start_date: timeRange.start_date,
+                end_date: timeRange.end_date,
             },
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
-                setHasData(response.dailySessionsCount.length > 0);
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
-                    dateRangeLength
+                    Math.ceil(
+                        moment
+                            .duration(timeRange.lookback, 'minutes')
+                            .as('days')
+                    )
                 );
                 const sessionCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
                         .utc()
                         .startOf('day')
-                        .subtract(dateRangeLength - 1 - idx, 'days')
+                        .subtract(
+                            moment
+                                .duration(timeRange.lookback, 'minutes')
+                                .as('days') -
+                                1 -
+                                idx,
+                            'days'
+                        )
                         .format('D MMM YYYY'),
                     count: val,
                     label: 'sessions',
@@ -143,7 +150,7 @@ export const ErrorCountGraph = ({
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { timeRange } = useDataTimeRange();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
     const history = useHistory();
 
@@ -151,24 +158,32 @@ export const ErrorCountGraph = ({
         variables: {
             project_id,
             date_range: {
-                start_date: moment
-                    .utc()
-                    .subtract(dateRangeLength, 'd')
-                    .startOf('day'),
-                end_date: moment.utc().startOf('day'),
+                start_date: timeRange.start_date,
+                end_date: timeRange.end_date,
             },
         },
         onCompleted: (response) => {
             if (response.dailyErrorsCount) {
                 const dateRangeData = dailyCountData(
                     response.dailyErrorsCount,
-                    dateRangeLength
+                    Math.ceil(
+                        moment
+                            .duration(timeRange.lookback, 'minutes')
+                            .as('days')
+                    )
                 );
                 const errorCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
                         .utc()
                         .startOf('day')
-                        .subtract(dateRangeLength - 1 - idx, 'days')
+                        .subtract(
+                            moment
+                                .duration(timeRange.lookback, 'minutes')
+                                .as('days') -
+                                1 -
+                                idx,
+                            'days'
+                        )
                         .format('D MMM YYYY'),
                     count: val,
                     label: 'errors',
