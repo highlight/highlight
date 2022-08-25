@@ -5159,7 +5159,9 @@ export const GetAccountsDocument = gql`
             id
             name
             session_count_cur
+            view_count_cur
             session_count_prev
+            view_count_prev
             session_count_prev_prev
             session_limit
             paid_prev

@@ -234,7 +234,9 @@ export type Account = {
     id: Scalars['ID'];
     name: Scalars['String'];
     session_count_cur: Scalars['Int'];
+    view_count_cur: Scalars['Int'];
     session_count_prev: Scalars['Int'];
+    view_count_prev: Scalars['Int'];
     session_count_prev_prev: Scalars['Int'];
     session_limit: Scalars['Int'];
     paid_prev: Scalars['Int'];
