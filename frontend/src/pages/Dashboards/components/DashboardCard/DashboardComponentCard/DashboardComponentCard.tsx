@@ -31,10 +31,12 @@ export const PrebuiltComponentMap: {
             setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>;
         }>;
         hasSearch?: boolean;
+        fixedSize?: boolean;
     };
 } = {
     [MetricViewComponentType.KeyPerformanceGauge]: {
         fc: KeyPerformanceIndicators,
+        fixedSize: true,
     },
     [MetricViewComponentType.SessionCountChart]: { fc: SessionCountGraph },
     [MetricViewComponentType.ErrorCountChart]: { fc: ErrorCountGraph },
@@ -70,7 +72,10 @@ export const DashboardComponentCard = ({
     return (
         <DashboardInnerCard
             interactable
-            className={styles.card}
+            className={classNames(styles.card, {
+                [styles.fixedSize]:
+                    PrebuiltComponentMap[componentType].fixedSize,
+            })}
             title={
                 <div className={styles.cardHeader}>
                     <div className={styles.mainHeaderContent}>
@@ -131,6 +136,7 @@ export const DashboardComponentCard = ({
                     metricConfig={metricConfig}
                     metricIdx={metricIdx}
                     updateMetric={updateMetric}
+                    canChangeType={false}
                 />
                 <EditIcon
                     className={classNames(styles.overlayButton)}

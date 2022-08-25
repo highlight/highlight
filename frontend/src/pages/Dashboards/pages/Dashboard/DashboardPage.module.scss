@@ -198,12 +198,12 @@
 }
 
 .resizeRight {
-    right: 10px;
     bottom: min(calc(40%), 30px);
+    right: 10px;
 }
 
 .resizeBottom {
-    right: min(calc(40%), 30px);
     bottom: 10px;
+    right: min(calc(40%), 30px);
     transform: rotate(90deg);
 }

@@ -68,6 +68,7 @@ export const EditMetricModal = ({
     onDelete,
     onCancel,
     shown = false,
+    canChangeType = false,
 }: {
     metricIdx: number;
     metricConfig: DashboardMetricConfig;
@@ -75,6 +76,7 @@ export const EditMetricModal = ({
     onDelete?: () => void;
     onCancel: () => void;
     shown?: boolean;
+    canChangeType?: boolean;
 }) => {
     const [minValue, setMinValue] = useState<boolean>(
         metricConfig.min_value !== null
@@ -168,33 +170,38 @@ export const EditMetricModal = ({
                         />
                     </section>
 
-                    <section className={styles.section}>
-                        <h3>Metric View Type</h3>
-                        <div className={styles.typesContainer}>
-                            {CHART_TYPES.map((c) => (
-                                <CardSelect
-                                    key={c.title}
-                                    title={c.title}
-                                    description={c.description}
-                                    descriptionClass={styles.typeSubheader}
-                                    isSelected={
-                                        componentType
-                                            ? componentType === c.componentType
-                                            : chartType === c.chartType
-                                    }
-                                    onClick={() => {
-                                        if (c.componentType) {
-                                            setChartType(undefined);
-                                            setComponentType(c.componentType);
-                                        } else {
-                                            setChartType(c.chartType);
-                                            setComponentType(undefined);
+                    {canChangeType && (
+                        <section className={styles.section}>
+                            <h3>Metric View Type</h3>
+                            <div className={styles.typesContainer}>
+                                {CHART_TYPES.map((c) => (
+                                    <CardSelect
+                                        key={c.title}
+                                        title={c.title}
+                                        description={c.description}
+                                        descriptionClass={styles.typeSubheader}
+                                        isSelected={
+                                            componentType
+                                                ? componentType ===
+                                                  c.componentType
+                                                : chartType === c.chartType
                                         }
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    </section>
+                                        onClick={() => {
+                                            if (c.componentType) {
+                                                setChartType(undefined);
+                                                setComponentType(
+                                                    c.componentType
+                                                );
+                                            } else {
+                                                setChartType(c.chartType);
+                                                setComponentType(undefined);
+                                            }
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                     {chartType === DashboardChartType.Timeline ||
                     chartType === DashboardChartType.TimelineBar ? (

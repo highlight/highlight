@@ -127,8 +127,8 @@ const RageClicksForProjectTable = ({
                             Woohoo! There are no rage clicks for the past{' '}
                             {moment
                                 .duration(timeRange.lookback, 'minutes')
-                                .as('days')}{' '}
-                            days!
+                                .humanize()}
+                            {'!'}
                         </>
                     )
                 }
