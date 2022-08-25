@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -7,6 +6,7 @@ import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/component
 import { useGetNetworkHistogramQuery } from '@graph/hooks';
 import { NetworkRequestAttribute } from '@graph/schemas';
 import useDataTimeRange from '@hooks/useDataTimeRange';
+import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable';
 import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
 import moment from 'moment';
@@ -53,7 +53,7 @@ const TopRoutesTable = ({
     }
 
     return (
-        <Card full>
+        <DashboardInnerTable>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}
@@ -81,7 +81,7 @@ const TopRoutesTable = ({
                 }
                 noDataTitle={'No route data yet 😔'}
             />
-        </Card>
+        </DashboardInnerTable>
     );
 };
 

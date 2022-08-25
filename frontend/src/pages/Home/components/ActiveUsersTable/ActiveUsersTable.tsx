@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -25,6 +24,7 @@ import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
+import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable';
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils';
 import styles from './ActiveUsersTable.module.scss';
 
@@ -97,7 +97,7 @@ const ActiveUsersTable = ({
     }
 
     return (
-        <Card full>
+        <DashboardInnerTable>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}
@@ -153,7 +153,7 @@ const ActiveUsersTable = ({
                         : 'No user data yet 😔'
                 }
             />
-        </Card>
+        </DashboardInnerTable>
     );
 };
 

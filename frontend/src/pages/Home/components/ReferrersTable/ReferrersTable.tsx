@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -22,6 +21,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
+import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable';
 import styles from './ReferrersTable.module.scss';
 
 const ReferrersTable = ({
@@ -78,7 +78,7 @@ const ReferrersTable = ({
     }
 
     return (
-        <Card full>
+        <DashboardInnerTable>
             <ProgressBarTable
                 columns={Columns}
                 data={tableData}
@@ -98,7 +98,7 @@ const ReferrersTable = ({
                 noDataTitle="No referrer data yet 😔"
                 noDataMessage="Doesn't look like your app has been referred to yet."
             />
-        </Card>
+        </DashboardInnerTable>
     );
 };
 

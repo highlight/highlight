@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -11,6 +10,7 @@ import {
 import { useGetRageClicksForProjectQuery } from '@graph/hooks';
 import useDataTimeRange from '@hooks/useDataTimeRange';
 import SvgCursorClickIcon from '@icons/CursorClickIcon';
+import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable';
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams';
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
@@ -100,7 +100,7 @@ const RageClicksForProjectTable = ({
     }
 
     return (
-        <Card full>
+        <DashboardInnerTable>
             <ProgressBarTable
                 loading={loading}
                 columns={Columns}
@@ -138,7 +138,7 @@ const RageClicksForProjectTable = ({
                         : 'No rage clicks yet! 🎉'
                 }
             />
-        </Card>
+        </DashboardInnerTable>
     );
 };
 
