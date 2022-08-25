@@ -207,6 +207,13 @@ export class Highlight {
         // default to inlining stylesheets to help with recording accuracy
         options.inlineStylesheet = true;
         this.options = options;
+        if (typeof this.options?.debug === 'boolean') {
+            this.debugOptions = this.options.debug
+                ? { clientInteractions: true }
+                : {};
+        } else {
+            this.debugOptions = this.options?.debug ?? {};
+        }
         this.logger = new Logger(this.debugOptions.clientInteractions);
 
         let storedSessionData = getPreviousSessionData();
@@ -231,7 +238,7 @@ export class Highlight {
         }
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners(options);
+            firstLoadListeners || new FirstLoadListeners(this.options);
         this._initMembers(this.options);
     }
 
@@ -275,14 +282,6 @@ export class Highlight {
         this.sessionShortcut = false;
         this._recordingStartTime = 0;
         this._isOnLocalHost = false;
-
-        if (typeof options?.debug === 'boolean') {
-            this.debugOptions = options.debug
-                ? { clientInteractions: true }
-                : {};
-        } else {
-            this.debugOptions = options?.debug ?? {};
-        }
 
         this.ready = false;
         this.state = 'NotRecording';
