@@ -11,6 +11,7 @@ import {
     DashboardMetricConfig,
 } from '@graph/schemas';
 import useDataTimeRange from '@hooks/useDataTimeRange';
+import SvgDragIcon from '@icons/DragIcon';
 import PlusIcon from '@icons/PlusIcon';
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy';
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard';
@@ -299,7 +300,21 @@ export const DashboardGrid = ({
                 isResizable
                 containerPadding={[0, 0]}
                 rowHeight={85}
-                resizeHandles={['se']}
+                resizeHandle={(
+                    handle: 's' | 'e',
+                    ref: React.Ref<HTMLDivElement>
+                ) => (
+                    <div
+                        ref={ref}
+                        className={classNames(styles.resize, {
+                            [styles.resizeRight]: handle === 'e',
+                            [styles.resizeBottom]: handle === 's',
+                        })}
+                    >
+                        <SvgDragIcon />
+                    </div>
+                )}
+                resizeHandles={['s', 'e']}
                 draggableHandle="[data-drag-handle]"
                 onDragStop={handleDashboardChange}
                 onResizeStop={handleDashboardChange}

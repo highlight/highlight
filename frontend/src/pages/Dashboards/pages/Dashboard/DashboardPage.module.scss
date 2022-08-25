@@ -187,3 +187,23 @@
 .pillButtonTextVisible {
     opacity: 1;
 }
+
+.resize {
+    align-items: center;
+    color: var(--color-gray-500);
+    cursor: move;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+}
+
+.resizeRight {
+    right: 10px;
+    bottom: min(calc(40%), 30px);
+}
+
+.resizeBottom {
+    right: min(calc(40%), 30px);
+    bottom: 10px;
+    transform: rotate(90deg);
+}
