@@ -22,7 +22,7 @@ import { useHistory } from 'react-router-dom';
 import { ResponsiveContainer } from 'recharts';
 
 type DailyCount = {
-    date: string;
+    date: moment.Moment;
     count: number;
     label: string;
 };
@@ -88,8 +88,7 @@ export const SessionCountGraph = ({
                                 1 -
                                 idx,
                             'days'
-                        )
-                        .format('D MMM YYYY'),
+                        ),
                     count: val,
                     label: 'sessions',
                 }));
@@ -183,8 +182,7 @@ export const ErrorCountGraph = ({
                                 1 -
                                 idx,
                             'days'
-                        )
-                        .format('D MMM YYYY'),
+                        ),
                     count: val,
                     label: 'errors',
                 }));
@@ -234,12 +232,12 @@ const DailyChart = ({
                 barColorMapping={{
                     count: lineColor,
                 }}
-                xAxisDataKeyName="range_end"
-                xAxisLabel={name}
+                xAxisDataKeyName="date"
+                xAxisLabel={''}
                 xAxisTickFormatter={(value: number) =>
-                    value < 1 ? value.toFixed(2) : value.toFixed(0)
+                    moment(value).format('D MMM YYYY')
                 }
-                yAxisLabel={'occurrences'}
+                yAxisLabel={name}
                 yAxisKeys={['count']}
                 onClickHandler={onClickHandler}
             />

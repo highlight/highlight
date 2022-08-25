@@ -63,7 +63,7 @@ const BarChartV2 = ({
                       keyName !== xAxisDataKeyName && keyName !== '__typename'
               )
             : []);
-    const { min, max } = findDataDomain(data, 'range_end');
+    const { min, max } = findDataDomain(data, xAxisDataKeyName);
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(yAxisKeys);
