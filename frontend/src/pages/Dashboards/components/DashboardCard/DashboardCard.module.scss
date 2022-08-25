@@ -144,9 +144,10 @@
 }
 
 .mainHeaderContent {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
     justify-content: space-between;
+    min-height: 52px;
     padding: 10px 10px 10px 20px;
     width: 100%;
 }

@@ -100,6 +100,7 @@ export const DashboardComponentCard = ({
                         {PrebuiltComponentMap[componentType].hasSearch && (
                             <div
                                 style={{
+                                    marginRight: 'var(--size-small)',
                                     paddingRight: 'var(--size-xxLarge)',
                                     width: 150,
                                     height: 24,
@@ -107,7 +108,7 @@ export const DashboardComponentCard = ({
                             >
                                 <Input
                                     allowClear
-                                    placeholder="Search"
+                                    placeholder="Search ..."
                                     value={filterSearchTerm}
                                     onChange={(event) => {
                                         setFilterSearchTerm(event.target.value);
