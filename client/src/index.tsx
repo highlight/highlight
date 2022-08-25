@@ -238,6 +238,7 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
+        this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
@@ -513,68 +514,23 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (this.sessionData.sessionSecureID) {
-                // set the session storage secure id in the options in case anything refers to that
-                this.options.sessionSecureID = this.sessionData.sessionSecureID;
-            } else {
-                const client = await this.fingerprintjs;
-                const fingerprint = await client.get();
-                const gr = await this.graphqlSDK.initializeSession({
-                    organization_verbose_id: this.organizationID,
-                    enable_strict_privacy: this.enableStrictPrivacy,
-                    enable_recording_network_contents: this._firstLoadListeners
-                        .enableRecordingNetworkContents,
-                    clientVersion: packageJson['version'],
-                    firstloadVersion: this.firstloadVersion,
-                    clientConfig: JSON.stringify(this._optionsInternal),
-                    environment: this.environment,
-                    id: fingerprint.visitorId,
-                    appVersion: this.appVersion,
-                    session_secure_id: this.options.sessionSecureID,
-                    client_id: clientID,
-                });
-                this.sessionData.sessionSecureID = this.options.sessionSecureID;
-                window.sessionStorage.setItem(
-                    SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-                    this.sessionData.sessionSecureID
-                );
-                this.sessionData.projectID = parseInt(
-                    gr?.initializeSession?.project_id || '0'
-                );
-                this.logger.log(
-                    `Loaded Highlight
-Remote: ${publicGraphURI}
-Friendly Project ID: ${this.organizationID}
-Short Project ID: ${this.sessionData.projectID}
-SessionSecureID: ${this.sessionData.sessionSecureID}
-Session Data:
-`,
-                    gr.initializeSession
-                );
-                if (this.sessionData.userIdentifier) {
-                    this.identify(
-                        this.sessionData.userIdentifier,
-                        this.sessionData.userObject
-                    );
-                }
-                const { getDeviceDetails } = getPerformanceMethods();
-                if (getDeviceDetails) {
-                    this._worker.postMessage({
-                        message: {
-                            type: MessageType.Metrics,
-                            metrics: [
-                                {
-                                    name: 'DeviceMemory',
-                                    value: getDeviceDetails().deviceMemory,
-                                    category: 'Device',
-                                    group: window.location.href,
-                                    timestamp: new Date(),
-                                },
-                            ],
-                        },
-                    });
-                }
-            }
+            const client = await this.fingerprintjs;
+            const fingerprint = await client.get();
+            const gr = await this.graphqlSDK.initializeSession({
+                organization_verbose_id: this.organizationID,
+                enable_strict_privacy: this.enableStrictPrivacy,
+                enable_recording_network_contents: this._firstLoadListeners
+                    .enableRecordingNetworkContents,
+                clientVersion: packageJson['version'],
+                firstloadVersion: this.firstloadVersion,
+                clientConfig: JSON.stringify(this._optionsInternal),
+                environment: this.environment,
+                id: fingerprint.visitorId,
+                appVersion: this.appVersion,
+                session_secure_id: this.options.sessionSecureID,
+                client_id: clientID,
+            });
+            this.sessionData.sessionSecureID = this.options.sessionSecureID;
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -584,6 +540,47 @@ Session Data:
                     recordingStartTime: this._recordingStartTime,
                 },
             });
+            window.sessionStorage.setItem(
+                SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
+                this.sessionData.sessionSecureID
+            );
+            this.sessionData.projectID = parseInt(
+                gr?.initializeSession?.project_id || '0'
+            );
+            this.logger.log(
+                `Loaded Highlight
+Remote: ${publicGraphURI}
+Friendly Project ID: ${this.organizationID}
+Short Project ID: ${this.sessionData.projectID}
+SessionSecureID: ${this.sessionData.sessionSecureID}
+Session Data:
+`,
+                gr.initializeSession
+            );
+            if (this.sessionData.userIdentifier) {
+                this.identify(
+                    this.sessionData.userIdentifier,
+                    this.sessionData.userObject
+                );
+            }
+            const { getDeviceDetails } = getPerformanceMethods();
+            if (getDeviceDetails) {
+                this._worker.postMessage({
+                    message: {
+                        type: MessageType.Metrics,
+                        metrics: [
+                            {
+                                name: 'DeviceMemory',
+                                value: getDeviceDetails().deviceMemory,
+                                category: 'Device',
+                                group: window.location.href,
+                                timestamp: new Date(),
+                            },
+                        ],
+                    },
+                });
+            }
+
             if (this.pushPayloadTimerId) {
                 clearTimeout(this.pushPayloadTimerId);
             }
@@ -969,9 +966,6 @@ Session Data:
     // Reset the events array and push to a backend.
     async _save() {
         try {
-            if (!this.sessionData.sessionSecureID) {
-                return;
-            }
             await this._sendPayload({ isBeacon: false });
             this.hasPushedData = true;
             this.sessionData.lastPushTime = Date.now();
