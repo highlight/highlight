@@ -57,10 +57,7 @@ import {
 } from './utils/sessionStorage/highlightSession';
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker';
 import publicGraphURI from 'consts:publicGraphURI';
-import {
-    getGraphQLRequestWrapper,
-    MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS,
-} from './utils/graph';
+import { getGraphQLRequestWrapper } from './utils/graph';
 import { ReplayEventsInput } from './graph/generated/schemas';
 import { MessageType, PropertyType, Source } from './workers/types';
 import { Logger } from './logger';
@@ -148,10 +145,6 @@ export class Highlight {
     sessionData!: SessionData;
     ready!: boolean;
     state!: 'NotRecording' | 'Recording';
-    /**
-     * The number of requests to public graph that have failed in a row.
-     */
-    numberOfFailedRequests!: number;
     logger!: Logger;
     fingerprintjs!: Promise<Agent>;
     enableSegmentIntegration!: boolean;
@@ -181,6 +174,7 @@ export class Highlight {
     feedbackWidgetOptions!: FeedbackWidgetOptions;
     hasSessionUnloaded!: boolean;
     hasPushedData!: boolean;
+    reloaded!: boolean;
     _hasPreviouslyInitialized!: boolean;
     _payloadId!: number;
 
@@ -213,9 +207,38 @@ export class Highlight {
         // default to inlining stylesheets to help with recording accuracy
         options.inlineStylesheet = true;
         this.options = options;
+        if (typeof this.options?.debug === 'boolean') {
+            this.debugOptions = this.options.debug
+                ? { clientInteractions: true }
+                : {};
+        } else {
+            this.debugOptions = this.options?.debug ?? {};
+        }
+        this.logger = new Logger(this.debugOptions.clientInteractions);
+
+        let storedSessionData = getPreviousSessionData();
+        this.reloaded = false;
+        // only fetch session data from local storage on the first `initialize` call
+        if (
+            !this.sessionData?.sessionSecureID &&
+            storedSessionData?.sessionSecureID
+        ) {
+            this.sessionData = storedSessionData;
+            this.options.sessionSecureID = storedSessionData.sessionSecureID;
+            this.reloaded = true;
+            this.logger.log(
+                `Tab reloaded, continuing previous session: ${this.sessionData.sessionSecureID}`
+            );
+        } else {
+            this.sessionData = {
+                sessionSecureID: this.options.sessionSecureID,
+                projectID: 0,
+                sessionStartTime: Date.now(),
+            };
+        }
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
-            firstLoadListeners || new FirstLoadListeners(options);
+            firstLoadListeners || new FirstLoadListeners(this.options);
         this._initMembers(this.options);
     }
 
@@ -245,6 +268,8 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
+        this.sessionData.sessionSecureID = this.options.sessionSecureID;
+        this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
         await this.initialize();
@@ -254,18 +279,9 @@ export class Highlight {
     }
 
     _initMembers(options: HighlightClassOptions) {
-        this.numberOfFailedRequests = 0;
         this.sessionShortcut = false;
         this._recordingStartTime = 0;
         this._isOnLocalHost = false;
-
-        if (typeof options?.debug === 'boolean') {
-            this.debugOptions = options.debug
-                ? { clientInteractions: true }
-                : {};
-        } else {
-            this.debugOptions = options?.debug ?? {};
-        }
 
         this.ready = false;
         this.state = 'NotRecording';
@@ -280,7 +296,6 @@ export class Highlight {
             canvasFactor: 0.5,
             canvasMaxSnapshotDimension: 960,
         };
-        this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl =
             options?.backendUrl ||
             publicGraphURI ||
@@ -337,11 +352,6 @@ export class Highlight {
             onCancel: options.feedbackWidget?.onCancel,
         };
         this._onToggleFeedbackFormVisibility = () => {};
-        this.sessionData = {
-            sessionSecureID: '',
-            projectID: 0,
-            sessionStartTime: Date.now(),
-        };
         // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
@@ -461,18 +471,19 @@ export class Highlight {
         }
 
         try {
+            // disable recording for filtered projects while allowing for reloaded sessions
+            if (!this.reloaded && this.organizationID === '6glrjqg9') {
+                if (Math.random() > 0.1) {
+                    this._firstLoadListeners?.stopListening();
+                    return;
+                }
+            }
+
             if (this.feedbackWidgetOptions.enabled) {
                 const {
                     onToggleFeedbackFormVisibility,
                 } = initializeFeedbackWidget(this.feedbackWidgetOptions);
                 this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility;
-            }
-            let storedSessionData = getPreviousSessionData();
-            let reloaded = false;
-            // only fetch session data from local storage on the first `initialize` call
-            if (!this.sessionData.sessionSecureID && storedSessionData) {
-                this.sessionData = storedSessionData;
-                reloaded = true;
             }
 
             const recordingStartTime = window.sessionStorage.getItem(
@@ -513,83 +524,22 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            if (this.sessionData.sessionSecureID) {
-                // set the session storage secure id in the options in case anything refers to that
-                this.options.sessionSecureID = this.sessionData.sessionSecureID;
-            } else {
-                // disable recording for filtered projects while allowing for reloaded sessions
-                if (this.organizationID === '6glrjqg9') {
-                    if (Math.random() > 0.1) {
-                        this._firstLoadListeners?.stopListening();
-                        return;
-                    }
-                }
-                try {
-                    const client = await this.fingerprintjs;
-                    const fingerprint = await client.get();
-                    const gr = await this.graphqlSDK.initializeSession({
-                        organization_verbose_id: this.organizationID,
-                        enable_strict_privacy: this.enableStrictPrivacy,
-                        enable_recording_network_contents: this
-                            ._firstLoadListeners.enableRecordingNetworkContents,
-                        clientVersion: packageJson['version'],
-                        firstloadVersion: this.firstloadVersion,
-                        clientConfig: JSON.stringify(this._optionsInternal),
-                        environment: this.environment,
-                        id: fingerprint.visitorId,
-                        appVersion: this.appVersion,
-                        session_secure_id: this.options.sessionSecureID,
-                        client_id: clientID,
-                    });
-                    this.sessionData.sessionSecureID = this.options.sessionSecureID;
-                    window.sessionStorage.setItem(
-                        SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
-                        this.sessionData.sessionSecureID
-                    );
-                    this.sessionData.projectID = parseInt(
-                        gr?.initializeSession?.project_id || '0'
-                    );
-                    this.logger.log(
-                        `Loaded Highlight
-  Remote: ${publicGraphURI}
-  Friendly Project ID: ${this.organizationID}
-  Short Project ID: ${this.sessionData.projectID}
-  SessionSecureID: ${this.sessionData.sessionSecureID}
-  Session Data:
-  `,
-                        gr.initializeSession
-                    );
-                    if (this.sessionData.userIdentifier) {
-                        this.identify(
-                            this.sessionData.userIdentifier,
-                            this.sessionData.userObject
-                        );
-                    }
-                    this.numberOfFailedRequests = 0;
-                    const { getDeviceDetails } = getPerformanceMethods();
-                    if (getDeviceDetails) {
-                        this._worker.postMessage({
-                            message: {
-                                type: MessageType.Metrics,
-                                metrics: [
-                                    {
-                                        name: 'DeviceMemory',
-                                        value: getDeviceDetails().deviceMemory,
-                                        category: 'Device',
-                                        group: window.location.href,
-                                        timestamp: new Date(),
-                                    },
-                                ],
-                            },
-                        });
-                    }
-                } catch (e) {
-                    if (this._isOnLocalHost) {
-                        console.error(e);
-                    }
-                    this.numberOfFailedRequests += 1;
-                }
-            }
+            const client = await this.fingerprintjs;
+            const fingerprint = await client.get();
+            const gr = await this.graphqlSDK.initializeSession({
+                organization_verbose_id: this.organizationID,
+                enable_strict_privacy: this.enableStrictPrivacy,
+                enable_recording_network_contents: this._firstLoadListeners
+                    .enableRecordingNetworkContents,
+                clientVersion: packageJson['version'],
+                firstloadVersion: this.firstloadVersion,
+                clientConfig: JSON.stringify(this._optionsInternal),
+                environment: this.environment,
+                id: fingerprint.visitorId,
+                appVersion: this.appVersion,
+                session_secure_id: this.sessionData.sessionSecureID,
+                client_id: clientID,
+            });
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -599,6 +549,47 @@ export class Highlight {
                     recordingStartTime: this._recordingStartTime,
                 },
             });
+            window.sessionStorage.setItem(
+                SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
+                this.sessionData.sessionSecureID
+            );
+            this.sessionData.projectID = parseInt(
+                gr?.initializeSession?.project_id || '0'
+            );
+            this.logger.log(
+                `Loaded Highlight
+Remote: ${publicGraphURI}
+Friendly Project ID: ${this.organizationID}
+Short Project ID: ${this.sessionData.projectID}
+SessionSecureID: ${this.sessionData.sessionSecureID}
+Session Data:
+`,
+                gr.initializeSession
+            );
+            if (this.sessionData.userIdentifier) {
+                this.identify(
+                    this.sessionData.userIdentifier,
+                    this.sessionData.userObject
+                );
+            }
+            const { getDeviceDetails } = getPerformanceMethods();
+            if (getDeviceDetails) {
+                this._worker.postMessage({
+                    message: {
+                        type: MessageType.Metrics,
+                        metrics: [
+                            {
+                                name: 'DeviceMemory',
+                                value: getDeviceDetails().deviceMemory,
+                                category: 'Device',
+                                group: window.location.href,
+                                timestamp: new Date(),
+                            },
+                        ],
+                    },
+                });
+            }
+
             if (this.pushPayloadTimerId) {
                 clearTimeout(this.pushPayloadTimerId);
             }
@@ -692,9 +683,9 @@ export class Highlight {
             }
             this.listeners.push(
                 PathListener((url: string) => {
-                    if (reloaded) {
+                    if (this.reloaded) {
                         this.addCustomEvent<string>('Reload', url);
-                        reloaded = false;
+                        this.reloaded = false;
                         highlightThis.addProperties(
                             { reload: true },
                             { type: 'session' }
@@ -750,21 +741,20 @@ export class Highlight {
             this.listeners.push(
                 WebVitalsListener((data) => {
                     const { name, value } = data;
-                    try {
-                        this.graphqlSDK.pushMetrics({
+                    this._worker.postMessage({
+                        message: {
+                            type: MessageType.Metrics,
                             metrics: [
                                 {
                                     name,
                                     value,
-                                    session_secure_id: this.sessionData
-                                        .sessionSecureID,
-                                    category: 'WebVital',
+                                    timestamp: new Date(),
                                     group: window.location.href,
-                                    timestamp: new Date().toISOString(),
+                                    category: 'WebVital',
                                 },
                             ],
-                        });
-                    } catch {}
+                        },
+                    });
                 })
             );
 
@@ -985,33 +975,22 @@ export class Highlight {
     // Reset the events array and push to a backend.
     async _save() {
         try {
-            if (!this.sessionData.sessionSecureID) {
+            await this._sendPayload({ isBeacon: false });
+            this.hasPushedData = true;
+            this.sessionData.lastPushTime = Date.now();
+            // Listeners are cleared when the user calls stop() manually.
+            if (this.listeners.length === 0) {
                 return;
             }
-            try {
-                await this._sendPayload({ isBeacon: false });
-                this.hasPushedData = true;
-                this.numberOfFailedRequests = 0;
-                this.sessionData.lastPushTime = Date.now();
-                // Listeners are cleared when the user calls stop() manually.
-                if (this.listeners.length === 0) {
-                    return;
-                }
-                if (
-                    this.state === 'Recording' &&
-                    this.listeners &&
-                    this.sessionData.sessionStartTime &&
-                    Date.now() - this.sessionData.sessionStartTime >
-                        MAX_SESSION_LENGTH
-                ) {
-                    await this._reset();
-                    return;
-                }
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                }
-                this.numberOfFailedRequests += 1;
+            if (
+                this.state === 'Recording' &&
+                this.listeners &&
+                this.sessionData.sessionStartTime &&
+                Date.now() - this.sessionData.sessionStartTime >
+                    MAX_SESSION_LENGTH
+            ) {
+                await this._reset();
+                return;
             }
         } catch (e) {
             if (this._isOnLocalHost) {

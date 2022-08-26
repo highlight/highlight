@@ -119,12 +119,24 @@ const COLUMNS = [
         ) => (a.session_count_cur ?? 0) - (b.session_count_cur ?? 0),
     },
     {
+        title: 'Viewed This Month',
+        dataIndex: 'view_count_cur',
+        sorter: (a: { view_count_cur: any }, b: { view_count_cur: any }) =>
+            (a.view_count_cur ?? 0) - (b.view_count_cur ?? 0),
+    },
+    {
         title: 'Sessions Last Month',
         dataIndex: 'session_count_prev',
         sorter: (
             a: { session_count_prev: any },
             b: { session_count_prev: any }
         ) => (a.session_count_prev ?? 0) - (b.session_count_prev ?? 0),
+    },
+    {
+        title: 'Viewed Last Month',
+        dataIndex: 'view_count_prev',
+        sorter: (a: { view_count_prev: any }, b: { view_count_prev: any }) =>
+            (a.view_count_prev ?? 0) - (b.view_count_prev ?? 0),
     },
     {
         title: 'Paid Last Month',
@@ -414,7 +426,9 @@ export const Accounts = () => {
                                 paid_prev: a?.paid_prev,
                                 paid_prev_prev: a?.paid_prev_prev,
                                 session_count_cur: a?.session_count_cur,
+                                view_count_cur: a?.view_count_cur,
                                 session_count_prev: a?.session_count_prev,
+                                view_count_prev: a?.view_count_prev,
                                 session_count_prev_prev:
                                     a?.session_count_prev_prev,
                                 session_limit: a?.session_limit,

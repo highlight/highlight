@@ -110,14 +110,14 @@ type Mutation {
     ): Int!
     pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
     pushMetrics(metrics: [MetricInput]!): Int!
-    markBackendSetup(session_secure_id: String!): ID!
+    markBackendSetup(session_secure_id: String!): String!
     addSessionFeedback(
         session_secure_id: String!
         user_name: String
         user_email: String
         verbatim: String!
         timestamp: Timestamp!
-    ): ID!
+    ): String!
 }
 
 type Query {

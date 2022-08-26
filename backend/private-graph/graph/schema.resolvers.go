@@ -3142,6 +3142,34 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		return nil, e.Wrap(err, "error retrieving accounts for project")
 	}
 
+	viewCounts := []*modelInputs.Account{}
+	if err := r.DB.Raw(`
+		SELECT w.id,
+		SUM(case when s.created_at >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then 1 else 0 end) as view_count_cur,
+		SUM(case when s.created_at >= COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) - interval '1 month'
+			and s.created_at < COALESCE(w.billing_period_start, date_trunc('month', now(), 'UTC')) then 1 else 0 end) as view_count_prev
+		FROM workspaces w
+		INNER JOIN projects p
+		ON p.workspace_id = w.id
+		INNER JOIN sessions s
+		ON s.project_id = p.id
+		INNER JOIN session_admins_views sav
+		ON sav.session_id = s.id
+		group by 1`).Scan(&viewCounts).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving view counts for project")
+	}
+	viewsByWorkspace := lo.GroupBy(viewCounts, func(viewCount *modelInputs.Account) int {
+		return viewCount.ID
+	})
+	for _, a := range accounts {
+		views, ok := viewsByWorkspace[a.ID]
+		if !ok || len(views) != 1 {
+			continue
+		}
+		a.ViewCountCur = views[0].ViewCountCur
+		a.ViewCountPrev = views[0].ViewCountPrev
+	}
+
 	subListParams := stripe.SubscriptionListParams{
 		Status: string(stripe.SubscriptionStatusActive),
 	}
