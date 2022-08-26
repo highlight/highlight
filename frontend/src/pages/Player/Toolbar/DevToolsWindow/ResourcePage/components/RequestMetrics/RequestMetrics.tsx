@@ -12,10 +12,10 @@ import {
 import { LINE_COLORS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
 import { useParams } from '@util/react-router/useParams';
-import { Dropdown, Menu, MenuProps } from 'antd';
+import { Dropdown, Menu } from 'antd';
 import moment from 'moment';
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import styles from './RequestMetrics.module.scss';
 
@@ -49,21 +49,11 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
         },
         fetchPolicy: 'cache-first',
     });
-    const {
-        data: dashboardsData,
-        loading: dashboardsLoading,
-    } = useGetDashboardDefinitionsQuery({
+    const { data: dashboardsData } = useGetDashboardDefinitionsQuery({
         variables: { project_id },
     });
 
-    const history = useHistory();
     const duration = resource.responseEnd - resource.startTime;
-
-    const handleDashboardclick: MenuProps['onClick'] = (e) => {
-        history.push(
-            `/${project_id}/dashboards/${e.key}?add_to_dashboard=true`
-        );
-    };
 
     const dashboardWithLatency = dashboardsData?.dashboard_definitions.find(
         (dashboard) =>
@@ -71,7 +61,13 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
     );
 
     const dashboardItems = dashboardsData?.dashboard_definitions.map((dd) => ({
-        label: dd?.name || '',
+        label: (
+            <Link
+                to={`/${project_id}/dashboards/${dd?.id}?add_to_dashboard=latency`}
+            >
+                {dd?.name}
+            </Link>
+        ),
         key: dd?.id || 0,
     }));
 
@@ -92,12 +88,7 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
                         </ButtonLink>
                     ) : (
                         <Dropdown.Button
-                            overlay={
-                                <Menu
-                                    onClick={handleDashboardclick}
-                                    items={dashboardItems}
-                                />
-                            }
+                            overlay={<Menu items={dashboardItems} />}
                         >
                             Add to Dashboard
                         </Dropdown.Button>

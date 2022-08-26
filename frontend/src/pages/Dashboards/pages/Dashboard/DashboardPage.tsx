@@ -27,7 +27,7 @@ import { message } from 'antd';
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 
 import styles from './DashboardPage.module.scss';
 
@@ -44,6 +44,7 @@ const DashboardPage = ({
 }) => {
     const history = useHistory<{ dashboardName: string }>();
     const { id } = useParams<{ id: string }>();
+    const { search } = useLocation();
     const { timeRange } = useDataTimeRange();
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false);
@@ -64,9 +65,36 @@ const DashboardPage = ({
                 setLayout(parsedLayout);
                 setPersistedLayout(parsedLayout);
             }
-            history.replace({ state: { dashboardName: name } });
+            history.replace({
+                search: location.search,
+                state: {
+                    dashboardName: name,
+                },
+            });
         }
     }, [dashboardName, dashboards, history, id]);
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(search);
+        const add_to_dashboard = searchParams.get('add_to_dashboard');
+        const hasLatencyChart =
+            dashboard &&
+            dashboard.metrics.some(
+                (metric) => metric.name === add_to_dashboard
+            );
+
+        if (!hasLatencyChart && add_to_dashboard) {
+            debugger;
+            setNewMetrics((d) => {
+                const nm = [...d, getDefaultMetricConfig(add_to_dashboard)];
+                pushNewMetricConfig(nm);
+                return nm;
+            });
+
+            message.success(`${add_to_dashboard} added successfully.`, 3000);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dashboard, search]);
 
     const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
