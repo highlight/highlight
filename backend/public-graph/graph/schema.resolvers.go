@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -18,6 +17,7 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // InitializeSession is the resolver for the initializeSession field.

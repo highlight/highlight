@@ -55,6 +55,11 @@ type IdentifySessionArgs struct {
 	UserIdentifier  string
 	UserObject      interface{}
 }
+type AddTrackPropertiesArgs struct {
+	SessionSecureID  string
+	PropertiesObject interface{}
+}
+
 type AddSessionPropertiesArgs struct {
 	SessionSecureID  string
 	PropertiesObject interface{}
@@ -92,6 +97,7 @@ type Message struct {
 	PushPayload          *PushPayloadArgs
 	InitializeSession    *InitializeSessionArgs
 	IdentifySession      *IdentifySessionArgs
+	AddTrackProperties   *AddTrackPropertiesArgs
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
 	PushMetrics          *PushMetricsArgs

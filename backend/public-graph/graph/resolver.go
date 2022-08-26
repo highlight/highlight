@@ -2054,9 +2054,33 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
-func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+// Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
 		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
+	defer outerSpan.Finish()
+
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return e.New("error converting userObject interface type")
+	}
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
+			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
+		}
+	}
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK)
+	if err != nil {
+		return e.Wrap(err, "error adding set of properties to db")
+	}
+	return nil
+}
+
+func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackProperties",
+		tracer.ResourceName("go.sessions.AddTrackProperties"))
 	defer outerSpan.Finish()
 
 	fields := map[string]string{}
