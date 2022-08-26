@@ -176,6 +176,7 @@ export class Highlight {
     hasPushedData!: boolean;
     reloaded!: boolean;
     _hasPreviouslyInitialized!: boolean;
+    _isRecordingEvents!: boolean;
     _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
@@ -361,6 +362,7 @@ export class Highlight {
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
         this._hasPreviouslyInitialized = false;
+        this._isRecordingEvents = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -601,6 +603,10 @@ Session Data:
             };
             emit.bind(this);
             setTimeout(() => {
+                // Skip if we're already recording events
+                if (this._isRecordingEvents) {
+                    return;
+                }
                 const recordStop = record({
                     ignoreClass: 'highlight-ignore',
                     blockClass: 'highlight-block',
@@ -631,6 +637,7 @@ Session Data:
                     height: window.innerHeight,
                     width: window.innerWidth,
                 });
+                this._isRecordingEvents = true;
             }, 2000);
 
             const highlightThis = this;
@@ -914,6 +921,7 @@ Session Data:
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
         this._firstLoadListeners.stopListening();
+        this._isRecordingEvents = false;
     }
 
     getCurrentSessionTimestamp() {
