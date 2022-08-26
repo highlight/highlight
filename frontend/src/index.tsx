@@ -21,10 +21,11 @@ import {
 } from '@context/AppLoadingContext';
 import { datadogLogs } from '@datadog/browser-logs';
 import {
+    useGetAdminLazyQuery,
     useGetAdminRoleByProjectLazyQuery,
     useGetAdminRoleLazyQuery,
 } from '@graph/hooks';
-import { Exact, WorkspaceAdminRole } from '@graph/schemas';
+import { Admin, Exact } from '@graph/schemas';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
@@ -164,6 +165,9 @@ const App = () => {
                                     <Route path="/:project_id(\d+)/*">
                                         <AuthenticationRoleRouter />
                                     </Route>
+                                    <Route path="/">
+                                        <AuthenticationRoleRouter />
+                                    </Route>
                                 </Switch>
                             </Router>
                         </AppLoadingContext>
@@ -197,6 +201,15 @@ const AuthenticationRoleRouter = () => {
             refetch: pRefetch,
         },
     ] = useGetAdminRoleByProjectLazyQuery();
+    const [
+        getAdminSimpleQuery,
+        {
+            error: adminSError,
+            data: adminSData,
+            called: sCalled,
+            refetch: sRefetch,
+        },
+    ] = useGetAdminLazyQuery();
     let getAdminQuery:
             | ((
                   workspace_id:
@@ -207,23 +220,33 @@ const AuthenticationRoleRouter = () => {
                   project_id:
                       | QueryLazyOptions<Exact<{ project_id: string }>>
                       | undefined
-              ) => void),
+              ) => void)
+            | (() => void),
         adminError: ApolloError | undefined,
-        adminData: WorkspaceAdminRole | undefined | null,
+        adminData: Admin | undefined | null,
+        adminRole: string | undefined,
         called: boolean,
         refetch: any;
     if (workspace_id) {
         getAdminQuery = getWorkspaceAdminsQuery;
         adminError = adminWError;
-        adminData = adminWData?.admin_role;
+        adminData = adminWData?.admin_role?.admin;
+        adminRole = adminWData?.admin_role?.role;
         called = wCalled;
         refetch = wRefetch;
-    } else {
+    } else if (project_id) {
         getAdminQuery = getWorkspaceAdminsByProjectIdQuery;
         adminError = adminPError;
-        adminData = adminPData?.admin_role_by_project;
+        adminData = adminPData?.admin_role_by_project?.admin;
+        adminRole = adminPData?.admin_role_by_project?.role;
         called = pCalled;
         refetch = pRefetch;
+    } else {
+        getAdminQuery = getAdminSimpleQuery;
+        adminError = adminSError;
+        adminData = adminSData?.admin;
+        called = sCalled;
+        refetch = sRefetch;
     }
 
     const { setLoadingState } = useAppLoadingContext();
@@ -260,11 +283,11 @@ const AuthenticationRoleRouter = () => {
         if (adminData) {
             if (
                 HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
-                    adminData?.admin?.email.includes(d)
+                    adminData?.email.includes(d)
                 )
             ) {
                 setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
-            } else if (adminData.admin) {
+            } else if (adminData) {
                 setAuthRole(AuthRole.AUTHENTICATED);
             }
             H.track('Authenticated');
@@ -288,9 +311,9 @@ const AuthenticationRoleRouter = () => {
             value={{
                 role: authRole,
                 admin: isLoggedIn(authRole)
-                    ? adminData?.admin ?? undefined
+                    ? adminData ?? undefined
                     : undefined,
-                workspaceRole: adminData?.role,
+                workspaceRole: adminRole,
                 isAuthLoading: isAuthLoading(authRole),
                 isLoggedIn: isLoggedIn(authRole),
                 isHighlightAdmin: isHighlightAdmin(authRole),

@@ -1,8 +1,7 @@
 import * as Types from './operations';
 
-import * as Apollo from '@apollo/client';
 import { gql } from '@apollo/client';
-
+import * as Apollo from '@apollo/client';
 export const SessionPayloadFragmentFragmentDoc = gql`
     fragment SessionPayloadFragment on SessionPayload {
         events
@@ -6720,7 +6719,6 @@ export function useGetAdminLazyQuery(
         Types.GetAdminQueryVariables
     >(GetAdminDocument, baseOptions);
 }
-
 export type GetAdminQueryHookResult = ReturnType<typeof useGetAdminQuery>;
 export type GetAdminLazyQueryHookResult = ReturnType<
     typeof useGetAdminLazyQuery
@@ -6776,7 +6774,6 @@ export function useGetAdminRoleQuery(
         Types.GetAdminRoleQueryVariables
     >(GetAdminRoleDocument, baseOptions);
 }
-
 export function useGetAdminRoleLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAdminRoleQuery,
@@ -6788,7 +6785,6 @@ export function useGetAdminRoleLazyQuery(
         Types.GetAdminRoleQueryVariables
     >(GetAdminRoleDocument, baseOptions);
 }
-
 export type GetAdminRoleQueryHookResult = ReturnType<
     typeof useGetAdminRoleQuery
 >;
@@ -6846,7 +6842,6 @@ export function useGetAdminRoleByProjectQuery(
         Types.GetAdminRoleByProjectQueryVariables
     >(GetAdminRoleByProjectDocument, baseOptions);
 }
-
 export function useGetAdminRoleByProjectLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
         Types.GetAdminRoleByProjectQuery,
@@ -6858,7 +6853,6 @@ export function useGetAdminRoleByProjectLazyQuery(
         Types.GetAdminRoleByProjectQueryVariables
     >(GetAdminRoleByProjectDocument, baseOptions);
 }
-
 export type GetAdminRoleByProjectQueryHookResult = ReturnType<
     typeof useGetAdminRoleByProjectQuery
 >;
