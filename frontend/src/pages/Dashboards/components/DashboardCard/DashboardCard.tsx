@@ -50,7 +50,7 @@ export const UNIT_OPTIONS = [
     { label: 'No Units', value: '' },
 ];
 
-const LINE_COLORS = {
+export const LINE_COLORS = {
     [MetricAggregator.Max]: 'var(--color-red-500)',
     [MetricAggregator.P99]: 'var(--color-red-400)',
     [MetricAggregator.P95]: 'var(--color-orange-500)',

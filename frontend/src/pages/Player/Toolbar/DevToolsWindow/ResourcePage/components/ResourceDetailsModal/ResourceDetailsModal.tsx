@@ -1,4 +1,5 @@
 import { ErrorObject } from '@graph/schemas';
+import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics';
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock';
 import React from 'react';
 
@@ -256,9 +257,19 @@ const ResourceDetailsModal = ({
         },
     ];
 
+    const showRequestMetrics =
+        selectedNetworkResource &&
+        ['xmlhttprequest', 'fetch'].indexOf(
+            selectedNetworkResource.initiatorType
+        ) > -1;
+
     return (
         <section className={styles.modalContentContainer}>
             <Space size="large" direction="vertical">
+                {showRequestMetrics && (
+                    <RequestMetrics resource={selectedNetworkResource} />
+                )}
+
                 <DataCard title="General" fullWidth>
                     <KeyValueTable data={generalData} />
                 </DataCard>
