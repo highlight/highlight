@@ -41,7 +41,7 @@ func (k *KafkaWorker) ProcessMessages() {
 			}
 			s.SetTag("taskType", task.Type)
 			s.SetTag("partition", task.KafkaMessage.Partition)
-			s.SetTag("partitionKey", task.KafkaMessage.Key)
+			s.SetTag("partitionKey", string(task.KafkaMessage.Key))
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
