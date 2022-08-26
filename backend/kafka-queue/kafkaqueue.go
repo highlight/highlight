@@ -106,8 +106,8 @@ func New(topic string, mode Mode) *Queue {
 						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
 					},
 					{
-						Name:  "delete.retention.ms",
-						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
+						Name:  "cleanup.policy",
+						Value: "delete",
 					},
 				},
 			},
