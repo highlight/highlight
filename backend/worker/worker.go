@@ -316,7 +316,10 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) getSessionID(sessionSecureID string) (id int, err error) {
+func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
+	s := tracer.StartSpan("getSessionID", tracer.ResourceName("worker.getSessionID"))
+	s.SetTag("secure_id", sessionSecureID)
+	defer s.Finish()
 	session := &model.Session{}
 	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).First(&session)
 	if session.ID == 0 {
@@ -332,7 +335,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushPayload == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(task.PushPayload.SessionSecureID)
+		sessionID, err := w.getSessionID(ctx, task.PushPayload.SessionSecureID)
 		if err != nil {
 			return err
 		}
@@ -368,7 +371,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.IdentifySession == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(task.IdentifySession.SessionSecureID)
+		sessionID, err := w.getSessionID(ctx, task.IdentifySession.SessionSecureID)
 		if err != nil {
 			return err
 		}
@@ -380,7 +383,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddTrackProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(task.AddTrackProperties.SessionSecureID)
+		sessionID, err := w.getSessionID(ctx, task.AddTrackProperties.SessionSecureID)
 		if err != nil {
 			return err
 		}
@@ -392,7 +395,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.AddSessionProperties == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(task.AddSessionProperties.SessionSecureID)
+		sessionID, err := w.getSessionID(ctx, task.AddSessionProperties.SessionSecureID)
 		if err != nil {
 			return err
 		}
