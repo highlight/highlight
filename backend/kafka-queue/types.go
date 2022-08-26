@@ -8,14 +8,13 @@ import (
 type PayloadType = int
 
 const (
-	PushPayload          PayloadType = iota
-	InitializeSession    PayloadType = iota
-	IdentifySession      PayloadType = iota
-	AddTrackProperties   PayloadType = iota
-	AddSessionProperties PayloadType = iota
-	PushBackendPayload   PayloadType = iota
-	PushMetrics          PayloadType = iota
-	MarkBackendSetup     PayloadType = iota
+	PushPayload          PayloadType = 0
+	InitializeSession    PayloadType = 1
+	IdentifySession      PayloadType = 2
+	AddSessionProperties PayloadType = 4
+	PushBackendPayload   PayloadType = 5
+	PushMetrics          PayloadType = 6
+	MarkBackendSetup     PayloadType = 7
 )
 
 type PushPayloadArgs struct {
@@ -52,10 +51,6 @@ type IdentifySessionArgs struct {
 	UserIdentifier  string
 	UserObject      interface{}
 }
-type AddTrackPropertiesArgs struct {
-	SessionSecureID  string
-	PropertiesObject interface{}
-}
 type AddSessionPropertiesArgs struct {
 	SessionSecureID  string
 	PropertiesObject interface{}
@@ -83,7 +78,6 @@ type Message struct {
 	PushPayload          *PushPayloadArgs
 	InitializeSession    *InitializeSessionArgs
 	IdentifySession      *IdentifySessionArgs
-	AddTrackProperties   *AddTrackPropertiesArgs
 	AddSessionProperties *AddSessionPropertiesArgs
 	PushBackendPayload   *PushBackendPayloadArgs
 	PushMetrics          *PushMetricsArgs

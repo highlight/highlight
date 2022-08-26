@@ -67,7 +67,6 @@ export type Mutation = {
     __typename?: 'Mutation';
     addSessionFeedback: Scalars['ID'];
     addSessionProperties: Scalars['String'];
-    addTrackProperties: Scalars['String'];
     identifySession: Scalars['String'];
     initializeSession: InitializeSessionResponse;
     markBackendSetup: Scalars['ID'];
@@ -85,11 +84,6 @@ export type MutationAddSessionFeedbackArgs = {
 };
 
 export type MutationAddSessionPropertiesArgs = {
-    properties_object?: InputMaybe<Scalars['Any']>;
-    session_secure_id: Scalars['String'];
-};
-
-export type MutationAddTrackPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
     session_secure_id: Scalars['String'];
 };
@@ -224,16 +218,6 @@ export type PushMetricsMutation = {
     pushMetrics: number;
 };
 
-export type AddTrackPropertiesMutationVariables = Exact<{
-    session_secure_id: Scalars['String'];
-    properties_object?: InputMaybe<Scalars['Any']>;
-}>;
-
-export type AddTrackPropertiesMutation = {
-    __typename?: 'Mutation';
-    addTrackProperties: string;
-};
-
 export type AddSessionFeedbackMutationVariables = Exact<{
     session_secure_id: Scalars['String'];
     user_name?: InputMaybe<Scalars['String']>;
@@ -328,17 +312,6 @@ export const AddSessionPropertiesDocument = gql`
 export const PushMetricsDocument = gql`
     mutation pushMetrics($metrics: [MetricInput]!) {
         pushMetrics(metrics: $metrics)
-    }
-`;
-export const AddTrackPropertiesDocument = gql`
-    mutation addTrackProperties(
-        $session_secure_id: String!
-        $properties_object: Any
-    ) {
-        addTrackProperties(
-            session_secure_id: $session_secure_id
-            properties_object: $properties_object
-        )
     }
 `;
 export const AddSessionFeedbackDocument = gql`
@@ -470,21 +443,6 @@ export function getSdk(
                         { ...requestHeaders, ...wrappedRequestHeaders }
                     ),
                 'pushMetrics',
-                'mutation'
-            );
-        },
-        addTrackProperties(
-            variables: AddTrackPropertiesMutationVariables,
-            requestHeaders?: Dom.RequestInit['headers']
-        ): Promise<AddTrackPropertiesMutation> {
-            return withWrapper(
-                (wrappedRequestHeaders) =>
-                    client.request<AddTrackPropertiesMutation>(
-                        AddTrackPropertiesDocument,
-                        variables,
-                        { ...requestHeaders, ...wrappedRequestHeaders }
-                    ),
-                'addTrackProperties',
                 'mutation'
             );
         },

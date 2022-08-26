@@ -70,18 +70,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionSecureID 
 	return sessionSecureID, err
 }
 
-// AddTrackProperties is the resolver for the addTrackProperties field.
-func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.AddTrackProperties,
-		AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
-			SessionSecureID:  sessionSecureID,
-			PropertiesObject: propertiesObject,
-		},
-	}, sessionSecureID)
-	return sessionSecureID, err
-}
-
 // AddSessionProperties is the resolver for the addSessionProperties field.
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
 	err := r.ProducerQueue.Submit(&kafkaqueue.Message{

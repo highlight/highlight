@@ -376,18 +376,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			return err
 		}
-	case kafkaqueue.AddTrackProperties:
-		if task.AddTrackProperties == nil {
-			break
-		}
-		sessionID, err := w.getSessionID(task.AddTrackProperties.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
-			return err
-		}
 	case kafkaqueue.AddSessionProperties:
 		if task.AddSessionProperties == nil {
 			break
