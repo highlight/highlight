@@ -39,6 +39,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionSecureID:                sessionSecureID,
+				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
 				EnableRecordingNetworkContents: enableRecordingNetworkContents,

@@ -1070,7 +1070,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
 	session := &model.Session{
-		SecureID:                       input.SessionSecureID,
+		SecureID: input.SessionSecureID,
+		Model: model.Model{
+			CreatedAt: input.CreatedAt,
+		},
 		ProjectID:                      projectID,
 		Fingerprint:                    int(fpHash.Sum32()),
 		OSName:                         deviceDetails.OSName,
@@ -1140,9 +1143,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
-		log.Warnf("returning existing session for duplicate secure id %s: %d", input.SessionSecureID, sessionObj.ID)
+		outerSpan.SetTag("duplicate", true)
 		return sessionObj, nil
 	}
+	outerSpan.SetTag("duplicate", false)
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
