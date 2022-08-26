@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const InitialBackoff = 10 * time.Millisecond
+const InitialBackoff = time.Millisecond
 
 func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
 	log.Errorf("task %+v failed: %s", *task, err)
@@ -18,7 +18,7 @@ func (k *KafkaWorker) processWorkerError(task *kafkaqueue.Message, err error) {
 		log.Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
-		// sleep up to 10 ms * 16
+		// sleep up to 1 ms * 16
 		time.Sleep(InitialBackoff * (1 << task.Failures))
 	}
 	task.Failures += 1
@@ -40,6 +40,8 @@ func (k *KafkaWorker) ProcessMessages() {
 				return
 			}
 			s.SetTag("taskType", task.Type)
+			s.SetTag("partition", task.KafkaMessage.Partition)
+			s.SetTag("partitionKey", task.KafkaMessage.Key)
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
