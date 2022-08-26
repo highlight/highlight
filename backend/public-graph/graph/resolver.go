@@ -2063,32 +2063,31 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
-			dataObject := map[string]json.RawMessage{}
+			dataObject := struct {
+				Tag     string          `json:"tag"`
+				Payload json.RawMessage `json:"payload"`
+			}{}
+
 			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
 				return e.New("error deserializing custom event properties")
 			}
 
-			tag, tagExists := dataObject["tag"]
-			tagStr := string(tag)
-
-			if !tagExists || !strings.Contains(tagStr, "Track") {
+			if !strings.Contains(dataObject.Tag, "Track") {
 				continue
 			}
 
-			payload, payloadExists := dataObject["payload"]
-			if !payloadExists {
+			if dataObject.Payload == nil {
 				return e.New("error reading raw payload from track event")
 			}
 
 			var payloadStr string
-			if err := json.Unmarshal(payload, &payloadStr); err != nil {
-				return e.Wrap(err, "error deserializing track event payload into a string")
-
+			if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
+				return e.New("error deserializing track event payload into a string")
 			}
 
 			propertiesObject := make(map[string]interface{})
 			if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
-				return e.Wrap(err, "error deserializing track event properties")
+				return e.New("error deserializing track event properties")
 			}
 
 			for k, v := range propertiesObject {

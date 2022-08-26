@@ -10,14 +10,15 @@ import (
 type PayloadType = int
 
 const (
-	PushPayload          PayloadType = 0
-	InitializeSession    PayloadType = 1
-	IdentifySession      PayloadType = 2
-	AddSessionProperties PayloadType = 4
-	PushBackendPayload   PayloadType = 5
-	PushMetrics          PayloadType = 6
-	MarkBackendSetup     PayloadType = 7
-	AddSessionFeedback   PayloadType = 8
+	PushPayload          PayloadType = iota
+	InitializeSession    PayloadType = iota
+	IdentifySession      PayloadType = iota
+	AddTrackProperties   PayloadType = iota // Deprecated: track events are now processed in pushPayload
+	AddSessionProperties PayloadType = iota
+	PushBackendPayload   PayloadType = iota
+	PushMetrics          PayloadType = iota
+	MarkBackendSetup     PayloadType = iota
+	AddSessionFeedback   PayloadType = iota
 )
 
 type PushPayloadArgs struct {
