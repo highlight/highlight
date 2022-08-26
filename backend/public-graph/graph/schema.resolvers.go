@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -21,6 +22,11 @@ import (
 
 // InitializeSession is the resolver for the initializeSession field.
 func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string) (*customModels.InitializeSessionResponse, error) {
+	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
+	s.SetTag("secure_id", sessionSecureID)
+	s.SetTag("client_version", clientVersion)
+	s.SetTag("firstload_version", firstloadVersion)
+	defer s.Finish()
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
 	ip := ctx.Value(model.ContextKeys.IP).(string)
@@ -51,6 +57,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	}
 
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
+	s.SetTag("success", err == nil)
 
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,

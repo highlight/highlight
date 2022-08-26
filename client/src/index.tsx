@@ -176,6 +176,7 @@ export class Highlight {
     hasPushedData!: boolean;
     reloaded!: boolean;
     _hasPreviouslyInitialized!: boolean;
+    _isRecordingEvents!: boolean;
     _payloadId!: number;
 
     static create(options: HighlightClassOptions): Highlight {
@@ -361,6 +362,7 @@ export class Highlight {
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
         this._hasPreviouslyInitialized = false;
+        this._isRecordingEvents = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -540,6 +542,20 @@ export class Highlight {
                 session_secure_id: this.sessionData.sessionSecureID,
                 client_id: clientID,
             });
+            if (
+                gr.initializeSession.secure_id !==
+                this.sessionData.sessionSecureID
+            ) {
+                this.logger.log(
+                    `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
+                );
+                HighlightWarning(
+                    'initializeSession',
+                    'Failed to initialize session. Aborting recording.'
+                );
+                this._firstLoadListeners?.stopListening();
+                return;
+            }
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -601,6 +617,10 @@ Session Data:
             };
             emit.bind(this);
             setTimeout(() => {
+                // Skip if we're already recording events
+                if (this._isRecordingEvents) {
+                    return;
+                }
                 const recordStop = record({
                     ignoreClass: 'highlight-ignore',
                     blockClass: 'highlight-block',
@@ -631,6 +651,7 @@ Session Data:
                     height: window.innerHeight,
                     width: window.innerWidth,
                 });
+                this._isRecordingEvents = true;
             }, 2000);
 
             const highlightThis = this;
@@ -914,6 +935,7 @@ Session Data:
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
         this._firstLoadListeners.stopListening();
+        this._isRecordingEvents = false;
     }
 
     getCurrentSessionTimestamp() {
