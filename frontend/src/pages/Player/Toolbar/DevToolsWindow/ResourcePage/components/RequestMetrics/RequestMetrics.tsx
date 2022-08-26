@@ -1,3 +1,4 @@
+import ButtonLink from '@components/Button/ButtonLink/ButtonLink';
 import LineChart from '@components/LineChart/LineChart';
 import {
     useGetDashboardDefinitionsQuery,
@@ -54,6 +55,7 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
     } = useGetDashboardDefinitionsQuery({
         variables: { project_id },
     });
+
     const history = useHistory();
     const duration = resource.responseEnd - resource.startTime;
 
@@ -62,6 +64,11 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
             `/${project_id}/dashboards/${e.key}?add_to_dashboard=true`
         );
     };
+
+    const dashboardWithLatency = dashboardsData?.dashboard_definitions.find(
+        (dashboard) =>
+            dashboard?.metrics.find((metric) => metric.name === 'latency')
+    );
 
     const dashboardItems = dashboardsData?.dashboard_definitions.map((dd) => ({
         label: dd?.name || '',
@@ -76,17 +83,25 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
                 <div>No data</div>
             ) : (
                 <div>
-                    <Dropdown.Button
-                        onClick={console.log}
-                        overlay={
-                            <Menu
-                                onClick={handleDashboardclick}
-                                items={dashboardItems}
-                            />
-                        }
-                    >
-                        Add to Dashboard
-                    </Dropdown.Button>
+                    {dashboardWithLatency ? (
+                        <ButtonLink
+                            trackingId="viewDashboardFromNetworkRequestDetails"
+                            to={`/${project_id}/dashboards/${dashboardWithLatency.id}`}
+                        >
+                            View on {dashboardWithLatency.name} Dashboard
+                        </ButtonLink>
+                    ) : (
+                        <Dropdown.Button
+                            overlay={
+                                <Menu
+                                    onClick={handleDashboardclick}
+                                    items={dashboardItems}
+                                />
+                            }
+                        >
+                            Add to Dashboard
+                        </Dropdown.Button>
+                    )}
 
                     <LineChart
                         height={275}
