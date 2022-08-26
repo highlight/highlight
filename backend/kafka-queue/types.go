@@ -35,6 +35,7 @@ type PushPayloadArgs struct {
 
 type InitializeSessionArgs struct {
 	SessionSecureID                string
+	CreatedAt                      time.Time
 	ProjectVerboseID               string
 	EnableStrictPrivacy            bool
 	EnableRecordingNetworkContents bool
