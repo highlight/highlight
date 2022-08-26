@@ -34,6 +34,7 @@ import { Helmet } from 'react-helmet';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
+import { ReactRouter5Adapter } from 'use-query-params/adapters/react-router-5';
 
 import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
@@ -139,22 +140,24 @@ const App = () => {
             }}
         >
             <ApolloProvider client={client}>
-                <QueryParamProvider>
-                    <SkeletonTheme
-                        baseColor={'var(--color-gray-200)'}
-                        highlightColor={'var(--color-primary-background)'}
-                    >
-                        <AppLoadingContext
-                            value={{
-                                loadingState,
-                                setLoadingState,
-                            }}
+                <Router>
+                    <QueryParamProvider adapter={ReactRouter5Adapter}>
+                        <SkeletonTheme
+                            baseColor={'var(--color-gray-200)'}
+                            highlightColor={'var(--color-primary-background)'}
                         >
-                            <LoadingPage />
-                            <AuthenticationRouter />
-                        </AppLoadingContext>
-                    </SkeletonTheme>
-                </QueryParamProvider>
+                            <AppLoadingContext
+                                value={{
+                                    loadingState,
+                                    setLoadingState,
+                                }}
+                            >
+                                <LoadingPage />
+                                <AuthenticationRouter />
+                            </AppLoadingContext>
+                        </SkeletonTheme>
+                    </QueryParamProvider>
+                </Router>
             </ApolloProvider>
         </ErrorBoundary>
     );
@@ -245,38 +248,36 @@ get in contact with us!
                     errorString={JSON.stringify(adminError)}
                 />
             ) : (
-                <Router>
-                    <Switch>
-                        <Route path="/:project_id(0)/*" exact>
-                            {/* Allow guests to access this route without being asked to log in */}
-                            <AuthAdminRouter />
-                        </Route>
-                        <Route
-                            path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-                            exact
-                        >
-                            {/* Allow guests to access this route without being asked to log in */}
-                            <AuthAdminRouter />
-                        </Route>
-                        <Route
-                            path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-                            exact
-                        >
-                            {/* Allow guests to access this route without being asked to log in */}
-                            <AuthAdminRouter />
-                        </Route>
-                        <Route
-                            path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
-                            exact
-                        >
-                            {/* Allow guests to access this route without being asked to log in */}
-                            <AuthAdminRouter />
-                        </Route>
-                        <Route path="/">
-                            <LoginForm />
-                        </Route>
-                    </Switch>
-                </Router>
+                <Switch>
+                    <Route path="/:project_id(0)/*" exact>
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route
+                        path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
+                        exact
+                    >
+                        {/* Allow guests to access this route without being asked to log in */}
+                        <AuthAdminRouter />
+                    </Route>
+                    <Route path="/">
+                        <LoginForm />
+                    </Route>
+                </Switch>
             )}
         </AuthContextProvider>
     );

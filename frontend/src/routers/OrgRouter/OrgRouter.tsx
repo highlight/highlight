@@ -192,26 +192,30 @@ export const ProjectRouter = () => {
     const [
         searchParamsToUrlParams,
         setSearchParamsToUrlParams,
-    ] = useQueryParams({
-        user_properties: FieldArrayParam,
-        identified: BooleanParam,
-        browser: StringParam,
-        date_range: JsonParam,
-        excluded_properties: FieldArrayParam,
-        hide_viewed: BooleanParam,
-        length_range: JsonParam,
-        os: StringParam,
-        referrer: StringParam,
-        track_properties: FieldArrayParam,
-        excluded_track_properties: FieldArrayParam,
-        visited_url: StringParam,
-        first_time: BooleanParam,
-        device_id: StringParam,
-        show_live_sessions: BooleanParam,
-        environments: ArrayParam,
-        app_versions: ArrayParam,
-        query: QueryBuilderStateParam,
-    });
+    ] = useQueryParams(
+        {
+            user_properties: FieldArrayParam,
+            identified: BooleanParam,
+            browser: StringParam,
+            date_range: JsonParam,
+            excluded_properties: FieldArrayParam,
+            hide_viewed: BooleanParam,
+            length_range: JsonParam,
+            os: StringParam,
+            referrer: StringParam,
+            track_properties: FieldArrayParam,
+            excluded_track_properties: FieldArrayParam,
+            visited_url: StringParam,
+            first_time: BooleanParam,
+            device_id: StringParam,
+            show_live_sessions: BooleanParam,
+            environments: ArrayParam,
+            app_versions: ArrayParam,
+            session_country: ArrayParam,
+            query: QueryBuilderStateParam,
+        },
+        { enableBatching: true }
+    );
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
         JsonParam
@@ -228,6 +232,14 @@ export const ProjectRouter = () => {
     const sessionsMatch = useRouteMatch('/:project_id/sessions');
 
     useEffect(() => {
+        // Only do this on the session page.
+        // We don't do this on other pages because we use search params to represent state
+        // For example, on the /alerts page we use `code` to store the Slack code when the OAuth redirect.
+        // If we run this, it'll remove the code and the integration will fail.
+        if (!sessionsMatch) {
+            return;
+        }
+
         const areAnySearchParamsSet = !_.isEqual(
             EmptySessionsSearchParams,
             searchParams
@@ -238,7 +250,12 @@ export const ProjectRouter = () => {
             // `undefined` values will not be persisted to the URL.
             // Because of that, we only want to change the values from `undefined`
             // to the actual value when the value is different to the empty state.
-            const searchParamsToReflectInUrl = { ...InitialSearchParamsForUrl };
+            const searchParamsToReflectInUrl = {
+                ...InitialSearchParamsForUrl,
+            };
+
+            // TODO: Figure out why searchParams is not updated after the
+            // URL updates.
             Object.keys(searchParams).forEach((key) => {
                 // @ts-expect-error
                 const currentSearchParam = searchParams[key];
@@ -255,20 +272,40 @@ export const ProjectRouter = () => {
                 }
             });
 
-            // Only do this on the session page.
-            // We don't do this on other pages because we use search params to represent state
-            // For example, on the /alerts page we use `code` to store the Slack code when the OAuth redirect.
-            // If we run this, it'll remove the code and the integration will fail.
-            if (sessionsMatch) {
+            const needsUrlUpdate = !_.isEqual(
+                searchParams,
+                searchParamsToReflectInUrl
+            );
+
+            console.log('::: EXECUTING :::');
+            console.log(JSON.stringify(needsUrlUpdate));
+            console.log(JSON.stringify(searchParams));
+            // TODO: Figure out why this isn't updated after back button
+            // press. If this updated everything should work. Perhaps an
+            // issue with integration with React Router.
+            console.log(JSON.stringify(searchParamsToUrlParams));
+            console.log(JSON.stringify(searchParamsToReflectInUrl));
+
+            if (needsUrlUpdate) {
                 setSearchParamsToUrlParams(
                     {
                         ...searchParamsToReflectInUrl,
                     },
-                    'replaceIn'
+                    'push'
                 );
             }
         }
-    }, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch]);
+    }, [
+        setSearchParamsToUrlParams,
+        searchParams,
+        segmentName,
+        sessionsMatch,
+        searchParamsToUrlParams,
+    ]);
+
+    useEffect(() => {
+        console.log('::: SEARCH PARAMS CHANGED IN URL :::');
+    }, [searchParamsToUrlParams]);
 
     useEffect(() => {
         if (page !== undefined) {
@@ -276,7 +313,7 @@ export const ProjectRouter = () => {
                 {
                     page: page,
                 },
-                'replaceIn'
+                'push'
             );
         }
     }, [setPaginationToUrlParams, page]);
@@ -387,7 +424,7 @@ export const ProjectRouter = () => {
                                 title={'Enter this Workspace?'}
                                 message={`
                         Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin. 
+                        Request access and we'll shoot an email to your workspace admin.
                         Alternatively, feel free to make an account!
                         `}
                                 shownWithHeader
@@ -428,4 +465,6 @@ const InitialSearchParamsForUrl = {
     show_live_sessions: undefined,
     environments: undefined,
     app_versions: undefined,
+    // TODO: Do we need to add other filters?
+    session_country: undefined,
 };
