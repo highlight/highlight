@@ -2,6 +2,7 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { Series } from '@components/Histogram/Histogram';
 import {
     PAGE_SIZE,
     Pagination,
@@ -9,6 +10,7 @@ import {
     STARTING_PAGE,
 } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
+import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram';
 import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetBillingDetailsForProjectQuery,
@@ -17,7 +19,10 @@ import {
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
 import { PlanType } from '@graph/schemas';
 import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer';
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
+import {
+    QueryBuilderState,
+    serializeAbsoluteTimeRange,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
     formatCount,
@@ -47,12 +52,19 @@ import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfi
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
     showLiveSessions,
+    updateSearchTimeRange,
     useSearchContext,
 } from '../SearchContext/SearchContext';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
 export const SessionFeed = React.memo(() => {
+    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
+        []
+    );
+    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
+        []
+    );
     const { setSessionResults, sessionResults } = useReplayerContext();
     const { project_id, session_secure_id } = useParams<{
         project_id: string;
@@ -126,10 +138,6 @@ export const SessionFeed = React.memo(() => {
                 response?.sessions_opensearch.totalCount / PAGE_SIZE
             );
             setSessionsCount(response?.sessions_opensearch.totalCount);
-            console.log(
-                'Rich',
-                JSON.stringify(response?.sessions_opensearch.histogram)
-            );
         }
         setSearchResultsLoading(false);
     };
@@ -153,6 +161,43 @@ export const SessionFeed = React.memo(() => {
         skip: !backendSearchQuery,
         fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
     });
+
+    useEffect(() => {
+        let seriesList: Series[] = [];
+        let bucketTimes: number[] = [];
+        const histogramData = sessionResults?.histogram;
+        if (backendSearchQuery && !searchResultsLoading && histogramData) {
+            bucketTimes = histogramData.bucket_start_times.map((startTime) =>
+                new Date(startTime).valueOf()
+            );
+            bucketTimes.push(backendSearchQuery.endDate.valueOf());
+            seriesList = [
+                {
+                    label: 'Sessions without errors',
+                    color: '--color-purple',
+                    counts: histogramData.sessions_without_errors,
+                },
+                {
+                    label: 'Sessions with errors',
+                    color: '--color-red-600',
+                    counts: histogramData.sessions_with_errors,
+                },
+            ];
+        }
+        setHistogramSeriesList(seriesList);
+        setHistogramBucketTimes(bucketTimes);
+    }, [backendSearchQuery, searchResultsLoading, sessionResults?.histogram]);
+
+    const updateTimeRange = useCallback(
+        (newStartTime, newEndTime) => {
+            const newSearchParams = updateSearchTimeRange(
+                searchParams,
+                serializeAbsoluteTimeRange(newStartTime, newEndTime)
+            );
+            setSearchParams(newSearchParams);
+        },
+        [searchParams, setSearchParams]
+    );
 
     useEffect(() => {
         // we just loaded the page for the first time
@@ -246,6 +291,13 @@ export const SessionFeed = React.memo(() => {
                 <SegmentPickerForPlayer />
                 <SessionsQueryBuilder />
             </div>
+            <SearchResultsHistogram
+                seriesList={histogramSeriesList}
+                bucketTimes={histogramBucketTimes}
+                bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
+                loading={searchResultsLoading}
+                updateTimeRange={updateTimeRange}
+            />
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (

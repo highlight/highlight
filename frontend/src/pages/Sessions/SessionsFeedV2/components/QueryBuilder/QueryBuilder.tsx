@@ -1,20 +1,15 @@
 import { useAuthContext } from '@authentication/AuthContext';
 import Button from '@components/Button/Button/Button';
-import Histogram, { Series } from '@components/Histogram/Histogram';
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip';
 import Popover from '@components/Popover/Popover';
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter';
 import Tooltip from '@components/Tooltip/Tooltip';
-import {
-    BackendSearchQuery,
-    BaseSearchContext,
-} from '@context/BaseSearchContext';
+import { BaseSearchContext } from '@context/BaseSearchContext';
 import { useGetAppVersionsQuery } from '@graph/hooks';
 import { GetFieldTypesQuery } from '@graph/operations';
-import { Exact, Field, SessionsHistogram } from '@graph/schemas';
+import { Exact, Field } from '@graph/schemas';
 import Reload from '@icons/Reload';
 import SvgXIcon from '@icons/XIcon';
-import { useReplayerContext } from '@pages/Player/ReplayerContext';
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil';
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput';
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput';
@@ -1169,124 +1164,6 @@ interface QueryBuilderProps<T> {
     readonly?: boolean;
 }
 
-const useQueryBuilderHistogram = (
-    backendSearchQuery: BackendSearchQuery,
-    searchResultsLoading: boolean,
-    updateTimeRangeRule: (startTime: Date, endTime: Date) => void,
-    histogramData?: SessionsHistogram
-) => {
-    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
-        []
-    );
-    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
-        []
-    );
-
-    useEffect(() => {
-        let seriesList: Series[] = [];
-        let bucketTimes: number[] = [];
-        if (backendSearchQuery && !searchResultsLoading && histogramData) {
-            bucketTimes = histogramData.bucket_start_times.map((startTime) =>
-                new Date(startTime).valueOf()
-            );
-            bucketTimes.push(backendSearchQuery.endDate.valueOf());
-            seriesList = [
-                {
-                    label: 'Sessions without errors',
-                    color: '--color-purple',
-                    counts: histogramData.sessions_without_errors,
-                },
-                {
-                    label: 'Sessions with errors',
-                    color: '--color-red-600',
-                    counts: histogramData.sessions_with_errors,
-                },
-            ];
-        }
-        setHistogramSeriesList(seriesList);
-        setHistogramBucketTimes(bucketTimes);
-    }, [backendSearchQuery, searchResultsLoading, histogramData]);
-
-    const onAreaChanged = useCallback(
-        (left, right) => {
-            // histogramBucketTimes should always be one longer than the number of buckets
-            if (histogramBucketTimes.length <= right + 1) return;
-            const newStartTime = new Date(histogramBucketTimes[left]);
-            const newEndTime = new Date(histogramBucketTimes[right + 1]);
-            updateTimeRangeRule(newStartTime, newEndTime);
-        },
-        [histogramBucketTimes, updateTimeRangeRule]
-    );
-    const onBucketClicked = useCallback(
-        (bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
-        [onAreaChanged]
-    );
-    const timeFormatter = useCallback(
-        (t: number) => {
-            if (
-                histogramBucketTimes.length > 0 &&
-                t === histogramBucketTimes[histogramBucketTimes.length - 1]
-            ) {
-                return moment(t).format('MMM D h:mm a');
-            }
-            switch (backendSearchQuery?.histogramBucketSize) {
-                case 'minute':
-                case 'hour':
-                    return moment(t).format('MMM D h:mm a');
-                case 'day':
-                case 'week':
-                    return moment(t).format('MMMM D');
-                case 'month':
-                case 'quarter':
-                    return moment(t).format('MMMM');
-                default:
-                    return moment(t).format('MMMM D h:mm a');
-            }
-        },
-        [histogramBucketTimes, backendSearchQuery]
-    );
-    const tooltipContent = useCallback(
-        (bucketIndex: number) => {
-            const seriesTooltips = histogramSeriesList
-                .filter((series: Series) => series.counts[bucketIndex] > 0)
-                .map((series: Series, index: number) => (
-                    <div key={index} className={styles.histogramSeriesTooltip}>
-                        <span
-                            className={styles.histogramSeriesIcon}
-                            style={{
-                                background: `var(${series.color})`,
-                            }}
-                        ></span>
-                        {series.label} x {series.counts[bucketIndex]}
-                    </div>
-                ));
-            return (
-                <div className={styles.histogramTooltip}>
-                    {seriesTooltips.length > 0 ? seriesTooltips : 'No results'}
-                </div>
-            );
-        },
-        [histogramSeriesList]
-    );
-
-    return (
-        (searchResultsLoading ||
-            (histogramSeriesList.length > 0 &&
-                histogramBucketTimes.length > 0)) && (
-            <Histogram
-                onAreaChanged={onAreaChanged}
-                onBucketClicked={onBucketClicked}
-                seriesList={histogramSeriesList}
-                timeFormatter={timeFormatter}
-                bucketTimes={histogramBucketTimes}
-                tooltipContent={tooltipContent}
-                tooltipDelayMs={500}
-                loading={searchResultsLoading}
-            />
-        )
-    );
-};
-
 const QueryBuilder = ({
     searchContext,
     timeRangeField,
@@ -1297,14 +1174,12 @@ const QueryBuilder = ({
     readonly,
 }: QueryBuilderProps<any>) => {
     const {
-        backendSearchQuery,
         setBackendSearchQuery,
         searchParams,
         setSearchParams,
         searchResultsLoading,
     } = searchContext;
     const { admin } = useAuthContext();
-    const { sessionResults } = useReplayerContext();
     const getCustomFieldOptions = useCallback(
         (field: SelectOption | undefined) => {
             if (!field) {
@@ -1854,13 +1729,6 @@ const QueryBuilder = ({
         undefined
     );
 
-    const histogram = useQueryBuilderHistogram(
-        backendSearchQuery,
-        searchResultsLoading,
-        updateTimeRangeRule,
-        sessionResults?.histogram ?? undefined
-    );
-
     // Don't render anything if this is a readonly query builder and there are no rules
     if (readonly && rules.length === 0) {
         return null;
@@ -1871,239 +1739,230 @@ const QueryBuilder = ({
     }
 
     return (
-        <>
-            <div className={styles.builderContainer}>
-                {timeRangeRule && (
-                    <div className={styles.rulesContainer}>
-                        <div
-                            className={classNames(
-                                styles.ruleContainer,
-                                styles.timeRangeContainer
-                            )}
-                        >
-                            <TimeRangeFilter
-                                rule={timeRangeRule}
-                                onChangeValue={(val) =>
-                                    updateRule(timeRangeRule, { val: val })
-                                }
-                            />
-                            {!readonly &&
-                                timeRangeRule.val?.options[0].value !==
-                                    defaultTimeRangeRule.val?.options[0]
-                                        .value && (
-                                    <Button
-                                        trackingId="resetTimeRangeRule"
-                                        className={classNames(
-                                            styles.ruleItem,
-                                            styles.removeRule
-                                        )}
-                                        onClick={() =>
-                                            updateRule(timeRangeRule, {
-                                                val: defaultTimeRangeRule.val,
-                                            })
-                                        }
-                                    >
-                                        <SvgXIcon />
-                                    </Button>
-                                )}
-                        </div>
+        <div className={styles.builderContainer}>
+            {timeRangeRule && (
+                <div className={styles.rulesContainer}>
+                    <div
+                        className={classNames(
+                            styles.ruleContainer,
+                            styles.timeRangeContainer
+                        )}
+                    >
+                        <TimeRangeFilter
+                            rule={timeRangeRule}
+                            onChangeValue={(val) =>
+                                updateRule(timeRangeRule, { val: val })
+                            }
+                        />
                         {!readonly &&
-                            !isAbsoluteTimeRange(
-                                timeRangeRule.val?.options[0].value
-                            ) && (
+                            timeRangeRule.val?.options[0].value !==
+                                defaultTimeRangeRule.val?.options[0].value && (
                                 <Button
+                                    trackingId="resetTimeRangeRule"
                                     className={classNames(
                                         styles.ruleItem,
-                                        styles.syncButton
+                                        styles.removeRule
                                     )}
-                                    onClick={() => {
-                                        const query = parseGroup(isAnd, rules);
-                                        setSearchQuery(JSON.stringify(query));
-                                    }}
-                                    disabled={syncButtonDisabled}
-                                    trackingId={'RefreshSearchResults'}
+                                    onClick={() =>
+                                        updateRule(timeRangeRule, {
+                                            val: defaultTimeRangeRule.val,
+                                        })
+                                    }
                                 >
-                                    <Tooltip
-                                        title={
-                                            'Refetch the latest results of your query.'
-                                        }
-                                    >
-                                        <Reload width="1em" height="1em" />
-                                    </Tooltip>
+                                    <SvgXIcon />
                                 </Button>
                             )}
                     </div>
-                )}
-                <div>
-                    {filterRules.length > 0 && (
-                        <div className={styles.rulesContainer}>
-                            {filterRules.flatMap((rule, index) => [
-                                ...(index != 0
-                                    ? [
-                                          <Button
-                                              className={styles.separator}
-                                              trackingId="SessionsQuerySeparatorToggle"
-                                              onClick={toggleIsAnd}
-                                              key={`separator-${index}`}
-                                              type="dashed"
-                                              disabled={readonly}
-                                          >
-                                              {isAnd ? 'and' : 'or'}
-                                          </Button>,
-                                      ]
-                                    : []),
-                                <QueryRule
-                                    key={`rule-${index}`}
-                                    rule={rule}
-                                    onChangeKey={(val) => {
-                                        // Default to 'is' when rule is not defined yet
-                                        if (rule.op === undefined) {
-                                            updateRule(rule, {
-                                                field: val,
-                                                op: getDefaultOperator(
-                                                    rule.field
-                                                ),
-                                            });
-                                        } else {
-                                            updateRule(rule, { field: val });
-                                        }
-                                    }}
-                                    getKeyOptions={getKeyOptions}
-                                    onChangeOperator={(val) => {
-                                        if (val?.kind === 'single') {
-                                            updateRule(rule, { op: val.value });
-                                        }
-                                    }}
-                                    getOperatorOptions={getOperatorOptionsCallback(
-                                        getCustomFieldOptions(rule.field),
-                                        rule.val
-                                    )}
-                                    onChangeValue={(val) => {
-                                        updateRule(rule, { val: val });
-                                    }}
-                                    getValueOptions={getValueOptionsCallback(
-                                        rule.field
-                                    )}
-                                    onRemove={() => removeRule(rule)}
-                                    readonly={readonly ?? false}
-                                />,
-                            ])}
-                        </div>
-                    )}
-                    {!readonly && (
-                        <div>
-                            <Popover
-                                trigger="click"
-                                content={
-                                    currentRule?.field === undefined ? (
-                                        <PopoutContent
-                                            key={'popover-step-1'}
-                                            value={undefined}
-                                            setVisible={() => {
-                                                setCurrentStep(undefined);
-                                            }}
-                                            onChange={(val) => {
-                                                const field = val as
-                                                    | SelectOption
-                                                    | undefined;
-                                                addRule({
-                                                    field: field,
-                                                    op: undefined,
-                                                    val: undefined,
-                                                });
-                                            }}
-                                            loadOptions={getKeyOptions}
-                                            type="select"
-                                            placeholder="Filter..."
-                                        />
-                                    ) : currentRule?.op === undefined ? (
-                                        <PopoutContent
-                                            key={'popover-step-2'}
-                                            value={undefined}
-                                            setVisible={() => {
-                                                setCurrentStep(3);
-                                            }}
-                                            onChange={(val) => {
-                                                const op = (val as SelectOption)
-                                                    .value as Operator;
-                                                if (!hasArguments(op)) {
-                                                    setCurrentStep(undefined);
-                                                    addRule({
-                                                        ...currentRule,
-                                                        op,
-                                                    });
-                                                } else {
-                                                    setCurrentRule({
-                                                        ...currentRule,
-                                                        op,
-                                                    });
-                                                }
-                                            }}
-                                            loadOptions={getOperatorOptionsCallback(
-                                                getCustomFieldOptions(
-                                                    currentRule.field
-                                                ),
-                                                currentRule.val
-                                            )}
-                                            type="select"
-                                            placeholder="Select..."
-                                        />
-                                    ) : (
-                                        <PopoutContent
-                                            key={'popover-step-3'}
-                                            value={undefined}
-                                            setVisible={() => {
-                                                setCurrentStep(undefined);
-                                            }}
-                                            onChange={(val) => {
-                                                addRule({
-                                                    ...currentRule,
-                                                    val: val as
-                                                        | MultiselectOption
-                                                        | undefined,
-                                                });
-                                            }}
-                                            loadOptions={getValueOptionsCallback(
-                                                currentRule.field
-                                            )}
-                                            type={getPopoutType(currentRule.op)}
-                                            placeholder={`Select...`}
-                                        />
-                                    )
-                                }
-                                placement="bottomLeft"
-                                contentContainerClassName={
-                                    styles.contentContainer
-                                }
-                                popoverClassName={styles.popoverContainer}
-                                destroyTooltipOnHide
-                                onVisibleChange={(isVisible) => {
-                                    if (!isVisible) {
-                                        setCurrentStep(undefined);
+                    {!readonly &&
+                        !isAbsoluteTimeRange(
+                            timeRangeRule.val?.options[0].value
+                        ) && (
+                            <Button
+                                className={classNames(
+                                    styles.ruleItem,
+                                    styles.syncButton
+                                )}
+                                onClick={() => {
+                                    const query = parseGroup(isAnd, rules);
+                                    setSearchQuery(JSON.stringify(query));
+                                }}
+                                disabled={syncButtonDisabled}
+                                trackingId={'RefreshSearchResults'}
+                            >
+                                <Tooltip
+                                    title={
+                                        'Refetch the latest results of your query.'
+                                    }
+                                >
+                                    <Reload width="1em" height="1em" />
+                                </Tooltip>
+                            </Button>
+                        )}
+                </div>
+            )}
+            <div>
+                {filterRules.length > 0 && (
+                    <div className={styles.rulesContainer}>
+                        {filterRules.flatMap((rule, index) => [
+                            ...(index != 0
+                                ? [
+                                      <Button
+                                          className={styles.separator}
+                                          trackingId="SessionsQuerySeparatorToggle"
+                                          onClick={toggleIsAnd}
+                                          key={`separator-${index}`}
+                                          type="dashed"
+                                          disabled={readonly}
+                                      >
+                                          {isAnd ? 'and' : 'or'}
+                                      </Button>,
+                                  ]
+                                : []),
+                            <QueryRule
+                                key={`rule-${index}`}
+                                rule={rule}
+                                onChangeKey={(val) => {
+                                    // Default to 'is' when rule is not defined yet
+                                    if (rule.op === undefined) {
+                                        updateRule(rule, {
+                                            field: val,
+                                            op: getDefaultOperator(rule.field),
+                                        });
+                                    } else {
+                                        updateRule(rule, { field: val });
                                     }
                                 }}
-                                visible={
-                                    currentStep === 1 ||
-                                    (currentStep === 2 &&
-                                        !!currentRule?.field) ||
-                                    (currentStep === 3 && !!currentRule?.op)
+                                getKeyOptions={getKeyOptions}
+                                onChangeOperator={(val) => {
+                                    if (val?.kind === 'single') {
+                                        updateRule(rule, { op: val.value });
+                                    }
+                                }}
+                                getOperatorOptions={getOperatorOptionsCallback(
+                                    getCustomFieldOptions(rule.field),
+                                    rule.val
+                                )}
+                                onChangeValue={(val) => {
+                                    updateRule(rule, { val: val });
+                                }}
+                                getValueOptions={getValueOptionsCallback(
+                                    rule.field
+                                )}
+                                onRemove={() => removeRule(rule)}
+                                readonly={readonly ?? false}
+                            />,
+                        ])}
+                    </div>
+                )}
+                {!readonly && (
+                    <div>
+                        <Popover
+                            trigger="click"
+                            content={
+                                currentRule?.field === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-1'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
+                                            const field = val as
+                                                | SelectOption
+                                                | undefined;
+                                            addRule({
+                                                field: field,
+                                                op: undefined,
+                                                val: undefined,
+                                            });
+                                        }}
+                                        loadOptions={getKeyOptions}
+                                        type="select"
+                                        placeholder="Filter..."
+                                    />
+                                ) : currentRule?.op === undefined ? (
+                                    <PopoutContent
+                                        key={'popover-step-2'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(3);
+                                        }}
+                                        onChange={(val) => {
+                                            const op = (val as SelectOption)
+                                                .value as Operator;
+                                            if (!hasArguments(op)) {
+                                                setCurrentStep(undefined);
+                                                addRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            } else {
+                                                setCurrentRule({
+                                                    ...currentRule,
+                                                    op,
+                                                });
+                                            }
+                                        }}
+                                        loadOptions={getOperatorOptionsCallback(
+                                            getCustomFieldOptions(
+                                                currentRule.field
+                                            ),
+                                            currentRule.val
+                                        )}
+                                        type="select"
+                                        placeholder="Select..."
+                                    />
+                                ) : (
+                                    <PopoutContent
+                                        key={'popover-step-3'}
+                                        value={undefined}
+                                        setVisible={() => {
+                                            setCurrentStep(undefined);
+                                        }}
+                                        onChange={(val) => {
+                                            addRule({
+                                                ...currentRule,
+                                                val: val as
+                                                    | MultiselectOption
+                                                    | undefined,
+                                            });
+                                        }}
+                                        loadOptions={getValueOptionsCallback(
+                                            currentRule.field
+                                        )}
+                                        type={getPopoutType(currentRule.op)}
+                                        placeholder={`Select...`}
+                                    />
+                                )
+                            }
+                            placement="bottomLeft"
+                            contentContainerClassName={styles.contentContainer}
+                            popoverClassName={styles.popoverContainer}
+                            destroyTooltipOnHide
+                            onVisibleChange={(isVisible) => {
+                                if (!isVisible) {
+                                    setCurrentStep(undefined);
                                 }
+                            }}
+                            visible={
+                                currentStep === 1 ||
+                                (currentStep === 2 && !!currentRule?.field) ||
+                                (currentStep === 3 && !!currentRule?.op)
+                            }
+                        >
+                            <Button
+                                className={styles.addFilter}
+                                trackingId="SessionsQueryAddRule2"
+                                onClick={newRule}
+                                type="dashed"
                             >
-                                <Button
-                                    className={styles.addFilter}
-                                    trackingId="SessionsQueryAddRule2"
-                                    onClick={newRule}
-                                    type="dashed"
-                                >
-                                    + Filter
-                                </Button>
-                            </Popover>
-                        </div>
-                    )}
-                </div>
+                                + Filter
+                            </Button>
+                        </Popover>
+                    </div>
+                )}
             </div>
-            {!readonly && histogram}
-        </>
+        </div>
     );
 };
 
