@@ -189,21 +189,16 @@
 }
 
 .resize {
-    align-items: center;
-    color: var(--color-gray-500);
-    cursor: move;
-    display: flex;
-    justify-content: center;
     position: absolute;
-}
+    bottom: 6px;
+    right: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--color-gray-300);
+    transform: rotate(135deg);
+    transition: border-bottom ease-in-out 0.2s;
 
-.resizeRight {
-    bottom: min(calc(40%), 30px);
-    right: 10px;
-}
-
-.resizeBottom {
-    bottom: 10px;
-    right: min(calc(40%), 30px);
-    transform: rotate(90deg);
+    &:hover {
+        border-bottom: 10px solid var(--color-purple-400);
+    }
 }
