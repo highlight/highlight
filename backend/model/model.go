@@ -1254,8 +1254,8 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 	partitionSize := 100000
 	start := lastVal / partitionSize * partitionSize
 
-	// Make sure partitions are created for the next 1m sessions
-	for i := 0; i < 10; i++ {
+	// Make sure partitions are created for the next 5m sessions
+	for i := 0; i < 50; i++ {
 		end := start + partitionSize
 		sql := fmt.Sprintf(`
 			DO $$
