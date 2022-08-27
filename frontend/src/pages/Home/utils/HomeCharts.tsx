@@ -115,7 +115,7 @@ export const SessionCountGraph = ({
                 data={sessionCountData}
                 name="Sessions"
                 onClickHandler={(payload: any) => {
-                    const date = moment(payload.activeLabel);
+                    const date = moment(payload.activePayload[0].payload.date);
                     setSegmentName(null);
                     setSelectedSegment(undefined);
                     setSearchParams({
@@ -203,7 +203,9 @@ export const ErrorCountGraph = ({
                 name="Errors"
                 onClickHandler={(payload: any) => {
                     history.push(
-                        `/${projectIdRemapped}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                        `/${projectIdRemapped}/errors?${
+                            SessionPageSearchParams.date
+                        }=${payload.activePayload[0].payload.date.toDate()}`
                     );
                 }}
             />
@@ -226,6 +228,7 @@ const DailyChart = ({
         <ResponsiveContainer width="100%" height={275}>
             <BarChartV2
                 height={275}
+                barSize={12}
                 data={data}
                 barColorMapping={{
                     count: lineColor,

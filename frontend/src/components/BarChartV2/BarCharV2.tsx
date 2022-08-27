@@ -34,6 +34,7 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
     hideLegend?: boolean;
     referenceAreaProps?: ReferenceAreaProps;
     onClickHandler?: () => void;
+    barSize?: number;
 };
 
 const BarChartV2 = ({
@@ -54,6 +55,7 @@ const BarChartV2 = ({
     referenceAreaProps,
     xAxisProps,
     onClickHandler,
+    barSize,
 }: Props) => {
     yAxisKeys =
         yAxisKeys ||
@@ -98,7 +100,7 @@ const BarChartV2 = ({
                         left: -18,
                         bottom: 0,
                     }}
-                    barSize={7}
+                    barSize={barSize || 7}
                     barGap={0}
                     barCategoryGap={0}
                 >
