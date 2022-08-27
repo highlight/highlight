@@ -15,11 +15,13 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { dailyCountData } from '@util/dashboardCalculations';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
+import classNames from 'classnames';
 import moment from 'moment/moment';
 import React, { useEffect, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 import { ResponsiveContainer } from 'recharts';
+
+import styles from './HomeCharts.module.scss';
 
 type DailyCount = {
     date: moment.Moment;
@@ -107,10 +109,8 @@ export const SessionCountGraph = ({
         setUpdatingData(loading);
     }, [setUpdatingData, loading]);
 
-    return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
-    ) : (
-        <Card full>
+    return (
+        <Card full className={classNames({ [styles.loading]: loading })}>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -195,10 +195,8 @@ export const ErrorCountGraph = ({
         setUpdatingData(loading);
     }, [setUpdatingData, loading]);
 
-    return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
-    ) : (
-        <Card full>
+    return (
+        <Card full className={classNames({ [styles.loading]: loading })}>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}

@@ -9,3 +9,7 @@
     padding: var(--size-large);
     width: 100%;
 }
+
+.loading {
+    filter: blur(2px);
+}

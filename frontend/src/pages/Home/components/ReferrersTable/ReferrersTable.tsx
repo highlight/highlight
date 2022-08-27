@@ -15,9 +15,9 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
@@ -73,32 +73,30 @@ const ReferrersTable = ({
         setUpdatingData(loading);
     }, [setUpdatingData, loading]);
 
-    if (loading) {
-        return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
-    }
-
     return (
-        <DashboardInnerTable>
-            <ProgressBarTable
-                columns={Columns}
-                data={tableData}
-                loading={loading}
-                onClickHandler={(record) => {
-                    setSegmentName(null);
-                    setSelectedSegment(undefined);
-                    setSearchParams({
-                        ...EmptySessionsSearchParams,
-                        referrer: record.host,
-                    });
-                    message.success(
-                        `Showing sessions that were referred by ${record.host}`
-                    );
-                    history.push(`/${projectIdRemapped}/sessions`);
-                }}
-                noDataTitle="No referrer data yet 😔"
-                noDataMessage="Doesn't look like your app has been referred to yet."
-            />
-        </DashboardInnerTable>
+        <div className={classNames({ [styles.loading]: loading })}>
+            <DashboardInnerTable>
+                <ProgressBarTable
+                    columns={Columns}
+                    data={tableData}
+                    loading={loading}
+                    onClickHandler={(record) => {
+                        setSegmentName(null);
+                        setSelectedSegment(undefined);
+                        setSearchParams({
+                            ...EmptySessionsSearchParams,
+                            referrer: record.host,
+                        });
+                        message.success(
+                            `Showing sessions that were referred by ${record.host}`
+                        );
+                        history.push(`/${projectIdRemapped}/sessions`);
+                    }}
+                    noDataTitle="No referrer data yet 😔"
+                    noDataMessage="Doesn't look like your app has been referred to yet."
+                />
+            </DashboardInnerTable>
+        </div>
     );
 };
 

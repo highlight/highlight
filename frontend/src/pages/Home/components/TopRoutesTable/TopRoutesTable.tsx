@@ -9,9 +9,9 @@ import useDataTimeRange from '@hooks/useDataTimeRange';
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable';
 import { useParams } from '@util/react-router/useParams';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
@@ -48,40 +48,38 @@ const TopRoutesTable = ({
         setUpdatingData(loading);
     }, [setUpdatingData, loading]);
 
-    if (loading) {
-        return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
-    }
-
     return (
-        <DashboardInnerTable>
-            <ProgressBarTable
-                loading={loading}
-                columns={Columns}
-                data={
-                    data?.network_histogram?.buckets
-                        .slice()
-                        .map((bucket, index) => ({
-                            key: index,
-                            route: bucket.category,
-                            count: bucket.count,
-                        })) || []
-                }
-                onClickHandler={() => {}}
-                noDataMessage={
-                    !data?.network_histogram?.buckets.length && (
-                        <>
-                            Have you{' '}
-                            <Link
-                                to={`/${project_id}/settings/recording#network`}
-                            >
-                                configured your backend domains?
-                            </Link>
-                        </>
-                    )
-                }
-                noDataTitle={'No route data yet 😔'}
-            />
-        </DashboardInnerTable>
+        <div className={classNames({ [styles.loading]: loading })}>
+            <DashboardInnerTable>
+                <ProgressBarTable
+                    loading={loading}
+                    columns={Columns}
+                    data={
+                        data?.network_histogram?.buckets
+                            .slice()
+                            .map((bucket, index) => ({
+                                key: index,
+                                route: bucket.category,
+                                count: bucket.count,
+                            })) || []
+                    }
+                    onClickHandler={() => {}}
+                    noDataMessage={
+                        !data?.network_histogram?.buckets.length && (
+                            <>
+                                Have you{' '}
+                                <Link
+                                    to={`/${project_id}/settings/recording#network`}
+                                >
+                                    configured your backend domains?
+                                </Link>
+                            </>
+                        )
+                    }
+                    noDataTitle={'No route data yet 😔'}
+                />
+            </DashboardInnerTable>
+        </div>
     );
 };
 

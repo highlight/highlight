@@ -17,9 +17,9 @@ import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
@@ -92,68 +92,67 @@ const ActiveUsersTable = ({
         });
     }, [filterSearchTerm, tableData]);
 
-    if (loading) {
-        return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
-    }
-
     return (
-        <DashboardInnerTable>
-            <ProgressBarTable
-                loading={loading}
-                columns={Columns}
-                data={filteredTableData}
-                onClickHandler={(record) => {
-                    setSegmentName(null);
-                    setSelectedSegment(undefined);
-                    setSearchParams({
-                        ...EmptySessionsSearchParams,
-                        user_properties: [
-                            {
-                                id: record.id,
-                                name: validateEmail(record.identifier)
-                                    ? 'email'
-                                    : 'identifier',
-                                value: record.identifier,
-                            },
-                        ],
-                    });
-                    message.success(
-                        `Showing sessions for ${record.identifier}`
-                    );
-                    history.push(`/${projectIdRemapped}/sessions`);
-                }}
-                noDataMessage={
-                    filteredTableData.length === 0 &&
-                    filterSearchTerm !== '' ? (
-                        <>
-                            This table will only shows the top 50 users based on
-                            total active time in your app. '{filterSearchTerm}'
-                            is not in the top 50.
-                        </>
-                    ) : (
-                        <>
-                            It doesn't look like we have any sessions with
-                            identified users. You will need to call{' '}
-                            <code>identify()</code> in your app to identify
-                            users during their sessions. You can{' '}
-                            <a
-                                href="https://docs.highlight.run/identifying-users"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                learn more here
-                            </a>
-                            .
-                        </>
-                    )
-                }
-                noDataTitle={
-                    filteredTableData.length === 0 && filterSearchTerm !== ''
-                        ? `No matches for '${filterSearchTerm}'`
-                        : 'No user data yet 😔'
-                }
-            />
-        </DashboardInnerTable>
+        <div className={classNames({ [styles.loading]: loading })}>
+            <DashboardInnerTable>
+                <ProgressBarTable
+                    loading={loading}
+                    columns={Columns}
+                    data={filteredTableData}
+                    onClickHandler={(record) => {
+                        setSegmentName(null);
+                        setSelectedSegment(undefined);
+                        setSearchParams({
+                            ...EmptySessionsSearchParams,
+                            user_properties: [
+                                {
+                                    id: record.id,
+                                    name: validateEmail(record.identifier)
+                                        ? 'email'
+                                        : 'identifier',
+                                    value: record.identifier,
+                                },
+                            ],
+                        });
+                        message.success(
+                            `Showing sessions for ${record.identifier}`
+                        );
+                        history.push(`/${projectIdRemapped}/sessions`);
+                    }}
+                    noDataMessage={
+                        filteredTableData.length === 0 &&
+                        filterSearchTerm !== '' ? (
+                            <>
+                                This table will only shows the top 50 users
+                                based on total active time in your app. '
+                                {filterSearchTerm}' is not in the top 50.
+                            </>
+                        ) : (
+                            <>
+                                It doesn't look like we have any sessions with
+                                identified users. You will need to call{' '}
+                                <code>identify()</code> in your app to identify
+                                users during their sessions. You can{' '}
+                                <a
+                                    href="https://docs.highlight.run/identifying-users"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    learn more here
+                                </a>
+                                .
+                            </>
+                        )
+                    }
+                    noDataTitle={
+                        filteredTableData.length === 0 &&
+                        filterSearchTerm !== ''
+                            ? `No matches for '${filterSearchTerm}'`
+                            : 'No user data yet 😔'
+                    }
+                />
+            </DashboardInnerTable>
+        </div>
     );
 };
 

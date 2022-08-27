@@ -16,9 +16,9 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useEffect, useMemo, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useHistory } from 'react-router-dom';
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable';
@@ -95,50 +95,49 @@ const RageClicksForProjectTable = ({
         setUpdatingData(loading);
     }, [setUpdatingData, loading]);
 
-    if (loading) {
-        return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
-    }
-
     return (
-        <DashboardInnerTable>
-            <ProgressBarTable
-                loading={loading}
-                columns={Columns}
-                data={filteredTableData}
-                onClickHandler={(record) => {
-                    setSegmentName(null);
-                    setSelectedSegment(undefined);
-                    setSearchParams({
-                        ...EmptySessionsSearchParams,
-                    });
-                    message.success(
-                        `Showing most recent session for ${record.identifier} with rage clicks.`
-                    );
-                    history.push(
-                        `/${projectIdRemapped}/sessions/${record.sessionSecureId}`
-                    );
-                }}
-                noDataMessage={
-                    filteredTableData.length === 0 &&
-                    filterSearchTerm !== '' ? (
-                        <></>
-                    ) : (
-                        <>
-                            Woohoo! There are no rage clicks for the past{' '}
-                            {moment
-                                .duration(timeRange.lookback, 'minutes')
-                                .humanize()}
-                            {'!'}
-                        </>
-                    )
-                }
-                noDataTitle={
-                    filteredTableData.length === 0 && filterSearchTerm !== ''
-                        ? `No rage clicks found from '${filterSearchTerm}' 🎉`
-                        : 'No rage clicks yet! 🎉'
-                }
-            />
-        </DashboardInnerTable>
+        <div className={classNames({ [styles.loading]: loading })}>
+            <DashboardInnerTable>
+                <ProgressBarTable
+                    loading={loading}
+                    columns={Columns}
+                    data={filteredTableData}
+                    onClickHandler={(record) => {
+                        setSegmentName(null);
+                        setSelectedSegment(undefined);
+                        setSearchParams({
+                            ...EmptySessionsSearchParams,
+                        });
+                        message.success(
+                            `Showing most recent session for ${record.identifier} with rage clicks.`
+                        );
+                        history.push(
+                            `/${projectIdRemapped}/sessions/${record.sessionSecureId}`
+                        );
+                    }}
+                    noDataMessage={
+                        filteredTableData.length === 0 &&
+                        filterSearchTerm !== '' ? (
+                            <></>
+                        ) : (
+                            <>
+                                Woohoo! There are no rage clicks for the past{' '}
+                                {moment
+                                    .duration(timeRange.lookback, 'minutes')
+                                    .humanize()}
+                                {'!'}
+                            </>
+                        )
+                    }
+                    noDataTitle={
+                        filteredTableData.length === 0 &&
+                        filterSearchTerm !== ''
+                            ? `No rage clicks found from '${filterSearchTerm}' 🎉`
+                            : 'No rage clicks yet! 🎉'
+                    }
+                />
+            </DashboardInnerTable>
+        </div>
     );
 };
 

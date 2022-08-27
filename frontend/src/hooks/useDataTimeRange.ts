@@ -4,7 +4,7 @@ import moment from 'moment';
 const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z';
 
 const defaultEndDate = moment().format(FORMAT);
-export const defaultLookback = 15;
+export const defaultLookback = 60;
 
 export interface DataTimeRange {
     start_date: string;
