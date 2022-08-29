@@ -846,27 +846,6 @@ export class Highlight {
                 })
             );
 
-            // this.listeners.push(
-            //     WebVitalsListener((data) => {
-            //         const { name, value } = data;
-            //         try {
-            //             this.graphqlSDK.pushMetrics({
-            //                 metrics: [
-            //                     {
-            //                         name,
-            //                         value,
-            //                         session_secure_id: this.sessionData
-            //                             .sessionSecureID,
-            //                         category: 'WebVital',
-            //                         group: window.location.href,
-            //                         timestamp: new Date().toISOString(),
-            //                     },
-            //                 ],
-            //             });
-            //         } catch {}
-            //     })
-            // );
-
             if (this.sessionShortcut) {
                 SessionShortcutListener(this.sessionShortcut, () => {
                     window.open(
