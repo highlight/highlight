@@ -545,6 +545,12 @@ export class Highlight {
                 this.sessionData.projectID = parseInt(
                     gr?.initializeSession?.project_id || '0'
                 );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
                 this.logger.log(
                     `Loaded Highlight
 Remote: ${publicGraphURI}
@@ -573,12 +579,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`
                 FirstLoadListeners.setupNetworkListener(
                     this._firstLoadListeners,
                     this.options
-                );
-            }
-            if (this.sessionData.userIdentifier) {
-                this.identify(
-                    this.sessionData.userIdentifier,
-                    this.sessionData.userObject
                 );
             }
             const { getDeviceDetails } = getPerformanceMethods();
