@@ -40,6 +40,7 @@ export type Session = {
     browser_version: Scalars['String'];
     city: Scalars['String'];
     state: Scalars['String'];
+    country: Scalars['String'];
     postal: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
     app_version?: Maybe<Scalars['String']>;
