@@ -269,7 +269,6 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
-        this.sessionData.sessionSecureID = this.options.sessionSecureID;
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
@@ -501,17 +500,6 @@ export class Highlight {
                 this._recordingStartTime = parseInt(recordingStartTime, 10);
             }
 
-            if (!this._firstLoadListeners.isListening()) {
-                this._firstLoadListeners.startListening();
-            }
-
-            if (!this._firstLoadListeners.hasNetworkRecording) {
-                FirstLoadListeners.setupNetworkListener(
-                    this._firstLoadListeners,
-                    this.options
-                );
-            }
-
             let clientID = window.localStorage.getItem(
                 LOCAL_STORAGE_KEYS['CLIENT_ID']
             );
@@ -526,35 +514,51 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            const client = await this.fingerprintjs;
-            const fingerprint = await client.get();
-            const gr = await this.graphqlSDK.initializeSession({
-                organization_verbose_id: this.organizationID,
-                enable_strict_privacy: this.enableStrictPrivacy,
-                enable_recording_network_contents: this._firstLoadListeners
-                    .enableRecordingNetworkContents,
-                clientVersion: packageJson['version'],
-                firstloadVersion: this.firstloadVersion,
-                clientConfig: JSON.stringify(this._optionsInternal),
-                environment: this.environment,
-                id: fingerprint.visitorId,
-                appVersion: this.appVersion,
-                session_secure_id: this.sessionData.sessionSecureID,
-                client_id: clientID,
-            });
-            if (
-                gr.initializeSession.secure_id !==
-                this.sessionData.sessionSecureID
-            ) {
+
+            if (!this.reloaded && !this._hasPreviouslyInitialized) {
+                const client = await this.fingerprintjs;
+                const fingerprint = await client.get();
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
+                    enable_recording_network_contents: this._firstLoadListeners
+                        .enableRecordingNetworkContents,
+                    clientVersion: packageJson['version'],
+                    firstloadVersion: this.firstloadVersion,
+                    clientConfig: JSON.stringify(this._optionsInternal),
+                    environment: this.environment,
+                    id: fingerprint.visitorId,
+                    appVersion: this.appVersion,
+                    session_secure_id: this.sessionData.sessionSecureID,
+                    client_id: clientID,
+                });
+                if (
+                    gr.initializeSession.secure_id !==
+                    this.sessionData.sessionSecureID
+                ) {
+                    this.logger.log(
+                        `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
+                    );
+                }
+                this.sessionData.sessionSecureID =
+                    gr.initializeSession.secure_id;
+                this.sessionData.projectID = parseInt(
+                    gr?.initializeSession?.project_id || '0'
+                );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
                 this.logger.log(
-                    `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
+                    `Loaded Highlight
+Remote: ${publicGraphURI}
+Project ID: ${this.sessionData.projectID}
+SessionSecureID: ${this.sessionData.sessionSecureID}`
                 );
-                HighlightWarning(
-                    'initializeSession',
-                    'Failed to initialize session. Aborting recording.'
-                );
-                return;
             }
+            this.options.sessionSecureID = this.sessionData.sessionSecureID;
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -568,23 +572,13 @@ export class Highlight {
                 SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
                 this.sessionData.sessionSecureID
             );
-            this.sessionData.projectID = parseInt(
-                gr?.initializeSession?.project_id || '0'
-            );
-            this.logger.log(
-                `Loaded Highlight
-Remote: ${publicGraphURI}
-Friendly Project ID: ${this.organizationID}
-Short Project ID: ${this.sessionData.projectID}
-SessionSecureID: ${this.sessionData.sessionSecureID}
-Session Data:
-`,
-                gr.initializeSession
-            );
-            if (this.sessionData.userIdentifier) {
-                this.identify(
-                    this.sessionData.userIdentifier,
-                    this.sessionData.userObject
+            if (!this._firstLoadListeners.isListening()) {
+                this._firstLoadListeners.startListening();
+            }
+            if (!this._firstLoadListeners.hasNetworkRecording) {
+                FirstLoadListeners.setupNetworkListener(
+                    this._firstLoadListeners,
+                    this.options
                 );
             }
             const { getDeviceDetails } = getPerformanceMethods();
@@ -651,7 +645,7 @@ Session Data:
                     width: window.innerWidth,
                 });
                 this._isRecordingEvents = true;
-            }, 2000);
+            }, 1);
 
             if (document.referrer) {
                 // Don't record the referrer if it's the same origin.
