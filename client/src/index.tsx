@@ -553,7 +553,6 @@ export class Highlight {
                     'initializeSession',
                     'Failed to initialize session. Aborting recording.'
                 );
-                this._firstLoadListeners?.stopListening();
                 return;
             }
             this._worker.postMessage({
