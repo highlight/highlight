@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -18,6 +17,7 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
@@ -74,18 +74,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionSecureID 
 			SessionSecureID: sessionSecureID,
 			UserIdentifier:  userIdentifier,
 			UserObject:      userObject,
-		},
-	}, sessionSecureID)
-	return sessionSecureID, err
-}
-
-// AddTrackProperties is the resolver for the addTrackProperties field.
-func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.AddTrackProperties,
-		AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
-			SessionSecureID:  sessionSecureID,
-			PropertiesObject: propertiesObject,
 		},
 	}, sessionSecureID)
 	return sessionSecureID, err
