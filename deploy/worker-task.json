@@ -294,7 +294,7 @@
     "pidMode": null,
     "requiresCompatibilities": ["FARGATE"],
     "networkMode": "awsvpc",
-    "cpu": "4096",
+    "cpu": "8192",
     "revision": 40,
     "status": "ACTIVE",
     "inferenceAccelerators": null,
