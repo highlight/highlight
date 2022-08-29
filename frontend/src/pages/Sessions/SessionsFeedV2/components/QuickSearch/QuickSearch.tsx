@@ -8,6 +8,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import useLocalStorage from '@rehooks/local-storage';
 import { useParams } from '@util/react-router/useParams';
 import { validateEmail } from '@util/string';
+import { isUrl } from '@util/url/isUrl';
 import classNames from 'classnames';
 import _ from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -272,6 +273,10 @@ const QuickSearch = () => {
             field.type = 'user';
             field.name = 'email';
         }
+        if (isUrl(q) || q.startsWith('/')) {
+            field.type = 'session';
+            field.name = 'visited-url';
+        }
         return field;
     };
 
@@ -297,7 +302,7 @@ const QuickSearch = () => {
             history.push(`/${project_id}/errors`);
         } else {
             let verb = 'is';
-            if (CONTAINS_KEYS.has(field.name)) {
+            if (CONTAINS_KEYS.has(field.name) || field.value.startsWith('/')) {
                 verb = 'contains';
             }
             const searchParams = {
