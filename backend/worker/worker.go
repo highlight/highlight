@@ -989,10 +989,10 @@ func (w *Worker) Start() {
 										AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
 										AND (COALESCE(retry_count, 0) < ?)
 									LIMIT ?
-									FOR UPDATE SKIP LOCKED
 								) s
 								ORDER BY id
 							    LIMIT ?
+								FOR UPDATE SKIP LOCKED
 							)
 							RETURNING *
 						)
