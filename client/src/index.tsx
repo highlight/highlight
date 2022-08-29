@@ -931,8 +931,6 @@ Session Data:
             );
         }
         this.state = 'NotRecording';
-        this.listeners.forEach((stop: listenerHandler) => stop());
-        this.listeners = [];
         this._firstLoadListeners.stopListening();
         this._isRecordingEvents = false;
     }
