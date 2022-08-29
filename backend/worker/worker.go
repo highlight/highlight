@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -439,6 +440,14 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 func (w *Worker) PublicWorker() {
+	if !util.IsDevOrTestEnv() {
+		err := profiler.Start(profiler.WithService("public-worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+		if err != nil {
+			log.Error(e.Wrap(err, "error starting public worker profiler"))
+		}
+		defer profiler.Stop()
+	}
+
 	const parallelWorkers = 16
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
