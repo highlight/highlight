@@ -991,13 +991,12 @@ func (w *Worker) Start() {
 									LIMIT ?
 								) s
 								ORDER BY id
-							    LIMIT ?
 								FOR UPDATE SKIP LOCKED
 							)
 							RETURNING *
 						)
 						SELECT * FROM t;
-					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
 					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
