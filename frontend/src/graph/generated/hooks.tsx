@@ -4690,6 +4690,7 @@ export const GetSessionDocument = gql`
             app_version
             city
             state
+            country
             postal
             fingerprint
             created_at
@@ -5979,6 +5980,7 @@ export const GetSessionsOpenSearchDocument = gql`
                 browser_version
                 city
                 state
+                country
                 postal
                 created_at
                 language

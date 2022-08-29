@@ -185,6 +185,7 @@ query GetSession($secure_id: String!) {
         app_version
         city
         state
+        country
         postal
         fingerprint
         created_at
@@ -574,6 +575,7 @@ query GetSessionsOpenSearch(
             browser_version
             city
             state
+            country
             postal
             created_at
             language

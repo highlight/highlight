@@ -23,6 +23,7 @@ type Session {
     browser_version: String!
     city: String!
     state: String!
+    country: String!
     postal: String!
     environment: String
     app_version: String
