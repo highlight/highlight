@@ -515,14 +515,26 @@ export class Highlight {
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
 
+            // Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
+            // needed for initializeSession
+            let enableNetworkRecording;
+            if (this.options.disableNetworkRecording !== undefined) {
+                enableNetworkRecording = false;
+            } else if (typeof this.options.networkRecording === 'boolean') {
+                enableNetworkRecording = false;
+            } else {
+                enableNetworkRecording =
+                    this.options.networkRecording?.recordHeadersAndBody ||
+                    false;
+            }
+
             if (!this.reloaded && !this._hasPreviouslyInitialized) {
                 const client = await this.fingerprintjs;
                 const fingerprint = await client.get();
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
-                    enable_recording_network_contents: this._firstLoadListeners
-                        .enableRecordingNetworkContents,
+                    enable_recording_network_contents: enableNetworkRecording,
                     clientVersion: packageJson['version'],
                     firstloadVersion: this.firstloadVersion,
                     clientConfig: JSON.stringify(this._optionsInternal),
