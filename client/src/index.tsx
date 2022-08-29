@@ -654,6 +654,97 @@ Session Data:
                 this._isRecordingEvents = true;
             }, 2000);
 
+            if (document.referrer) {
+                // Don't record the referrer if it's the same origin.
+                // Non-single page apps might have the referrer set to the same origin.
+                // If we record this then the referrer data will not be useful.
+                // Most users will want to see referrers outside of their website/app.
+                // This will be a configuration set in `H.init()` later.
+                if (
+                    !(
+                        window &&
+                        document.referrer.includes(window.location.origin)
+                    )
+                ) {
+                    this.addCustomEvent<string>('Referrer', document.referrer);
+                    this.addProperties(
+                        { referrer: document.referrer },
+                        { type: 'session' }
+                    );
+                }
+            }
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
+        }
+        try {
+            // ensure we only create document/window listeners once
+            if (this._hasPreviouslyInitialized) {
+                return;
+            }
+            this._setupWindowListeners();
+        } finally {
+            this._hasPreviouslyInitialized = true;
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
+        }
+    }
+
+    _visibilityHandler(hidden: boolean) {
+        if (
+            new Date().getTime() - this._lastVisibilityChangeTime <
+            VISIBILITY_DEBOUNCE_MS
+        ) {
+            return;
+        }
+        this._lastVisibilityChangeTime = new Date().getTime();
+        if (!hidden) {
+            this.logger.log(`Detected window visible. Resuming recording.`);
+            this.initialize();
+            this.addCustomEvent('TabHidden', false);
+            return;
+        }
+        this.logger.log(`Detected window hidden. Pausing recording.`);
+        this.addCustomEvent('TabHidden', true);
+        if ('sendBeacon' in navigator) {
+            try {
+                this._sendPayload({
+                    isBeacon: true,
+                    sendFn: (payload) => {
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                        return Promise.resolve(0);
+                    },
+                });
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                    HighlightWarning('_sendPayload', e);
+                }
+            }
+        }
+        this.stopRecording();
+    }
+
+    _setupWindowListeners() {
+        try {
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
                 this.listeners.push(
@@ -681,26 +772,6 @@ Session Data:
                         }
                     })
                 );
-            }
-
-            if (document.referrer) {
-                // Don't record the referrer if it's the same origin.
-                // Non-single page apps might have the referrer set to the same origin.
-                // If we record this then the referrer data will not be useful.
-                // Most users will want to see referrers outside of their website/app.
-                // This will be a configuration set in `H.init()` later.
-                if (
-                    !(
-                        window &&
-                        document.referrer.includes(window.location.origin)
-                    )
-                ) {
-                    this.addCustomEvent<string>('Referrer', document.referrer);
-                    highlightThis.addProperties(
-                        { referrer: document.referrer },
-                        { type: 'session' }
-                    );
-                }
             }
             this.listeners.push(
                 PathListener((url: string) => {
@@ -793,78 +864,6 @@ Session Data:
                     this.addCustomEvent('Performance', stringify(payload));
                 }, this._recordingStartTime)
             );
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-                HighlightWarning('initializeSession', e);
-            }
-        }
-        try {
-            // ensure we only create document/window listeners once
-            if (this._hasPreviouslyInitialized) {
-                return;
-            }
-            this._setupWindowListeners();
-        } finally {
-            this._hasPreviouslyInitialized = true;
-            if (
-                this.sessionData.projectID &&
-                this.sessionData.sessionSecureID
-            ) {
-                this.ready = true;
-                this.state = 'Recording';
-            }
-        }
-    }
-
-    _visibilityHandler(hidden: boolean) {
-        if (
-            new Date().getTime() - this._lastVisibilityChangeTime <
-            VISIBILITY_DEBOUNCE_MS
-        ) {
-            return;
-        }
-        this._lastVisibilityChangeTime = new Date().getTime();
-        if (!hidden) {
-            this.logger.log(`Detected window visible. Resuming recording.`);
-            this.initialize();
-            this.addCustomEvent('TabHidden', false);
-            return;
-        }
-        this.logger.log(`Detected window hidden. Pausing recording.`);
-        this.addCustomEvent('TabHidden', true);
-        if ('sendBeacon' in navigator) {
-            try {
-                this._sendPayload({
-                    isBeacon: true,
-                    sendFn: (payload) => {
-                        let blob = new Blob(
-                            [
-                                JSON.stringify({
-                                    query: print(PushPayloadDocument),
-                                    variables: payload,
-                                }),
-                            ],
-                            {
-                                type: 'application/json',
-                            }
-                        );
-                        navigator.sendBeacon(`${this._backendUrl}`, blob);
-                        return Promise.resolve(0);
-                    },
-                });
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                    HighlightWarning('_sendPayload', e);
-                }
-            }
-        }
-        this.stopRecording();
-    }
-
-    _setupWindowListeners() {
-        try {
             // setup electron main thread window visiblity events listener
             if (window.electron?.ipcRenderer) {
                 window.electron.ipcRenderer.on(
@@ -932,8 +931,6 @@ Session Data:
             );
         }
         this.state = 'NotRecording';
-        this.listeners.forEach((stop: listenerHandler) => stop());
-        this.listeners = [];
         this._firstLoadListeners.stopListening();
         this._isRecordingEvents = false;
     }
