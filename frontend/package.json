@@ -111,7 +111,6 @@
         "@testing-library/react-hooks": "^8.0.1",
         "@types/classnames": "^2.2.11",
         "@types/color-hash": "^1.0.1",
-        "@types/jest": "^27.0.1",
         "@types/lodash": "^4.14.168",
         "@types/node": "^18.0.4",
         "@types/randomcolor": "^0.5.5",
@@ -138,6 +137,7 @@
         "eslint-plugin-react": "^7.22.0",
         "eslint-plugin-react-hooks": "^4.2.0",
         "eslint-plugin-unused-imports": "^1.1.2",
+        "happy-dom": "^6.0.4",
         "postcss": "^8.3.3",
         "postcss-custom-properties": "^12.1.7",
         "prettier": "^2.2.1",
@@ -152,7 +152,8 @@
         "vite": "^3.0.9",
         "vite-plugin-env-compatible": "^1.1.1",
         "vite-plugin-svgr": "^2.2.1",
-        "vite-tsconfig-paths": "^3.5.0"
+        "vite-tsconfig-paths": "^3.5.0",
+        "vitest": "^0.22.1"
     },
     "resolutions": {
         "**/postcss-custom-properties": "^12.1.7",
