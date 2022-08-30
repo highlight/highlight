@@ -2164,7 +2164,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	if redis.UseRedis(s.ProjectID) {
+	if s.ProcessWithRedis {
 		return r.Redis.GetEvents(ctx, s, cursor)
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
