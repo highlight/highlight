@@ -317,7 +317,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
-	s := tracer.StartSpan("getSessionID", tracer.ResourceName("worker.getSessionID"))
+	s, _ := tracer.StartSpanFromContext(ctx, "getSessionID", tracer.ResourceName("worker.getSessionID"))
 	s.SetTag("secure_id", sessionSecureID)
 	defer s.Finish()
 	session := &model.Session{}
@@ -335,13 +335,9 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.PushPayload == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.PushPayload.SessionSecureID)
-		if err != nil {
-			return err
-		}
 		if err := w.PublicResolver.ProcessPayload(
 			ctx,
-			sessionID,
+			task.PushPayload.SessionSecureID,
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
@@ -371,11 +367,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		if task.IdentifySession == nil {
 			break
 		}
-		sessionID, err := w.getSessionID(ctx, task.IdentifySession.SessionSecureID)
-		if err != nil {
-			return err
-		}
-		if err := w.PublicResolver.IdentifySessionImpl(ctx, sessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
+		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
 			return err
 		}
