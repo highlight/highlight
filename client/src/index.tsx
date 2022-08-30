@@ -288,7 +288,7 @@ export class Highlight {
 
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
-        this.options.sessionSecureID = GenerateSecureID();
+        this.sessionData.sessionSecureID = GenerateSecureID();
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
