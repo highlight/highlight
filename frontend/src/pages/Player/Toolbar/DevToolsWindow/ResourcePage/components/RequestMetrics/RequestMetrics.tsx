@@ -102,12 +102,10 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
                         }))}
                         xAxisDataKeyName="date"
                         xAxisTickFormatter={(tickItem) =>
-                            moment(tickItem).format()
+                            moment(tickItem).format('h:mm')
                         }
                         xAxisProps={{
                             domain: ['dataMin', 'dataMax'],
-                            scale: 'point',
-                            interval: 0, // show all ticks
                         }}
                         lineColorMapping={LINE_COLORS}
                         yAxisLabel="ms"
@@ -115,7 +113,7 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
                             {
                                 label: 'This Request',
                                 value: duration,
-                                color: 'var(--color-red-300)',
+                                color: 'var(--color-red-500)',
                             },
                         ]}
                     />
