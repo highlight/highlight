@@ -257,6 +257,10 @@ export class Highlight {
                 sessionStartTime: Date.now(),
             };
         }
+        // these should not be in initMembers since we want them to
+        // persist across session resets
+        this._isRecordingEvents = false;
+        this._hasPreviouslyInitialized = false;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
             firstLoadListeners || new FirstLoadListeners(this.options);
@@ -292,10 +296,6 @@ export class Highlight {
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
-        // these should not be in initMembers since we want them to
-        // persist across session resets
-        this._isRecordingEvents = false;
-        this._hasPreviouslyInitialized = false;
         this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
