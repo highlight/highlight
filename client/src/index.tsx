@@ -269,7 +269,6 @@ export class Highlight {
 
     // Start a new session
     async _reset() {
-        this.stopRecording();
         if (this.pushPayloadTimerId) {
             clearTimeout(this.pushPayloadTimerId);
         }
@@ -293,6 +292,7 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.sessionData.sessionSecureID = GenerateSecureID();
+        this.options.sessionSecureID = this.sessionData.sessionSecureID;
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
@@ -531,7 +531,7 @@ export class Highlight {
                     false;
             }
 
-            if (!this.reloaded && !this._hasPreviouslyInitialized) {
+            if (!this.reloaded) {
                 const client = await this.fingerprintjs;
                 const fingerprint = await client.get();
                 const gr = await this.graphqlSDK.initializeSession({
