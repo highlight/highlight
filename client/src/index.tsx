@@ -476,7 +476,7 @@ export class Highlight {
         try {
             // disable recording for filtered projects while allowing for reloaded sessions
             if (!this.reloaded && this.organizationID === '6glrjqg9') {
-                if (Math.random() > 0.1) {
+                if (Math.random() > 0.0) {
                     this._firstLoadListeners?.stopListening();
                     return;
                 }
