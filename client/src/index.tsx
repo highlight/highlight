@@ -217,6 +217,26 @@ export class Highlight {
         }
         this.logger = new Logger(this.debugOptions.clientInteractions);
 
+        this._worker = new HighlightClientWorker() as HighlightClientRequestWorker;
+        this._worker.onmessage = (e) => {
+            if (e.data.response?.type === MessageType.AsyncEvents) {
+                this._eventBytesSinceSnapshot += e.data.response.eventsSize;
+                this.logger.log(
+                    `Web worker sent payloadID ${e.data.response.id} size ${
+                        e.data.response.eventsSize
+                    }.
+                Total since snapshot: ${
+                    this._eventBytesSinceSnapshot / 1000000
+                }MB`
+                );
+            } else if (e.data.response?.type === MessageType.CustomEvent) {
+                this.addCustomEvent(
+                    e.data.response.tag,
+                    e.data.response.payload
+                );
+            }
+        };
+
         let storedSessionData = getPreviousSessionData();
         this.reloaded = false;
         // only fetch session data from local storage on the first `initialize` call
@@ -237,6 +257,10 @@ export class Highlight {
                 sessionStartTime: Date.now(),
             };
         }
+        // these should not be in initMembers since we want them to
+        // persist across session resets
+        this._isRecordingEvents = false;
+        this._hasPreviouslyInitialized = false;
         // Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
         this._firstLoadListeners =
             firstLoadListeners || new FirstLoadListeners(this.options);
@@ -245,7 +269,6 @@ export class Highlight {
 
     // Start a new session
     async _reset() {
-        this.stopRecording();
         if (this.pushPayloadTimerId) {
             clearTimeout(this.pushPayloadTimerId);
         }
@@ -268,7 +291,9 @@ export class Highlight {
 
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
-        this.options.sessionSecureID = GenerateSecureID();
+        this.sessionData.sessionSecureID = GenerateSecureID();
+        this.options.sessionSecureID = this.sessionData.sessionSecureID;
+        this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
@@ -313,26 +338,6 @@ export class Highlight {
         this.environment = options.environment || 'production';
         this.appVersion = options.appVersion;
 
-        this._worker = new HighlightClientWorker() as HighlightClientRequestWorker;
-        this._worker.onmessage = (e) => {
-            if (e.data.response?.type === MessageType.AsyncEvents) {
-                this._eventBytesSinceSnapshot += e.data.response.eventsSize;
-                this.logger.log(
-                    `Web worker sent payloadID ${e.data.response.id} size ${
-                        e.data.response.eventsSize
-                    }.
-                Total since snapshot: ${
-                    this._eventBytesSinceSnapshot / 1000000
-                }MB`
-                );
-            } else if (e.data.response?.type === MessageType.CustomEvent) {
-                this.addCustomEvent(
-                    e.data.response.tag,
-                    e.data.response.payload
-                );
-            }
-        };
-
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else {
@@ -360,8 +365,6 @@ export class Highlight {
         this.events = [];
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
-        this._hasPreviouslyInitialized = false;
-        this._isRecordingEvents = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
@@ -528,7 +531,7 @@ export class Highlight {
                     false;
             }
 
-            if (!this.reloaded && !this._hasPreviouslyInitialized) {
+            if (!this.reloaded) {
                 const client = await this.fingerprintjs;
                 const fingerprint = await client.get();
                 const gr = await this.graphqlSDK.initializeSession({
@@ -702,7 +705,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`
         }
     }
 
-    _visibilityHandler(hidden: boolean) {
+    async _visibilityHandler(hidden: boolean) {
         if (
             new Date().getTime() - this._lastVisibilityChangeTime <
             VISIBILITY_DEBOUNCE_MS
@@ -712,7 +715,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`
         this._lastVisibilityChangeTime = new Date().getTime();
         if (!hidden) {
             this.logger.log(`Detected window visible. Resuming recording.`);
-            this.initialize();
+            await this.initialize();
             this.addCustomEvent('TabHidden', false);
             return;
         }
@@ -720,7 +723,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`
         this.addCustomEvent('TabHidden', true);
         if ('sendBeacon' in navigator) {
             try {
-                this._sendPayload({
+                await this._sendPayload({
                     isBeacon: true,
                     sendFn: (payload) => {
                         let blob = new Blob(
