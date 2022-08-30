@@ -1386,9 +1386,9 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	})
 	return nil
 }
-func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
+func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionID", sessionID))
+		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionSecureID", sessionSecureID))
 	defer outerSpan.Finish()
 
 	obj, ok := userObject.(map[string]interface{})
@@ -1409,12 +1409,13 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	}
 
 	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionID", sessionID))
+		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionSecureID", sessionSecureID))
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
+	sessionID := session.ID
 
 	setUserPropsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl.SetUserProperties"), tracer.Tag("sessionID", sessionID))
@@ -1497,7 +1498,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		doBackfillSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 			tracer.ResourceName("go.sessions.IdentifySessionImpl.DoBackfill"), tracer.Tag("sessionID", sessionID))
 		for _, session := range backfillSessions {
-			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+			if err := r.IdentifySessionImpl(ctx, session.SecureID, userIdentifier, userObject, true); err != nil {
 				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
 			}
 		}
@@ -2142,9 +2143,9 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
-	querySessionSpan.SetTag("sessionID", sessionID)
+	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
@@ -2158,13 +2159,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 		}
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).First(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
+	querySessionSpan.SetTag("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
+	sessionID := sessionObj.ID
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
