@@ -1848,12 +1848,15 @@ export type GetWorkspaceAdminsByProjectIdQueryVariables = Types.Exact<{
 
 export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
     admins: Array<
-        Types.Maybe<
-            { __typename?: 'Admin' } & Pick<
-                Types.Admin,
-                'id' | 'name' | 'email' | 'photo_url' | 'role'
-            >
-        >
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    'id' | 'name' | 'email' | 'photo_url'
+                >;
+            }
     >;
 };
 
@@ -1863,12 +1866,15 @@ export type GetWorkspaceAdminsQueryVariables = Types.Exact<{
 
 export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
     admins: Array<
-        Types.Maybe<
-            { __typename?: 'Admin' } & Pick<
-                Types.Admin,
-                'id' | 'name' | 'email' | 'photo_url' | 'role'
-            >
-        >
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    'id' | 'name' | 'email' | 'photo_url'
+                >;
+            }
     >;
     workspace?: Types.Maybe<
         { __typename?: 'Workspace' } & Pick<
@@ -2168,7 +2174,9 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
             >
         >;
         admins: Array<
-            Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
+            { __typename?: 'WorkspaceAdminRole' } & {
+                admin: { __typename?: 'Admin' } & Pick<Types.Admin, 'id'>;
+            }
         >;
         projectHasViewedASession?: Types.Maybe<
             { __typename?: 'Session' } & Pick<Types.Session, 'secure_id'>
@@ -2616,11 +2624,64 @@ export type GetAdminQuery = { __typename?: 'Query' } & {
             | 'phone'
             | 'photo_url'
             | 'slack_im_channel_id'
-            | 'role'
             | 'email_verified'
             | 'user_defined_role'
             | 'about_you_details_filled'
         >
+    >;
+};
+
+export type GetAdminRoleQueryVariables = Types.Exact<{
+    workspace_id: Types.Scalars['ID'];
+}>;
+
+export type GetAdminRoleQuery = { __typename?: 'Query' } & {
+    admin_role?: Types.Maybe<
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    | 'id'
+                    | 'uid'
+                    | 'name'
+                    | 'email'
+                    | 'phone'
+                    | 'photo_url'
+                    | 'slack_im_channel_id'
+                    | 'email_verified'
+                    | 'user_defined_role'
+                    | 'about_you_details_filled'
+                >;
+            }
+    >;
+};
+
+export type GetAdminRoleByProjectQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+}>;
+
+export type GetAdminRoleByProjectQuery = { __typename?: 'Query' } & {
+    admin_role_by_project?: Types.Maybe<
+        { __typename?: 'WorkspaceAdminRole' } & Pick<
+            Types.WorkspaceAdminRole,
+            'role'
+        > & {
+                admin: { __typename?: 'Admin' } & Pick<
+                    Types.Admin,
+                    | 'id'
+                    | 'uid'
+                    | 'name'
+                    | 'email'
+                    | 'phone'
+                    | 'photo_url'
+                    | 'slack_im_channel_id'
+                    | 'email_verified'
+                    | 'user_defined_role'
+                    | 'about_you_details_filled'
+                >;
+            }
     >;
 };
 
@@ -3420,12 +3481,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
         >
     >;
     admins: Array<
-        Types.Maybe<
-            { __typename?: 'Admin' } & Pick<
+        { __typename?: 'WorkspaceAdminRole' } & {
+            admin: { __typename?: 'Admin' } & Pick<
                 Types.Admin,
                 'id' | 'name' | 'email' | 'photo_url'
-            >
-        >
+            >;
+        }
     >;
     environment_suggestion?: Types.Maybe<
         Array<
@@ -3692,12 +3753,12 @@ export type GetCommentMentionSuggestionsQueryVariables = Types.Exact<{
 
 export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
     admins: Array<
-        Types.Maybe<
-            { __typename?: 'Admin' } & Pick<
+        { __typename?: 'WorkspaceAdminRole' } & {
+            admin: { __typename?: 'Admin' } & Pick<
                 Types.Admin,
                 'id' | 'name' | 'email' | 'photo_url'
-            >
-        >
+            >;
+        }
     >;
     slack_members: Array<
         Types.Maybe<
@@ -3881,6 +3942,8 @@ export const namedOperations = {
         GetProjectDropdownOptions: 'GetProjectDropdownOptions' as const,
         GetWorkspaceDropdownOptions: 'GetWorkspaceDropdownOptions' as const,
         GetAdmin: 'GetAdmin' as const,
+        GetAdminRole: 'GetAdminRole' as const,
+        GetAdminRoleByProject: 'GetAdminRoleByProject' as const,
         GetAdminAboutYou: 'GetAdminAboutYou' as const,
         GetProject: 'GetProject' as const,
         GetBillingDetailsForProject: 'GetBillingDetailsForProject' as const,

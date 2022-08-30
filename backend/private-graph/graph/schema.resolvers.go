@@ -237,11 +237,6 @@ func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegme
 	return params, nil
 }
 
-// Type is the resolver for the type field.
-func (r *metricResolver) Type(ctx context.Context, obj *model.Metric) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 // ChannelsToNotify is the resolver for the channels_to_notify field.
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
@@ -686,22 +681,6 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		}
 	})
 
-	// For this Real Magic, set all new admins to normal role so they don't have access to billing.
-	// This should be removed when we implement RBAC.
-	if workspaceID == 388 {
-		admin, err := r.getCurrentAdmin(ctx)
-		if err != nil {
-			log.Error("Failed get current admin.")
-			return adminID, e.New("500")
-		}
-		if err := r.DB.Model(admin).Updates(model.Admin{
-			Role: &model.AdminRole.MEMBER,
-		}); err != nil {
-			log.Error("Failed to update admin when changing role to normal.")
-			return adminID, e.New("500")
-		}
-	}
-
 	return adminID, nil
 }
 
@@ -732,13 +711,9 @@ func (r *mutationResolver) UpdateAllowedEmailOrigins(ctx context.Context, worksp
 		return nil, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	admin, err := r.getCurrentAdmin(ctx)
+	err = r.validateAdminRole(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
-	}
-
-	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
-		return nil, e.New("A non-Admin role Admin tried changing an admin role.")
+		return nil, e.Wrap(err, "error retrieving admin user")
 	}
 
 	if err := r.DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{
@@ -756,13 +731,13 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 		return false, e.Wrap(err, "current admin is not in workspace")
 	}
 
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return false, e.Wrap(err, "error retrieving user")
-	}
-
-	if admin.Role != nil && *admin.Role != model.AdminRole.ADMIN {
-		return false, e.New("A non-Admin role Admin tried changing an admin role.")
 	}
 
 	if admin.ID == adminID {
@@ -948,7 +923,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to create/update stripe subscription")
 	}
 
@@ -1060,7 +1035,7 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to update billing details")
 	}
 
@@ -2900,7 +2875,7 @@ func (r *mutationResolver) UpdateAllowMeterOverage(ctx context.Context, workspac
 		return nil, e.Wrap(err, "admin is not in workspace")
 	}
 
-	err = r.validateAdminRole(ctx)
+	err = r.validateAdminRole(ctx, workspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "must have ADMIN role to modify meter overage settings")
 	}
@@ -3847,38 +3822,45 @@ func (r *queryResolver) ErrorCommentsForProject(ctx context.Context, projectID i
 }
 
 // WorkspaceAdmins is the resolver for the workspace_admins field.
-func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.Admin, error) {
+func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model.WorkspaceAdminRole, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
 
-	admins := []*model.Admin{}
+	var admins []*model.Admin
 	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
 		return nil, e.Wrap(err, "error getting admins for the workspace")
 	}
 
-	return admins, nil
+	var roles []*model.WorkspaceAdminRole
+	for _, admin := range admins {
+		role, err := r.GetAdminRole(admin.ID, workspace.ID)
+		if err != nil {
+			return nil, e.Wrap(err, "failed to retrieve admin role")
+		}
+		roles = append(roles, &model.WorkspaceAdminRole{
+			Admin: admin,
+			Role:  role,
+		})
+	}
+
+	return roles, nil
 }
 
 // WorkspaceAdminsByProjectID is the resolver for the workspace_admins_by_project_id field.
-func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.Admin, error) {
+func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.WorkspaceAdminRole, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, nil
 	}
 
-	admins := []*model.Admin{}
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("Admins").Find(&admins); err != nil {
-		return nil, e.Wrap(err, "error getting admins for the workspace by project id")
-	}
-
-	return admins, nil
+	return r.WorkspaceAdmins(ctx, workspace.ID)
 }
 
 // IsIntegrated is the resolver for the isIntegrated field.
@@ -5292,6 +5274,50 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	return admin, nil
 }
 
+// AdminRole is the resolver for the admin_role field.
+func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.WorkspaceAdminRole, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := r.GetAdminRole(admin.ID, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.WorkspaceAdminRole{
+		Admin: admin,
+		Role:  role,
+	}, nil
+}
+
+// AdminRoleByProject is the resolver for the admin_role_by_project field.
+func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (*model.WorkspaceAdminRole, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := r.GetAdminRole(admin.ID, workspace.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.WorkspaceAdminRole{
+		Admin: admin,
+		Role:  role,
+	}, nil
+}
+
 // Segments is the resolver for the segments field.
 func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.Segment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -5336,7 +5362,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		return "", e.Wrap(err, "admin does not have workspace access")
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
@@ -5362,7 +5388,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 		return nil, nil
 	}
 
-	if err := r.validateAdminRole(ctx); err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
 		return nil, nil
 	}
 
@@ -6123,9 +6149,6 @@ func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorOb
 // ErrorSegment returns generated.ErrorSegmentResolver implementation.
 func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &errorSegmentResolver{r} }
 
-// Metric returns generated.MetricResolver implementation.
-func (r *Resolver) Metric() generated.MetricResolver { return &metricResolver{r} }
-
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
 
@@ -6163,7 +6186,6 @@ type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
-type metricResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

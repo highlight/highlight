@@ -12,7 +12,7 @@ interface DashboardsContext {
     allAdmins: Maybe<
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
-            'id' | 'name' | 'email' | 'photo_url' | 'role'
+            'id' | 'name' | 'email' | 'photo_url'
         >
     >[];
     dashboards: Maybe<DashboardDefinition>[];

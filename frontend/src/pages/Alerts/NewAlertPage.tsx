@@ -138,7 +138,7 @@ const NewAlertPage = () => {
                         alertsPayload?.is_integrated_with_slack || false
                     }
                     emailSuggestions={(alertsPayload?.admins || []).map(
-                        (admin) => admin!.email
+                        (wa) => wa.admin!.email
                     )}
                     channelSuggestions={
                         alertsPayload?.slack_channel_suggestion || []

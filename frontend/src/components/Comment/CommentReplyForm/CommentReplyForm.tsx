@@ -142,7 +142,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
 
         if (workspaceAdminsData?.admins) {
             setMentionedAdmins(
-                filterMentionedAdmins(workspaceAdminsData.admins, mentions)
+                filterMentionedAdmins(
+                    workspaceAdminsData.admins.map((wa) => wa.admin),
+                    mentions
+                )
             );
         }
 

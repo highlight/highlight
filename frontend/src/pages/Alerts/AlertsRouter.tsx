@@ -76,7 +76,7 @@ const AlertsRouter = () => {
                                 data?.is_integrated_with_slack || false
                             }
                             emailSuggestions={(data?.admins || []).map(
-                                (admin) => admin!.email
+                                (wa) => wa.admin!.email
                             )}
                         />
                     </Route>
@@ -89,7 +89,7 @@ const AlertsRouter = () => {
                                 data?.is_integrated_with_slack || false
                             }
                             emailSuggestions={(data?.admins || []).map(
-                                (admin) => admin!.email
+                                (wa) => wa.admin!.email
                             )}
                         />
                     </Route>
