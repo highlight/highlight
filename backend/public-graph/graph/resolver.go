@@ -1414,7 +1414,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionSecureID", sessionSecureID))
 	if sessionSecureID == "" {
-		return e.New("MarkBackendSetupImpl called without secureID")
+		return e.New("IdentifySessionImpl called without secureID")
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
@@ -1813,7 +1813,7 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
 	if sessionID == 0 || projectID == 0 {
 		if sessionSecureID == "" {
-			return e.New("MarkBackendSetupImpl called without secureID")
+			return e.New("PushMetricsImpl called without secureID")
 		}
 		session := &model.Session{}
 		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
@@ -2168,7 +2168,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	if sessionSecureID == "" {
-		return e.New("MarkBackendSetupImpl called without secureID")
+		return e.New("ProcessPayload called without secureID")
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
