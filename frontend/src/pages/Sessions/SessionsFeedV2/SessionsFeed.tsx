@@ -14,6 +14,7 @@ import { SearchResultsHistogram } from '@components/SearchResultsHistogram/Searc
 import Tooltip from '@components/Tooltip/Tooltip';
 import {
     useGetBillingDetailsForProjectQuery,
+    useGetSessionsHistogramQuery,
     useGetSessionsOpenSearchQuery,
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
@@ -60,13 +61,92 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
-export const SessionFeed = React.memo(() => {
+const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
+    const {
+        searchParams,
+        setSearchParams,
+        backendSearchQuery,
+    } = useSearchContext();
     const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
         []
     );
     const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
         []
     );
+
+    const { loading } = useGetSessionsHistogramQuery({
+        variables: {
+            project_id: projectId,
+            query: backendSearchQuery?.searchQuery || '',
+            histogram_options: {
+                calendar_interval:
+                    backendSearchQuery?.histogramBucketSize || '',
+                time_zone:
+                    Intl.DateTimeFormat().resolvedOptions().timeZone ??
+                    'America/Los_Angeles',
+                bounds: {
+                    start_date:
+                        backendSearchQuery?.startDate.toISOString() || '',
+                    end_date: backendSearchQuery?.startDate.toISOString() || '',
+                },
+            },
+        },
+        onCompleted: (r) => {
+            let seriesList: Series[] = [];
+            let bucketTimes: number[] = [];
+            const histogramData = r?.sessions_histogram;
+            if (backendSearchQuery && histogramData) {
+                bucketTimes = histogramData.bucket_start_times.map(
+                    (startTime) => new Date(startTime).valueOf()
+                );
+                bucketTimes.push(backendSearchQuery.endDate.valueOf());
+                seriesList = [
+                    {
+                        label: 'Sessions without errors',
+                        color: '--color-purple',
+                        counts: histogramData.sessions_without_errors,
+                    },
+                    {
+                        label: 'Sessions with errors',
+                        color: '--color-red-600',
+                        counts: histogramData.sessions_with_errors,
+                    },
+                ];
+            }
+            setHistogramSeriesList(seriesList);
+            setHistogramBucketTimes(bucketTimes);
+        },
+        skip: !backendSearchQuery,
+        fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+    });
+
+    const updateTimeRange = useCallback(
+        (newStartTime, newEndTime) => {
+            const newSearchParams = {
+                ...searchParams,
+                query: updateQueriedTimeRange(
+                    searchParams.query || '',
+                    TIME_RANGE_FIELD,
+                    serializeAbsoluteTimeRange(newStartTime, newEndTime)
+                ),
+            };
+            setSearchParams(newSearchParams);
+        },
+        [searchParams, setSearchParams]
+    );
+
+    return (
+        <SearchResultsHistogram
+            seriesList={histogramSeriesList}
+            bucketTimes={histogramBucketTimes}
+            bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
+            loading={loading}
+            updateTimeRange={updateTimeRange}
+        />
+    );
+};
+
+export const SessionFeed = React.memo(() => {
     const { setSessionResults, sessionResults } = useReplayerContext();
     const { project_id, session_secure_id } = useParams<{
         project_id: string;
@@ -151,64 +231,12 @@ export const SessionFeed = React.memo(() => {
             page: page,
             project_id,
             sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-            histogram_options: {
-                calendar_interval:
-                    backendSearchQuery?.histogramBucketSize || '',
-                time_zone:
-                    Intl.DateTimeFormat().resolvedOptions().timeZone ??
-                    'America/Los_Angeles',
-                bounds: {
-                    start_date:
-                        backendSearchQuery?.startDate.toISOString() || '',
-                    end_date: backendSearchQuery?.startDate.toISOString() || '',
-                },
-            },
         },
         onCompleted: addSessions,
         skip: !backendSearchQuery,
         fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
     });
-
-    useEffect(() => {
-        let seriesList: Series[] = [];
-        let bucketTimes: number[] = [];
-        const histogramData = sessionResults?.histogram;
-        if (backendSearchQuery && !searchResultsLoading && histogramData) {
-            bucketTimes = histogramData.bucket_start_times.map((startTime) =>
-                new Date(startTime).valueOf()
-            );
-            bucketTimes.push(backendSearchQuery.endDate.valueOf());
-            seriesList = [
-                {
-                    label: 'Sessions without errors',
-                    color: '--color-purple',
-                    counts: histogramData.sessions_without_errors,
-                },
-                {
-                    label: 'Sessions with errors',
-                    color: '--color-red-600',
-                    counts: histogramData.sessions_with_errors,
-                },
-            ];
-        }
-        setHistogramSeriesList(seriesList);
-        setHistogramBucketTimes(bucketTimes);
-    }, [backendSearchQuery, searchResultsLoading, sessionResults?.histogram]);
-
-    const updateTimeRange = useCallback(
-        (newStartTime, newEndTime) => {
-            const newSearchParams = {
-                ...searchParams,
-                query: updateQueriedTimeRange(
-                    searchParams.query || '',
-                    TIME_RANGE_FIELD,
-                    serializeAbsoluteTimeRange(newStartTime, newEndTime)
-                ),
-            };
-            setSearchParams(newSearchParams);
-        },
-        [searchParams, setSearchParams]
-    );
+    const histogram = useHistogram(project_id, projectHasManySessions);
 
     useEffect(() => {
         // we just loaded the page for the first time
@@ -302,13 +330,7 @@ export const SessionFeed = React.memo(() => {
                 <SegmentPickerForPlayer />
                 <SessionsQueryBuilder />
             </div>
-            <SearchResultsHistogram
-                seriesList={histogramSeriesList}
-                bucketTimes={histogramBucketTimes}
-                bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
-                loading={searchResultsLoading}
-                updateTimeRange={updateTimeRange}
-            />
+            {histogram}
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (

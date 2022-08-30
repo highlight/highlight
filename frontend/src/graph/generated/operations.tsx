@@ -2271,7 +2271,6 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
     query: Types.Scalars['String'];
     sort_desc: Types.Scalars['Boolean'];
     page?: Types.Maybe<Types.Scalars['Int']>;
-    histogram_options?: Types.Maybe<Types.DateHistogramOptions>;
 }>;
 
 export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2322,16 +2321,23 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
                         >;
                     }
             >;
-            histogram?: Types.Maybe<
-                { __typename?: 'SessionsHistogram' } & Pick<
-                    Types.SessionsHistogram,
-                    | 'bucket_start_times'
-                    | 'sessions_without_errors'
-                    | 'sessions_with_errors'
-                    | 'total_sessions'
-                >
-            >;
         };
+};
+
+export type GetSessionsHistogramQueryVariables = Types.Exact<{
+    project_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+    histogram_options: Types.DateHistogramOptions;
+}>;
+
+export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
+    sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
+        Types.SessionsHistogram,
+        | 'bucket_start_times'
+        | 'sessions_without_errors'
+        | 'sessions_with_errors'
+        | 'total_sessions'
+    >;
 };
 
 export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
@@ -3879,6 +3885,7 @@ export const namedOperations = {
         GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
         GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
         GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+        GetSessionsHistogram: 'GetSessionsHistogram' as const,
         GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
         GetErrorsHistogram: 'GetErrorsHistogram' as const,
         GetProjects: 'GetProjects' as const,

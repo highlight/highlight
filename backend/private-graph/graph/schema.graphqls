@@ -589,7 +589,6 @@ type ErrorsHistogram {
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
-    histogram: SessionsHistogram
 }
 
 type ErrorResults {
@@ -990,8 +989,12 @@ type Query {
         query: String!
         sort_desc: Boolean!
         page: Int
-        histogram_options: DateHistogramOptions
     ): SessionResults!
+    sessions_histogram(
+        project_id: ID!
+        query: String!
+        histogram_options: DateHistogramOptions!
+    ): SessionsHistogram!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
         project_id: ID!

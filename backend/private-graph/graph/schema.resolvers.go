@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3464,12 +3464,10 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	returnValue := &model.ErrorResults{
+	return &model.ErrorResults{
 		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
 		TotalCount:  resultCount,
-	}
-
-	return returnValue, nil
+	}, nil
 }
 
 // ErrorsHistogram is the resolver for the errors_histogram field.
@@ -4281,7 +4279,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int, histogramOptions *modelInputs.DateHistogramOptions) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -4302,92 +4300,75 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}
 
-	if histogramOptions != nil {
-		options.Aggregation = GetDateHistogramAggregation(*histogramOptions, "created_at",
-			&opensearch.TermsAggregation{
-				Field:   "has_errors",
-				Missing: ptr.String("false"),
-			})
-	}
-
 	if page != nil {
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	q := fmt.Sprintf(`
-	{"bool": {
-		"must":[
-			{"bool": {
-				"must_not":[
-					{"term":{"Excluded":true}},
-					{"term":{"within_billing_quota":false}},
-					{"bool": {
-						"must":[
-							{"term":{"processed":"true"}},
-							{"bool":
-								{"should": [
-									{"range": {
-										"active_length": {
-											"lt": 1000
-										}
-									}},
-									{"range": {
-										"length": {
-											"lt": 1000
-										}
-								  	}}
-							  	]}
-						  	}
-					  	]
-					}}
-				]
-			}},
-			%s
-		]
-	}}`, query)
+	q := FormatSessionsQuery(query)
 	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("%x\n", aggs)
 
-	returnValue := &model.SessionResults{
+	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
-		Histogram:  nil,
+	}, nil
+}
+
+// SessionsHistogram is the resolver for the sessions_histogram field.
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
 	}
 
-	if histogramOptions != nil {
-		bucket_start_times, no_errors_counts, with_errors_counts, total_counts := []time.Time{}, []int64{}, []int64{}, []int64{}
-		for _, date_bucket := range aggs {
-			unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-			if err != nil {
-				log.Error("Error parsing date bucket key for histogram: %s", err.Error())
-				break
-			}
-			bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
-			total_counts = append(total_counts, date_bucket.DocCount)
-			no_errors, with_errors := int64(0), int64(0)
-			for _, errors_bucket := range date_bucket.SubAggregationResults {
-				if errors_bucket.Key == "false" {
-					no_errors = errors_bucket.DocCount
-				} else if errors_bucket.Key == "true" {
-					with_errors = errors_bucket.DocCount
-				}
-			}
-			no_errors_counts = append(no_errors_counts, no_errors)
-			with_errors_counts = append(with_errors_counts, with_errors)
-		}
-
-		returnValue.Histogram = &model.SessionsHistogram{
-			BucketStartTimes:      bucket_start_times,
-			SessionsWithoutErrors: no_errors_counts,
-			SessionsWithErrors:    with_errors_counts,
-			TotalSessions:         total_counts,
-		}
+	results := []model.Session{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(0),
+		SortField:     ptr.String("created_at"),
+		ReturnCount:   ptr.Bool(false),
+		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+		Aggregation: GetDateHistogramAggregation(histogramOptions, "created_at",
+			&opensearch.TermsAggregation{
+				Field:   "has_errors",
+				Missing: ptr.String("false"),
+			}),
+	}
+	q := FormatSessionsQuery(query)
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
 	}
 
-	return returnValue, nil
+	bucket_start_times, no_errors_counts, with_errors_counts, total_counts := []time.Time{}, []int64{}, []int64{}, []int64{}
+	for _, date_bucket := range aggs {
+		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+		if err != nil {
+			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+			break
+		}
+		bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
+		total_counts = append(total_counts, date_bucket.DocCount)
+		no_errors, with_errors := int64(0), int64(0)
+		for _, errors_bucket := range date_bucket.SubAggregationResults {
+			if errors_bucket.Key == "false" {
+				no_errors = errors_bucket.DocCount
+			} else if errors_bucket.Key == "true" {
+				with_errors = errors_bucket.DocCount
+			}
+		}
+		no_errors_counts = append(no_errors_counts, no_errors)
+		with_errors_counts = append(with_errors_counts, with_errors)
+	}
+
+	return &model.SessionsHistogram{
+		BucketStartTimes:      bucket_start_times,
+		SessionsWithoutErrors: no_errors_counts,
+		SessionsWithErrors:    with_errors_counts,
+		TotalSessions:         total_counts,
+	}, nil
 }
 
 // FieldTypes is the resolver for the field_types field.

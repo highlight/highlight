@@ -468,7 +468,6 @@ type SessionsHistogram struct {
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
-	Histogram  *SessionsHistogram
 }
 
 type Session struct {

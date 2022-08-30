@@ -600,7 +600,8 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
-		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int, histogramOptions *model.DateHistogramOptions) int
+		SessionsHistogram            func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
+		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
 		SourcemapFiles               func(childComplexity int, projectID int, version *string) int
@@ -798,7 +799,6 @@ type ComplexityRoot struct {
 	}
 
 	SessionResults struct {
-		Histogram  func(childComplexity int) int
 		Sessions   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
 	}
@@ -1041,7 +1041,8 @@ type QueryResolver interface {
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
-	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int, histogramOptions *model.DateHistogramOptions) (*model1.SessionResults, error)
+	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model1.SessionResults, error)
+	SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
@@ -4589,6 +4590,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionIntervals(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.sessions_histogram":
+		if e.complexity.Query.SessionsHistogram == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sessions_histogram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionsHistogram(childComplexity, args["project_id"].(int), args["query"].(string), args["histogram_options"].(model.DateHistogramOptions)), true
+
 	case "Query.sessions_opensearch":
 		if e.complexity.Query.SessionsOpensearch == nil {
 			break
@@ -4599,7 +4612,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["page"].(*int), args["histogram_options"].(*model.DateHistogramOptions)), true
+		return e.complexity.Query.SessionsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["sort_desc"].(bool), args["page"].(*int)), true
 
 	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
@@ -5760,13 +5773,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionPayload.SessionComments(childComplexity), true
 
-	case "SessionResults.histogram":
-		if e.complexity.SessionResults.Histogram == nil {
-			break
-		}
-
-		return e.complexity.SessionResults.Histogram(childComplexity), true
-
 	case "SessionResults.sessions":
 		if e.complexity.SessionResults.Sessions == nil {
 			break
@@ -6842,7 +6848,6 @@ type ErrorsHistogram {
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
-    histogram: SessionsHistogram
 }
 
 type ErrorResults {
@@ -7243,8 +7248,12 @@ type Query {
         query: String!
         sort_desc: Boolean!
         page: Int
-        histogram_options: DateHistogramOptions
     ): SessionResults!
+    sessions_histogram(
+        project_id: ID!
+        query: String!
+        histogram_options: DateHistogramOptions!
+    ): SessionsHistogram!
     field_types(project_id: ID!): [Field!]!
     fields_opensearch(
         project_id: ID!
@@ -12200,6 +12209,39 @@ func (ec *executionContext) field_Query_session_intervals_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_sessions_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	var arg2 model.DateHistogramOptions
+	if tmp, ok := rawArgs["histogram_options"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
+		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["histogram_options"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12248,15 +12290,6 @@ func (ec *executionContext) field_Query_sessions_opensearch_args(ctx context.Con
 		}
 	}
 	args["page"] = arg4
-	var arg5 *model.DateHistogramOptions
-	if tmp, ok := rawArgs["histogram_options"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
-		arg5, err = ec.unmarshalODateHistogramOptions2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["histogram_options"] = arg5
 	return args, nil
 }
 
@@ -31638,7 +31671,7 @@ func (ec *executionContext) _Query_sessions_opensearch(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["sort_desc"].(bool), fc.Args["page"].(*int), fc.Args["histogram_options"].(*model.DateHistogramOptions))
+		return ec.resolvers.Query().SessionsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["sort_desc"].(bool), fc.Args["page"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31667,8 +31700,6 @@ func (ec *executionContext) fieldContext_Query_sessions_opensearch(ctx context.C
 				return ec.fieldContext_SessionResults_sessions(ctx, field)
 			case "totalCount":
 				return ec.fieldContext_SessionResults_totalCount(ctx, field)
-			case "histogram":
-				return ec.fieldContext_SessionResults_histogram(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SessionResults", field.Name)
 		},
@@ -31681,6 +31712,71 @@ func (ec *executionContext) fieldContext_Query_sessions_opensearch(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sessions_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sessions_histogram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["histogram_options"].(model.DateHistogramOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SessionsHistogram)
+	fc.Result = res
+	return ec.marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucket_start_times":
+				return ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
+			case "sessions_without_errors":
+				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
+			case "sessions_with_errors":
+				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
+			case "total_sessions":
+				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sessions_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41264,57 +41360,6 @@ func (ec *executionContext) fieldContext_SessionResults_totalCount(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionResults_histogram(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionResults_histogram(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Histogram, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionsHistogram)
-	fc.Result = res
-	return ec.marshalOSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_SessionResults_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "SessionResults",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "bucket_start_times":
-				return ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
-			case "sessions_without_errors":
-				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
-			case "sessions_with_errors":
-				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
-			case "total_sessions":
-				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _SessionsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
 	if err != nil {
@@ -50521,6 +50566,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "sessions_histogram":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sessions_histogram(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "field_types":
 			field := field
 
@@ -52947,10 +53015,6 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "histogram":
-
-			out.Values[i] = ec._SessionResults_histogram(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56146,6 +56210,20 @@ func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlight�
 	return ec._SessionResults(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSessionsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v model1.SessionsHistogram) graphql.Marshaler {
+	return ec._SessionsHistogram(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v *model1.SessionsHistogram) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SessionsHistogram(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {
 	return ec._SlackSyncResponse(ctx, sel, &v)
 }
@@ -57062,14 +57140,6 @@ func (ec *executionContext) marshalODashboardPayload2ᚖgithubᚗcomᚋhighlight
 		return graphql.Null
 	}
 	return ec._DashboardPayload(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalODateHistogramOptions2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx context.Context, v interface{}) (*model.DateHistogramOptions, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputDateHistogramOptions(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
@@ -58015,13 +58085,6 @@ func (ec *executionContext) marshalOSessionPayload2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._SessionPayload(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v *model1.SessionsHistogram) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SessionsHistogram(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSocialLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSocialLink(ctx context.Context, sel ast.SelectionSet, v []*model.SocialLink) graphql.Marshaler {

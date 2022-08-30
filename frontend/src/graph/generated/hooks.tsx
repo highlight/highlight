@@ -5956,7 +5956,6 @@ export const GetSessionsOpenSearchDocument = gql`
         $query: String!
         $sort_desc: Boolean!
         $page: Int
-        $histogram_options: DateHistogramOptions = null
     ) {
         sessions_opensearch(
             project_id: $project_id
@@ -5964,7 +5963,6 @@ export const GetSessionsOpenSearchDocument = gql`
             query: $query
             sort_desc: $sort_desc
             page: $page
-            histogram_options: $histogram_options
         ) {
             sessions {
                 id
@@ -6002,12 +6000,6 @@ export const GetSessionsOpenSearchDocument = gql`
                 last_user_interaction_time
             }
             totalCount
-            histogram {
-                bucket_start_times
-                sessions_without_errors
-                sessions_with_errors
-                total_sessions
-            }
         }
     }
 `;
@@ -6029,7 +6021,6 @@ export const GetSessionsOpenSearchDocument = gql`
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
  *      page: // value for 'page'
- *      histogram_options: // value for 'histogram_options'
  *   },
  * });
  */
@@ -6064,6 +6055,75 @@ export type GetSessionsOpenSearchLazyQueryHookResult = ReturnType<
 export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
     Types.GetSessionsOpenSearchQuery,
     Types.GetSessionsOpenSearchQueryVariables
+>;
+export const GetSessionsHistogramDocument = gql`
+    query GetSessionsHistogram(
+        $project_id: ID!
+        $query: String!
+        $histogram_options: DateHistogramOptions!
+    ) {
+        sessions_histogram(
+            project_id: $project_id
+            query: $query
+            histogram_options: $histogram_options
+        ) {
+            bucket_start_times
+            sessions_without_errors
+            sessions_with_errors
+            total_sessions
+        }
+    }
+`;
+
+/**
+ * __useGetSessionsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      histogram_options: // value for 'histogram_options'
+ *   },
+ * });
+ */
+export function useGetSessionsHistogramQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionsHistogramQuery,
+        Types.GetSessionsHistogramQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionsHistogramQuery,
+        Types.GetSessionsHistogramQueryVariables
+    >(GetSessionsHistogramDocument, baseOptions);
+}
+export function useGetSessionsHistogramLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionsHistogramQuery,
+        Types.GetSessionsHistogramQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionsHistogramQuery,
+        Types.GetSessionsHistogramQueryVariables
+    >(GetSessionsHistogramDocument, baseOptions);
+}
+export type GetSessionsHistogramQueryHookResult = ReturnType<
+    typeof useGetSessionsHistogramQuery
+>;
+export type GetSessionsHistogramLazyQueryHookResult = ReturnType<
+    typeof useGetSessionsHistogramLazyQuery
+>;
+export type GetSessionsHistogramQueryResult = Apollo.QueryResult<
+    Types.GetSessionsHistogramQuery,
+    Types.GetSessionsHistogramQueryVariables
 >;
 export const GetErrorGroupsOpenSearchDocument = gql`
     query GetErrorGroupsOpenSearch(

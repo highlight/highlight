@@ -644,7 +644,6 @@ export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
     totalCount: Scalars['Int64'];
-    histogram?: Maybe<SessionsHistogram>;
 };
 
 export type ErrorResults = {
@@ -1027,6 +1026,7 @@ export type Query = {
     averageSessionLength?: Maybe<AverageSessionLength>;
     userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions_opensearch: SessionResults;
+    sessions_histogram: SessionsHistogram;
     field_types: Array<Field>;
     fields_opensearch: Array<Scalars['String']>;
     error_fields_opensearch: Array<Scalars['String']>;
@@ -1252,7 +1252,12 @@ export type QuerySessions_OpensearchArgs = {
     query: Scalars['String'];
     sort_desc: Scalars['Boolean'];
     page?: Maybe<Scalars['Int']>;
-    histogram_options?: Maybe<DateHistogramOptions>;
+};
+
+export type QuerySessions_HistogramArgs = {
+    project_id: Scalars['ID'];
+    query: Scalars['String'];
+    histogram_options: DateHistogramOptions;
 };
 
 export type QueryField_TypesArgs = {
