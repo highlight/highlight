@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"os"
 	"strconv"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -27,14 +25,7 @@ var (
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
-	sidHash := fnv.New32a()
-	defer sidHash.Reset()
-	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {
-		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
-	}
-
-	// Enable redis for 25% of other traffic
-	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%4 == 0
+	return lo.Contains(redisProjectIds, projectId)
 }
 
 func EventsKey(sessionId int) string {
