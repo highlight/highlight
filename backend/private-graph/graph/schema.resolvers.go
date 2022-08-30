@@ -5281,6 +5281,13 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 		return nil, err
 	}
 
+	if r.isWhitelistedAccount(ctx) {
+		return &model.WorkspaceAdminRole{
+			Admin: admin,
+			Role:  model.AdminRole.ADMIN,
+		}, nil
+	}
+
 	role, err := r.GetAdminRole(admin.ID, workspaceID)
 	if err != nil {
 		return nil, err
@@ -5296,6 +5303,13 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	if r.isWhitelistedAccount(ctx) {
+		return &model.WorkspaceAdminRole{
+			Admin: admin,
+			Role:  model.AdminRole.ADMIN,
+		}, nil
 	}
 
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
