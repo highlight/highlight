@@ -71,54 +71,50 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
         key: dd?.id || 0,
     }));
 
+    if (!data?.metrics_timeline.length) {
+        return null;
+    }
+
     return (
         <div className={styles.requestMetrics}>
-            {loading ? (
-                <div>Loading...</div>
-            ) : !data?.metrics_timeline.length ? (
-                <div>No data</div>
-            ) : (
-                <div>
-                    {dashboardWithLatency ? (
-                        <ButtonLink
-                            trackingId="viewDashboardFromNetworkRequestDetails"
-                            to={`/${project_id}/dashboards/${dashboardWithLatency.id}`}
-                        >
-                            View on {dashboardWithLatency.name} Dashboard
-                        </ButtonLink>
-                    ) : (
-                        <Dropdown.Button
-                            overlay={<Menu items={dashboardItems} />}
-                        >
-                            Add to Dashboard
-                        </Dropdown.Button>
-                    )}
+            <div>
+                {dashboardWithLatency ? (
+                    <ButtonLink
+                        trackingId="viewDashboardFromNetworkRequestDetails"
+                        to={`/${project_id}/dashboards/${dashboardWithLatency.id}`}
+                    >
+                        View on {dashboardWithLatency.name} Dashboard
+                    </ButtonLink>
+                ) : (
+                    <Dropdown.Button overlay={<Menu items={dashboardItems} />}>
+                        Add to Dashboard
+                    </Dropdown.Button>
+                )}
 
-                    <LineChart
-                        height={275}
-                        data={(data?.metrics_timeline || []).map((x) => ({
-                            date: x?.date,
-                            [MetricAggregator.P50]: x?.value,
-                        }))}
-                        xAxisDataKeyName="date"
-                        xAxisTickFormatter={(tickItem) =>
-                            moment(tickItem).format('h:mm')
-                        }
-                        xAxisProps={{
-                            domain: ['dataMin', 'dataMax'],
-                        }}
-                        lineColorMapping={LINE_COLORS}
-                        yAxisLabel="ms"
-                        referenceLines={[
-                            {
-                                label: 'This Request',
-                                value: duration,
-                                color: 'var(--color-red-500)',
-                            },
-                        ]}
-                    />
-                </div>
-            )}
+                <LineChart
+                    height={275}
+                    data={(data?.metrics_timeline || []).map((x) => ({
+                        date: x?.date,
+                        [MetricAggregator.P50]: x?.value,
+                    }))}
+                    xAxisDataKeyName="date"
+                    xAxisTickFormatter={(tickItem) =>
+                        moment(tickItem).format('h:mm')
+                    }
+                    xAxisProps={{
+                        domain: ['dataMin', 'dataMax'],
+                    }}
+                    lineColorMapping={LINE_COLORS}
+                    yAxisLabel="ms"
+                    referenceLines={[
+                        {
+                            label: 'This Request',
+                            value: duration,
+                            color: 'var(--color-red-500)',
+                        },
+                    ]}
+                />
+            </div>
         </div>
     );
 };
