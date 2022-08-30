@@ -1,7 +1,7 @@
 import React from 'react';
 import { Command } from 'react-command-palette';
 import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc';
-import { default as sanitizeHtml } from 'sanitize-html';
+import sanitizeHtml from 'xss';
 
 import SvgUsersIcon from '../../../../static/UsersIcon';
 import styles from './CommandBarCommand.module.scss';
