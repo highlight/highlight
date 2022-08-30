@@ -319,8 +319,11 @@ func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id i
 	s, _ := tracer.StartSpanFromContext(ctx, "getSessionID", tracer.ResourceName("worker.getSessionID"))
 	s.SetTag("secure_id", sessionSecureID)
 	defer s.Finish()
+	if sessionSecureID == "" {
+		return 0, e.New("getSessionID called with no secure id")
+	}
 	session := &model.Session{}
-	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).First(&session)
+	w.Resolver.DB.Order("secure_id").Select("id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session)
 	if session.ID == 0 {
 		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
 	}
