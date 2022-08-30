@@ -296,7 +296,6 @@ export class Highlight {
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
-        this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
