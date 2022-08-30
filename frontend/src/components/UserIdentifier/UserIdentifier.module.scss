@@ -1,10 +1,40 @@
-.button {
+.identifierContainer {
+    align-items: center;
+    display: flex;
+    gap: var(--size-xxSmall);
+}
+
+.identifierContainer::before,
+.identifierContainer::after {
+    align-self: center;
+    border: 1px solid var(--color-gray-300);
+    content: '';
+    height: 1em;
+}
+
+.identifierButton {
     color: var(--color-purple);
     max-width: calc(100% - 1.2em - 2 * var(--size-xxSmall));
+
+    order: -1;
     padding: 0;
 
     > span {
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}
+
+.identifierActionButton {
+    color: inherit !important;
+    height: 1.2em !important;
+    width: 1.2em !important;
+    svg {
+        color: inherit;
+        height: 1em !important;
+    }
+}
+
+.identifierSearchButton {
+    order: 1;
 }
