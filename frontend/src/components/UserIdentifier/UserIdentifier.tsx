@@ -62,7 +62,11 @@ const UserIdentifier = ({ session, className }: Props) => {
             >
                 {displayValue}
             </Button>
-            <Tooltip title={'Copy id to clipboard'} mouseEnterDelay={0}>
+            <Tooltip
+                title={'Copy id to clipboard'}
+                mouseEnterDelay={0}
+                align={{ offset: [0, 3] }}
+            >
                 <Button
                     className={styles.identifierActionButton}
                     trackingId="UserIdentiferSearch"
@@ -78,7 +82,11 @@ const UserIdentifier = ({ session, className }: Props) => {
                     <SvgCopyIcon />
                 </Button>
             </Tooltip>
-            <Tooltip title={'Find all user sessions'} mouseEnterDelay={0}>
+            <Tooltip
+                title={'Find all user sessions'}
+                mouseEnterDelay={0}
+                align={{ offset: [0, 3] }}
+            >
                 <Button
                     className={classNames(
                         styles.identifierActionButton,
