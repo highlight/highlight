@@ -5,6 +5,7 @@
     "repository": "git@github.com:highlight-run/highlight.git",
     "author": "Highlight",
     "license": "MIT",
+    "packageManager": "yarn@3.2.3",
     "dependencies": {
         "concurrently": "^6.5.1"
     },

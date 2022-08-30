@@ -28,3 +28,10 @@ backend/dump.rdb
 .vscode/*.log
 
 dump.rdb
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
