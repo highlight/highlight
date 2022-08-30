@@ -2159,7 +2159,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).First(&sessionObj).Error; err != nil {
+	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
