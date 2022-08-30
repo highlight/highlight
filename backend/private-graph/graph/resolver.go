@@ -1043,6 +1043,10 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 }
 
 func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error {
+	if r.isWhitelistedAccount(ctx) {
+		return nil
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return e.Wrap(err, "error retrieving admin")
