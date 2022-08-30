@@ -1,5 +1,4 @@
 import BarChartV2 from '@components/BarChartV2/BarCharV2';
-import Card from '@components/Card/Card';
 import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -110,7 +109,7 @@ export const SessionCountGraph = ({
     }, [setUpdatingData, loading]);
 
     return (
-        <Card full className={classNames({ [styles.loading]: loading })}>
+        <div className={classNames({ [styles.loading]: loading })}>
             <DailyChart
                 data={sessionCountData}
                 name="Sessions"
@@ -132,7 +131,7 @@ export const SessionCountGraph = ({
                     history.push(`/${projectIdRemapped}/sessions`);
                 }}
             />
-        </Card>
+        </div>
     );
 };
 
@@ -196,7 +195,7 @@ export const ErrorCountGraph = ({
     }, [setUpdatingData, loading]);
 
     return (
-        <Card full className={classNames({ [styles.loading]: loading })}>
+        <div className={classNames({ [styles.loading]: loading })}>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
@@ -209,7 +208,7 @@ export const ErrorCountGraph = ({
                     );
                 }}
             />
-        </Card>
+        </div>
     );
 };
 
