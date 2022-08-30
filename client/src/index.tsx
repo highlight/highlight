@@ -292,6 +292,10 @@ export class Highlight {
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
+        // these should not be in initMembers since we want them to
+        // persist across session resets
+        this._isRecordingEvents = false;
+        this._hasPreviouslyInitialized = false;
         this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
@@ -361,8 +365,6 @@ export class Highlight {
         this.events = [];
         this.hasSessionUnloaded = false;
         this.hasPushedData = false;
-        this._hasPreviouslyInitialized = false;
-        this._isRecordingEvents = false;
 
         if (window.Intercom) {
             window.Intercom('onShow', () => {
