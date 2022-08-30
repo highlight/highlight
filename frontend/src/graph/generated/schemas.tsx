@@ -482,6 +482,7 @@ export type MetricTagFilterInput = {
 export type DateHistogramOptions = {
     calendar_interval: Scalars['String'];
     time_zone: Scalars['String'];
+    bounds: DateRangeInput;
 };
 
 export enum NetworkRequestAttribute {
@@ -636,7 +637,7 @@ export type SessionsHistogram = {
 export type ErrorsHistogram = {
     __typename?: 'ErrorsHistogram';
     bucket_start_times: Array<Scalars['Timestamp']>;
-    total_error_objects: Array<Scalars['Int64']>;
+    error_objects: Array<Scalars['Int64']>;
 };
 
 export type SessionResults = {
@@ -650,7 +651,6 @@ export type ErrorResults = {
     __typename?: 'ErrorResults';
     error_groups: Array<ErrorGroup>;
     totalCount: Scalars['Int64'];
-    histogram?: Maybe<ErrorsHistogram>;
 };
 
 export type ExternalAttachment = {
@@ -995,6 +995,7 @@ export type Query = {
     rage_clicks: Array<RageClickEvent>;
     rageClicksForProject: Array<RageClickEventForProject>;
     error_groups_opensearch: ErrorResults;
+    errors_histogram: ErrorsHistogram;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     enhanced_user_details?: Maybe<EnhancedUserDetailsResult>;
@@ -1114,7 +1115,12 @@ export type QueryError_Groups_OpensearchArgs = {
     count: Scalars['Int'];
     query: Scalars['String'];
     page?: Maybe<Scalars['Int']>;
-    histogram_options?: Maybe<DateHistogramOptions>;
+};
+
+export type QueryErrors_HistogramArgs = {
+    project_id: Scalars['ID'];
+    query: Scalars['String'];
+    histogram_options: DateHistogramOptions;
 };
 
 export type QueryError_GroupArgs = {

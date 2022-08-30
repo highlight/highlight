@@ -155,6 +155,11 @@ export const SessionFeed = React.memo(() => {
                 time_zone:
                     Intl.DateTimeFormat().resolvedOptions().timeZone ??
                     'America/Los_Angeles',
+                bounds: {
+                    start_date:
+                        backendSearchQuery?.startDate.toISOString() || '',
+                    end_date: backendSearchQuery?.startDate.toISOString() || '',
+                },
             },
         },
         onCompleted: addSessions,

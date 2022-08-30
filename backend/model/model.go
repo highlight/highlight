@@ -794,14 +794,13 @@ func (m *EventsObject) Contents() string {
 const PARTITION_SESSION_ID = 30000000
 
 type ErrorsHistogram struct {
-	BucketStartTimes  []time.Time `json:"bucket_start_times"`
-	TotalErrorObjects []int64     `json:"total_error_objects"`
+	BucketStartTimes []time.Time `json:"bucket_start_times"`
+	ErrorObjects     []int64     `json:"error_objects"`
 }
 
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
 	TotalCount  int64
-	Histogram   *ErrorsHistogram
 }
 
 type ErrorSearchParams struct {

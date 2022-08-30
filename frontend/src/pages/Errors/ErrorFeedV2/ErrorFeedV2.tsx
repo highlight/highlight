@@ -3,9 +3,15 @@ import {
     DEMO_WORKSPACE_APPLICATION_ID,
     DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
+import { Series } from '@components/Histogram/Histogram';
 import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
-import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks';
+import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram';
+import { BackendSearchQuery } from '@context/BaseSearchContext';
+import {
+    useGetErrorGroupsOpenSearchQuery,
+    useGetErrorsHistogramQuery,
+} from '@graph/hooks';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
@@ -24,6 +30,70 @@ import { useErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext'
 import styles from './ErrorFeedV2.module.scss';
 
 const PAGE_SIZE = 10;
+
+const useHistogram = (
+    projectID: string,
+    backendSearchQuery: BackendSearchQuery,
+    projectHasManyErrors: boolean
+) => {
+    const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
+        []
+    );
+    const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
+        []
+    );
+    const { loading } = useGetErrorsHistogramQuery({
+        variables: {
+            query: backendSearchQuery?.childSearchQuery || '',
+            project_id: projectID,
+            histogram_options: {
+                calendar_interval:
+                    backendSearchQuery?.histogramBucketSize || '',
+                time_zone:
+                    Intl.DateTimeFormat().resolvedOptions().timeZone ??
+                    'America/Los_Angeles',
+                bounds: {
+                    start_date:
+                        backendSearchQuery?.startDate.toISOString() || '',
+                    end_date: backendSearchQuery?.startDate.toISOString() || '',
+                },
+            },
+        },
+        onCompleted: (r) => {
+            let seriesList: Series[] = [];
+            let bucketTimes: number[] = [];
+            const histogramData = r?.errors_histogram;
+            console.log('Rich data', histogramData);
+            if (backendSearchQuery && histogramData) {
+                bucketTimes = histogramData.bucket_start_times.map(
+                    (startTime) => new Date(startTime).valueOf()
+                );
+                bucketTimes.push(backendSearchQuery.endDate.valueOf());
+                seriesList = [
+                    {
+                        label: 'Errors logged',
+                        color: '--color-purple',
+                        counts: histogramData.error_objects,
+                    },
+                ];
+            }
+            setHistogramSeriesList(seriesList);
+            setHistogramBucketTimes(bucketTimes);
+        },
+        skip: !backendSearchQuery?.childSearchQuery,
+        fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
+    });
+
+    return (
+        <SearchResultsHistogram
+            seriesList={histogramSeriesList}
+            bucketTimes={histogramBucketTimes}
+            bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
+            loading={loading}
+            updateTimeRange={() => {}}
+        />
+    );
+};
 
 export const ErrorFeedV2 = () => {
     const { project_id } = useParams<{ project_id: string }>();
@@ -75,6 +145,11 @@ export const ErrorFeedV2 = () => {
         skip: !backendSearchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
+    const histogram = useHistogram(
+        project_id,
+        backendSearchQuery,
+        projectHasManyErrors
+    );
 
     const onFeedScrollListener = (
         e: React.UIEvent<HTMLElement> | undefined
@@ -82,12 +157,24 @@ export const ErrorFeedV2 = () => {
         setErrorFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
     };
 
+    // const updateTimeRange = useCallback(
+    //     (newStartTime, newEndTime) => {
+    //         const newSearchParams = updateSearchTimeRange(
+    //             searchParams,
+    //             serializeAbsoluteTimeRange(newStartTime, newEndTime)
+    //         );
+    //         setSearchParams(newSearchParams);
+    //     },
+    //     [searchParams, setSearchParams]
+    // );
+
     return (
         <>
             <div className={styles.filtersContainer}>
                 <SegmentPickerForErrors />
                 <ErrorQueryBuilder />
             </div>
+            {histogram}
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {loading ? (

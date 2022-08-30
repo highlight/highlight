@@ -57,6 +57,10 @@ interface MultiselectOption {
 type OnChangeInput = SelectOption | MultiselectOption | undefined;
 type OnChange = (val: OnChangeInput) => void;
 type LoadOptions = (input: string, callback: any) => Promise<any>;
+type OpenSearchQuery = {
+    query: any;
+    childQuery?: any;
+};
 
 interface RuleSettings {
     onChangeKey: OnChange;
@@ -1382,16 +1386,18 @@ const QueryBuilder = ({
     );
 
     const parseGroup = useCallback(
-        (isAnd: boolean, rules: RuleProps[]): any => {
+        (isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
             const errorObjectRules = rules.filter(
                 (r) => getType(r.field!.value) === ERROR_FIELD_TYPE
             );
             if (errorObjectRules.length === 0) {
                 return {
-                    bool: {
-                        [isAnd ? 'must' : 'should']: rules.map((rule) =>
-                            parseRule(rule)
-                        ),
+                    query: {
+                        bool: {
+                            [isAnd ? 'must' : 'should']: rules.map((rule) =>
+                                parseRule(rule)
+                            ),
+                        },
                     },
                 };
             } else {
@@ -1399,32 +1405,63 @@ const QueryBuilder = ({
                     (r) => getType(r.field!.value) !== ERROR_FIELD_TYPE
                 );
                 return {
-                    bool: {
-                        [isAnd ? 'must' : 'should']: [
-                            {
-                                bool: {
-                                    [isAnd
-                                        ? 'must'
-                                        : 'should']: standardRules.map((rule) =>
-                                        parseRule(rule)
-                                    ),
+                    query: {
+                        bool: {
+                            [isAnd ? 'must' : 'should']: [
+                                {
+                                    bool: {
+                                        [isAnd
+                                            ? 'must'
+                                            : 'should']: standardRules.map(
+                                            (rule) => parseRule(rule)
+                                        ),
+                                    },
                                 },
-                            },
-                            {
-                                has_child: {
-                                    type: 'child',
-                                    query: {
-                                        bool: {
-                                            [isAnd
-                                                ? 'must'
-                                                : 'should']: errorObjectRules.map(
-                                                (rule) => parseRule(rule)
-                                            ),
+                                {
+                                    has_child: {
+                                        type: 'child',
+                                        query: {
+                                            bool: {
+                                                [isAnd
+                                                    ? 'must'
+                                                    : 'should']: errorObjectRules.map(
+                                                    (rule) => parseRule(rule)
+                                                ),
+                                            },
                                         },
                                     },
                                 },
-                            },
-                        ],
+                            ],
+                        },
+                    },
+                    childQuery: {
+                        bool: {
+                            [isAnd ? 'must' : 'should']: [
+                                {
+                                    has_parent: {
+                                        parent_type: 'parent',
+                                        query: {
+                                            bool: {
+                                                [isAnd
+                                                    ? 'must'
+                                                    : 'should']: standardRules.map(
+                                                    (rule) => parseRule(rule)
+                                                ),
+                                            },
+                                        },
+                                    },
+                                },
+                                {
+                                    bool: {
+                                        [isAnd
+                                            ? 'must'
+                                            : 'should']: errorObjectRules.map(
+                                            (rule) => parseRule(rule)
+                                        ),
+                                    },
+                                },
+                            ],
+                        },
                     },
                 };
             }
@@ -1550,7 +1587,7 @@ const QueryBuilder = ({
     };
 
     const setSearchQuery = useCallback(
-        (searchQuery: string) => {
+        (searchQuery: OpenSearchQuery) => {
             if (!timeRangeRule) return;
             const startDate = moment(
                 getAbsoluteStartTime(timeRangeRule.val?.options[0].value)
@@ -1559,7 +1596,10 @@ const QueryBuilder = ({
                 getAbsoluteEndTime(timeRangeRule.val?.options[0].value)
             );
             setBackendSearchQuery({
-                searchQuery,
+                searchQuery: JSON.stringify(searchQuery.query),
+                childSearchQuery: searchQuery.childQuery
+                    ? JSON.stringify(searchQuery.childQuery)
+                    : undefined,
                 startDate,
                 endDate,
                 histogramBucketSize: GetHistogramBucketSize(
@@ -1699,7 +1739,7 @@ const QueryBuilder = ({
         }
 
         const query = parseGroup(isAnd, rules);
-        setSearchQuery(JSON.stringify(query));
+        setSearchQuery(query);
         const newState = JSON.stringify({
             isAnd,
             rules: serializeRules(rules),
@@ -1784,7 +1824,7 @@ const QueryBuilder = ({
                                 )}
                                 onClick={() => {
                                     const query = parseGroup(isAnd, rules);
-                                    setSearchQuery(JSON.stringify(query));
+                                    setSearchQuery(query);
                                 }}
                                 disabled={syncButtonDisabled}
                                 trackingId={'RefreshSearchResults'}

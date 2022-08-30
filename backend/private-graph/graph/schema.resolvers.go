@@ -3431,7 +3431,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, histogramOptions *modelInputs.DateHistogramOptions) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3449,11 +3449,8 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	if histogramOptions != nil {
-		options.Aggregation = GetDateHistogramAggregation(*histogramOptions, "error-field_timestamp", nil)
-	}
 
-	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
 	if err != nil {
 		return nil, err
 	}
@@ -3472,25 +3469,47 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		TotalCount:  resultCount,
 	}
 
-	if histogramOptions != nil {
-		bucket_start_times, total_counts := []time.Time{}, []int64{}
-		for _, date_bucket := range aggs {
-			unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-			if err != nil {
-				log.Error("Error parsing date bucket key for histogram: %s", err.Error())
-				break
-			}
-			bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
-			total_counts = append(total_counts, date_bucket.DocCount)
-		}
+	return returnValue, nil
+}
 
-		returnValue.Histogram = &model.ErrorsHistogram{
-			BucketStartTimes:  bucket_start_times,
-			TotalErrorObjects: total_counts,
-		}
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
 	}
 
-	return returnValue, nil
+	results := []opensearch.OpenSearchError{}
+	options := opensearch.SearchOptions{
+		MaxResults:        ptr.Int(0),
+		SortField:         ptr.String("updated_at"),
+		SortOrder:         ptr.String("desc"),
+		ReturnCount:       ptr.Bool(false),
+		ExcludeFields:     []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+		ProjectIDOnParent: ptr.Bool(true),
+		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
+	}
+
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	bucket_start_times, total_counts := []time.Time{}, []int64{}
+	for _, date_bucket := range aggs {
+		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+		if err != nil {
+			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+			break
+		}
+		bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
+		total_counts = append(total_counts, date_bucket.DocCount)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketStartTimes: bucket_start_times,
+		ErrorObjects:     total_counts,
+	}, nil
 }
 
 // ErrorGroup is the resolver for the error_group field.

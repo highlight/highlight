@@ -138,8 +138,9 @@ type DashboardPayload struct {
 }
 
 type DateHistogramOptions struct {
-	CalendarInterval string `json:"calendar_interval"`
-	TimeZone         string `json:"time_zone"`
+	CalendarInterval string          `json:"calendar_interval"`
+	TimeZone         string          `json:"time_zone"`
+	Bounds           *DateRangeInput `json:"bounds"`
 }
 
 type DateRangeInput struct {

@@ -437,6 +437,7 @@ input DateHistogramOptions {
     # Options match https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html
     calendar_interval: String!
     time_zone: String!
+    bounds: DateRangeInput!
 }
 
 enum NetworkRequestAttribute {
@@ -582,7 +583,7 @@ type SessionsHistogram {
 
 type ErrorsHistogram {
     bucket_start_times: [Timestamp!]!
-    total_error_objects: [Int64!]!
+    error_objects: [Int64!]!
 }
 
 type SessionResults {
@@ -594,7 +595,6 @@ type SessionResults {
 type ErrorResults {
     error_groups: [ErrorGroup!]!
     totalCount: Int64!
-    histogram: ErrorsHistogram
 }
 
 # 2 way connector type between highlight objects and external integration objects
@@ -928,8 +928,12 @@ type Query {
         count: Int!
         query: String!
         page: Int
-        histogram_options: DateHistogramOptions
     ): ErrorResults!
+    errors_histogram(
+        project_id: ID!
+        query: String!
+        histogram_options: DateHistogramOptions!
+    ): ErrorsHistogram!
     error_group(secure_id: String!): ErrorGroup
     messages(session_secure_id: String!): [Any]
     enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult

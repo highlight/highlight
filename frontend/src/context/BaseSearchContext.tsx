@@ -4,6 +4,7 @@ export type BackendSearchQuery =
     | undefined
     | {
           searchQuery: string;
+          childSearchQuery?: string;
           startDate: moment.Moment;
           endDate: moment.Moment;
           histogramBucketSize: string;

@@ -36,7 +36,8 @@ export const SearchResultsHistogram = React.memo(
             (t: number) => {
                 if (
                     bucketTimes.length > 0 &&
-                    t === bucketTimes[bucketTimes.length - 1]
+                    (t === bucketTimes[bucketTimes.length - 1] ||
+                        t === bucketTimes[0])
                 ) {
                     return moment(t).format('MMM D h:mm a');
                 }
@@ -85,16 +86,18 @@ export const SearchResultsHistogram = React.memo(
             [seriesList]
         );
         return (
-            <Histogram
-                onAreaChanged={onAreaChanged}
-                onBucketClicked={onBucketClicked}
-                seriesList={seriesList}
-                timeFormatter={timeFormatter}
-                bucketTimes={bucketTimes}
-                tooltipContent={tooltipContent}
-                tooltipDelayMs={500}
-                loading={loading}
-            />
+            <div className={styles.histogramWrapper}>
+                <Histogram
+                    onAreaChanged={onAreaChanged}
+                    onBucketClicked={onBucketClicked}
+                    seriesList={seriesList}
+                    timeFormatter={timeFormatter}
+                    bucketTimes={bucketTimes}
+                    tooltipContent={tooltipContent}
+                    tooltipDelayMs={500}
+                    loading={loading}
+                />
+            </div>
         );
     }
 );

@@ -113,12 +113,18 @@ func (t *TermsAggregation) GetAggsString() string {
 	`, t.Field, includePart, sizePart, missing, subAggString)
 }
 
+type DateBounds struct {
+	Min int
+	Max int
+}
+
 type DateHistogramAggregation struct {
 	Field            string
 	CalendarInterval string
 	SortOrder        string
 	Format           string
 	TimeZone         string
+	DateBounds       *DateBounds
 	MinDocCount      *int // When set to 0, empty buckets will also be returned (otherwise they are omitted)
 	SubAggregation   Aggregation
 }
@@ -167,13 +173,14 @@ type aggregateBucket struct {
 }
 
 type SearchOptions struct {
-	MaxResults    *int
-	ResultsFrom   *int
-	SortField     *string
-	SortOrder     *string
-	ReturnCount   *bool
-	ExcludeFields []string
-	Aggregation   Aggregation
+	MaxResults        *int
+	ResultsFrom       *int
+	SortField         *string
+	SortOrder         *string
+	ReturnCount       *bool
+	ProjectIDOnParent *bool
+	ExcludeFields     []string
+	Aggregation       Aggregation
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -425,7 +432,13 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 	q := query
 	if projectID != -1 {
-		q = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+		if options.ProjectIDOnParent != nil && *options.ProjectIDOnParent == true {
+			q = fmt.Sprintf(
+				`{"bool":{"must":[{"has_parent": {"parent_type": "parent","query": {"term":{"project_id":"%d"}}}}, %s]}}`,
+				projectID, query)
+		} else {
+			q = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+		}
 	}
 
 	sort := ""
