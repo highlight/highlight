@@ -17,7 +17,6 @@ import (
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/redis"
 
 	"gorm.io/gorm"
 
@@ -235,7 +234,7 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	if redis.UseRedis(s.ProjectID) {
+	if s.ProcessWithRedis {
 		if err := w.fetchEventsRedis(ctx, manager, s); err != nil {
 			return errors.Wrap(err, "error fetching events from Redis")
 		}
