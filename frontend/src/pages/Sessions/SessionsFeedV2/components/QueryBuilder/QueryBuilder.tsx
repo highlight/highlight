@@ -258,6 +258,21 @@ const getDateLabel = (value: string): string => {
     return `${startStr} to ${endStr}`;
 };
 
+export const updateQueriedTimeRange = (
+    query: string,
+    timeRangeField: SelectOption,
+    serializedValue: string
+): string => {
+    const parsedQuery = JSON.parse(query) as QueryBuilderState;
+    parsedQuery.rules = parsedQuery.rules.map((rule) => {
+        if (rule[0] === timeRangeField.value) {
+            rule[2] = serializedValue; // TODO
+        }
+        return rule;
+    });
+    return JSON.stringify(parsedQuery);
+};
+
 export const isAbsoluteTimeRange = (value?: string): boolean => {
     return !!value && value.includes('_');
 };

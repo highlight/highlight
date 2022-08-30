@@ -22,12 +22,15 @@ import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPl
 import {
     QueryBuilderState,
     serializeAbsoluteTimeRange,
+    updateQueriedTimeRange,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils';
 import SessionFeedConfiguration, {
     formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration';
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
+import SessionsQueryBuilder, {
+    TIME_RANGE_FIELD,
+} from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder';
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext';
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration';
 import useLocalStorage from '@rehooks/local-storage';
@@ -52,7 +55,6 @@ import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfi
 import { useReplayerContext } from '../../Player/ReplayerContext';
 import {
     showLiveSessions,
-    updateSearchTimeRange,
     useSearchContext,
 } from '../SearchContext/SearchContext';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
@@ -195,10 +197,14 @@ export const SessionFeed = React.memo(() => {
 
     const updateTimeRange = useCallback(
         (newStartTime, newEndTime) => {
-            const newSearchParams = updateSearchTimeRange(
-                searchParams,
-                serializeAbsoluteTimeRange(newStartTime, newEndTime)
-            );
+            const newSearchParams = {
+                ...searchParams,
+                query: updateQueriedTimeRange(
+                    searchParams.query || '',
+                    TIME_RANGE_FIELD,
+                    serializeAbsoluteTimeRange(newStartTime, newEndTime)
+                ),
+            };
             setSearchParams(newSearchParams);
         },
         [searchParams, setSearchParams]

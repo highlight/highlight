@@ -17,7 +17,7 @@ import QueryBuilder, {
 import moment from 'moment';
 import React from 'react';
 
-const TIME_RANGE_FIELD: SelectOption = {
+export const TIME_RANGE_FIELD: SelectOption = {
     kind: 'single',
     label: 'timestamp',
     value: 'error-field_timestamp',

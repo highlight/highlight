@@ -7,21 +7,26 @@ import { Series } from '@components/Histogram/Histogram';
 import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination';
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState';
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram';
-import { BackendSearchQuery } from '@context/BaseSearchContext';
 import {
     useGetErrorGroupsOpenSearchQuery,
     useGetErrorsHistogramQuery,
 } from '@graph/hooks';
 import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
-import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
+import ErrorQueryBuilder, {
+    TIME_RANGE_FIELD,
+} from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors';
+import {
+    serializeAbsoluteTimeRange,
+    updateQueriedTimeRange,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder';
 import useLocalStorage from '@rehooks/local-storage';
 import { getErrorBody } from '@util/errors/errorUtils';
 import { gqlSanitize } from '@util/gqlSanitize';
 import { formatNumber } from '@util/numbers';
 import { useParams } from '@util/react-router/useParams';
 import classNames from 'classnames/bind';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link } from 'react-router-dom';
 
@@ -31,11 +36,12 @@ import styles from './ErrorFeedV2.module.scss';
 
 const PAGE_SIZE = 10;
 
-const useHistogram = (
-    projectID: string,
-    backendSearchQuery: BackendSearchQuery,
-    projectHasManyErrors: boolean
-) => {
+const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
+    const {
+        backendSearchQuery,
+        searchParams,
+        setSearchParams,
+    } = useErrorSearchContext();
     const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>(
         []
     );
@@ -84,13 +90,28 @@ const useHistogram = (
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
 
+    const updateTimeRange = useCallback(
+        (newStartTime, newEndTime) => {
+            const newSearchParams = {
+                ...searchParams,
+                query: updateQueriedTimeRange(
+                    searchParams.query || '',
+                    TIME_RANGE_FIELD,
+                    serializeAbsoluteTimeRange(newStartTime, newEndTime)
+                ),
+            };
+            setSearchParams(newSearchParams);
+        },
+        [searchParams, setSearchParams]
+    );
+
     return (
         <SearchResultsHistogram
             seriesList={histogramSeriesList}
             bucketTimes={histogramBucketTimes}
             bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
             loading={loading}
-            updateTimeRange={() => {}}
+            updateTimeRange={updateTimeRange}
         />
     );
 };
@@ -145,28 +166,13 @@ export const ErrorFeedV2 = () => {
         skip: !backendSearchQuery,
         fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
     });
-    const histogram = useHistogram(
-        project_id,
-        backendSearchQuery,
-        projectHasManyErrors
-    );
+    const histogram = useHistogram(project_id, projectHasManyErrors);
 
     const onFeedScrollListener = (
         e: React.UIEvent<HTMLElement> | undefined
     ) => {
         setErrorFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0);
     };
-
-    // const updateTimeRange = useCallback(
-    //     (newStartTime, newEndTime) => {
-    //         const newSearchParams = updateSearchTimeRange(
-    //             searchParams,
-    //             serializeAbsoluteTimeRange(newStartTime, newEndTime)
-    //         );
-    //         setSearchParams(newSearchParams);
-    //     },
-    //     [searchParams, setSearchParams]
-    // );
 
     return (
         <>
