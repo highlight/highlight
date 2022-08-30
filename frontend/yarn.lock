@@ -10221,10 +10221,10 @@ highlight.js@^10.4.1, highlight.js@~10.7.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
   integrity sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==
 
-highlight.run@4.3.7:
-  version "4.3.7"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.3.7.tgz#ffce6e8250a9da7058804fbc53938492d055402d"
-  integrity sha512-mec5P4XKTFikIkhm+J/s7JADmV8WR3QW7d/JiffErVKBe54A/Pd2Ck3qOHXSDqM50qAUkEyLTPsnyfLA8znYhw==
+highlight.run@4.3.8:
+  version "4.3.8"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-4.3.8.tgz#bcf1e35adb831f2133c7a4e440cd1dee8ba7634e"
+  integrity sha512-08e2df4Cwy5Xs37nxLyrNDbMvHzA4sJDoQenj2ZJdnN79B2jO+MDaBzz8wqmyHUWEwCkaKcpX4s/Fy0PBMsteg==
 
 history@^4.9.0:
   version "4.10.1"
