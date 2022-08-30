@@ -3,7 +3,7 @@ import './index.scss';
 import '@highlight-run/react/dist/highlight.css';
 import '@highlight-run/rrweb/dist/rrweb.min.css';
 
-import { ApolloProvider } from '@apollo/client';
+import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client';
 import {
     AuthContextProvider,
     AuthRole,
@@ -20,13 +20,19 @@ import {
     useAppLoadingContext,
 } from '@context/AppLoadingContext';
 import { datadogLogs } from '@datadog/browser-logs';
-import { useGetAdminLazyQuery } from '@graph/hooks';
+import {
+    useGetAdminLazyQuery,
+    useGetAdminRoleByProjectLazyQuery,
+    useGetAdminRoleLazyQuery,
+} from '@graph/hooks';
+import { Admin, Exact } from '@graph/schemas';
 import { ErrorBoundary } from '@highlight-run/react';
 import { auth } from '@util/auth';
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils';
 import { showHiringMessage } from '@util/console/hiringMessage';
 import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
+import { useParams } from '@util/react-router/useParams';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -151,7 +157,19 @@ const App = () => {
                             }}
                         >
                             <LoadingPage />
-                            <AuthenticationRouter />
+                            <Router>
+                                <Switch>
+                                    <Route path="/w/:workspace_id(\d+)/*">
+                                        <AuthenticationRoleRouter />
+                                    </Route>
+                                    <Route path="/:project_id(\d+)/*">
+                                        <AuthenticationRoleRouter />
+                                    </Route>
+                                    <Route path="/">
+                                        <AuthenticationRoleRouter />
+                                    </Route>
+                                </Switch>
+                            </Router>
                         </AppLoadingContext>
                     </SkeletonTheme>
                 </QueryParamProvider>
@@ -160,11 +178,77 @@ const App = () => {
     );
 };
 
-const AuthenticationRouter = () => {
+const AuthenticationRoleRouter = () => {
+    const { workspace_id, project_id } = useParams<{
+        workspace_id: string;
+        project_id: string;
+    }>();
     const [
-        getAdminQuery,
-        { error: adminError, data: adminData, called, refetch },
+        getWorkspaceAdminsQuery,
+        {
+            error: adminWError,
+            data: adminWData,
+            called: wCalled,
+            refetch: wRefetch,
+        },
+    ] = useGetAdminRoleLazyQuery();
+    const [
+        getWorkspaceAdminsByProjectIdQuery,
+        {
+            error: adminPError,
+            data: adminPData,
+            called: pCalled,
+            refetch: pRefetch,
+        },
+    ] = useGetAdminRoleByProjectLazyQuery();
+    const [
+        getAdminSimpleQuery,
+        {
+            error: adminSError,
+            data: adminSData,
+            called: sCalled,
+            refetch: sRefetch,
+        },
     ] = useGetAdminLazyQuery();
+    let getAdminQuery:
+            | ((
+                  workspace_id:
+                      | QueryLazyOptions<Exact<{ workspace_id: string }>>
+                      | undefined
+              ) => void)
+            | ((
+                  project_id:
+                      | QueryLazyOptions<Exact<{ project_id: string }>>
+                      | undefined
+              ) => void)
+            | (() => void),
+        adminError: ApolloError | undefined,
+        adminData: Admin | undefined | null,
+        adminRole: string | undefined,
+        called: boolean,
+        refetch: any;
+    if (workspace_id) {
+        getAdminQuery = getWorkspaceAdminsQuery;
+        adminError = adminWError;
+        adminData = adminWData?.admin_role?.admin;
+        adminRole = adminWData?.admin_role?.role;
+        called = wCalled;
+        refetch = wRefetch;
+    } else if (project_id) {
+        getAdminQuery = getWorkspaceAdminsByProjectIdQuery;
+        adminError = adminPError;
+        adminData = adminPData?.admin_role_by_project?.admin;
+        adminRole = adminPData?.admin_role_by_project?.role;
+        called = pCalled;
+        refetch = pRefetch;
+    } else {
+        getAdminQuery = getAdminSimpleQuery;
+        adminError = adminSError;
+        adminData = adminSData?.admin;
+        called = sCalled;
+        refetch = sRefetch;
+    }
+
     const { setLoadingState } = useAppLoadingContext();
 
     const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING);
@@ -174,7 +258,9 @@ const AuthenticationRouter = () => {
             (user) => {
                 if (user) {
                     if (!called) {
-                        getAdminQuery();
+                        getAdminQuery({
+                            variables: { workspace_id, project_id },
+                        });
                     } else {
                         refetch!();
                     }
@@ -191,17 +277,17 @@ const AuthenticationRouter = () => {
         return () => {
             unsubscribeFirebase();
         };
-    }, [getAdminQuery, adminData, called, refetch]);
+    }, [getAdminQuery, adminData, called, refetch, workspace_id, project_id]);
 
     useEffect(() => {
         if (adminData) {
             if (
                 HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
-                    adminData.admin?.email.includes(d)
+                    adminData?.email.includes(d)
                 )
             ) {
                 setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT);
-            } else if (adminData.admin) {
+            } else if (adminData) {
                 setAuthRole(AuthRole.AUTHENTICATED);
             }
             H.track('Authenticated');
@@ -225,8 +311,9 @@ const AuthenticationRouter = () => {
             value={{
                 role: authRole,
                 admin: isLoggedIn(authRole)
-                    ? adminData?.admin ?? undefined
+                    ? adminData ?? undefined
                     : undefined,
+                workspaceRole: adminRole,
                 isAuthLoading: isAuthLoading(authRole),
                 isLoggedIn: isLoggedIn(authRole),
                 isHighlightAdmin: isHighlightAdmin(authRole),

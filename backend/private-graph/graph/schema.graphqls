@@ -23,6 +23,7 @@ type Session {
     browser_version: String!
     city: String!
     state: String!
+    country: String!
     postal: String!
     environment: String
     app_version: String
@@ -546,13 +547,17 @@ type Admin {
     email: String!
     phone: String
     photo_url: String
-    role: String!
     slack_im_channel_id: String
     email_verified: Boolean
     referral: String
     user_defined_role: String
     about_you_details_filled: Boolean
     user_defined_persona: String
+}
+
+type WorkspaceAdminRole {
+    admin: Admin!
+    role: String!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
@@ -754,7 +759,6 @@ type SessionPayload {
 }
 
 type Metric {
-    type: String!
     name: String!
     value: Float!
 }
@@ -924,8 +928,8 @@ type Query {
     error_comments(error_group_secure_id: String!): [ErrorComment]!
     error_comments_for_admin: [ErrorComment]!
     error_comments_for_project(project_id: ID!): [ErrorComment]!
-    workspace_admins(workspace_id: ID!): [Admin]!
-    workspace_admins_by_project_id(project_id: ID!): [Admin]!
+    workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
+    workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
     isIntegrated(project_id: ID!): Boolean
     isBackendIntegrated(project_id: ID!): Boolean
     unprocessedSessionsCount(project_id: ID!): Int64
@@ -1027,6 +1031,8 @@ type Query {
     workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
     workspace_for_project(project_id: ID!): Workspace
     admin: Admin
+    admin_role(workspace_id: ID!): WorkspaceAdminRole
+    admin_role_by_project(project_id: ID!): WorkspaceAdminRole
     segments(project_id: ID!): [Segment]
     error_segments(project_id: ID!): [ErrorSegment]
     api_key_to_org_id(api_key: String!): ID

@@ -348,10 +348,10 @@ export const NewCommentForm = ({
                         !mention.display.includes('#')
                 )
                 .map((mention) => {
-                    const admin = adminsInWorkspace?.admins?.find((admin) => {
-                        return admin?.id === mention.id;
+                    const wa = adminsInWorkspace?.admins?.find((wa) => {
+                        return wa.admin?.id === mention.id;
                     });
-                    return { id: mention.id, email: admin?.email || '' };
+                    return { id: mention.id, email: wa?.admin?.email || '' };
                 })
         );
 

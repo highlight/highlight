@@ -194,7 +194,7 @@
         }
     ],
     "placementConstraints": [],
-    "memory": "8192",
+    "memory": "16384",
     "taskRoleArn": "arn:aws:iam::173971919437:role/ecsTaskExecutionRole",
     "compatibilities": ["EC2", "FARGATE"],
     "taskDefinitionArn": "arn:aws:ecs:us-east-2:173971919437:task-definition/public-graph-task:65",

@@ -1,5 +1,5 @@
-import { Admin } from '../graph/generated/schemas';
-import { createContext } from '../util/context/context';
+import { Admin } from '@graph/schemas';
+import { createContext } from '@util/context/context';
 
 export enum AuthRole {
     AUTHENTICATED_HIGHLIGHT, // A highlight staff member
@@ -25,6 +25,7 @@ export const isHighlightAdmin = (role: AuthRole) => {
 export const [useAuthContext, AuthContextProvider] = createContext<{
     role: AuthRole;
     admin?: Admin;
+    workspaceRole?: string;
     isAuthLoading: boolean;
     isLoggedIn: boolean;
     isHighlightAdmin: boolean;

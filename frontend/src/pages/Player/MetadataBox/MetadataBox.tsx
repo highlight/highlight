@@ -72,6 +72,9 @@ export const MetadataBox = React.memo(() => {
         setEnhancedAvatar(undefined);
     }, [session_secure_id]);
 
+    const geoData = [session?.city, session?.state, session?.country]
+        .filter((part) => !!part)
+        .join(', ');
     return (
         <div
             className={classNames(styles.userBox, {
@@ -148,25 +151,26 @@ export const MetadataBox = React.memo(() => {
                                     timeZoneName: 'short',
                                 })}
                             </p>
-                            <p className={styles.userIdSubHeader}>
-                                {session?.browser_name && (
-                                    <>
-                                        <span>
-                                            {session.browser_name}{' '}
-                                            {getMajorVersion(
-                                                session.browser_version
-                                            )}
-                                        </span>
-                                        <span> • </span>
-                                        <span>
-                                            {session.os_name}{' '}
-                                            {getMajorVersion(
-                                                session.os_version
-                                            )}
-                                        </span>
-                                    </>
-                                )}
-                            </p>
+                            {geoData && (
+                                <p className={styles.userIdSubHeader}>
+                                    <span>{geoData}</span>
+                                </p>
+                            )}
+                            {session?.browser_name && (
+                                <p className={styles.userIdSubHeader}>
+                                    <span>
+                                        {session.browser_name}{' '}
+                                        {getMajorVersion(
+                                            session.browser_version
+                                        )}
+                                    </span>
+                                    <span> • </span>
+                                    <span>
+                                        {session.os_name}{' '}
+                                        {getMajorVersion(session.os_version)}
+                                    </span>
+                                </p>
+                            )}
                         </>
                     )}
                 </div>

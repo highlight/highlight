@@ -10,7 +10,7 @@ export function filterMentionedAdmins(
     admins: Maybe<
         { __typename?: 'Admin' } & Pick<
             Types.Admin,
-            'id' | 'name' | 'email' | 'photo_url' | 'role'
+            'id' | 'name' | 'email' | 'photo_url'
         >
     >[],
     mentions: MentionItem[]

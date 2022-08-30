@@ -167,10 +167,11 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		}
 	}
 
-	err := r.AppendFields(outerCtx, modelFields, session)
-
-	if err != nil {
-		return e.Wrap(err, "error appending fields")
+	if len(modelFields) > 0 {
+		err := r.AppendFields(outerCtx, modelFields, session)
+		if err != nil {
+			return e.Wrap(err, "error appending fields")
+		}
 	}
 
 	r.AlertWorkerPool.SubmitRecover(func() {
@@ -1070,7 +1071,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
 	session := &model.Session{
-		SecureID:                       input.SessionSecureID,
+		SecureID: input.SessionSecureID,
+		Model: model.Model{
+			CreatedAt: input.CreatedAt,
+		},
 		ProjectID:                      projectID,
 		Fingerprint:                    int(fpHash.Sum32()),
 		OSName:                         deviceDetails.OSName,
@@ -1140,9 +1144,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
 		}
 		// otherwise, it's a retry for a session that already exists. return the existing session.
-		log.Warnf("returning existing session for duplicate secure id %s: %d", input.SessionSecureID, sessionObj.ID)
+		outerSpan.SetTag("duplicate", true)
 		return sessionObj, nil
 	}
+	outerSpan.SetTag("duplicate", false)
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
@@ -1569,29 +1574,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
 		}
 	}()
-	return nil
-}
-
-func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
-		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
-	defer outerSpan.Finish()
-
-	obj, ok := propertiesObject.(map[string]interface{})
-	if !ok {
-		return e.New("error converting userObject interface type")
-	}
-	fields := map[string]string{}
-	for k, v := range obj {
-		fields[k] = fmt.Sprintf("%v", v)
-		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
-			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
-		}
-	}
-	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK)
-	if err != nil {
-		return e.Wrap(err, "error adding set of properties to db")
-	}
 	return nil
 }
 
@@ -2076,6 +2058,90 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 }
 
+// Deprecated, left for backward compatibility with older client versions. Use AddTrackProperties instead
+func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionID int, propertiesObject interface{}) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackPropertiesImpl",
+		tracer.ResourceName("go.sessions.AddTrackPropertiesImpl"))
+	defer outerSpan.Finish()
+
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return e.New("error converting userObject interface type")
+	}
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+		if fields[k] == "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues" {
+			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
+		}
+	}
+	err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK)
+	if err != nil {
+		return e.Wrap(err, "error adding set of properties to db")
+	}
+	return nil
+}
+
+func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AddTrackProperties",
+		tracer.ResourceName("go.sessions.AddTrackProperties"))
+	defer outerSpan.Finish()
+
+	fields := map[string]string{}
+
+	for _, event := range events.Events {
+		if event.Type == parse.Custom {
+			dataObject := struct {
+				Tag     string          `json:"tag"`
+				Payload json.RawMessage `json:"payload"`
+			}{}
+
+			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
+				return e.New("error deserializing custom event properties")
+			}
+
+			if !strings.Contains(dataObject.Tag, "Track") {
+				continue
+			}
+
+			if dataObject.Payload == nil {
+				return e.New("error reading raw payload from track event")
+			}
+
+			var payloadStr string
+			if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
+				return e.New("error deserializing track event payload into a string")
+			}
+
+			propertiesObject := make(map[string]interface{})
+			if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+				return e.New("error deserializing track event properties")
+			}
+
+			for k, v := range propertiesObject {
+				formattedVal := fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
+				if len(formattedVal) > 0 {
+					fields[k] = formattedVal
+				}
+				// the value below is used for testing using https://localhost:3000/buttons
+				testTrackingMessage := "therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues"
+				if fields[k] == testTrackingMessage {
+					return e.New(testTrackingMessage)
+				}
+			}
+		}
+	}
+
+	if len(fields) > 0 {
+		if err := r.AppendProperties(outerCtx, sessionID, fields, PropertyType.TRACK); err != nil {
+			return e.Wrap(err, "error adding set of properties to db")
+		}
+
+	}
+
+	return nil
+}
+
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
@@ -2121,7 +2187,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 	hasBeacon := sessionObj.BeaconTime != nil
 	g.Go(func() error {
 		defer util.Recover()
-		parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("go.parseEvents"), tracer.Tag("project_id", projectID))
 		defer parseEventsSpan.Finish()
 		if hasBeacon {
@@ -2137,6 +2203,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			parsedEvents, err := parse.EventsFromString(string(eventBytes))
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
+			}
+
+			if err := r.AddTrackProperties(parseEventsCtx, sessionID, parsedEvents); err != nil {
+				log.Error(e.Wrap(err, "failed to add track properties"))
 			}
 
 			var lastUserInteractionTimestamp time.Time
@@ -2186,6 +2256,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 					}
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
+
 			}
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)

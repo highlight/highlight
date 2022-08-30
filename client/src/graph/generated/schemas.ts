@@ -64,7 +64,6 @@ export type Mutation = {
     __typename?: 'Mutation';
     addSessionFeedback: Scalars['String'];
     addSessionProperties: Scalars['String'];
-    addTrackProperties: Scalars['String'];
     identifySession: Scalars['String'];
     initializeSession: InitializeSessionResponse;
     markBackendSetup: Scalars['String'];
@@ -82,11 +81,6 @@ export type MutationAddSessionFeedbackArgs = {
 };
 
 export type MutationAddSessionPropertiesArgs = {
-    properties_object?: InputMaybe<Scalars['Any']>;
-    session_secure_id: Scalars['String'];
-};
-
-export type MutationAddTrackPropertiesArgs = {
     properties_object?: InputMaybe<Scalars['Any']>;
     session_secure_id: Scalars['String'];
 };

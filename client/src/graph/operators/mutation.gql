@@ -34,7 +34,10 @@ mutation identifySession(
     )
 }
 
-mutation addSessionProperties($session_secure_id: String!, $properties_object: Any) {
+mutation addSessionProperties(
+    $session_secure_id: String!
+    $properties_object: Any
+) {
     addSessionProperties(
         session_secure_id: $session_secure_id
         properties_object: $properties_object
@@ -43,13 +46,6 @@ mutation addSessionProperties($session_secure_id: String!, $properties_object: A
 
 mutation pushMetrics($metrics: [MetricInput]!) {
     pushMetrics(metrics: $metrics)
-}
-
-mutation addTrackProperties($session_secure_id: String!, $properties_object: Any) {
-    addTrackProperties(
-        session_secure_id: $session_secure_id
-        properties_object: $properties_object
-    )
 }
 
 mutation addSessionFeedback(

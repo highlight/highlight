@@ -17,10 +17,16 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
 func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string) (*customModels.InitializeSessionResponse, error) {
+	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
+	s.SetTag("secure_id", sessionSecureID)
+	s.SetTag("client_version", clientVersion)
+	s.SetTag("firstload_version", firstloadVersion)
+	defer s.Finish()
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
 	ip := ctx.Value(model.ContextKeys.IP).(string)
@@ -33,6 +39,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionSecureID:                sessionSecureID,
+				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
 				EnableRecordingNetworkContents: enableRecordingNetworkContents,
@@ -51,6 +58,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	}
 
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
+	s.SetTag("success", err == nil)
 
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,
@@ -66,18 +74,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionSecureID 
 			SessionSecureID: sessionSecureID,
 			UserIdentifier:  userIdentifier,
 			UserObject:      userObject,
-		},
-	}, sessionSecureID)
-	return sessionSecureID, err
-}
-
-// AddTrackProperties is the resolver for the addTrackProperties field.
-func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(&kafkaqueue.Message{
-		Type: kafkaqueue.AddTrackProperties,
-		AddTrackProperties: &kafkaqueue.AddTrackPropertiesArgs{
-			SessionSecureID:  sessionSecureID,
-			PropertiesObject: propertiesObject,
 		},
 	}, sessionSecureID)
 	return sessionSecureID, err

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -102,12 +101,8 @@ func New(topic string, mode Mode) *Queue {
 				ResourceName: topic,
 				Configs: []kafka.AlterConfigRequestConfig{
 					{
-						Name:  "retention.ms",
-						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
-					},
-					{
-						Name:  "delete.retention.ms",
-						Value: strconv.FormatInt((time.Hour * 6).Milliseconds(), 10),
+						Name:  "cleanup.policy",
+						Value: "delete",
 					},
 				},
 			},

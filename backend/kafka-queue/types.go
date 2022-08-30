@@ -1,9 +1,10 @@
 package kafka_queue
 
 import (
+	"time"
+
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/segmentio/kafka-go"
-	"time"
 )
 
 type PayloadType = int
@@ -12,7 +13,7 @@ const (
 	PushPayload          PayloadType = iota
 	InitializeSession    PayloadType = iota
 	IdentifySession      PayloadType = iota
-	AddTrackProperties   PayloadType = iota
+	AddTrackProperties   PayloadType = iota // Deprecated: track events are now processed in pushPayload
 	AddSessionProperties PayloadType = iota
 	PushBackendPayload   PayloadType = iota
 	PushMetrics          PayloadType = iota
@@ -34,6 +35,7 @@ type PushPayloadArgs struct {
 
 type InitializeSessionArgs struct {
 	SessionSecureID                string
+	CreatedAt                      time.Time
 	ProjectVerboseID               string
 	EnableStrictPrivacy            bool
 	EnableRecordingNetworkContents bool
@@ -58,6 +60,7 @@ type AddTrackPropertiesArgs struct {
 	SessionSecureID  string
 	PropertiesObject interface{}
 }
+
 type AddSessionPropertiesArgs struct {
 	SessionSecureID  string
 	PropertiesObject interface{}

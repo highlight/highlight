@@ -89,12 +89,14 @@ type Mutation {
         client_id: String!
     ): InitializeSessionResponse!
     identifySession(
-        session_secure_id: String!,
+        session_secure_id: String!
         user_identifier: String!
         user_object: Any
     ): String!
-    addTrackProperties(session_secure_id: String!, properties_object: Any): String!
-    addSessionProperties(session_secure_id: String!, properties_object: Any): String!
+    addSessionProperties(
+        session_secure_id: String!
+        properties_object: Any
+    ): String!
     pushPayload(
         session_secure_id: String!
         events: ReplayEventsInput!

@@ -206,22 +206,6 @@ function stringifyProperties(
             } else {
                 addCustomEvent<string>('Track', stringify(propertiesObject));
             }
-            await graphqlSDK.addTrackProperties({
-                session_secure_id: sessionSecureID,
-                properties_object: stringifyProperties(
-                    propertiesObject,
-                    'track'
-                ),
-            });
-            const sourceString =
-                propertyType?.source === 'segment'
-                    ? propertyType.source
-                    : 'default';
-            logger.log(
-                `AddTrackProperties to session (${sessionSecureID}, source: ${sourceString}) w/ obj: ${stringify(
-                    propertiesObject
-                )} @ ${backend}`
-            );
         }
     };
 

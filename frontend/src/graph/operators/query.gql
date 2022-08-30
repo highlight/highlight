@@ -185,6 +185,7 @@ query GetSession($secure_id: String!) {
         app_version
         city
         state
+        country
         postal
         fingerprint
         created_at
@@ -228,20 +229,24 @@ query GetSession($secure_id: String!) {
 
 query GetWorkspaceAdminsByProjectId($project_id: ID!) {
     admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
+        admin {
+            id
+            name
+            email
+            photo_url
+        }
         role
     }
 }
 
 query GetWorkspaceAdmins($workspace_id: ID!) {
     admins: workspace_admins(workspace_id: $workspace_id) {
-        id
-        name
-        email
-        photo_url
+        admin {
+            id
+            name
+            email
+            photo_url
+        }
         role
     }
     workspace(id: $workspace_id) {
@@ -448,7 +453,9 @@ query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
         slack_channels
     }
     admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
+        admin {
+            id
+        }
     }
     isIntegrated(project_id: $project_id)
     adminHasCreatedComment(admin_id: $admin_id)
@@ -574,6 +581,7 @@ query GetSessionsOpenSearch(
             browser_version
             city
             state
+            country
             postal
             created_at
             language
@@ -763,10 +771,45 @@ query GetAdmin {
         phone
         photo_url
         slack_im_channel_id
-        role
         email_verified
         user_defined_role
         about_you_details_filled
+    }
+}
+
+query GetAdminRole($workspace_id: ID!) {
+    admin_role(workspace_id: $workspace_id) {
+        admin {
+            id
+            uid
+            name
+            email
+            phone
+            photo_url
+            slack_im_channel_id
+            email_verified
+            user_defined_role
+            about_you_details_filled
+        }
+        role
+    }
+}
+
+query GetAdminRoleByProject($project_id: ID!) {
+    admin_role_by_project(project_id: $project_id) {
+        admin {
+            id
+            uid
+            name
+            email
+            phone
+            photo_url
+            slack_im_channel_id
+            email_verified
+            user_defined_role
+            about_you_details_filled
+        }
+        role
     }
 }
 
@@ -1261,10 +1304,12 @@ query GetAlertsPagePayload($project_id: ID!) {
         webhook_channel_id
     }
     admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
+        admin {
+            id
+            name
+            email
+            photo_url
+        }
     }
     environment_suggestion(project_id: $project_id) {
         name
@@ -1429,10 +1474,12 @@ query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
 
 query GetCommentMentionSuggestions($project_id: ID!) {
     admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
+        admin {
+            id
+            name
+            email
+            photo_url
+        }
     }
     slack_members(project_id: $project_id) {
         webhook_channel

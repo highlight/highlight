@@ -269,7 +269,6 @@ export class Highlight {
         // no need to set the sessionStorage value here since firstload won't call
         // init again after a reset, and `this.initialize()` will set sessionStorage
         this.options.sessionSecureID = GenerateSecureID();
-        this.sessionData.sessionSecureID = this.options.sessionSecureID;
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
         this._initMembers(this.options);
@@ -501,17 +500,6 @@ export class Highlight {
                 this._recordingStartTime = parseInt(recordingStartTime, 10);
             }
 
-            if (!this._firstLoadListeners.isListening()) {
-                this._firstLoadListeners.startListening();
-            }
-
-            if (!this._firstLoadListeners.hasNetworkRecording) {
-                FirstLoadListeners.setupNetworkListener(
-                    this._firstLoadListeners,
-                    this.options
-                );
-            }
-
             let clientID = window.localStorage.getItem(
                 LOCAL_STORAGE_KEYS['CLIENT_ID']
             );
@@ -526,22 +514,63 @@ export class Highlight {
 
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_DATA);
-            const client = await this.fingerprintjs;
-            const fingerprint = await client.get();
-            const gr = await this.graphqlSDK.initializeSession({
-                organization_verbose_id: this.organizationID,
-                enable_strict_privacy: this.enableStrictPrivacy,
-                enable_recording_network_contents: this._firstLoadListeners
-                    .enableRecordingNetworkContents,
-                clientVersion: packageJson['version'],
-                firstloadVersion: this.firstloadVersion,
-                clientConfig: JSON.stringify(this._optionsInternal),
-                environment: this.environment,
-                id: fingerprint.visitorId,
-                appVersion: this.appVersion,
-                session_secure_id: this.sessionData.sessionSecureID,
-                client_id: clientID,
-            });
+
+            // Duplicate of logic inside FirstLoadListeners.setupNetworkListener,
+            // needed for initializeSession
+            let enableNetworkRecording;
+            if (this.options.disableNetworkRecording !== undefined) {
+                enableNetworkRecording = false;
+            } else if (typeof this.options.networkRecording === 'boolean') {
+                enableNetworkRecording = false;
+            } else {
+                enableNetworkRecording =
+                    this.options.networkRecording?.recordHeadersAndBody ||
+                    false;
+            }
+
+            if (!this.reloaded && !this._hasPreviouslyInitialized) {
+                const client = await this.fingerprintjs;
+                const fingerprint = await client.get();
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
+                    enable_recording_network_contents: enableNetworkRecording,
+                    clientVersion: packageJson['version'],
+                    firstloadVersion: this.firstloadVersion,
+                    clientConfig: JSON.stringify(this._optionsInternal),
+                    environment: this.environment,
+                    id: fingerprint.visitorId,
+                    appVersion: this.appVersion,
+                    session_secure_id: this.sessionData.sessionSecureID,
+                    client_id: clientID,
+                });
+                if (
+                    gr.initializeSession.secure_id !==
+                    this.sessionData.sessionSecureID
+                ) {
+                    this.logger.log(
+                        `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
+                    );
+                }
+                this.sessionData.sessionSecureID =
+                    gr.initializeSession.secure_id;
+                this.sessionData.projectID = parseInt(
+                    gr?.initializeSession?.project_id || '0'
+                );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
+                this.logger.log(
+                    `Loaded Highlight
+Remote: ${publicGraphURI}
+Project ID: ${this.sessionData.projectID}
+SessionSecureID: ${this.sessionData.sessionSecureID}`
+                );
+            }
+            this.options.sessionSecureID = this.sessionData.sessionSecureID;
             this._worker.postMessage({
                 message: {
                     type: MessageType.Initialize,
@@ -555,23 +584,13 @@ export class Highlight {
                 SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
                 this.sessionData.sessionSecureID
             );
-            this.sessionData.projectID = parseInt(
-                gr?.initializeSession?.project_id || '0'
-            );
-            this.logger.log(
-                `Loaded Highlight
-Remote: ${publicGraphURI}
-Friendly Project ID: ${this.organizationID}
-Short Project ID: ${this.sessionData.projectID}
-SessionSecureID: ${this.sessionData.sessionSecureID}
-Session Data:
-`,
-                gr.initializeSession
-            );
-            if (this.sessionData.userIdentifier) {
-                this.identify(
-                    this.sessionData.userIdentifier,
-                    this.sessionData.userObject
+            if (!this._firstLoadListeners.isListening()) {
+                this._firstLoadListeners.startListening();
+            }
+            if (!this._firstLoadListeners.hasNetworkRecording) {
+                FirstLoadListeners.setupNetworkListener(
+                    this._firstLoadListeners,
+                    this.options
                 );
             }
             const { getDeviceDetails } = getPerformanceMethods();
@@ -638,8 +657,99 @@ Session Data:
                     width: window.innerWidth,
                 });
                 this._isRecordingEvents = true;
-            }, 2000);
+            }, 1);
 
+            if (document.referrer) {
+                // Don't record the referrer if it's the same origin.
+                // Non-single page apps might have the referrer set to the same origin.
+                // If we record this then the referrer data will not be useful.
+                // Most users will want to see referrers outside of their website/app.
+                // This will be a configuration set in `H.init()` later.
+                if (
+                    !(
+                        window &&
+                        document.referrer.includes(window.location.origin)
+                    )
+                ) {
+                    this.addCustomEvent<string>('Referrer', document.referrer);
+                    this.addProperties(
+                        { referrer: document.referrer },
+                        { type: 'session' }
+                    );
+                }
+            }
+        } catch (e) {
+            if (this._isOnLocalHost) {
+                console.error(e);
+                HighlightWarning('initializeSession', e);
+            }
+        }
+        try {
+            // ensure we only create document/window listeners once
+            if (this._hasPreviouslyInitialized) {
+                return;
+            }
+            this._setupWindowListeners();
+        } finally {
+            this._hasPreviouslyInitialized = true;
+            if (
+                this.sessionData.projectID &&
+                this.sessionData.sessionSecureID
+            ) {
+                this.ready = true;
+                this.state = 'Recording';
+            }
+        }
+    }
+
+    _visibilityHandler(hidden: boolean) {
+        if (
+            new Date().getTime() - this._lastVisibilityChangeTime <
+            VISIBILITY_DEBOUNCE_MS
+        ) {
+            return;
+        }
+        this._lastVisibilityChangeTime = new Date().getTime();
+        if (!hidden) {
+            this.logger.log(`Detected window visible. Resuming recording.`);
+            this.initialize();
+            this.addCustomEvent('TabHidden', false);
+            return;
+        }
+        this.logger.log(`Detected window hidden. Pausing recording.`);
+        this.addCustomEvent('TabHidden', true);
+        if ('sendBeacon' in navigator) {
+            try {
+                this._sendPayload({
+                    isBeacon: true,
+                    sendFn: (payload) => {
+                        let blob = new Blob(
+                            [
+                                JSON.stringify({
+                                    query: print(PushPayloadDocument),
+                                    variables: payload,
+                                }),
+                            ],
+                            {
+                                type: 'application/json',
+                            }
+                        );
+                        navigator.sendBeacon(`${this._backendUrl}`, blob);
+                        return Promise.resolve(0);
+                    },
+                });
+            } catch (e) {
+                if (this._isOnLocalHost) {
+                    console.error(e);
+                    HighlightWarning('_sendPayload', e);
+                }
+            }
+        }
+        this.stopRecording();
+    }
+
+    _setupWindowListeners() {
+        try {
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
                 this.listeners.push(
@@ -667,26 +777,6 @@ Session Data:
                         }
                     })
                 );
-            }
-
-            if (document.referrer) {
-                // Don't record the referrer if it's the same origin.
-                // Non-single page apps might have the referrer set to the same origin.
-                // If we record this then the referrer data will not be useful.
-                // Most users will want to see referrers outside of their website/app.
-                // This will be a configuration set in `H.init()` later.
-                if (
-                    !(
-                        window &&
-                        document.referrer.includes(window.location.origin)
-                    )
-                ) {
-                    this.addCustomEvent<string>('Referrer', document.referrer);
-                    highlightThis.addProperties(
-                        { referrer: document.referrer },
-                        { type: 'session' }
-                    );
-                }
             }
             this.listeners.push(
                 PathListener((url: string) => {
@@ -779,78 +869,6 @@ Session Data:
                     this.addCustomEvent('Performance', stringify(payload));
                 }, this._recordingStartTime)
             );
-        } catch (e) {
-            if (this._isOnLocalHost) {
-                console.error(e);
-                HighlightWarning('initializeSession', e);
-            }
-        }
-        try {
-            // ensure we only create document/window listeners once
-            if (this._hasPreviouslyInitialized) {
-                return;
-            }
-            this._setupWindowListeners();
-        } finally {
-            this._hasPreviouslyInitialized = true;
-            if (
-                this.sessionData.projectID &&
-                this.sessionData.sessionSecureID
-            ) {
-                this.ready = true;
-                this.state = 'Recording';
-            }
-        }
-    }
-
-    _visibilityHandler(hidden: boolean) {
-        if (
-            new Date().getTime() - this._lastVisibilityChangeTime <
-            VISIBILITY_DEBOUNCE_MS
-        ) {
-            return;
-        }
-        this._lastVisibilityChangeTime = new Date().getTime();
-        if (!hidden) {
-            this.logger.log(`Detected window visible. Resuming recording.`);
-            this.initialize();
-            this.addCustomEvent('TabHidden', false);
-            return;
-        }
-        this.logger.log(`Detected window hidden. Pausing recording.`);
-        this.addCustomEvent('TabHidden', true);
-        if ('sendBeacon' in navigator) {
-            try {
-                this._sendPayload({
-                    isBeacon: true,
-                    sendFn: (payload) => {
-                        let blob = new Blob(
-                            [
-                                JSON.stringify({
-                                    query: print(PushPayloadDocument),
-                                    variables: payload,
-                                }),
-                            ],
-                            {
-                                type: 'application/json',
-                            }
-                        );
-                        navigator.sendBeacon(`${this._backendUrl}`, blob);
-                        return Promise.resolve(0);
-                    },
-                });
-            } catch (e) {
-                if (this._isOnLocalHost) {
-                    console.error(e);
-                    HighlightWarning('_sendPayload', e);
-                }
-            }
-        }
-        this.stopRecording();
-    }
-
-    _setupWindowListeners() {
-        try {
             // setup electron main thread window visiblity events listener
             if (window.electron?.ipcRenderer) {
                 window.electron.ipcRenderer.on(
@@ -918,8 +936,6 @@ Session Data:
             );
         }
         this.state = 'NotRecording';
-        this.listeners.forEach((stop: listenerHandler) => stop());
-        this.listeners = [];
         this._firstLoadListeners.stopListening();
         this._isRecordingEvents = false;
     }
