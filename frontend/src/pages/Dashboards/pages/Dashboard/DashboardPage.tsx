@@ -25,7 +25,7 @@ import {
 import { useParams } from '@util/react-router/useParams';
 import { message } from 'antd';
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout';
 import { useHistory, useLocation } from 'react-router-dom';
 
@@ -48,7 +48,7 @@ const DashboardPage = ({
     const { timeRange } = useDataTimeRange();
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false);
-    const [metricAutoAdded, setMetricAutoAdded] = useState<boolean>(false);
+    const metricAutoAdded = useRef<boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
@@ -80,22 +80,21 @@ const DashboardPage = ({
         const searchParams = new URLSearchParams(search);
         const metricToAdd = searchParams.get('add_to_dashboard');
 
-        if (!dashboard || !metricToAdd || metricAutoAdded) {
+        if (!dashboard || !metricToAdd || metricAutoAdded.current) {
             return;
         }
 
-        setMetricAutoAdded(true);
+        metricAutoAdded.current = true;
 
         const hasLatencyChart = dashboard.metrics.some(
             (metric) => metric.name === metricToAdd
         );
 
         if (!hasLatencyChart && metricToAdd) {
-            setNewMetrics((d) => {
-                const nm = [...d, getDefaultMetricConfig(metricToAdd)];
-                pushNewMetricConfig(nm);
-                return nm;
-            });
+            pushNewMetricConfig([
+                ...dashboard.metrics,
+                getDefaultMetricConfig(metricToAdd),
+            ]);
 
             message.success(`${metricToAdd} added successfully.`, 3000);
         }
