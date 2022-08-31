@@ -6,6 +6,7 @@ import { useParams } from '@util/react-router/useParams';
 import { ConsoleMessage } from '@util/shared-types';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message as AntDesignMessage } from 'antd';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
@@ -279,17 +280,15 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
                                 <div
-                                    className={styles.consoleMessage}
-                                    style={
+                                    className={classNames(
+                                        styles.consoleMessage,
                                         {
-                                            '--color-console-message':
-                                                message.type === 'warn'
-                                                    ? 'var(--color-yellow-300)'
-                                                    : message.type === 'assert'
-                                                    ? 'var(--color-red-400)'
-                                                    : 'transparent',
-                                        } as React.CSSProperties
-                                    }
+                                            [styles.consoleMessageWarn]:
+                                                message.type === 'warn',
+                                            [styles.consoleMessageAssert]:
+                                                message.type === 'assert',
+                                        }
+                                    )}
                                 >
                                     <Tooltip title="This is the last logged console message. This is based on the current session time.">
                                         <div
