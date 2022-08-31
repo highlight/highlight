@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -957,14 +958,14 @@ func (w *Worker) Start() {
 
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 10
-	processSessionLimit := 200
+	processSessionLimit := 500
 	wp := workerpool.New(maxWorkerCount)
 	wp.SetPanicHandler(util.Recover)
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
-		sessionLimitJitter := rand.Intn(100)
+		sessionLimitJitter := rand.Intn(250)
 		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
@@ -1043,7 +1044,7 @@ func (w *Worker) Start() {
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded *bool
-					if nextCount >= MAX_RETRIES {
+					if nextCount >= MAX_RETRIES || strings.Contains(err.Error(), "The payload has an IncrementalSnapshot before the first FullSnapshot") {
 						excluded = &model.T
 					}
 
