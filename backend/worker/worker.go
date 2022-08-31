@@ -982,7 +982,6 @@ func (w *Worker) Start() {
 										AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
 										AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
 										AND (COALESCE(retry_count, 0) < ?)
-										AND project_id <> 1074
 									LIMIT ?
 								) s
 								ORDER BY id
