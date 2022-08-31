@@ -1,4 +1,5 @@
 import Histogram, { Series } from '@components/Histogram/Histogram';
+import { DateHistogramBucketSize } from '@graph/schemas';
 import moment from 'moment';
 import React, { useCallback } from 'react';
 
@@ -14,7 +15,7 @@ export const SearchResultsHistogram = React.memo(
     }: {
         seriesList: Series[];
         bucketTimes: number[];
-        bucketSize: string;
+        bucketSize?: DateHistogramBucketSize;
         loading: boolean;
         updateTimeRange: (startTime: Date, endTime: Date) => void;
     }) => {
@@ -41,7 +42,7 @@ export const SearchResultsHistogram = React.memo(
                 ) {
                     return moment(t).format('MMM D h:mm a');
                 }
-                switch (bucketSize) {
+                switch (bucketSize?.calendar_interval) {
                     case 'minute':
                     case 'hour':
                         return moment(t).format('MMM D h:mm a');

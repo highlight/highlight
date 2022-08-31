@@ -18,7 +18,7 @@ import {
     useGetSessionsOpenSearchQuery,
 } from '@graph/hooks';
 import { GetSessionsOpenSearchQuery } from '@graph/operations';
-import { PlanType } from '@graph/schemas';
+import { DateHistogramBucketSize, PlanType } from '@graph/schemas';
 import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer';
 import {
     QueryBuilderState,
@@ -77,17 +77,15 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
     const { loading } = useGetSessionsHistogramQuery({
         variables: {
             project_id: projectId,
-            query: backendSearchQuery?.searchQuery || '',
+            query: backendSearchQuery?.searchQuery as string,
             histogram_options: {
-                calendar_interval:
-                    backendSearchQuery?.histogramBucketSize || '',
+                bucket_size: backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
                 time_zone:
                     Intl.DateTimeFormat().resolvedOptions().timeZone ??
                     'America/Los_Angeles',
                 bounds: {
-                    start_date:
-                        backendSearchQuery?.startDate.toISOString() || '',
-                    end_date: backendSearchQuery?.endDate.toISOString() || '',
+                    start_date: backendSearchQuery?.startDate.toISOString() as string,
+                    end_date: backendSearchQuery?.endDate.toISOString() as string,
                 },
             },
         },
@@ -138,7 +136,7 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
         <SearchResultsHistogram
             seriesList={histogramSeriesList}
             bucketTimes={histogramBucketTimes}
-            bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
+            bucketSize={backendSearchQuery?.histogramBucketSize}
             loading={loading}
             updateTimeRange={updateTimeRange}
         />

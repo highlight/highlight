@@ -2609,7 +2609,7 @@ func FormatSessionsQuery(query string) string {
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
 	aggregation := opensearch.DateHistogramAggregation{
 		Field:            field,
-		CalendarInterval: histogramOptions.CalendarInterval,
+		CalendarInterval: histogramOptions.BucketSize.CalendarInterval.String(),
 		SortOrder:        "asc",
 		Format:           "epoch_millis",
 		TimeZone:         histogramOptions.TimeZone,
@@ -2625,19 +2625,44 @@ func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptio
 }
 
 func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
-	bucket_times, total_counts := []time.Time{}, []int64{}
+	bucketTimes, totalCounts := []time.Time{}, []int64{}
 	for _, date_bucket := range aggs {
 		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
 		if err != nil {
 			log.Errorf("Error parsing date bucket key for histogram: %s", err.Error())
 			break
 		}
-		bucket_times = append(bucket_times, time.UnixMilli(unixMillis))
-		total_counts = append(total_counts, date_bucket.DocCount)
+		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))
+		totalCounts = append(totalCounts, date_bucket.DocCount)
 	}
 	if len(aggs) > 0 {
-		bucket_times[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
-		bucket_times = append(bucket_times, *histogramOptions.Bounds.EndDate)
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
 	}
-	return bucket_times, total_counts
+	return bucketTimes, totalCounts
+}
+
+func MergeHistogramBucketTimes(bucketTimes []time.Time, multiple int) []time.Time {
+	newBucketTimes := []time.Time{}
+	for i := 0; i < len(bucketTimes); i++ {
+		// The last time is the end time of the search query and should not be removed
+		if i%multiple == 0 || i == len(bucketTimes)-1 {
+			newBucketTimes = append(newBucketTimes, bucketTimes[i])
+		}
+	}
+	return newBucketTimes
+}
+
+func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
+	newBuckets := []int64{}
+	newBucketsIndex := -1
+	for i := 0; i < len(bucketCounts); i++ {
+		if i%multiple == 0 {
+			newBuckets = append(newBuckets, bucketCounts[i])
+			newBucketsIndex++
+		} else {
+			newBuckets[newBucketsIndex] += bucketCounts[i]
+		}
+	}
+	return newBuckets
 }

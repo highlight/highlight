@@ -3493,11 +3493,10 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		return nil, err
 	}
 
-	bucket_times, total_counts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
-
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
 	return &model.ErrorsHistogram{
-		BucketTimes:  bucket_times,
-		ErrorObjects: total_counts,
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 
@@ -4331,26 +4330,26 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 		return nil, err
 	}
 
-	bucket_times, total_counts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
-	no_errors_counts, with_errors_counts := []int64{}, []int64{}
-	for _, date_bucket := range aggs {
-		no_errors, with_errors := int64(0), int64(0)
-		for _, errors_bucket := range date_bucket.SubAggregationResults {
-			if errors_bucket.Key == "false" {
-				no_errors = errors_bucket.DocCount
-			} else if errors_bucket.Key == "true" {
-				with_errors = errors_bucket.DocCount
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	noErrorsCounts, withErrorsCounts := []int64{}, []int64{}
+	for _, dateBucket := range aggs {
+		noErrors, withErrors := int64(0), int64(0)
+		for _, errorsBucket := range dateBucket.SubAggregationResults {
+			if errorsBucket.Key == "false" {
+				noErrors = errorsBucket.DocCount
+			} else if errorsBucket.Key == "true" {
+				withErrors = errorsBucket.DocCount
 			}
 		}
-		no_errors_counts = append(no_errors_counts, no_errors)
-		with_errors_counts = append(with_errors_counts, with_errors)
+		noErrorsCounts = append(noErrorsCounts, noErrors)
+		withErrorsCounts = append(withErrorsCounts, withErrors)
 	}
 
 	return &model.SessionsHistogram{
-		BucketTimes:           bucket_times,
-		SessionsWithoutErrors: no_errors_counts,
-		SessionsWithErrors:    with_errors_counts,
-		TotalSessions:         total_counts,
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 

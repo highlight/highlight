@@ -137,10 +137,15 @@ type DashboardPayload struct {
 	Group      *string           `json:"group"`
 }
 
+type DateHistogramBucketSize struct {
+	CalendarInterval OpenSearchCalendarInterval `json:"calendar_interval"`
+	Multiple         int                        `json:"multiple"`
+}
+
 type DateHistogramOptions struct {
-	CalendarInterval string          `json:"calendar_interval"`
-	TimeZone         string          `json:"time_zone"`
-	Bounds           *DateRangeInput `json:"bounds"`
+	BucketSize *DateHistogramBucketSize `json:"bucket_size"`
+	TimeZone   string                   `json:"time_zone"`
+	Bounds     *DateRangeInput          `json:"bounds"`
 }
 
 type DateRangeInput struct {
@@ -719,6 +724,57 @@ func (e *NetworkRequestAttribute) UnmarshalGQL(v interface{}) error {
 }
 
 func (e NetworkRequestAttribute) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type OpenSearchCalendarInterval string
+
+const (
+	OpenSearchCalendarIntervalMinute  OpenSearchCalendarInterval = "minute"
+	OpenSearchCalendarIntervalHour    OpenSearchCalendarInterval = "hour"
+	OpenSearchCalendarIntervalDay     OpenSearchCalendarInterval = "day"
+	OpenSearchCalendarIntervalWeek    OpenSearchCalendarInterval = "week"
+	OpenSearchCalendarIntervalMonth   OpenSearchCalendarInterval = "month"
+	OpenSearchCalendarIntervalQuarter OpenSearchCalendarInterval = "quarter"
+	OpenSearchCalendarIntervalYear    OpenSearchCalendarInterval = "year"
+)
+
+var AllOpenSearchCalendarInterval = []OpenSearchCalendarInterval{
+	OpenSearchCalendarIntervalMinute,
+	OpenSearchCalendarIntervalHour,
+	OpenSearchCalendarIntervalDay,
+	OpenSearchCalendarIntervalWeek,
+	OpenSearchCalendarIntervalMonth,
+	OpenSearchCalendarIntervalQuarter,
+	OpenSearchCalendarIntervalYear,
+}
+
+func (e OpenSearchCalendarInterval) IsValid() bool {
+	switch e {
+	case OpenSearchCalendarIntervalMinute, OpenSearchCalendarIntervalHour, OpenSearchCalendarIntervalDay, OpenSearchCalendarIntervalWeek, OpenSearchCalendarIntervalMonth, OpenSearchCalendarIntervalQuarter, OpenSearchCalendarIntervalYear:
+		return true
+	}
+	return false
+}
+
+func (e OpenSearchCalendarInterval) String() string {
+	return string(e)
+}
+
+func (e *OpenSearchCalendarInterval) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OpenSearchCalendarInterval(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OpenSearchCalendarInterval", str)
+	}
+	return nil
+}
+
+func (e OpenSearchCalendarInterval) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

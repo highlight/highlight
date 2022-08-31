@@ -6167,6 +6167,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAdminAboutYouDetails,
 		ec.unmarshalInputDashboardMetricConfigInput,
 		ec.unmarshalInputDashboardParamsInput,
+		ec.unmarshalInputDateHistogramBucketSize,
 		ec.unmarshalInputDateHistogramOptions,
 		ec.unmarshalInputDateRangeInput,
 		ec.unmarshalInputErrorSearchParamsInput,
@@ -6392,6 +6393,16 @@ enum PlanType {
 enum SubscriptionInterval {
     Monthly
     Annual
+}
+
+enum OpenSearchCalendarInterval {
+    minute
+    hour
+    day
+    week
+    month
+    quarter
+    year
 }
 
 type EnhancedUserDetailsResult {
@@ -6692,9 +6703,13 @@ input MetricTagFilterInput {
     value: String!
 }
 
+input DateHistogramBucketSize {
+    calendar_interval: OpenSearchCalendarInterval!
+    multiple: Int!
+}
+
 input DateHistogramOptions {
-    # Options match https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html
-    calendar_interval: String!
+    bucket_size: DateHistogramBucketSize!
     time_zone: String!
     bounds: DateRangeInput!
 }
@@ -45754,14 +45769,14 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Context, obj interface{}) (model.DateHistogramOptions, error) {
-	var it model.DateHistogramOptions
+func (ec *executionContext) unmarshalInputDateHistogramBucketSize(ctx context.Context, obj interface{}) (model.DateHistogramBucketSize, error) {
+	var it model.DateHistogramBucketSize
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"calendar_interval", "time_zone", "bounds"}
+	fieldsInOrder := [...]string{"calendar_interval", "multiple"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -45772,7 +45787,43 @@ func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("calendar_interval"))
-			it.CalendarInterval, err = ec.unmarshalNString2string(ctx, v)
+			it.CalendarInterval, err = ec.unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "multiple":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("multiple"))
+			it.Multiple, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Context, obj interface{}) (model.DateHistogramOptions, error) {
+	var it model.DateHistogramOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bucket_size", "time_zone", "bounds"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bucket_size":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_size"))
+			it.BucketSize, err = ec.unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -54465,6 +54516,11 @@ func (ec *executionContext) marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighli
 	return ret
 }
 
+func (ec *executionContext) unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx context.Context, v interface{}) (*model.DateHistogramBucketSize, error) {
+	res, err := ec.unmarshalInputDateHistogramBucketSize(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx context.Context, v interface{}) (model.DateHistogramOptions, error) {
 	res, err := ec.unmarshalInputDateHistogramOptions(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -55426,6 +55482,16 @@ func (ec *executionContext) marshalNMetricTagFilterOp2githubᚗcomᚋhighlight�
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {
 	res, err := ec.unmarshalInputNetworkHistogramParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx context.Context, v interface{}) (model.OpenSearchCalendarInterval, error) {
+	var res model.OpenSearchCalendarInterval
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx context.Context, sel ast.SelectionSet, v model.OpenSearchCalendarInterval) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {

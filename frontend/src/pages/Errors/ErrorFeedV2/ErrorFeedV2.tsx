@@ -11,7 +11,13 @@ import {
     useGetErrorGroupsOpenSearchQuery,
     useGetErrorsHistogramQuery,
 } from '@graph/hooks';
-import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas';
+import {
+    DateHistogramBucketSize,
+    ErrorGroup,
+    ErrorResults,
+    ErrorState,
+    Maybe,
+} from '@graph/schemas';
 import ErrorQueryBuilder, {
     TIME_RANGE_FIELD,
 } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder';
@@ -50,18 +56,16 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
     );
     const { loading } = useGetErrorsHistogramQuery({
         variables: {
-            query: backendSearchQuery?.childSearchQuery || '',
+            query: backendSearchQuery?.childSearchQuery as string,
             project_id: projectID,
             histogram_options: {
-                calendar_interval:
-                    backendSearchQuery?.histogramBucketSize || '',
+                bucket_size: backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
                 time_zone:
                     Intl.DateTimeFormat().resolvedOptions().timeZone ??
                     'America/Los_Angeles',
                 bounds: {
-                    start_date:
-                        backendSearchQuery?.startDate.toISOString() || '',
-                    end_date: backendSearchQuery?.endDate.toISOString() || '',
+                    start_date: backendSearchQuery?.startDate.toISOString() as string,
+                    end_date: backendSearchQuery?.endDate.toISOString() as string,
                 },
             },
         },
@@ -107,7 +111,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
         <SearchResultsHistogram
             seriesList={histogramSeriesList}
             bucketTimes={histogramBucketTimes}
-            bucketSize={backendSearchQuery?.histogramBucketSize ?? ''}
+            bucketSize={backendSearchQuery?.histogramBucketSize}
             loading={loading}
             updateTimeRange={updateTimeRange}
         />

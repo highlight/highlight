@@ -160,6 +160,16 @@ export enum SubscriptionInterval {
     Annual = 'Annual',
 }
 
+export enum OpenSearchCalendarInterval {
+    Minute = 'minute',
+    Hour = 'hour',
+    Day = 'day',
+    Week = 'week',
+    Month = 'month',
+    Quarter = 'quarter',
+    Year = 'year',
+}
+
 export type EnhancedUserDetailsResult = {
     __typename?: 'EnhancedUserDetailsResult';
     id?: Maybe<Scalars['ID']>;
@@ -479,8 +489,13 @@ export type MetricTagFilterInput = {
     value: Scalars['String'];
 };
 
+export type DateHistogramBucketSize = {
+    calendar_interval: OpenSearchCalendarInterval;
+    multiple: Scalars['Int'];
+};
+
 export type DateHistogramOptions = {
-    calendar_interval: Scalars['String'];
+    bucket_size: DateHistogramBucketSize;
     time_zone: Scalars['String'];
     bounds: DateRangeInput;
 };

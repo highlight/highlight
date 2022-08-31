@@ -135,6 +135,16 @@ enum SubscriptionInterval {
     Annual
 }
 
+enum OpenSearchCalendarInterval {
+    minute
+    hour
+    day
+    week
+    month
+    quarter
+    year
+}
+
 type EnhancedUserDetailsResult {
     id: ID
     name: String
@@ -433,9 +443,13 @@ input MetricTagFilterInput {
     value: String!
 }
 
+input DateHistogramBucketSize {
+    calendar_interval: OpenSearchCalendarInterval!
+    multiple: Int!
+}
+
 input DateHistogramOptions {
-    # Options match https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html
-    calendar_interval: String!
+    bucket_size: DateHistogramBucketSize!
     time_zone: String!
     bounds: DateRangeInput!
 }
