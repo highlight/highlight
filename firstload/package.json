@@ -21,7 +21,6 @@
         "esbuild": "^0.14.47",
         "jest": "^27.0.6",
         "jest-fail-on-console": "^2.0.4",
-        "prettier": "^2.2.1",
         "rollup": "^2.75.7",
         "rollup-plugin-consts": "^1.1.0",
         "rollup-plugin-dev": "^2.0.4",
