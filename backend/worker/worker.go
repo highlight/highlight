@@ -957,11 +957,15 @@ func (w *Worker) Start() {
 
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 10
-	processSessionLimit := 1000
+	processSessionLimit := 100
+	wp := workerpool.New(maxWorkerCount)
+	wp.SetPanicHandler(util.Recover)
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		sessionLimitJitter := rand.Intn(50)
+		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
 			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
@@ -990,7 +994,7 @@ func (w *Worker) Start() {
 							RETURNING *
 						)
 						SELECT * FROM t;
-					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, limit). // why do we get payload_updated_at IS NULL?
 					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
@@ -1031,9 +1035,6 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(maxWorkerCount)
-		wp.SetPanicHandler(util.Recover)
-		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
 			ctx := ctx
@@ -1067,7 +1068,11 @@ func (w *Worker) Start() {
 				span.Finish()
 			})
 		}
-		wp.StopWait()
+
+		// While the waiting queue is saturated, sleep. Else, continue reading sessions to be processed.
+		for wp.WaitingQueueSize() >= processSessionLimit {
+			time.Sleep(1 * time.Second)
+		}
 	}
 }
 
