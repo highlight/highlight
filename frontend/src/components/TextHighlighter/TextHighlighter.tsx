@@ -1,20 +1,20 @@
-import React from 'react';
+import React from 'react'
 // eslint-disable-next-line no-restricted-imports
-import Highlighter, { HighlighterProps } from 'react-highlight-words';
+import Highlighter, { HighlighterProps } from 'react-highlight-words'
 
-import styles from './TextHighlighter.module.scss';
+import styles from './TextHighlighter.module.scss'
 
-type Props = HighlighterProps;
+type Props = HighlighterProps
 
 const TextHighlighter = ({ textToHighlight = '', ...props }: Props) => {
-    return (
-        <Highlighter
-            {...props}
-            highlightClassName={styles.highlighterStyles}
-            autoEscape={true}
-            textToHighlight={textToHighlight}
-        />
-    );
-};
+	return (
+		<Highlighter
+			{...props}
+			highlightClassName={styles.highlighterStyles}
+			autoEscape={true}
+			textToHighlight={textToHighlight}
+		/>
+	)
+}
 
-export default TextHighlighter;
+export default TextHighlighter

@@ -1,1 +1,1 @@
-export const popover: string;
+export const popover: string

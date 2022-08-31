@@ -1,1 +1,1 @@
-export const inline: string;
+export const inline: string

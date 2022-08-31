@@ -1,816 +1,816 @@
 {
-    "initialOffset": {
-        "left": 0,
-        "top": 0
-    },
-    "node": {
-        "childNodes": [
-            {
-                "id": 2,
-                "name": "html",
-                "publicId": "",
-                "systemId": "",
-                "type": 1
-            },
-            {
-                "attributes": {
-                    "lang": "en"
-                },
-                "childNodes": [
-                    {
-                        "attributes": {},
-                        "childNodes": [
-                            {
-                                "id": 5,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "charset": "utf-8"
-                                },
-                                "childNodes": [],
-                                "id": 6,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 7,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "href": "http://localhost:3000/favicon.ico",
-                                    "rel": "icon"
-                                },
-                                "childNodes": [],
-                                "id": 8,
-                                "tagName": "link",
-                                "type": 2
-                            },
-                            {
-                                "id": 9,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "width=device-width, initial-scale=1",
-                                    "name": "viewport"
-                                },
-                                "childNodes": [],
-                                "id": 10,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 11,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "#5629c6",
-                                    "name": "theme-color"
-                                },
-                                "childNodes": [],
-                                "id": 12,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 13,
-                                "textContent": "\n\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 14,
-                                "textContent": " Unecessary style imports to test snapshot css logic ",
-                                "type": 5
-                            },
-                            {
-                                "id": 15,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
-                                },
-                                "childNodes": [],
-                                "id": 16,
-                                "tagName": "link",
-                                "type": 2
-                            },
-                            {
-                                "id": 17,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
-                                },
-                                "childNodes": [],
-                                "id": 18,
-                                "tagName": "link",
-                                "type": 2
-                            },
-                            {
-                                "id": 19,
-                                "textContent": "\n\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 20,
-                                "textContent": " Primary Meta Tags ",
-                                "type": 5
-                            },
-                            {
-                                "id": 21,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {},
-                                "childNodes": [
-                                    {
-                                        "id": 23,
-                                        "textContent": "Highlight App",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 22,
-                                "tagName": "title",
-                                "type": 2
-                            },
-                            {
-                                "id": 24,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight | Frontend Observability",
-                                    "name": "title"
-                                },
-                                "childNodes": [],
-                                "id": 25,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 26,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
-                                    "name": "description"
-                                },
-                                "childNodes": [],
-                                "id": 27,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 28,
-                                "textContent": "\n\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 29,
-                                "textContent": " Open Graph / Facebook ",
-                                "type": 5
-                            },
-                            {
-                                "id": 30,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "website",
-                                    "property": "og:type"
-                                },
-                                "childNodes": [],
-                                "id": 31,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 32,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "https://app.highlight.run/",
-                                    "property": "og:url"
-                                },
-                                "childNodes": [],
-                                "id": 33,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 34,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight | Frontend Observability",
-                                    "property": "og:title"
-                                },
-                                "childNodes": [],
-                                "id": 35,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 36,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
-                                    "property": "og:description"
-                                },
-                                "childNodes": [],
-                                "id": 37,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 38,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "/hero.png",
-                                    "property": "og:image"
-                                },
-                                "childNodes": [],
-                                "id": 39,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 40,
-                                "textContent": "\n\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 41,
-                                "textContent": " Twitter ",
-                                "type": 5
-                            },
-                            {
-                                "id": 42,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "/hero.png",
-                                    "property": "twitter:card"
-                                },
-                                "childNodes": [],
-                                "id": 43,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 44,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "https://app.highlight.run/",
-                                    "property": "twitter:url"
-                                },
-                                "childNodes": [],
-                                "id": 45,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 46,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight | Frontend Observability",
-                                    "property": "twitter:title"
-                                },
-                                "childNodes": [],
-                                "id": 47,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 48,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
-                                    "property": "twitter:description"
-                                },
-                                "childNodes": [],
-                                "id": 49,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 50,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "content": "/hero.png",
-                                    "property": "twitter:image"
-                                },
-                                "childNodes": [],
-                                "id": 51,
-                                "tagName": "meta",
-                                "type": 2
-                            },
-                            {
-                                "id": 52,
-                                "textContent": "\n\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "href": "http://localhost:3000/logo192.png",
-                                    "rel": "apple-touch-icon"
-                                },
-                                "childNodes": [],
-                                "id": 53,
-                                "tagName": "link",
-                                "type": 2
-                            },
-                            {
-                                "id": 54,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 55,
-                                "textContent": "\n      manifest.json provides metadata used when your web app is installed on a\n      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/\n    ",
-                                "type": 5
-                            },
-                            {
-                                "id": 56,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "href": "http://localhost:3000/manifest.json",
-                                    "rel": "manifest"
-                                },
-                                "childNodes": [],
-                                "id": 57,
-                                "tagName": "link",
-                                "type": 2
-                            },
-                            {
-                                "id": 58,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 59,
-                                "textContent": "\n      Notice the use of  in the tags above.\n      It will be replaced with the URL of the `public` folder during the build.\n      Only files inside the `public` folder can be referenced from the HTML.\n\n      Unlike \"/favicon.ico\" or \"favicon.ico\", \"/favicon.ico\" will\n      work correctly both with client-side routing and a non-root public URL.\n      Learn how to configure a non-root public URL by running `npm run build`.\n    ",
-                                "type": 5
-                            },
-                            {
-                                "id": 60,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {},
-                                "childNodes": [
-                                    {
-                                        "id": 62,
-                                        "textContent": "Highlight App",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 61,
-                                "tagName": "title",
-                                "type": 2
-                            },
-                            {
-                                "id": 63,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "async": "",
-                                    "src": "https://cdn.segment.com/analytics.js/v1/fDAEAIJz9sWPL5zGB7uZBgWKZ49NIVZe/analytics.min.js",
-                                    "type": "text/javascript"
-                                },
-                                "childNodes": [],
-                                "id": 64,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {},
-                                "childNodes": [
-                                    {
-                                        "id": 66,
-                                        "textContent": "SCRIPT_PLACEHOLDER",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 65,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "id": 67,
-                                "textContent": "\n    ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "src": "http://localhost:8080/dist/index.js?909",
-                                    "type": "text/javascript"
-                                },
-                                "childNodes": [],
-                                "id": 160,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 162,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 163,
-                                        "isStyle": true,
-                                        "textContent": ".css-1rf50cj-SkeletonTheme .react-loading-skeleton{background-color:#F5F5F5;background-image:linear-gradient( 90deg,#F5F5F5,#FCFCFC,#F5F5F5 );}/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9za2VsZXRvbi10aGVtZS5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFZMkIiLCJmaWxlIjoiLi4vc3JjL3NrZWxldG9uLXRoZW1lLmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7IENvbXBvbmVudCB9IGZyb20gXCJyZWFjdFwiO1xuaW1wb3J0IHsgY3NzIH0gZnJvbSBcIkBlbW90aW9uL2NvcmVcIjtcbmltcG9ydCB7IGRlZmF1bHRCYXNlQ29sb3IsIGRlZmF1bHRIaWdobGlnaHRDb2xvciB9IGZyb20gXCIuL3NrZWxldG9uXCI7XG5cbmV4cG9ydCBkZWZhdWx0IGNsYXNzIFNrZWxldG9uVGhlbWUgZXh0ZW5kcyBDb21wb25lbnQge1xuICBzdGF0aWMgZGVmYXVsdFByb3BzID0ge1xuICAgIGNvbG9yOiBkZWZhdWx0QmFzZUNvbG9yLFxuICAgIGhpZ2hsaWdodENvbG9yOiBkZWZhdWx0SGlnaGxpZ2h0Q29sb3JcbiAgfTtcblxuICByZW5kZXIoKSB7XG4gICAgY29uc3QgeyBjb2xvciwgaGlnaGxpZ2h0Q29sb3IsIGNoaWxkcmVuIH0gPSB0aGlzLnByb3BzO1xuICAgIGNvbnN0IHRoZW1lU3R5bGVzID0gY3NzYFxuICAgICAgLnJlYWN0LWxvYWRpbmctc2tlbGV0b24ge1xuICAgICAgICBiYWNrZ3JvdW5kLWNvbG9yOiAke2NvbG9yfTtcbiAgICAgICAgYmFja2dyb3VuZC1pbWFnZTogbGluZWFyLWdyYWRpZW50KFxuICAgICAgICAgIDkwZGVnLFxuICAgICAgICAgICR7Y29sb3J9LFxuICAgICAgICAgICR7aGlnaGxpZ2h0Q29sb3J9LFxuICAgICAgICAgICR7Y29sb3J9XG4gICAgICAgICk7XG4gICAgICB9XG4gICAgYDtcbiAgICByZXR1cm4gPGRpdiBjc3M9e3RoZW1lU3R5bGVzfT57Y2hpbGRyZW59PC9kaXY+O1xuICB9XG59XG4iXX0= */",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 161,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 165,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 166,
-                                        "isStyle": true,
-                                        "textContent": ".css-foqpf7{position:relative;width:100px;height:4px;overflow:hidden;background-color:rgba(86,41,198,0.2);background-clip:padding-box;}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 164,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 168,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 169,
-                                        "isStyle": true,
-                                        "textContent": ".css-o8f1fv{position:absolute;height:4px;overflow:hidden;background-color:#5629c6;background-clip:padding-box;display:block;border-radius:2px;will-change:left,right;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation:animation-1dkbetu 2.1s  cubic-bezier(0.65,0.815,0.735,0.395) infinite;animation:animation-1dkbetu 2.1s  cubic-bezier(0.65,0.815,0.735,0.395) infinite;}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 167,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 171,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 172,
-                                        "isStyle": true,
-                                        "textContent": "@-webkit-keyframes animation-1dkbetu{0%{left:-35%;right:100%;}60%{left:100%;right:-90%;}100%{left:100%;right:-90%;}}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 170,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 174,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 175,
-                                        "isStyle": true,
-                                        "textContent": "@keyframes animation-1dkbetu{0%{left:-35%;right:100%;}60%{left:100%;right:-90%;}100%{left:100%;right:-90%;}}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 173,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 177,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 178,
-                                        "isStyle": true,
-                                        "textContent": ".css-1l9n8vp{position:absolute;height:4px;overflow:hidden;background-color:#5629c6;background-clip:padding-box;display:block;border-radius:2px;will-change:left,right;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation:animation-1rt1w7v 2.1s 1.15s cubic-bezier(0.165,0.84,0.44,1) infinite;animation:animation-1rt1w7v 2.1s 1.15s cubic-bezier(0.165,0.84,0.44,1) infinite;}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 176,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 180,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 181,
-                                        "isStyle": true,
-                                        "textContent": "@-webkit-keyframes animation-1rt1w7v{0%{left:-200%;right:100%;}60%{left:107%;right:-8%;}100%{left:107%;right:-8%;}}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 179,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "data-emotion": "css"
-                                },
-                                "childNodes": [
-                                    {
-                                        "id": 183,
-                                        "isStyle": true,
-                                        "textContent": "",
-                                        "type": 3
-                                    },
-                                    {
-                                        "id": 184,
-                                        "isStyle": true,
-                                        "textContent": "@keyframes animation-1rt1w7v{0%{left:-200%;right:100%;}60%{left:107%;right:-8%;}100%{left:107%;right:-8%;}}",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 182,
-                                "tagName": "style",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "src": "https://js.stripe.com/v3"
-                                },
-                                "childNodes": [],
-                                "id": 185,
-                                "tagName": "script",
-                                "type": 2
-                            }
-                        ],
-                        "id": 4,
-                        "tagName": "head",
-                        "type": 2
-                    },
-                    {
-                        "id": 186,
-                        "textContent": "\n    ",
-                        "type": 3
-                    },
-                    {
-                        "attributes": {},
-                        "childNodes": [
-                            {
-                                "id": 188,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {},
-                                "childNodes": [
-                                    {
-                                        "id": 190,
-                                        "textContent": "You need to enable JavaScript to run this app.",
-                                        "type": 3
-                                    }
-                                ],
-                                "id": 189,
-                                "tagName": "noscript",
-                                "type": 2
-                            },
-                            {
-                                "id": 191,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "attributes": {
-                                    "id": "root"
-                                },
-                                "childNodes": [
-                                    {
-                                        "attributes": {
-                                            "class": "css-1rf50cj-SkeletonTheme"
-                                        },
-                                        "childNodes": [
-                                            {
-                                                "attributes": {
-                                                    "class": "App_loadingWrapper__OTnrg"
-                                                },
-                                                "childNodes": [
-                                                    {
-                                                        "attributes": {
-                                                            "class": "Spinner_spinnerWrapper__2yoku"
-                                                        },
-                                                        "childNodes": [
-                                                            {
-                                                                "attributes": {
-                                                                    "class": "Spinner_spinnerStyle__2Pavn",
-                                                                    "style": "width: 100px;"
-                                                                },
-                                                                "childNodes": [
-                                                                    {
-                                                                        "attributes": {
-                                                                            "class": "css-foqpf7"
-                                                                        },
-                                                                        "childNodes": [
-                                                                            {
-                                                                                "attributes": {
-                                                                                    "class": "css-o8f1fv"
-                                                                                },
-                                                                                "childNodes": [],
-                                                                                "id": 198,
-                                                                                "tagName": "div",
-                                                                                "type": 2
-                                                                            },
-                                                                            {
-                                                                                "attributes": {
-                                                                                    "class": "css-1l9n8vp"
-                                                                                },
-                                                                                "childNodes": [],
-                                                                                "id": 199,
-                                                                                "tagName": "div",
-                                                                                "type": 2
-                                                                            }
-                                                                        ],
-                                                                        "id": 197,
-                                                                        "tagName": "div",
-                                                                        "type": 2
-                                                                    }
-                                                                ],
-                                                                "id": 196,
-                                                                "tagName": "div",
-                                                                "type": 2
-                                                            }
-                                                        ],
-                                                        "id": 195,
-                                                        "tagName": "div",
-                                                        "type": 2
-                                                    }
-                                                ],
-                                                "id": 194,
-                                                "tagName": "div",
-                                                "type": 2
-                                            }
-                                        ],
-                                        "id": 193,
-                                        "tagName": "div",
-                                        "type": 2
-                                    }
-                                ],
-                                "id": 192,
-                                "tagName": "div",
-                                "type": 2
-                            },
-                            {
-                                "id": 200,
-                                "textContent": "\n        ",
-                                "type": 3
-                            },
-                            {
-                                "id": 201,
-                                "textContent": "\n      This HTML file is a template.\n      If you open it directly in the browser, you will see an empty page.\n\n      You can add webfonts, meta tags, or analytics to this file.\n      The build step will place the bundled scripts into the \u003cbody\u003e tag.\n\n      To begin the development, run `npm start` or `yarn start`.\n      To create a production bundle, use `npm run build` or `yarn build`.\n    ",
-                                "type": 5
-                            },
-                            {
-                                "attributes": {
-                                    "src": "http://localhost:3000/static/js/bundle.js"
-                                },
-                                "childNodes": [],
-                                "id": 202,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "src": "http://localhost:3000/static/js/0.chunk.js"
-                                },
-                                "childNodes": [],
-                                "id": 203,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "attributes": {
-                                    "src": "http://localhost:3000/static/js/main.chunk.js"
-                                },
-                                "childNodes": [],
-                                "id": 204,
-                                "tagName": "script",
-                                "type": 2
-                            },
-                            {
-                                "id": 205,
-                                "textContent": "\n\n",
-                                "type": 3
-                            }
-                        ],
-                        "id": 187,
-                        "tagName": "body",
-                        "type": 2
-                    }
-                ],
-                "id": 3,
-                "tagName": "html",
-                "type": 2
-            }
-        ],
-        "id": 1,
-        "type": 0
-    }
+	"initialOffset": {
+		"left": 0,
+		"top": 0
+	},
+	"node": {
+		"childNodes": [
+			{
+				"id": 2,
+				"name": "html",
+				"publicId": "",
+				"systemId": "",
+				"type": 1
+			},
+			{
+				"attributes": {
+					"lang": "en"
+				},
+				"childNodes": [
+					{
+						"attributes": {},
+						"childNodes": [
+							{
+								"id": 5,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"charset": "utf-8"
+								},
+								"childNodes": [],
+								"id": 6,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 7,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"href": "http://localhost:3000/favicon.ico",
+									"rel": "icon"
+								},
+								"childNodes": [],
+								"id": 8,
+								"tagName": "link",
+								"type": 2
+							},
+							{
+								"id": 9,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "width=device-width, initial-scale=1",
+									"name": "viewport"
+								},
+								"childNodes": [],
+								"id": 10,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 11,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "#5629c6",
+									"name": "theme-color"
+								},
+								"childNodes": [],
+								"id": 12,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 13,
+								"textContent": "\n\n        ",
+								"type": 3
+							},
+							{
+								"id": 14,
+								"textContent": " Unecessary style imports to test snapshot css logic ",
+								"type": 5
+							},
+							{
+								"id": 15,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
+								},
+								"childNodes": [],
+								"id": 16,
+								"tagName": "link",
+								"type": 2
+							},
+							{
+								"id": 17,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"_cssText": "/*highlight-inject*/\n.highlight {\n    color: black;\n}"
+								},
+								"childNodes": [],
+								"id": 18,
+								"tagName": "link",
+								"type": 2
+							},
+							{
+								"id": 19,
+								"textContent": "\n\n        ",
+								"type": 3
+							},
+							{
+								"id": 20,
+								"textContent": " Primary Meta Tags ",
+								"type": 5
+							},
+							{
+								"id": 21,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {},
+								"childNodes": [
+									{
+										"id": 23,
+										"textContent": "Highlight App",
+										"type": 3
+									}
+								],
+								"id": 22,
+								"tagName": "title",
+								"type": 2
+							},
+							{
+								"id": 24,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight | Frontend Observability",
+									"name": "title"
+								},
+								"childNodes": [],
+								"id": 25,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 26,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
+									"name": "description"
+								},
+								"childNodes": [],
+								"id": 27,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 28,
+								"textContent": "\n\n        ",
+								"type": 3
+							},
+							{
+								"id": 29,
+								"textContent": " Open Graph / Facebook ",
+								"type": 5
+							},
+							{
+								"id": 30,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "website",
+									"property": "og:type"
+								},
+								"childNodes": [],
+								"id": 31,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 32,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "https://app.highlight.run/",
+									"property": "og:url"
+								},
+								"childNodes": [],
+								"id": 33,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 34,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight | Frontend Observability",
+									"property": "og:title"
+								},
+								"childNodes": [],
+								"id": 35,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 36,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
+									"property": "og:description"
+								},
+								"childNodes": [],
+								"id": 37,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 38,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "/hero.png",
+									"property": "og:image"
+								},
+								"childNodes": [],
+								"id": 39,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 40,
+								"textContent": "\n\n        ",
+								"type": 3
+							},
+							{
+								"id": 41,
+								"textContent": " Twitter ",
+								"type": 5
+							},
+							{
+								"id": 42,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "/hero.png",
+									"property": "twitter:card"
+								},
+								"childNodes": [],
+								"id": 43,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 44,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "https://app.highlight.run/",
+									"property": "twitter:url"
+								},
+								"childNodes": [],
+								"id": 45,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 46,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight | Frontend Observability",
+									"property": "twitter:title"
+								},
+								"childNodes": [],
+								"id": 47,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 48,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "Highlight gives your team full transparency into the errors, interactions, and performance metrics of your client-side application.",
+									"property": "twitter:description"
+								},
+								"childNodes": [],
+								"id": 49,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 50,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"content": "/hero.png",
+									"property": "twitter:image"
+								},
+								"childNodes": [],
+								"id": 51,
+								"tagName": "meta",
+								"type": 2
+							},
+							{
+								"id": 52,
+								"textContent": "\n\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"href": "http://localhost:3000/logo192.png",
+									"rel": "apple-touch-icon"
+								},
+								"childNodes": [],
+								"id": 53,
+								"tagName": "link",
+								"type": 2
+							},
+							{
+								"id": 54,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"id": 55,
+								"textContent": "\n      manifest.json provides metadata used when your web app is installed on a\n      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/\n    ",
+								"type": 5
+							},
+							{
+								"id": 56,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"href": "http://localhost:3000/manifest.json",
+									"rel": "manifest"
+								},
+								"childNodes": [],
+								"id": 57,
+								"tagName": "link",
+								"type": 2
+							},
+							{
+								"id": 58,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"id": 59,
+								"textContent": "\n      Notice the use of  in the tags above.\n      It will be replaced with the URL of the `public` folder during the build.\n      Only files inside the `public` folder can be referenced from the HTML.\n\n      Unlike \"/favicon.ico\" or \"favicon.ico\", \"/favicon.ico\" will\n      work correctly both with client-side routing and a non-root public URL.\n      Learn how to configure a non-root public URL by running `npm run build`.\n    ",
+								"type": 5
+							},
+							{
+								"id": 60,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {},
+								"childNodes": [
+									{
+										"id": 62,
+										"textContent": "Highlight App",
+										"type": 3
+									}
+								],
+								"id": 61,
+								"tagName": "title",
+								"type": 2
+							},
+							{
+								"id": 63,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"async": "",
+									"src": "https://cdn.segment.com/analytics.js/v1/fDAEAIJz9sWPL5zGB7uZBgWKZ49NIVZe/analytics.min.js",
+									"type": "text/javascript"
+								},
+								"childNodes": [],
+								"id": 64,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"attributes": {},
+								"childNodes": [
+									{
+										"id": 66,
+										"textContent": "SCRIPT_PLACEHOLDER",
+										"type": 3
+									}
+								],
+								"id": 65,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"id": 67,
+								"textContent": "\n    ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"src": "http://localhost:8080/dist/index.js?909",
+									"type": "text/javascript"
+								},
+								"childNodes": [],
+								"id": 160,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 162,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 163,
+										"isStyle": true,
+										"textContent": ".css-1rf50cj-SkeletonTheme .react-loading-skeleton{background-color:#F5F5F5;background-image:linear-gradient( 90deg,#F5F5F5,#FCFCFC,#F5F5F5 );}/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9za2VsZXRvbi10aGVtZS5qcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFZMkIiLCJmaWxlIjoiLi4vc3JjL3NrZWxldG9uLXRoZW1lLmpzIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7IENvbXBvbmVudCB9IGZyb20gXCJyZWFjdFwiO1xuaW1wb3J0IHsgY3NzIH0gZnJvbSBcIkBlbW90aW9uL2NvcmVcIjtcbmltcG9ydCB7IGRlZmF1bHRCYXNlQ29sb3IsIGRlZmF1bHRIaWdobGlnaHRDb2xvciB9IGZyb20gXCIuL3NrZWxldG9uXCI7XG5cbmV4cG9ydCBkZWZhdWx0IGNsYXNzIFNrZWxldG9uVGhlbWUgZXh0ZW5kcyBDb21wb25lbnQge1xuICBzdGF0aWMgZGVmYXVsdFByb3BzID0ge1xuICAgIGNvbG9yOiBkZWZhdWx0QmFzZUNvbG9yLFxuICAgIGhpZ2hsaWdodENvbG9yOiBkZWZhdWx0SGlnaGxpZ2h0Q29sb3JcbiAgfTtcblxuICByZW5kZXIoKSB7XG4gICAgY29uc3QgeyBjb2xvciwgaGlnaGxpZ2h0Q29sb3IsIGNoaWxkcmVuIH0gPSB0aGlzLnByb3BzO1xuICAgIGNvbnN0IHRoZW1lU3R5bGVzID0gY3NzYFxuICAgICAgLnJlYWN0LWxvYWRpbmctc2tlbGV0b24ge1xuICAgICAgICBiYWNrZ3JvdW5kLWNvbG9yOiAke2NvbG9yfTtcbiAgICAgICAgYmFja2dyb3VuZC1pbWFnZTogbGluZWFyLWdyYWRpZW50KFxuICAgICAgICAgIDkwZGVnLFxuICAgICAgICAgICR7Y29sb3J9LFxuICAgICAgICAgICR7aGlnaGxpZ2h0Q29sb3J9LFxuICAgICAgICAgICR7Y29sb3J9XG4gICAgICAgICk7XG4gICAgICB9XG4gICAgYDtcbiAgICByZXR1cm4gPGRpdiBjc3M9e3RoZW1lU3R5bGVzfT57Y2hpbGRyZW59PC9kaXY+O1xuICB9XG59XG4iXX0= */",
+										"type": 3
+									}
+								],
+								"id": 161,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 165,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 166,
+										"isStyle": true,
+										"textContent": ".css-foqpf7{position:relative;width:100px;height:4px;overflow:hidden;background-color:rgba(86,41,198,0.2);background-clip:padding-box;}",
+										"type": 3
+									}
+								],
+								"id": 164,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 168,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 169,
+										"isStyle": true,
+										"textContent": ".css-o8f1fv{position:absolute;height:4px;overflow:hidden;background-color:#5629c6;background-clip:padding-box;display:block;border-radius:2px;will-change:left,right;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation:animation-1dkbetu 2.1s  cubic-bezier(0.65,0.815,0.735,0.395) infinite;animation:animation-1dkbetu 2.1s  cubic-bezier(0.65,0.815,0.735,0.395) infinite;}",
+										"type": 3
+									}
+								],
+								"id": 167,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 171,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 172,
+										"isStyle": true,
+										"textContent": "@-webkit-keyframes animation-1dkbetu{0%{left:-35%;right:100%;}60%{left:100%;right:-90%;}100%{left:100%;right:-90%;}}",
+										"type": 3
+									}
+								],
+								"id": 170,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 174,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 175,
+										"isStyle": true,
+										"textContent": "@keyframes animation-1dkbetu{0%{left:-35%;right:100%;}60%{left:100%;right:-90%;}100%{left:100%;right:-90%;}}",
+										"type": 3
+									}
+								],
+								"id": 173,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 177,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 178,
+										"isStyle": true,
+										"textContent": ".css-1l9n8vp{position:absolute;height:4px;overflow:hidden;background-color:#5629c6;background-clip:padding-box;display:block;border-radius:2px;will-change:left,right;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation:animation-1rt1w7v 2.1s 1.15s cubic-bezier(0.165,0.84,0.44,1) infinite;animation:animation-1rt1w7v 2.1s 1.15s cubic-bezier(0.165,0.84,0.44,1) infinite;}",
+										"type": 3
+									}
+								],
+								"id": 176,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 180,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 181,
+										"isStyle": true,
+										"textContent": "@-webkit-keyframes animation-1rt1w7v{0%{left:-200%;right:100%;}60%{left:107%;right:-8%;}100%{left:107%;right:-8%;}}",
+										"type": 3
+									}
+								],
+								"id": 179,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"data-emotion": "css"
+								},
+								"childNodes": [
+									{
+										"id": 183,
+										"isStyle": true,
+										"textContent": "",
+										"type": 3
+									},
+									{
+										"id": 184,
+										"isStyle": true,
+										"textContent": "@keyframes animation-1rt1w7v{0%{left:-200%;right:100%;}60%{left:107%;right:-8%;}100%{left:107%;right:-8%;}}",
+										"type": 3
+									}
+								],
+								"id": 182,
+								"tagName": "style",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"src": "https://js.stripe.com/v3"
+								},
+								"childNodes": [],
+								"id": 185,
+								"tagName": "script",
+								"type": 2
+							}
+						],
+						"id": 4,
+						"tagName": "head",
+						"type": 2
+					},
+					{
+						"id": 186,
+						"textContent": "\n    ",
+						"type": 3
+					},
+					{
+						"attributes": {},
+						"childNodes": [
+							{
+								"id": 188,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {},
+								"childNodes": [
+									{
+										"id": 190,
+										"textContent": "You need to enable JavaScript to run this app.",
+										"type": 3
+									}
+								],
+								"id": 189,
+								"tagName": "noscript",
+								"type": 2
+							},
+							{
+								"id": 191,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"attributes": {
+									"id": "root"
+								},
+								"childNodes": [
+									{
+										"attributes": {
+											"class": "css-1rf50cj-SkeletonTheme"
+										},
+										"childNodes": [
+											{
+												"attributes": {
+													"class": "App_loadingWrapper__OTnrg"
+												},
+												"childNodes": [
+													{
+														"attributes": {
+															"class": "Spinner_spinnerWrapper__2yoku"
+														},
+														"childNodes": [
+															{
+																"attributes": {
+																	"class": "Spinner_spinnerStyle__2Pavn",
+																	"style": "width: 100px;"
+																},
+																"childNodes": [
+																	{
+																		"attributes": {
+																			"class": "css-foqpf7"
+																		},
+																		"childNodes": [
+																			{
+																				"attributes": {
+																					"class": "css-o8f1fv"
+																				},
+																				"childNodes": [],
+																				"id": 198,
+																				"tagName": "div",
+																				"type": 2
+																			},
+																			{
+																				"attributes": {
+																					"class": "css-1l9n8vp"
+																				},
+																				"childNodes": [],
+																				"id": 199,
+																				"tagName": "div",
+																				"type": 2
+																			}
+																		],
+																		"id": 197,
+																		"tagName": "div",
+																		"type": 2
+																	}
+																],
+																"id": 196,
+																"tagName": "div",
+																"type": 2
+															}
+														],
+														"id": 195,
+														"tagName": "div",
+														"type": 2
+													}
+												],
+												"id": 194,
+												"tagName": "div",
+												"type": 2
+											}
+										],
+										"id": 193,
+										"tagName": "div",
+										"type": 2
+									}
+								],
+								"id": 192,
+								"tagName": "div",
+								"type": 2
+							},
+							{
+								"id": 200,
+								"textContent": "\n        ",
+								"type": 3
+							},
+							{
+								"id": 201,
+								"textContent": "\n      This HTML file is a template.\n      If you open it directly in the browser, you will see an empty page.\n\n      You can add webfonts, meta tags, or analytics to this file.\n      The build step will place the bundled scripts into the \u003cbody\u003e tag.\n\n      To begin the development, run `npm start` or `yarn start`.\n      To create a production bundle, use `npm run build` or `yarn build`.\n    ",
+								"type": 5
+							},
+							{
+								"attributes": {
+									"src": "http://localhost:3000/static/js/bundle.js"
+								},
+								"childNodes": [],
+								"id": 202,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"src": "http://localhost:3000/static/js/0.chunk.js"
+								},
+								"childNodes": [],
+								"id": 203,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"src": "http://localhost:3000/static/js/main.chunk.js"
+								},
+								"childNodes": [],
+								"id": 204,
+								"tagName": "script",
+								"type": 2
+							},
+							{
+								"id": 205,
+								"textContent": "\n\n",
+								"type": 3
+							}
+						],
+						"id": 187,
+						"tagName": "body",
+						"type": 2
+					}
+				],
+				"id": 3,
+				"tagName": "html",
+				"type": 2
+			}
+		],
+		"id": 1,
+		"type": 0
+	}
 }

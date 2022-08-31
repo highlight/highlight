@@ -22,8 +22,8 @@ generates:
             - typescript-operations
             - named-operations-object
         config:
-          # named-operations-object config
-          useConsts: true
+            # named-operations-object config
+            useConsts: true
 
     src/graph/generated/hooks.tsx:
         documents: 'src/**/**.gql'

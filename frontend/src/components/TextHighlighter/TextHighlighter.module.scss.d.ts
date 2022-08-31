@@ -1,1 +1,1 @@
-export const highlighterStyles: string;
+export const highlighterStyles: string

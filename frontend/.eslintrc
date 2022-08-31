@@ -1,135 +1,110 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "extends": [
-    "plugin:react/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier/@typescript-eslint",
-    "plugin:prettier/recommended",
-    "plugin:react-hooks/recommended"
-  ],
-  "plugins": [
-    "simple-import-sort",
-    "unused-imports"
-  ],
-  "env": {
-    "commonjs": true,
-    "es6": true,
-    "node": true
-  },
-  "settings": {
-    "react": {
-      "version": "detect"
-    }
-  },
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "ignorePatterns": "src/graph/generated/*",
-  "rules": {
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "react/no-unescaped-entities": "off",
-    "react/prop-types": "off",
-    "@typescript-eslint/ban-types": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/no-empty-function": "off",
-    "react/display-name": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "unused-imports/no-unused-imports-ts": "error",
-    "@typescript-eslint/no-non-null-assertion": "off",
-    "no-restricted-imports": [
-      "error",
-      {
-        "paths": [
-	  {
-	     "name": "react-highlight-words",
-	     "message": "Please use TextHighlighter from /src/components/TextHighlighter instead."
-	  },
-          {
-            "name": "antd",
-            "importNames": [
-              "Popover"
-            ],
-            "message": "Please use Popover from /src/components/Popover instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Modal"
-            ],
-            "message": "Please use Modal from /src/components/Modal instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Tooltip"
-            ],
-            "message": "Please use Tooltip from /src/components/Tooltip instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Tabs"
-            ],
-            "message": "Please use Tabs from /src/components/Tab instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Progress"
-            ],
-            "message": "Please use Progress from /src/components/Progress instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Switch"
-            ],
-            "message": "Please use Switch from /src/components/Switch instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Popconfirm"
-            ],
-            "message": "Please use PopConfirm from /src/components/PopConfirm instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "Select"
-            ],
-            "message": "Please use Select from /src/components/Select instead."
-          },
-          {
-            "name": "antd",
-            "importNames": [
-              "InputNumber"
-            ],
-            "message": "Please use InputNumber from /src/components/InputNumber instead."
-          },
-          {
-            "name": "react-router-dom",
-            "importNames": [
-              "useParams"
-            ],
-            "message": "Please use useParams from @util/react-router/useParams instead."
-          },
-          {
-            "name": "react-json-view",
-            "importNames": [
-              "ReactJson"
-            ],
-            "message": "Please use JsonViewer from @components/JsonViewer instead."
-          }
-        ]
-      }
-    ],
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error"
-  }
+	"parser": "@typescript-eslint/parser",
+	"extends": [
+		"plugin:react/recommended",
+		"plugin:@typescript-eslint/recommended",
+		"prettier/@typescript-eslint",
+		"plugin:prettier/recommended",
+		"plugin:react-hooks/recommended"
+	],
+	"plugins": ["simple-import-sort", "unused-imports"],
+	"env": {
+		"commonjs": true,
+		"es6": true,
+		"node": true
+	},
+	"settings": {
+		"react": {
+			"version": "detect"
+		}
+	},
+	"parserOptions": {
+		"ecmaVersion": 2020,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"jsx": true
+		}
+	},
+	"ignorePatterns": "src/graph/generated/*",
+	"rules": {
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"react/no-unescaped-entities": "off",
+		"react/prop-types": "off",
+		"@typescript-eslint/ban-types": "off",
+		"@typescript-eslint/ban-ts-comment": "off",
+		"@typescript-eslint/no-empty-function": "off",
+		"react/display-name": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
+		"unused-imports/no-unused-imports-ts": "error",
+		"@typescript-eslint/no-non-null-assertion": "off",
+		"no-restricted-imports": [
+			"error",
+			{
+				"paths": [
+					{
+						"name": "react-highlight-words",
+						"message": "Please use TextHighlighter from /src/components/TextHighlighter instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Popover"],
+						"message": "Please use Popover from /src/components/Popover instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Modal"],
+						"message": "Please use Modal from /src/components/Modal instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Tooltip"],
+						"message": "Please use Tooltip from /src/components/Tooltip instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Tabs"],
+						"message": "Please use Tabs from /src/components/Tab instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Progress"],
+						"message": "Please use Progress from /src/components/Progress instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Switch"],
+						"message": "Please use Switch from /src/components/Switch instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Popconfirm"],
+						"message": "Please use PopConfirm from /src/components/PopConfirm instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["Select"],
+						"message": "Please use Select from /src/components/Select instead."
+					},
+					{
+						"name": "antd",
+						"importNames": ["InputNumber"],
+						"message": "Please use InputNumber from /src/components/InputNumber instead."
+					},
+					{
+						"name": "react-router-dom",
+						"importNames": ["useParams"],
+						"message": "Please use useParams from @util/react-router/useParams instead."
+					},
+					{
+						"name": "react-json-view",
+						"importNames": ["ReactJson"],
+						"message": "Please use JsonViewer from @components/JsonViewer instead."
+					}
+				]
+			}
+		],
+		"simple-import-sort/imports": "error",
+		"simple-import-sort/exports": "error"
+	}
 }

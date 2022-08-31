@@ -4,21 +4,21 @@
  * @param events Assumed to be sorted based on time in ascending order.
  */
 export const findLastActiveEventIndex = (
-    currentTimestamp: number,
-    sessionStartTime: number,
-    events: any[]
+	currentTimestamp: number,
+	sessionStartTime: number,
+	events: any[],
 ): number => {
-    let lastActiveEventIndex = -1;
+	let lastActiveEventIndex = -1
 
-    for (const event of events) {
-        if (
-            new Date(event.timestamp).getTime() - sessionStartTime >
-            currentTimestamp
-        ) {
-            break;
-        }
-        lastActiveEventIndex++;
-    }
+	for (const event of events) {
+		if (
+			new Date(event.timestamp).getTime() - sessionStartTime >
+			currentTimestamp
+		) {
+			break
+		}
+		lastActiveEventIndex++
+	}
 
-    return lastActiveEventIndex;
-};
+	return lastActiveEventIndex
+}

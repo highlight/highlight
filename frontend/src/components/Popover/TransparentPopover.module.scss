@@ -1,18 +1,18 @@
 .popover {
-    border: 0;
+	border: 0;
 
-    :global(.ant-popover-inner) {
-        background-clip: initial;
-        background-color: transparent;
-        border-radius: initial;
-        box-shadow: none;
-    }
+	:global(.ant-popover-inner) {
+		background-clip: initial;
+		background-color: transparent;
+		border-radius: initial;
+		box-shadow: none;
+	}
 
-    :global(.ant-popover-inner-content) {
-        padding: 0;
-    }
+	:global(.ant-popover-inner-content) {
+		padding: 0;
+	}
 
-    :global(.ant-popover-arrow) {
-        display: none !important;
-    }
+	:global(.ant-popover-arrow) {
+		display: none !important;
+	}
 }

@@ -1,9 +1,9 @@
 {
-    "extends": "./tsconfig.json",
+	"extends": "./tsconfig.json",
 
-    "compilerOptions": {
-        "module": "es6",
-        "outDir": "esm",
-        "removeComments": true
-    }
+	"compilerOptions": {
+		"module": "es6",
+		"outDir": "esm",
+		"removeComments": true
+	}
 }

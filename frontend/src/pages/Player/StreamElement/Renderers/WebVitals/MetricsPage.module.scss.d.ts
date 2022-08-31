@@ -1,1 +1,1 @@
-export const wrapper: string;
+export const wrapper: string
