@@ -4,7 +4,7 @@ to: frontend/src/<%= name %>/<%= componentName %>.tsx
 
 import React from 'react';
 
-import styles from './<%= name %>.module.scss';
+import styles from './<%= componentName %>.module.scss';
 
 interface Props {}
 

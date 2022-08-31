@@ -1,5 +1,6 @@
 import LeadAlignLayout from '@components/layout/LeadAlignLayout';
 import Tabs from '@components/Tabs/Tabs';
+import Auth from '@pages/ProjectSettings/Auth/Auth';
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm';
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm';
 import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/ExcludedUsersForm';
@@ -61,6 +62,11 @@ const ProjectSettings = () => {
                                                         <SourcemapSettings />
                                                     </>
                                                 ),
+                                            },
+                                            {
+                                                key: 'auth',
+                                                title: 'Authentication',
+                                                panelContent: <Auth />,
                                             },
                                             {
                                                 key: 'general',
