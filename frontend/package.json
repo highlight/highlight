@@ -147,6 +147,7 @@
 		"eslint-plugin-unused-imports": "^1.1.2",
 		"postcss": "^8.3.3",
 		"postcss-custom-properties": "^12.1.7",
+		"prettier": "^2.7.1",
 		"react-scripts": "4.0.3",
 		"sass": "^1.50.1",
 		"stylelint": "^14.9.1",
