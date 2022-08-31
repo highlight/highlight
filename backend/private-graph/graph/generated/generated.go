@@ -407,6 +407,7 @@ type ComplexityRoot struct {
 		ChannelsToNotify  func(childComplexity int) int
 		Disabled          func(childComplexity int) int
 		EmailsToNotify    func(childComplexity int) int
+		Filters           func(childComplexity int) int
 		ID                func(childComplexity int) int
 		LastAdminToEditID func(childComplexity int) int
 		MetricToMonitor   func(childComplexity int) int
@@ -438,7 +439,7 @@ type ComplexityRoot struct {
 		CreateErrorSegment               func(childComplexity int, projectID int, name string, params model.ErrorSearchParamsInput) int
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
-		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) int
+		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, filters []*model.MetricTagFilterInput) int
 		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateNewUserAlert               func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
@@ -485,7 +486,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
-		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) int
+		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
@@ -936,6 +937,8 @@ type ErrorSegmentResolver interface {
 type MetricMonitorResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*model.SanitizedSlackChannel, error)
 	EmailsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*string, error)
+
+	Filters(ctx context.Context, obj *model1.MetricMonitor) ([]*model.MetricTagFilter, error)
 }
 type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
@@ -978,8 +981,8 @@ type MutationResolver interface {
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
 	CreateDefaultAlerts(ctx context.Context, projectID int, alertTypes []string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*bool, error)
 	CreateRageClickAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model1.SessionAlert, error)
-	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string) (*model1.MetricMonitor, error)
-	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model1.MetricMonitor, error)
+	CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
+	UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) (*model1.MetricMonitor, error)
 	CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model1.ErrorAlert, error)
 	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
@@ -2770,6 +2773,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MetricMonitor.EmailsToNotify(childComplexity), true
 
+	case "MetricMonitor.filters":
+		if e.complexity.MetricMonitor.Filters == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.Filters(childComplexity), true
+
 	case "MetricMonitor.id":
 		if e.complexity.MetricMonitor.ID == nil {
 			break
@@ -2979,7 +2989,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregator"].(model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(float64), args["units"].(*string), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string)), true
+		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregator"].(model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(float64), args["units"].(*string), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["filters"].([]*model.MetricTagFilterInput)), true
 
 	case "Mutation.createNewSessionAlert":
 		if e.complexity.Mutation.CreateNewSessionAlert == nil {
@@ -3543,7 +3553,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["aggregator"].(*model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(*float64), args["units"].(*string), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool)), true
+		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["aggregator"].(*model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(*float64), args["units"].(*string), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool), args["filters"].([]*model.MetricTagFilterInput)), true
 
 	case "Mutation.updateNewSessionAlert":
 		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
@@ -7229,6 +7239,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
+    filters: [MetricTagFilter!]
 }
 
 type EventChunk {
@@ -7422,205 +7433,207 @@ type Query {
 }
 
 type Mutation {
-	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
-	createProject(name: String!, workspace_id: ID!): Project
-	createWorkspace(name: String!): Workspace
-	editProject(
-		id: ID!
-		name: String
-		billing_email: String
-		excluded_users: StringArray
-		error_json_paths: StringArray
-		rage_click_window_seconds: Int
-		rage_click_radius_pixels: Int
-		rage_click_count: Int
-		backend_domains: StringArray
-	): Project
-	editWorkspace(id: ID!, name: String): Workspace
-	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
-	deleteProject(id: ID!): Boolean
-	sendAdminProjectInvite(
-		project_id: ID!
-		email: String!
-		base_url: String!
-	): String
-	sendAdminWorkspaceInvite(
-		workspace_id: ID!
-		email: String!
-		base_url: String!
-		role: String!
-	): String
-	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
-	joinWorkspace(workspace_id: ID!): ID
-	updateAllowedEmailOrigins(
-		workspace_id: ID!
-		allowed_auto_join_email_origins: String!
-	): ID
-	changeAdminRole(
-		workspace_id: ID!
-		admin_id: ID!
-		new_role: String!
-	): Boolean!
-	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
-	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-	createSegment(
-		project_id: ID!
-		name: String!
-		params: SearchParamsInput!
-	): Segment
-	emailSignup(email: String!): String!
-	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
-	deleteSegment(segment_id: ID!): Boolean
-	createErrorSegment(
-		project_id: ID!
-		name: String!
-		params: ErrorSearchParamsInput!
-	): ErrorSegment
-	editErrorSegment(
-		id: ID!
-		project_id: ID!
-		params: ErrorSearchParamsInput!
-	): Boolean
-	deleteErrorSegment(segment_id: ID!): Boolean
-	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
-	# Otherwise, we simply update the subscription.
-	createOrUpdateStripeSubscription(
-		workspace_id: ID!
-		plan_type: PlanType!
-		interval: SubscriptionInterval!
-	): String
-	updateBillingDetails(workspace_id: ID!): Boolean
-	createSessionComment(
-		project_id: ID!
-		session_secure_id: String!
-		session_timestamp: Int!
-		text: String!
-		text_for_email: String!
-		x_coordinate: Float!
-		y_coordinate: Float!
-		tagged_admins: [SanitizedAdminInput]!
-		tagged_slack_users: [SanitizedSlackChannelInput]!
-		session_url: String!
-		time: Float!
-		author_name: String!
-		session_image: String
-		issue_title: String
-		issue_description: String
-		issue_team_id: String
-		integrations: [IntegrationType]!
-		tags: [SessionCommentTagInput]!
-		additional_context: String
-	): SessionComment
-	createIssueForSessionComment(
-		project_id: ID!
-		session_url: String!
-		session_comment_id: Int!
-		author_name: String!
-		text_for_attachment: String!
-		time: Float!
-		issue_title: String
-		issue_description: String
-		issue_team_id: String
-		integrations: [IntegrationType]!
-	): SessionComment
-	deleteSessionComment(id: ID!): Boolean
-	replyToSessionComment(
-		comment_id: ID!
-		text: String!
-		text_for_email: String!
-		sessionURL: String!
-		tagged_admins: [SanitizedAdminInput]!
-		tagged_slack_users: [SanitizedSlackChannelInput]!
-	): CommentReply
-	createErrorComment(
-		project_id: ID!
-		error_group_secure_id: String!
-		text: String!
-		text_for_email: String!
-		tagged_admins: [SanitizedAdminInput]!
-		tagged_slack_users: [SanitizedSlackChannelInput]!
-		error_url: String!
-		author_name: String!
-		issue_title: String
-		issue_description: String
-		issue_team_id: String
-		integrations: [IntegrationType]!
-	): ErrorComment
-	createIssueForErrorComment(
-		project_id: ID!
-		error_url: String!
-		error_comment_id: Int!
-		author_name: String!
-		text_for_attachment: String!
-		issue_title: String
-		issue_description: String
-		issue_team_id: String
-		integrations: [IntegrationType]!
-	): ErrorComment
-	deleteErrorComment(id: ID!): Boolean
-	replyToErrorComment(
-		comment_id: ID!
-		text: String!
-		text_for_email: String!
-		errorURL: String!
-		tagged_admins: [SanitizedAdminInput]!
-		tagged_slack_users: [SanitizedSlackChannelInput]!
-	): CommentReply
-	openSlackConversation(
-		project_id: ID!
-		code: String!
-		redirect_path: String!
-	): Boolean
-	addIntegrationToProject(
-		integration_type: IntegrationType
-		project_id: ID!
-		code: String!
-	): Boolean!
-	removeIntegrationFromProject(
-		integration_type: IntegrationType
-		project_id: ID!
-	): Boolean!
-	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-	createDefaultAlerts(
-		project_id: ID!
-		alert_types: [String!]!
-		slack_channels: [SanitizedSlackChannelInput!]!
-		emails: [String]!
-	): Boolean
-	createRageClickAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-	): SessionAlert
-	createMetricMonitor(
-		project_id: ID!
-		name: String!
-		aggregator: MetricAggregator!
-		periodMinutes: Int
-		threshold: Float!
-		units: String
-		metric_to_monitor: String!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-	): MetricMonitor
-	updateMetricMonitor(
-		metric_monitor_id: ID!
-		project_id: ID!
-		name: String
-		aggregator: MetricAggregator
-		periodMinutes: Int
-		threshold: Float
-		units: String
-		metric_to_monitor: String
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		disabled: Boolean
+    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+    createProject(name: String!, workspace_id: ID!): Project
+    createWorkspace(name: String!): Workspace
+    editProject(
+        id: ID!
+        name: String
+        billing_email: String
+        excluded_users: StringArray
+        error_json_paths: StringArray
+        rage_click_window_seconds: Int
+        rage_click_radius_pixels: Int
+        rage_click_count: Int
+        backend_domains: StringArray
+    ): Project
+    editWorkspace(id: ID!, name: String): Workspace
+    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+    deleteProject(id: ID!): Boolean
+    sendAdminProjectInvite(
+        project_id: ID!
+        email: String!
+        base_url: String!
+    ): String
+    sendAdminWorkspaceInvite(
+        workspace_id: ID!
+        email: String!
+        base_url: String!
+        role: String!
+    ): String
+    addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+    joinWorkspace(workspace_id: ID!): ID
+    updateAllowedEmailOrigins(
+        workspace_id: ID!
+        allowed_auto_join_email_origins: String!
+    ): ID
+    changeAdminRole(
+        workspace_id: ID!
+        admin_id: ID!
+        new_role: String!
+    ): Boolean!
+    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
+    createSegment(
+        project_id: ID!
+        name: String!
+        params: SearchParamsInput!
+    ): Segment
+    emailSignup(email: String!): String!
+    editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+    deleteSegment(segment_id: ID!): Boolean
+    createErrorSegment(
+        project_id: ID!
+        name: String!
+        params: ErrorSearchParamsInput!
+    ): ErrorSegment
+    editErrorSegment(
+        id: ID!
+        project_id: ID!
+        params: ErrorSearchParamsInput!
+    ): Boolean
+    deleteErrorSegment(segment_id: ID!): Boolean
+    # If this endpoint returns a checkout_id, we initiate a stripe checkout.
+    # Otherwise, we simply update the subscription.
+    createOrUpdateStripeSubscription(
+        workspace_id: ID!
+        plan_type: PlanType!
+        interval: SubscriptionInterval!
+    ): String
+    updateBillingDetails(workspace_id: ID!): Boolean
+    createSessionComment(
+        project_id: ID!
+        session_secure_id: String!
+        session_timestamp: Int!
+        text: String!
+        text_for_email: String!
+        x_coordinate: Float!
+        y_coordinate: Float!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+        session_url: String!
+        time: Float!
+        author_name: String!
+        session_image: String
+        issue_title: String
+        issue_description: String
+        issue_team_id: String
+        integrations: [IntegrationType]!
+        tags: [SessionCommentTagInput]!
+        additional_context: String
+    ): SessionComment
+    createIssueForSessionComment(
+        project_id: ID!
+        session_url: String!
+        session_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        time: Float!
+        issue_title: String
+        issue_description: String
+        issue_team_id: String
+        integrations: [IntegrationType]!
+    ): SessionComment
+    deleteSessionComment(id: ID!): Boolean
+    replyToSessionComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        sessionURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
+    createErrorComment(
+        project_id: ID!
+        error_group_secure_id: String!
+        text: String!
+        text_for_email: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+        error_url: String!
+        author_name: String!
+        issue_title: String
+        issue_description: String
+        issue_team_id: String
+        integrations: [IntegrationType]!
+    ): ErrorComment
+    createIssueForErrorComment(
+        project_id: ID!
+        error_url: String!
+        error_comment_id: Int!
+        author_name: String!
+        text_for_attachment: String!
+        issue_title: String
+        issue_description: String
+        issue_team_id: String
+        integrations: [IntegrationType]!
+    ): ErrorComment
+    deleteErrorComment(id: ID!): Boolean
+    replyToErrorComment(
+        comment_id: ID!
+        text: String!
+        text_for_email: String!
+        errorURL: String!
+        tagged_admins: [SanitizedAdminInput]!
+        tagged_slack_users: [SanitizedSlackChannelInput]!
+    ): CommentReply
+    openSlackConversation(
+        project_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
+    addIntegrationToProject(
+        integration_type: IntegrationType
+        project_id: ID!
+        code: String!
+    ): Boolean!
+    removeIntegrationFromProject(
+        integration_type: IntegrationType
+        project_id: ID!
+    ): Boolean!
+    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
+    createDefaultAlerts(
+        project_id: ID!
+        alert_types: [String!]!
+        slack_channels: [SanitizedSlackChannelInput!]!
+        emails: [String]!
+    ): Boolean
+    createRageClickAlert(
+        project_id: ID!
+        name: String!
+        count_threshold: Int!
+        threshold_window: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
+        environments: [String]!
+    ): SessionAlert
+    createMetricMonitor(
+        project_id: ID!
+        name: String!
+        aggregator: MetricAggregator!
+        periodMinutes: Int
+        threshold: Float!
+        units: String
+        metric_to_monitor: String!
+        slack_channels: [SanitizedSlackChannelInput]!
+        emails: [String]!
+        filters: [MetricTagFilterInput!]
+    ): MetricMonitor
+    updateMetricMonitor(
+        metric_monitor_id: ID!
+        project_id: ID!
+        name: String
+        aggregator: MetricAggregator
+        periodMinutes: Int
+        threshold: Float
+        units: String
+        metric_to_monitor: String
+        slack_channels: [SanitizedSlackChannelInput]
+        emails: [String]
+        disabled: Boolean
+        filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	createErrorAlert(
 		project_id: ID!
@@ -8440,6 +8453,15 @@ func (ec *executionContext) field_Mutation_createMetricMonitor_args(ctx context.
 		}
 	}
 	args["emails"] = arg8
+	var arg9 []*model.MetricTagFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg9, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg9
 	return args, nil
 }
 
@@ -10297,6 +10319,15 @@ func (ec *executionContext) field_Mutation_updateMetricMonitor_args(ctx context.
 		}
 	}
 	args["disabled"] = arg10
+	var arg11 []*model.MetricTagFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg11, err = ec.unmarshalOMetricTagFilterInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg11
 	return args, nil
 }
 
@@ -23303,6 +23334,55 @@ func (ec *executionContext) fieldContext_MetricMonitor_disabled(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricMonitor_filters(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricMonitor_filters(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MetricMonitor().Filters(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.MetricTagFilter)
+	fc.Result = res
+	return ec.marshalOMetricTagFilter2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐMetricTagFilterᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricMonitor_filters(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "tag":
+				return ec.fieldContext_MetricTagFilter_tag(ctx, field)
+			case "op":
+				return ec.fieldContext_MetricTagFilter_op(ctx, field)
+			case "value":
+				return ec.fieldContext_MetricTagFilter_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MetricTagFilter", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricPreview_date(ctx context.Context, field graphql.CollectedField, obj *model.MetricPreview) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricPreview_date(ctx, field)
 	if err != nil {
@@ -26173,7 +26253,7 @@ func (ec *executionContext) _Mutation_createMetricMonitor(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["aggregator"].(model.MetricAggregator), fc.Args["periodMinutes"].(*int), fc.Args["threshold"].(float64), fc.Args["units"].(*string), fc.Args["metric_to_monitor"].(string), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string))
+		return ec.resolvers.Mutation().CreateMetricMonitor(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["aggregator"].(model.MetricAggregator), fc.Args["periodMinutes"].(*int), fc.Args["threshold"].(float64), fc.Args["units"].(*string), fc.Args["metric_to_monitor"].(string), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string), fc.Args["filters"].([]*model.MetricTagFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26219,6 +26299,8 @@ func (ec *executionContext) fieldContext_Mutation_createMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_units(ctx, field)
 			case "disabled":
 				return ec.fieldContext_MetricMonitor_disabled(ctx, field)
+			case "filters":
+				return ec.fieldContext_MetricMonitor_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricMonitor", field.Name)
 		},
@@ -26251,7 +26333,7 @@ func (ec *executionContext) _Mutation_updateMetricMonitor(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, fc.Args["metric_monitor_id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["aggregator"].(*model.MetricAggregator), fc.Args["periodMinutes"].(*int), fc.Args["threshold"].(*float64), fc.Args["units"].(*string), fc.Args["metric_to_monitor"].(*string), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string), fc.Args["disabled"].(*bool))
+		return ec.resolvers.Mutation().UpdateMetricMonitor(rctx, fc.Args["metric_monitor_id"].(int), fc.Args["project_id"].(int), fc.Args["name"].(*string), fc.Args["aggregator"].(*model.MetricAggregator), fc.Args["periodMinutes"].(*int), fc.Args["threshold"].(*float64), fc.Args["units"].(*string), fc.Args["metric_to_monitor"].(*string), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string), fc.Args["disabled"].(*bool), fc.Args["filters"].([]*model.MetricTagFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26297,6 +26379,8 @@ func (ec *executionContext) fieldContext_Mutation_updateMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_units(ctx, field)
 			case "disabled":
 				return ec.fieldContext_MetricMonitor_disabled(ctx, field)
+			case "filters":
+				return ec.fieldContext_MetricMonitor_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricMonitor", field.Name)
 		},
@@ -26621,6 +26705,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_units(ctx, field)
 			case "disabled":
 				return ec.fieldContext_MetricMonitor_disabled(ctx, field)
+			case "filters":
+				return ec.fieldContext_MetricMonitor_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricMonitor", field.Name)
 		},
@@ -35178,6 +35264,8 @@ func (ec *executionContext) fieldContext_Query_metric_monitors(ctx context.Conte
 				return ec.fieldContext_MetricMonitor_units(ctx, field)
 			case "disabled":
 				return ec.fieldContext_MetricMonitor_disabled(ctx, field)
+			case "filters":
+				return ec.fieldContext_MetricMonitor_filters(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MetricMonitor", field.Name)
 		},
@@ -49305,6 +49393,23 @@ func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "filters":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MetricMonitor_filters(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

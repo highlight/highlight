@@ -352,10 +352,11 @@ type DashboardMetric struct {
 
 type DashboardMetricFilter struct {
 	Model
-	MetricID int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Tag      string                        `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Op       modelInputs.MetricTagFilterOp `gorm:"default:equals"`
-	Value    string
+	MetricID        int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	MetricMonitorID int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Tag             string                        `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	Op              modelInputs.MetricTagFilterOp `gorm:"default:equals"`
+	Value           string
 }
 
 type SlackChannel struct {
@@ -773,10 +774,11 @@ type MetricMonitor struct {
 	Threshold         float64
 	Units             *string // Threshold value is in these Units.
 	MetricToMonitor   string
-	ChannelsToNotify  *string `gorm:"channels_to_notify"`
-	EmailsToNotify    *string `gorm:"emails_to_notify"`
-	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
-	Disabled          *bool   `gorm:"default:false"`
+	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
+	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
+	Disabled          *bool                    `gorm:"default:false"`
+	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
 }
 
 func (m *MessagesObject) Contents() string {
