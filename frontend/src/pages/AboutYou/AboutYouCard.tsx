@@ -44,10 +44,8 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
             onCompleted: useCallback(onSubmitHandler, [onSubmitHandler]),
         }
     );
-    const [
-        updateAdminAboutYourDetails,
-        { loading },
-    ] = useUpdateAdminAboutYouDetailsMutation();
+    const [updateAdminAboutYourDetails, { loading }] =
+        useUpdateAdminAboutYouDetailsMutation();
     const [signUpReferral, setSignUpReferral] = useLocalStorage(
         'HighlightSignUpReferral',
         ''

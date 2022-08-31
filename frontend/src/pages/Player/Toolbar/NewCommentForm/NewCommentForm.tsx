@@ -98,10 +98,8 @@ export const NewCommentForm = ({
     const [section, setSection] = useState<CommentFormSection>(
         CommentFormSection.CommentForm
     );
-    const [
-        selectedIssueService,
-        setSelectedIssueService,
-    ] = useState<IntegrationType>();
+    const [selectedIssueService, setSelectedIssueService] =
+        useState<IntegrationType>();
 
     const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
         'highlight-linear-default-team',
@@ -128,11 +126,10 @@ export const NewCommentForm = ({
     const { data: adminsInWorkspace } = useGetWorkspaceAdminsByProjectIdQuery({
         variables: { project_id },
     });
-    const {
-        data: mentionSuggestionsData,
-    } = useGetCommentMentionSuggestionsQuery({
-        variables: { project_id },
-    });
+    const { data: mentionSuggestionsData } =
+        useGetCommentMentionSuggestionsQuery({
+            variables: { project_id },
+        });
     const [mentionedAdmins, setMentionedAdmins] = useState<
         SanitizedAdminInput[]
     >([]);
@@ -364,13 +361,15 @@ export const NewCommentForm = ({
                             mention.display.includes('#')
                     )
                     .map<SanitizedSlackChannelInput>((mention) => {
-                        const matchingSlackUser = mentionSuggestionsData.slack_members.find(
-                            (slackUser) => {
-                                return (
-                                    slackUser?.webhook_channel_id === mention.id
-                                );
-                            }
-                        );
+                        const matchingSlackUser =
+                            mentionSuggestionsData.slack_members.find(
+                                (slackUser) => {
+                                    return (
+                                        slackUser?.webhook_channel_id ===
+                                        mention.id
+                                    );
+                                }
+                            );
 
                         return {
                             webhook_channel_id:
@@ -628,9 +627,10 @@ export const NewCommentForm = ({
                                             CommentFormSection.NewIssueForm
                                         );
 
-                                        const issueDesc = form.getFieldValue(
-                                            'issueDescription'
-                                        );
+                                        const issueDesc =
+                                            form.getFieldValue(
+                                                'issueDescription'
+                                            );
 
                                         if (
                                             !issueDesc ||

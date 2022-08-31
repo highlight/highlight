@@ -21,7 +21,5 @@ interface ApplicationContext {
     >[];
 }
 
-export const [
-    useApplicationContext,
-    ApplicationContextProvider,
-] = createContext<ApplicationContext>('Application');
+export const [useApplicationContext, ApplicationContextProvider] =
+    createContext<ApplicationContext>('Application');

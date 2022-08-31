@@ -60,26 +60,24 @@ const ErrorShareButton = ({ errorGroup, style }: Props) => {
 };
 
 const ExternalSharingToggle = ({ errorGroup }: Props) => {
-    const [
-        updateErrorGroupIsPublic,
-        { loading },
-    ] = useUpdateErrorGroupIsPublicMutation({
-        update(cache, { data }) {
-            const is_public =
-                data?.updateErrorGroupIsPublic?.is_public === true;
-            cache.modify({
-                fields: {
-                    errorGroup(existingErrorGroup) {
-                        const updatedErrorGroup = {
-                            ...existingErrorGroup,
-                            is_public,
-                        };
-                        return updatedErrorGroup;
+    const [updateErrorGroupIsPublic, { loading }] =
+        useUpdateErrorGroupIsPublicMutation({
+            update(cache, { data }) {
+                const is_public =
+                    data?.updateErrorGroupIsPublic?.is_public === true;
+                cache.modify({
+                    fields: {
+                        errorGroup(existingErrorGroup) {
+                            const updatedErrorGroup = {
+                                ...existingErrorGroup,
+                                is_public,
+                            };
+                            return updatedErrorGroup;
+                        },
                     },
-                },
-            });
-        },
-    });
+                });
+            },
+        });
 
     return (
         <div className={styles.externalSharingToggle}>

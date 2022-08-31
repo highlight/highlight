@@ -259,18 +259,14 @@ const List = ({
 }: ListProps) => {
     const { project_id } = useParams<{ project_id: string }>();
     const [searchQuery, setSearchQuery] = useState('');
-    const [
-        showSessionNotifications,
-        setShowSessionNotifications,
-    ] = useLocalStorage(`showSessionNotifications-${project_id}`, true);
+    const [showSessionNotifications, setShowSessionNotifications] =
+        useLocalStorage(`showSessionNotifications-${project_id}`, true);
     const [showErrorNotifications, setShowErrorNotifications] = useLocalStorage(
         `showErrorNotifications-${project_id}`,
         true
     );
-    const [
-        showFeedbackNotifications,
-        setShowFeedbackNotifications,
-    ] = useLocalStorage(`showFeedbackNotifications-${project_id}`, true);
+    const [showFeedbackNotifications, setShowFeedbackNotifications] =
+        useLocalStorage(`showFeedbackNotifications-${project_id}`, true);
     const [tagsToFilterBy, setTagsToFilterBy] = useLocalStorage<string[]>(
         `notificationTagsToFilterBy-${project_id}`,
         []

@@ -11,7 +11,9 @@ export type CardProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
     noTitleBottomMargin?: boolean;
 };
 
-const Card: React.FC<CardProps> = ({
+const Card: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<CardProps>>
+> = ({
     title,
     children,
     noPadding,
@@ -46,18 +48,23 @@ const Card: React.FC<CardProps> = ({
 
 export default Card;
 
-export const CardHeader: React.FC = ({ children }) => {
+export const CardHeader: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = ({ children }) => {
     return <h2 className={styles.cardHeader}>{children}</h2>;
 };
 
-export const CardSubHeader: React.FC = ({ children }) => {
+export const CardSubHeader: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = ({ children }) => {
     return <p className={styles.cardSubHeader}>{children}</p>;
 };
 
-export const CardForm: React.FC<React.FormHTMLAttributes<HTMLFormElement>> = ({
-    children,
-    ...props
-}) => {
+export const CardForm: React.FC<
+    React.PropsWithChildren<
+        React.PropsWithChildren<React.FormHTMLAttributes<HTMLFormElement>>
+    >
+> = ({ children, ...props }) => {
     return (
         <form
             {...props}
@@ -68,6 +75,8 @@ export const CardForm: React.FC<React.FormHTMLAttributes<HTMLFormElement>> = ({
     );
 };
 
-export const CardFormActionsContainer: React.FC = ({ children }) => {
+export const CardFormActionsContainer: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = ({ children }) => {
     return <div className={styles.cardFormActionsContainer}>{children}</div>;
 };

@@ -21,11 +21,9 @@ type DistributionGraphProps = {
     title: string;
 };
 
-export const ErrorDistributionChart: React.FC<DistributionGraphProps> = ({
-    errorGroup,
-    field,
-    title,
-}) => {
+export const ErrorDistributionChart: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<DistributionGraphProps>>
+> = ({ errorGroup, field, title }) => {
     const [formattedData, setFormattedData] = useState<
         | ({
               formattedValue: string;

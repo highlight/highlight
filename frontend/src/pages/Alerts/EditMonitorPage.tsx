@@ -27,16 +27,16 @@ const EditMonitorPage = ({
     isSlackIntegrated,
     emailSuggestions,
 }: Props) => {
-    const { project_id, id } = useParams<{
-        project_id: string;
-        id: string;
-    }>();
+    const { project_id, id } =
+        useParams<{
+            project_id: string;
+            id: string;
+        }>();
     const { slackUrl, loading, alertsPayload } = useAlertsContext();
     const existingMonitor = id ? findMonitor(id, alertsPayload) : undefined;
     const history = useHistory();
-    const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
-        'LCP'
-    );
+    const [metricToMonitorName, setMetricToMonitorName] =
+        useState<string>('LCP');
     const [config, setConfig] = useState<DashboardMetricConfig>(
         WEB_VITALS_CONFIGURATION[metricToMonitorName]
     );

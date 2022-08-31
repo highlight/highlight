@@ -16,9 +16,10 @@ const removeWorkspaceId = (pathname: string) => {
 
 // Redirects to the first project that the current admin has access to in the workspace
 export const WorkspaceRedirectionRouter = () => {
-    const { workspace_id } = useParams<{
-        workspace_id: string;
-    }>();
+    const { workspace_id } =
+        useParams<{
+            workspace_id: string;
+        }>();
     const { setLoadingState } = useAppLoadingContext();
 
     const {

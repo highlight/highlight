@@ -22,18 +22,16 @@ export const NetworkRecordingForm = () => {
         },
     });
 
-    const [
-        editProject,
-        { loading: editProjectLoading },
-    ] = useEditProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetProjects,
-            namedOperations.Query.GetProject,
-        ],
-        onCompleted: () => {
-            message.success('Updated network recording settings!', 5);
-        },
-    });
+    const [editProject, { loading: editProjectLoading }] =
+        useEditProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetProjects,
+                namedOperations.Query.GetProject,
+            ],
+            onCompleted: () => {
+                message.success('Updated network recording settings!', 5);
+            },
+        });
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

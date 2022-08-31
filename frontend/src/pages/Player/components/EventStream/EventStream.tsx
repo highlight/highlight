@@ -43,10 +43,8 @@ const EventStream = () => {
     const [showDetails, setShowDetails] = useState(false);
     const [listIsInTopPosition, setListIsInTopPosition] = useState(true);
     const eventTypeFilters = useEventTypeFilters();
-    const [
-        isInteractingWithStreamEvents,
-        setIsInteractingWithStreamEvents,
-    ] = useState(false);
+    const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
+        useState(false);
     const [events, setEvents] = useState<HighlightEvent[]>([]);
     const virtuoso = useRef<VirtuosoHandle>(null);
     const { data } = useGetWebVitalsQuery({

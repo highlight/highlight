@@ -30,10 +30,11 @@ const CreateErrorSegmentModal = ({
         refetchQueries: [namedOperations.Query.GetErrorSegments],
     });
     const [newSegmentName, setNewSegmentName] = useState('');
-    const { project_id } = useParams<{
-        project_id: string;
-        segment_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+            segment_id: string;
+        }>();
 
     const { searchParams, setExistingParams } = useErrorSearchContext();
     const history = useHistory();

@@ -13,14 +13,10 @@ const REPOLL_INTERVAL = 2000;
 export const useZapierIntegration = (props?: { repoll?: boolean }) => {
     const { repoll } = props || {};
     const { project_id } = useParams<{ project_id: string }>();
-    const {
-        data,
-        loading,
-        stopPolling,
-        startPolling,
-    } = useGetWorkspaceIsIntegratedWithZapierQuery({
-        variables: { project_id: project_id },
-    });
+    const { data, loading, stopPolling, startPolling } =
+        useGetWorkspaceIsIntegratedWithZapierQuery({
+            variables: { project_id: project_id },
+        });
 
     useEffect(() => {
         if (repoll) {
@@ -30,20 +26,17 @@ export const useZapierIntegration = (props?: { repoll?: boolean }) => {
         }
     }, [repoll, startPolling, stopPolling]);
 
-    const {
-        data: jwtToken,
-        loading: loadingJwt,
-    } = useGenerateNewZapierAccessTokenJwtQuery({
-        variables: { project_id: project_id },
-    });
+    const { data: jwtToken, loading: loadingJwt } =
+        useGenerateNewZapierAccessTokenJwtQuery({
+            variables: { project_id: project_id },
+        });
 
-    const [
-        removeIntegrationFromProject,
-    ] = useRemoveIntegrationFromProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
-        ],
-    });
+    const [removeIntegrationFromProject] =
+        useRemoveIntegrationFromProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+            ],
+        });
 
     const removeZapierIntegrationFromProject = useCallback(
         (projectId?: string) =>

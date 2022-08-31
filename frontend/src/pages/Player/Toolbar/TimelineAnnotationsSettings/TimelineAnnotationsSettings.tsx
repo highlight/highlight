@@ -33,16 +33,13 @@ export const EventTypeDescriptions: Omit<
             </a>
         </span>
     ),
-    Errors:
-        "Any error that shows up in the Developer Tools' Console will be shown",
+    Errors: "Any error that shows up in the Developer Tools' Console will be shown",
     Focus: 'An element received either with a mouse or keyboard',
     Navigate:
         "The user is moving around in your application where their transitions don't require a full page reload",
-    Reload:
-        'The page was reloaded during the session by refreshing the page or opening the app again within the same tab',
+    Reload: 'The page was reloaded during the session by refreshing the page or opening the app again within the same tab',
     Click: 'A user clicked on an element on the page',
-    Track:
-        'These are custom calls to Highlights track method for custom logging',
+    Track: 'These are custom calls to Highlights track method for custom logging',
     Comments: 'These are comments created by you and other people on your team',
     Identify:
         'These are custom calls to Highlight identify method to add identity metadata for a session.',
@@ -78,9 +75,10 @@ const TimelineAnnotationsSettings = React.memo(({ disabled }: Props) => {
                             (eventType) =>
                                 !EventTypeToExclude.includes(eventType)
                         ).map((eventType) => ({
-                            checked: selectedTimelineAnnotationTypes.includes(
-                                eventType
-                            ),
+                            checked:
+                                selectedTimelineAnnotationTypes.includes(
+                                    eventType
+                                ),
                             label: (
                                 <div className={styles.checkBoxLabel}>
                                     <div

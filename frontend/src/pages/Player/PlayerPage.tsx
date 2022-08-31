@@ -60,9 +60,10 @@ interface Props {
 const Player = ({ integrated }: Props) => {
     const { isLoggedIn } = useAuthContext();
     const { currentWorkspace } = useApplicationContext();
-    const { session_secure_id } = useParams<{
-        session_secure_id: string;
-    }>();
+    const { session_secure_id } =
+        useParams<{
+            session_secure_id: string;
+        }>();
     const [resizeListener, sizes] = useResizeAware();
 
     const player = usePlayer();
@@ -85,29 +86,24 @@ const Player = ({ integrated }: Props) => {
         showRightPanel,
     } = usePlayerConfiguration();
     const playerWrapperRef = useRef<HTMLDivElement>(null);
-    const {
-        isPlayerFullscreen,
-        setIsPlayerFullscreen,
-        playerCenterPanelRef,
-    } = usePlayerFullscreen();
-    const [detailedPanel, setDetailedPanel] = useState<
-        | {
-              title: string | React.ReactNode;
-              content: React.ReactNode;
-              id: string;
-          }
-        | undefined
-    >(undefined);
+    const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
+        usePlayerFullscreen();
+    const [detailedPanel, setDetailedPanel] =
+        useState<
+            | {
+                  title: string | React.ReactNode;
+                  content: React.ReactNode;
+                  id: string;
+              }
+            | undefined
+        >(undefined);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const [commentModalPosition, setCommentModalPosition] = useState<
-        Coordinates2D | undefined
-    >(undefined);
-    const [commentPosition, setCommentPosition] = useState<
-        Coordinates2D | undefined
-    >(undefined);
-    const [activeEvent, setActiveEvent] = useState<HighlightEvent | undefined>(
-        undefined
-    );
+    const [commentModalPosition, setCommentModalPosition] =
+        useState<Coordinates2D | undefined>(undefined);
+    const [commentPosition, setCommentPosition] =
+        useState<Coordinates2D | undefined>(undefined);
+    const [activeEvent, setActiveEvent] =
+        useState<HighlightEvent | undefined>(undefined);
     const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
         'Events' | 'Comments' | 'Metadata'
     >('tabs-PlayerRightPanel-active-tab', 'Events');
@@ -164,10 +160,10 @@ const Player = ({ integrated }: Props) => {
         };
     }, [resizePlayer, replayer]);
 
-    const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
-        .width;
-    const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
-        .height;
+    const playerBoundingClientRectWidth =
+        replayer?.wrapper?.getBoundingClientRect().width;
+    const playerBoundingClientRectHeight =
+        replayer?.wrapper?.getBoundingClientRect().height;
 
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
@@ -231,7 +227,8 @@ const Player = ({ integrated }: Props) => {
                                     styles.panelToggleButton,
                                     styles.panelToggleButtonLeft,
                                     {
-                                        [styles.panelShown]: showLeftPanelPreference,
+                                        [styles.panelShown]:
+                                            showLeftPanelPreference,
                                     }
                                 )}
                                 direction="left"

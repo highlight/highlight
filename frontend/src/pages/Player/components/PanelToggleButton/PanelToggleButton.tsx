@@ -15,11 +15,9 @@ interface PanelToggleButtonProps {
     isOpen: boolean;
 }
 
-const PanelToggleButton: React.FC<Props> = ({
-    direction,
-    isOpen,
-    ...props
-}) => {
+const PanelToggleButton: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ direction, isOpen, ...props }) => {
     const icon = getIcon({ direction, isOpen });
 
     return (

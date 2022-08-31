@@ -101,7 +101,8 @@ export function useMarkSessionAsViewedMutation(
 export type MarkSessionAsViewedMutationHookResult = ReturnType<
     typeof useMarkSessionAsViewedMutation
 >;
-export type MarkSessionAsViewedMutationResult = Apollo.MutationResult<Types.MarkSessionAsViewedMutation>;
+export type MarkSessionAsViewedMutationResult =
+    Apollo.MutationResult<Types.MarkSessionAsViewedMutation>;
 export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutation,
     Types.MarkSessionAsViewedMutationVariables
@@ -151,7 +152,8 @@ export function useMarkSessionAsStarredMutation(
 export type MarkSessionAsStarredMutationHookResult = ReturnType<
     typeof useMarkSessionAsStarredMutation
 >;
-export type MarkSessionAsStarredMutationResult = Apollo.MutationResult<Types.MarkSessionAsStarredMutation>;
+export type MarkSessionAsStarredMutationResult =
+    Apollo.MutationResult<Types.MarkSessionAsStarredMutation>;
 export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsStarredMutation,
     Types.MarkSessionAsStarredMutationVariables
@@ -169,10 +171,11 @@ export const CreateOrUpdateStripeSubscriptionDocument = gql`
         )
     }
 `;
-export type CreateOrUpdateStripeSubscriptionMutationFn = Apollo.MutationFunction<
-    Types.CreateOrUpdateStripeSubscriptionMutation,
-    Types.CreateOrUpdateStripeSubscriptionMutationVariables
->;
+export type CreateOrUpdateStripeSubscriptionMutationFn =
+    Apollo.MutationFunction<
+        Types.CreateOrUpdateStripeSubscriptionMutation,
+        Types.CreateOrUpdateStripeSubscriptionMutationVariables
+    >;
 
 /**
  * __useCreateOrUpdateStripeSubscriptionMutation__
@@ -207,11 +210,13 @@ export function useCreateOrUpdateStripeSubscriptionMutation(
 export type CreateOrUpdateStripeSubscriptionMutationHookResult = ReturnType<
     typeof useCreateOrUpdateStripeSubscriptionMutation
 >;
-export type CreateOrUpdateStripeSubscriptionMutationResult = Apollo.MutationResult<Types.CreateOrUpdateStripeSubscriptionMutation>;
-export type CreateOrUpdateStripeSubscriptionMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateOrUpdateStripeSubscriptionMutation,
-    Types.CreateOrUpdateStripeSubscriptionMutationVariables
->;
+export type CreateOrUpdateStripeSubscriptionMutationResult =
+    Apollo.MutationResult<Types.CreateOrUpdateStripeSubscriptionMutation>;
+export type CreateOrUpdateStripeSubscriptionMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateOrUpdateStripeSubscriptionMutation,
+        Types.CreateOrUpdateStripeSubscriptionMutationVariables
+    >;
 export const UpdateBillingDetailsDocument = gql`
     mutation UpdateBillingDetails($workspace_id: ID!) {
         updateBillingDetails(workspace_id: $workspace_id)
@@ -253,7 +258,8 @@ export function useUpdateBillingDetailsMutation(
 export type UpdateBillingDetailsMutationHookResult = ReturnType<
     typeof useUpdateBillingDetailsMutation
 >;
-export type UpdateBillingDetailsMutationResult = Apollo.MutationResult<Types.UpdateBillingDetailsMutation>;
+export type UpdateBillingDetailsMutationResult =
+    Apollo.MutationResult<Types.UpdateBillingDetailsMutation>;
 export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateBillingDetailsMutation,
     Types.UpdateBillingDetailsMutationVariables
@@ -303,7 +309,8 @@ export function useUpdateErrorGroupStateMutation(
 export type UpdateErrorGroupStateMutationHookResult = ReturnType<
     typeof useUpdateErrorGroupStateMutation
 >;
-export type UpdateErrorGroupStateMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupStateMutation>;
+export type UpdateErrorGroupStateMutationResult =
+    Apollo.MutationResult<Types.UpdateErrorGroupStateMutation>;
 export type UpdateErrorGroupStateMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateErrorGroupStateMutation,
     Types.UpdateErrorGroupStateMutationVariables
@@ -349,7 +356,8 @@ export function useSendEmailSignupMutation(
 export type SendEmailSignupMutationHookResult = ReturnType<
     typeof useSendEmailSignupMutation
 >;
-export type SendEmailSignupMutationResult = Apollo.MutationResult<Types.SendEmailSignupMutation>;
+export type SendEmailSignupMutationResult =
+    Apollo.MutationResult<Types.SendEmailSignupMutation>;
 export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
     Types.SendEmailSignupMutation,
     Types.SendEmailSignupMutationVariables
@@ -396,7 +404,8 @@ export function useAddAdminToWorkspaceMutation(
 export type AddAdminToWorkspaceMutationHookResult = ReturnType<
     typeof useAddAdminToWorkspaceMutation
 >;
-export type AddAdminToWorkspaceMutationResult = Apollo.MutationResult<Types.AddAdminToWorkspaceMutation>;
+export type AddAdminToWorkspaceMutationResult =
+    Apollo.MutationResult<Types.AddAdminToWorkspaceMutation>;
 export type AddAdminToWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.AddAdminToWorkspaceMutation,
     Types.AddAdminToWorkspaceMutationVariables
@@ -442,7 +451,8 @@ export function useJoinWorkspaceMutation(
 export type JoinWorkspaceMutationHookResult = ReturnType<
     typeof useJoinWorkspaceMutation
 >;
-export type JoinWorkspaceMutationResult = Apollo.MutationResult<Types.JoinWorkspaceMutation>;
+export type JoinWorkspaceMutationResult =
+    Apollo.MutationResult<Types.JoinWorkspaceMutation>;
 export type JoinWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.JoinWorkspaceMutation,
     Types.JoinWorkspaceMutationVariables
@@ -498,7 +508,8 @@ export function useChangeAdminRoleMutation(
 export type ChangeAdminRoleMutationHookResult = ReturnType<
     typeof useChangeAdminRoleMutation
 >;
-export type ChangeAdminRoleMutationResult = Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
+export type ChangeAdminRoleMutationResult =
+    Apollo.MutationResult<Types.ChangeAdminRoleMutation>;
 export type ChangeAdminRoleMutationOptions = Apollo.BaseMutationOptions<
     Types.ChangeAdminRoleMutation,
     Types.ChangeAdminRoleMutationVariables
@@ -545,7 +556,8 @@ export function useDeleteAdminFromProjectMutation(
 export type DeleteAdminFromProjectMutationHookResult = ReturnType<
     typeof useDeleteAdminFromProjectMutation
 >;
-export type DeleteAdminFromProjectMutationResult = Apollo.MutationResult<Types.DeleteAdminFromProjectMutation>;
+export type DeleteAdminFromProjectMutationResult =
+    Apollo.MutationResult<Types.DeleteAdminFromProjectMutation>;
 export type DeleteAdminFromProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteAdminFromProjectMutation,
     Types.DeleteAdminFromProjectMutationVariables
@@ -595,11 +607,13 @@ export function useDeleteAdminFromWorkspaceMutation(
 export type DeleteAdminFromWorkspaceMutationHookResult = ReturnType<
     typeof useDeleteAdminFromWorkspaceMutation
 >;
-export type DeleteAdminFromWorkspaceMutationResult = Apollo.MutationResult<Types.DeleteAdminFromWorkspaceMutation>;
-export type DeleteAdminFromWorkspaceMutationOptions = Apollo.BaseMutationOptions<
-    Types.DeleteAdminFromWorkspaceMutation,
-    Types.DeleteAdminFromWorkspaceMutationVariables
->;
+export type DeleteAdminFromWorkspaceMutationResult =
+    Apollo.MutationResult<Types.DeleteAdminFromWorkspaceMutation>;
+export type DeleteAdminFromWorkspaceMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.DeleteAdminFromWorkspaceMutation,
+        Types.DeleteAdminFromWorkspaceMutationVariables
+    >;
 export const OpenSlackConversationDocument = gql`
     mutation OpenSlackConversation(
         $project_id: ID!
@@ -651,7 +665,8 @@ export function useOpenSlackConversationMutation(
 export type OpenSlackConversationMutationHookResult = ReturnType<
     typeof useOpenSlackConversationMutation
 >;
-export type OpenSlackConversationMutationResult = Apollo.MutationResult<Types.OpenSlackConversationMutation>;
+export type OpenSlackConversationMutationResult =
+    Apollo.MutationResult<Types.OpenSlackConversationMutation>;
 export type OpenSlackConversationMutationOptions = Apollo.BaseMutationOptions<
     Types.OpenSlackConversationMutation,
     Types.OpenSlackConversationMutationVariables
@@ -707,7 +722,8 @@ export function useAddIntegrationToProjectMutation(
 export type AddIntegrationToProjectMutationHookResult = ReturnType<
     typeof useAddIntegrationToProjectMutation
 >;
-export type AddIntegrationToProjectMutationResult = Apollo.MutationResult<Types.AddIntegrationToProjectMutation>;
+export type AddIntegrationToProjectMutationResult =
+    Apollo.MutationResult<Types.AddIntegrationToProjectMutation>;
 export type AddIntegrationToProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.AddIntegrationToProjectMutation,
     Types.AddIntegrationToProjectMutationVariables
@@ -760,11 +776,13 @@ export function useRemoveIntegrationFromProjectMutation(
 export type RemoveIntegrationFromProjectMutationHookResult = ReturnType<
     typeof useRemoveIntegrationFromProjectMutation
 >;
-export type RemoveIntegrationFromProjectMutationResult = Apollo.MutationResult<Types.RemoveIntegrationFromProjectMutation>;
-export type RemoveIntegrationFromProjectMutationOptions = Apollo.BaseMutationOptions<
-    Types.RemoveIntegrationFromProjectMutation,
-    Types.RemoveIntegrationFromProjectMutationVariables
->;
+export type RemoveIntegrationFromProjectMutationResult =
+    Apollo.MutationResult<Types.RemoveIntegrationFromProjectMutation>;
+export type RemoveIntegrationFromProjectMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.RemoveIntegrationFromProjectMutation,
+        Types.RemoveIntegrationFromProjectMutationVariables
+    >;
 export const UpdateAllowedEmailOriginsDocument = gql`
     mutation UpdateAllowedEmailOrigins(
         $workspace_id: ID!
@@ -813,11 +831,13 @@ export function useUpdateAllowedEmailOriginsMutation(
 export type UpdateAllowedEmailOriginsMutationHookResult = ReturnType<
     typeof useUpdateAllowedEmailOriginsMutation
 >;
-export type UpdateAllowedEmailOriginsMutationResult = Apollo.MutationResult<Types.UpdateAllowedEmailOriginsMutation>;
-export type UpdateAllowedEmailOriginsMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateAllowedEmailOriginsMutation,
-    Types.UpdateAllowedEmailOriginsMutationVariables
->;
+export type UpdateAllowedEmailOriginsMutationResult =
+    Apollo.MutationResult<Types.UpdateAllowedEmailOriginsMutation>;
+export type UpdateAllowedEmailOriginsMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateAllowedEmailOriginsMutation,
+        Types.UpdateAllowedEmailOriginsMutationVariables
+    >;
 export const CreateProjectDocument = gql`
     mutation CreateProject($name: String!, $workspace_id: ID!) {
         createProject(name: $name, workspace_id: $workspace_id) {
@@ -863,7 +883,8 @@ export function useCreateProjectMutation(
 export type CreateProjectMutationHookResult = ReturnType<
     typeof useCreateProjectMutation
 >;
-export type CreateProjectMutationResult = Apollo.MutationResult<Types.CreateProjectMutation>;
+export type CreateProjectMutationResult =
+    Apollo.MutationResult<Types.CreateProjectMutation>;
 export type CreateProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateProjectMutation,
     Types.CreateProjectMutationVariables
@@ -928,7 +949,8 @@ export function useSubmitRegistrationFormMutation(
 export type SubmitRegistrationFormMutationHookResult = ReturnType<
     typeof useSubmitRegistrationFormMutation
 >;
-export type SubmitRegistrationFormMutationResult = Apollo.MutationResult<Types.SubmitRegistrationFormMutation>;
+export type SubmitRegistrationFormMutationResult =
+    Apollo.MutationResult<Types.SubmitRegistrationFormMutation>;
 export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
     Types.SubmitRegistrationFormMutation,
     Types.SubmitRegistrationFormMutationVariables
@@ -977,7 +999,8 @@ export function useCreateWorkspaceMutation(
 export type CreateWorkspaceMutationHookResult = ReturnType<
     typeof useCreateWorkspaceMutation
 >;
-export type CreateWorkspaceMutationResult = Apollo.MutationResult<Types.CreateWorkspaceMutation>;
+export type CreateWorkspaceMutationResult =
+    Apollo.MutationResult<Types.CreateWorkspaceMutation>;
 export type CreateWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateWorkspaceMutation,
     Types.CreateWorkspaceMutationVariables
@@ -1061,7 +1084,8 @@ export function useEditProjectMutation(
 export type EditProjectMutationHookResult = ReturnType<
     typeof useEditProjectMutation
 >;
-export type EditProjectMutationResult = Apollo.MutationResult<Types.EditProjectMutation>;
+export type EditProjectMutationResult =
+    Apollo.MutationResult<Types.EditProjectMutation>;
 export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.EditProjectMutation,
     Types.EditProjectMutationVariables
@@ -1107,7 +1131,8 @@ export function useDeleteProjectMutation(
 export type DeleteProjectMutationHookResult = ReturnType<
     typeof useDeleteProjectMutation
 >;
-export type DeleteProjectMutationResult = Apollo.MutationResult<Types.DeleteProjectMutation>;
+export type DeleteProjectMutationResult =
+    Apollo.MutationResult<Types.DeleteProjectMutation>;
 export type DeleteProjectMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteProjectMutation,
     Types.DeleteProjectMutationVariables
@@ -1157,7 +1182,8 @@ export function useEditWorkspaceMutation(
 export type EditWorkspaceMutationHookResult = ReturnType<
     typeof useEditWorkspaceMutation
 >;
-export type EditWorkspaceMutationResult = Apollo.MutationResult<Types.EditWorkspaceMutation>;
+export type EditWorkspaceMutationResult =
+    Apollo.MutationResult<Types.EditWorkspaceMutation>;
 export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<
     Types.EditWorkspaceMutation,
     Types.EditWorkspaceMutationVariables
@@ -1203,7 +1229,8 @@ export function useDeleteSegmentMutation(
 export type DeleteSegmentMutationHookResult = ReturnType<
     typeof useDeleteSegmentMutation
 >;
-export type DeleteSegmentMutationResult = Apollo.MutationResult<Types.DeleteSegmentMutation>;
+export type DeleteSegmentMutationResult =
+    Apollo.MutationResult<Types.DeleteSegmentMutation>;
 export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSegmentMutation,
     Types.DeleteSegmentMutationVariables
@@ -1255,7 +1282,8 @@ export function useEditSegmentMutation(
 export type EditSegmentMutationHookResult = ReturnType<
     typeof useEditSegmentMutation
 >;
-export type EditSegmentMutationResult = Apollo.MutationResult<Types.EditSegmentMutation>;
+export type EditSegmentMutationResult =
+    Apollo.MutationResult<Types.EditSegmentMutation>;
 export type EditSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.EditSegmentMutation,
     Types.EditSegmentMutationVariables
@@ -1334,7 +1362,8 @@ export function useCreateSegmentMutation(
 export type CreateSegmentMutationHookResult = ReturnType<
     typeof useCreateSegmentMutation
 >;
-export type CreateSegmentMutationResult = Apollo.MutationResult<Types.CreateSegmentMutation>;
+export type CreateSegmentMutationResult =
+    Apollo.MutationResult<Types.CreateSegmentMutation>;
 export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
@@ -1457,7 +1486,8 @@ export function useCreateSessionCommentMutation(
 export type CreateSessionCommentMutationHookResult = ReturnType<
     typeof useCreateSessionCommentMutation
 >;
-export type CreateSessionCommentMutationResult = Apollo.MutationResult<Types.CreateSessionCommentMutation>;
+export type CreateSessionCommentMutationResult =
+    Apollo.MutationResult<Types.CreateSessionCommentMutation>;
 export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSessionCommentMutation,
     Types.CreateSessionCommentMutationVariables
@@ -1553,11 +1583,13 @@ export function useCreateIssueForSessionCommentMutation(
 export type CreateIssueForSessionCommentMutationHookResult = ReturnType<
     typeof useCreateIssueForSessionCommentMutation
 >;
-export type CreateIssueForSessionCommentMutationResult = Apollo.MutationResult<Types.CreateIssueForSessionCommentMutation>;
-export type CreateIssueForSessionCommentMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateIssueForSessionCommentMutation,
-    Types.CreateIssueForSessionCommentMutationVariables
->;
+export type CreateIssueForSessionCommentMutationResult =
+    Apollo.MutationResult<Types.CreateIssueForSessionCommentMutation>;
+export type CreateIssueForSessionCommentMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateIssueForSessionCommentMutation,
+        Types.CreateIssueForSessionCommentMutationVariables
+    >;
 export const DeleteSessionCommentDocument = gql`
     mutation DeleteSessionComment($id: ID!) {
         deleteSessionComment(id: $id)
@@ -1599,7 +1631,8 @@ export function useDeleteSessionCommentMutation(
 export type DeleteSessionCommentMutationHookResult = ReturnType<
     typeof useDeleteSessionCommentMutation
 >;
-export type DeleteSessionCommentMutationResult = Apollo.MutationResult<Types.DeleteSessionCommentMutation>;
+export type DeleteSessionCommentMutationResult =
+    Apollo.MutationResult<Types.DeleteSessionCommentMutation>;
 export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionCommentMutation,
     Types.DeleteSessionCommentMutationVariables
@@ -1675,7 +1708,8 @@ export function useReplyToSessionCommentMutation(
 export type ReplyToSessionCommentMutationHookResult = ReturnType<
     typeof useReplyToSessionCommentMutation
 >;
-export type ReplyToSessionCommentMutationResult = Apollo.MutationResult<Types.ReplyToSessionCommentMutation>;
+export type ReplyToSessionCommentMutationResult =
+    Apollo.MutationResult<Types.ReplyToSessionCommentMutation>;
 export type ReplyToSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.ReplyToSessionCommentMutation,
     Types.ReplyToSessionCommentMutationVariables
@@ -1768,7 +1802,8 @@ export function useCreateErrorCommentMutation(
 export type CreateErrorCommentMutationHookResult = ReturnType<
     typeof useCreateErrorCommentMutation
 >;
-export type CreateErrorCommentMutationResult = Apollo.MutationResult<Types.CreateErrorCommentMutation>;
+export type CreateErrorCommentMutationResult =
+    Apollo.MutationResult<Types.CreateErrorCommentMutation>;
 export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorCommentMutation,
     Types.CreateErrorCommentMutationVariables
@@ -1858,11 +1893,13 @@ export function useCreateIssueForErrorCommentMutation(
 export type CreateIssueForErrorCommentMutationHookResult = ReturnType<
     typeof useCreateIssueForErrorCommentMutation
 >;
-export type CreateIssueForErrorCommentMutationResult = Apollo.MutationResult<Types.CreateIssueForErrorCommentMutation>;
-export type CreateIssueForErrorCommentMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateIssueForErrorCommentMutation,
-    Types.CreateIssueForErrorCommentMutationVariables
->;
+export type CreateIssueForErrorCommentMutationResult =
+    Apollo.MutationResult<Types.CreateIssueForErrorCommentMutation>;
+export type CreateIssueForErrorCommentMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateIssueForErrorCommentMutation,
+        Types.CreateIssueForErrorCommentMutationVariables
+    >;
 export const DeleteErrorCommentDocument = gql`
     mutation DeleteErrorComment($id: ID!) {
         deleteErrorComment(id: $id)
@@ -1904,7 +1941,8 @@ export function useDeleteErrorCommentMutation(
 export type DeleteErrorCommentMutationHookResult = ReturnType<
     typeof useDeleteErrorCommentMutation
 >;
-export type DeleteErrorCommentMutationResult = Apollo.MutationResult<Types.DeleteErrorCommentMutation>;
+export type DeleteErrorCommentMutationResult =
+    Apollo.MutationResult<Types.DeleteErrorCommentMutation>;
 export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteErrorCommentMutation,
     Types.DeleteErrorCommentMutationVariables
@@ -1980,7 +2018,8 @@ export function useReplyToErrorCommentMutation(
 export type ReplyToErrorCommentMutationHookResult = ReturnType<
     typeof useReplyToErrorCommentMutation
 >;
-export type ReplyToErrorCommentMutationResult = Apollo.MutationResult<Types.ReplyToErrorCommentMutation>;
+export type ReplyToErrorCommentMutationResult =
+    Apollo.MutationResult<Types.ReplyToErrorCommentMutation>;
 export type ReplyToErrorCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.ReplyToErrorCommentMutation,
     Types.ReplyToErrorCommentMutationVariables
@@ -2026,7 +2065,8 @@ export function useDeleteErrorSegmentMutation(
 export type DeleteErrorSegmentMutationHookResult = ReturnType<
     typeof useDeleteErrorSegmentMutation
 >;
-export type DeleteErrorSegmentMutationResult = Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
+export type DeleteErrorSegmentMutationResult =
+    Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
 export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteErrorSegmentMutation,
     Types.DeleteErrorSegmentMutationVariables
@@ -2078,7 +2118,8 @@ export function useEditErrorSegmentMutation(
 export type EditErrorSegmentMutationHookResult = ReturnType<
     typeof useEditErrorSegmentMutation
 >;
-export type EditErrorSegmentMutationResult = Apollo.MutationResult<Types.EditErrorSegmentMutation>;
+export type EditErrorSegmentMutationResult =
+    Apollo.MutationResult<Types.EditErrorSegmentMutation>;
 export type EditErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.EditErrorSegmentMutation,
     Types.EditErrorSegmentMutationVariables
@@ -2147,7 +2188,8 @@ export function useCreateErrorSegmentMutation(
 export type CreateErrorSegmentMutationHookResult = ReturnType<
     typeof useCreateErrorSegmentMutation
 >;
-export type CreateErrorSegmentMutationResult = Apollo.MutationResult<Types.CreateErrorSegmentMutation>;
+export type CreateErrorSegmentMutationResult =
+    Apollo.MutationResult<Types.CreateErrorSegmentMutation>;
 export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorSegmentMutation,
     Types.CreateErrorSegmentMutationVariables
@@ -2236,7 +2278,8 @@ export function useCreateErrorAlertMutation(
 export type CreateErrorAlertMutationHookResult = ReturnType<
     typeof useCreateErrorAlertMutation
 >;
-export type CreateErrorAlertMutationResult = Apollo.MutationResult<Types.CreateErrorAlertMutation>;
+export type CreateErrorAlertMutationResult =
+    Apollo.MutationResult<Types.CreateErrorAlertMutation>;
 export type CreateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorAlertMutation,
     Types.CreateErrorAlertMutationVariables
@@ -2325,7 +2368,8 @@ export function useCreateMetricMonitorMutation(
 export type CreateMetricMonitorMutationHookResult = ReturnType<
     typeof useCreateMetricMonitorMutation
 >;
-export type CreateMetricMonitorMutationResult = Apollo.MutationResult<Types.CreateMetricMonitorMutation>;
+export type CreateMetricMonitorMutationResult =
+    Apollo.MutationResult<Types.CreateMetricMonitorMutation>;
 export type CreateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateMetricMonitorMutation,
     Types.CreateMetricMonitorMutationVariables
@@ -2420,7 +2464,8 @@ export function useUpdateMetricMonitorMutation(
 export type UpdateMetricMonitorMutationHookResult = ReturnType<
     typeof useUpdateMetricMonitorMutation
 >;
-export type UpdateMetricMonitorMutationResult = Apollo.MutationResult<Types.UpdateMetricMonitorMutation>;
+export type UpdateMetricMonitorMutationResult =
+    Apollo.MutationResult<Types.UpdateMetricMonitorMutation>;
 export type UpdateMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateMetricMonitorMutation,
     Types.UpdateMetricMonitorMutationVariables
@@ -2483,7 +2528,8 @@ export function useDeleteMetricMonitorMutation(
 export type DeleteMetricMonitorMutationHookResult = ReturnType<
     typeof useDeleteMetricMonitorMutation
 >;
-export type DeleteMetricMonitorMutationResult = Apollo.MutationResult<Types.DeleteMetricMonitorMutation>;
+export type DeleteMetricMonitorMutationResult =
+    Apollo.MutationResult<Types.DeleteMetricMonitorMutation>;
 export type DeleteMetricMonitorMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteMetricMonitorMutation,
     Types.DeleteMetricMonitorMutationVariables
@@ -2529,11 +2575,13 @@ export function useUpdateAdminAboutYouDetailsMutation(
 export type UpdateAdminAboutYouDetailsMutationHookResult = ReturnType<
     typeof useUpdateAdminAboutYouDetailsMutation
 >;
-export type UpdateAdminAboutYouDetailsMutationResult = Apollo.MutationResult<Types.UpdateAdminAboutYouDetailsMutation>;
-export type UpdateAdminAboutYouDetailsMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateAdminAboutYouDetailsMutation,
-    Types.UpdateAdminAboutYouDetailsMutationVariables
->;
+export type UpdateAdminAboutYouDetailsMutationResult =
+    Apollo.MutationResult<Types.UpdateAdminAboutYouDetailsMutation>;
+export type UpdateAdminAboutYouDetailsMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateAdminAboutYouDetailsMutation,
+        Types.UpdateAdminAboutYouDetailsMutationVariables
+    >;
 export const CreateRageClickAlertDocument = gql`
     mutation CreateRageClickAlert(
         $project_id: ID!
@@ -2610,7 +2658,8 @@ export function useCreateRageClickAlertMutation(
 export type CreateRageClickAlertMutationHookResult = ReturnType<
     typeof useCreateRageClickAlertMutation
 >;
-export type CreateRageClickAlertMutationResult = Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
+export type CreateRageClickAlertMutationResult =
+    Apollo.MutationResult<Types.CreateRageClickAlertMutation>;
 export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateRageClickAlertMutation,
     Types.CreateRageClickAlertMutationVariables
@@ -2704,7 +2753,8 @@ export function useUpdateErrorAlertMutation(
 export type UpdateErrorAlertMutationHookResult = ReturnType<
     typeof useUpdateErrorAlertMutation
 >;
-export type UpdateErrorAlertMutationResult = Apollo.MutationResult<Types.UpdateErrorAlertMutation>;
+export type UpdateErrorAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateErrorAlertMutation>;
 export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateErrorAlertMutation,
     Types.UpdateErrorAlertMutationVariables
@@ -2756,7 +2806,8 @@ export function useDeleteErrorAlertMutation(
 export type DeleteErrorAlertMutationHookResult = ReturnType<
     typeof useDeleteErrorAlertMutation
 >;
-export type DeleteErrorAlertMutationResult = Apollo.MutationResult<Types.DeleteErrorAlertMutation>;
+export type DeleteErrorAlertMutationResult =
+    Apollo.MutationResult<Types.DeleteErrorAlertMutation>;
 export type DeleteErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteErrorAlertMutation,
     Types.DeleteErrorAlertMutationVariables
@@ -2808,7 +2859,8 @@ export function useDeleteSessionAlertMutation(
 export type DeleteSessionAlertMutationHookResult = ReturnType<
     typeof useDeleteSessionAlertMutation
 >;
-export type DeleteSessionAlertMutationResult = Apollo.MutationResult<Types.DeleteSessionAlertMutation>;
+export type DeleteSessionAlertMutationResult =
+    Apollo.MutationResult<Types.DeleteSessionAlertMutation>;
 export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionAlertMutation,
     Types.DeleteSessionAlertMutationVariables
@@ -2867,7 +2919,8 @@ export function useCreateDefaultAlertsMutation(
 export type CreateDefaultAlertsMutationHookResult = ReturnType<
     typeof useCreateDefaultAlertsMutation
 >;
-export type CreateDefaultAlertsMutationResult = Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
+export type CreateDefaultAlertsMutationResult =
+    Apollo.MutationResult<Types.CreateDefaultAlertsMutation>;
 export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateDefaultAlertsMutation,
     Types.CreateDefaultAlertsMutationVariables
@@ -2948,11 +3001,13 @@ export function useCreateSessionFeedbackAlertMutation(
 export type CreateSessionFeedbackAlertMutationHookResult = ReturnType<
     typeof useCreateSessionFeedbackAlertMutation
 >;
-export type CreateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.CreateSessionFeedbackAlertMutation>;
-export type CreateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateSessionFeedbackAlertMutation,
-    Types.CreateSessionFeedbackAlertMutationVariables
->;
+export type CreateSessionFeedbackAlertMutationResult =
+    Apollo.MutationResult<Types.CreateSessionFeedbackAlertMutation>;
+export type CreateSessionFeedbackAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateSessionFeedbackAlertMutation,
+        Types.CreateSessionFeedbackAlertMutationVariables
+    >;
 export const UpdateSessionFeedbackAlertDocument = gql`
     mutation UpdateSessionFeedbackAlert(
         $project_id: ID!
@@ -3035,11 +3090,13 @@ export function useUpdateSessionFeedbackAlertMutation(
 export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<
     typeof useUpdateSessionFeedbackAlertMutation
 >;
-export type UpdateSessionFeedbackAlertMutationResult = Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>;
-export type UpdateSessionFeedbackAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateSessionFeedbackAlertMutation,
-    Types.UpdateSessionFeedbackAlertMutationVariables
->;
+export type UpdateSessionFeedbackAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>;
+export type UpdateSessionFeedbackAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateSessionFeedbackAlertMutation,
+        Types.UpdateSessionFeedbackAlertMutationVariables
+    >;
 export const CreateNewUserAlertDocument = gql`
     mutation CreateNewUserAlert(
         $project_id: ID!
@@ -3116,7 +3173,8 @@ export function useCreateNewUserAlertMutation(
 export type CreateNewUserAlertMutationHookResult = ReturnType<
     typeof useCreateNewUserAlertMutation
 >;
-export type CreateNewUserAlertMutationResult = Apollo.MutationResult<Types.CreateNewUserAlertMutation>;
+export type CreateNewUserAlertMutationResult =
+    Apollo.MutationResult<Types.CreateNewUserAlertMutation>;
 export type CreateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateNewUserAlertMutation,
     Types.CreateNewUserAlertMutationVariables
@@ -3201,7 +3259,8 @@ export function useCreateNewSessionAlertMutation(
 export type CreateNewSessionAlertMutationHookResult = ReturnType<
     typeof useCreateNewSessionAlertMutation
 >;
-export type CreateNewSessionAlertMutationResult = Apollo.MutationResult<Types.CreateNewSessionAlertMutation>;
+export type CreateNewSessionAlertMutationResult =
+    Apollo.MutationResult<Types.CreateNewSessionAlertMutation>;
 export type CreateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateNewSessionAlertMutation,
     Types.CreateNewSessionAlertMutationVariables
@@ -3292,7 +3351,8 @@ export function useUpdateNewSessionAlertMutation(
 export type UpdateNewSessionAlertMutationHookResult = ReturnType<
     typeof useUpdateNewSessionAlertMutation
 >;
-export type UpdateNewSessionAlertMutationResult = Apollo.MutationResult<Types.UpdateNewSessionAlertMutation>;
+export type UpdateNewSessionAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateNewSessionAlertMutation>;
 export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateNewSessionAlertMutation,
     Types.UpdateNewSessionAlertMutationVariables
@@ -3376,7 +3436,8 @@ export function useUpdateRageClickAlertMutation(
 export type UpdateRageClickAlertMutationHookResult = ReturnType<
     typeof useUpdateRageClickAlertMutation
 >;
-export type UpdateRageClickAlertMutationResult = Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
+export type UpdateRageClickAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateRageClickAlertMutation>;
 export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateRageClickAlertMutation,
     Types.UpdateRageClickAlertMutationVariables
@@ -3461,7 +3522,8 @@ export function useUpdateNewUserAlertMutation(
 export type UpdateNewUserAlertMutationHookResult = ReturnType<
     typeof useUpdateNewUserAlertMutation
 >;
-export type UpdateNewUserAlertMutationResult = Apollo.MutationResult<Types.UpdateNewUserAlertMutation>;
+export type UpdateNewUserAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateNewUserAlertMutation>;
 export type UpdateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateNewUserAlertMutation,
     Types.UpdateNewUserAlertMutationVariables
@@ -3547,11 +3609,13 @@ export function useCreateTrackPropertiesAlertMutation(
 export type CreateTrackPropertiesAlertMutationHookResult = ReturnType<
     typeof useCreateTrackPropertiesAlertMutation
 >;
-export type CreateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateTrackPropertiesAlertMutation>;
-export type CreateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateTrackPropertiesAlertMutation,
-    Types.CreateTrackPropertiesAlertMutationVariables
->;
+export type CreateTrackPropertiesAlertMutationResult =
+    Apollo.MutationResult<Types.CreateTrackPropertiesAlertMutation>;
+export type CreateTrackPropertiesAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateTrackPropertiesAlertMutation,
+        Types.CreateTrackPropertiesAlertMutationVariables
+    >;
 export const UpdateTrackPropertiesAlertDocument = gql`
     mutation UpdateTrackPropertiesAlert(
         $project_id: ID!
@@ -3638,11 +3702,13 @@ export function useUpdateTrackPropertiesAlertMutation(
 export type UpdateTrackPropertiesAlertMutationHookResult = ReturnType<
     typeof useUpdateTrackPropertiesAlertMutation
 >;
-export type UpdateTrackPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateTrackPropertiesAlertMutation>;
-export type UpdateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateTrackPropertiesAlertMutation,
-    Types.UpdateTrackPropertiesAlertMutationVariables
->;
+export type UpdateTrackPropertiesAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateTrackPropertiesAlertMutation>;
+export type UpdateTrackPropertiesAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateTrackPropertiesAlertMutation,
+        Types.UpdateTrackPropertiesAlertMutationVariables
+    >;
 export const CreateUserPropertiesAlertDocument = gql`
     mutation CreateUserPropertiesAlert(
         $project_id: ID!
@@ -3724,11 +3790,13 @@ export function useCreateUserPropertiesAlertMutation(
 export type CreateUserPropertiesAlertMutationHookResult = ReturnType<
     typeof useCreateUserPropertiesAlertMutation
 >;
-export type CreateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.CreateUserPropertiesAlertMutation>;
-export type CreateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateUserPropertiesAlertMutation,
-    Types.CreateUserPropertiesAlertMutationVariables
->;
+export type CreateUserPropertiesAlertMutationResult =
+    Apollo.MutationResult<Types.CreateUserPropertiesAlertMutation>;
+export type CreateUserPropertiesAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.CreateUserPropertiesAlertMutation,
+        Types.CreateUserPropertiesAlertMutationVariables
+    >;
 export const UpdateUserPropertiesAlertDocument = gql`
     mutation UpdateUserPropertiesAlert(
         $project_id: ID!
@@ -3815,11 +3883,13 @@ export function useUpdateUserPropertiesAlertMutation(
 export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<
     typeof useUpdateUserPropertiesAlertMutation
 >;
-export type UpdateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>;
-export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateUserPropertiesAlertMutation,
-    Types.UpdateUserPropertiesAlertMutationVariables
->;
+export type UpdateUserPropertiesAlertMutationResult =
+    Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>;
+export type UpdateUserPropertiesAlertMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateUserPropertiesAlertMutation,
+        Types.UpdateUserPropertiesAlertMutationVariables
+    >;
 export const UpdateSessionIsPublicDocument = gql`
     mutation UpdateSessionIsPublic(
         $session_secure_id: String!
@@ -3871,7 +3941,8 @@ export function useUpdateSessionIsPublicMutation(
 export type UpdateSessionIsPublicMutationHookResult = ReturnType<
     typeof useUpdateSessionIsPublicMutation
 >;
-export type UpdateSessionIsPublicMutationResult = Apollo.MutationResult<Types.UpdateSessionIsPublicMutation>;
+export type UpdateSessionIsPublicMutationResult =
+    Apollo.MutationResult<Types.UpdateSessionIsPublicMutation>;
 export type UpdateSessionIsPublicMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateSessionIsPublicMutation,
     Types.UpdateSessionIsPublicMutationVariables
@@ -3927,11 +3998,13 @@ export function useUpdateErrorGroupIsPublicMutation(
 export type UpdateErrorGroupIsPublicMutationHookResult = ReturnType<
     typeof useUpdateErrorGroupIsPublicMutation
 >;
-export type UpdateErrorGroupIsPublicMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupIsPublicMutation>;
-export type UpdateErrorGroupIsPublicMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateErrorGroupIsPublicMutation,
-    Types.UpdateErrorGroupIsPublicMutationVariables
->;
+export type UpdateErrorGroupIsPublicMutationResult =
+    Apollo.MutationResult<Types.UpdateErrorGroupIsPublicMutation>;
+export type UpdateErrorGroupIsPublicMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.UpdateErrorGroupIsPublicMutation,
+        Types.UpdateErrorGroupIsPublicMutationVariables
+    >;
 export const UpdateAllowMeterOverageDocument = gql`
     mutation UpdateAllowMeterOverage(
         $workspace_id: ID!
@@ -3983,7 +4056,8 @@ export function useUpdateAllowMeterOverageMutation(
 export type UpdateAllowMeterOverageMutationHookResult = ReturnType<
     typeof useUpdateAllowMeterOverageMutation
 >;
-export type UpdateAllowMeterOverageMutationResult = Apollo.MutationResult<Types.UpdateAllowMeterOverageMutation>;
+export type UpdateAllowMeterOverageMutationResult =
+    Apollo.MutationResult<Types.UpdateAllowMeterOverageMutation>;
 export type UpdateAllowMeterOverageMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateAllowMeterOverageMutation,
     Types.UpdateAllowMeterOverageMutationVariables
@@ -4032,7 +4106,8 @@ export function useSyncSlackIntegrationMutation(
 export type SyncSlackIntegrationMutationHookResult = ReturnType<
     typeof useSyncSlackIntegrationMutation
 >;
-export type SyncSlackIntegrationMutationResult = Apollo.MutationResult<Types.SyncSlackIntegrationMutation>;
+export type SyncSlackIntegrationMutationResult =
+    Apollo.MutationResult<Types.SyncSlackIntegrationMutation>;
 export type SyncSlackIntegrationMutationOptions = Apollo.BaseMutationOptions<
     Types.SyncSlackIntegrationMutation,
     Types.SyncSlackIntegrationMutationVariables
@@ -4078,7 +4153,8 @@ export function useRequestAccessMutation(
 export type RequestAccessMutationHookResult = ReturnType<
     typeof useRequestAccessMutation
 >;
-export type RequestAccessMutationResult = Apollo.MutationResult<Types.RequestAccessMutation>;
+export type RequestAccessMutationResult =
+    Apollo.MutationResult<Types.RequestAccessMutation>;
 export type RequestAccessMutationOptions = Apollo.BaseMutationOptions<
     Types.RequestAccessMutation,
     Types.RequestAccessMutationVariables
@@ -4128,11 +4204,13 @@ export function useModifyClearbitIntegrationMutation(
 export type ModifyClearbitIntegrationMutationHookResult = ReturnType<
     typeof useModifyClearbitIntegrationMutation
 >;
-export type ModifyClearbitIntegrationMutationResult = Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
-export type ModifyClearbitIntegrationMutationOptions = Apollo.BaseMutationOptions<
-    Types.ModifyClearbitIntegrationMutation,
-    Types.ModifyClearbitIntegrationMutationVariables
->;
+export type ModifyClearbitIntegrationMutationResult =
+    Apollo.MutationResult<Types.ModifyClearbitIntegrationMutation>;
+export type ModifyClearbitIntegrationMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.ModifyClearbitIntegrationMutation,
+        Types.ModifyClearbitIntegrationMutationVariables
+    >;
 export const UpsertDashboardDocument = gql`
     mutation UpsertDashboard(
         $id: ID
@@ -4190,7 +4268,8 @@ export function useUpsertDashboardMutation(
 export type UpsertDashboardMutationHookResult = ReturnType<
     typeof useUpsertDashboardMutation
 >;
-export type UpsertDashboardMutationResult = Apollo.MutationResult<Types.UpsertDashboardMutation>;
+export type UpsertDashboardMutationResult =
+    Apollo.MutationResult<Types.UpsertDashboardMutation>;
 export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
     Types.UpsertDashboardMutation,
     Types.UpsertDashboardMutationVariables
@@ -5570,11 +5649,13 @@ export function useSendAdminWorkspaceInviteMutation(
 export type SendAdminWorkspaceInviteMutationHookResult = ReturnType<
     typeof useSendAdminWorkspaceInviteMutation
 >;
-export type SendAdminWorkspaceInviteMutationResult = Apollo.MutationResult<Types.SendAdminWorkspaceInviteMutation>;
-export type SendAdminWorkspaceInviteMutationOptions = Apollo.BaseMutationOptions<
-    Types.SendAdminWorkspaceInviteMutation,
-    Types.SendAdminWorkspaceInviteMutationVariables
->;
+export type SendAdminWorkspaceInviteMutationResult =
+    Apollo.MutationResult<Types.SendAdminWorkspaceInviteMutation>;
+export type SendAdminWorkspaceInviteMutationOptions =
+    Apollo.BaseMutationOptions<
+        Types.SendAdminWorkspaceInviteMutation,
+        Types.SendAdminWorkspaceInviteMutationVariables
+    >;
 export const GetSessionIntervalsDocument = gql`
     query GetSessionIntervals($session_secure_id: String!) {
         session_intervals(session_secure_id: $session_secure_id) {
@@ -9725,7 +9806,8 @@ export function useOnSessionPayloadAppendedSubscription(
 export type OnSessionPayloadAppendedSubscriptionHookResult = ReturnType<
     typeof useOnSessionPayloadAppendedSubscription
 >;
-export type OnSessionPayloadAppendedSubscriptionResult = Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;
+export type OnSessionPayloadAppendedSubscriptionResult =
+    Apollo.SubscriptionResult<Types.OnSessionPayloadAppendedSubscription>;
 export const GetWebVitalsDocument = gql`
     query GetWebVitals($session_secure_id: String!) {
         web_vitals(session_secure_id: $session_secure_id) {

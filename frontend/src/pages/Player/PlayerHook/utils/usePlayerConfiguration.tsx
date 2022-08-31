@@ -20,13 +20,11 @@ const usePlayerConfiguration = () => {
         'highlightMenuOpenDevTools',
         false
     );
-    const [
-        selectedDevToolsTab,
-        setSelectedDevToolsTab,
-    ] = useLocalStorage<DevToolTabType>(
-        'tabs-DevTools-active-tab',
-        DevToolTabType.Errors
-    );
+    const [selectedDevToolsTab, setSelectedDevToolsTab] =
+        useLocalStorage<DevToolTabType>(
+            'tabs-DevTools-active-tab',
+            DevToolTabType.Errors
+        );
     const [_autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
@@ -70,13 +68,12 @@ const usePlayerConfiguration = () => {
         'highlightShowPlayerAbsoluteTime',
         false
     );
-    const [
-        _showDetailedSessionView,
-        setShowDetailedSessionView,
-    ] = useLocalStorage('highlightShowDetailedSessionView', false);
-    const showDetailedSessionView = useMemo(() => _showDetailedSessionView, [
-        _showDetailedSessionView,
-    ]);
+    const [_showDetailedSessionView, setShowDetailedSessionView] =
+        useLocalStorage('highlightShowDetailedSessionView', false);
+    const showDetailedSessionView = useMemo(
+        () => _showDetailedSessionView,
+        [_showDetailedSessionView]
+    );
 
     return {
         showLeftPanel,

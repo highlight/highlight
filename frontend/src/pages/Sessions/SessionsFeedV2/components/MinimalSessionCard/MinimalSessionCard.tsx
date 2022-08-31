@@ -52,15 +52,17 @@ const MinimalSessionCard = React.memo(
         urlParams,
         linkDisabled,
         autoPlaySessions = false,
-        showDetailedSessionView: showDetailedSessionViewPlayerConfiguration = false,
+        showDetailedSessionView:
+            showDetailedSessionViewPlayerConfiguration = false,
         configuration,
     }: Props) => {
         const ref = useRef<HTMLDivElement | null>(null);
-        const { project_id, segment_id, session_secure_id } = useParams<{
-            project_id: string;
-            segment_id: string;
-            session_secure_id: string;
-        }>();
+        const { project_id, segment_id, session_secure_id } =
+            useParams<{
+                project_id: string;
+                segment_id: string;
+                session_secure_id: string;
+            }>();
         const projectIdRemapped =
             project_id === DEMO_WORKSPACE_APPLICATION_ID
                 ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -152,7 +154,8 @@ const MinimalSessionCard = React.memo(
                         </div>
                         <div
                             className={classNames(styles.sessionTextSection, {
-                                [styles.detailedSection]: showDetailedSessionView,
+                                [styles.detailedSection]:
+                                    showDetailedSessionView,
                                 [styles.withLongDatetimeFormat]:
                                     configuration?.datetimeFormat === 'ISO',
                             })}
@@ -298,9 +301,10 @@ const MinimalSessionCard = React.memo(
                                         className={styles.cardAnnotation}
                                         style={
                                             {
-                                                '--primary-color': session?.first_time
-                                                    ? 'var(--color-red-400)'
-                                                    : 'var(--color-gray-300)',
+                                                '--primary-color':
+                                                    session?.first_time
+                                                        ? 'var(--color-red-400)'
+                                                        : 'var(--color-gray-300)',
                                             } as React.CSSProperties
                                         }
                                     >
@@ -324,9 +328,10 @@ const MinimalSessionCard = React.memo(
                                         className={styles.cardAnnotation}
                                         style={
                                             {
-                                                '--primary-color': session?.has_errors
-                                                    ? '#eb5757'
-                                                    : 'var(--color-gray-300)',
+                                                '--primary-color':
+                                                    session?.has_errors
+                                                        ? '#eb5757'
+                                                        : 'var(--color-gray-300)',
                                             } as React.CSSProperties
                                         }
                                     >
@@ -346,9 +351,10 @@ const MinimalSessionCard = React.memo(
                                         className={styles.cardAnnotation}
                                         style={
                                             {
-                                                '--primary-color': session?.has_rage_clicks
-                                                    ? 'var(--color-red-400)'
-                                                    : 'var(--color-gray-300)',
+                                                '--primary-color':
+                                                    session?.has_rage_clicks
+                                                        ? 'var(--color-red-400)'
+                                                        : 'var(--color-gray-300)',
                                             } as React.CSSProperties
                                         }
                                     >

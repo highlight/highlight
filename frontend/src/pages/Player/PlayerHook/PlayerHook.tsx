@@ -77,18 +77,17 @@ export enum SessionViewability {
 
 export const usePlayer = (): ReplayerContextInterface => {
     const { isLoggedIn, isHighlightAdmin } = useAuthContext();
-    const { session_secure_id, project_id } = useParams<{
-        session_secure_id: string;
-        project_id: string;
-    }>();
+    const { session_secure_id, project_id } =
+        useParams<{
+            session_secure_id: string;
+            project_id: string;
+        }>();
     const history = useHistory();
 
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
-    const [
-        viewingUnauthorizedSession,
-        setViewingUnauthorizedSession,
-    ] = useState(false);
+    const [viewingUnauthorizedSession, setViewingUnauthorizedSession] =
+        useState(false);
 
     const [performancePayloads, setPerformancePayloads] = useState<
         Array<HighlightPerformancePayload>
@@ -96,10 +95,8 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [sessionComments, setSessionComments] = useState<SessionComment[]>(
         []
     );
-    const [
-        eventsForTimelineIndicator,
-        setEventsForTimelineIndicator,
-    ] = useState<ParsedHighlightEvent[]>([]);
+    const [eventsForTimelineIndicator, setEventsForTimelineIndicator] =
+        useState<ParsedHighlightEvent[]>([]);
     const [rageClicks, setRageClicks] = useState<RageClick[]>([]);
     const [sessionResults, setSessionResults] = useState<SessionResults>({
         sessions: [],
@@ -107,22 +104,17 @@ export const usePlayer = (): ReplayerContextInterface => {
     });
     const [isLiveMode, setIsLiveMode] = useState<boolean>(false);
     // Browser extension script URLs that are in the session.
-    const [
-        browserExtensionScriptURLs,
-        setBrowserExtensionScriptURLs,
-    ] = useState<string[]>([]);
+    const [browserExtensionScriptURLs, setBrowserExtensionScriptURLs] =
+        useState<string[]>([]);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
-    const [
-        unsubscribeSessionPayloadFn,
-        setUnsubscribeSessionPayloadFn,
-    ] = useState<(() => void) | null>(null);
+    const [unsubscribeSessionPayloadFn, setUnsubscribeSessionPayloadFn] =
+        useState<(() => void) | null>(null);
     const [subscriptionEventsPayload, setSubscriptionEventsPayload] = useState<
         Array<HighlightEvent>
     >([]);
     const lastActiveTimestampRef = useRef(0);
-    const [lastActiveString, setLastActiveString] = useState<string | null>(
-        null
-    );
+    const [lastActiveString, setLastActiveString] =
+        useState<string | null>(null);
     const [timerId, setTimerId] = useState<number | null>(null);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
@@ -132,9 +124,8 @@ export const usePlayer = (): ReplayerContextInterface => {
         SessionViewability.VIEWABLE
     );
     const [time, setTime] = useState<number>(0);
-    const [viewport, setViewport] = useState<
-        viewportResizeDimension | undefined
-    >(undefined);
+    const [viewport, setViewport] =
+        useState<viewportResizeDimension | undefined>(undefined);
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
     // Play sessions at a 7s delay to give time for events to be buffered in advance of playback.
     const LIVE_MODE_DELAY = 7000;
@@ -153,10 +144,8 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<ParsedSessionInterval>
     >([]);
-    const {
-        setPlayerTimestamp,
-        hasSearchParam,
-    } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
+    const { setPlayerTimestamp, hasSearchParam } =
+        useSetPlayerTimestampFromSearchParam(setTime, replayer);
     // Tracks the start/end/total time for a session. Using replayer.getMetaData is
     // no longer accurate because the first or last event chunks might not be loaded.
     const [sessionMetadata, setSessionMetadata] = useState<playerMetaData>(
@@ -269,20 +258,19 @@ export const usePlayer = (): ReplayerContextInterface => {
         }
     };
 
-    const {
-        data: timelineIndicatorEventsData,
-    } = useGetTimelineIndicatorEventsQuery({
-        variables: {
-            session_secure_id: session_secure_id,
-        },
-    });
+    const { data: timelineIndicatorEventsData } =
+        useGetTimelineIndicatorEventsQuery({
+            variables: {
+                session_secure_id: session_secure_id,
+            },
+        });
 
     const { data: sessionData } = useGetSessionQuery({
         variables: {
             secure_id: session_secure_id,
         },
         onCompleted: useCallback(
-            (data) => {
+            (data: any) => {
                 if (data.session === null) {
                     setSessionViewability(SessionViewability.ERROR);
                 } else if (

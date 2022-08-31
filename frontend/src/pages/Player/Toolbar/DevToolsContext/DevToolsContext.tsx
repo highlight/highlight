@@ -13,7 +13,5 @@ interface DevToolsContext {
     setDevToolsTab: (val: DevToolTabType) => void;
 }
 
-export const [
-    useDevToolsContext,
-    DevToolsContextProvider,
-] = createContext<DevToolsContext>('DevTools');
+export const [useDevToolsContext, DevToolsContextProvider] =
+    createContext<DevToolsContext>('DevTools');

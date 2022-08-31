@@ -177,7 +177,9 @@ const getErrorMessage = (error: string | undefined): string | undefined => {
     return undefined;
 };
 
-const StackSection: React.FC<StackSectionProps> = ({
+const StackSection: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<StackSectionProps>>
+> = ({
     fileName,
     functionName,
     lineNumber,
@@ -209,7 +211,8 @@ const StackSection: React.FC<StackSectionProps> = ({
                         className={styles.lineNumber}
                         style={
                             {
-                                '--longest-character-length': longestLineNumberCharacterLength,
+                                '--longest-character-length':
+                                    longestLineNumberCharacterLength,
                             } as React.CSSProperties
                         }
                     >

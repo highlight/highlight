@@ -21,16 +21,14 @@ interface Props {
     afterDeleteHandler?: () => void;
 }
 
-const DeleteErrorSegmentModal: React.FC<Props> = ({
-    hideModalHandler,
-    showModal,
-    segmentToDelete,
-    afterDeleteHandler,
-}) => {
-    const { segment_id, project_id } = useParams<{
-        segment_id: string;
-        project_id: string;
-    }>();
+const DeleteErrorSegmentModal: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ hideModalHandler, showModal, segmentToDelete, afterDeleteHandler }) => {
+    const { segment_id, project_id } =
+        useParams<{
+            segment_id: string;
+            project_id: string;
+        }>();
     const history = useHistory<ErrorSearchParams>();
     const [deleteSegment, { loading }] = useDeleteErrorSegmentMutation({
         update(cache) {

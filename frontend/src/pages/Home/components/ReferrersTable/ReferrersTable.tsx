@@ -26,9 +26,10 @@ import styles from './ReferrersTable.module.scss';
 
 const ReferrersTable = () => {
     const [tableData, setTableData] = useState<any[]>([]);
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -36,11 +37,8 @@ const ReferrersTable = () => {
 
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
-    const {
-        setSearchParams,
-        setSegmentName,
-        setSelectedSegment,
-    } = useSearchContext();
+    const { setSearchParams, setSegmentName, setSelectedSegment } =
+        useSearchContext();
 
     const { loading } = useGetReferrersCountQuery({
         variables: { project_id, lookBackPeriod: dateRangeLength },

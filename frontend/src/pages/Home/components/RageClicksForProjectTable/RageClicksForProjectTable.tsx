@@ -37,19 +37,17 @@ const RageClicksForProjectTable = () => {
             userProperties: string;
         }[]
     >([]);
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const {
-        setSearchParams,
-        setSegmentName,
-        setSelectedSegment,
-    } = useSearchContext();
+    const { setSearchParams, setSegmentName, setSelectedSegment } =
+        useSearchContext();
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
     const [filterSearchTerm, setFilterSearchTerm] = useState('');

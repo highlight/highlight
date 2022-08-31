@@ -19,10 +19,11 @@ import styles from './NewAlertPage.module.scss';
 
 const NewAlertPage = () => {
     const { url } = useRouteMatch();
-    const { type, project_id } = useParams<{
-        type?: ALERT_NAMES;
-        project_id: string;
-    }>();
+    const { type, project_id } =
+        useParams<{
+            type?: ALERT_NAMES;
+            project_id: string;
+        }>();
     const { alertsPayload, slackUrl } = useAlertsContext();
     const history = useHistory();
 
@@ -50,7 +51,8 @@ const NewAlertPage = () => {
                     </p>
                     <div className={styles.cardGrid}>
                         {Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
-                            const key = _key as keyof typeof ALERT_CONFIGURATIONS;
+                            const key =
+                                _key as keyof typeof ALERT_CONFIGURATIONS;
                             const configuration = ALERT_CONFIGURATIONS[key];
                             const alertColor = getAlertTypeColor(
                                 configuration.name

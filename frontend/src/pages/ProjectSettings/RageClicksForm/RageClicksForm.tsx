@@ -14,16 +14,14 @@ import Button from '../../../components/Button/Button/Button';
 import styles from './RageClicksForm.module.scss';
 
 export const RageClicksForm = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
-    const [
-        rageClickWindowSeconds,
-        setRageClickWindowSeconds,
-    ] = useState<number>(0);
-    const [rageClickRadiusPixels, setRageClickRadiusPixels] = useState<number>(
-        0
-    );
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
+    const [rageClickWindowSeconds, setRageClickWindowSeconds] =
+        useState<number>(0);
+    const [rageClickRadiusPixels, setRageClickRadiusPixels] =
+        useState<number>(0);
     const [rageClickCount, setRageClickCount] = useState<number>(0);
     const { data, loading } = useGetProjectQuery({
         variables: {
@@ -31,18 +29,16 @@ export const RageClicksForm = () => {
         },
     });
 
-    const [
-        editProject,
-        { loading: editProjectLoading },
-    ] = useEditProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetProjects,
-            namedOperations.Query.GetProject,
-        ],
-        onCompleted: () => {
-            message.success('Updated rage clicks settings!', 5);
-        },
-    });
+    const [editProject, { loading: editProjectLoading }] =
+        useEditProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetProjects,
+                namedOperations.Query.GetProject,
+            ],
+            onCompleted: () => {
+                message.success('Updated rage clicks settings!', 5);
+            },
+        });
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();

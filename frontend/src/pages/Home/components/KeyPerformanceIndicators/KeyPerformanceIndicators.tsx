@@ -22,11 +22,8 @@ const KeyPerformanceIndicators = () => {
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
     const { dateRangeLength } = useHomePageFiltersContext();
-    const {
-        setSearchParams,
-        setSegmentName,
-        setSelectedSegment,
-    } = useSearchContext();
+    const { setSearchParams, setSegmentName, setSelectedSegment } =
+        useSearchContext();
     const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
         variables: {
             project_id,

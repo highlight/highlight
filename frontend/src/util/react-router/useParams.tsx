@@ -11,9 +11,8 @@ import validator from 'validator';
  */
 // @ts-expect-error
 export const useParams: typeof ReactRouterUseParams = () => {
-    const matches: ReturnType<
-        typeof ReactRouterUseParams
-    > = ReactRouterUseParams();
+    const matches: ReturnType<typeof ReactRouterUseParams> =
+        ReactRouterUseParams();
 
     if (matches?.project_id) {
         if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {

@@ -11,10 +11,8 @@ import WaitingAnimation from '../../../../lottie/waiting.json';
 const UnauthorizedViewingForm = () => {
     const { admin } = useAuthContext();
     const [reason, setReason] = useState('');
-    const {
-        viewingUnauthorizedSession,
-        setViewingUnauthorizedSession,
-    } = useReplayerContext();
+    const { viewingUnauthorizedSession, setViewingUnauthorizedSession } =
+        useReplayerContext();
 
     if (!viewingUnauthorizedSession) {
         return null;

@@ -40,9 +40,10 @@ const CommentTextBody = ({
 
     newInput,
 }: Props) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const slackUrl = getSlackUrl('Organization', project_id);
     const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler);
 

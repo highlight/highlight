@@ -24,15 +24,13 @@ import SvgSettingsIcon from '../../../../static/SettingsIcon';
 import styles from './ApplicationPicker.module.scss';
 
 const ApplicationPicker = () => {
-    const {
-        allProjects,
-        currentProject,
-        currentWorkspace,
-    } = useApplicationContext();
-    const { workspace_id, project_id } = useParams<{
-        workspace_id: string;
-        project_id: string;
-    }>();
+    const { allProjects, currentProject, currentWorkspace } =
+        useApplicationContext();
+    const { workspace_id, project_id } =
+        useParams<{
+            workspace_id: string;
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

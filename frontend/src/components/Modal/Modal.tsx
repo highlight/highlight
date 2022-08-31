@@ -26,40 +26,43 @@ type Props = Pick<
     minimalPaddingSize?: string;
 };
 
-const Modal: React.FC<Props> = ({
-    children,
-    className,
-    title,
-    minimal,
-    minimalPaddingSize = 'var(--size-xSmall)',
-    ...props
-}) => {
-    const bodyStyle: React.CSSProperties = minimal
-        ? {
-              paddingTop: minimalPaddingSize,
-              paddingBottom: minimalPaddingSize,
-              paddingLeft: minimalPaddingSize,
-              paddingRight: minimalPaddingSize,
-          }
-        : {};
+const Modal: React.FC<React.PropsWithChildren<React.PropsWithChildren<Props>>> =
+    ({
+        children,
+        className,
+        title,
+        minimal,
+        minimalPaddingSize = 'var(--size-xSmall)',
+        ...props
+    }) => {
+        const bodyStyle: React.CSSProperties = minimal
+            ? {
+                  paddingTop: minimalPaddingSize,
+                  paddingBottom: minimalPaddingSize,
+                  paddingLeft: minimalPaddingSize,
+                  paddingRight: minimalPaddingSize,
+              }
+            : {};
 
-    return (
-        <AntDesignModal
-            footer={null}
-            {...props}
-            closeIcon={
-                !minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
-            }
-            className={classNames(styles.modal, className)}
-            wrapClassName={styles.modalWrap}
-            closable={!minimal}
-            bodyStyle={bodyStyle}
-            maskClosable
-        >
-            {title && <h3 className={styles.title}>{title}</h3>}
-            <main className={styles.modalContent}>{children}</main>
-        </AntDesignModal>
-    );
-};
+        return (
+            <AntDesignModal
+                footer={null}
+                {...props}
+                closeIcon={
+                    !minimal ? (
+                        <SvgCloseIcon height="18px" width="18px" />
+                    ) : null
+                }
+                className={classNames(styles.modal, className)}
+                wrapClassName={styles.modalWrap}
+                closable={!minimal}
+                bodyStyle={bodyStyle}
+                maskClosable
+            >
+                {title && <h3 className={styles.title}>{title}</h3>}
+                <main className={styles.modalContent}>{children}</main>
+            </AntDesignModal>
+        );
+    };
 
 export default Modal;

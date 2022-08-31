@@ -6,10 +6,8 @@ import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration';
 import styles from './DOMInteractionsToggle.module.scss';
 
 const DOMInteractionsToggle = () => {
-    const {
-        enableInspectElement,
-        setEnableInspectElement,
-    } = usePlayerConfiguration();
+    const { enableInspectElement, setEnableInspectElement } =
+        usePlayerConfiguration();
 
     return (
         <Tooltip

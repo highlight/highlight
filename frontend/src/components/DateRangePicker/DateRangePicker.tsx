@@ -63,10 +63,8 @@ const DateRangePicker = ({ onChange }: Props) => {
                         }}
                         months={2}
                         staticRanges={TIME_RANGES.map((timeRange) => {
-                            const {
-                                endDate,
-                                startDate,
-                            } = getStartAndEndTimeRange(timeRange.value);
+                            const { endDate, startDate } =
+                                getStartAndEndTimeRange(timeRange.value);
 
                             return {
                                 isSelected: (range) => {
@@ -127,10 +125,8 @@ const getButtonLabel = (_startDate?: Date, _endDate?: Date): string => {
     const DATE_FORMAT = 'DD MMM';
 
     const matchingPreset = TIME_RANGES.find((timeRange) => {
-        const {
-            endDate: presetEndDate,
-            startDate: presetStartDate,
-        } = getStartAndEndTimeRange(timeRange.value);
+        const { endDate: presetEndDate, startDate: presetStartDate } =
+            getStartAndEndTimeRange(timeRange.value);
 
         return (
             areDatesEqual(startDate.toDate(), presetStartDate) &&

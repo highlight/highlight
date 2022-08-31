@@ -7,9 +7,10 @@ export const PaywallTooltip = ({
     tier,
     children,
 }: React.PropsWithChildren<{ tier: PlanType }>) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     return (
         <Tooltip
             mouseEnterDelay={0.3}

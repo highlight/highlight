@@ -71,7 +71,9 @@ const config: Config = {
 // You can load query value from your backend storage (for saving see `Query.onChange()`)
 const queryValue: JsonGroup = { id: QbUtils.uuid(), type: 'group' };
 
-const QueryBuilderPage: React.FC = () => {
+const QueryBuilderPage: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = () => {
     const [state, setState] = useState({
         tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config),
         config: config,

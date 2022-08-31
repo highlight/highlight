@@ -25,16 +25,14 @@ interface Props {
     afterDeleteHandler?: () => void;
 }
 
-const DeleteSessionSegmentModal: React.FC<Props> = ({
-    hideModalHandler,
-    showModal,
-    segmentToDelete,
-    afterDeleteHandler,
-}) => {
-    const { segment_id, project_id } = useParams<{
-        segment_id: string;
-        project_id: string;
-    }>();
+const DeleteSessionSegmentModal: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ hideModalHandler, showModal, segmentToDelete, afterDeleteHandler }) => {
+    const { segment_id, project_id } =
+        useParams<{
+            segment_id: string;
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

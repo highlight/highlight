@@ -23,9 +23,8 @@ import {
 const AlertsRouter = () => {
     const { project_id } = useParams<{ project_id: string }>();
     const { path } = useRouteMatch();
-    const [alertsPayload, setAlertsPayload] = useState<
-        GetAlertsPagePayloadQuery | undefined
-    >(undefined);
+    const [alertsPayload, setAlertsPayload] =
+        useState<GetAlertsPagePayloadQuery | undefined>(undefined);
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { project_id },
     });

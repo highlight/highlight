@@ -29,7 +29,5 @@ interface DashboardsContext {
     }) => Promise<FetchResult<UpsertDashboardMutation>>;
 }
 
-export const [
-    useDashboardsContext,
-    DashboardsContextProvider,
-] = createContext<DashboardsContext>('Dashboards');
+export const [useDashboardsContext, DashboardsContextProvider] =
+    createContext<DashboardsContext>('Dashboards');

@@ -163,7 +163,7 @@ export const StreamElement = ({
                                             title={
                                                 // @ts-ignore
                                                 EventTypeDescriptions[
-                                                    (details.title as unknown) as string
+                                                    details.title as unknown as string
                                                 ]
                                             }
                                         />

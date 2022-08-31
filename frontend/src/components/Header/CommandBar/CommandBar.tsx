@@ -33,9 +33,9 @@ const THEME = {
     trigger: 'atom-trigger',
 };
 
-const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
-    history,
-}) => {
+const CommandPaletteComponent: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<RouteComponentProps>>
+> = ({ history }) => {
     const [normalizedWorkspaces, setNormalizedWorkspaces] = useState({});
     const [getProjects, { data }] = useGetProjectSuggestionLazyQuery({
         onCompleted: (data) => {
@@ -57,9 +57,10 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         },
     });
     const { isHighlightAdmin } = useAuthContext();
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const playerCommands = usePlayerCommands(isHighlightAdmin);
 
     useEffect(() => {

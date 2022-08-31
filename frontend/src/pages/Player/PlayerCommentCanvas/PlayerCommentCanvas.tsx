@@ -35,9 +35,10 @@ const PlayerCommentCanvas = React.memo(
         setCommentPosition,
         isLoadingEvents,
     }: Props) => {
-        const { session_secure_id } = useParams<{
-            session_secure_id: string;
-        }>();
+        const { session_secure_id } =
+            useParams<{
+                session_secure_id: string;
+            }>();
         const { data: sessionCommentsData } = useGetSessionCommentsQuery({
             variables: {
                 session_secure_id: session_secure_id,
@@ -55,13 +56,12 @@ const PlayerCommentCanvas = React.memo(
         );
         const { pause, replayer } = useReplayerContext();
         const buttonRef = useRef<HTMLButtonElement>(null);
-        const [indicatorLocation, setIndicatorLocation] = useState<
-            Coordinates2D | undefined
-        >(undefined);
-        const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
-            .width;
-        const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
-            .height;
+        const [indicatorLocation, setIndicatorLocation] =
+            useState<Coordinates2D | undefined>(undefined);
+        const playerBoundingClientRectWidth =
+            replayer?.wrapper?.getBoundingClientRect().width;
+        const playerBoundingClientRectHeight =
+            replayer?.wrapper?.getBoundingClientRect().height;
 
         useEffect(() => {
             const commentId = new URLSearchParams(location.search).get(
@@ -108,9 +108,8 @@ const PlayerCommentCanvas = React.memo(
             }
         }, [modalPosition, setCommentPosition]);
 
-        const showCommentsOverlaid = selectedTimelineAnnotationTypes.includes(
-            'Comments'
-        );
+        const showCommentsOverlaid =
+            selectedTimelineAnnotationTypes.includes('Comments');
 
         if (enableInspectElement) {
             return null;
@@ -128,7 +127,8 @@ const PlayerCommentCanvas = React.memo(
                     })}
                     onClick={(e) => {
                         if (buttonRef?.current) {
-                            const rect = buttonRef.current.getBoundingClientRect();
+                            const rect =
+                                buttonRef.current.getBoundingClientRect();
 
                             // Calculate the position of where the user clicked relative to the session player.
                             const x = e.clientX - rect.left;

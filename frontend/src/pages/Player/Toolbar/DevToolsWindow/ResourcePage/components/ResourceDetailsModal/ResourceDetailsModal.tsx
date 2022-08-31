@@ -100,11 +100,8 @@ const ResourceDetailsModal = ({
     const responsePayloadData: KeyValueTableRow[] = [];
 
     if (selectedNetworkResource?.requestResponsePairs) {
-        const {
-            request,
-            response,
-            urlBlocked,
-        } = selectedNetworkResource.requestResponsePairs;
+        const { request, response, urlBlocked } =
+            selectedNetworkResource.requestResponsePairs;
 
         if (urlBlocked) {
             generalData.push({

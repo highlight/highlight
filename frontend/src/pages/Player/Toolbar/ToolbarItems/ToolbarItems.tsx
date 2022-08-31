@@ -200,10 +200,8 @@ export const DevToolsToolbarItem = React.memo(
 
 export const TimelineAnnotationsToolbarItem = React.memo(
     ({ loading, renderContext }: ToolbarItemProps) => {
-        const {
-            setTimelineAnnotations,
-            timelineAnnotations,
-        } = useToolbarItemsContext();
+        const { setTimelineAnnotations, timelineAnnotations } =
+            useToolbarItemsContext();
 
         if (!shouldRender(timelineAnnotations, renderContext)) {
             return null;
@@ -240,10 +238,8 @@ export const TimelineAnnotationsToolbarItem = React.memo(
 
 export const PlaybackSpeedControlToolbarItem = React.memo(
     ({ loading, renderContext }: ToolbarItemProps) => {
-        const {
-            playbackSpeedControl,
-            setPlaybackSpeedControl,
-        } = useToolbarItemsContext();
+        const { playbackSpeedControl, setPlaybackSpeedControl } =
+            useToolbarItemsContext();
 
         if (!shouldRender(playbackSpeedControl, renderContext)) {
             return null;
@@ -284,10 +280,8 @@ export const MouseTrailToolbarItem = React.memo(
             showMouseTrail: configuration,
             setShowMouseTrail: setConfiguration,
         } = useToolbarItemsContext();
-        const {
-            showPlayerMouseTail,
-            setShowPlayerMouseTail,
-        } = usePlayerConfiguration();
+        const { showPlayerMouseTail, setShowPlayerMouseTail } =
+            usePlayerConfiguration();
 
         if (!shouldRender(configuration, renderContext)) {
             return null;
@@ -401,10 +395,8 @@ export const SkipInactiveToolbarItem = React.memo(
 
 export const AutoPlayToolbarItem = React.memo(
     ({ loading, renderContext }: ToolbarItemProps) => {
-        const {
-            autoPlay: configuration,
-            setAutoPlay: setConfiguration,
-        } = useToolbarItemsContext();
+        const { autoPlay: configuration, setAutoPlay: setConfiguration } =
+            useToolbarItemsContext();
         const { autoPlayVideo, setAutoPlayVideo } = usePlayerConfiguration();
 
         if (!shouldRender(configuration, renderContext)) {
@@ -460,10 +452,8 @@ export const AutoPlayToolbarItem = React.memo(
 
 export const PlayerTimeToolbarItem = React.memo(
     ({ loading, renderContext }: ToolbarItemProps) => {
-        const {
-            showPlayerAbsoluteTime,
-            setShowPlayerAbsoluteTime,
-        } = usePlayerConfiguration();
+        const { showPlayerAbsoluteTime, setShowPlayerAbsoluteTime } =
+            usePlayerConfiguration();
         const { showPlayerTime, setShowPlayerTime } = useToolbarItemsContext();
 
         if (!shouldRender(showPlayerTime, renderContext)) {

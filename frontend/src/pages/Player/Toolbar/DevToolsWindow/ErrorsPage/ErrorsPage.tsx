@@ -19,9 +19,8 @@ interface ErrorsPageHistoryState {
 const ErrorsPage = React.memo(() => {
     const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1);
     const virtuoso = useRef<VirtuosoHandle>(null);
-    const [isInteractingWithErrors, setIsInteractingWithErrors] = useState(
-        false
-    );
+    const [isInteractingWithErrors, setIsInteractingWithErrors] =
+        useState(false);
     const [filterSearchTerm, setFilterSearchTerm] = useState('');
     const history = useHistory<ErrorsPageHistoryState>();
     const {
@@ -84,7 +83,8 @@ const ErrorsPage = React.memo(() => {
         }
 
         return allErrors.filter((error) => {
-            const normalizedFilterSearchTerm = filterSearchTerm.toLocaleLowerCase();
+            const normalizedFilterSearchTerm =
+                filterSearchTerm.toLocaleLowerCase();
 
             return error.event.some(
                 (line) =>

@@ -13,9 +13,10 @@ import Button from '../../../components/Button/Button/Button';
 import styles from './ErrorSettingsForm.module.scss';
 
 export const ErrorSettingsForm = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const [errorJsonPaths, setErrorJsonPaths] = useState<string[]>([]);
     const { data, loading } = useGetProjectQuery({
         variables: {
@@ -23,15 +24,13 @@ export const ErrorSettingsForm = () => {
         },
     });
 
-    const [
-        editProject,
-        { loading: editProjectLoading },
-    ] = useEditProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetProjects,
-            namedOperations.Query.GetProject,
-        ],
-    });
+    const [editProject, { loading: editProjectLoading }] =
+        useEditProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetProjects,
+                namedOperations.Query.GetProject,
+            ],
+        });
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();

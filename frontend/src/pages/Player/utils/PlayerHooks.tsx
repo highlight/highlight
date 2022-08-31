@@ -69,10 +69,11 @@ export const usePlayerKeyboardShortcuts = () => {
         showRightPanel,
         setShowRightPanel,
     } = usePlayerConfiguration();
-    const { session_secure_id, project_id } = useParams<{
-        session_secure_id: string;
-        project_id: string;
-    }>();
+    const { session_secure_id, project_id } =
+        useParams<{
+            session_secure_id: string;
+            project_id: string;
+        }>();
     const history = useHistory();
     message.config({
         maxCount: 1,
@@ -338,11 +339,12 @@ export const usePlayerFullscreen = () => {
     useEffect(() => {
         if (playerCenterPanelRef.current) {
             if (isPlayerFullscreen) {
-                const fullscreenBrowserFunctions = playerCenterPanelRef.current as HTMLDivElement & {
-                    mozRequestFullScreen(): Promise<void>;
-                    webkitRequestFullscreen(): Promise<void>;
-                    msRequestFullscreen(): Promise<void>;
-                };
+                const fullscreenBrowserFunctions =
+                    playerCenterPanelRef.current as HTMLDivElement & {
+                        mozRequestFullScreen(): Promise<void>;
+                        webkitRequestFullscreen(): Promise<void>;
+                        msRequestFullscreen(): Promise<void>;
+                    };
                 if (fullscreenBrowserFunctions.requestFullscreen) {
                     fullscreenBrowserFunctions.requestFullscreen();
                 } else if (fullscreenBrowserFunctions.mozRequestFullScreen) {

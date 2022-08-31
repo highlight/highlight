@@ -14,31 +14,32 @@ interface Props {
     className?: string;
 }
 
-const Tag: React.FC<Props> = ({
-    children,
-    backgroundColor,
-    color = 'var(--text-primary)',
-    infoTooltipText,
-    autoColorsText,
-    className,
-}) => {
-    const hashBackgroundColor = autoColorsText
-        ? getTagBackgroundColor(autoColorsText)
-        : undefined;
+const Tag: React.FC<React.PropsWithChildren<React.PropsWithChildren<Props>>> =
+    ({
+        children,
+        backgroundColor,
+        color = 'var(--text-primary)',
+        infoTooltipText,
+        autoColorsText,
+        className,
+    }) => {
+        const hashBackgroundColor = autoColorsText
+            ? getTagBackgroundColor(autoColorsText)
+            : undefined;
 
-    return (
-        <div
-            style={{
-                backgroundColor: backgroundColor || hashBackgroundColor,
-                color,
-            }}
-            className={classNames(className, styles.tag)}
-        >
-            {children}
-            {infoTooltipText && <InfoTooltip title={infoTooltipText} />}
-        </div>
-    );
-};
+        return (
+            <div
+                style={{
+                    backgroundColor: backgroundColor || hashBackgroundColor,
+                    color,
+                }}
+                className={classNames(className, styles.tag)}
+            >
+                {children}
+                {infoTooltipText && <InfoTooltip title={infoTooltipText} />}
+            </div>
+        );
+    };
 
 export default Tag;
 

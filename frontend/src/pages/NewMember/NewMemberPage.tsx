@@ -21,10 +21,11 @@ import { client } from '../../util/graph';
 import styles from './NewMemberPage.module.scss';
 
 const NewMemberPage = () => {
-    const { invite_id, workspace_id } = useParams<{
-        workspace_id: string;
-        invite_id: string;
-    }>();
+    const { invite_id, workspace_id } =
+        useParams<{
+            workspace_id: string;
+            invite_id: string;
+        }>();
     const [adminAdded, setAdminAdded] = useState(false);
     const addAdminMutation = useAddAdminToWorkspaceMutation;
     const [addAdmin, { loading: addLoading, error }] = addAdminMutation();

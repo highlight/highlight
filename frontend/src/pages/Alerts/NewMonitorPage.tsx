@@ -25,9 +25,10 @@ const NewMonitorPage = ({
     isSlackIntegrated,
     emailSuggestions,
 }: Props) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const newMonitorTypeSearchParam = useSearchParam('type');
     const { slackUrl, loading } = useAlertsContext();
     const history = useHistory();

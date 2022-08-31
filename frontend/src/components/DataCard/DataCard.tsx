@@ -9,12 +9,9 @@ type Props = {
     fullWidth?: boolean;
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'title'>;
 
-const DataCard: React.FC<Props> = ({
-    children,
-    title,
-    fullWidth = false,
-    ...props
-}) => {
+const DataCard: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ children, title, fullWidth = false, ...props }) => {
     return (
         <article
             className={classNames(styles.card, props.className, {

@@ -20,9 +20,8 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
         `highlight-${project_id}-integrated`,
         false
     );
-    const [integrated, setIntegrated] = useState<boolean | undefined>(
-        undefined
-    );
+    const [integrated, setIntegrated] =
+        useState<boolean | undefined>(undefined);
     const [loadingState, setLoadingState] = useState(true);
     const integratedRaw = data?.isIntegrated;
 
@@ -92,9 +91,8 @@ export const useBackendIntegrated = (): {
         `highlight-${project_id}-backend-integrated`,
         false
     );
-    const [integrated, setIntegrated] = useState<boolean | undefined>(
-        undefined
-    );
+    const [integrated, setIntegrated] =
+        useState<boolean | undefined>(undefined);
     const [loadingState, setLoadingState] = useState(true);
     const integratedRaw = data?.isBackendIntegrated;
 

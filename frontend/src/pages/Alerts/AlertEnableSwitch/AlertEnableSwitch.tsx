@@ -18,7 +18,9 @@ import React, { useState } from 'react';
 
 import styles from './AlertEnableSwitch.module.scss';
 
-export const AlertEnableSwitch: React.FC<{ record: any }> = ({ record }) => {
+export const AlertEnableSwitch: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<{ record: any }>>
+> = ({ record }) => {
     const { project_id } = useParams<{ project_id: string }>();
     const [loading, setLoading] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(record.disabled ?? false);
@@ -28,12 +30,10 @@ export const AlertEnableSwitch: React.FC<{ record: any }> = ({ record }) => {
     const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
     const [updateMetricMonitor] = useUpdateMetricMonitorMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
-    const [
-        updateTrackPropertiesAlert,
-    ] = useUpdateTrackPropertiesAlertMutation();
-    const [
-        updateSessionFeedbackAlert,
-    ] = useUpdateSessionFeedbackAlertMutation();
+    const [updateTrackPropertiesAlert] =
+        useUpdateTrackPropertiesAlertMutation();
+    const [updateSessionFeedbackAlert] =
+        useUpdateSessionFeedbackAlertMutation();
 
     const onChange = async () => {
         setLoading(true);

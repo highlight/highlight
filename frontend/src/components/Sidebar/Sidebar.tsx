@@ -185,14 +185,19 @@ export const Sidebar = () => {
     );
 };
 
-const MiniSidebarItem: React.FC<{
-    route: string;
-    text: string;
-}> = ({ route, text, children }) => {
-    const { project_id, workspace_id } = useParams<{
-        project_id: string;
-        workspace_id: string;
-    }>();
+const MiniSidebarItem: React.FC<
+    React.PropsWithChildren<
+        React.PropsWithChildren<{
+            route: string;
+            text: string;
+        }>
+    >
+> = ({ route, text, children }) => {
+    const { project_id, workspace_id } =
+        useParams<{
+            project_id: string;
+            workspace_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

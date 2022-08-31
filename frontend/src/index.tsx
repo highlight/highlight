@@ -35,7 +35,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H, HighlightOptions } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Helmet } from 'react-helmet';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
@@ -179,10 +179,11 @@ const App = () => {
 };
 
 const AuthenticationRoleRouter = () => {
-    const { workspace_id, project_id } = useParams<{
-        workspace_id: string;
-        project_id: string;
-    }>();
+    const { workspace_id, project_id } =
+        useParams<{
+            workspace_id: string;
+            project_id: string;
+        }>();
     const [
         getWorkspaceAdminsQuery,
         {
@@ -369,11 +370,10 @@ get in contact with us!
     );
 };
 
-ReactDOM.render(
+createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <App />
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
 );
 
 // If you want your app to work offline and load faster, you can change

@@ -73,9 +73,10 @@ const SessionShareButton = (props: ButtonProps) => {
 
 const ExternalSharingToggle = () => {
     const { session } = useReplayerContext();
-    const { session_secure_id } = useParams<{
-        session_secure_id: string;
-    }>();
+    const { session_secure_id } =
+        useParams<{
+            session_secure_id: string;
+        }>();
     const [updateSessionIsPublic] = useUpdateSessionIsPublicMutation({
         update(cache, { data }) {
             const is_public = data?.updateSessionIsPublic?.is_public === true;

@@ -29,7 +29,9 @@ const LANGUAGE_MAP: { [K in string]: string } = {
     tsx: 'tsx',
 };
 
-const ErrorSourcePreview: React.FC<ErrorSourcePreviewProps> = ({
+const ErrorSourcePreview: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<ErrorSourcePreviewProps>>
+> = ({
     fileName,
     lineNumber,
     functionName,

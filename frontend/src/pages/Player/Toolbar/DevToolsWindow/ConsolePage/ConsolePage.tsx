@@ -40,9 +40,8 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
         undefined | Array<ParsedMessage>
     >([]);
     const [consoleType, setConsoleType] = useState<string>('All');
-    const [isInteractingWithMessages, setIsInteractingWithMessages] = useState(
-        false
-    );
+    const [isInteractingWithMessages, setIsInteractingWithMessages] =
+        useState(false);
     const { session_secure_id } = useParams<{ session_secure_id: string }>();
     const [loading, setLoading] = useState(true);
     const skipQuery = session === undefined || !!session?.messages_url;

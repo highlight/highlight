@@ -80,15 +80,13 @@ const DashboardCard = ({
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
     const [updatingData, setUpdatingData] = useState<boolean>(true);
     const { project_id } = useParams<{ project_id: string }>();
-    const {
-        data: metricMonitors,
-        loading: metricMonitorsLoading,
-    } = useGetMetricMonitorsQuery({
-        variables: {
-            project_id,
-            metric_name: metricConfig.name,
-        },
-    });
+    const { data: metricMonitors, loading: metricMonitorsLoading } =
+        useGetMetricMonitorsQuery({
+            variables: {
+                project_id,
+                metric_name: metricConfig.name,
+            },
+        });
 
     const history = useHistory();
 
@@ -138,7 +136,8 @@ const DashboardCard = ({
                                                     <div>
                                                         <SvgAnnouncementIcon
                                                             style={{
-                                                                marginBottom: -3,
+                                                                marginBottom:
+                                                                    -3,
                                                                 marginRight:
                                                                     'var(--size-xSmall)',
                                                             }}
@@ -185,8 +184,7 @@ const DashboardCard = ({
                                                         value: mm?.id || '',
                                                     })),
                                                     {
-                                                        label:
-                                                            'Create New Alert',
+                                                        label: 'Create New Alert',
                                                         value: -1,
                                                     },
                                                 ]}
@@ -365,14 +363,10 @@ const ChartContainer = React.memo(
         const [chartInitialLoading, setChartInitialLoading] = useState(true);
         const { timeRange, setTimeRange } = useDataTimeRange();
         const { lookback: lookbackMinutes } = timeRange;
-        const [
-            histogramData,
-            setHistogramData,
-        ] = useState<GetMetricsHistogramQuery>();
-        const [
-            timelineData,
-            setTimelineData,
-        ] = useState<GetMetricsTimelineQuery>();
+        const [histogramData, setHistogramData] =
+            useState<GetMetricsHistogramQuery>();
+        const [timelineData, setTimelineData] =
+            useState<GetMetricsTimelineQuery>();
         const [referenceArea, setReferenceArea] = useState<{
             start: string;
             end: string;

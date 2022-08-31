@@ -123,9 +123,8 @@ export const useResources = (
                         )
                             .sort((a, b) => a.startTime - b.startTime)
                             .map((resource) => {
-                                const resolverName = getGraphQLResolverName(
-                                    resource
-                                );
+                                const resolverName =
+                                    getGraphQLResolverName(resource);
 
                                 if (resolverName) {
                                     return {
@@ -157,7 +156,5 @@ export const useResources = (
     };
 };
 
-export const [
-    useResourcesContext,
-    ResourcesContextProvider,
-] = createContext<ResourcesContext>('Resources');
+export const [useResourcesContext, ResourcesContextProvider] =
+    createContext<ResourcesContext>('Resources');

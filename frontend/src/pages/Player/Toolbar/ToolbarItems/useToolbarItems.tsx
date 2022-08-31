@@ -11,24 +11,20 @@ const useToolbarItems = () => {
             isPinned: true,
         }
     );
-    const [
-        timelineAnnotations,
-        setTimelineAnnotations,
-    ] = useLocalStorage<ToolbarItem>(
-        `${LocalStorageKeyPrefix}-timeline-annotations`,
-        {
-            isPinned: false,
-        }
-    );
-    const [
-        playbackSpeedControl,
-        setPlaybackSpeedControl,
-    ] = useLocalStorage<ToolbarItem>(
-        `${LocalStorageKeyPrefix}-playback-speed-control`,
-        {
-            isPinned: false,
-        }
-    );
+    const [timelineAnnotations, setTimelineAnnotations] =
+        useLocalStorage<ToolbarItem>(
+            `${LocalStorageKeyPrefix}-timeline-annotations`,
+            {
+                isPinned: false,
+            }
+        );
+    const [playbackSpeedControl, setPlaybackSpeedControl] =
+        useLocalStorage<ToolbarItem>(
+            `${LocalStorageKeyPrefix}-playback-speed-control`,
+            {
+                isPinned: false,
+            }
+        );
     const [showMouseTrail, setShowMouseTrail] = useLocalStorage<ToolbarItem>(
         `${LocalStorageKeyPrefix}-mouse-trail`,
         {

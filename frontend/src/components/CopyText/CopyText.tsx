@@ -14,13 +14,9 @@ interface Props {
     onCopyTooltipText: string;
 }
 
-const CopyText: React.FC<Props> = ({
-    text,
-    className,
-    inline,
-    custom,
-    onCopyTooltipText,
-}) => {
+const CopyText: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ text, className, inline, custom, onCopyTooltipText }) => {
     const onCopyHandler = () => {
         navigator.clipboard.writeText(text);
         message.success(onCopyTooltipText);

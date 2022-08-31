@@ -111,7 +111,8 @@ const LineChart = ({
     const [showTooltip, setShowTooltip] = React.useState(false);
 
     const isNonXAxisKey = useCallback(
-        (keyName) => keyName !== xAxisDataKeyName && keyName !== '__typename',
+        (keyName: any) =>
+            keyName !== xAxisDataKeyName && keyName !== '__typename',
         [xAxisDataKeyName]
     );
 
@@ -332,10 +333,10 @@ export const CustomTooltip = ({
                             referenceLines?.length >= 2
                                 ? getScoreIcon(
                                       getMetricValueScore(entry.value, {
-                                          max_good_value: referenceLines![0]
-                                              .value,
-                                          max_needs_improvement_value: referenceLines![1]
-                                              .value,
+                                          max_good_value:
+                                              referenceLines![0].value,
+                                          max_needs_improvement_value:
+                                              referenceLines![1].value,
                                       })
                                   )
                                 : undefined}

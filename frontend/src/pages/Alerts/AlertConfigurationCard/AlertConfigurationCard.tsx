@@ -114,21 +114,19 @@ export const AlertConfigurationCard = ({
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
-    const [
-        createSessionFeedbackAlert,
-        {},
-    ] = useCreateSessionFeedbackAlertMutation({
-        variables: {
-            project_id,
-            count_threshold: 1,
-            environments: [],
-            slack_channels: [],
-            threshold_window: 30,
-            name: 'Session Feedback',
-            emails: emailsToNotify,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
+    const [createSessionFeedbackAlert, {}] =
+        useCreateSessionFeedbackAlertMutation({
+            variables: {
+                project_id,
+                count_threshold: 1,
+                environments: [],
+                slack_channels: [],
+                threshold_window: 30,
+                name: 'Session Feedback',
+                emails: emailsToNotify,
+            },
+            refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        });
     const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
         variables: {
             project_id,
@@ -166,42 +164,36 @@ export const AlertConfigurationCard = ({
         },
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
-    const [
-        createTrackPropertiesAlert,
-        {},
-    ] = useCreateTrackPropertiesAlertMutation({
-        variables: {
-            project_id,
-            environments: [],
-            slack_channels: [],
-            name: 'Track',
-            track_properties: [],
-            threshold_window: 1,
-            emails: emailsToNotify,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [
-        createUserPropertiesAlert,
-        {},
-    ] = useCreateUserPropertiesAlertMutation({
-        variables: {
-            project_id,
-            environments: [],
-            slack_channels: [],
-            name: 'User',
-            user_properties: [],
-            threshold_window: 1,
-            emails: emailsToNotify,
-        },
-        refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-    });
-    const [
-        updateTrackPropertiesAlert,
-    ] = useUpdateTrackPropertiesAlertMutation();
-    const [
-        updateSessionFeedbackAlert,
-    ] = useUpdateSessionFeedbackAlertMutation();
+    const [createTrackPropertiesAlert, {}] =
+        useCreateTrackPropertiesAlertMutation({
+            variables: {
+                project_id,
+                environments: [],
+                slack_channels: [],
+                name: 'Track',
+                track_properties: [],
+                threshold_window: 1,
+                emails: emailsToNotify,
+            },
+            refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        });
+    const [createUserPropertiesAlert, {}] =
+        useCreateUserPropertiesAlertMutation({
+            variables: {
+                project_id,
+                environments: [],
+                slack_channels: [],
+                name: 'User',
+                user_properties: [],
+                threshold_window: 1,
+                emails: emailsToNotify,
+            },
+            refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+        });
+    const [updateTrackPropertiesAlert] =
+        useUpdateTrackPropertiesAlertMutation();
+    const [updateSessionFeedbackAlert] =
+        useUpdateSessionFeedbackAlertMutation();
     const [updateRageClickAlert] = useUpdateRageClickAlertMutation();
     const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation();
 
@@ -308,11 +300,8 @@ export const AlertConfigurationCard = ({
                                 track_properties: form
                                     .getFieldValue('trackProperties')
                                     .map((trackProperty: any) => {
-                                        const [
-                                            value,
-                                            name,
-                                            id,
-                                        ] = trackProperty.split(':');
+                                        const [value, name, id] =
+                                            trackProperty.split(':');
                                         return {
                                             id,
                                             value,
@@ -331,11 +320,8 @@ export const AlertConfigurationCard = ({
                                 user_properties: form
                                     .getFieldValue('userProperties')
                                     .map((userProperty: any) => {
-                                        const [
-                                            value,
-                                            name,
-                                            id,
-                                        ] = userProperty.split(':');
+                                        const [value, name, id] =
+                                            userProperty.split(':');
                                         return {
                                             id,
                                             value,
@@ -390,11 +376,8 @@ export const AlertConfigurationCard = ({
                                 user_properties: form
                                     .getFieldValue('userProperties')
                                     .map((userProperty: any) => {
-                                        const [
-                                            value,
-                                            name,
-                                            id,
-                                        ] = userProperty.split(':');
+                                        const [value, name, id] =
+                                            userProperty.split(':');
                                         return {
                                             id,
                                             value,
@@ -416,11 +399,8 @@ export const AlertConfigurationCard = ({
                                 track_properties: form
                                     .getFieldValue('trackProperties')
                                     .map((trackProperty: any) => {
-                                        const [
-                                            value,
-                                            name,
-                                            id,
-                                        ] = trackProperty.split(':');
+                                        const [value, name, id] =
+                                            trackProperty.split(':');
                                         return {
                                             id,
                                             value,
@@ -547,15 +527,15 @@ export const AlertConfigurationCard = ({
 
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
-        : (
-              userSuggestionsApiResponse?.property_suggestion || []
-          ).map((suggestion) => getPropertiesOption(suggestion));
+        : (userSuggestionsApiResponse?.property_suggestion || []).map(
+              (suggestion) => getPropertiesOption(suggestion)
+          );
 
     const trackPropertiesSuggestions = trackSuggestionsLoading
         ? []
-        : (
-              trackSuggestionsApiResponse?.property_suggestion || []
-          ).map((suggestion) => getPropertiesOption(suggestion));
+        : (trackSuggestionsApiResponse?.property_suggestion || []).map(
+              (suggestion) => getPropertiesOption(suggestion)
+          );
 
     const identifierSuggestions = identifierSuggestionsLoading
         ? []
@@ -812,8 +792,7 @@ export const AlertConfigurationCard = ({
                                                         <>
                                                             <Divider
                                                                 style={{
-                                                                    margin:
-                                                                        '4px 0',
+                                                                    margin: '4px 0',
                                                                 }}
                                                             />
                                                             <div

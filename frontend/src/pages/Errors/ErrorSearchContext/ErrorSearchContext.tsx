@@ -15,7 +15,5 @@ export type ErrorSearchParams = {
 
 type ErrorSearchContext = BaseSearchContext<ErrorSearchParams> & {};
 
-export const [
-    useErrorSearchContext,
-    ErrorSearchContextProvider,
-] = createContext<ErrorSearchContext>('ErrorSearchContext');
+export const [useErrorSearchContext, ErrorSearchContextProvider] =
+    createContext<ErrorSearchContext>('ErrorSearchContext');

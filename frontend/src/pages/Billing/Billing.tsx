@@ -91,22 +91,20 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull();
 
 const BillingPage = () => {
-    const { workspace_id } = useParams<{
-        workspace_id: string;
-    }>();
+    const { workspace_id } =
+        useParams<{
+            workspace_id: string;
+        }>();
     const [{ tier }] = useQueryParams({
         tier: StringParam,
     });
     const { pathname } = useLocation();
     const { currentWorkspace } = useApplicationContext();
     const { checkPolicyAccess } = useAuthorization();
-    const [
-        checkoutRedirectFailedMessage,
-        setCheckoutRedirectFailedMessage,
-    ] = useState<string>('');
-    const [loadingPlanType, setLoadingPlanType] = useState<PlanType | null>(
-        null
-    );
+    const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] =
+        useState<string>('');
+    const [loadingPlanType, setLoadingPlanType] =
+        useState<PlanType | null>(null);
     const [rainConfetti, setRainConfetti] = useState(false);
     const [subscriptionInterval, setSubscriptionInterval] = useState(
         SubscriptionInterval.Monthly
@@ -137,23 +135,19 @@ const BillingPage = () => {
         refetchSubscription,
     } = useBillingHook({ workspace_id });
 
-    const [
-        createOrUpdateStripeSubscription,
-        { data },
-    ] = useCreateOrUpdateStripeSubscriptionMutation();
+    const [createOrUpdateStripeSubscription, { data }] =
+        useCreateOrUpdateStripeSubscriptionMutation();
 
     const [updateBillingDetails] = useUpdateBillingDetailsMutation();
 
-    const [
-        getCustomerPortalUrl,
-        { loading: loadingCustomerPortal },
-    ] = useGetCustomerPortalUrlLazyQuery({
-        onCompleted: (data) => {
-            if (data?.customer_portal_url) {
-                window.open(data?.customer_portal_url, '_self');
-            }
-        },
-    });
+    const [getCustomerPortalUrl, { loading: loadingCustomerPortal }] =
+        useGetCustomerPortalUrlLazyQuery({
+            onCompleted: (data) => {
+                if (data?.customer_portal_url) {
+                    window.open(data?.customer_portal_url, '_self');
+                }
+            },
+        });
 
     const [isCancel, setIsCancel] = useState(false);
 
@@ -198,8 +192,8 @@ const BillingPage = () => {
                     updateBillingDetails({
                         variables: { workspace_id },
                     }).then(() => {
-                        const previousPlan = billingData!.billingDetails!.plan
-                            .type;
+                        const previousPlan =
+                            billingData!.billingDetails!.plan.type;
                         const upgradedPlan = didUpgradePlan(
                             previousPlan,
                             newPlan

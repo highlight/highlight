@@ -35,10 +35,8 @@ interface PlayerUIContext {
     >;
 }
 
-export const [
-    usePlayerUIContext,
-    PlayerUIContextProvider,
-] = createContext<PlayerUIContext>('PlayerUI');
+export const [usePlayerUIContext, PlayerUIContextProvider] =
+    createContext<PlayerUIContext>('PlayerUI');
 
 /**
  * This is used if we need to render a higher surface while the player is in fullscreen.

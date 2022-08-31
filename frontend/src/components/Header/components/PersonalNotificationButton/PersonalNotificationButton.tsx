@@ -24,10 +24,8 @@ const PersonalNotificationButton = ({
 }: Props) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { admin, isLoggedIn } = useAuthContext();
-    const [
-        isPersonalNotificationsSetup,
-        setIsPersonalNotificationsSetup,
-    ] = useLocalStorage(`${project_id}-${type}-personalNotifications`, false);
+    const [isPersonalNotificationsSetup, setIsPersonalNotificationsSetup] =
+        useLocalStorage(`${project_id}-${type}-personalNotifications`, false);
 
     const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
         'Highlight-slackBotSetupType',

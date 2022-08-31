@@ -27,11 +27,8 @@ type Props = {
 const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
     const { pause, session, sessionMetadata } = useReplayerContext();
     const { errors, isPlayerReady } = useReplayerContext();
-    const {
-        resources,
-        loadResources,
-        resourcesLoading,
-    } = useResourcesContext();
+    const { resources, loadResources, resourcesLoading } =
+        useResourcesContext();
 
     if (resource !== undefined && error === undefined) {
         const requestId = getHighlightRequestId(resource);

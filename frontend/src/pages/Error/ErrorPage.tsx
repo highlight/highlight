@@ -69,10 +69,11 @@ import styles from './ErrorPage.module.scss';
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_secure_id, project_id } = useParams<{
-        error_secure_id: string;
-        project_id: string;
-    }>();
+    const { error_secure_id, project_id } =
+        useParams<{
+            error_secure_id: string;
+            project_id: string;
+        }>();
     const history = useHistory();
     const { queryBuilderInput, setQueryBuilderInput } = useSearchContext();
 
@@ -110,9 +111,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
         cachedParams || EmptyErrorsSearchParams
     );
-    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
-        false
-    );
+    const [searchResultsLoading, setSearchResultsLoading] =
+        useState<boolean>(false);
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const dateFromSearchParams = new URLSearchParams(location.search).get(
@@ -137,10 +137,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.search]);
 
-    useEffect(() => setCachedParams(searchParams), [
-        searchParams,
-        setCachedParams,
-    ]);
+    useEffect(
+        () => setCachedParams(searchParams),
+        [searchParams, setCachedParams]
+    );
 
     useEffect(() => {
         if (dateFromSearchParams) {
@@ -177,14 +177,10 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
     const { showLeftPanel } = useErrorPageConfiguration();
 
-    const [
-        backendSearchQuery,
-        setBackendSearchQuery,
-    ] = useState<BackendSearchQuery>(undefined);
-    const [
-        showCreateCommentModal,
-        setShowCreateCommentModal,
-    ] = useState<CreateModalType>(CreateModalType.None);
+    const [backendSearchQuery, setBackendSearchQuery] =
+        useState<BackendSearchQuery>(undefined);
+    const [showCreateCommentModal, setShowCreateCommentModal] =
+        useState<CreateModalType>(CreateModalType.None);
     const [page, setPage] = useState<number>();
 
     useEffect(() => {
@@ -379,16 +375,18 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                                         .structured_stack_trace
                                                         ?.length > 0
                                                 ) {
-                                                    const traceLines = data.error_group.structured_stack_trace.map(
-                                                        (stack_trace) => {
-                                                            return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
-                                                        }
-                                                    );
-                                                    stackTraceStr = JSON.stringify(
-                                                        traceLines,
-                                                        undefined,
-                                                        2
-                                                    );
+                                                    const traceLines =
+                                                        data.error_group.structured_stack_trace.map(
+                                                            (stack_trace) => {
+                                                                return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
+                                                            }
+                                                        );
+                                                    stackTraceStr =
+                                                        JSON.stringify(
+                                                            traceLines,
+                                                            undefined,
+                                                            2
+                                                        );
                                                 } else {
                                                     try {
                                                         JSON.parse(
@@ -399,9 +397,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                                     }
                                                 }
 
-                                                const a = document.createElement(
-                                                    'a'
-                                                );
+                                                const a =
+                                                    document.createElement('a');
                                                 const file = new Blob(
                                                     [stackTraceStr],
                                                     {
@@ -411,9 +408,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
                                                     }
                                                 );
 
-                                                a.href = URL.createObjectURL(
-                                                    file
-                                                );
+                                                a.href =
+                                                    URL.createObjectURL(file);
                                                 a.download = `stack-trace-for-error-${error_secure_id}.${
                                                     isJson ? 'json' : 'txt'
                                                 }`;
@@ -524,9 +520,9 @@ const timeFilter = [
     { label: 'This year', value: 30 * 12 },
 ] as const;
 
-export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
-    errorGroup,
-}) => {
+export const ErrorFrequencyGraph: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<FrequencyGraphProps>>
+> = ({ errorGroup }) => {
     const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
         Array(LookbackPeriod).fill(0)
     );
