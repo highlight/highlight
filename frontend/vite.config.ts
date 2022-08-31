@@ -1,27 +1,14 @@
+/// <reference types="vite/client" />
 /// <reference types="vitest/globals" />
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
-const reactAppEnv = {};
-for (const key in process.env) {
-    if (key.startsWith('REACT_APP_')) {
-        reactAppEnv[`process.env.${key}`] = JSON.stringify(process.env[key]);
-    }
-}
-
 export default defineConfig({
-    plugins: [react(), tsconfigPaths(), svgr(), basicSsl()],
-    define: {
-        ...reactAppEnv,
-        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-        'process.env.DEV': JSON.stringify(
-            process.env.NODE_ENV === 'development'
-        ),
-        'process.env.PUBLIC_URL': JSON.stringify('/'),
-    },
+    plugins: [react(), tsconfigPaths(), svgr(), basicSsl(), envPlugin()],
     server: {
         port: 3000,
         https: true,
@@ -35,3 +22,26 @@ export default defineConfig({
         setupFiles: ['./src/setupTests.ts'],
     },
 });
+
+function envPlugin(): Plugin {
+    return {
+        name: 'highlight:env',
+        transform(code, id) {
+            const isScript = /\.(ts|tsx|js|jsx|mjs)$/.test(id);
+            if (!isScript) return code;
+            return code.replace(/process\.env\.(\w+)/g, (_, key) => {
+                if (key === 'PUBLIC_URL') {
+                    return JSON.stringify('/');
+                }
+                if (
+                    key.startsWith('REACT_APP_') ||
+                    key === 'NODE_ENV' ||
+                    key === 'DEV'
+                ) {
+                    return JSON.stringify(process.env[key]);
+                }
+                return `undefined`;
+            });
+        },
+    };
+}
