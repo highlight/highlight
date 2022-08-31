@@ -23,9 +23,10 @@ export const ErrorCreateCommentModal = ({
     data,
 }: Props) => {
     const pRef = React.useRef<HTMLDivElement>(null);
-    const { error_secure_id } = useParams<{
-        error_secure_id: string;
-    }>();
+    const { error_secure_id } =
+        useParams<{
+            error_secure_id: string;
+        }>();
 
     const { innerWidth, innerHeight } = useWindowSize();
 

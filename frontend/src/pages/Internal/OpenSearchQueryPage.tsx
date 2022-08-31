@@ -51,9 +51,9 @@ interface AutoCompleteWidgetProps {
     maxLength: number;
 }
 
-const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
-    props: AutoCompleteWidgetProps
-) => {
+const AutoCompleteWidget: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<AutoCompleteWidgetProps>>
+> = (props: AutoCompleteWidgetProps) => {
     const { refetch } = useGetFieldsOpensearchQuery({
         skip: true,
         fetchPolicy: 'no-cache',
@@ -73,9 +73,9 @@ const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
             field_name: rest.join('_'),
             query: input,
         });
-        const suggestions = (
-            fetched.data.fields_opensearch ?? []
-        )?.map((val) => ({ label: val, value: val }));
+        const suggestions = (fetched.data.fields_opensearch ?? [])?.map(
+            (val) => ({ label: val, value: val })
+        );
         return suggestions;
     };
 
@@ -197,15 +197,15 @@ const parseGroup = (tree: JsonGroup): any => {
     }
 };
 
-const OpenSearchQueryPage: React.FC = () => {
+const OpenSearchQueryPage: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = () => {
     const { data, loading } = useGetFieldTypesQuery({
         variables: { project_id: '1' },
     });
 
-    const [
-        getSessions,
-        { data: sessionsData, loading: sessionsLoading },
-    ] = useGetSessionsOpenSearchLazyQuery({ fetchPolicy: 'no-cache' });
+    const [getSessions, { data: sessionsData, loading: sessionsLoading }] =
+        useGetSessionsOpenSearchLazyQuery({ fetchPolicy: 'no-cache' });
 
     const fields =
         data?.field_types.reduce(

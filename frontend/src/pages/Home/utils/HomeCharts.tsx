@@ -47,19 +47,17 @@ export const HomePageTimeFilter = [
 ] as const;
 
 export const SessionCountGraph = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
             : project_id;
 
-    const {
-        setSearchParams,
-        setSegmentName,
-        setSelectedSegment,
-    } = useSearchContext();
+    const { setSearchParams, setSegmentName, setSelectedSegment } =
+        useSearchContext();
     const { dateRangeLength, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
@@ -134,9 +132,10 @@ export const SessionCountGraph = () => {
 };
 
 export const ErrorCountGraph = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

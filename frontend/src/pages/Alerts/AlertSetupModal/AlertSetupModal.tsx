@@ -91,13 +91,11 @@ const AlertSetupModal = () => {
         refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
     });
 
-    const [
-        shouldCloseSetupPersisted,
-        setShouldCloseSetupPersisted,
-    ] = useLocalStorage<boolean>(
-        `shouldCloseAlertSetupPersisted-${currentProject?.id}`,
-        false
-    );
+    const [shouldCloseSetupPersisted, setShouldCloseSetupPersisted] =
+        useLocalStorage<boolean>(
+            `shouldCloseAlertSetupPersisted-${currentProject?.id}`,
+            false
+        );
 
     useEffect(() => {
         if (
@@ -181,7 +179,8 @@ const AlertSetupModal = () => {
                     </p>
                     <div className={styles.cardGrid}>
                         {Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
-                            const key = (_key as keyof typeof ALERT_CONFIGURATIONS) as string;
+                            const key =
+                                _key as keyof typeof ALERT_CONFIGURATIONS as string;
                             const configuration = ALERT_CONFIGURATIONS[key];
                             const alertColor = getAlertTypeColor(
                                 configuration.name
@@ -241,7 +240,8 @@ const AlertSetupModal = () => {
                                     </AnimatePresence>
                                     <Card
                                         className={cx(styles.cardContainer, {
-                                            [styles.alertTypeSelected]: isSelected,
+                                            [styles.alertTypeSelected]:
+                                                isSelected,
                                         })}
                                     >
                                         <h2 id={styles.title}>

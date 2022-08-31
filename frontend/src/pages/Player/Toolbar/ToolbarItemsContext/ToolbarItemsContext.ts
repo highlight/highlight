@@ -31,7 +31,5 @@ interface ToolbarItemsContext {
     setZoomAreaRight: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export const [
-    useToolbarItemsContext,
-    ToolbarItemsContextProvider,
-] = createContext<ToolbarItemsContext>('ToolbarItemsContext');
+export const [useToolbarItemsContext, ToolbarItemsContextProvider] =
+    createContext<ToolbarItemsContext>('ToolbarItemsContext');

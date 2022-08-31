@@ -23,20 +23,14 @@ const IntegrationsPage = () => {
 
     const { isHighlightAdmin } = useAuthContext();
 
-    const {
-        isLinearIntegratedWithProject,
-        loading: loadingLinear,
-    } = useLinearIntegration();
+    const { isLinearIntegratedWithProject, loading: loadingLinear } =
+        useLinearIntegration();
 
-    const {
-        isZapierIntegratedWithProject,
-        loading: loadingZapier,
-    } = useZapierIntegration();
+    const { isZapierIntegratedWithProject, loading: loadingZapier } =
+        useZapierIntegration();
 
-    const {
-        isClearbitIntegratedWithWorkspace,
-        loading: loadingClearbit,
-    } = useClearbitIntegration();
+    const { isClearbitIntegratedWithWorkspace, loading: loadingClearbit } =
+        useClearbitIntegration();
 
     const loading = useMemo(
         () => loadingLinear || loadingSlack || loadingZapier || loadingClearbit,

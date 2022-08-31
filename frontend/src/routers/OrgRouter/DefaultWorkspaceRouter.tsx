@@ -12,9 +12,10 @@ import { Redirect } from 'react-router-dom';
 export const DefaultWorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
 
-    const { page_id } = useParams<{
-        page_id: string;
-    }>();
+    const { page_id } =
+        useParams<{
+            page_id: string;
+        }>();
     const { setLoadingState } = useAppLoadingContext();
 
     const { data, loading } = useGetWorkspacesQuery({

@@ -119,10 +119,8 @@ export interface ReplayerContextInterface {
     setCurrentEvent: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const [
-    useReplayerContext,
-    ReplayerContextProvider,
-] = createContext<ReplayerContextInterface>('ReplayerContext');
+export const [useReplayerContext, ReplayerContextProvider] =
+    createContext<ReplayerContextInterface>('ReplayerContext');
 
 export interface RageClick {
     startTimestamp: string;

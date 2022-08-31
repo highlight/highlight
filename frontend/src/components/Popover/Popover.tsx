@@ -34,7 +34,9 @@ type PopoverProps = Pick<
 /**
  * A proxy for Ant Design's popover. This component should be used instead of directly using Ant Design's.
  */
-const Popover: React.FC<PopoverProps> = ({
+const Popover: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<PopoverProps>>
+> = ({
     children,
     title,
     isList,

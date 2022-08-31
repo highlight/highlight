@@ -32,13 +32,12 @@ export const useLinearIntegration = () => {
         [project_id, addIntegrationToProject]
     );
 
-    const [
-        removeIntegrationFromProject,
-    ] = useRemoveIntegrationFromProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
-        ],
-    });
+    const [removeIntegrationFromProject] =
+        useRemoveIntegrationFromProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+            ],
+        });
 
     const removeLinearIntegrationFromProject = useCallback(
         (projectId?: string) =>

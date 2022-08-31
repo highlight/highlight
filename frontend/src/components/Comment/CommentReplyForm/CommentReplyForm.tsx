@@ -67,11 +67,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
 
     const { project_id } = useParams<{ project_id: string }>();
     const { admin } = useAuthContext();
-    const {
-        data: mentionSuggestionsData,
-    } = useGetCommentMentionSuggestionsQuery({
-        variables: { project_id },
-    });
+    const { data: mentionSuggestionsData } =
+        useGetCommentMentionSuggestionsQuery({
+            variables: { project_id },
+        });
     const { data: workspaceAdminsData } = useGetWorkspaceAdminsByProjectIdQuery(
         {
             variables: { project_id },

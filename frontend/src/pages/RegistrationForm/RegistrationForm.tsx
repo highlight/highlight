@@ -38,10 +38,8 @@ const RegistrationForm = () => {
 
     const { setLoadingState } = useAppLoadingContext();
 
-    const [
-        submitRegistrationForm,
-        { loading, data, error },
-    ] = useSubmitRegistrationFormMutation();
+    const [submitRegistrationForm, { loading, data, error }] =
+        useSubmitRegistrationFormMutation();
 
     useEffect(() => {
         setLoadingState(AppLoadingState.LOADED);

@@ -82,9 +82,8 @@ const NewProjectPage = () => {
             if (createdWorkspaceId && autoJoinDomains?.length) {
                 await updateAllowedEmailOrigins({
                     variables: {
-                        allowed_auto_join_email_origins: JSON.stringify(
-                            autoJoinDomains
-                        ),
+                        allowed_auto_join_email_origins:
+                            JSON.stringify(autoJoinDomains),
                         workspace_id: createdWorkspaceId,
                     },
                     refetchQueries: [namedOperations.Query.GetWorkspaceAdmins],

@@ -27,30 +27,26 @@ const SourcemapSettings = () => {
         },
     });
 
-    const [
-        getSourcemapFilesQuery,
-        { data, loading },
-    ] = useGetSourcemapFilesLazyQuery({
-        variables: {
-            project_id,
-        },
-    });
+    const [getSourcemapFilesQuery, { data, loading }] =
+        useGetSourcemapFilesLazyQuery({
+            variables: {
+                project_id,
+            },
+        });
 
-    const {
-        data: versionsData,
-        loading: versionsLoading,
-    } = useGetSourcemapVersionsQuery({
-        variables: {
-            project_id,
-        },
-        onCompleted: (data) => {
-            const trimmedVersions = data?.sourcemap_versions?.map((v) =>
-                v.replace(`${project_id}/`, '').replace('/', '')
-            );
+    const { data: versionsData, loading: versionsLoading } =
+        useGetSourcemapVersionsQuery({
+            variables: {
+                project_id,
+            },
+            onCompleted: (data) => {
+                const trimmedVersions = data?.sourcemap_versions?.map((v) =>
+                    v.replace(`${project_id}/`, '').replace('/', '')
+                );
 
-            setVersions(trimmedVersions || []);
-        },
-    });
+                setVersions(trimmedVersions || []);
+            },
+        });
 
     const needToSelectVersion =
         (versionsData?.sourcemap_versions.length || 0) > 1 && !selectedVersion;

@@ -27,9 +27,10 @@ import { STARRED_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicke
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const {
         setSearchParams,
         setSegmentName,
@@ -46,10 +47,11 @@ const SegmentPickerForPlayer = () => {
     });
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
-    const [segmentToDelete, setSegmentToDelete] = useState<{
-        name?: string;
-        id?: string;
-    } | null>(null);
+    const [segmentToDelete, setSegmentToDelete] =
+        useState<{
+            name?: string;
+            id?: string;
+        } | null>(null);
     const [editSegment] = useEditSegmentMutation({
         refetchQueries: [namedOperations.Query.GetSegments],
     });

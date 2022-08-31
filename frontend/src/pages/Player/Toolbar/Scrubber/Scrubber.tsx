@@ -19,12 +19,8 @@ interface Props {
 const ActivityGraphMemoized = React.memo(ActivityGraph);
 
 const Scrubber = ({ chartData, getSliderPercent }: Props) => {
-    const {
-        zoomAreaLeft,
-        setZoomAreaLeft,
-        zoomAreaRight,
-        setZoomAreaRight,
-    } = useToolbarItemsContext();
+    const { zoomAreaLeft, setZoomAreaLeft, zoomAreaRight, setZoomAreaRight } =
+        useToolbarItemsContext();
     const { time, setTime, sessionIntervals } = useReplayerContext();
     const draggableRef = useRef(null);
     const leftRef = useRef(null);
@@ -253,8 +249,7 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
                             >
                                 <SvgDragIcon
                                     style={{
-                                        color:
-                                            'var(--color-scrubber-zoom-handle)',
+                                        color: 'var(--color-scrubber-zoom-handle)',
                                     }}
                                 />
                             </div>
@@ -289,8 +284,7 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
                             >
                                 <SvgDragIcon
                                     style={{
-                                        color:
-                                            'var(--color-scrubber-zoom-handle)',
+                                        color: 'var(--color-scrubber-zoom-handle)',
                                         transform: 'translateX(-2px)',
                                     }}
                                 />

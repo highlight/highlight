@@ -25,11 +25,8 @@ type Field = {
 
 const MetadataPanel = () => {
     const { session, browserExtensionScriptURLs } = useReplayerContext();
-    const {
-        setSearchParams,
-        setSegmentName,
-        setSelectedSegment,
-    } = useSearchContext();
+    const { setSearchParams, setSegmentName, setSelectedSegment } =
+        useSearchContext();
     const { isHighlightAdmin } = useAuthContext();
 
     const [parsedFields, setParsedFields] = useState<Field[]>([]);

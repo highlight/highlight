@@ -7,10 +7,9 @@ interface Props {
     defaultMessage?: string;
 }
 
-export const IntercomInlineMessage: React.FC<Props> = ({
-    children,
-    defaultMessage,
-}) => {
+export const IntercomInlineMessage: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({ children, defaultMessage }) => {
     return (
         <Button
             trackingId="IntercomInlineMessage"

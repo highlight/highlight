@@ -132,10 +132,11 @@ const SessionCommentHeader = ({
                         const sessionStartTime = sessionMetadata.startTime;
 
                         if (sessionStartTime) {
-                            commentTimestamp = getFeedbackCommentSessionTimestamp(
-                                comment,
-                                sessionStartTime
-                            );
+                            commentTimestamp =
+                                getFeedbackCommentSessionTimestamp(
+                                    comment,
+                                    sessionStartTime
+                                );
                         }
                     }
                     pause(commentTimestamp);

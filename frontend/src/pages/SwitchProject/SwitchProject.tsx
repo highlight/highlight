@@ -15,9 +15,10 @@ import { Redirect } from 'react-router-dom';
 import styles from './SwitchProject.module.scss';
 
 const SwitchProject = () => {
-    const { workspace_id } = useParams<{
-        workspace_id: string;
-    }>();
+    const { workspace_id } =
+        useParams<{
+            workspace_id: string;
+        }>();
     const { data, loading } = useGetWorkspaceQuery({
         variables: { id: workspace_id },
     });

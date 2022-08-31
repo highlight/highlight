@@ -250,9 +250,10 @@ const SessionsQueryBuilder = React.memo(
         });
         const fetchFields = (variables: FetchFieldVariables) =>
             refetch(variables).then((r) => r.data.fields_opensearch);
-        const { project_id } = useParams<{
-            project_id: string;
-        }>();
+        const { project_id } =
+            useParams<{
+                project_id: string;
+            }>();
 
         const { data: fieldData } = useGetFieldTypesQuery({
             variables: { project_id },

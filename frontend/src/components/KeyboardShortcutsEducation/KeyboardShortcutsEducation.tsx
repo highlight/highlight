@@ -18,10 +18,8 @@ import styles from './KeyboardShortcutsEducation.module.scss';
 const KeyboardShortcutsEducation = () => {
     const location = useLocation();
     const [searchQuery, setSearchQuery] = useState('');
-    const {
-        showKeyboardShortcutsGuide,
-        toggleShowKeyboardShortcutsGuide,
-    } = useGlobalContext();
+    const { showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide } =
+        useGlobalContext();
 
     useHotkeys(
         'shift+/',
@@ -230,7 +228,8 @@ const KeyboardShortcutsEducation = () => {
                                 {filteredPlayerKeyboardShortcuts.length > 0 && (
                                     <section
                                         className={classNames({
-                                            [styles.disabled]: !isOnSessionPlayerPage,
+                                            [styles.disabled]:
+                                                !isOnSessionPlayerPage,
                                         })}
                                     >
                                         <h3>Session Player Page</h3>

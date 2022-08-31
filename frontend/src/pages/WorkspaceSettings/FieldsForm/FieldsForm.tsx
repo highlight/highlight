@@ -19,10 +19,11 @@ import {
 import styles from './FieldsForm.module.scss';
 
 export const FieldsForm = () => {
-    const { project_id, workspace_id } = useParams<{
-        project_id: string;
-        workspace_id: string;
-    }>();
+    const { project_id, workspace_id } =
+        useParams<{
+            project_id: string;
+            workspace_id: string;
+        }>();
     const isWorkspace = !!workspace_id;
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -34,20 +35,16 @@ export const FieldsForm = () => {
         },
     });
 
-    const [
-        editProject,
-        { loading: editProjectLoading },
-    ] = useEditProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetProjects,
-            namedOperations.Query.GetProject,
-        ],
-    });
+    const [editProject, { loading: editProjectLoading }] =
+        useEditProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetProjects,
+                namedOperations.Query.GetProject,
+            ],
+        });
 
-    const [
-        editWorkspace,
-        { loading: editWorkspaceLoading },
-    ] = useEditWorkspaceMutation();
+    const [editWorkspace, { loading: editWorkspaceLoading }] =
+        useEditWorkspaceMutation();
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();

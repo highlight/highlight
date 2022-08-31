@@ -33,7 +33,9 @@ interface NewIssueModalProps {
     selectedIntegration: Integration;
     commentType: 'ErrorComment' | 'SessionComment';
 }
-const NewIssueModal: React.FC<NewIssueModalProps> = ({
+const NewIssueModal: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<NewIssueModalProps>>
+> = ({
     visible,
     changeVisible,
     commentId,
@@ -43,10 +45,11 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
     defaultIssueTitle,
     timestamp,
 }) => {
-    const [form] = Form.useForm<{
-        issueTitle: string;
-        issueDescription: string;
-    }>();
+    const [form] =
+        Form.useForm<{
+            issueTitle: string;
+            issueDescription: string;
+        }>();
 
     const { teams } = useLinearIntegration();
 
@@ -75,21 +78,20 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
         }
     }, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId]);
 
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
 
     const { admin } = useAuthContext();
 
     const [loading, setLoading] = useState(false);
 
-    const [
-        createIssueForSessionComment,
-    ] = useCreateIssueForSessionCommentMutation();
+    const [createIssueForSessionComment] =
+        useCreateIssueForSessionCommentMutation();
 
-    const [
-        createIssueForErrorComment,
-    ] = useCreateIssueForErrorCommentMutation();
+    const [createIssueForErrorComment] =
+        useCreateIssueForErrorCommentMutation();
 
     const currentUrl = `${
         window.location.port !== ''
@@ -118,9 +120,8 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
                         issue_team_id: selectedlinearTeamId || undefined,
-                        issue_description: form.getFieldValue(
-                            'issueDescription'
-                        ),
+                        issue_description:
+                            form.getFieldValue('issueDescription'),
                         integrations: selectedIntegration
                             ? ([selectedIntegration.name] as IntegrationType[])
                             : [],
@@ -137,9 +138,8 @@ const NewIssueModal: React.FC<NewIssueModalProps> = ({
                         text_for_attachment: commentText || 'Open in Highight',
                         issue_title: form.getFieldValue('issueTitle'),
                         issue_team_id: selectedlinearTeamId || undefined,
-                        issue_description: form.getFieldValue(
-                            'issueDescription'
-                        ),
+                        issue_description:
+                            form.getFieldValue('issueDescription'),
                         integrations: selectedIntegration
                             ? ([selectedIntegration.name] as IntegrationType[])
                             : [],

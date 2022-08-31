@@ -9,7 +9,5 @@ interface HomePageFiltersContext {
     setHasData: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const [
-    useHomePageFiltersContext,
-    HomePageFiltersContext,
-] = createContext<HomePageFiltersContext>('HomePageFiltersContext');
+export const [useHomePageFiltersContext, HomePageFiltersContext] =
+    createContext<HomePageFiltersContext>('HomePageFiltersContext');

@@ -14,12 +14,8 @@ type Props = {
 };
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-    const {
-        performancePayloads,
-        pause,
-        events,
-        session,
-    } = useReplayerContext();
+    const { performancePayloads, pause, events, session } =
+        useReplayerContext();
 
     const graphData = performancePayloads.map((payload) => {
         return {

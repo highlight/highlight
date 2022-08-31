@@ -95,9 +95,10 @@ const MonitorConfiguration = ({
     disabled,
     setIsDisabled,
 }: Props) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const { currentWorkspace } = useApplicationContext();
     const [searchQuery, setSearchQuery] = useState('');
     const [endDate] = React.useState<moment.Moment>(moment(new Date()));
@@ -379,7 +380,7 @@ const MonitorConfiguration = ({
                             value={threshold}
                             onChange={(e) => {
                                 onThresholdChange(
-                                    (e.target.value as unknown) as number
+                                    e.target.value as unknown as number
                                 );
                             }}
                         />

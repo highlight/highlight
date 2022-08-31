@@ -10,7 +10,5 @@ interface AlertsContext {
     slackUrl: string;
 }
 
-export const [
-    useAlertsContext,
-    AlertsContextProvider,
-] = createContext<AlertsContext>('Alerts');
+export const [useAlertsContext, AlertsContextProvider] =
+    createContext<AlertsContext>('Alerts');

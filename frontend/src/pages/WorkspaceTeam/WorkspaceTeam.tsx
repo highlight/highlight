@@ -132,21 +132,20 @@ const WorkspaceTeam = () => {
                                     <Select
                                         bordered={false}
                                         value={newAdminRole}
-                                        options={(Object.keys(
-                                            AdminRole
-                                        ) as (keyof typeof AdminRole)[]).map(
-                                            (key) => {
-                                                const role = AdminRole[key];
+                                        options={(
+                                            Object.keys(
+                                                AdminRole
+                                            ) as (keyof typeof AdminRole)[]
+                                        ).map((key) => {
+                                            const role = AdminRole[key];
 
-                                                return {
-                                                    displayValue: titleCaseString(
-                                                        role
-                                                    ),
-                                                    id: role,
-                                                    value: role,
-                                                };
-                                            }
-                                        )}
+                                            return {
+                                                displayValue:
+                                                    titleCaseString(role),
+                                                id: role,
+                                                value: role,
+                                            };
+                                        })}
                                         onChange={setNewAdminRole}
                                     />
                                 }
@@ -164,8 +163,7 @@ const WorkspaceTeam = () => {
                                     <CircularSpinner
                                         style={{
                                             fontSize: 18,
-                                            color:
-                                                'var(--text-primary-inverted)',
+                                            color: 'var(--text-primary-inverted)',
                                         }}
                                     />
                                 ) : (
@@ -337,9 +335,11 @@ const TABLE_COLUMNS = [
                         <Select
                             disabled={record.isSameAdmin}
                             onChange={record.onUpdateRoleHandler}
-                            options={(Object.keys(
-                                AdminRole
-                            ) as (keyof typeof AdminRole)[]).map((key) => {
+                            options={(
+                                Object.keys(
+                                    AdminRole
+                                ) as (keyof typeof AdminRole)[]
+                            ).map((key) => {
                                 const role = AdminRole[key];
 
                                 return {

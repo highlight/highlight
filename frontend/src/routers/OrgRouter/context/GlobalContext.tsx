@@ -7,7 +7,5 @@ interface GlobalContext {
     toggleShowBanner: (nextValue?: boolean) => void;
 }
 
-export const [
-    useGlobalContext,
-    GlobalContextProvider,
-] = createContext<GlobalContext>('Global');
+export const [useGlobalContext, GlobalContextProvider] =
+    createContext<GlobalContext>('Global');

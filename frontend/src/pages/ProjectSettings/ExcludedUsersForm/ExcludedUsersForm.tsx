@@ -18,9 +18,10 @@ import Button from '../../../components/Button/Button/Button';
 import styles from './ExcludedUsersForm.module.scss';
 
 export const ExcludedUsersForm = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const [excludedUsers, setExcludedUsers] = useState<string[]>([]);
     const [identifierQuery, setIdentifierQuery] = useState('');
     const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
@@ -32,15 +33,13 @@ export const ExcludedUsersForm = () => {
         },
     });
 
-    const [
-        editProject,
-        { loading: editProjectLoading },
-    ] = useEditProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetProjects,
-            namedOperations.Query.GetProject,
-        ],
-    });
+    const [editProject, { loading: editProjectLoading }] =
+        useEditProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetProjects,
+                namedOperations.Query.GetProject,
+            ],
+        });
 
     const {
         refetch: refetchIdentifierSuggestions,

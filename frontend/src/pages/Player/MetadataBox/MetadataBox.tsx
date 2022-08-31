@@ -217,10 +217,11 @@ export const UserDetailsBox = React.memo(
     }: {
         setEnhancedAvatar: (avatar: string) => void;
     }) => {
-        const { project_id, session_secure_id } = useParams<{
-            project_id: string;
-            session_secure_id: string;
-        }>();
+        const { project_id, session_secure_id } =
+            useParams<{
+                project_id: string;
+                session_secure_id: string;
+            }>();
         const { data: project } = useGetProjectQuery({
             variables: { id: project_id },
         });

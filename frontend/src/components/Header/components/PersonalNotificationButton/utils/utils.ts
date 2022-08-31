@@ -48,13 +48,12 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
             }),
         [addIntegrationToProject, project_id]
     );
-    const [
-        removeIntegrationFromProject,
-    ] = useRemoveIntegrationFromProjectMutation({
-        refetchQueries: [
-            namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
-        ],
-    });
+    const [removeIntegrationFromProject] =
+        useRemoveIntegrationFromProjectMutation({
+            refetchQueries: [
+                namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+            ],
+        });
 
     const removeSlackIntegrationFromProject = useCallback(
         (projectId?: string) =>
@@ -68,10 +67,8 @@ export const useSlackBot = ({ type }: UseSlackBotProps) => {
     );
 
     const [loading, setLoading] = useState<boolean>(false);
-    const [
-        isSlackConnectedToWorkspace,
-        setIsSlackConnectedToWorkspace,
-    ] = useState<boolean>(false);
+    const [isSlackConnectedToWorkspace, setIsSlackConnectedToWorkspace] =
+        useState<boolean>(false);
 
     const {
         data: slackIntegResponse,

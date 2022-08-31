@@ -42,8 +42,8 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
         numberOfAffectedSessions = recentErrors.error_group.metadata_log.length;
         mostRecentAffectedSession;
 
-        const mostRecentAffectedSessionIndex = recentErrors.error_group.metadata_log.reduce(
-            (acc, curr, index) => {
+        const mostRecentAffectedSessionIndex =
+            recentErrors.error_group.metadata_log.reduce((acc, curr, index) => {
                 if (
                     recentErrors?.error_group?.metadata_log?.length &&
                     recentErrors.error_group?.metadata_log[acc] &&
@@ -53,9 +53,7 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
                     return index;
                 }
                 return acc;
-            },
-            0
-        );
+            }, 0);
 
         mostRecentAffectedSession =
             recentErrors.error_group.metadata_log[

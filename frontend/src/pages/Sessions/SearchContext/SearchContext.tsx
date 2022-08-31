@@ -76,7 +76,5 @@ export const showLiveSessions = (searchParams: SearchParams): boolean => {
     return searchParams?.show_live_sessions ?? false;
 };
 
-export const [
-    useSearchContext,
-    SearchContextProvider,
-] = createContext<SearchContext>('SearchContext');
+export const [useSearchContext, SearchContextProvider] =
+    createContext<SearchContext>('SearchContext');

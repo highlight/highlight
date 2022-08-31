@@ -29,9 +29,10 @@ export const ViewedSessionsSwitch = () => {
 
 export const LiveSessionsSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
-    const { segment_id } = useParams<{
-        segment_id: string;
-    }>();
+    const { segment_id } =
+        useParams<{
+            segment_id: string;
+        }>();
 
     const isOnLiveSegment = segment_id === LIVE_SEGMENT_ID;
 

@@ -20,7 +20,9 @@ type Props = {
     type?: ButtonType;
 } & Partial<Pick<LinkProps, 'to' | 'onClick'>>;
 
-const ButtonLink: React.FC<Props> = ({
+const ButtonLink: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<Props>>
+> = ({
     to,
     children,
     trackingId,

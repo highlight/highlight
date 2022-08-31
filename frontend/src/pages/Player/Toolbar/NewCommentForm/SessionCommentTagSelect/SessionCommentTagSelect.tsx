@@ -25,9 +25,10 @@ const SessionCommentTagSelect = ({
     value,
     tagClosable = true,
 }: Props) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const { data: commentTagsData, loading } = useGetCommentTagsForProjectQuery(
         {
             variables: { project_id },

@@ -34,10 +34,11 @@ const CreateSegmentModal = ({
         refetchQueries: [namedOperations.Query.GetSegments],
     });
     const [name, setName] = useState('');
-    const { project_id } = useParams<{
-        project_id: string;
-        segment_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+            segment_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

@@ -136,9 +136,9 @@ interface SessionCommentFooterProps {
     a?: any;
 }
 
-export const ExperimentalSessionCommentFooter: React.FC<SessionCommentFooterProps> = ({
-    children,
-}) => {
+export const ExperimentalSessionCommentFooter: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<SessionCommentFooterProps>>
+> = ({ children }) => {
     const { admin } = useAuthContext();
 
     return (

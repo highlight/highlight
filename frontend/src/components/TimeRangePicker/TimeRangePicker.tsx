@@ -39,7 +39,9 @@ const UNITS = [
 
 const DATE_FORMAT = 'DD MMM h:mm A';
 
-const TimeRangePicker: React.FC = () => {
+const TimeRangePicker: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+> = () => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [datepickerPanelOpen, setDatepickerPanelOpen] = useState(false);

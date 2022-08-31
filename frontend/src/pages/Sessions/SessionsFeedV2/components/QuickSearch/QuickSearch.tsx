@@ -133,9 +133,10 @@ export const styleProps: Styles<any, false> = {
 
 const QuickSearch = () => {
     const history = useHistory();
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const [query, setQuery] = useState('');
     const [lastTyped, setLastTyped] = useState('');
     const [lastLoadedQuery, setLastLoadedQuery] = useState<string>();

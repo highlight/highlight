@@ -22,15 +22,14 @@ import { ApplicationContextProvider } from './ApplicationContext';
 
 export const WorkspaceRouter = () => {
     const { isLoggedIn } = useAuthContext();
-    const [
-        showKeyboardShortcutsGuide,
-        toggleShowKeyboardShortcutsGuide,
-    ] = useToggle(false);
+    const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
+        useToggle(false);
     const [showBanner, toggleShowBanner] = useToggle(false);
 
-    const { workspace_id } = useParams<{
-        workspace_id: string;
-    }>();
+    const { workspace_id } =
+        useParams<{
+            workspace_id: string;
+        }>();
     const { setLoadingState } = useAppLoadingContext();
 
     const { data, loading } = useGetWorkspaceDropdownOptionsQuery({

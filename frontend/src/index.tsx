@@ -179,10 +179,11 @@ const App = () => {
 };
 
 const AuthenticationRoleRouter = () => {
-    const { workspace_id, project_id } = useParams<{
-        workspace_id: string;
-        project_id: string;
-    }>();
+    const { workspace_id, project_id } =
+        useParams<{
+            workspace_id: string;
+            project_id: string;
+        }>();
     const [
         getWorkspaceAdminsQuery,
         {

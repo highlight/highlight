@@ -27,9 +27,10 @@ import { EmptyErrorsSearchParams } from '../../../Errors/ErrorsPage';
 import styles from './SegmentPickerForErrors.module.scss';
 
 const SegmentPickerForErrors = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const {
         setSearchParams,
         setSegmentName,
@@ -49,10 +50,11 @@ const SegmentPickerForErrors = () => {
     );
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
-    const [segmentToDelete, setSegmentToDelete] = useState<{
-        name?: string;
-        id?: string;
-    } | null>(null);
+    const [segmentToDelete, setSegmentToDelete] =
+        useState<{
+            name?: string;
+            id?: string;
+        } | null>(null);
     const [editSegment] = useEditErrorSegmentMutation({
         refetchQueries: [namedOperations.Query.GetErrorSegments],
     });

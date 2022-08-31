@@ -11,7 +11,5 @@ interface AppLoadingContext {
     loadingState: AppLoadingState;
 }
 
-export const [
-    useAppLoadingContext,
-    AppLoadingContext,
-] = createContext<AppLoadingContext>('AppLoadingContext');
+export const [useAppLoadingContext, AppLoadingContext] =
+    createContext<AppLoadingContext>('AppLoadingContext');

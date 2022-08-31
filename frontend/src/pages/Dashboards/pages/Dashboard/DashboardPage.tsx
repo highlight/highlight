@@ -134,9 +134,8 @@ const DashboardPage = ({
                                         onClick={() => {
                                             setCanSaveChanges(false);
 
-                                            const newLayout = JSON.stringify(
-                                                layout
-                                            );
+                                            const newLayout =
+                                                JSON.stringify(layout);
 
                                             updateDashboard({
                                                 id: dashboard.id || id,

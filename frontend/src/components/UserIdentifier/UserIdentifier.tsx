@@ -46,7 +46,8 @@ const UserIdentifier = ({ session, className }: Props) => {
                                     },
                                 ];
                             } else if (session?.fingerprint) {
-                                newSearchParams.device_id = session.fingerprint.toString();
+                                newSearchParams.device_id =
+                                    session.fingerprint.toString();
                             }
 
                             setSearchParams(newSearchParams);

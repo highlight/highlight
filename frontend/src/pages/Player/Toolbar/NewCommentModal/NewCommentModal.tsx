@@ -45,9 +45,8 @@ export function NewCommentModal({
             // We override here to be able to show the comments when the player is in fullscreen
             // Without this, the new comment modal would be below the fullscreen view.
             getContainer={() => {
-                const playerCenterPanel = document.getElementById(
-                    'playerCenterPanel'
-                );
+                const playerCenterPanel =
+                    document.getElementById('playerCenterPanel');
 
                 if (playerCenterPanel) {
                     return playerCenterPanel;

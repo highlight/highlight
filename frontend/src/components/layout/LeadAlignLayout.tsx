@@ -8,12 +8,11 @@ interface Props {
     maxWidth?: number;
 }
 
-const LeadAlignLayout: React.FC<Props & { className?: string }> = ({
-    fullWidth = false,
-    maxWidth,
-    children,
-    className,
-}) => {
+const LeadAlignLayout: React.FC<
+    React.PropsWithChildren<
+        React.PropsWithChildren<Props & { className?: string }>
+    >
+> = ({ fullWidth = false, maxWidth, children, className }) => {
     return (
         <main
             className={classNames(className, styles.leadAlignLayout, {

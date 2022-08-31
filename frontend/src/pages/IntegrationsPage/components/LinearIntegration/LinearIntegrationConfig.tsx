@@ -11,11 +11,9 @@ import React, { useMemo } from 'react';
 
 import styles from './LinearIntegrationConfig.module.scss';
 
-const LinearIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-    setModelOpen,
-    setIntegrationEnabled,
-    integrationEnabled,
-}) => {
+const LinearIntegrationConfig: React.FC<
+    React.PropsWithChildren<React.PropsWithChildren<IntegrationConfigProps>>
+> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
     const { project_id } = useParams<{ project_id: string }>();
     const { removeLinearIntegrationFromProject } = useLinearIntegration();
     const authUrl = useMemo(() => getLinearOAuthUrl(project_id), [project_id]);

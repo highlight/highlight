@@ -30,9 +30,10 @@ interface OnboardingStep {
 
 const OnboardingBubble = () => {
     const history = useHistory();
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const [, setHasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${project_id}`,
         false
@@ -58,22 +59,17 @@ const OnboardingBubble = () => {
     );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
     const [rainConfetti, setRainConfetti] = useState(false);
-    const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
-        -1
-    );
+    const [stepsNotFinishedCount, setStepsNotFinishedCount] =
+        useState<number>(-1);
     const { data: admin_data } = useGetAdminQuery({ skip: false });
-    const {
-        loading,
-        startPolling,
-        stopPolling,
-        data,
-    } = useGetOnboardingStepsQuery({
-        variables: {
-            project_id,
-            admin_id: (admin_data?.admin?.id as string) || '',
-        },
-        fetchPolicy: 'network-only',
-    });
+    const { loading, startPolling, stopPolling, data } =
+        useGetOnboardingStepsQuery({
+            variables: {
+                project_id,
+                admin_id: (admin_data?.admin?.id as string) || '',
+            },
+            fetchPolicy: 'network-only',
+        });
 
     const { slackUrl: slackBotUrl } = useSlackBot({
         type: 'Personal',

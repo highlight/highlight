@@ -55,22 +55,19 @@ const PlayerPageProductTour = () => {
             // @ts-expect-error
             title: 'The Metadata',
             element: `#${PlayerPageProductTourSelectors.PlayerRightPanel}`,
-            intro:
-                'Here you can see metadata for the session provided by Highlight and provided by you.',
+            intro: 'Here you can see metadata for the session provided by Highlight and provided by you.',
         },
         {
             // @ts-expect-error
             title: 'The DevTools',
             element: `#${PlayerPageProductTourSelectors.DevToolsButton}`,
-            intro:
-                'Highlight gives you the tools you are familiar with to debug locally to debug real user sessions.',
+            intro: 'Highlight gives you the tools you are familiar with to debug locally to debug real user sessions.',
         },
         {
             // @ts-expect-error
             title: 'Errors',
             element: `#${PlayerPageProductTourSelectors.DevToolsPanel}`,
-            intro:
-                'You can see Javascript errors here along with their call stacks and descriptions.',
+            intro: 'You can see Javascript errors here along with their call stacks and descriptions.',
         },
         {
             // @ts-expect-error
@@ -82,8 +79,7 @@ const PlayerPageProductTour = () => {
             // @ts-expect-error
             title: 'Network',
             element: `#${PlayerPageProductTourSelectors.DevToolsPanel}`,
-            intro:
-                'You can see all network requests here. If you enable recording headers and bodies, you will see that here too.',
+            intro: 'You can see all network requests here. If you enable recording headers and bodies, you will see that here too.',
         },
         {
             // @ts-expect-error

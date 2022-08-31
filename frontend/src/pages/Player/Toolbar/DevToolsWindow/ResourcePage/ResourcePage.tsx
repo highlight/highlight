@@ -45,10 +45,8 @@ export const ResourcePage = React.memo(
             setTime,
             sessionMetadata,
         } = useReplayerContext();
-        const {
-            setShowDevTools,
-            setSelectedDevToolsTab,
-        } = usePlayerConfiguration();
+        const { setShowDevTools, setSelectedDevToolsTab } =
+            usePlayerConfiguration();
         const [options, setOptions] = useState<Array<string>>([]);
         const [currentOption, setCurrentOption] = useLocalStorage(
             'tabs-DevTools-ResourcePage-active-tab',
@@ -57,10 +55,8 @@ export const ResourcePage = React.memo(
         const [filterSearchTerm, setFilterSearchTerm] = useState('');
         const [currentResource, setCurrentResource] = useState(0);
         const [networkRange, setNetworkRange] = useState(0);
-        const [
-            isInteractingWithResources,
-            setIsInteractingWithResources,
-        ] = useState(false);
+        const [isInteractingWithResources, setIsInteractingWithResources] =
+            useState(false);
         const [currentActiveIndex, setCurrentActiveIndex] = useState<number>();
         const [allResources, setAllResources] = useState<
             Array<NetworkResource> | undefined
@@ -70,11 +66,8 @@ export const ResourcePage = React.memo(
         const errorId = new URLSearchParams(location.search).get(
             PlayerSearchParameters.errorId
         );
-        const {
-            setResourcePanel,
-            setErrorPanel,
-            panelIsOpen,
-        } = useResourceOrErrorDetailPanel();
+        const { setResourcePanel, setErrorPanel, panelIsOpen } =
+            useResourceOrErrorDetailPanel();
 
         const {
             resources: parsedResources,
@@ -408,9 +401,8 @@ export const ResourcePage = React.memo(
                                         data={resourcesToRender}
                                         className={styles.virtuoso}
                                         itemContent={(index, resource) => {
-                                            const requestId = getHighlightRequestId(
-                                                resource
-                                            );
+                                            const requestId =
+                                                getHighlightRequestId(resource);
                                             const error = errors.find(
                                                 (e) =>
                                                     e.request_id === requestId

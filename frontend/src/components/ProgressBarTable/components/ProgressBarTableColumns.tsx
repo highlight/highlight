@@ -33,10 +33,11 @@ interface ProgressBarTableRowGroupProps {
     alignment?: 'leading' | 'ending';
 }
 
-export const ProgressBarTableRowGroup: React.FC<ProgressBarTableRowGroupProps> = ({
-    alignment = 'leading',
-    children,
-}) => {
+export const ProgressBarTableRowGroup: React.FC<
+    React.PropsWithChildren<
+        React.PropsWithChildren<ProgressBarTableRowGroupProps>
+    >
+> = ({ alignment = 'leading', children }) => {
     return (
         <div
             className={classNames(styles.rowGroup, {

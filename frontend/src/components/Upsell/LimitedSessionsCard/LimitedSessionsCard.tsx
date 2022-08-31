@@ -8,9 +8,10 @@ import Card from '../../Card/Card';
 import styles from './LimitedSessionsCard.module.scss';
 
 const LimitedSessionCard = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const { data } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });

@@ -20,12 +20,10 @@ export const DangerForm = () => {
     });
     const [confirmationText, setConfirmationText] = useState('');
 
-    const [
-        deleteProject,
-        { loading: deleteLoading, data: deleteData },
-    ] = useDeleteProjectMutation({
-        refetchQueries: [namedOperations.Query.GetProjects],
-    });
+    const [deleteProject, { loading: deleteLoading, data: deleteData }] =
+        useDeleteProjectMutation({
+            refetchQueries: [namedOperations.Query.GetProjects],
+        });
 
     const onSubmit = (e: { preventDefault: () => void }) => {
         e.preventDefault();

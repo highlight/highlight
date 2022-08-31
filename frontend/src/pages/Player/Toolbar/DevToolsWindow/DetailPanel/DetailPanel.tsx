@@ -12,9 +12,10 @@ import styles from './DetailPanel.module.scss';
 const DetailPanel = () => {
     const { detailedPanel, setDetailedPanel } = usePlayerUIContext();
     const { showBanner } = useGlobalContext();
-    const { session_secure_id } = useParams<{
-        session_secure_id: string;
-    }>();
+    const { session_secure_id } =
+        useParams<{
+            session_secure_id: string;
+        }>();
 
     useEffect(() => {
         setDetailedPanel(undefined);

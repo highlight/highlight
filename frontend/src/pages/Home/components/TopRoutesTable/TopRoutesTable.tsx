@@ -18,9 +18,10 @@ import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersCon
 import styles from './TopRoutesTable.module.scss';
 
 const TopRoutesTable = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID

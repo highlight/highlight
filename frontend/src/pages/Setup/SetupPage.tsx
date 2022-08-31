@@ -65,10 +65,11 @@ enum BackendPlatformType {
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const history = useHistory();
     const { admin } = useAuthContext();
-    const { project_id, step = 'client' } = useParams<{
-        project_id: string;
-        step: string;
-    }>();
+    const { project_id, step = 'client' } =
+        useParams<{
+            project_id: string;
+            step: string;
+        }>();
     const [platform, setPlatform] = useLocalStorage(
         `selectedSetupPlatform-${project_id}`,
         PlatformType.React
@@ -89,16 +90,12 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
         integrated: isBackendIntegrated,
         loading: isBackendIntegratedLoading,
     } = useBackendIntegrated();
-    const {
-        isSlackConnectedToWorkspace,
-        loading: isSlackConnectedLoading,
-    } = useSlackBot({
-        type: 'Organization',
-    });
-    const {
-        isLinearIntegratedWithProject,
-        loading: isLinearConnectedLoading,
-    } = useLinearIntegration();
+    const { isSlackConnectedToWorkspace, loading: isSlackConnectedLoading } =
+        useSlackBot({
+            type: 'Organization',
+        });
+    const { isLinearIntegratedWithProject, loading: isLinearConnectedLoading } =
+        useLinearIntegration();
 
     useEffect(() => {
         const STEPS: SetupStep[] = [];
@@ -1314,12 +1311,9 @@ type SectionProps = {
     defaultOpen?: boolean;
 };
 
-export const Section: FunctionComponent<SectionProps> = ({
-    children,
-    id,
-    title,
-    defaultOpen,
-}) => {
+export const Section: FunctionComponent<
+    React.PropsWithChildren<React.PropsWithChildren<SectionProps>>
+> = ({ children, id, title, defaultOpen }) => {
     return (
         <Collapsible title={title} id={id} defaultOpen={defaultOpen}>
             {children}

@@ -29,10 +29,11 @@ const getTitle = (tab: SettingsTab): string => {
 export const WorkspaceTabs = () => {
     const history = useHistory();
 
-    const { workspace_id, page_id } = useParams<{
-        workspace_id: string;
-        page_id: SettingsTab;
-    }>();
+    const { workspace_id, page_id } =
+        useParams<{
+            workspace_id: string;
+            page_id: SettingsTab;
+        }>();
 
     return (
         <>

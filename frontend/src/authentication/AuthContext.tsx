@@ -22,11 +22,12 @@ export const isHighlightAdmin = (role: AuthRole) => {
     return role == AuthRole.AUTHENTICATED_HIGHLIGHT;
 };
 
-export const [useAuthContext, AuthContextProvider] = createContext<{
-    role: AuthRole;
-    admin?: Admin;
-    workspaceRole?: string;
-    isAuthLoading: boolean;
-    isLoggedIn: boolean;
-    isHighlightAdmin: boolean;
-}>('AuthContext');
+export const [useAuthContext, AuthContextProvider] =
+    createContext<{
+        role: AuthRole;
+        admin?: Admin;
+        workspaceRole?: string;
+        isAuthLoading: boolean;
+        isLoggedIn: boolean;
+        isHighlightAdmin: boolean;
+    }>('AuthContext');

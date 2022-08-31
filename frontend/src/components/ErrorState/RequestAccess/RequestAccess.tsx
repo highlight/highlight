@@ -5,9 +5,10 @@ import { message } from 'antd';
 import React, { useState } from 'react';
 
 const RequestAccess = () => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
+    const { project_id } =
+        useParams<{
+            project_id: string;
+        }>();
     const [requestAccess] = useRequestAccessMutation();
     const [sentAccessRequest, setSentAccessRequest] = useState(false);
     return (

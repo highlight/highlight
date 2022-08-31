@@ -50,7 +50,7 @@ const ErrorSessionList = ({ recentErrors, loading }: Props) => {
             itemContent={(index, session) => (
                 <MinimalSessionCard
                     session={
-                        ({
+                        {
                             secure_id: session?.session_secure_id,
                             created_at: session?.timestamp,
                             identifier: session?.identifier,
@@ -59,7 +59,7 @@ const ErrorSessionList = ({ recentErrors, loading }: Props) => {
                             os_name: session?.os,
                             environment: session?.environment || 'Production',
                             user_properties: session?.user_properties || {},
-                        } as Partial<Session>) as Session
+                        } as Partial<Session> as Session
                     }
                     selected={false}
                     key={`${session?.session_secure_id}-${index}`}

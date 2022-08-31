@@ -11,9 +11,10 @@ import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
 const IntegrationAuthCallbackPage = () => {
-    const { integrationName } = useParams<{
-        integrationName: string;
-    }>();
+    const { integrationName } =
+        useParams<{
+            integrationName: string;
+        }>();
     const history = useHistory();
     const { setLoadingState } = useAppLoadingContext();
 

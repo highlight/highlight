@@ -12,14 +12,8 @@ import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 
 const SessionLevelBar = React.memo(() => {
-    const {
-        state,
-        events,
-        session,
-        viewport,
-        currentUrl,
-        isLiveMode,
-    } = useReplayerContext();
+    const { state, events, session, viewport, currentUrl, isLiveMode } =
+        useReplayerContext();
 
     const isLoading =
         (state === ReplayerState.Loading && !events.length) ||

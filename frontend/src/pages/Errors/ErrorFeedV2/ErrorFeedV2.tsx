@@ -45,10 +45,8 @@ export const ErrorFeedV2 = () => {
     } = useErrorSearchContext();
     const projectHasManyErrors = errorsCount > PAGE_SIZE;
 
-    const [
-        errorFeedIsInTopScrollPosition,
-        setErrorFeedIsInTopScrollPosition,
-    ] = useState(true);
+    const [errorFeedIsInTopScrollPosition, setErrorFeedIsInTopScrollPosition] =
+        useState(true);
     useEffect(() => {
         if (backendSearchQuery) {
             setSearchResultsLoading(true);
@@ -151,10 +149,11 @@ const ErrorCardV2 = ({
     errorGroup: Maybe<ErrorGroup>;
     urlParams?: string;
 }) => {
-    const { project_id, error_secure_id } = useParams<{
-        project_id: string;
-        error_secure_id?: string;
-    }>();
+    const { project_id, error_secure_id } =
+        useParams<{
+            project_id: string;
+            error_secure_id?: string;
+        }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
