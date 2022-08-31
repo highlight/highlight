@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import svgr from 'vite-plugin-svgr';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 const reactAppEnv = {};
 for (const key in process.env) {
@@ -12,7 +13,7 @@ for (const key in process.env) {
 }
 
 export default defineConfig({
-    plugins: [react(), tsconfigPaths(), svgr()],
+    plugins: [react(), tsconfigPaths(), svgr(), basicSsl()],
     define: {
         ...reactAppEnv,
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -23,6 +24,7 @@ export default defineConfig({
     },
     server: {
         port: 3000,
+        https: true,
     },
     build: {
         outDir: 'build',
