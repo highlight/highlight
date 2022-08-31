@@ -58,7 +58,7 @@ jobs:
                   yarn gql:nowatch
             - name: Diff Check
               run: |
-                  diff -r frontend/ tmp/
+                  diff -r frontend/src/graph tmp/src/graph
     frontend:
         runs-on: ubuntu-latest
         steps:
