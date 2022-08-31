@@ -1,16 +1,21 @@
 {
-    "compilerOptions": {
-        "target": "ES2020",
-        "module": "ESNext",
-        "outDir": "dist",
-        "strict": true,
-        "baseUrl": "./",
-        "esModuleInterop": true,
-        "sourceMap": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "useUnknownInCatchVariables": false
-    },
-    "include": ["src/*.ts"],
-    "exclude": ["node_modules"]
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "outDir": "dist",
+    "strict": true,
+    "baseUrl": "./",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "useUnknownInCatchVariables": false
+  },
+  "include": [
+    "src/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
+
