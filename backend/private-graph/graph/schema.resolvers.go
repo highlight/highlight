@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4290,17 +4290,15 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
 	}
-
 	if page != nil {
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
 	q := FormatSessionsQuery(query)
-	resultCount, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%x\n", aggs)
 
 	return &model.SessionResults{
 		Sessions:   results,

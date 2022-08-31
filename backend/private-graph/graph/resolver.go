@@ -2629,7 +2629,7 @@ func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogram
 	for _, date_bucket := range aggs {
 		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
 		if err != nil {
-			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+			log.Errorf("Error parsing date bucket key for histogram: %s", err.Error())
 			break
 		}
 		bucket_times = append(bucket_times, time.UnixMilli(unixMillis))

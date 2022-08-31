@@ -510,8 +510,6 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		return 0, nil, e.Wrap(err, "failed to close search response")
 	}
 
-	fmt.Printf("\n\nSize: %d, Result: %s\n\n", count, string(res))
-
 	var response struct {
 		Hits struct {
 			Total struct {
