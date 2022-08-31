@@ -22,6 +22,8 @@ interface Props {
     networkRecordingEnabledForSession: boolean;
 }
 
+const TYPES_WITH_METRICS = ['xmlhttprequest', 'fetch'];
+
 const ResourceDetailsModal = ({
     selectedNetworkResource,
     networkRecordingEnabledForSession,
@@ -94,6 +96,10 @@ const ResourceDetailsModal = ({
             renderType: 'string',
         },
     ];
+
+    const showRequestMetrics =
+        selectedNetworkResource &&
+        TYPES_WITH_METRICS.indexOf(selectedNetworkResource.initiatorType) > -1;
 
     const requestHeadersData: KeyValueTableRow[] = [];
     const requestPayloadData: KeyValueTableRow[] = [];
@@ -256,12 +262,6 @@ const ResourceDetailsModal = ({
             renderType: 'string',
         },
     ];
-
-    const showRequestMetrics =
-        selectedNetworkResource &&
-        ['xmlhttprequest', 'fetch'].indexOf(
-            selectedNetworkResource.initiatorType
-        ) > -1;
 
     return (
         <section className={styles.modalContentContainer}>
