@@ -1,10 +1,6 @@
 {
 	"$schema": "http://json.schemastore.org/stylelintrc.json",
-	"extends": [
-		"stylelint-config-sass-guidelines",
-		"stylelint-prettier",
-		"stylelint-prettier/recommended"
-	],
+	"extends": ["stylelint-config-sass-guidelines"],
 	"rules": {
 		"color-no-hex": true,
 		"declaration-block-no-duplicate-properties": true,
@@ -12,7 +8,6 @@
 		"function-parentheses-space-inside": null,
 		"indentation": null,
 		"max-nesting-depth": null,
-		"prettier/prettier": true,
 		"rule-empty-line-before": null,
 		"scss/at-import-partial-extension-blacklist": null,
 		"selector-class-pattern": null,

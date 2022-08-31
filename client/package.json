@@ -8,10 +8,8 @@
 	"scripts": {
 		"build": "rollup -c",
 		"dev": "doppler run -- rollup -c -w",
-		"lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
 		"gql": "graphql-codegen --config --watch codegen.yml",
-		"test": "jest --passWithNoTests",
-		"lint-watch": "onchange 'src/**/*.{ts,tsx,scss}' -- prettier --check --write --ignore-unknown {{changed}}"
+		"test": "jest --passWithNoTests"
 	},
 	"repository": {
 		"type": "git",

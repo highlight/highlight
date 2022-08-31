@@ -83,8 +83,6 @@ jobs:
             - name: Install main dependencies
               run: cd frontend && yarn --prefer-offline
             - name: Runs linting
-              run: cd frontend && yarn lint
-            - name: Run Tests
               run: cd frontend && yarn test
             - name: Build Bundle
               run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false yarn build

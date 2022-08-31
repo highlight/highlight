@@ -4,7 +4,6 @@
 		"plugin:react/recommended",
 		"plugin:@typescript-eslint/recommended",
 		"prettier/@typescript-eslint",
-		"plugin:prettier/recommended",
 		"plugin:react-hooks/recommended"
 	],
 	"plugins": ["simple-import-sort", "unused-imports"],
