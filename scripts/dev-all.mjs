@@ -41,7 +41,7 @@ const children = tasks.map((task, i) => {
 
     const reader = createInterface(child.stdout);
     reader.on('line', (line) => {
-        console.info(`${task.color(`[${task.name}]`)} ${line}`);
+        console.info(task.color(`[${task.name}]`), line);
     });
 
     return child;
