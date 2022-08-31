@@ -278,7 +278,19 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
-                                <div className={styles.consoleMessage}>
+                                <div
+                                    className={styles.consoleMessage}
+                                    style={
+                                        {
+                                            '--color-console-message':
+                                                message.type === 'warn'
+                                                    ? 'var(--color-yellow-300)'
+                                                    : message.type === 'assert'
+                                                    ? 'var(--color-red-400)'
+                                                    : 'transparent',
+                                        } as React.CSSProperties
+                                    }
+                                >
                                     <Tooltip title="This is the last logged console message. This is based on the current session time.">
                                         <div
                                             className={

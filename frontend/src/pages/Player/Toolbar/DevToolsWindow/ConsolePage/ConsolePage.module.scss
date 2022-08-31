@@ -40,6 +40,7 @@
 
 .consoleMessage {
     border-bottom: 1px solid var(--color-gray-300);
+    border-left: var(--size-xxSmall) solid var(--color-console-message);
     display: grid;
     font-size: 12px;
     font-weight: 400;
