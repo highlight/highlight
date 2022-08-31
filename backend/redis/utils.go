@@ -24,7 +24,7 @@ var (
 	redisProjectIds            = []int{1, 1074} // Enabled for Highlight and Solitaired
 )
 
-func UseRedis(projectId int) bool {
+func UseRedis(projectId int, sessionSecureId string) bool {
 	return lo.Contains(redisProjectIds, projectId)
 }
 
