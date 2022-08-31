@@ -25,7 +25,7 @@ interface Props {
 
 const RequestMetrics: React.FC<Props> = ({ resource }) => {
     const { project_id } = useParams<{ project_id: string }>();
-    const { data, loading } = useGetMetricsTimelineQuery({
+    const { data } = useGetMetricsTimelineQuery({
         variables: {
             project_id,
             metric_name: NetworkRequestAttribute.Latency,
