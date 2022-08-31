@@ -1480,7 +1480,7 @@ func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 		// sleep between 1m and 60m to ensure lots of worker containers do not cause
 		// db contention running this same query. can cause significant load when there are many sessions
 		var count int64
-		if err := db.Debug().Raw(`
+		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
 			WHERE (processed = false) 
