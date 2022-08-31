@@ -2333,7 +2333,7 @@ export type GetSessionsHistogramQueryVariables = Types.Exact<{
 export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
     sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
         Types.SessionsHistogram,
-        | 'bucket_start_times'
+        | 'bucket_times'
         | 'sessions_without_errors'
         | 'sessions_with_errors'
         | 'total_sessions'
@@ -2390,7 +2390,7 @@ export type GetErrorsHistogramQueryVariables = Types.Exact<{
 export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
     errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
         Types.ErrorsHistogram,
-        'bucket_start_times' | 'error_objects'
+        'bucket_times' | 'error_objects'
     >;
 };
 

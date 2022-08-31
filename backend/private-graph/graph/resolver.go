@@ -2613,10 +2613,31 @@ func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptio
 		SortOrder:        "asc",
 		Format:           "epoch_millis",
 		TimeZone:         histogramOptions.TimeZone,
-		MinDocCount:      pointy.Int(0),
+		DateBounds: &opensearch.DateBounds{
+			Min: histogramOptions.Bounds.StartDate.UnixMilli(),
+			Max: histogramOptions.Bounds.EndDate.UnixMilli(),
+		},
 	}
 	if subAggregation != nil {
 		aggregation.SubAggregation = subAggregation
 	}
 	return &aggregation
+}
+
+func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
+	bucket_times, total_counts := []time.Time{}, []int64{}
+	for _, date_bucket := range aggs {
+		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+		if err != nil {
+			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
+			break
+		}
+		bucket_times = append(bucket_times, time.UnixMilli(unixMillis))
+		total_counts = append(total_counts, date_bucket.DocCount)
+	}
+	if len(aggs) > 0 {
+		bucket_times[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucket_times = append(bucket_times, *histogramOptions.Bounds.EndDate)
+	}
+	return bucket_times, total_counts
 }

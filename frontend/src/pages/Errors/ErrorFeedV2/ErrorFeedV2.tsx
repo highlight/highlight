@@ -61,7 +61,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
                 bounds: {
                     start_date:
                         backendSearchQuery?.startDate.toISOString() || '',
-                    end_date: backendSearchQuery?.startDate.toISOString() || '',
+                    end_date: backendSearchQuery?.endDate.toISOString() || '',
                 },
             },
         },
@@ -69,12 +69,10 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
             let seriesList: Series[] = [];
             let bucketTimes: number[] = [];
             const histogramData = r?.errors_histogram;
-            console.log('Rich data', histogramData);
             if (backendSearchQuery && histogramData) {
-                bucketTimes = histogramData.bucket_start_times.map(
-                    (startTime) => new Date(startTime).valueOf()
+                bucketTimes = histogramData.bucket_times.map((startTime) =>
+                    new Date(startTime).valueOf()
                 );
-                bucketTimes.push(backendSearchQuery.endDate.valueOf());
                 seriesList = [
                     {
                         label: 'Errors logged',

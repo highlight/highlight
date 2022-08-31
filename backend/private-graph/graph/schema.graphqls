@@ -575,14 +575,14 @@ input SanitizedAdminInput {
 }
 
 type SessionsHistogram {
-    bucket_start_times: [Timestamp!]!
+    bucket_times: [Timestamp!]!
     sessions_without_errors: [Int64!]!
     sessions_with_errors: [Int64!]!
     total_sessions: [Int64!]!
 }
 
 type ErrorsHistogram {
-    bucket_start_times: [Timestamp!]!
+    bucket_times: [Timestamp!]!
     error_objects: [Int64!]!
 }
 

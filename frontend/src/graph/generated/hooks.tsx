@@ -6067,7 +6067,7 @@ export const GetSessionsHistogramDocument = gql`
             query: $query
             histogram_options: $histogram_options
         ) {
-            bucket_start_times
+            bucket_times
             sessions_without_errors
             sessions_with_errors
             total_sessions
@@ -6223,7 +6223,7 @@ export const GetErrorsHistogramDocument = gql`
             query: $query
             histogram_options: $histogram_options
         ) {
-            bucket_start_times
+            bucket_times
             error_objects
         }
     }

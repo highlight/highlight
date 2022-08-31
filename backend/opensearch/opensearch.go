@@ -114,8 +114,8 @@ func (t *TermsAggregation) GetAggsString() string {
 }
 
 type DateBounds struct {
-	Min int
-	Max int
+	Min int64
+	Max int64
 }
 
 type DateHistogramAggregation struct {
@@ -125,7 +125,6 @@ type DateHistogramAggregation struct {
 	Format           string
 	TimeZone         string
 	DateBounds       *DateBounds
-	MinDocCount      *int // When set to 0, empty buckets will also be returned (otherwise they are omitted)
 	SubAggregation   Aggregation
 }
 
@@ -134,9 +133,14 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 	if d.SubAggregation != nil {
 		subAggString = d.SubAggregation.GetAggsString()
 	}
-	minDocCountString := ""
-	if d.MinDocCount != nil {
-		minDocCountString = fmt.Sprintf(`, "min_doc_count": "%d"`, *d.MinDocCount)
+	boundsString := ""
+	if d.DateBounds != nil {
+		boundsString = fmt.Sprintf(
+			`, "extended_bounds": {"min": %d, "max": %d}, "hard_bounds": {"min": %d, "max": %d}, "min_doc_count": 0`,
+			d.DateBounds.Min,
+			d.DateBounds.Max,
+			d.DateBounds.Min,
+			d.DateBounds.Max)
 	}
 	return fmt.Sprintf(`
 		"aggregate": {
@@ -154,7 +158,7 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 				%s
 			}
 		}
-	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, minDocCountString, subAggString)
+	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, boundsString, subAggString)
 }
 
 type AggregationResult struct {
@@ -473,33 +477,6 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 		excludesStr += `"` + e + `"`
 	}
-
-	/*
-		GET prod_sessions/_search
-		{
-		  "size": 0,
-		  "query": {
-		    "range": {
-		      "created_at": {
-		        "gte": "now-7d/d"
-		      }
-		    }
-		  },
-		  "aggs": {
-		    "session_count_buckets": {
-		      "date_histogram": {
-		        "field": "created_at",
-		        "interval": "day"
-		      },
-		      "aggs" : {
-		        "has_errors" : {
-		          "terms" : { "field" : "has_errors", "missing": "false" }
-		        }
-		      }
-		    }
-		  }
-		}
-	*/
 
 	aggs := ""
 	if options.Aggregation != nil {

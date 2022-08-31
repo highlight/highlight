@@ -27,7 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3493,20 +3493,11 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		return nil, err
 	}
 
-	bucket_start_times, total_counts := []time.Time{}, []int64{}
-	for _, date_bucket := range aggs {
-		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-		if err != nil {
-			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
-			break
-		}
-		bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
-		total_counts = append(total_counts, date_bucket.DocCount)
-	}
+	bucket_times, total_counts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
 
 	return &model.ErrorsHistogram{
-		BucketStartTimes: bucket_start_times,
-		ErrorObjects:     total_counts,
+		BucketTimes:  bucket_times,
+		ErrorObjects: total_counts,
 	}, nil
 }
 
@@ -4342,15 +4333,9 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 		return nil, err
 	}
 
-	bucket_start_times, no_errors_counts, with_errors_counts, total_counts := []time.Time{}, []int64{}, []int64{}, []int64{}
+	bucket_times, total_counts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	no_errors_counts, with_errors_counts := []int64{}, []int64{}
 	for _, date_bucket := range aggs {
-		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
-		if err != nil {
-			log.Error("Error parsing date bucket key for histogram: %s", err.Error())
-			break
-		}
-		bucket_start_times = append(bucket_start_times, time.UnixMilli(unixMillis))
-		total_counts = append(total_counts, date_bucket.DocCount)
 		no_errors, with_errors := int64(0), int64(0)
 		for _, errors_bucket := range date_bucket.SubAggregationResults {
 			if errors_bucket.Key == "false" {
@@ -4364,7 +4349,7 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 	}
 
 	return &model.SessionsHistogram{
-		BucketStartTimes:      bucket_start_times,
+		BucketTimes:           bucket_times,
 		SessionsWithoutErrors: no_errors_counts,
 		SessionsWithErrors:    with_errors_counts,
 		TotalSessions:         total_counts,

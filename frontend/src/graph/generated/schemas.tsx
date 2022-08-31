@@ -628,7 +628,7 @@ export type SanitizedAdminInput = {
 
 export type SessionsHistogram = {
     __typename?: 'SessionsHistogram';
-    bucket_start_times: Array<Scalars['Timestamp']>;
+    bucket_times: Array<Scalars['Timestamp']>;
     sessions_without_errors: Array<Scalars['Int64']>;
     sessions_with_errors: Array<Scalars['Int64']>;
     total_sessions: Array<Scalars['Int64']>;
@@ -636,7 +636,7 @@ export type SessionsHistogram = {
 
 export type ErrorsHistogram = {
     __typename?: 'ErrorsHistogram';
-    bucket_start_times: Array<Scalars['Timestamp']>;
+    bucket_times: Array<Scalars['Timestamp']>;
     error_objects: Array<Scalars['Int64']>;
 };
 

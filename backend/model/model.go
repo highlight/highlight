@@ -459,7 +459,7 @@ type EmailSignup struct {
 }
 
 type SessionsHistogram struct {
-	BucketStartTimes      []time.Time `json:"bucket_start_times"`
+	BucketTimes           []time.Time `json:"bucket_times"`
 	SessionsWithoutErrors []int64     `json:"sessions_without_errors"`
 	SessionsWithErrors    []int64     `json:"sessions_with_errors"`
 	TotalSessions         []int64     `json:"total_sessions"`
@@ -793,8 +793,8 @@ func (m *EventsObject) Contents() string {
 const PARTITION_SESSION_ID = 30000000
 
 type ErrorsHistogram struct {
-	BucketStartTimes []time.Time `json:"bucket_start_times"`
-	ErrorObjects     []int64     `json:"error_objects"`
+	BucketTimes  []time.Time `json:"bucket_times"`
+	ErrorObjects []int64     `json:"error_objects"`
 }
 
 type ErrorResults struct {

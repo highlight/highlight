@@ -338,8 +338,8 @@ type ComplexityRoot struct {
 	}
 
 	ErrorsHistogram struct {
-		BucketStartTimes func(childComplexity int) int
-		ErrorObjects     func(childComplexity int) int
+		BucketTimes  func(childComplexity int) int
+		ErrorObjects func(childComplexity int) int
 	}
 
 	EventChunk struct {
@@ -804,7 +804,7 @@ type ComplexityRoot struct {
 	}
 
 	SessionsHistogram struct {
-		BucketStartTimes      func(childComplexity int) int
+		BucketTimes           func(childComplexity int) int
 		SessionsWithErrors    func(childComplexity int) int
 		SessionsWithoutErrors func(childComplexity int) int
 		TotalSessions         func(childComplexity int) int
@@ -2484,12 +2484,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
 
-	case "ErrorsHistogram.bucket_start_times":
-		if e.complexity.ErrorsHistogram.BucketStartTimes == nil {
+	case "ErrorsHistogram.bucket_times":
+		if e.complexity.ErrorsHistogram.BucketTimes == nil {
 			break
 		}
 
-		return e.complexity.ErrorsHistogram.BucketStartTimes(childComplexity), true
+		return e.complexity.ErrorsHistogram.BucketTimes(childComplexity), true
 
 	case "ErrorsHistogram.error_objects":
 		if e.complexity.ErrorsHistogram.ErrorObjects == nil {
@@ -5787,12 +5787,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
-	case "SessionsHistogram.bucket_start_times":
-		if e.complexity.SessionsHistogram.BucketStartTimes == nil {
+	case "SessionsHistogram.bucket_times":
+		if e.complexity.SessionsHistogram.BucketTimes == nil {
 			break
 		}
 
-		return e.complexity.SessionsHistogram.BucketStartTimes(childComplexity), true
+		return e.complexity.SessionsHistogram.BucketTimes(childComplexity), true
 
 	case "SessionsHistogram.sessions_with_errors":
 		if e.complexity.SessionsHistogram.SessionsWithErrors == nil {
@@ -6834,14 +6834,14 @@ input SanitizedAdminInput {
 }
 
 type SessionsHistogram {
-    bucket_start_times: [Timestamp!]!
+    bucket_times: [Timestamp!]!
     sessions_without_errors: [Int64!]!
     sessions_with_errors: [Int64!]!
     total_sessions: [Int64!]!
 }
 
 type ErrorsHistogram {
-    bucket_start_times: [Timestamp!]!
+    bucket_times: [Timestamp!]!
     error_objects: [Int64!]!
 }
 
@@ -21113,8 +21113,8 @@ func (ec *executionContext) fieldContext_ErrorTrace_linesAfter(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _ErrorsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorsHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorsHistogram_bucket_start_times(ctx, field)
+func (ec *executionContext) _ErrorsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -21127,7 +21127,7 @@ func (ec *executionContext) _ErrorsHistogram_bucket_start_times(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.BucketStartTimes, nil
+		return obj.BucketTimes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21144,7 +21144,7 @@ func (ec *executionContext) _ErrorsHistogram_bucket_start_times(ctx context.Cont
 	return ec.marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ErrorsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ErrorsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorsHistogram",
 		Field:      field,
@@ -29583,8 +29583,8 @@ func (ec *executionContext) fieldContext_Query_errors_histogram(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "bucket_start_times":
-				return ec.fieldContext_ErrorsHistogram_bucket_start_times(ctx, field)
+			case "bucket_times":
+				return ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
 			case "error_objects":
 				return ec.fieldContext_ErrorsHistogram_error_objects(ctx, field)
 			}
@@ -31757,8 +31757,8 @@ func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "bucket_start_times":
-				return ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
+			case "bucket_times":
+				return ec.fieldContext_SessionsHistogram_bucket_times(ctx, field)
 			case "sessions_without_errors":
 				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
 			case "sessions_with_errors":
@@ -41360,8 +41360,8 @@ func (ec *executionContext) fieldContext_SessionResults_totalCount(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_SessionsHistogram_bucket_start_times(ctx, field)
+func (ec *executionContext) _SessionsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_bucket_times(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -41374,7 +41374,7 @@ func (ec *executionContext) _SessionsHistogram_bucket_start_times(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.BucketStartTimes, nil
+		return obj.BucketTimes, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -41391,7 +41391,7 @@ func (ec *executionContext) _SessionsHistogram_bucket_start_times(ctx context.Co
 	return ec.marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_SessionsHistogram_bucket_start_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_SessionsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SessionsHistogram",
 		Field:      field,
@@ -48393,9 +48393,9 @@ func (ec *executionContext) _ErrorsHistogram(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ErrorsHistogram")
-		case "bucket_start_times":
+		case "bucket_times":
 
-			out.Values[i] = ec._ErrorsHistogram_bucket_start_times(ctx, field, obj)
+			out.Values[i] = ec._ErrorsHistogram_bucket_times(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -53036,9 +53036,9 @@ func (ec *executionContext) _SessionsHistogram(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SessionsHistogram")
-		case "bucket_start_times":
+		case "bucket_times":
 
-			out.Values[i] = ec._SessionsHistogram_bucket_start_times(ctx, field, obj)
+			out.Values[i] = ec._SessionsHistogram_bucket_times(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
