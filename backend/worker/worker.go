@@ -949,7 +949,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 func (w *Worker) Start() {
 	ctx := context.Background()
 	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
-	lockPeriod := 10            // time in minutes
+	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 16
