@@ -661,7 +661,10 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	aggregator: Types.MetricAggregator
 	threshold: Types.Scalars['Float']
-	units?: Types.Maybe<Types.Scalars['String']>
+	filters?: Types.Maybe<
+        Array<Types.MetricTagFilterInput> | Types.MetricTagFilterInput
+    >;
+    units?: Types.Maybe<Types.Scalars['String']>
 	periodMinutes?: Types.Maybe<Types.Scalars['Int']>
 	metric_to_monitor: Types.Scalars['String']
 	slack_channels:
@@ -705,7 +708,10 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 	name?: Types.Maybe<Types.Scalars['String']>
 	aggregator?: Types.Maybe<Types.MetricAggregator>
 	threshold?: Types.Maybe<Types.Scalars['Float']>
-	units?: Types.Maybe<Types.Scalars['String']>
+	filters?: Types.Maybe<
+        Array<Types.MetricTagFilterInput> | Types.MetricTagFilterInput
+    >;
+    units?: Types.Maybe<Types.Scalars['String']>
 	periodMinutes?: Types.Maybe<Types.Scalars['Int']>
 	metric_to_monitor?: Types.Maybe<Types.Scalars['String']>
 	slack_channels?: Types.Maybe<
@@ -3755,9 +3761,17 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							>
 						>
 					>
-				}
-		>
-	>
+                    filters?: Types.Maybe<
+                        Array<
+                            { __typename?: 'MetricTagFilter' } & Pick<
+                                Types.MetricTagFilter,
+                                'tag' | 'op' | 'value'
+                            >
+                        >
+                    >;
+                }
+        >
+    >
 }
 
 export type GetMetricMonitorsQueryVariables = Types.Exact<{

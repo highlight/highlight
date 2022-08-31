@@ -1,7 +1,7 @@
 import * as Types from './operations'
 
-import { gql } from '@apollo/client'
 import * as Apollo from '@apollo/client'
+import { gql } from '@apollo/client'
 export const SessionPayloadFragmentFragmentDoc = gql`
 	fragment SessionPayloadFragment on SessionPayload {
 		events
@@ -2290,7 +2290,8 @@ export const CreateMetricMonitorDocument = gql`
 		$name: String!
 		$aggregator: MetricAggregator!
 		$threshold: Float!
-		$units: String
+		$filters: [MetricTagFilterInput!]
+        $units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
@@ -2299,6 +2300,7 @@ export const CreateMetricMonitorDocument = gql`
 		createMetricMonitor(
 			project_id: $project_id
 			threshold: $threshold
+            filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -2346,6 +2348,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      filters: // value for 'filters'
  *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2381,7 +2384,8 @@ export const UpdateMetricMonitorDocument = gql`
 		$name: String
 		$aggregator: MetricAggregator
 		$threshold: Float
-		$units: String
+		$filters: [MetricTagFilterInput!]
+        $units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
@@ -2392,6 +2396,7 @@ export const UpdateMetricMonitorDocument = gql`
 			metric_monitor_id: $metric_monitor_id
 			project_id: $project_id
 			threshold: $threshold
+            filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -2441,6 +2446,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      filters: // value for 'filters'
  *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -9663,10 +9669,15 @@ export const GetAlertsPagePayloadDocument = gql`
 			metric_to_monitor
 			last_admin_to_edit_id
 			threshold
-			units
-			disabled
-		}
-	}
+			filters {
+                tag
+                op
+                value
+            }
+            units
+            disabled
+        }
+    }
 `
 
 /**

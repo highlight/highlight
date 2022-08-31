@@ -611,7 +611,7 @@ export const TagFilterSelector = ({
 	)
 }
 
-const MetricSelector = ({
+export const MetricSelector = ({
 	onSelectMetric,
 	currentMetric,
 }: {

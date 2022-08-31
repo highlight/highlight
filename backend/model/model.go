@@ -685,11 +685,10 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                              = "sessions"
-	DAILY_ERROR_COUNTS_TBL                    = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ                   = "date_project_id_error_type_uniq"
-	METRIC_GROUPS_NAME_SESSION_UNIQ           = "metric_groups_name_session_uniq"
-	DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT = "dashboard_metric_filters_chart_id"
+	SESSIONS_TBL                    = "sessions"
+	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
 )
 
 type DailyErrorCount struct {
@@ -1209,27 +1208,6 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 			END $$;
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
 		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
-	}
-
-	if err := DB.Exec(fmt.Sprintf(`
-		DO $$
-			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
-					THEN
-						alter table dashboard_metric_filters
-							add constraint %[1]s
-								foreign key (metric_id) references dashboard_metrics (id)
-									on update cascade on delete cascade;
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
-				END;
-			END $$;
-	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`

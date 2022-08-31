@@ -1886,19 +1886,18 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
-	if err := r.DB.Model(&metricMonitor).Association("Filters").Clear(); err != nil {
-		return nil, e.Wrap(err, "failed to clear previous metric monitor filters")
-	}
-
 	var mmFilters []*model.DashboardMetricFilter
 	for _, f := range filters {
 		mmFilters = append(mmFilters, &model.DashboardMetricFilter{
-			Tag:   f.Tag,
-			Op:    f.Op,
-			Value: f.Value,
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+			Op:              f.Op,
+			Value:           f.Value,
 		})
 	}
-	metricMonitor.Filters = mmFilters
+	if err := r.DB.Model(&metricMonitor).Association("Filters").Replace(&mmFilters); err != nil {
+		return nil, e.Wrap(err, "failed to associate filter with metric monitor")
+	}
 
 	if slackChannels != nil {
 		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
