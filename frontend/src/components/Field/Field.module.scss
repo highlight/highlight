@@ -2,35 +2,35 @@ $side: 8px;
 $vert: 2px;
 
 .keyValueWrapper {
-    border-bottom-left-radius: var(--size-xxSmall);
-    border-top-left-radius: var(--size-xxSmall);
-    display: flex;
+	border-bottom-left-radius: var(--size-xxSmall);
+	border-top-left-radius: var(--size-xxSmall);
+	display: flex;
 }
 
 .key {
-    align-items: center;
-    background: var(--color-primary-background);
-    border-bottom-left-radius: var(--size-xxSmall);
-    border-top-left-radius: var(--size-xxSmall);
-    display: flex;
-    font-size: 12px;
-    padding-bottom: 0;
-    padding-left: var(--size-xSmall);
-    padding-right: var(--size-xSmall);
-    padding-top: 0;
+	align-items: center;
+	background: var(--color-primary-background);
+	border-bottom-left-radius: var(--size-xxSmall);
+	border-top-left-radius: var(--size-xxSmall);
+	display: flex;
+	font-size: 12px;
+	padding-bottom: 0;
+	padding-left: var(--size-xSmall);
+	padding-right: var(--size-xSmall);
+	padding-top: 0;
 }
 
 .value {
-    font-size: 12px;
-    padding-bottom: $vert;
-    padding-left: $side;
-    padding-right: $side;
-    padding-top: $vert;
+	font-size: 12px;
+	padding-bottom: $vert;
+	padding-left: $side;
+	padding-right: $side;
+	padding-top: $vert;
 }
 
 .wrapper {
-    border-radius: 4px;
-    display: inline-block;
-    font-weight: 300 !important;
-    width: fit-content;
+	border-radius: 4px;
+	display: inline-block;
+	font-weight: 300 !important;
+	width: fit-content;
 }

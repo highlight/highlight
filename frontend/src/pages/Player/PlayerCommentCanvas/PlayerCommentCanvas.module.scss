@@ -1,35 +1,35 @@
 .commentButton {
-    --comment-indicator-height: 23px;
-    --comment-indicator-width: 16px;
-    background: transparent;
+	--comment-indicator-height: 23px;
+	--comment-indicator-width: 16px;
+	background: transparent;
 
-    border: 0;
-    cursor: url('/static/comment-pin.png') 10 25, crosshair;
-    outline: none;
-    padding: 0;
-    position: absolute;
-    user-select: text;
-    z-index: 1;
+	border: 0;
+	cursor: url('/static/comment-pin.png') 10 25, crosshair;
+	outline: none;
+	padding: 0;
+	position: absolute;
+	user-select: text;
+	z-index: 1;
 }
 
 .commentIndicator {
-    animation: grow 0.2s forwards;
-    height: var(--comment-indicator-height);
-    position: absolute;
-    transform: scale(0);
-    width: var(--comment-indicator-width);
+	animation: grow 0.2s forwards;
+	height: var(--comment-indicator-height);
+	position: absolute;
+	transform: scale(0);
+	width: var(--comment-indicator-width);
 }
 
 @keyframes grow {
-    0% {
-        transform: scale(0);
-    }
+	0% {
+		transform: scale(0);
+	}
 
-    100% {
-        transform: scale(1);
-    }
+	100% {
+		transform: scale(1);
+	}
 }
 
 .blurBackground {
-    backdrop-filter: blur(2px);
+	backdrop-filter: blur(2px);
 }

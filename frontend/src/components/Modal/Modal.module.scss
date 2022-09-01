@@ -1,20 +1,20 @@
 .modal {
-    max-width: 60vw;
-    pointer-events: unset;
+	max-width: 60vw;
+	pointer-events: unset;
 
-    :global(.ant-modal-content) {
-        border-radius: var(--border-radius) !important;
-    }
+	:global(.ant-modal-content) {
+		border-radius: var(--border-radius) !important;
+	}
 }
 
 .modalContent {
-    overflow: visible;
+	overflow: visible;
 }
 
 .title {
-    margin-bottom: var(--size-medium) !important;
+	margin-bottom: var(--size-medium) !important;
 }
 
 .modalWrap {
-    z-index: 999999999;
+	z-index: 999999999;
 }

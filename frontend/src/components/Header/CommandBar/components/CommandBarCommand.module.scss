@@ -1,17 +1,17 @@
 .suggestion {
-    align-items: center;
-    background: var(--header-font-family);
-    column-gap: var(--size-small);
-    display: flex;
-    font-size: 14px;
+	align-items: center;
+	background: var(--header-font-family);
+	column-gap: var(--size-small);
+	display: flex;
+	font-size: 14px;
 }
 
 .category {
-    align-items: center;
-    display: flex;
+	align-items: center;
+	display: flex;
 
-    > svg {
-        height: 12px;
-        width: 12px;
-    }
+	> svg {
+		height: 12px;
+		width: 12px;
+	}
 }

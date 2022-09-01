@@ -1,1 +1,1 @@
-export const loadingContainer: string;
+export const loadingContainer: string

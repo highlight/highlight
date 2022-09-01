@@ -1,1 +1,1 @@
-export const timestamp: string;
+export const timestamp: string

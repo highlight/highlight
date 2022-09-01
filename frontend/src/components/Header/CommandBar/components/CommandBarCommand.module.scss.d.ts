@@ -1,2 +1,2 @@
-export const category: string;
-export const suggestion: string;
+export const category: string
+export const suggestion: string

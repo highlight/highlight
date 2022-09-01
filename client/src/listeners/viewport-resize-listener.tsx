@@ -1,6 +1,6 @@
 interface ViewportResizeListenerCallback {
-    height: number;
-    width: number;
+	height: number
+	width: number
 }
 
 /**
@@ -8,18 +8,18 @@ interface ViewportResizeListenerCallback {
  * Takes the last value after DELAY ms passes. We're doing this to avoid taking the intermediate values while the user is resizing.
  */
 export const ViewportResizeListener = (
-    callback: (args: ViewportResizeListenerCallback) => void
+	callback: (args: ViewportResizeListenerCallback) => void,
 ) => {
-    let id: ReturnType<typeof setTimeout>;
-    const DELAY = 500;
+	let id: ReturnType<typeof setTimeout>
+	const DELAY = 500
 
-    const onResize = () => {
-        clearTimeout(id);
-        id = setTimeout(() => {
-            callback({ height: window.innerHeight, width: window.innerWidth });
-        }, DELAY);
-    };
-    window.addEventListener('resize', onResize);
+	const onResize = () => {
+		clearTimeout(id)
+		id = setTimeout(() => {
+			callback({ height: window.innerHeight, width: window.innerWidth })
+		}, DELAY)
+	}
+	window.addEventListener('resize', onResize)
 
-    return () => window.removeEventListener('resize', onResize);
-};
+	return () => window.removeEventListener('resize', onResize)
+}

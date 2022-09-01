@@ -1,92 +1,91 @@
-import { Avatar } from '@components/Avatar/Avatar';
-import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils';
-import { Session } from '@graph/schemas';
-import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils';
-import classNames from 'classnames';
-import React from 'react';
+import { Avatar } from '@components/Avatar/Avatar'
+import { getPercentageDisplayValue } from '@components/ProgressBarTable/utils/utils'
+import { Session } from '@graph/schemas'
+import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+import classNames from 'classnames'
+import React from 'react'
 
-import styles from './ProgressBarTableColumns.module.scss';
+import styles from './ProgressBarTableColumns.module.scss'
 
 interface ProgressBarTablePercentageProps {
-    percent: number;
+	percent: number
 }
 
 export const ProgressBarTablePercentage = ({
-    percent,
+	percent,
 }: ProgressBarTablePercentageProps) => {
-    return (
-        <div className={styles.percentContainer}>
-            <div
-                className={styles.barGraph}
-                style={
-                    {
-                        '--percentage': `${percent}%`,
-                    } as React.CSSProperties
-                }
-            ></div>
-            <span>{getPercentageDisplayValue(percent / 100)}</span>
-        </div>
-    );
-};
-
-interface ProgressBarTableRowGroupProps {
-    alignment?: 'leading' | 'ending';
+	return (
+		<div className={styles.percentContainer}>
+			<div
+				className={styles.barGraph}
+				style={
+					{
+						'--percentage': `${percent}%`,
+					} as React.CSSProperties
+				}
+			></div>
+			<span>{getPercentageDisplayValue(percent / 100)}</span>
+		</div>
+	)
 }
 
-export const ProgressBarTableRowGroup: React.FC<ProgressBarTableRowGroupProps> = ({
-    alignment = 'leading',
-    children,
-}) => {
-    return (
-        <div
-            className={classNames(styles.rowGroup, {
-                [styles.endingAlignment]: alignment === 'ending',
-            })}
-        >
-            {children}
-        </div>
-    );
-};
+interface ProgressBarTableRowGroupProps {
+	alignment?: 'leading' | 'ending'
+}
+
+export const ProgressBarTableRowGroup: React.FC<
+	ProgressBarTableRowGroupProps
+> = ({ alignment = 'leading', children }) => {
+	return (
+		<div
+			className={classNames(styles.rowGroup, {
+				[styles.endingAlignment]: alignment === 'ending',
+			})}
+		>
+			{children}
+		</div>
+	)
+}
 
 interface ProgressBarTablePillProps {
-    icon?: React.ReactNode;
-    displayValue: string;
+	icon?: React.ReactNode
+	displayValue: string
 }
 
 export const ProgressBarTablePill = ({
-    displayValue,
-    icon,
+	displayValue,
+	icon,
 }: ProgressBarTablePillProps) => {
-    return (
-        <div className={styles.pill}>
-            {icon && icon}
-            {displayValue}
-        </div>
-    );
-};
+	return (
+		<div className={styles.pill}>
+			{icon && icon}
+			{displayValue}
+		</div>
+	)
+}
 
 interface ProgressBarTableUserAvatarProps {
-    userProperties: string;
-    identifier: string;
+	userProperties: string
+	identifier: string
 }
 
 export const ProgressBarTableUserAvatar = ({
-    identifier,
-    userProperties,
+	identifier,
+	userProperties,
 }: ProgressBarTableUserAvatarProps) => {
-    return (
-        <Avatar
-            seed={identifier}
-            style={{
-                height: 'var(--size-large)',
-                width: 'var(--size-large)',
-                borderRadius: 'var(--size-xSmall)',
-                border: '1px solid var(--text-primary-inverted)',
-                flexShrink: 0,
-            }}
-            customImage={getIdentifiedUserProfileImage({
-                user_properties: userProperties,
-            } as Session)}
-        />
-    );
-};
+	return (
+		<Avatar
+			seed={identifier}
+			style={{
+				height: 'var(--size-large)',
+				width: 'var(--size-large)',
+				borderRadius: 'var(--size-xSmall)',
+				border: '1px solid var(--text-primary-inverted)',
+				flexShrink: 0,
+			}}
+			customImage={getIdentifiedUserProfileImage({
+				user_properties: userProperties,
+			} as Session)}
+		/>
+	)
+}

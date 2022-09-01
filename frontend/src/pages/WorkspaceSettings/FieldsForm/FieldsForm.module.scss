@@ -1,19 +1,19 @@
 .fieldRow {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    margin-bottom: var(--size-large);
+	display: grid;
+	grid-template-columns: 120px 1fr;
+	margin-bottom: var(--size-large);
 
-    &:last-of-type {
-        margin-bottom: 0;
-    }
+	&:last-of-type {
+		margin-bottom: 0;
+	}
 }
 
 .fieldKey {
-    align-items: center;
-    display: flex;
-    height: 100%;
+	align-items: center;
+	display: flex;
+	height: 100%;
 }
 
 .saveButton {
-    width: max-content;
+	width: max-content;
 }

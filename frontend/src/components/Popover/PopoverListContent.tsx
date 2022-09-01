@@ -1,80 +1,80 @@
-import classNames from 'classnames';
-import React, { useRef } from 'react';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import classNames from 'classnames'
+import React, { useRef } from 'react'
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import styles from './PopoverListContent.module.scss';
+import styles from './PopoverListContent.module.scss'
 
 interface Props {
-    listItems: React.ReactNode[];
-    className?: string;
-    small?: boolean;
-    noHoverChange?: boolean;
-    virtual?: boolean;
-    virtualListHeight?: number;
-    maxHeight?: number;
-    defaultItemHeight?: number;
+	listItems: React.ReactNode[]
+	className?: string
+	small?: boolean
+	noHoverChange?: boolean
+	virtual?: boolean
+	virtualListHeight?: number
+	maxHeight?: number
+	defaultItemHeight?: number
 }
 
 const PopoverListContent = ({
-    listItems,
-    className,
-    small = false,
-    noHoverChange,
-    virtual,
-    virtualListHeight,
-    maxHeight,
-    defaultItemHeight,
+	listItems,
+	className,
+	small = false,
+	noHoverChange,
+	virtual,
+	virtualListHeight,
+	maxHeight,
+	defaultItemHeight,
 }: Props) => {
-    const virtuoso = useRef<VirtuosoHandle>(null);
+	const virtuoso = useRef<VirtuosoHandle>(null)
 
-    return (
-        <ul
-            className={classNames(styles.list, className)}
-            style={{
-                height: virtual ? `${virtualListHeight}px` : 'initial',
-                maxHeight,
-            }}
-        >
-            {!virtual ? (
-                listItems.map((listItem, index) => (
-                    <li
-                        key={index}
-                        className={classNames(styles.item, {
-                            [styles.small]: small,
-                            [styles.noHoverChange]: noHoverChange,
-                        })}
-                    >
-                        {listItem}
-                    </li>
-                ))
-            ) : (
-                <>
-                    <Virtuoso
-                        ref={virtuoso}
-                        overscan={1000}
-                        data={listItems}
-                        totalCount={listItems.length}
-                        defaultItemHeight={defaultItemHeight}
-                        itemContent={(index, item: any) => (
-                            <li
-                                key={`${index}-${item.id}`}
-                                className={classNames(
-                                    styles.item,
-                                    styles.virtual,
-                                    {
-                                        [styles.small]: small,
-                                        [styles.noHoverChange]: noHoverChange,
-                                    }
-                                )}
-                            >
-                                {item}
-                            </li>
-                        )}
-                    />
-                </>
-            )}
-        </ul>
-    );
-};
+	return (
+		<ul
+			className={classNames(styles.list, className)}
+			style={{
+				height: virtual ? `${virtualListHeight}px` : 'initial',
+				maxHeight,
+			}}
+		>
+			{!virtual ? (
+				listItems.map((listItem, index) => (
+					<li
+						key={index}
+						className={classNames(styles.item, {
+							[styles.small]: small,
+							[styles.noHoverChange]: noHoverChange,
+						})}
+					>
+						{listItem}
+					</li>
+				))
+			) : (
+				<>
+					<Virtuoso
+						ref={virtuoso}
+						overscan={1000}
+						data={listItems}
+						totalCount={listItems.length}
+						defaultItemHeight={defaultItemHeight}
+						itemContent={(index, item: any) => (
+							<li
+								key={`${index}-${item.id}`}
+								className={classNames(
+									styles.item,
+									styles.virtual,
+									{
+										[styles.small]: small,
+										[styles.noHoverChange]: noHoverChange,
+									},
+								)}
+							>
+								{item}
+							</li>
+						)}
+					/>
+				</>
+			)}
+		</ul>
+	)
+}
 
-export default PopoverListContent;
+export default PopoverListContent

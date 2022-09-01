@@ -404,7 +404,11 @@ func main() {
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
-				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+				serviceName := "worker-service"
+				if handlerFlag != nil && *handlerFlag != "" {
+					serviceName = *handlerFlag
+				}
+				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 				if err != nil {
 					log.Fatal(err)
 				}

@@ -1,1 +1,1 @@
-export const alert: string;
+export const alert: string

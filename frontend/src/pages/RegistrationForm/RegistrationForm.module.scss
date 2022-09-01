@@ -1,37 +1,37 @@
 .box {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    max-width: 500px;
-    padding: 30px;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	max-width: 500px;
+	padding: 30px;
 }
 
 .title {
-    font-size: 22px;
-    margin-bottom: 10px;
+	font-size: 22px;
+	margin-bottom: 10px;
 }
 
 .subTitle {
-    color: var(--color-gray-500) !important;
-    font-size: 14px;
-    line-height: 1.5 !important;
-    margin-bottom: var(--size-large) !important;
+	color: var(--color-gray-500) !important;
+	font-size: 14px;
+	line-height: 1.5 !important;
+	margin-bottom: var(--size-large) !important;
 }
 
 .inputLabel {
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-    gap: 10px;
-    justify-content: space-between;
-    margin-bottom: var(--size-large);
+	display: flex;
+	flex-direction: column;
+	font-size: 12px;
+	gap: 10px;
+	justify-content: space-between;
+	margin-bottom: var(--size-large);
 }
 
 .formInput {
-    font-size: 14px !important;
+	font-size: 14px !important;
 }
 
 .button {
-    margin-bottom: 0;
-    margin-top: var(--size-large);
+	margin-bottom: 0;
+	margin-top: var(--size-large);
 }

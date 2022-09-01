@@ -1,79 +1,79 @@
 .errorCard {
-    background-color: var(--color-primary-background);
-    border: 0;
-    border-bottom: 1px solid var(--color-gray-300);
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    font-size: 12px;
-    justify-content: space-between;
-    padding: var(--size-medium) var(--size-medium) var(--size-small)
-        var(--size-large);
-    position: relative;
-    text-align: left;
-    width: 100%;
+	background-color: var(--color-primary-background);
+	border: 0;
+	border-bottom: 1px solid var(--color-gray-300);
+	color: var(--text-primary);
+	cursor: pointer;
+	display: flex;
+	font-size: 12px;
+	justify-content: space-between;
+	padding: var(--size-medium) var(--size-medium) var(--size-small)
+		var(--size-large);
+	position: relative;
+	text-align: left;
+	width: 100%;
 
-    h4 {
-        color: var(--color-red-500);
-        font-size: 14px;
-        font-weight: 400;
-    }
+	h4 {
+		color: var(--color-red-500);
+		font-size: 14px;
+		font-weight: 400;
+	}
 
-    h4,
-    p {
-        margin: 0;
-    }
+	h4,
+	p {
+		margin: 0;
+	}
 
-    &:hover .goToButton {
-        visibility: visible;
-    }
+	&:hover .goToButton {
+		visibility: visible;
+	}
 
-    &:hover {
-        background: var(--color-gray-100);
-    }
+	&:hover {
+		background: var(--color-gray-100);
+	}
 
-    &.active {
-        background: var(--color-gray-300);
-    }
+	&.active {
+		background: var(--color-gray-300);
+	}
 }
 
 .header {
-    align-items: baseline;
-    display: flex;
-    gap: var(--size-small);
+	align-items: baseline;
+	display: flex;
+	gap: var(--size-small);
 }
 
 .details {
-    display: flex;
-    gap: var(--size-medium);
-    overflow-wrap: anywhere;
-    white-space: break-spaces;
-    p {
-        color: var(--color-gray-500);
-    }
+	display: flex;
+	gap: var(--size-medium);
+	overflow-wrap: anywhere;
+	white-space: break-spaces;
+	p {
+		color: var(--color-gray-500);
+	}
 }
 
 .goToButton {
-    align-self: center;
-    margin-left: auto;
-    visibility: hidden;
+	align-self: center;
+	margin-left: auto;
+	visibility: hidden;
 }
 
 .content {
-    width: 100%;
+	width: 100%;
 }
 
 .currentIndicatorWrapper {
-    height: 100%;
-    left: var(--size-xSmall);
-    position: absolute;
-    top: var(--size-xLarge);
-    width: 100%;
+	height: 100%;
+	left: var(--size-xSmall);
+	position: absolute;
+	top: var(--size-xLarge);
+	width: 100%;
 
-    .currentIndicator {
-        background-color: var(--color-blue-500);
-        border-radius: 50%;
-        height: 6px;
-        width: 6px;
-    }
+	.currentIndicator {
+		background-color: var(--color-blue-500);
+		border-radius: 50%;
+		height: 6px;
+		width: 6px;
+	}
 }

@@ -1,36 +1,36 @@
-import React from 'react';
+import React from 'react'
 
-import { CodeBlock } from '../CodeBlock/CodeBlock';
-import { Section } from '../SetupPage';
+import { CodeBlock } from '../CodeBlock/CodeBlock'
+import { Section } from '../SetupPage'
 
 interface Props {
-    projectVerboseId: string;
+	projectVerboseId: string
 }
 
 export const GatsbySetup = ({ projectVerboseId }: Props) => {
-    return (
-        <>
-            <Section title="Installing the SDK">
-                <p>Install the Highlight Gatsby plugin.</p>
-                <CodeBlock
-                    text="npm install @highlight-run/gatsby-plugin-highlight"
-                    language="shell"
-                />
-                <p>or with Yarn:</p>
-                <CodeBlock
-                    text="yarn add @highlight-run/gatsby-plugin-highlight"
-                    language="shell"
-                />
-            </Section>
+	return (
+		<>
+			<Section title="Installing the SDK">
+				<p>Install the Highlight Gatsby plugin.</p>
+				<CodeBlock
+					text="npm install @highlight-run/gatsby-plugin-highlight"
+					language="shell"
+				/>
+				<p>or with Yarn:</p>
+				<CodeBlock
+					text="yarn add @highlight-run/gatsby-plugin-highlight"
+					language="shell"
+				/>
+			</Section>
 
-            <Section title="Initializing Highlight">
-                <p>
-                    Register Highlight as a Gatsby plugin in your application.
-                    In <code>gatsby-config.js</code>:
-                </p>
-                <CodeBlock
-                    language="javascript"
-                    text={`module.exports = {
+			<Section title="Initializing Highlight">
+				<p>
+					Register Highlight as a Gatsby plugin in your application.
+					In <code>gatsby-config.js</code>:
+				</p>
+				<CodeBlock
+					language="javascript"
+					text={`module.exports = {
   plugins: [
     {
       resolve: "@highlight-run/gatsby-plugin-highlight",
@@ -41,19 +41,19 @@ export const GatsbySetup = ({ projectVerboseId }: Props) => {
     },
   ]
 }`}
-                />
-                <p>
-                    You can{' '}
-                    <a
-                        href="https://github.com/highlight-run/example-gatsby"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Gatsby example application here
-                    </a>
-                    .
-                </p>
-            </Section>
-        </>
-    );
-};
+				/>
+				<p>
+					You can{' '}
+					<a
+						href="https://github.com/highlight-run/example-gatsby"
+						target="_blank"
+						rel="noreferrer"
+					>
+						Gatsby example application here
+					</a>
+					.
+				</p>
+			</Section>
+		</>
+	)
+}

@@ -1,56 +1,56 @@
 [
-    {
-        "startTime": 1614725950641,
-        "endTime": 1614725951504,
-        "duration": 863,
-        "active": true
-    },
-    {
-        "startTime": 1614725951504,
-        "endTime": 1614725981629,
-        "duration": 30125,
-        "active": false
-    },
-    {
-        "startTime": 1614725981629,
-        "endTime": 1614725959347,
-        "duration": -22282,
-        "active": true
-    },
-    {
-        "startTime": 1614725959347,
-        "endTime": 1614726012876,
-        "duration": 53529,
-        "active": false
-    },
-    {
-        "startTime": 1614726012876,
-        "endTime": 1614725959347,
-        "duration": -53529,
-        "active": true
-    },
-    {
-        "startTime": 1614725959347,
-        "endTime": 1614726030487,
-        "duration": 71140,
-        "active": false
-    },
-    {
-        "startTime": 1614726030487,
-        "endTime": 1614725959347,
-        "duration": -71140,
-        "active": true
-    },
-    {
-        "startTime": 1614725959347,
-        "endTime": 1614726043166,
-        "duration": 83819,
-        "active": false
-    },
-    {
-        "startTime": 1614726043166,
-        "endTime": 1614726049696,
-        "duration": 6530,
-        "active": true
-    }
+	{
+		"startTime": 1614725950641,
+		"endTime": 1614725951504,
+		"duration": 863,
+		"active": true
+	},
+	{
+		"startTime": 1614725951504,
+		"endTime": 1614725981629,
+		"duration": 30125,
+		"active": false
+	},
+	{
+		"startTime": 1614725981629,
+		"endTime": 1614725959347,
+		"duration": -22282,
+		"active": true
+	},
+	{
+		"startTime": 1614725959347,
+		"endTime": 1614726012876,
+		"duration": 53529,
+		"active": false
+	},
+	{
+		"startTime": 1614726012876,
+		"endTime": 1614725959347,
+		"duration": -53529,
+		"active": true
+	},
+	{
+		"startTime": 1614725959347,
+		"endTime": 1614726030487,
+		"duration": 71140,
+		"active": false
+	},
+	{
+		"startTime": 1614726030487,
+		"endTime": 1614725959347,
+		"duration": -71140,
+		"active": true
+	},
+	{
+		"startTime": 1614725959347,
+		"endTime": 1614726043166,
+		"duration": 83819,
+		"active": false
+	},
+	{
+		"startTime": 1614726043166,
+		"endTime": 1614726049696,
+		"duration": 6530,
+		"active": true
+	}
 ]

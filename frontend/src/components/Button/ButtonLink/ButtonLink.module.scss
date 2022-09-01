@@ -1,54 +1,54 @@
 .link {
-    background: var(--color-purple);
-    border: 1px solid transparent !important;
-    border-radius: var(--button-border-radius);
-    color: var(--color-white) !important;
-    display: block;
-    font-family: var(--header-font-family);
-    padding-bottom: var(--size-xSmall);
-    padding-left: var(--size-medium);
-    padding-right: var(--size-medium);
-    padding-top: var(--size-xSmall);
-    text-align: center;
-    width: max-content;
+	background: var(--color-purple);
+	border: 1px solid transparent !important;
+	border-radius: var(--button-border-radius);
+	color: var(--color-white) !important;
+	display: block;
+	font-family: var(--header-font-family);
+	padding-bottom: var(--size-xSmall);
+	padding-left: var(--size-medium);
+	padding-right: var(--size-medium);
+	padding-top: var(--size-xSmall);
+	text-align: center;
+	width: max-content;
 
-    &:hover {
-        color: var(--text-primary-inverted);
-    }
+	&:hover {
+		color: var(--text-primary-inverted);
+	}
 
-    &.withIcon {
-        align-items: center;
-        column-gap: var(--size-medium);
-        display: flex;
-    }
+	&.withIcon {
+		align-items: center;
+		column-gap: var(--size-medium);
+		display: flex;
+	}
 
-    &.fullWidth {
-        justify-content: center;
-        width: 100%;
-    }
+	&.fullWidth {
+		justify-content: center;
+		width: 100%;
+	}
 
-    &.to {
-        &:hover,
-        &:active,
-        &:focus {
-            background: var(--color-purple-600);
-            border-color: var(--color-purple-600);
-        }
-    }
+	&.to {
+		&:hover,
+		&:active,
+		&:focus {
+			background: var(--color-purple-600);
+			border-color: var(--color-purple-600);
+		}
+	}
 
-    &.defaultButtonStyles {
-        background: var(--color-primary-background) !important;
-        border: 1px solid var(--color-gray-400) !important;
-        box-sizing: border-box;
-        color: var(--text-primary) !important;
-    }
+	&.defaultButtonStyles {
+		background: var(--color-primary-background) !important;
+		border: 1px solid var(--color-gray-400) !important;
+		box-sizing: border-box;
+		color: var(--text-primary) !important;
+	}
 
-    &:disabled {
-        background: var(--color-purple);
-        color: var(--color-purple-200);
+	&:disabled {
+		background: var(--color-purple);
+		color: var(--color-purple-200);
 
-        &:hover {
-            background: var(--color-purple);
-        }
-    }
+		&:hover {
+			background: var(--color-purple);
+		}
+	}
 }
