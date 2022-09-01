@@ -983,11 +983,13 @@ func (w *Worker) Start() {
 								SELECT ID FROM (
 									SELECT id
 									FROM sessions
-									WHERE (processed = false) AND (excluded = false)
-										AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-										AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-										AND (COALESCE(retry_count, 0) < ?)
+									WHERE (processed = false) 
+										AND (excluded = false)
+										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+										AND (retry_count < ?)
 									LIMIT ?
+									FOR UPDATE SKIP LOCKED
 								) s
 								ORDER BY id
 								FOR UPDATE SKIP LOCKED
@@ -1475,19 +1477,16 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
-		// sleep between 1m and 60m to ensure lots of worker containers do not cause
-		// db contention running this same query. can cause significant load when there are many sessions
-		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
+		time.Sleep(1 * time.Minute)
 		var count int64
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE
-				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (COALESCE(retry_count, 0) < ?)
-				AND NOT processed
-				AND NOT excluded;
+			WHERE (processed = false) 
+				AND (excluded = false)
+				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND (retry_count < ?)
 			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
 			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue
