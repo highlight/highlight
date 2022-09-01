@@ -1,429 +1,429 @@
 .sliderWrapper {
-    background: none;
-    border: 0;
-    cursor: pointer;
-    outline: none;
-    padding: 0;
-    position: absolute;
-    transform: translateY(-11px);
-    width: 100%;
-    z-index: 20;
+	background: none;
+	border: 0;
+	cursor: pointer;
+	outline: none;
+	padding: 0;
+	position: absolute;
+	transform: translateY(-11px);
+	width: 100%;
+	z-index: 20;
 
-    &:disabled {
-        cursor: not-allowed;
-    }
+	&:disabled {
+		cursor: not-allowed;
+	}
 
-    &:hover .indicator {
-        transform: scale(1);
-        transition: all 0.3s ease-in-out;
-    }
+	&:hover .indicator {
+		transform: scale(1);
+		transition: all 0.3s ease-in-out;
+	}
 }
 
 .sliderMargin {
-    margin-left: 0;
+	margin-left: 0;
 }
 
 .sliderSegment {
-    align-items: center;
-    background: none;
-    display: inline-flex;
-    height: 4px;
-    outline: none;
+	align-items: center;
+	background: none;
+	display: inline-flex;
+	height: 4px;
+	outline: none;
 }
 
 .segmentHover {
-    transform: scale(1, 2);
-    transition: all 0.2s ease-in-out;
+	transform: scale(1, 2);
+	transition: all 0.2s ease-in-out;
 }
 
 .sliderRail {
-    height: 5px;
-    transition: all 0.2s ease-in-out;
-    width: 100%;
+	height: 5px;
+	transition: all 0.2s ease-in-out;
+	width: 100%;
 
-    &.firstSegment {
-        border-bottom-left-radius: var(--size-xxSmall);
-        border-left: 1px solid var(--color-gray-300);
-    }
-    &.lastSegment {
-        border-bottom-right-radius: var(--size-xxSmall);
-        border-right: 1px solid var(--color-gray-300);
-    }
+	&.firstSegment {
+		border-bottom-left-radius: var(--size-xxSmall);
+		border-left: 1px solid var(--color-gray-300);
+	}
+	&.lastSegment {
+		border-bottom-right-radius: var(--size-xxSmall);
+		border-right: 1px solid var(--color-gray-300);
+	}
 }
 
 .livePlayerRail {
-    animation-duration: 2s;
-    animation-fill-mode: forwards;
-    animation-iteration-count: infinite;
-    animation-name: liveShimmer;
-    animation-timing-function: linear;
-    background: linear-gradient(
-        to right,
-        var(--color-red-300) 8%,
-        var(--color-red) 38%,
-        var(--color-red-300) 68%
-    );
-    background-size: 800px 5px;
-    display: flex;
-    height: 5px;
-    position: absolute;
-    transition: all 0.2s ease-in-out;
-    width: 100%;
+	animation-duration: 2s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: infinite;
+	animation-name: liveShimmer;
+	animation-timing-function: linear;
+	background: linear-gradient(
+		to right,
+		var(--color-red-300) 8%,
+		var(--color-red) 38%,
+		var(--color-red-300) 68%
+	);
+	background-size: 800px 5px;
+	display: flex;
+	height: 5px;
+	position: absolute;
+	transition: all 0.2s ease-in-out;
+	width: 100%;
 }
 
 @keyframes liveShimmer {
-    0% {
-        background-position: -800px 0;
-    }
-    100% {
-        background-position: 800px 0;
-    }
+	0% {
+		background-position: -800px 0;
+	}
+	100% {
+		background-position: 800px 0;
+	}
 }
 
 .sliderPopover {
-    // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
-    background: var(--text-primary);
-    border-radius: 8px;
-    bottom: 16px;
-    color: var(--color-primary-background);
-    padding: 6px 10px;
-    position: absolute;
-    text-align: center;
-    width: 80px;
-    z-index: 1000;
+	// text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+	background: var(--text-primary);
+	border-radius: 8px;
+	bottom: 16px;
+	color: var(--color-primary-background);
+	padding: 6px 10px;
+	position: absolute;
+	text-align: center;
+	width: 80px;
+	z-index: 1000;
 
-    &.inactive {
-        width: 300px;
-    }
+	&.inactive {
+		width: 300px;
+	}
 }
 
 .sliderPopoverTime {
-    font-size: 10px;
+	font-size: 10px;
 }
 
 .sliderPopoverDescription {
-    color: var(--color-gray-400);
-    font-size: 10px;
+	color: var(--color-gray-400);
+	font-size: 10px;
 }
 
 .indicator {
-    background-color: var(--color-purple);
-    border-radius: 20px;
-    height: var(--size-medium);
-    margin-top: var(--size-xxSmall);
-    transform: scale(0);
-    transition: all 0.1s ease-in-out;
-    width: var(--size-medium);
+	background-color: var(--color-purple);
+	border-radius: 20px;
+	height: var(--size-medium);
+	margin-top: var(--size-xxSmall);
+	transform: scale(0);
+	transition: all 0.1s ease-in-out;
+	width: var(--size-medium);
 }
 
 .indicatorParent {
-    height: var(--size-large);
-    margin-top: -4px;
-    width: var(--size-large);
+	height: var(--size-large);
+	margin-top: -4px;
+	width: var(--size-large);
 }
 
 .playerRail {
-    margin-bottom: var(--size-small);
-    position: relative;
-    z-index: 31;
+	margin-bottom: var(--size-small);
+	position: relative;
+	z-index: 31;
 }
 
 .dropdownMenu {
-    box-shadow: none;
-    min-width: 250px;
+	box-shadow: none;
+	min-width: 250px;
 }
 
 .dropdownInner {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 5px;
-    box-shadow: 2px 2px 8px var(--color-gray-300);
-    color: var(--text-primary);
-    margin-top: 9px;
-    min-width: 180px;
-    padding: 10px 0;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 5px;
+	box-shadow: 2px 2px 8px var(--color-gray-300);
+	color: var(--text-primary);
+	margin-top: 9px;
+	min-width: 180px;
+	padding: 10px 0;
 }
 
 .dropdownSection {
-    align-items: center;
-    display: flex;
-    font-size: 15px;
-    height: 35px;
-    justify-content: center;
-    padding: 0 15px;
+	align-items: center;
+	display: flex;
+	font-size: 15px;
+	height: 35px;
+	justify-content: center;
+	padding: 0 15px;
 }
 
 .toolbarLeftSection {
-    column-gap: var(--size-large);
-    display: flex;
-    flex-direction: row;
-    margin-left: var(--size-medium);
+	column-gap: var(--size-large);
+	display: flex;
+	flex-direction: row;
+	margin-left: var(--size-medium);
 }
 
 .toolbarRightSection {
-    align-items: center;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    height: 100%;
-    justify-content: flex-end;
-    padding-right: var(--size-medium);
+	align-items: center;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	height: 100%;
+	justify-content: flex-end;
+	padding-right: var(--size-medium);
 
-    > * {
-        height: fit-content;
-        margin-left: var(--size-xxSmall);
-        margin-right: var(--size-xxSmall);
-    }
+	> * {
+		height: fit-content;
+		margin-left: var(--size-xxSmall);
+		margin-right: var(--size-xxSmall);
+	}
 
-    > *:last-child {
-        margin-right: 0;
-    }
+	> *:last-child {
+		margin-right: 0;
+	}
 }
 
 .toolbarSection {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--border-radius);
-    display: flex;
-    flex-direction: row;
-    height: 50px;
-    width: 100%;
-    z-index: 30;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	flex-direction: row;
+	height: 50px;
+	width: 100%;
+	z-index: 30;
 
-    &.devToolsOpen {
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-    }
+	&.devToolsOpen {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+	}
 }
 
 .toolbarPinnedSettings {
-    align-items: center;
-    display: flex;
-    flex-direction: row-reverse;
-    flex-wrap: wrap;
-    height: 100%;
-    justify-content: flex-start;
-    margin-left: auto;
-    overflow-y: hidden;
+	align-items: center;
+	display: flex;
+	flex-direction: row-reverse;
+	flex-wrap: wrap;
+	height: 100%;
+	justify-content: flex-start;
+	margin-left: auto;
+	overflow-y: hidden;
 
-    button {
-        height: fit-content;
-        margin-bottom: 6px;
-        margin-left: var(--size-xxSmall);
-        margin-right: var(--size-xxSmall);
-        margin-top: 6px;
-    }
+	button {
+		height: fit-content;
+		margin-bottom: 6px;
+		margin-left: var(--size-xxSmall);
+		margin-right: var(--size-xxSmall);
+		margin-top: 6px;
+	}
 }
 
 .playSection {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    height: 100%;
-    justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	height: 100%;
+	justify-content: center;
 }
 
 .undoSection {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    height: 100%;
-    justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	height: 100%;
+	justify-content: center;
 }
 
 .redoSection {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    height: 100%;
-    justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	height: 100%;
+	justify-content: center;
 }
 
 .playButtonStyle {
-    height: 25px;
-    width: 30px;
+	height: 25px;
+	width: 30px;
 }
 
 .liveButton {
-    --pulse-color: 255, 0, 0;
-    border-color: var(--color-gray-300);
-    cursor: pointer;
-    height: 32px;
-    margin-top: 10px;
-    padding: 8px;
+	--pulse-color: 255, 0, 0;
+	border-color: var(--color-gray-300);
+	cursor: pointer;
+	height: 32px;
+	margin-top: 10px;
+	padding: 8px;
 }
 
 .liveUserStatus {
-    align-items: center;
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    cursor: default;
-    display: flex;
-    height: 32px;
-    margin-top: 10px;
-    padding: 8px;
+	align-items: center;
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	cursor: default;
+	display: flex;
+	height: 32px;
+	margin-top: 10px;
+	padding: 8px;
 }
 
 .liveUserStatus * {
-    font-size: 14px;
+	font-size: 14px;
 }
 
 .verticalDivider {
-    background-color: var(--color-gray-300);
-    height: 80%;
-    margin: 5px;
-    width: 1px;
+	background-color: var(--color-gray-300);
+	height: 80%;
+	margin: 5px;
+	width: 1px;
 }
 
 .inactiveIcon {
-    height: 16px;
-    width: 16px;
+	height: 16px;
+	width: 16px;
 }
 
 .inactiveText {
-    color: var(--color-purple);
-    line-height: 1;
-    margin-right: 10px;
-    margin-top: 1px;
-    text-transform: uppercase;
+	color: var(--color-purple);
+	line-height: 1;
+	margin-right: 10px;
+	margin-top: 1px;
+	text-transform: uppercase;
 }
 
 .skipInactivity {
-    align-items: center;
-    background-color: var(--color-gray-200);
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: row;
-    font-size: 12px;
-    font-weight: 300;
-    height: 30px;
-    justify-content: center;
-    margin: 5px;
-    margin-right: 15px;
-    padding: 0 15px;
-    transition: 0.3s;
-    user-select: none;
+	align-items: center;
+	background-color: var(--color-gray-200);
+	border-radius: 8px;
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	font-size: 12px;
+	font-weight: 300;
+	height: 30px;
+	justify-content: center;
+	margin: 5px;
+	margin-right: 15px;
+	padding: 0 15px;
+	transition: 0.3s;
+	user-select: none;
 }
 
 .skipInactivity:hover {
-    background-color: var(--color-gray-200);
+	background-color: var(--color-gray-200);
 }
 
 .speedControlContainer {
-    display: flex !important;
-    justify-content: space-between;
+	display: flex !important;
+	justify-content: space-between;
 }
 
 .timeSection {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    font-size: 12px;
-    height: 100%;
-    justify-content: center;
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	font-size: 12px;
+	height: 100%;
+	justify-content: center;
 }
 
 .skipButtonStyle {
-    height: 25px;
-    width: 30px;
+	height: 25px;
+	width: 30px;
 }
 
 .button {
-    background: none;
-    border: 0;
-    color: var(--text-primary);
-    cursor: pointer;
-    fill: var(--text-primary);
-    outline: none;
-    padding: 0;
+	background: none;
+	border: 0;
+	color: var(--text-primary);
+	cursor: pointer;
+	fill: var(--text-primary);
+	outline: none;
+	padding: 0;
 
-    &:disabled {
-        cursor: not-allowed;
-    }
+	&:disabled {
+		cursor: not-allowed;
+	}
 
-    &:disabled .icon {
-        color: var(--color-gray-400);
-        fill: var(--color-gray-400);
+	&:disabled .icon {
+		color: var(--color-gray-400);
+		fill: var(--color-gray-400);
 
-        &:hover {
-            color: var(--color-gray-400);
-            fill: var(--color-gray-400);
-        }
-    }
+		&:hover {
+			color: var(--color-gray-400);
+			fill: var(--color-gray-400);
+		}
+	}
 
-    &:hover .icon {
-        color: var(--text-primary);
-        fill: var(--text-primary);
-    }
+	&:hover .icon {
+		color: var(--text-primary);
+		fill: var(--text-primary);
+	}
 }
 
 .icon {
-    color: var(--color-gray-500);
-    fill: var(--color-gray-500);
-    height: 20px;
-    transition: color ease-in-out 0.2s;
-    width: 20px;
+	color: var(--color-gray-500);
+	fill: var(--color-gray-500);
+	height: 20px;
+	transition: color ease-in-out 0.2s;
+	width: 20px;
 }
 
 .popoverHeader {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 240px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 240px;
 }
 
 .popoverContent {
-    max-height: 300px;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    overflow-y: auto;
-    padding-bottom: var(--size-xSmall);
-    text-overflow: ellipsis;
-    width: 240px;
+	max-height: 300px;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	overflow-y: auto;
+	padding-bottom: var(--size-xSmall);
+	text-overflow: ellipsis;
+	width: 240px;
 }
 
 .buttonContainer {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: var(--size-medium);
+	display: flex;
+	justify-content: flex-end;
+	padding-top: var(--size-medium);
 }
 
 .commentUpdatedTime {
-    color: var(--color-gray-500);
-    flex-shrink: 0;
-    font-weight: 200;
+	color: var(--color-gray-500);
+	flex-shrink: 0;
+	font-weight: 200;
 }
 
 .commentHeader {
-    display: flex;
-    gap: var(--size-xSmall);
-    margin-bottom: var(--size-xSmall);
+	display: flex;
+	gap: var(--size-xSmall);
+	margin-bottom: var(--size-xSmall);
 }
 
 .commentAuthor {
-    overflow: hidden;
-    text-overflow: ellipsis;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .devToolsButton {
-    align-items: center;
-    display: flex;
+	align-items: center;
+	display: flex;
 }
 .devToolsIcon {
-    color: var(--color-gray-500);
-    width: 20px;
+	color: var(--color-gray-500);
+	width: 20px;
 
-    &.devToolsActive {
-        color: var(--color-purple);
-    }
+	&.devToolsActive {
+		color: var(--color-purple);
+	}
 }
 
 .settingsButton {
-    border-color: var(--color-gray-300);
+	border-color: var(--color-gray-300);
 }
 
 .settingsPopover {
-    max-height: fit-content;
-    width: 300px;
+	max-height: fit-content;
+	width: 300px;
 }

@@ -1,40 +1,40 @@
 .container {
-    align-items: center;
-    background-color: var(--color-gray-100);
-    border: 1px solid rgb(223, 223, 223);
-    border-radius: var(--button-border-radius);
-    display: flex;
-    height: 36px;
-    .copyButton {
-        border-radius: var(--button-border-radius);
-        border-bottom-left-radius: 0;
-        border-top-left-radius: 0;
-        height: 36px;
-        margin-left: auto;
-    }
+	align-items: center;
+	background-color: var(--color-gray-100);
+	border: 1px solid rgb(223, 223, 223);
+	border-radius: var(--button-border-radius);
+	display: flex;
+	height: 36px;
+	.copyButton {
+		border-radius: var(--button-border-radius);
+		border-bottom-left-radius: 0;
+		border-top-left-radius: 0;
+		height: 36px;
+		margin-left: auto;
+	}
 
-    .link {
-        margin-left: var(--size-small);
-        margin-right: var(--size-small);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+	.link {
+		margin-left: var(--size-small);
+		margin-right: var(--size-small);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }
 
 .inlineContainer {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
+	align-items: center;
+	column-gap: var(--size-xxSmall);
+	display: flex;
 
-    .copyButton {
-        color: inherit !important;
-        height: 1.2em;
-        width: 1.2em;
+	.copyButton {
+		color: inherit !important;
+		height: 1.2em;
+		width: 1.2em;
 
-        svg {
-            color: inherit;
-            height: 1em;
-        }
-    }
+		svg {
+			color: inherit;
+			height: 1em;
+		}
+	}
 }

@@ -1,33 +1,33 @@
-import { H } from 'highlight.run';
+import { H } from 'highlight.run'
 
 export const CustomError = () => {
-    CustomErrorDeeper();
-};
+	CustomErrorDeeper()
+}
 
 const CustomErrorDeeper = () => {
-    H.error('error is being thrown yo!');
-};
+	H.error('error is being thrown yo!')
+}
 
 export const DefaultError = () => {
-    DefaultErrorDeeper();
-};
+	DefaultErrorDeeper()
+}
 
 const DefaultErrorDeeper = () => {
-    throw new Error('errors page');
-};
+	throw new Error('errors page')
+}
 
 export const RandomError = () => {
-    RandomErrorDeeper();
-};
+	RandomErrorDeeper()
+}
 
 const RandomErrorDeeper = () => {
-    throw new Error(`random error! ${Math.random()}`);
-};
+	throw new Error(`random error! ${Math.random()}`)
+}
 
 export const NestedError = (message: string) => {
-    console.error({
-        message,
-        cause: new Error('uh oh!'),
-        title: 'same title',
-    });
-};
+	console.error({
+		message,
+		cause: new Error('uh oh!'),
+		title: 'same title',
+	})
+}

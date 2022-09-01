@@ -1,114 +1,114 @@
 .loadingWrapper {
-    align-items: center;
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    width: 100vw;
+	align-items: center;
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	width: 100vw;
 }
 
 .astronautGraphicWrapper {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: flex-end;
-    overflow: hidden;
+	position: fixed;
+	inset: 0;
+	display: flex;
+	justify-content: flex-end;
+	overflow: hidden;
 }
 
 .loginPage {
-    width: 100%;
-    height: 100%;
-    position: relative; /* relative so it stays on top of the background graphic */
-    padding: 1rem;
-    display: flex;
+	width: 100%;
+	height: 100%;
+	position: relative; /* relative so it stays on top of the background graphic */
+	padding: 1rem;
+	display: flex;
 }
 
 .loginTitle {
-    font-size: 23px;
+	font-size: 23px;
 }
 
 .loginSubTitle {
-    color: var(--color-gray-500) !important;
-    font-size: 14px;
-    margin-bottom: 20px !important;
+	color: var(--color-gray-500) !important;
+	font-size: 14px;
+	margin-bottom: 20px !important;
 }
 
 .loginFormWrapper {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    padding: 30px;
-    transition: all 0.2s ease-in-out;
-    max-width: 420px;
-    height: fit-content;
-    margin: auto;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	padding: 30px;
+	transition: all 0.2s ease-in-out;
+	max-width: 420px;
+	height: fit-content;
+	margin: auto;
 }
 
 /* using a viewport height unit ensures that the login page is left-aligned
 when there is enough space between the left and the astronaut */
 @media (min-width: 150vh) {
-    .loginFormWrapper {
-        margin: auto 0 auto;
-    }
+	.loginFormWrapper {
+		margin: auto 0 auto;
+	}
 }
 
 @media (min-width: 768px) {
-    .loginPage {
-        padding: 4rem;
-    }
+	.loginPage {
+		padding: 4rem;
+	}
 }
 
 .loginForm {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .loginTitleWrapper {
-    width: 100%;
+	width: 100%;
 }
 
 .otherSigninText {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    justify-content: center;
-    margin: 10px;
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	justify-content: center;
+	margin: 10px;
 }
 
 .loginStateSwitcher {
-    color: var(--color-purple);
-    cursor: pointer;
+	color: var(--color-purple);
+	cursor: pointer;
 }
 
 .googleLogoStyle {
-    height: 20px;
-    width: 20px;
+	height: 20px;
+	width: 20px;
 }
 
 .googleText {
-    margin-left: 10px;
+	margin-left: 10px;
 }
 
 .googleButton {
-    align-items: center;
-    color: var(--color-text-primary);
-    display: flex;
+	align-items: center;
+	color: var(--color-text-primary);
+	display: flex;
 }
 
 .inputContainer {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: var(--size-xSmall);
-    row-gap: var(--size-medium);
-    width: 100%;
+	display: flex;
+	flex-direction: column;
+	margin-bottom: var(--size-xSmall);
+	row-gap: var(--size-medium);
+	width: 100%;
 }
 
 .resetPasswordText {
-    align-self: flex-start;
-    margin: 0.5em 0;
-    padding: 0;
-    text-align: left;
+	align-self: flex-start;
+	margin: 0.5em 0;
+	padding: 0;
+	text-align: left;
 }

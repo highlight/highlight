@@ -1,11 +1,11 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - graph/*.graphqls
+    - graph/*.graphqls
 
 # Where should the generated server code go?
 exec:
-  filename: graph/generated/generated.go
-  package: generated
+    filename: graph/generated/generated.go
+    package: generated
 
 # Uncomment to enable federation
 # federation:
@@ -14,14 +14,14 @@ exec:
 
 # Where should any generated models go?
 model:
-  filename: graph/model/models_gen.go
-  package: model
+    filename: graph/model/models_gen.go
+    package: model
 
 # Where should the resolver implementations go?
 resolver:
-  layout: follow-schema
-  dir: graph
-  package: graph
+    layout: follow-schema
+    dir: graph
+    package: graph
 
 # Optional: turn on use `gqlgen:"fieldName"` tags in your models
 # struct_tag: json
@@ -35,7 +35,7 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/highlight-run/highlight/backend/model"
+    - 'github.com/highlight-run/highlight/backend/model'
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -43,24 +43,24 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
-  ID:
-    model:
-      - github.com/99designs/gqlgen/graphql.IntID
-      - github.com/99designs/gqlgen/graphql.ID
-  Int:
-    model:
-      - github.com/99designs/gqlgen/graphql.Int
-      - github.com/99designs/gqlgen/graphql.Int64
-      - github.com/99designs/gqlgen/graphql.Int32
-  Int64:
-    model:
-      - github.com/99designs/gqlgen/graphql.Int64
-  Float:
-    model:
-      - github.com/99designs/gqlgen/graphql.Float
-  Timestamp:
-    model:
-      - github.com/highlight-run/highlight/backend/model.Timestamp
-  StringArray:
-    model:
-      - github.com/highlight-run/highlight/backend/model.StringArray
+    ID:
+        model:
+            - github.com/99designs/gqlgen/graphql.IntID
+            - github.com/99designs/gqlgen/graphql.ID
+    Int:
+        model:
+            - github.com/99designs/gqlgen/graphql.Int
+            - github.com/99designs/gqlgen/graphql.Int64
+            - github.com/99designs/gqlgen/graphql.Int32
+    Int64:
+        model:
+            - github.com/99designs/gqlgen/graphql.Int64
+    Float:
+        model:
+            - github.com/99designs/gqlgen/graphql.Float
+    Timestamp:
+        model:
+            - github.com/highlight-run/highlight/backend/model.Timestamp
+    StringArray:
+        model:
+            - github.com/highlight-run/highlight/backend/model.StringArray

@@ -1,1 +1,1 @@
-export const fullBleedCard: string;
+export const fullBleedCard: string
