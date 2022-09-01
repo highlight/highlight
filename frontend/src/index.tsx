@@ -99,11 +99,11 @@ if (dev) {
     }-localhost`;
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
-        favicon.href = `${import.meta.env.PUBLIC_URL}/favicon-localhost.ico`;
+        favicon.href = `/favicon-localhost.ico`;
     }
 } else if (window.location.href.includes('onrender')) {
     if (favicon) {
-        favicon.href = `${import.meta.env.PUBLIC_URL}/favicon-pr.ico`;
+        favicon.href = `/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
@@ -179,10 +179,11 @@ const App = () => {
 };
 
 const AuthenticationRoleRouter = () => {
-    const { workspace_id, project_id } = useParams<{
-        workspace_id: string;
-        project_id: string;
-    }>();
+    const { workspace_id, project_id } =
+        useParams<{
+            workspace_id: string;
+            project_id: string;
+        }>();
     const [
         getWorkspaceAdminsQuery,
         {
