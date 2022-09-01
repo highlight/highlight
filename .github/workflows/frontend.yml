@@ -1,90 +1,90 @@
 name: Frontend
 on:
-  push:
-    branches:
-      - "**"
-      - "!master"
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend.yml"
+    push:
+        branches:
+            - '**'
+            - '!master'
+        paths:
+            - 'frontend/**'
+            - '.github/workflows/frontend.yml'
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    # Set job outputs to values from filter step
-    outputs:
-      gql: ${{ steps.filter.outputs.gql }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            gql:
-              - 'frontend/src/graph/operators/query.gql'
-              - 'frontend/src/graph/operators/mutation.gql'
-  generate-check:
-    needs: [changes]
-    if: needs.changes.outputs.gql == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16.14.2
-          registry-url: https://registry.npmjs.org
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache
-        uses: actions/cache@v2.1.6
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Install main dependencies
-        run: cd frontend && yarn --prefer-offline
-      - name: copy frontend
-        run: |
-          mkdir tmp
-          cp -a frontend/. tmp/
-      - name: Generate code
-        run: |
-          cd frontend/
-          yarn gql:nowatch
-      - name: Diff Check
-        run: |
-          diff -r frontend/ tmp/
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16.14.2
-          registry-url: https://registry.npmjs.org
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache
-        uses: actions/cache@v2.1.6
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Install main dependencies
-        run: cd frontend && yarn --prefer-offline
-      - name: Runs linting
-        run: cd frontend && yarn lint
-      - name: Run Tests
-        run: cd frontend && yarn test
-      - name: Build Bundle
-        run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false yarn build
+    changes:
+        runs-on: ubuntu-latest
+        # Set job outputs to values from filter step
+        outputs:
+            gql: ${{ steps.filter.outputs.gql }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      gql:
+                        - 'frontend/src/graph/operators/query.gql'
+                        - 'frontend/src/graph/operators/mutation.gql'
+    generate-check:
+        needs: [changes]
+        if: needs.changes.outputs.gql == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 16.14.2
+                  registry-url: https://registry.npmjs.org
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+            - name: Cache
+              uses: actions/cache@v2.1.6
+              id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
+            - name: Install main dependencies
+              run: cd frontend && yarn --prefer-offline
+            - name: copy frontend
+              run: |
+                  mkdir tmp
+                  cp -a frontend/. tmp/
+            - name: Generate code
+              run: |
+                  cd frontend/
+                  yarn gql:nowatch
+            - name: Diff Check
+              run: |
+                  diff -r frontend/ tmp/
+    frontend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 16.14.2
+                  registry-url: https://registry.npmjs.org
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+            - name: Cache
+              uses: actions/cache@v2.1.6
+              id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
+            - name: Install main dependencies
+              run: cd frontend && yarn --prefer-offline
+            - name: Runs linting
+              run: cd frontend && yarn lint
+            - name: Run Tests
+              run: cd frontend && yarn test
+            - name: Build Bundle
+              run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false yarn build

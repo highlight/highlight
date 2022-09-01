@@ -1,2 +1,2 @@
-export const hostContainer: string;
-export const timeRow: string;
+export const hostContainer: string
+export const timeRow: string

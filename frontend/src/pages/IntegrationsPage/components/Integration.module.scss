@@ -1,35 +1,35 @@
 .integration {
-    .logo {
-        border-radius: 50%;
-        height: var(--size-xxLarge);
-        width: var(--size-xxLarge);
-    }
+	.logo {
+		border-radius: 50%;
+		height: var(--size-xxLarge);
+		width: var(--size-xxLarge);
+	}
 
-    .header {
-        align-items: flex-start;
-        display: flex;
-        justify-content: space-between;
-        padding-bottom: var(--size-small);
-    }
+	.header {
+		align-items: flex-start;
+		display: flex;
+		justify-content: space-between;
+		padding-bottom: var(--size-small);
+	}
 
-    .connectButton {
-        text-transform: uppercase;
-    }
+	.connectButton {
+		text-transform: uppercase;
+	}
 
-    .title {
-        margin-bottom: var(--size-small) !important;
-    }
+	.title {
+		margin-bottom: var(--size-small) !important;
+	}
 
-    .description {
-        margin-bottom: 0 !important;
-    }
+	.description {
+		margin-bottom: 0 !important;
+	}
 }
 
 .modal {
-    footer {
-        column-gap: var(--size-medium);
-        display: flex;
-        justify-content: flex-end;
-        padding-top: var(--size-large);
-    }
+	footer {
+		column-gap: var(--size-medium);
+		display: flex;
+		justify-content: flex-end;
+		padding-top: var(--size-large);
+	}
 }

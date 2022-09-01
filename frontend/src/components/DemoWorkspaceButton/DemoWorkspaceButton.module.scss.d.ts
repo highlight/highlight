@@ -1,1 +1,1 @@
-export const demoWorkspaceButton: string;
+export const demoWorkspaceButton: string

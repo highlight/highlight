@@ -1,34 +1,34 @@
-import classNames from 'classnames';
-import React from 'react';
+import classNames from 'classnames'
+import React from 'react'
 
-import styles from './RightPanelCard.module.scss';
+import styles from './RightPanelCard.module.scss'
 
 type Props = {
-    selected: boolean;
-    /**
-     * The color used for the border and icons.
-     */
-    primaryColor: string;
-} & React.HTMLProps<HTMLDivElement>;
+	selected: boolean
+	/**
+	 * The color used for the border and icons.
+	 */
+	primaryColor: string
+} & React.HTMLProps<HTMLDivElement>
 
 const RightPanelCard: React.FC<
-    React.PropsWithChildren<React.PropsWithChildren<Props>>
+	React.PropsWithChildren<React.PropsWithChildren<Props>>
 > = ({ children, selected, primaryColor, ...props }) => {
-    return (
-        <article
-            {...props}
-            className={classNames(styles.card, props.className, {
-                [styles.selected]: selected,
-            })}
-            style={
-                {
-                    '--primary-color': `var(${primaryColor})`,
-                } as React.CSSProperties
-            }
-        >
-            {children}
-        </article>
-    );
-};
+	return (
+		<article
+			{...props}
+			className={classNames(styles.card, props.className, {
+				[styles.selected]: selected,
+			})}
+			style={
+				{
+					'--primary-color': `var(${primaryColor})`,
+				} as React.CSSProperties
+			}
+		>
+			{children}
+		</article>
+	)
+}
 
-export default RightPanelCard;
+export default RightPanelCard

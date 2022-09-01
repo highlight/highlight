@@ -1,11 +1,11 @@
-import React from 'react';
+import React from 'react'
 
-import styles from './Group.module.scss';
+import styles from './Group.module.scss'
 
 const Group: React.FC<
-    React.PropsWithChildren<React.PropsWithChildren<unknown>>
+	React.PropsWithChildren<React.PropsWithChildren<unknown>>
 > = ({ children }) => {
-    return <div className={styles.group}>{children}</div>;
-};
+	return <div className={styles.group}>{children}</div>
+}
 
-export default Group;
+export default Group

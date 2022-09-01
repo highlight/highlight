@@ -1,2 +1,2 @@
-export const fieldsBox: string;
-export const focus: string;
+export const fieldsBox: string
+export const focus: string

@@ -1,3 +1,3 @@
-import failOnConsole from 'jest-fail-on-console';
+import failOnConsole from 'jest-fail-on-console'
 
-failOnConsole();
+failOnConsole()

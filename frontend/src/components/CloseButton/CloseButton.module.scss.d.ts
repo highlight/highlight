@@ -1,1 +1,1 @@
-export const closeButton: string;
+export const closeButton: string

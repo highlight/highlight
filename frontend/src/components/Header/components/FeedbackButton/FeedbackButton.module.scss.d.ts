@@ -1,2 +1,2 @@
-export const feedbackButton: string;
-export const feedbackButtonMenu: string;
+export const feedbackButton: string
+export const feedbackButtonMenu: string

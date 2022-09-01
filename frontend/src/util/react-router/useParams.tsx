@@ -1,6 +1,6 @@
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton';
-import { useParams as ReactRouterUseParams } from 'react-router';
-import validator from 'validator';
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useParams as ReactRouterUseParams } from 'react-router'
+import validator from 'validator'
 
 /**
  * This is a proxy for `react-router`'s `useParams`.
@@ -11,23 +11,23 @@ import validator from 'validator';
  */
 // @ts-expect-error
 export const useParams: typeof ReactRouterUseParams = () => {
-    const matches: ReturnType<typeof ReactRouterUseParams> =
-        ReactRouterUseParams();
+	const matches: ReturnType<typeof ReactRouterUseParams> =
+		ReactRouterUseParams()
 
-    if (matches?.project_id) {
-        if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
-            return {
-                ...matches,
-                project_id: '0',
-            };
-        }
-        if (!validator.isNumeric(matches.project_id)) {
-            return {
-                ...matches,
-                project_id: undefined,
-            };
-        }
-    }
+	if (matches?.project_id) {
+		if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
+			return {
+				...matches,
+				project_id: '0',
+			}
+		}
+		if (!validator.isNumeric(matches.project_id)) {
+			return {
+				...matches,
+				project_id: undefined,
+			}
+		}
+	}
 
-    return matches;
-};
+	return matches
+}

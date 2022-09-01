@@ -1,7 +1,7 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "lib": ["webworker"]
-    },
-    "exclude": ["workers.d.ts"]
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"lib": ["webworker"]
+	},
+	"exclude": ["workers.d.ts"]
 }

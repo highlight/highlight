@@ -1,1 +1,1 @@
-export const hostContainer: string;
+export const hostContainer: string

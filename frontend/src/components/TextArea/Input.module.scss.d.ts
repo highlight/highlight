@@ -1,1 +1,1 @@
-export const input: string;
+export const input: string

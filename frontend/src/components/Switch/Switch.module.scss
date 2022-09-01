@@ -1,39 +1,39 @@
 .label {
-    align-items: center;
-    color: var(--color-gray-500);
-    column-gap: var(--size-xSmall);
-    display: flex;
-    line-height: normal;
-    transition: color 0.2s ease-in;
+	align-items: center;
+	color: var(--color-gray-500);
+	column-gap: var(--size-xSmall);
+	display: flex;
+	line-height: normal;
+	transition: color 0.2s ease-in;
 
-    &.checked {
-        color: var(--text-primary);
-        &.red {
-            color: var(--color-red);
-        }
-    }
+	&.checked {
+		color: var(--text-primary);
+		&.red {
+			color: var(--color-red);
+		}
+	}
 
-    &.spaceBetween {
-        display: flex;
-        justify-content: space-between;
-    }
+	&.spaceBetween {
+		display: flex;
+		justify-content: space-between;
+	}
 
-    &.noMarginAroundSwitch {
-        margin: 0;
-    }
+	&.noMarginAroundSwitch {
+		margin: 0;
+	}
 
-    &.setMarginForAnimation {
-        margin: 6px; // The animation for toggling the switch takes up extra space
-    }
+	&.setMarginForAnimation {
+		margin: 6px; // The animation for toggling the switch takes up extra space
+	}
 }
 
 .switchStyles {
-    background: var(--color-gray-400);
+	background: var(--color-gray-400);
 
-    &:global(.ant-switch-checked) {
-        background: var(--color-purple);
-        &.red {
-            background: var(--color-red);
-        }
-    }
+	&:global(.ant-switch-checked) {
+		background: var(--color-purple);
+		&.red {
+			background: var(--color-red);
+		}
+	}
 }

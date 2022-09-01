@@ -1,32 +1,32 @@
 .sessionToken {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    flex-shrink: 0;
-    font-size: 12px;
-    gap: var(--size-xSmall);
-    max-width: 378px;
-    min-width: 0;
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	flex-shrink: 0;
+	font-size: 12px;
+	gap: var(--size-xSmall);
+	max-width: 378px;
+	min-width: 0;
 
-    > p {
-        color: var(--color-gray-500);
-        line-height: normal;
-        margin: 0;
-        white-space: nowrap;
-    }
+	> p {
+		color: var(--color-gray-500);
+		line-height: normal;
+		margin: 0;
+		white-space: nowrap;
+	}
 
-    a {
-        color: var(--text-primary);
-    }
+	a {
+		color: var(--text-primary);
+	}
 
-    svg {
-        color: var(--color-gray-500);
-        flex-shrink: 0;
-        height: 16px;
-        width: 16px;
-    }
+	svg {
+		color: var(--color-gray-500);
+		flex-shrink: 0;
+		height: 16px;
+		width: 16px;
+	}
 }
 
 .iconContainer {
-    display: flex;
+	display: flex;
 }
