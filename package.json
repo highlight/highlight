@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"prepare": "husky install",
-		"frontend:start": "concurrently -n frontend:build,frontend:gql,frontend:styles,client:build,client:gql,client:lint,firstload:build 'cd frontend && yarn start' 'cd frontend && yarn gql' 'cd frontend && yarn styles' 'cd client && yarn dev' 'cd client && yarn gql' 'cd client && yarn lint-watch' 'cd firstload && yarn dev'",
+		"frontend:start": "concurrently -n frontend:start,frontend:gql,frontend:styles,client:dev,client:gql,firstload:dev 'cd frontend && yarn start' 'cd frontend && yarn gql' 'cd frontend && yarn styles' 'cd client && yarn dev' 'cd client && yarn gql' 'cd firstload && yarn dev'",
 		"frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
 		"generate": "hygen",
 		"g": "hygen",
