@@ -7239,7 +7239,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
-    filters: [MetricTagFilter!]
+	filters: [MetricTagFilter!]
 }
 
 type EventChunk {
@@ -7433,207 +7433,207 @@ type Query {
 }
 
 type Mutation {
-    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
-    createProject(name: String!, workspace_id: ID!): Project
-    createWorkspace(name: String!): Workspace
-    editProject(
-        id: ID!
-        name: String
-        billing_email: String
-        excluded_users: StringArray
-        error_json_paths: StringArray
-        rage_click_window_seconds: Int
-        rage_click_radius_pixels: Int
-        rage_click_count: Int
-        backend_domains: StringArray
-    ): Project
-    editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
-    deleteProject(id: ID!): Boolean
-    sendAdminProjectInvite(
-        project_id: ID!
-        email: String!
-        base_url: String!
-    ): String
-    sendAdminWorkspaceInvite(
-        workspace_id: ID!
-        email: String!
-        base_url: String!
-        role: String!
-    ): String
-    addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
-    joinWorkspace(workspace_id: ID!): ID
-    updateAllowedEmailOrigins(
-        workspace_id: ID!
-        allowed_auto_join_email_origins: String!
-    ): ID
-    changeAdminRole(
-        workspace_id: ID!
-        admin_id: ID!
-        new_role: String!
-    ): Boolean!
-    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
-    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-    createSegment(
-        project_id: ID!
-        name: String!
-        params: SearchParamsInput!
-    ): Segment
-    emailSignup(email: String!): String!
-    editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
-    deleteSegment(segment_id: ID!): Boolean
-    createErrorSegment(
-        project_id: ID!
-        name: String!
-        params: ErrorSearchParamsInput!
-    ): ErrorSegment
-    editErrorSegment(
-        id: ID!
-        project_id: ID!
-        params: ErrorSearchParamsInput!
-    ): Boolean
-    deleteErrorSegment(segment_id: ID!): Boolean
-    # If this endpoint returns a checkout_id, we initiate a stripe checkout.
-    # Otherwise, we simply update the subscription.
-    createOrUpdateStripeSubscription(
-        workspace_id: ID!
-        plan_type: PlanType!
-        interval: SubscriptionInterval!
-    ): String
-    updateBillingDetails(workspace_id: ID!): Boolean
-    createSessionComment(
-        project_id: ID!
-        session_secure_id: String!
-        session_timestamp: Int!
-        text: String!
-        text_for_email: String!
-        x_coordinate: Float!
-        y_coordinate: Float!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        session_url: String!
-        time: Float!
-        author_name: String!
-        session_image: String
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-        tags: [SessionCommentTagInput]!
-        additional_context: String
-    ): SessionComment
-    createIssueForSessionComment(
-        project_id: ID!
-        session_url: String!
-        session_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        time: Float!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): SessionComment
-    deleteSessionComment(id: ID!): Boolean
-    replyToSessionComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        sessionURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    createErrorComment(
-        project_id: ID!
-        error_group_secure_id: String!
-        text: String!
-        text_for_email: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        error_url: String!
-        author_name: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    createIssueForErrorComment(
-        project_id: ID!
-        error_url: String!
-        error_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    deleteErrorComment(id: ID!): Boolean
-    replyToErrorComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        errorURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    openSlackConversation(
-        project_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
-    addIntegrationToProject(
-        integration_type: IntegrationType
-        project_id: ID!
-        code: String!
-    ): Boolean!
-    removeIntegrationFromProject(
-        integration_type: IntegrationType
-        project_id: ID!
-    ): Boolean!
-    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-    createDefaultAlerts(
-        project_id: ID!
-        alert_types: [String!]!
-        slack_channels: [SanitizedSlackChannelInput!]!
-        emails: [String]!
-    ): Boolean
-    createRageClickAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-    ): SessionAlert
-    createMetricMonitor(
-        project_id: ID!
-        name: String!
-        aggregator: MetricAggregator!
-        periodMinutes: Int
-        threshold: Float!
-        units: String
-        metric_to_monitor: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        filters: [MetricTagFilterInput!]
-    ): MetricMonitor
-    updateMetricMonitor(
-        metric_monitor_id: ID!
-        project_id: ID!
-        name: String
-        aggregator: MetricAggregator
-        periodMinutes: Int
-        threshold: Float
-        units: String
-        metric_to_monitor: String
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        disabled: Boolean
-        filters: [MetricTagFilterInput!]
+	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createProject(name: String!, workspace_id: ID!): Project
+	createWorkspace(name: String!): Workspace
+	editProject(
+		id: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+	): Project
+	editWorkspace(id: ID!, name: String): Workspace
+	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+	deleteProject(id: ID!): Boolean
+	sendAdminProjectInvite(
+		project_id: ID!
+		email: String!
+		base_url: String!
+	): String
+	sendAdminWorkspaceInvite(
+		workspace_id: ID!
+		email: String!
+		base_url: String!
+		role: String!
+	): String
+	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	joinWorkspace(workspace_id: ID!): ID
+	updateAllowedEmailOrigins(
+		workspace_id: ID!
+		allowed_auto_join_email_origins: String!
+	): ID
+	changeAdminRole(
+		workspace_id: ID!
+		admin_id: ID!
+		new_role: String!
+	): Boolean!
+	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
+	createSegment(
+		project_id: ID!
+		name: String!
+		params: SearchParamsInput!
+	): Segment
+	emailSignup(email: String!): String!
+	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	deleteSegment(segment_id: ID!): Boolean
+	createErrorSegment(
+		project_id: ID!
+		name: String!
+		params: ErrorSearchParamsInput!
+	): ErrorSegment
+	editErrorSegment(
+		id: ID!
+		project_id: ID!
+		params: ErrorSearchParamsInput!
+	): Boolean
+	deleteErrorSegment(segment_id: ID!): Boolean
+	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
+	# Otherwise, we simply update the subscription.
+	createOrUpdateStripeSubscription(
+		workspace_id: ID!
+		plan_type: PlanType!
+		interval: SubscriptionInterval!
+	): String
+	updateBillingDetails(workspace_id: ID!): Boolean
+	createSessionComment(
+		project_id: ID!
+		session_secure_id: String!
+		session_timestamp: Int!
+		text: String!
+		text_for_email: String!
+		x_coordinate: Float!
+		y_coordinate: Float!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		session_url: String!
+		time: Float!
+		author_name: String!
+		session_image: String
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+		tags: [SessionCommentTagInput]!
+		additional_context: String
+	): SessionComment
+	createIssueForSessionComment(
+		project_id: ID!
+		session_url: String!
+		session_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		time: Float!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): SessionComment
+	deleteSessionComment(id: ID!): Boolean
+	replyToSessionComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		sessionURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	createErrorComment(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	createIssueForErrorComment(
+		project_id: ID!
+		error_url: String!
+		error_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	deleteErrorComment(id: ID!): Boolean
+	replyToErrorComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		errorURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	openSlackConversation(
+		project_id: ID!
+		code: String!
+		redirect_path: String!
+	): Boolean
+	addIntegrationToProject(
+		integration_type: IntegrationType
+		project_id: ID!
+		code: String!
+	): Boolean!
+	removeIntegrationFromProject(
+		integration_type: IntegrationType
+		project_id: ID!
+	): Boolean!
+	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
+	createDefaultAlerts(
+		project_id: ID!
+		alert_types: [String!]!
+		slack_channels: [SanitizedSlackChannelInput!]!
+		emails: [String]!
+	): Boolean
+	createRageClickAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+	): SessionAlert
+	createMetricMonitor(
+		project_id: ID!
+		name: String!
+		aggregator: MetricAggregator!
+		periodMinutes: Int
+		threshold: Float!
+		units: String
+		metric_to_monitor: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		filters: [MetricTagFilterInput!]
+	): MetricMonitor
+	updateMetricMonitor(
+		metric_monitor_id: ID!
+		project_id: ID!
+		name: String
+		aggregator: MetricAggregator
+		periodMinutes: Int
+		threshold: Float
+		units: String
+		metric_to_monitor: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		disabled: Boolean
+		filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	createErrorAlert(
 		project_id: ID!
