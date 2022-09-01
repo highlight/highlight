@@ -231,12 +231,11 @@ function dispatch(event) {
 	 * http://lists.w3.org/Archives/Public/www-dom/2010JulSep/att-0182/keyCode-spec.html
 	 */
 	// @ts-expect-error
-	if (_downKeys.indexOf(key) === -1 && key !== 229)
-		_downKeys.push(key)
-		/**
-		 * Jest test cases are required.
-		 * ===============================
-		 */
+	if (_downKeys.indexOf(key) === -1 && key !== 229) _downKeys.push(key)
+	/**
+	 * Jest test cases are required.
+	 * ===============================
+	 */
 	;['ctrlKey', 'altKey', 'shiftKey', 'metaKey'].forEach((keyName) => {
 		// @ts-expect-error
 		const keyNum = modifierMap[keyName]
