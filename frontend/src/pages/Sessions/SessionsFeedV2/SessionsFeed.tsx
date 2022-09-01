@@ -87,21 +87,22 @@ export const SessionFeed = React.memo(() => {
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
 	})
-	const { data: unprocessedSessionsOpenSearch } =
-		useGetSessionsOpenSearchQuery({
-			variables: {
-				project_id,
-				count: PAGE_SIZE,
-				page: 1,
-				query: getUnprocessedSessionsQuery(
-					backendSearchQuery?.searchQuery || '',
-				),
-				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-			},
-			skip: !backendSearchQuery,
-			pollInterval: 5000,
-			fetchPolicy: 'network-only',
-		})
+	const {
+		data: unprocessedSessionsOpenSearch,
+	} = useGetSessionsOpenSearchQuery({
+		variables: {
+			project_id,
+			count: PAGE_SIZE,
+			page: 1,
+			query: getUnprocessedSessionsQuery(
+				backendSearchQuery?.searchQuery || '',
+			),
+			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
+		},
+		skip: !backendSearchQuery,
+		pollInterval: 5000,
+		fetchPolicy: 'network-only',
+	})
 
 	// Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {
@@ -127,7 +128,7 @@ export const SessionFeed = React.memo(() => {
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
-			page: page,
+			page: page && page > 0 ? page : 1,
 			project_id,
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
