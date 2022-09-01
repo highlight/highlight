@@ -303,7 +303,10 @@ const MonitorConfiguration = ({
 
                 <section>
                     <h3>Filters</h3>
-                    <p>Filter the metric based on custom tags.</p>
+                    <p>
+                        Filter the metric values based on custom tags. For
+                        example, monitor latency for a particular URL.
+                    </p>
                     <TagFilters
                         metricName={metricToMonitorName}
                         onSelectTags={(t) => onFiltersChange(t)}
