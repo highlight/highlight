@@ -73,9 +73,9 @@ export const SimpleSearchSelect = ({
 	}
 
 	// Ignore this so we have a consistent reference so debounce works.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const loadOptions = useMemo(
 		() => _.debounce(getValueOptions, 100),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[options],
 	)
 

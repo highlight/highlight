@@ -621,9 +621,9 @@ const MetricSelector = ({
 	}
 
 	// Ignore this so we have a consistent reference so debounce works.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const loadOptions = useMemo(
 		() => _.debounce(getValueOptions, 300),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[data?.suggested_metrics],
 	)
 
