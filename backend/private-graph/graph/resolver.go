@@ -1043,6 +1043,10 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 }
 
 func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error {
+	if r.isWhitelistedAccount(ctx) {
+		return nil
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return e.Wrap(err, "error retrieving admin")
@@ -2164,7 +2168,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 }
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
-	if redis.UseRedis(s.ProjectID) {
+	if s.ProcessWithRedis {
 		return r.Redis.GetEvents(ctx, s, cursor)
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {

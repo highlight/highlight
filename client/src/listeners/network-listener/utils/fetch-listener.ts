@@ -39,7 +39,7 @@ export const FetchListener = (
     sessionSecureID: string,
     bodyKeysToRecord?: string[]
 ) => {
-    const originalFetch = window._originalFetch || window.fetch;
+    const originalFetch = window._fetchProxy;
 
     window._fetchProxy = function (input, init) {
         const { method, url } = getFetchRequestProperties(input, init);
@@ -91,7 +91,7 @@ export const FetchListener = (
     };
 
     return () => {
-        window.fetch = originalFetch;
+        window._fetchProxy = originalFetch;
     };
 };
 

@@ -6,6 +6,7 @@ import { useParams } from '@util/react-router/useParams';
 import { ConsoleMessage } from '@util/shared-types';
 import { MillisToMinutesAndSeconds } from '@util/time';
 import { message as AntDesignMessage } from 'antd';
+import classNames from 'classnames';
 import { H } from 'highlight.run';
 import _ from 'lodash';
 import React, {
@@ -277,7 +278,17 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
                         data={messagesToRender}
                         itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
-                                <div className={styles.consoleMessage}>
+                                <div
+                                    className={classNames(
+                                        styles.consoleMessage,
+                                        {
+                                            [styles.consoleMessageWarn]:
+                                                message.type === 'warn',
+                                            [styles.consoleMessageAssert]:
+                                                message.type === 'assert',
+                                        }
+                                    )}
+                                >
                                     <Tooltip title="This is the last logged console message. This is based on the current session time.">
                                         <div
                                             className={

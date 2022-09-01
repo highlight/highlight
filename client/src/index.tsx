@@ -296,7 +296,6 @@ export class Highlight {
         this.sessionData.sessionStartTime = Date.now();
         this._firstLoadListeners.stopListening();
         this._firstLoadListeners = new FirstLoadListeners(this.options);
-        this._initMembers(this.options);
         await this.initialize();
         if (user_identifier && user_object) {
             await this.identify(user_identifier, user_object);
@@ -477,7 +476,7 @@ export class Highlight {
         try {
             // disable recording for filtered projects while allowing for reloaded sessions
             if (!this.reloaded && this.organizationID === '6glrjqg9') {
-                if (Math.random() > 0.1) {
+                if (true || Math.random() > 0.1) {
                     this._firstLoadListeners?.stopListening();
                     return;
                 }
@@ -531,48 +530,45 @@ export class Highlight {
                     false;
             }
 
-            if (!this.reloaded) {
-                const client = await this.fingerprintjs;
-                const fingerprint = await client.get();
-                const gr = await this.graphqlSDK.initializeSession({
-                    organization_verbose_id: this.organizationID,
-                    enable_strict_privacy: this.enableStrictPrivacy,
-                    enable_recording_network_contents: enableNetworkRecording,
-                    clientVersion: packageJson['version'],
-                    firstloadVersion: this.firstloadVersion,
-                    clientConfig: JSON.stringify(this._optionsInternal),
-                    environment: this.environment,
-                    id: fingerprint.visitorId,
-                    appVersion: this.appVersion,
-                    session_secure_id: this.sessionData.sessionSecureID,
-                    client_id: clientID,
-                });
-                if (
-                    gr.initializeSession.secure_id !==
-                    this.sessionData.sessionSecureID
-                ) {
-                    this.logger.log(
-                        `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
-                    );
-                }
-                this.sessionData.sessionSecureID =
-                    gr.initializeSession.secure_id;
-                this.sessionData.projectID = parseInt(
-                    gr?.initializeSession?.project_id || '0'
-                );
-                if (this.sessionData.userIdentifier) {
-                    this.identify(
-                        this.sessionData.userIdentifier,
-                        this.sessionData.userObject
-                    );
-                }
+            const client = await this.fingerprintjs;
+            const fingerprint = await client.get();
+            const gr = await this.graphqlSDK.initializeSession({
+                organization_verbose_id: this.organizationID,
+                enable_strict_privacy: this.enableStrictPrivacy,
+                enable_recording_network_contents: enableNetworkRecording,
+                clientVersion: packageJson['version'],
+                firstloadVersion: this.firstloadVersion,
+                clientConfig: JSON.stringify(this._optionsInternal),
+                environment: this.environment,
+                id: fingerprint.visitorId,
+                appVersion: this.appVersion,
+                session_secure_id: this.sessionData.sessionSecureID,
+                client_id: clientID,
+            });
+            if (
+                gr.initializeSession.secure_id !==
+                this.sessionData.sessionSecureID
+            ) {
                 this.logger.log(
-                    `Loaded Highlight
+                    `Unexpected secure id returned by initializeSession: ${gr.initializeSession.secure_id}`
+                );
+            }
+            this.sessionData.sessionSecureID = gr.initializeSession.secure_id;
+            this.sessionData.projectID = parseInt(
+                gr?.initializeSession?.project_id || '0'
+            );
+            if (this.sessionData.userIdentifier) {
+                this.identify(
+                    this.sessionData.userIdentifier,
+                    this.sessionData.userObject
+                );
+            }
+            this.logger.log(
+                `Loaded Highlight
 Remote: ${publicGraphURI}
 Project ID: ${this.sessionData.projectID}
 SessionSecureID: ${this.sessionData.sessionSecureID}`
-                );
-            }
+            );
             this.options.sessionSecureID = this.sessionData.sessionSecureID;
             this._worker.postMessage({
                 message: {

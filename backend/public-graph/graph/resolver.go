@@ -1070,6 +1070,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
+	useRedis := redis.UseRedis(projectID, input.SessionSecureID)
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1099,6 +1100,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
+		ProcessWithRedis:               useRedis,
 	}
 
 	// Get the user's ip, get geolocation data
@@ -2279,7 +2281,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if redis.UseRedis(projectID) {
+			if sessionObj.ProcessWithRedis {
 				score := float64(payloadIdDeref)
 				// A little bit of a hack to encode
 				if isBeacon {

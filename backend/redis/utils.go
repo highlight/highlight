@@ -24,7 +24,7 @@ var (
 	redisProjectIds            = []int{1, 1074} // Enabled for Highlight and Solitaired
 )
 
-func UseRedis(projectId int) bool {
+func UseRedis(projectId int, sessionSecureId string) bool {
 	return lo.Contains(redisProjectIds, projectId)
 }
 
@@ -121,13 +121,27 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 }
 
 func (r *Client) AddEventPayload(sessionID int, score float64, payload string) error {
-	// Add to sorted set without updating existing elements
-	cmd := r.redisClient.ZAddNX(EventsKey(sessionID), redis.Z{
-		Score:  score,
-		Member: payload,
-	})
+	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
+	var zAddAndExpire = redis.NewScript(`
+		local key = KEYS[1]
+		local score = ARGV[1]
+		local value = ARGV[2]
 
-	if err := cmd.Err(); err != nil {
+		local count = redis.call("EXISTS", key)
+		redis.call("ZADD", key, score, value)
+
+		if count == 0 then
+			redis.call("EXPIRE", key, 15000)
+		end
+
+		return
+	`)
+
+	keys := []string{EventsKey(sessionID)}
+	values := []interface{}{score, payload}
+	cmd := zAddAndExpire.Run(r.redisClient, keys, values...)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return errors.Wrap(err, "error adding events payload in Redis")
 	}
 	return nil
