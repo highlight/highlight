@@ -34,8 +34,8 @@ func UseRedis(projectId int, sessionSecureId string) bool {
 		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
 	}
 
-	// Enable redis for 50% of other traffic
-	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%2 == 0
+	// Enable redis for 10% of other traffic
+	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%10 == 0
 }
 
 func EventsKey(sessionId int) string {
