@@ -141,7 +141,6 @@
 		"happy-dom": "^6.0.4",
 		"postcss": "^8.3.3",
 		"postcss-custom-properties": "^12.1.7",
-		"prettier": "^2.2.1",
 		"sass": "^1.50.1",
 		"stylelint": "^14.9.1",
 		"stylelint-config-prettier": "^9.0.3",
