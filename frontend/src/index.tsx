@@ -34,7 +34,7 @@ import { client } from '@util/graph';
 import { isOnPrem } from '@util/onPrem/onPremUtils';
 import { useParams } from '@util/react-router/useParams';
 import { H, HighlightOptions } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Helmet } from 'react-helmet';
 import { SkeletonTheme } from 'react-loading-skeleton';
@@ -369,8 +369,4 @@ get in contact with us!
     );
 };
 
-createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
-);
+createRoot(document.getElementById('root')!).render(<App />);
