@@ -562,7 +562,7 @@ mutation CreateMetricMonitor(
 	$aggregator: MetricAggregator!
 	$threshold: Float!
 	$filters: [MetricTagFilterInput!]
-    $units: String
+	$units: String
 	$periodMinutes: Int
 	$metric_to_monitor: String!
 	$slack_channels: [SanitizedSlackChannelInput]!
@@ -572,29 +572,29 @@ mutation CreateMetricMonitor(
 		project_id: $project_id
 		threshold: $threshold
 		filters: $filters
-        units: $units
-        name: $name
-        aggregator: $aggregator
-        periodMinutes: $periodMinutes
-        metric_to_monitor: $metric_to_monitor
-        slack_channels: $slack_channels
-        emails: $emails
-    ) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        aggregator
-        period_minutes
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-        units
-    }
+		units: $units
+		name: $name
+		aggregator: $aggregator
+		periodMinutes: $periodMinutes
+		metric_to_monitor: $metric_to_monitor
+		slack_channels: $slack_channels
+		emails: $emails
+	) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		period_minutes
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+		units
+	}
 }
 
 mutation UpdateMetricMonitor(
@@ -604,7 +604,7 @@ mutation UpdateMetricMonitor(
 	$aggregator: MetricAggregator
 	$threshold: Float
 	$filters: [MetricTagFilterInput!]
-    $units: String
+	$units: String
 	$periodMinutes: Int
 	$metric_to_monitor: String
 	$slack_channels: [SanitizedSlackChannelInput]
@@ -616,30 +616,30 @@ mutation UpdateMetricMonitor(
 		project_id: $project_id
 		threshold: $threshold
 		filters: $filters
-        units: $units
-        name: $name
-        aggregator: $aggregator
-        periodMinutes: $periodMinutes
-        metric_to_monitor: $metric_to_monitor
-        slack_channels: $slack_channels
-        emails: $emails
-        disabled: $disabled
-    ) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        aggregator
-        period_minutes
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-        units
-    }
+		units: $units
+		name: $name
+		aggregator: $aggregator
+		periodMinutes: $periodMinutes
+		metric_to_monitor: $metric_to_monitor
+		slack_channels: $slack_channels
+		emails: $emails
+		disabled: $disabled
+	) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		period_minutes
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+		units
+	}
 }
 
 mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {

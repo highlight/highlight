@@ -2,9 +2,9 @@ import Card from '@components/Card/Card'
 import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
-    DashboardMetricConfig,
-    MetricAggregator,
-    MetricTagFilter,
+	DashboardMetricConfig,
+	MetricAggregator,
+	MetricTagFilter,
 } from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
@@ -48,8 +48,8 @@ const NewMonitorPage = ({
 	)
 	const [periodMinutes, setPeriodMinutes] = useState<number>(1)
 	const [threshold, setThreshold] = useState<number>(1000)
-	const [filters, setFilters] = useState<MetricTagFilter[]>([]);
-    const [slackChannels, setSlackChannels] = useState<string[]>([])
+	const [filters, setFilters] = useState<MetricTagFilter[]>([])
+	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [emails, setEmails] = useState<string[]>([])
 	const [units, setUnits] = useState<string>(
 		WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units || '',
@@ -69,7 +69,7 @@ const NewMonitorPage = ({
 				webhook_channel_id,
 			})),
 			threshold,
-            filters,
+			filters,
 			units,
 			emails,
 		},
@@ -115,14 +115,14 @@ const NewMonitorPage = ({
 						slackChannels={slackChannels}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
-                        aggregator={aggregator}
-                        aggregatePeriodMinutes={periodMinutes}
-                        config={config}
-                        loading={loading}
-                        metricToMonitorName={metricToMonitorName}
-                        monitorName={monitorName}
-                        threshold={threshold}
-                        filters={filters}
+						aggregator={aggregator}
+						aggregatePeriodMinutes={periodMinutes}
+						config={config}
+						loading={loading}
+						metricToMonitorName={metricToMonitorName}
+						monitorName={monitorName}
+						threshold={threshold}
+						filters={filters}
 						units={units}
 						onUnitsChange={setUnits}
 						channelSuggestions={channelSuggestions}

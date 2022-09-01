@@ -8,15 +8,15 @@ import Switch from '@components/Switch/Switch'
 import { useGetMetricsTimelineQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
-    DashboardMetricConfig,
-    MetricAggregator,
-    MetricTagFilter,
+	DashboardMetricConfig,
+	MetricAggregator,
+	MetricTagFilter,
 } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
-    MetricSelector,
-    TagFilters,
+	MetricSelector,
+	TagFilters,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
 import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
@@ -44,9 +44,9 @@ interface Props {
 	onAggregatePeriodChange: (newPeriod: string) => void
 	threshold: number
 	onThresholdChange: (newThreshold: number) => void
-	filters: MetricTagFilter[];
-    onFiltersChange: (newFilters: MetricTagFilter[]) => void;
-    units?: string
+	filters: MetricTagFilter[]
+	onFiltersChange: (newFilters: MetricTagFilter[]) => void
+	units?: string
 	onUnitsChange: (newUnits: string) => void
 	slackChannels: string[]
 	onSlackChannelsChange: (newChannels: string[]) => void
@@ -79,21 +79,21 @@ const MonitorConfiguration = ({
 	onEmailsChange,
 	threshold,
 	filters,
-    onFormSubmit,
-    onConfigChange,
-    channelSuggestions,
-    emailSuggestions,
-    isSlackIntegrated,
-    slackUrl,
-    formSubmitButtonLabel,
-    formCancelButtonLabel,
-    onFormCancel,
-    onAggregateFunctionChange,
-    onAggregatePeriodChange,
-    onMonitorNameChange,
-    onMetricToMonitorNameChange,
-    onThresholdChange,
-    onFiltersChange,
+	onFormSubmit,
+	onConfigChange,
+	channelSuggestions,
+	emailSuggestions,
+	isSlackIntegrated,
+	slackUrl,
+	formSubmitButtonLabel,
+	formCancelButtonLabel,
+	onFormCancel,
+	onAggregateFunctionChange,
+	onAggregatePeriodChange,
+	onMonitorNameChange,
+	onMetricToMonitorNameChange,
+	onThresholdChange,
+	onFiltersChange,
 	units,
 	onUnitsChange,
 	onSlackChannelsChange,
@@ -103,33 +103,33 @@ const MonitorConfiguration = ({
 	disabled,
 	setIsDisabled,
 }: Props) => {
-    const { project_id } = useParams<{
-        project_id: string;
-    }>();
-    const { currentWorkspace } = useApplicationContext();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [endDate] = React.useState<moment.Moment>(moment(new Date()));
-    const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
-        variables: {
-            project_id,
-            metric_name: metricToMonitorName,
-            params: {
-                aggregator,
-                date_range: {
-                    start_date: moment(endDate)
-                        .subtract(
-                            PREVIEW_PERIODS * aggregatePeriodMinutes,
-                            'minutes'
-                        )
-                        .toISOString(),
-                    end_date: endDate.toISOString(),
-                },
-                filters,
-                resolution_minutes: aggregatePeriodMinutes,
-                units: units || undefined,
-            },
-        },
-    });
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const { currentWorkspace } = useApplicationContext()
+	const [searchQuery, setSearchQuery] = useState('')
+	const [endDate] = React.useState<moment.Moment>(moment(new Date()))
+	const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
+		variables: {
+			project_id,
+			metric_name: metricToMonitorName,
+			params: {
+				aggregator,
+				date_range: {
+					start_date: moment(endDate)
+						.subtract(
+							PREVIEW_PERIODS * aggregatePeriodMinutes,
+							'minutes',
+						)
+						.toISOString(),
+					end_date: endDate.toISOString(),
+				},
+				filters,
+				resolution_minutes: aggregatePeriodMinutes,
+				units: units || undefined,
+			},
+		},
+	})
 
 	const graphData = useMemo(() => {
 		if (loading) {
@@ -180,16 +180,16 @@ const MonitorConfiguration = ({
 		)
 	}, [graphData])
 
-    const periodOptions = [
-        { label: '1 minute', value: 1 },
-        { label: '5 minutes', value: 5 },
-        { label: '15 minutes', value: 15 },
-        { label: '30 minutes', value: 30 },
-        { label: '1 hour', value: 60 },
-        { label: '6 hours', value: 6 * 60 },
-        { label: '12 hours', value: 12 * 60 },
-        { label: '1 day', value: 24 * 60 },
-    ] as { label: string; value: number }[];
+	const periodOptions = [
+		{ label: '1 minute', value: 1 },
+		{ label: '5 minutes', value: 5 },
+		{ label: '15 minutes', value: 15 },
+		{ label: '30 minutes', value: 30 },
+		{ label: '1 hour', value: 60 },
+		{ label: '6 hours', value: 6 * 60 },
+		{ label: '12 hours', value: 12 * 60 },
+		{ label: '1 day', value: 24 * 60 },
+	] as { label: string; value: number }[]
 
 	const channels = channelSuggestions.map(
 		({ webhook_channel, webhook_channel_id }) => ({
@@ -296,21 +296,21 @@ const MonitorConfiguration = ({
 								WEB_VITALS_CONFIGURATION[e] ||
 									WEB_VITALS_CONFIGURATION['LCP'],
 							)
-                        }}
-                        currentMetric={metricToMonitorName}
-                    />
-                </section>
+						}}
+						currentMetric={metricToMonitorName}
+					/>
+				</section>
 
-                <section>
-                    <h3>Filters</h3>
-                    <p>
-                        Filter the metric values based on custom tags. For
-                        example, monitor latency for a particular URL.
-                    </p>
-                    <TagFilters
-                        metricName={metricToMonitorName}
-                        onSelectTags={(t) => onFiltersChange(t)}
-                        currentTags={filters}
+				<section>
+					<h3>Filters</h3>
+					<p>
+						Filter the metric values based on custom tags. For
+						example, monitor latency for a particular URL.
+					</p>
+					<TagFilters
+						metricName={metricToMonitorName}
+						onSelectTags={(t) => onFiltersChange(t)}
+						currentTags={filters}
 					/>
 				</section>
 

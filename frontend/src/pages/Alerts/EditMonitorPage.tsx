@@ -5,9 +5,9 @@ import {
 } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations'
 import {
-    DashboardMetricConfig,
-    MetricAggregator,
-    MetricTagFilter,
+	DashboardMetricConfig,
+	MetricAggregator,
+	MetricTagFilter,
 } from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
@@ -49,8 +49,8 @@ const EditMonitorPage = ({
 	)
 	const [periodMinutes, setPeriodMinutes] = useState<number>(1)
 	const [threshold, setThreshold] = useState<number>(1000)
-	const [filters, setFilters] = useState<MetricTagFilter[]>([]);
-    const [units, setUnits] = useState<string>()
+	const [filters, setFilters] = useState<MetricTagFilter[]>([])
+	const [units, setUnits] = useState<string>()
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [isDisabled, setIsDisabled] = useState<boolean>(false)
 	const [emails, setEmails] = useState<string[]>([])
@@ -70,7 +70,7 @@ const EditMonitorPage = ({
 				webhook_channel_id,
 			})),
 			threshold,
-            filters,
+			filters,
 			units,
 			emails,
 			disabled: isDisabled,
@@ -107,16 +107,16 @@ const EditMonitorPage = ({
 				name,
 				threshold,
 				filters,
-                units,
-                emails_to_notify,
-                disabled,
-            } = existingMonitor
+				units,
+				emails_to_notify,
+				disabled,
+			} = existingMonitor
 
 			setMetricToMonitorName(metric_to_monitor)
 			setMonitorName(name)
 			setThreshold(threshold)
-			setFilters(filters || []);
-            setUnits(units || undefined)
+			setFilters(filters || [])
+			setUnits(units || undefined)
 			setEmails((emails_to_notify as string[]) || [])
 			setSlackChannels(
 				channels_to_notify?.map(
@@ -161,14 +161,14 @@ const EditMonitorPage = ({
 						slackChannels={slackChannels}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
-                        aggregator={aggregator}
-                        aggregatePeriodMinutes={periodMinutes}
-                        config={config}
-                        loading={loading}
-                        metricToMonitorName={metricToMonitorName}
-                        monitorName={monitorName}
-                        threshold={threshold}
-                        filters={filters}
+						aggregator={aggregator}
+						aggregatePeriodMinutes={periodMinutes}
+						config={config}
+						loading={loading}
+						metricToMonitorName={metricToMonitorName}
+						monitorName={monitorName}
+						threshold={threshold}
+						filters={filters}
 						units={units}
 						onUnitsChange={setUnits}
 						channelSuggestions={channelSuggestions}

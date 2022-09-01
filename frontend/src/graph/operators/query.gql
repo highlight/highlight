@@ -1491,13 +1491,13 @@ query GetAlertsPagePayload($project_id: ID!) {
 		last_admin_to_edit_id
 		threshold
 		filters {
-            tag
-            op
-            value
-        }
-        units
-        disabled
-    }
+			tag
+			op
+			value
+		}
+		units
+		disabled
+	}
 }
 
 query GetMetricMonitors($project_id: ID!, $metric_name: String!) {

@@ -543,20 +543,20 @@ export const TagFilterSelector = ({
 	currentTag?: MetricTagFilter
 	usedTags?: string[]
 }) => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const { data } = useGetMetricTagsQuery({
-        variables: {
-            project_id,
-            metric_name: metricName,
-        },
-    });
-    const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
-        variables: {
-            project_id,
-            metric_name: metricName,
-            tag_name: currentTag?.tag || '',
-        },
-    });
+	const { project_id } = useParams<{ project_id: string }>()
+	const { data } = useGetMetricTagsQuery({
+		variables: {
+			project_id,
+			metric_name: metricName,
+		},
+	})
+	const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
+		variables: {
+			project_id,
+			metric_name: metricName,
+			tag_name: currentTag?.tag || '',
+		},
+	})
 
 	useEffect(() => {
 		if (currentTag?.tag?.length) {
@@ -564,54 +564,54 @@ export const TagFilterSelector = ({
 		}
 	}, [currentTag?.tag, load])
 
-    return (
-        <>
-            <SimpleSearchSelect
-                options={
-                    data?.metric_tags.filter((t) =>
-                        usedTags ? !usedTags.includes(t) : true
-                    ) || []
-                }
-                value={currentTag?.tag}
-                onSelect={(v) => {
-                    onSelectTag({
-                        tag: v,
-                        op: currentTag?.op || MetricTagFilterOp.Equals,
-                        value: currentTag?.value || '',
-                    });
-                }}
-            />
-            <StandardDropdown
-                gray
-                data={OperatorOptions}
-                defaultValue={OperatorOptions[0]}
-                value={
-                    OperatorOptions.filter((o) => o.value == currentTag?.op)[0]
-                }
-                onSelect={(v) => {
-                    onSelectTag({
-                        tag: currentTag?.tag || '',
-                        op: v,
-                        value: currentTag?.value || '',
-                    });
-                }}
-            />
-            <SimpleSearchSelect
-                placeholder={'GetSession'}
-                options={values?.metric_tag_values || []}
-                value={currentTag?.value}
-                freeSolo
-                onSelect={(v) => {
-                    onSelectTag({
-                        tag: currentTag?.tag || '',
-                        op: currentTag?.op || MetricTagFilterOp.Equals,
-                        value: v,
-                    });
-                }}
-            />
-        </>
-    );
-};
+	return (
+		<>
+			<SimpleSearchSelect
+				options={
+					data?.metric_tags.filter((t) =>
+						usedTags ? !usedTags.includes(t) : true,
+					) || []
+				}
+				value={currentTag?.tag}
+				onSelect={(v) => {
+					onSelectTag({
+						tag: v,
+						op: currentTag?.op || MetricTagFilterOp.Equals,
+						value: currentTag?.value || '',
+					})
+				}}
+			/>
+			<StandardDropdown
+				gray
+				data={OperatorOptions}
+				defaultValue={OperatorOptions[0]}
+				value={
+					OperatorOptions.filter((o) => o.value == currentTag?.op)[0]
+				}
+				onSelect={(v) => {
+					onSelectTag({
+						tag: currentTag?.tag || '',
+						op: v,
+						value: currentTag?.value || '',
+					})
+				}}
+			/>
+			<SimpleSearchSelect
+				placeholder={'GetSession'}
+				options={values?.metric_tag_values || []}
+				value={currentTag?.value}
+				freeSolo
+				onSelect={(v) => {
+					onSelectTag({
+						tag: currentTag?.tag || '',
+						op: currentTag?.op || MetricTagFilterOp.Equals,
+						value: v,
+					})
+				}}
+			/>
+		</>
+	)
+}
 
 export const MetricSelector = ({
 	onSelectMetric,

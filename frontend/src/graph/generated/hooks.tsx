@@ -2291,7 +2291,7 @@ export const CreateMetricMonitorDocument = gql`
 		$aggregator: MetricAggregator!
 		$threshold: Float!
 		$filters: [MetricTagFilterInput!]
-        $units: String
+		$units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
@@ -2300,7 +2300,7 @@ export const CreateMetricMonitorDocument = gql`
 		createMetricMonitor(
 			project_id: $project_id
 			threshold: $threshold
-            filters: $filters
+			filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -2385,7 +2385,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$aggregator: MetricAggregator
 		$threshold: Float
 		$filters: [MetricTagFilterInput!]
-        $units: String
+		$units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
@@ -2396,7 +2396,7 @@ export const UpdateMetricMonitorDocument = gql`
 			metric_monitor_id: $metric_monitor_id
 			project_id: $project_id
 			threshold: $threshold
-            filters: $filters
+			filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -9670,14 +9670,14 @@ export const GetAlertsPagePayloadDocument = gql`
 			last_admin_to_edit_id
 			threshold
 			filters {
-                tag
-                op
-                value
-            }
-            units
-            disabled
-        }
-    }
+				tag
+				op
+				value
+			}
+			units
+			disabled
+		}
+	}
 `
 
 /**
