@@ -139,7 +139,7 @@ export const client = new ApolloClient({
         (operation) => {
             // Don't query GraphCDN for localhost.
             // GraphCDN only caches production data.
-            if (import.meta.env.NODE_ENV === 'development') {
+            if (import.meta.env.MODE === 'development') {
                 return false;
             }
 
