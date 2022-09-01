@@ -12,7 +12,7 @@ import { auth, googleProvider } from '@util/auth';
 import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -20,6 +20,7 @@ import commonStyles from '../../Common.module.scss';
 import Button from '../../components/Button/Button/Button';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { Landing } from '../Landing/Landing';
+import astronautUrl from './astronaut.svg';
 import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
@@ -222,6 +223,10 @@ const LoginForm = () => {
 
     return (
         <Landing>
+            <div className={styles.astronautGraphicWrapper}>
+                <img src={astronautUrl} style={{ height: '100%' }} />
+            </div>
+
             <div className={styles.loginPage}>
                 <div className={styles.loginFormWrapper}>
                     <form onSubmit={onSubmit} className={styles.loginForm}>

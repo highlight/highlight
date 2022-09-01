@@ -6,9 +6,20 @@
     width: 100vw;
 }
 
+.astronautGraphicWrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    overflow: hidden;
+}
+
 .loginPage {
-    min-height: 462px;
-    width: 450px;
+    width: 100%;
+    height: 100%;
+    position: relative; /* relative so it stays on top of the background graphic */
+    padding: 1rem;
+    display: flex;
 }
 
 .loginTitle {
@@ -29,6 +40,23 @@
     flex-direction: column;
     padding: 30px;
     transition: all 0.2s ease-in-out;
+    max-width: 420px;
+    height: fit-content;
+    margin: auto;
+}
+
+/* using a viewport height unit ensures that the login page is left-aligned
+when there is enough space between the left and the astronaut */
+@media (min-width: 150vh) {
+    .loginFormWrapper {
+        margin: auto 0 auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .loginPage {
+        padding: 4rem;
+    }
 }
 
 .loginForm {

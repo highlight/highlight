@@ -140,6 +140,8 @@
     height: 100vh;
     justify-content: center;
     width: 100%;
+    overflow-y: auto;
+    transform: translateY(0); // scroll optimization
 }
 
 .userDropdownContainer {
