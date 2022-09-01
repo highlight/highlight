@@ -327,7 +327,7 @@ export const SessionFeed = React.memo(() => {
                 <SegmentPickerForPlayer />
                 <SessionsQueryBuilder />
             </div>
-            {histogram}
+            {(loading || sessionResults.totalCount > 0) && histogram}
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {sessionResults.totalCount === -1 ? (

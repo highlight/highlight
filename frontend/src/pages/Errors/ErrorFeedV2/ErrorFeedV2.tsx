@@ -182,7 +182,7 @@ export const ErrorFeedV2 = () => {
                 <SegmentPickerForErrors />
                 <ErrorQueryBuilder />
             </div>
-            {histogram}
+            {(loading || data.totalCount > 0) && histogram}
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
                     {loading ? (
