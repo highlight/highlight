@@ -122,6 +122,12 @@ const MonitorConfiguration = ({
 		},
 	})
 
+	const format = useMemo(() => {
+		return aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
+			? 'D MMM h:mm A'
+			: 'h:mm A'
+	}, [aggregatePeriodMinutes])
+
 	const graphData = useMemo(() => {
 		if (loading) {
 			return []
@@ -136,20 +142,16 @@ const MonitorConfiguration = ({
 					value: randomValue,
 					date: moment(now)
 						.subtract(pointsToGenerate - index, 'minutes')
-						.format('h:mm A'),
+						.format(),
 				}
 			})
 		} else {
 			return data.metrics_timeline.map((point) => ({
 				value: point?.value,
-				date: moment(point?.date).format(
-					aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
-						? 'D MMM h:mm A'
-						: 'h:mm A',
-				),
+				date: moment(point?.date).format(),
 			}))
 		}
-	}, [data, loading, aggregatePeriodMinutes])
+	}, [data, loading])
 	const graphMin = useMemo(() => {
 		return (
 			Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
@@ -211,6 +213,9 @@ const MonitorConfiguration = ({
 								data={graphData}
 								hideLegend
 								xAxisDataKeyName="date"
+								xAxisTickFormatter={(tickItem) =>
+									moment(tickItem).format(format)
+								}
 								lineColorMapping={{
 									value: 'var(--color-blue-400)',
 								}}
@@ -218,7 +223,9 @@ const MonitorConfiguration = ({
 								referenceAreaProps={
 									graphData.length > 0
 										? {
-												x1: graphData[0].date,
+												x1: moment(
+													graphData[0].date,
+												).format(format),
 												y1: threshold,
 												fill: 'var(--color-red-200)',
 												fillOpacity: 0.3,
