@@ -3,9 +3,9 @@
  * @param percent The percent value, use 0.95 instead of 95.
  */
 export const getPercentageDisplayValue = (percent: number) => {
-    if (percent < 0.1) {
-        return '<1%';
-    }
+	if (percent < 0.1) {
+		return '<1%'
+	}
 
-    return `${(percent * 100).toFixed(0)}%`;
-};
+	return `${(percent * 100).toFixed(0)}%`
+}

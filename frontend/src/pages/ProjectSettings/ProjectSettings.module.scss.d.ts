@@ -1,1 +1,1 @@
-export const tabsContainer: string;
+export const tabsContainer: string

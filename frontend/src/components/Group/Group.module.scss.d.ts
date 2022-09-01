@@ -1,1 +1,1 @@
-export const group: string;
+export const group: string

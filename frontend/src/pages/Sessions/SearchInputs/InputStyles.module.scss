@@ -1,69 +1,69 @@
 @import 'src/static/shared.scss';
 
 .commonInputWrapper {
-    padding: 10px 0;
+	padding: 10px 0;
 }
 
 .searchInput {
-    padding-top: 0;
+	padding-top: 0;
 }
 
 .switchSpan {
-    display: inline-block;
-    line-height: normal;
-    vertical-align: middle;
+	display: inline-block;
+	line-height: normal;
+	vertical-align: middle;
 }
 
 .datePicker {
-    @include rounded-border;
-    font-family: var(--header-font-family);
-    font-size: 14px;
-    font-weight: 300 !important;
-    height: 45px;
-    width: 100%;
+	@include rounded-border;
+	font-family: var(--header-font-family);
+	font-size: 14px;
+	font-weight: 300 !important;
+	height: 45px;
+	width: 100%;
 }
 
 .iconWrapper {
-    display: flex;
-    margin: 0 10px 0 0;
+	display: flex;
+	margin: 0 10px 0 0;
 
-    > svg {
-        color: var(--color-gray-400) !important;
-        height: var(--size-medium);
-        width: var(--size-medium);
+	> svg {
+		color: var(--color-gray-400) !important;
+		height: var(--size-medium);
+		width: var(--size-medium);
 
-        &.fill {
-            color: var(--color-gray-400) !important;
-            fill: none !important;
-        }
-    }
+		&.fill {
+			color: var(--color-gray-400) !important;
+			fill: none !important;
+		}
+	}
 }
 
 .subTitle {
-    color: var(--text-primary);
-    font-size: 11px;
-    margin-bottom: 8px;
-    margin-top: 10px;
+	color: var(--text-primary);
+	font-size: 11px;
+	margin-bottom: 8px;
+	margin-top: 10px;
 }
 
 .checkboxUnselected {
-    color: var(--color-gray-500);
+	color: var(--color-gray-500);
 }
 
 .select {
-    width: 100%;
+	width: 100%;
 }
 
 .selectWithIconContainer {
-    position: relative;
-    width: 100%;
+	position: relative;
+	width: 100%;
 }
 
 .icon {
-    color: var(--color-gray-400);
-    height: var(--size-medium);
-    position: absolute;
-    right: 10px;
-    top: 15px;
-    width: var(--size-medium);
+	color: var(--color-gray-400);
+	height: var(--size-medium);
+	position: absolute;
+	right: 10px;
+	top: 15px;
+	width: var(--size-medium);
 }

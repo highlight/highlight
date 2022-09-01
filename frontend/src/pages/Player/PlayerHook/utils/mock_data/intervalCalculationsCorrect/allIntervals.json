@@ -1,104 +1,104 @@
 [
-    {
-        "startTime": 1615864258086,
-        "endTime": 1615864383480,
-        "duration": 125394,
-        "active": true
-    },
-    {
-        "startTime": 1615864383480,
-        "endTime": 1615864470339,
-        "duration": 86859,
-        "active": false
-    },
-    {
-        "startTime": 1615864470339,
-        "endTime": 1615864477775,
-        "duration": 7436,
-        "active": true
-    },
-    {
-        "startTime": 1615864477775,
-        "endTime": 1615864640561,
-        "duration": 162786,
-        "active": false
-    },
-    {
-        "startTime": 1615864640561,
-        "endTime": 1615864686201,
-        "duration": 45640,
-        "active": true
-    },
-    {
-        "startTime": 1615864686201,
-        "endTime": 1615864737849,
-        "duration": 51648,
-        "active": false
-    },
-    {
-        "startTime": 1615864737849,
-        "endTime": 1615864757789,
-        "duration": 19940,
-        "active": true
-    },
-    {
-        "startTime": 1615864757789,
-        "endTime": 1615864803251,
-        "duration": 45462,
-        "active": false
-    },
-    {
-        "startTime": 1615864803251,
-        "endTime": 1615864899760,
-        "duration": 96509,
-        "active": true
-    },
-    {
-        "startTime": 1615864899760,
-        "endTime": 1615865825157,
-        "duration": 925397,
-        "active": false
-    },
-    {
-        "startTime": 1615865825157,
-        "endTime": 1615865880308,
-        "duration": 55151,
-        "active": true
-    },
-    {
-        "startTime": 1615865880308,
-        "endTime": 1615865925321,
-        "duration": 45013,
-        "active": false
-    },
-    {
-        "startTime": 1615865925321,
-        "endTime": 1615866047667,
-        "duration": 122346,
-        "active": true
-    },
-    {
-        "startTime": 1615866047667,
-        "endTime": 1615866104387,
-        "duration": 56720,
-        "active": false
-    },
-    {
-        "startTime": 1615866104387,
-        "endTime": 1615866167843,
-        "duration": 63456,
-        "active": true
-    },
-    {
-        "startTime": 1615866167843,
-        "endTime": 1615866359385,
-        "duration": 191542,
-        "active": false
-    },
-    {
-        "startTime": 1615866359385,
-        "endTime": 1615866372715,
-        "duration": 13330,
-        "active": true
-    }
+	{
+		"startTime": 1615864258086,
+		"endTime": 1615864383480,
+		"duration": 125394,
+		"active": true
+	},
+	{
+		"startTime": 1615864383480,
+		"endTime": 1615864470339,
+		"duration": 86859,
+		"active": false
+	},
+	{
+		"startTime": 1615864470339,
+		"endTime": 1615864477775,
+		"duration": 7436,
+		"active": true
+	},
+	{
+		"startTime": 1615864477775,
+		"endTime": 1615864640561,
+		"duration": 162786,
+		"active": false
+	},
+	{
+		"startTime": 1615864640561,
+		"endTime": 1615864686201,
+		"duration": 45640,
+		"active": true
+	},
+	{
+		"startTime": 1615864686201,
+		"endTime": 1615864737849,
+		"duration": 51648,
+		"active": false
+	},
+	{
+		"startTime": 1615864737849,
+		"endTime": 1615864757789,
+		"duration": 19940,
+		"active": true
+	},
+	{
+		"startTime": 1615864757789,
+		"endTime": 1615864803251,
+		"duration": 45462,
+		"active": false
+	},
+	{
+		"startTime": 1615864803251,
+		"endTime": 1615864899760,
+		"duration": 96509,
+		"active": true
+	},
+	{
+		"startTime": 1615864899760,
+		"endTime": 1615865825157,
+		"duration": 925397,
+		"active": false
+	},
+	{
+		"startTime": 1615865825157,
+		"endTime": 1615865880308,
+		"duration": 55151,
+		"active": true
+	},
+	{
+		"startTime": 1615865880308,
+		"endTime": 1615865925321,
+		"duration": 45013,
+		"active": false
+	},
+	{
+		"startTime": 1615865925321,
+		"endTime": 1615866047667,
+		"duration": 122346,
+		"active": true
+	},
+	{
+		"startTime": 1615866047667,
+		"endTime": 1615866104387,
+		"duration": 56720,
+		"active": false
+	},
+	{
+		"startTime": 1615866104387,
+		"endTime": 1615866167843,
+		"duration": 63456,
+		"active": true
+	},
+	{
+		"startTime": 1615866167843,
+		"endTime": 1615866359385,
+		"duration": 191542,
+		"active": false
+	},
+	{
+		"startTime": 1615866359385,
+		"endTime": 1615866372715,
+		"duration": 13330,
+		"active": true
+	}
 ]

@@ -1,2 +1,2 @@
-export const divider: string;
-export const externalSharingToggle: string;
+export const divider: string
+export const externalSharingToggle: string

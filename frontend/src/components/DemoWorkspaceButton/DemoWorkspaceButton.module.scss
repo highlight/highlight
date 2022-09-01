@@ -1,13 +1,13 @@
 .demoWorkspaceButton {
-    background-color: var(--color-primary-inverted-background);
-    border: 0;
-    border-radius: var(--border-radius);
-    column-gap: var(--size-xSmall);
+	background-color: var(--color-primary-inverted-background);
+	border: 0;
+	border-radius: var(--border-radius);
+	column-gap: var(--size-xSmall);
 
-    &:hover,
-    &:active,
-    &:focus {
-        background-color: var(--color-gray-800);
-        border: 0;
-    }
+	&:hover,
+	&:active,
+	&:focus {
+		background-color: var(--color-gray-800);
+		border: 0;
+	}
 }

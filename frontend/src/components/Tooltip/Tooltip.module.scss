@@ -1,22 +1,22 @@
 .tooltipOverlay {
-    z-index: 9999999999999999 !important;
-    a {
-        color: var(--text-primary-inverted) !important;
-        text-decoration: underline;
-    }
+	z-index: 9999999999999999 !important;
+	a {
+		color: var(--text-primary-inverted) !important;
+		text-decoration: underline;
+	}
 
-    table {
-        border-collapse: collapse;
-        border-spacing: 0;
-        width: 100%;
+	table {
+		border-collapse: collapse;
+		border-spacing: 0;
+		width: 100%;
 
-        td:first-of-type {
-            padding-right: var(--size-small);
-        }
-    }
+		td:first-of-type {
+			padding-right: var(--size-small);
+		}
+	}
 
-    :global(.ant-tooltip-inner) {
-        background: var(--color-primary-inverted-background) !important;
-        border-radius: var(--border-radius) !important;
-    }
+	:global(.ant-tooltip-inner) {
+		background: var(--color-primary-inverted-background) !important;
+		border-radius: var(--border-radius) !important;
+	}
 }

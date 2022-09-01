@@ -1,56 +1,56 @@
 .bodyWrapper {
-    display: flex;
-    height: 100%;
-    padding-left: var(--sidebar-width);
-    position: absolute;
-    width: 100%;
+	display: flex;
+	height: 100%;
+	padding-left: var(--sidebar-width);
+	position: absolute;
+	width: 100%;
 
-    &.bannerShown {
-        animation: accomodate-banner 0.5s forwards;
-        height: calc(100% - var(--banner-height));
-        overflow-x: hidden;
-    }
+	&.bannerShown {
+		animation: accomodate-banner 0.5s forwards;
+		height: calc(100% - var(--banner-height));
+		overflow-x: hidden;
+	}
 
-    &.sidebarHidden {
-        overflow-x: hidden;
-        padding-left: 0;
-    }
+	&.sidebarHidden {
+		overflow-x: hidden;
+		padding-left: 0;
+	}
 }
 
 @keyframes accomodate-banner {
-    0% {
-        top: 0;
-    }
+	0% {
+		top: 0;
+	}
 
-    100% {
-        top: var(--banner-height);
-    }
+	100% {
+		top: var(--banner-height);
+	}
 }
 
 .submitButton {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    margin: 8px 0;
-    min-height: 40px;
-    outline: none;
-    width: 100%;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin: 8px 0;
+	min-height: 40px;
+	outline: none;
+	width: 100%;
 }
 
 .errorMessage {
-    color: var(--color-red-400);
-    margin-left: 5px;
+	color: var(--color-red-400);
+	margin-left: 5px;
 }
 
 .secondaryButton {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    margin: 8px 0;
-    width: 100%;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin: 8px 0;
+	width: 100%;
 }
 
 .title {
-    font-size: 28px;
-    font-weight: 400;
+	font-size: 28px;
+	font-weight: 400;
 }
