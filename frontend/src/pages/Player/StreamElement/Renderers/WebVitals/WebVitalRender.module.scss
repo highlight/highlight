@@ -1,10 +1,10 @@
 .wrapper {
-    display: flex;
+	display: flex;
 }
 
 .detailedView {
-    display: flex;
-    flex-direction: column;
-    padding-top: var(--size-large);
-    row-gap: var(--size-large);
+	display: flex;
+	flex-direction: column;
+	padding-top: var(--size-large);
+	row-gap: var(--size-large);
 }

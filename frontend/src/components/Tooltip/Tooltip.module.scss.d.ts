@@ -1,1 +1,1 @@
-export const tooltipOverlay: string;
+export const tooltipOverlay: string

@@ -1,1 +1,1 @@
-export const splitButton: string;
+export const splitButton: string

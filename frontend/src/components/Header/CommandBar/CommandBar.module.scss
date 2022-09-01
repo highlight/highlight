@@ -1,69 +1,69 @@
 .container {
-    font-family: var(--header-font-family);
+	font-family: var(--header-font-family);
 }
 
 .input {
-    background: var(--color-primary-background);
-    border: 0;
-    box-sizing: border-box;
-    caret-color: var(--color-purple);
-    color: var(--text-primary);
-    font-size: 14px;
-    margin: var(--size-small);
-    outline: none;
-    padding: 6px;
-    width: stretch;
+	background: var(--color-primary-background);
+	border: 0;
+	box-sizing: border-box;
+	caret-color: var(--color-purple);
+	color: var(--text-primary);
+	font-size: 14px;
+	margin: var(--size-small);
+	outline: none;
+	padding: 6px;
+	width: stretch;
 }
 
 .input-focused {
-    background-color: var(--text-primary);
-    border-color: var(--color-red-400);
+	background-color: var(--text-primary);
+	border-color: var(--color-red-400);
 }
 
 .suggestion {
-    background: var(--color-primary-background);
-    border-left: 5px solid transparent;
+	background: var(--color-primary-background);
+	border-left: 5px solid transparent;
 
-    color: var(--color-gray-700);
-    cursor: pointer;
-    padding: 14px 12px;
-    transition: color 0.2s ease-in-out;
+	color: var(--color-gray-700);
+	cursor: pointer;
+	padding: 14px 12px;
+	transition: color 0.2s ease-in-out;
 
-    b {
-        color: var(--color-purple-600);
-    }
+	b {
+		color: var(--color-purple-600);
+	}
 }
 
 .suggestionsContainerOpen {
-    border-bottom: 1px solid var(--color-gray-300);
-    border-top: 1px solid var(--color-gray-300);
-    max-height: 400px;
-    overflow-y: auto;
+	border-bottom: 1px solid var(--color-gray-300);
+	border-top: 1px solid var(--color-gray-300);
+	max-height: 400px;
+	overflow-y: auto;
 
-    &::-webkit-scrollbar {
-        display: none;
-    }
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .suggestionHighlighted {
-    background: var(--color-gray-300);
-    border-left: 5px solid var(--color-purple);
-    color: var(--text-primary);
+	background: var(--color-gray-300);
+	border-left: 5px solid var(--color-purple);
+	color: var(--text-primary);
 }
 
 .modal {
-    background: var(--color-primary-background);
-    border: 0;
-    border-radius: var(--border-radius);
-    bottom: auto;
-    box-shadow: var(--box-shadow-2);
-    left: 50%;
-    outline: none;
-    overflow: hidden;
-    position: absolute;
-    right: auto;
-    top: 25%;
-    // margin-right: -50%;
-    transform: translate(-50%, 0);
-    width: 605px;
+	background: var(--color-primary-background);
+	border: 0;
+	border-radius: var(--border-radius);
+	bottom: auto;
+	box-shadow: var(--box-shadow-2);
+	left: 50%;
+	outline: none;
+	overflow: hidden;
+	position: absolute;
+	right: auto;
+	top: 25%;
+	// margin-right: -50%;
+	transform: translate(-50%, 0);
+	width: 605px;
 }

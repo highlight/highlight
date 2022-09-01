@@ -1,113 +1,113 @@
 .metric {
-    --good-color: var(--color-green-500) !important;
-    --needs-improvement-color: var(--color-yellow-500) !important;
-    --poor-color: var(--color-red-500) !important;
+	--good-color: var(--color-green-500) !important;
+	--needs-improvement-color: var(--color-yellow-500) !important;
+	--poor-color: var(--color-red-500) !important;
 
-    .name,
-    .value {
-        display: flex;
-        font-size: 12px !important;
-        font-weight: 500 !important;
-        margin-bottom: 0 !important;
-    }
+	.name,
+	.value {
+		display: flex;
+		font-size: 12px !important;
+		font-weight: 500 !important;
+		margin-bottom: 0 !important;
+	}
 
-    .value {
-        column-gap: 0.25ch;
-    }
+	.value {
+		column-gap: 0.25ch;
+	}
 
-    .units {
-        color: var(--color-gray-500) !important;
-        font-weight: 400 !important;
-    }
+	.units {
+		color: var(--color-gray-500) !important;
+		font-weight: 400 !important;
+	}
 
-    &.goodScore {
-        color: var(--good-color);
-    }
-    &.needsImprovementScore {
-        color: var(--needs-improvement-color);
-    }
-    &.poorScore {
-        color: var(--poor-color);
-    }
+	&.goodScore {
+		color: var(--good-color);
+	}
+	&.needsImprovementScore {
+		color: var(--needs-improvement-color);
+	}
+	&.poorScore {
+		color: var(--poor-color);
+	}
 }
 
 .simpleMetric {
-    align-items: center;
-    column-gap: var(--size-xSmall);
-    display: grid;
-    grid-template-columns: 3fr auto;
+	align-items: center;
+	column-gap: var(--size-xSmall);
+	display: grid;
+	grid-template-columns: 3fr auto;
 }
 
 .detailedMetric {
-    align-items: center;
-    column-gap: var(--size-xSmall);
-    display: flex;
+	align-items: center;
+	column-gap: var(--size-xSmall);
+	display: flex;
 
-    .name {
-        width: 6ch;
-    }
+	.name {
+		width: 6ch;
+	}
 
-    .value {
-        margin-left: auto;
-        transform: translateY(-100%);
+	.value {
+		margin-left: auto;
+		transform: translateY(-100%);
 
-        &.mirror {
-            position: absolute;
-            right: 0;
-        }
-    }
+		&.mirror {
+			position: absolute;
+			right: 0;
+		}
+	}
 }
 
 .infoTooltip {
-    color: var(--color-gray-500) !important;
+	color: var(--color-gray-500) !important;
 }
 
 .scoreVisualization {
-    --color: transparent;
-    column-gap: 2px;
-    display: flex;
-    height: 1ch;
-    position: relative;
-    width: 100%;
+	--color: transparent;
+	column-gap: 2px;
+	display: flex;
+	height: 1ch;
+	position: relative;
+	width: 100%;
 
-    > div {
-        background-color: var(--color-gray-300);
-        border-radius: var(--size-xxSmall);
-        flex-grow: 1;
-        height: 100%;
-    }
+	> div {
+		background-color: var(--color-gray-300);
+		border-radius: var(--size-xxSmall);
+		flex-grow: 1;
+		height: 100%;
+	}
 
-    .poor {
-        --color: var(--poor-color);
-    }
+	.poor {
+		--color: var(--poor-color);
+	}
 
-    .needsImprovement {
-        --color: var(--needs-improvement-color);
-    }
+	.needsImprovement {
+		--color: var(--needs-improvement-color);
+	}
 
-    .good {
-        --color: var(--good-color);
-    }
+	.good {
+		--color: var(--good-color);
+	}
 
-    .active {
-        background-color: var(--color);
-    }
+	.active {
+		background-color: var(--color);
+	}
 
-    .scoreIndicator {
-        --size: var(--size-medium);
+	.scoreIndicator {
+		--size: var(--size-medium);
 
-        background: var(--color-white);
-        border: 2px solid var(--color-gray-400);
-        border-radius: 50%;
-        box-shadow: var(--box-shadow);
-        flex-grow: 0;
-        flex-shrink: 0;
-        height: var(--size);
-        left: 0;
-        position: absolute;
-        top: calc(var(--size) / -4);
-        transition: left 0.2s ease-in;
-        width: var(--size);
-        z-index: 2;
-    }
+		background: var(--color-white);
+		border: 2px solid var(--color-gray-400);
+		border-radius: 50%;
+		box-shadow: var(--box-shadow);
+		flex-grow: 0;
+		flex-shrink: 0;
+		height: var(--size);
+		left: 0;
+		position: absolute;
+		top: calc(var(--size) / -4);
+		transition: left 0.2s ease-in;
+		width: var(--size);
+		z-index: 2;
+	}
 }

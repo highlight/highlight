@@ -1,70 +1,70 @@
 .emptyStateSection {
-    align-items: center;
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    margin: 10px;
-    padding: 20px;
-    width: max-content;
+	align-items: center;
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	display: flex;
+	justify-content: center;
+	margin: 10px;
+	padding: 20px;
+	width: max-content;
 }
 
 .emptyStateWrapper {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
 
-    svg {
-        height: 30px;
-        width: 220px;
-    }
+	svg {
+		height: 30px;
+		width: 220px;
+	}
 }
 
 .emptySubTitle {
-    color: var(--color-gray-500);
-    font-size: var(--size-small) !important;
-    margin: 0 auto !important;
-    max-width: 350px;
-    text-align: center;
+	color: var(--color-gray-500);
+	font-size: var(--size-small) !important;
+	margin: 0 auto !important;
+	max-width: 350px;
+	text-align: center;
 }
 
 .emptyTitle {
-    font-size: 14px;
-    font-weight: 400 !important;
-    margin-top: 30px !important;
-    text-align: center;
+	font-size: 14px;
+	font-weight: 400 !important;
+	margin-top: 30px !important;
+	text-align: center;
 }
 
 .intercomButton {
-    color: var(--color-purple);
-    cursor: pointer;
-    display: inline-block;
-    line-height: 1;
+	color: var(--color-purple);
+	cursor: pointer;
+	display: inline-block;
+	line-height: 1;
 }
 
 .newFeedStyles {
-    .emptyStateWrapper {
-        svg {
-            height: 20px;
-            width: 120px;
-        }
-    }
+	.emptyStateWrapper {
+		svg {
+			height: 20px;
+			width: 120px;
+		}
+	}
 
-    .emptyStateSection {
-        padding: 10px;
-    }
+	.emptyStateSection {
+		padding: 10px;
+	}
 
-    .emptySubTitle {
-        font-size: var(--size-small) !important;
-        margin-top: var(--size-small) !important;
-    }
+	.emptySubTitle {
+		font-size: var(--size-small) !important;
+		margin-top: var(--size-small) !important;
+	}
 
-    .emptyTitle {
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        margin-bottom: 0 !important;
-        margin-top: var(--size-small) !important;
-    }
+	.emptyTitle {
+		font-size: 14px !important;
+		font-weight: 400 !important;
+		margin-bottom: 0 !important;
+		margin-top: var(--size-small) !important;
+	}
 }

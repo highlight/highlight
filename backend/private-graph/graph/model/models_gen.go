@@ -13,7 +13,9 @@ type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
 	SessionCountCur      int        `json:"session_count_cur"`
+	ViewCountCur         int        `json:"view_count_cur"`
 	SessionCountPrev     int        `json:"session_count_prev"`
+	ViewCountPrev        int        `json:"view_count_prev"`
 	SessionCountPrevPrev int        `json:"session_count_prev_prev"`
 	SessionLimit         int        `json:"session_limit"`
 	PaidPrev             int        `json:"paid_prev"`

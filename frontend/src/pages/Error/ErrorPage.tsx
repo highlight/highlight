@@ -1,632 +1,650 @@
-import { useAuthContext } from '@authentication/AuthContext';
-import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown';
-import { ErrorState } from '@components/ErrorState/ErrorState';
+import { useAuthContext } from '@authentication/AuthContext'
+import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown'
+import { ErrorState } from '@components/ErrorState/ErrorState'
+import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
+import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
+import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
-    RESET_PAGE_MS,
-    STARTING_PAGE,
-} from '@components/Pagination/Pagination';
-import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip';
-import { BackendSearchQuery } from '@context/BaseSearchContext';
+	useGetDailyErrorFrequencyQuery,
+	useGetErrorGroupQuery,
+	useGetRecentErrorsQuery,
+} from '@graph/hooks'
+import { ErrorGroup, Maybe } from '@graph/schemas'
+import SvgBugIcon from '@icons/BugIcon'
+import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
+import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext'
 import {
-    useGetDailyErrorFrequencyQuery,
-    useGetErrorGroupQuery,
-} from '@graph/hooks';
-import { ErrorGroup, Maybe } from '@graph/schemas';
-import SvgBugIcon from '@icons/BugIcon';
-import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton';
-import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext';
+	CreateModalType,
+	ErrorCreateCommentModal,
+} from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal'
+import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart'
+import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import { SessionPageSearchParams } from '@pages/Player/utils/utils'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useParams } from '@util/react-router/useParams'
+import { message } from 'antd'
+import classNames from 'classnames'
+import { H } from 'highlight.run'
+import moment from 'moment'
+import React, { useEffect, useRef, useState } from 'react'
+import { Helmet } from 'react-helmet'
+import Skeleton from 'react-loading-skeleton'
+import { useHistory } from 'react-router'
+import { useLocalStorage } from 'react-use'
 import {
-    CreateModalType,
-    ErrorCreateCommentModal,
-} from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal';
-import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart';
-import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton';
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils';
-import { SessionPageSearchParams } from '@pages/Player/utils/utils';
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext';
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext';
-import { useParams } from '@util/react-router/useParams';
-import { message } from 'antd';
-import classNames from 'classnames';
-import { H } from 'highlight.run';
-import moment from 'moment';
-import React, { useEffect, useRef, useState } from 'react';
-import { Helmet } from 'react-helmet';
-import Skeleton from 'react-loading-skeleton';
-import { useHistory } from 'react-router';
-import { useLocalStorage } from 'react-use';
-import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Cell,
-    ResponsiveContainer,
-    Tooltip as RechartsTooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
-import { NumberParam, useQueryParams } from 'use-query-params';
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Cell,
+	ResponsiveContainer,
+	Tooltip as RechartsTooltip,
+	XAxis,
+	YAxis,
+} from 'recharts'
+import { NumberParam, useQueryParams } from 'use-query-params'
 
-import Button from '../../components/Button/Button/Button';
-import Tooltip from '../../components/Tooltip/Tooltip';
-import SvgDownloadIcon from '../../static/DownloadIcon';
+import Button from '../../components/Button/Button/Button'
+import Tooltip from '../../components/Tooltip/Tooltip'
+import SvgDownloadIcon from '../../static/DownloadIcon'
 import {
-    ErrorSearchContextProvider,
-    ErrorSearchParams,
-} from '../Errors/ErrorSearchContext/ErrorSearchContext';
-import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage';
-import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
-import ErrorBody from './components/ErrorBody/ErrorBody';
-import { parseErrorDescriptionList } from './components/ErrorBody/utils/utils';
-import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers';
-import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard';
-import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel';
-import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel';
-import ErrorTitle from './components/ErrorTitle/ErrorTitle';
-import StackTraceSection from './components/StackTraceSection/StackTraceSection';
-import styles from './ErrorPage.module.scss';
-import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration';
+	ErrorSearchContextProvider,
+	ErrorSearchParams,
+} from '../Errors/ErrorSearchContext/ErrorSearchContext'
+import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage'
+import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard'
+import ErrorBody from './components/ErrorBody/ErrorBody'
+import { parseErrorDescriptionList } from './components/ErrorBody/utils/utils'
+import ErrorAffectedUsers from './components/ErrorRightPanel/components/ErrorAffectedUsers/ErrorAffectedUsers'
+import NoActiveErrorCard from './components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard'
+import ErrorRightPanel from './components/ErrorRightPanel/ErrorRightPanel'
+import ErrorSearchPanel from './components/ErrorSearchPanel/ErrorSearchPanel'
+import ErrorTitle from './components/ErrorTitle/ErrorTitle'
+import StackTraceSection from './components/StackTraceSection/StackTraceSection'
+import styles from './ErrorPage.module.scss'
+import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration'
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-    const { error_secure_id, project_id } = useParams<{
-        error_secure_id: string;
-        project_id: string;
-    }>();
-    const history = useHistory();
-    const { queryBuilderInput, setQueryBuilderInput } = useSearchContext();
+	const { error_secure_id, project_id } = useParams<{
+		error_secure_id: string
+		project_id: string
+	}>()
+	const history = useHistory()
+	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 
-    const { showBanner } = useGlobalContext();
+	const { showBanner } = useGlobalContext()
 
-    const { isLoggedIn } = useAuthContext();
-    const {
-        data,
-        loading,
-        error: errorQueryingErrorGroup,
-    } = useGetErrorGroupQuery({
-        variables: { secure_id: error_secure_id },
-        skip: !error_secure_id,
-        onCompleted: () => {
-            H.track('Viewed error', { is_guest: !isLoggedIn });
-        },
-    });
-    const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-        `cachedErrorParams-v2-${
-            segmentName || 'no-selected-segment'
-        }-${project_id}`,
-        {}
-    );
-    const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
-        cachedParams || EmptyErrorsSearchParams
-    );
-    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
-        false
-    );
-    const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
-    const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const dateFromSearchParams = new URLSearchParams(location.search).get(
-        SessionPageSearchParams.date
-    );
-    const searchParamsChanged = useRef<Date>();
-    const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
-        new URLSearchParams(location.search).get(
-            PlayerSearchParameters.commentId
-        )
-    );
+	const { isLoggedIn } = useAuthContext()
+	const {
+		data,
+		loading,
+		error: errorQueryingErrorGroup,
+	} = useGetErrorGroupQuery({
+		variables: { secure_id: error_secure_id },
+		skip: !error_secure_id,
+		onCompleted: () => {
+			H.track('Viewed error', { is_guest: !isLoggedIn })
+		},
+	})
 
-    const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-        page: NumberParam,
-    });
+	const {
+		data: recentErrorsData,
+		loading: recentErrorsLoading,
+		error: errorQueryingRecentErrors,
+	} = useGetRecentErrorsQuery({
+		variables: { secure_id: error_secure_id },
+		skip: !error_secure_id,
+	})
 
-    useEffect(() => {
-        const commentId = new URLSearchParams(location.search).get(
-            PlayerSearchParameters.commentId
-        );
-        setDeepLinkedCommentId(commentId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.search]);
+	const [segmentName, setSegmentName] = useState<string | null>(null)
+	const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
+		`cachedErrorParams-v2-${
+			segmentName || 'no-selected-segment'
+		}-${project_id}`,
+		{},
+	)
+	const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+		cachedParams || EmptyErrorsSearchParams,
+	)
+	const [searchResultsLoading, setSearchResultsLoading] =
+		useState<boolean>(false)
+	const [existingParams, setExistingParams] = useState<ErrorSearchParams>({})
+	const newCommentModalRef = useRef<HTMLDivElement>(null)
+	const dateFromSearchParams = new URLSearchParams(location.search).get(
+		SessionPageSearchParams.date,
+	)
+	const searchParamsChanged = useRef<Date>()
+	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+		new URLSearchParams(location.search).get(
+			PlayerSearchParameters.commentId,
+		),
+	)
 
-    useEffect(() => setCachedParams(searchParams), [
-        searchParams,
-        setCachedParams,
-    ]);
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
 
-    useEffect(() => {
-        if (dateFromSearchParams) {
-            const start_date = moment(dateFromSearchParams);
-            const end_date = moment(dateFromSearchParams);
+	useEffect(() => {
+		const commentId = new URLSearchParams(location.search).get(
+			PlayerSearchParameters.commentId,
+		)
+		setDeepLinkedCommentId(commentId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [location.search])
 
-            setSearchParams(() => ({
-                // We are explicitly clearing any existing search params so the only applied search param is the date range.
-                ...EmptyErrorsSearchParams,
-                date_range: {
-                    start_date: start_date
-                        .startOf('day')
-                        .subtract(1, 'days')
-                        .toDate(),
-                    end_date: end_date.endOf('day').toDate(),
-                },
-            }));
-            message.success(
-                `Showing errors that were thrown on ${dateFromSearchParams}`
-            );
-            history.replace({ search: '' });
-        }
-    }, [history, dateFromSearchParams, setSearchParams]);
+	useEffect(
+		() => setCachedParams(searchParams),
+		[searchParams, setCachedParams],
+	)
 
-    useEffect(() => {
-        if (queryBuilderInput?.type === 'errors') {
-            setSearchParams({
-                ...EmptyErrorsSearchParams,
-                query: JSON.stringify(queryBuilderInput),
-            });
-            setQueryBuilderInput(undefined);
-        }
-    }, [queryBuilderInput, setQueryBuilderInput]);
+	useEffect(() => {
+		if (dateFromSearchParams) {
+			const start_date = moment(dateFromSearchParams)
+			const end_date = moment(dateFromSearchParams)
 
-    const { showLeftPanel } = useErrorPageConfiguration();
+			setSearchParams(() => ({
+				// We are explicitly clearing any existing search params so the only applied search param is the date range.
+				...EmptyErrorsSearchParams,
+				date_range: {
+					start_date: start_date
+						.startOf('day')
+						.subtract(1, 'days')
+						.toDate(),
+					end_date: end_date.endOf('day').toDate(),
+				},
+			}))
+			message.success(
+				`Showing errors that were thrown on ${dateFromSearchParams}`,
+			)
+			history.replace({ search: '' })
+		}
+	}, [history, dateFromSearchParams, setSearchParams])
 
-    const [
-        backendSearchQuery,
-        setBackendSearchQuery,
-    ] = useState<BackendSearchQuery>(undefined);
-    const [
-        showCreateCommentModal,
-        setShowCreateCommentModal,
-    ] = useState<CreateModalType>(CreateModalType.None);
-    const [page, setPage] = useState<number>();
+	useEffect(() => {
+		if (queryBuilderInput?.type === 'errors') {
+			setSearchParams({
+				...EmptyErrorsSearchParams,
+				query: JSON.stringify(queryBuilderInput),
+			})
+			setQueryBuilderInput(undefined)
+		}
+	}, [queryBuilderInput, setQueryBuilderInput])
 
-    useEffect(() => {
-        if (page !== undefined) {
-            setPaginationToUrlParams(
-                {
-                    page: page,
-                },
-                'replaceIn'
-            );
-        }
-    }, [setPaginationToUrlParams, page]);
+	const { showLeftPanel } = useErrorPageConfiguration()
 
-    useEffect(() => {
-        if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-            setPage(paginationToUrlParams.page);
-        }
-        // We only want to run this on mount (i.e. when the page first loads).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+	const [backendSearchQuery, setBackendSearchQuery] =
+		useState<BackendSearchQuery>(undefined)
+	const [showCreateCommentModal, setShowCreateCommentModal] =
+		useState<CreateModalType>(CreateModalType.None)
+	const [page, setPage] = useState<number>()
 
-    useEffect(() => {
-        // we just loaded the page for the first time
-        if (
-            searchParamsChanged.current &&
-            new Date().getTime() - searchParamsChanged.current.getTime() >
-                RESET_PAGE_MS
-        ) {
-            // the search query actually changed, reset the page
-            setPage(STARTING_PAGE);
-        }
-        searchParamsChanged.current = new Date();
-    }, [searchParams, setPage]);
+	useEffect(() => {
+		if (page !== undefined) {
+			setPaginationToUrlParams(
+				{
+					page: page,
+				},
+				'replaceIn',
+			)
+		}
+	}, [setPaginationToUrlParams, page])
 
-    return (
-        <ErrorSearchContextProvider
-            value={{
-                searchParams,
-                setSearchParams,
-                existingParams,
-                setExistingParams,
-                segmentName,
-                setSegmentName,
-                backendSearchQuery,
-                setBackendSearchQuery,
-                page,
-                setPage,
-                searchResultsLoading,
-                setSearchResultsLoading,
-            }}
-        >
-            <Helmet>
-                <title>Errors</title>
-            </Helmet>
-            {!integrated && <IntegrationCard />}
-            <div
-                className={classNames(styles.errorPage, {
-                    [styles.withoutLeftPanel]: !showLeftPanel,
-                    [styles.empty]: !error_secure_id || errorQueryingErrorGroup,
-                    [styles.withErrorState]: errorQueryingErrorGroup,
-                })}
-            >
-                <div
-                    className={classNames(styles.errorPageLeftColumn, {
-                        [styles.hidden]: !showLeftPanel,
-                    })}
-                >
-                    <ErrorSearchPanel />
-                </div>
-                <ErrorCreateCommentModal
-                    show={showCreateCommentModal}
-                    onClose={() =>
-                        setShowCreateCommentModal(CreateModalType.None)
-                    }
-                    data={data}
-                />
-                {error_secure_id && !errorQueryingErrorGroup ? (
-                    <>
-                        <Helmet>
-                            <title>
-                                Errors:{' '}
-                                {getHeaderFromError(
-                                    data?.error_group?.event ?? []
-                                )}
-                            </title>
-                        </Helmet>
-                        <div
-                            className={classNames(
-                                styles.errorPageCenterColumn,
-                                {
-                                    [styles.hidden]: !showLeftPanel,
-                                    [styles.bannerShown]: showBanner,
-                                }
-                            )}
-                        >
-                            <div className={styles.titleContainer}>
-                                {loading ? (
-                                    <Skeleton
-                                        count={1}
-                                        style={{ width: 300, height: 37 }}
-                                    />
-                                ) : (
-                                    <ErrorTitle
-                                        errorGroup={data?.error_group}
-                                    />
-                                )}
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.eventText,
-                                    styles.sectionRow,
-                                    styles.fieldWrapper
-                                )}
-                            >
-                                {loading ? (
-                                    <Skeleton
-                                        count={1}
-                                        style={{
-                                            height: '2ch',
-                                            marginBottom: 0,
-                                        }}
-                                    />
-                                ) : (
-                                    <>
-                                        <ErrorBody
-                                            errorGroup={data?.error_group}
-                                        />
-                                        <ErrorContext errorGroupData={data} />
-                                    </>
-                                )}
-                            </div>
-                            {loading ? (
-                                <Skeleton
-                                    count={1}
-                                    style={{
-                                        height: '2ch',
-                                        marginBottom: 0,
-                                    }}
-                                />
-                            ) : (
-                                <div
-                                    className={classNames(
-                                        styles.sectionRow,
-                                        styles.fieldWrapper
-                                    )}
-                                >
-                                    <div className={styles.sectionItem}>
-                                        <ErrorDistributionChart
-                                            errorGroup={data?.error_group}
-                                            field="browser"
-                                            title="Browser Distribution"
-                                        />
-                                    </div>
-                                    <div className={styles.sectionItem}>
-                                        <ErrorDistributionChart
-                                            errorGroup={data?.error_group}
-                                            field="os"
-                                            title="OS Distribution"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                            <h3 className={styles.titleWithAction}>
-                                Stack Trace
-                                <Tooltip title="Download the stack trace">
-                                    <Button
-                                        trackingId="DownloadErrorStackTrace"
-                                        iconButton
-                                        type="text"
-                                        disabled={loading}
-                                        onClick={() => {
-                                            if (data?.error_group) {
-                                                let stackTraceStr =
-                                                    data.error_group
-                                                        .stack_trace || '';
-                                                let isJson = true;
+	useEffect(() => {
+		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+			setPage(paginationToUrlParams.page)
+		}
+		// We only want to run this on mount (i.e. when the page first loads).
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
-                                                if (
-                                                    data.error_group
-                                                        .structured_stack_trace
-                                                        ?.length > 0
-                                                ) {
-                                                    const traceLines = data.error_group.structured_stack_trace.map(
-                                                        (stack_trace) => {
-                                                            return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`;
-                                                        }
-                                                    );
-                                                    stackTraceStr = JSON.stringify(
-                                                        traceLines,
-                                                        undefined,
-                                                        2
-                                                    );
-                                                } else {
-                                                    try {
-                                                        JSON.parse(
-                                                            stackTraceStr
-                                                        );
-                                                    } catch {
-                                                        isJson = false;
-                                                    }
-                                                }
+	useEffect(() => {
+		// we just loaded the page for the first time
+		if (
+			searchParamsChanged.current &&
+			new Date().getTime() - searchParamsChanged.current.getTime() >
+				RESET_PAGE_MS
+		) {
+			// the search query actually changed, reset the page
+			setPage(STARTING_PAGE)
+		}
+		searchParamsChanged.current = new Date()
+	}, [searchParams, setPage])
 
-                                                const a = document.createElement(
-                                                    'a'
-                                                );
-                                                const file = new Blob(
-                                                    [stackTraceStr],
-                                                    {
-                                                        type: isJson
-                                                            ? 'application/json'
-                                                            : 'text/plain',
-                                                    }
-                                                );
+	return (
+		<ErrorSearchContextProvider
+			value={{
+				searchParams,
+				setSearchParams,
+				existingParams,
+				setExistingParams,
+				segmentName,
+				setSegmentName,
+				backendSearchQuery,
+				setBackendSearchQuery,
+				page,
+				setPage,
+				searchResultsLoading,
+				setSearchResultsLoading,
+			}}
+		>
+			<Helmet>
+				<title>Errors</title>
+			</Helmet>
+			{!integrated && <IntegrationCard />}
+			<div
+				className={classNames(styles.errorPage, {
+					[styles.withoutLeftPanel]: !showLeftPanel,
+					[styles.empty]:
+						!error_secure_id ||
+						errorQueryingErrorGroup ||
+						errorQueryingRecentErrors,
+					[styles.withErrorState]:
+						errorQueryingErrorGroup || errorQueryingRecentErrors,
+				})}
+			>
+				<div
+					className={classNames(styles.errorPageLeftColumn, {
+						[styles.hidden]: !showLeftPanel,
+					})}
+				>
+					<ErrorSearchPanel />
+				</div>
+				<ErrorCreateCommentModal
+					show={showCreateCommentModal}
+					onClose={() =>
+						setShowCreateCommentModal(CreateModalType.None)
+					}
+					data={data}
+				/>
+				{error_secure_id && !errorQueryingErrorGroup ? (
+					<>
+						<Helmet>
+							<title>
+								Errors:{' '}
+								{getHeaderFromError(
+									data?.error_group?.event ?? [],
+								)}
+							</title>
+						</Helmet>
+						<div
+							className={classNames(
+								styles.errorPageCenterColumn,
+								{
+									[styles.hidden]: !showLeftPanel,
+									[styles.bannerShown]: showBanner,
+								},
+							)}
+						>
+							<div className={styles.titleContainer}>
+								{loading ? (
+									<Skeleton
+										count={1}
+										style={{ width: 300, height: 37 }}
+									/>
+								) : (
+									<ErrorTitle
+										errorGroup={data?.error_group}
+									/>
+								)}
+							</div>
+							<div
+								className={classNames(
+									styles.eventText,
+									styles.sectionRow,
+									styles.fieldWrapper,
+								)}
+							>
+								{loading ? (
+									<Skeleton
+										count={1}
+										style={{
+											height: '2ch',
+											marginBottom: 0,
+										}}
+									/>
+								) : (
+									<ErrorBody errorGroup={data?.error_group} />
+								)}
+								{recentErrorsLoading ? (
+									<Skeleton
+										count={1}
+										style={{
+											height: '2ch',
+											marginBottom: 0,
+										}}
+									/>
+								) : (
+									<ErrorContext
+										errorGroupData={recentErrorsData}
+									/>
+								)}
+							</div>
+							{loading ? (
+								<Skeleton
+									count={1}
+									style={{
+										height: '2ch',
+										marginBottom: 0,
+									}}
+								/>
+							) : (
+								<div
+									className={classNames(
+										styles.sectionRow,
+										styles.fieldWrapper,
+									)}
+								>
+									<div className={styles.sectionItem}>
+										<ErrorDistributionChart
+											errorGroup={data?.error_group}
+											field="browser"
+											title="Browser Distribution"
+										/>
+									</div>
+									<div className={styles.sectionItem}>
+										<ErrorDistributionChart
+											errorGroup={data?.error_group}
+											field="os"
+											title="OS Distribution"
+										/>
+									</div>
+								</div>
+							)}
+							<h3 className={styles.titleWithAction}>
+								Stack Trace
+								<Tooltip title="Download the stack trace">
+									<Button
+										trackingId="DownloadErrorStackTrace"
+										iconButton
+										type="text"
+										disabled={loading}
+										onClick={() => {
+											if (data?.error_group) {
+												let stackTraceStr =
+													data.error_group
+														.stack_trace || ''
+												let isJson = true
 
-                                                a.href = URL.createObjectURL(
-                                                    file
-                                                );
-                                                a.download = `stack-trace-for-error-${error_secure_id}.${
-                                                    isJson ? 'json' : 'txt'
-                                                }`;
-                                                a.click();
+												if (
+													data.error_group
+														.structured_stack_trace
+														?.length > 0
+												) {
+													const traceLines =
+														data.error_group.structured_stack_trace.map(
+															(stack_trace) => {
+																return `${stack_trace?.fileName} in ${stack_trace?.functionName} at line ${stack_trace?.lineNumber}:${stack_trace?.columnNumber}`
+															},
+														)
+													stackTraceStr =
+														JSON.stringify(
+															traceLines,
+															undefined,
+															2,
+														)
+												} else {
+													try {
+														JSON.parse(
+															stackTraceStr,
+														)
+													} catch {
+														isJson = false
+													}
+												}
 
-                                                URL.revokeObjectURL(a.href);
-                                            }
-                                        }}
-                                    >
-                                        <SvgDownloadIcon />
-                                    </Button>
-                                </Tooltip>
-                            </h3>
-                            <div className={styles.fieldWrapper}>
-                                <StackTraceSection
-                                    loading={loading}
-                                    errorGroup={data?.error_group}
-                                />
-                            </div>
-                            {loading && (
-                                <h3>
-                                    <Skeleton
-                                        duration={1}
-                                        count={1}
-                                        style={{ width: 300 }}
-                                    />
-                                </h3>
-                            )}
-                            {!loading && data?.error_group?.project_id && (
-                                <div className={styles.fieldWrapper}>
-                                    <ErrorFrequencyGraph
-                                        errorGroup={data?.error_group}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <div
-                            className={classNames(styles.errorPageRightColumn, {
-                                [styles.bannerShown]: showBanner,
-                            })}
-                            ref={newCommentModalRef}
-                        >
-                            <div className={styles.rightButtonsContainer}>
-                                <ErrorCommentButton
-                                    onClick={() =>
-                                        setShowCreateCommentModal(
-                                            CreateModalType.Issue
-                                        )
-                                    }
-                                    trackingId="CreateErrorIssue"
-                                >
-                                    <SvgBugIcon />
-                                    <span>Issue</span>
-                                </ErrorCommentButton>
-                                <ErrorShareButton
-                                    errorGroup={data?.error_group}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-                            <ErrorAffectedUsers
-                                errorGroup={data}
-                                loading={loading}
-                            />
-                            <ErrorRightPanel
-                                errorGroup={data}
-                                deepLinkedCommentId={deepLinkedCommentId}
-                                parentRef={newCommentModalRef}
-                                onClickCreateComment={() => {
-                                    setShowCreateCommentModal(
-                                        CreateModalType.Comment
-                                    );
-                                }}
-                            />
-                        </div>
-                    </>
-                ) : errorQueryingErrorGroup ? (
-                    <ErrorState
-                        shownWithHeader
-                        message="This error does not exist or has not been made public."
-                    />
-                ) : (
-                    <NoActiveErrorCard />
-                )}
-            </div>
-        </ErrorSearchContextProvider>
-    );
-};
+												const a =
+													document.createElement('a')
+												const file = new Blob(
+													[stackTraceStr],
+													{
+														type: isJson
+															? 'application/json'
+															: 'text/plain',
+													},
+												)
+
+												a.href =
+													URL.createObjectURL(file)
+												a.download = `stack-trace-for-error-${error_secure_id}.${
+													isJson ? 'json' : 'txt'
+												}`
+												a.click()
+
+												URL.revokeObjectURL(a.href)
+											}
+										}}
+									>
+										<SvgDownloadIcon />
+									</Button>
+								</Tooltip>
+							</h3>
+							<div className={styles.fieldWrapper}>
+								<StackTraceSection
+									loading={loading}
+									errorGroup={data?.error_group}
+								/>
+							</div>
+							{loading && (
+								<h3>
+									<Skeleton
+										duration={1}
+										count={1}
+										style={{ width: 300 }}
+									/>
+								</h3>
+							)}
+							{!loading && data?.error_group?.project_id && (
+								<div className={styles.fieldWrapper}>
+									<ErrorFrequencyGraph
+										errorGroup={data?.error_group}
+									/>
+								</div>
+							)}
+						</div>
+						<div
+							className={classNames(styles.errorPageRightColumn, {
+								[styles.bannerShown]: showBanner,
+							})}
+							ref={newCommentModalRef}
+						>
+							<div className={styles.rightButtonsContainer}>
+								<ErrorCommentButton
+									onClick={() =>
+										setShowCreateCommentModal(
+											CreateModalType.Issue,
+										)
+									}
+									trackingId="CreateErrorIssue"
+								>
+									<SvgBugIcon />
+									<span>Issue</span>
+								</ErrorCommentButton>
+								<ErrorShareButton
+									errorGroup={data?.error_group}
+									style={{ width: '100%' }}
+								/>
+							</div>
+							<ErrorAffectedUsers
+								recentErrors={recentErrorsData}
+								loading={recentErrorsLoading}
+								state={data?.error_group?.state}
+							/>
+							<ErrorRightPanel
+								errorGroup={data}
+								recentErrors={recentErrorsData}
+								recentErrorsLoading={recentErrorsLoading}
+								deepLinkedCommentId={deepLinkedCommentId}
+								parentRef={newCommentModalRef}
+								onClickCreateComment={() => {
+									setShowCreateCommentModal(
+										CreateModalType.Comment,
+									)
+								}}
+							/>
+						</div>
+					</>
+				) : errorQueryingErrorGroup || errorQueryingRecentErrors ? (
+					<ErrorState
+						shownWithHeader
+						message="This error does not exist or has not been made public."
+					/>
+				) : (
+					<NoActiveErrorCard />
+				)}
+			</div>
+		</ErrorSearchContextProvider>
+	)
+}
 
 type FrequencyGraphProps = {
-    errorGroup?: Maybe<Pick<ErrorGroup, 'secure_id' | 'project_id'>>;
-};
+	errorGroup?: Maybe<Pick<ErrorGroup, 'secure_id' | 'project_id'>>
+}
 
 type ErrorFrequency = {
-    date: string;
-    occurrences: number;
-};
+	date: string
+	occurrences: number
+}
 
-const LookbackPeriod = 60;
+const LookbackPeriod = 60
 
 const timeFilter = [
-    { label: 'Last 24 hours', value: 2 },
-    { label: 'Last 7 days', value: 7 },
-    { label: 'Last 30 days', value: 30 },
-    { label: 'Last 90 days', value: 90 },
-    { label: 'This year', value: 30 * 12 },
-] as const;
+	{ label: 'Last 24 hours', value: 2 },
+	{ label: 'Last 7 days', value: 7 },
+	{ label: 'Last 30 days', value: 30 },
+	{ label: 'Last 90 days', value: 90 },
+	{ label: 'This year', value: 30 * 12 },
+] as const
 
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
-    errorGroup,
+	errorGroup,
 }) => {
-    const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
-        Array(LookbackPeriod).fill(0)
-    );
-    const [totalErrors, setTotalErrors] = useState<number>(0);
-    const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[1].value
-    );
+	const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
+		Array(LookbackPeriod).fill(0),
+	)
+	const [totalErrors, setTotalErrors] = useState<number>(0)
+	const [dateRangeLength, setDateRangeLength] = useState<number>(
+		timeFilter[1].value,
+	)
 
-    useEffect(() => {
-        setErrorDates(Array(dateRangeLength).fill(0));
-    }, [dateRangeLength]);
+	useEffect(() => {
+		setErrorDates(Array(dateRangeLength).fill(0))
+	}, [dateRangeLength])
 
-    useGetDailyErrorFrequencyQuery({
-        variables: {
-            project_id: `${errorGroup?.project_id}`,
-            error_group_secure_id: `${errorGroup?.secure_id}`,
-            date_offset: dateRangeLength - 1,
-        },
-        skip: !errorGroup,
-        onCompleted: (response) => {
-            const errorData = response.dailyErrorFrequency.map((val, idx) => ({
-                date: moment()
-                    .startOf('day')
-                    .subtract(dateRangeLength - 1 - idx, 'days')
-                    .format('D MMM YYYY'),
-                occurrences: val,
-            }));
-            setTotalErrors(
-                response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0)
-            );
-            setErrorDates(errorData);
-        },
-    });
+	useGetDailyErrorFrequencyQuery({
+		variables: {
+			project_id: `${errorGroup?.project_id}`,
+			error_group_secure_id: `${errorGroup?.secure_id}`,
+			date_offset: dateRangeLength - 1,
+		},
+		skip: !errorGroup,
+		onCompleted: (response) => {
+			const errorData = response.dailyErrorFrequency.map((val, idx) => ({
+				date: moment()
+					.startOf('day')
+					.subtract(dateRangeLength - 1 - idx, 'days')
+					.format('D MMM YYYY'),
+				occurrences: val,
+			}))
+			setTotalErrors(
+				response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0),
+			)
+			setErrorDates(errorData)
+		},
+	})
 
-    return (
-        <>
-            <div
-                className={classNames(
-                    styles.titleWithAction,
-                    styles.titleWithMargin
-                )}
-            >
-                <h3>Error Frequency</h3>
-                <StandardDropdown
-                    data={timeFilter}
-                    defaultValue={timeFilter[1]}
-                    onSelect={setDateRangeLength}
-                    disabled={!errorGroup}
-                />
-            </div>
-            <div className={classNames(styles.section, styles.graphSection)}>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart
-                        width={500}
-                        height={300}
-                        data={errorDates}
-                        margin={{
-                            top: 5,
-                            right: 10,
-                            left: 10,
-                            bottom: 0,
-                        }}
-                    >
-                        <CartesianGrid stroke={'#D9D9D9'} vertical={false} />
-                        <XAxis
-                            dataKey="date"
-                            tick={false}
-                            axisLine={{ stroke: '#D9D9D9' }}
-                        />
-                        <YAxis
-                            tickCount={10}
-                            interval="preserveStart"
-                            allowDecimals={false}
-                            hide={true}
-                        />
-                        <RechartsTooltip content={<RechartTooltip />} />
-                        <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
-                            {errorDates.map((e, i) => (
-                                <Cell
-                                    key={i}
-                                    fill={
-                                        e.occurrences >
-                                        Math.max(totalErrors * 0.1, 10)
-                                            ? 'var(--color-red-500)'
-                                            : 'var(--color-brown)'
-                                    }
-                                />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-                <div className={styles.graphLabels}>
-                    <div>{`Total Occurrences: ${totalErrors}`}</div>
-                </div>
-            </div>
-        </>
-    );
-};
+	return (
+		<>
+			<div
+				className={classNames(
+					styles.titleWithAction,
+					styles.titleWithMargin,
+				)}
+			>
+				<h3>Error Frequency</h3>
+				<StandardDropdown
+					data={timeFilter}
+					defaultValue={timeFilter[1]}
+					onSelect={setDateRangeLength}
+					disabled={!errorGroup}
+				/>
+			</div>
+			<div className={classNames(styles.section, styles.graphSection)}>
+				<ResponsiveContainer width="100%" height={300}>
+					<BarChart
+						width={500}
+						height={300}
+						data={errorDates}
+						margin={{
+							top: 5,
+							right: 10,
+							left: 10,
+							bottom: 0,
+						}}
+					>
+						<CartesianGrid stroke={'#D9D9D9'} vertical={false} />
+						<XAxis
+							dataKey="date"
+							tick={false}
+							axisLine={{ stroke: '#D9D9D9' }}
+						/>
+						<YAxis
+							tickCount={10}
+							interval="preserveStart"
+							allowDecimals={false}
+							hide={true}
+						/>
+						<RechartsTooltip content={<RechartTooltip />} />
+						<Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
+							{errorDates.map((e, i) => (
+								<Cell
+									key={i}
+									fill={
+										e.occurrences >
+										Math.max(totalErrors * 0.1, 10)
+											? 'var(--color-red-500)'
+											: 'var(--color-brown)'
+									}
+								/>
+							))}
+						</Bar>
+					</BarChart>
+				</ResponsiveContainer>
+				<div className={styles.graphLabels}>
+					<div>{`Total Occurrences: ${totalErrors}`}</div>
+				</div>
+			</div>
+		</>
+	)
+}
 
 export const getHeaderFromError = (
-    errorMsg: Maybe<string>[] | undefined
+	errorMsg: Maybe<string>[] | undefined,
 ): string => {
-    const eventText = parseErrorDescriptionList(errorMsg)[0];
-    let title = '';
-    // Try to get the text in the form Text: ....
-    const splitOnColon = eventText?.split(':') ?? [];
-    if (
-        splitOnColon.length &&
-        (!splitOnColon[0].includes(' ') ||
-            splitOnColon[0].toLowerCase().includes('error'))
-    ) {
-        return splitOnColon[0];
-    }
-    // Try to get text in the form "'Something' Error" in the event.
-    const split = eventText?.split(' ') ?? [];
-    let prev = '';
-    for (let i = 0; i < split?.length; i++) {
-        const curr = split[i];
-        if (curr.toLowerCase().includes('error')) {
-            title = (prev ? prev + ' ' : '') + curr;
-            return title;
-        }
-        prev = curr;
-    }
+	const eventText = parseErrorDescriptionList(errorMsg)[0]
+	let title = ''
+	// Try to get the text in the form Text: ....
+	const splitOnColon = eventText?.split(':') ?? []
+	if (
+		splitOnColon.length &&
+		(!splitOnColon[0].includes(' ') ||
+			splitOnColon[0].toLowerCase().includes('error'))
+	) {
+		return splitOnColon[0]
+	}
+	// Try to get text in the form "'Something' Error" in the event.
+	const split = eventText?.split(' ') ?? []
+	let prev = ''
+	for (let i = 0; i < split?.length; i++) {
+		const curr = split[i]
+		if (curr.toLowerCase().includes('error')) {
+			title = (prev ? prev + ' ' : '') + curr
+			return title
+		}
+		prev = curr
+	}
 
-    return errorMsg?.join() ?? '';
-};
+	return errorMsg?.join() ?? ''
+}
 
-export default ErrorPage;
+export default ErrorPage

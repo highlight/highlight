@@ -164,7 +164,15 @@ func main() {
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %v", err)
+		log.Fatalf("Error setting up DB: %v", err)
+	}
+
+	if util.IsDevEnv() {
+		_, err := model.MigrateDB(db)
+
+		if err != nil {
+			log.Fatalf("Error migrating DB: %v", err)
+		}
 	}
 
 	tdb := timeseries.New()
@@ -396,7 +404,11 @@ func main() {
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
-				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+				serviceName := "worker-service"
+				if handlerFlag != nil && *handlerFlag != "" {
+					serviceName = *handlerFlag
+				}
+				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 				if err != nil {
 					log.Fatal(err)
 				}

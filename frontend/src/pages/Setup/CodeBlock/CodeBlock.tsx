@@ -1,131 +1,131 @@
-import SvgCopyIcon from '@icons/CopyIcon';
-import useLocalStorage from '@rehooks/local-storage';
-import { message } from 'antd';
-import classNames from 'classnames';
-import React, { useEffect } from 'react';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import SvgCopyIcon from '@icons/CopyIcon'
+import useLocalStorage from '@rehooks/local-storage'
+import { message } from 'antd'
+import classNames from 'classnames'
+import React, { useEffect } from 'react'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import {
-    Prism as SyntaxHighlighter,
-    SyntaxHighlighterProps,
-} from 'react-syntax-highlighter';
+	Prism as SyntaxHighlighter,
+	SyntaxHighlighterProps,
+} from 'react-syntax-highlighter'
 import {
-    atomDark as darkTheme,
-    coy as lightTheme,
-} from 'react-syntax-highlighter/dist/esm/styles/prism';
+	atomDark as darkTheme,
+	coy as lightTheme,
+} from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-import styles from './CodeBlock.module.scss';
+import styles from './CodeBlock.module.scss'
 
 type Props = SyntaxHighlighterProps & {
-    text: string;
-    onCopy?: () => void;
-    hideCopy?: boolean;
-    language: string;
-    numberOfLines?: number;
-    lineNumber?: number;
-};
+	text: string
+	onCopy?: () => void
+	hideCopy?: boolean
+	language: string
+	numberOfLines?: number
+	lineNumber?: number
+}
 
 export const CodeBlock = ({
-    text,
-    onCopy,
-    language,
-    hideCopy,
-    numberOfLines,
-    showLineNumbers,
-    lineNumber,
-    ...props
+	text,
+	onCopy,
+	language,
+	hideCopy,
+	numberOfLines,
+	showLineNumbers,
+	lineNumber,
+	...props
 }: Props) => {
-    const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
-        'highlightTheme',
-        'light'
-    );
-    const htmlElement = document.querySelector('html');
+	const [theme, setTheme] = useLocalStorage<'light' | 'dark'>(
+		'highlightTheme',
+		'light',
+	)
+	const htmlElement = document.querySelector('html')
 
-    useEffect(() => {
-        if (htmlElement) {
-            const currentTheme = htmlElement.dataset.theme;
-            if (
-                currentTheme &&
-                (currentTheme === 'light' || currentTheme === 'dark')
-            ) {
-                setTheme(currentTheme);
-            }
-        }
-    }, [htmlElement, setTheme]);
+	useEffect(() => {
+		if (htmlElement) {
+			const currentTheme = htmlElement.dataset.theme
+			if (
+				currentTheme &&
+				(currentTheme === 'light' || currentTheme === 'dark')
+			) {
+				setTheme(currentTheme)
+			}
+		}
+	}, [htmlElement, setTheme])
 
-    return (
-        <span className={styles.codeBlock}>
-            {!hideCopy && (
-                <span className={styles.copyButton}>
-                    <CopyToClipboard
-                        text={text}
-                        onCopy={() => {
-                            message.success('Copied Snippet', 5);
-                            onCopy && onCopy();
-                        }}
-                    >
-                        <span className={styles.copyDiv}>
-                            <SvgCopyIcon
-                                style={{
-                                    position: 'absolute',
-                                    height: 14,
-                                    width: 14,
-                                    color: 'var(--color-text-primary)',
-                                }}
-                            />
-                        </span>
-                    </CopyToClipboard>
-                </span>
-            )}
-            <span
-                className={classNames({
-                    [styles.codeBlockInner]: showLineNumbers,
-                })}
-            >
-                {showLineNumbers && (
-                    <pre
-                        style={{
-                            ...props.customStyle,
-                            ...props.codeTagProps?.style,
-                            padding: '0',
-                            margin: '0',
-                            overflow: 'visible',
-                            minWidth: 'auto',
-                        }}
-                    >
-                        <code style={props.codeTagProps?.style}>
-                            {Array.from(Array(numberOfLines).keys()).map(
-                                (i) => (
-                                    <div
-                                        key={i}
-                                        className={classNames(
-                                            styles.lineNumberSticky,
-                                            {
-                                                [styles.highlightedLine]:
-                                                    lineNumber ===
-                                                    i +
-                                                        (props.startingLineNumber ||
-                                                            0),
-                                            }
-                                        )}
-                                    >
-                                        {i + (props.startingLineNumber || 0)}
-                                    </div>
-                                )
-                            )}
-                        </code>
-                    </pre>
-                )}
+	return (
+		<span className={styles.codeBlock}>
+			{!hideCopy && (
+				<span className={styles.copyButton}>
+					<CopyToClipboard
+						text={text}
+						onCopy={() => {
+							message.success('Copied Snippet', 5)
+							onCopy && onCopy()
+						}}
+					>
+						<span className={styles.copyDiv}>
+							<SvgCopyIcon
+								style={{
+									position: 'absolute',
+									height: 14,
+									width: 14,
+									color: 'var(--color-text-primary)',
+								}}
+							/>
+						</span>
+					</CopyToClipboard>
+				</span>
+			)}
+			<span
+				className={classNames({
+					[styles.codeBlockInner]: showLineNumbers,
+				})}
+			>
+				{showLineNumbers && (
+					<pre
+						style={{
+							...props.customStyle,
+							...props.codeTagProps?.style,
+							padding: '0',
+							margin: '0',
+							overflow: 'visible',
+							minWidth: 'auto',
+						}}
+					>
+						<code style={props.codeTagProps?.style}>
+							{Array.from(Array(numberOfLines).keys()).map(
+								(i) => (
+									<div
+										key={i}
+										className={classNames(
+											styles.lineNumberSticky,
+											{
+												[styles.highlightedLine]:
+													lineNumber ===
+													i +
+														(props.startingLineNumber ||
+															0),
+											},
+										)}
+									>
+										{i + (props.startingLineNumber || 0)}
+									</div>
+								),
+							)}
+						</code>
+					</pre>
+				)}
 
-                <SyntaxHighlighter
-                    language={language}
-                    style={theme === 'light' ? lightTheme : darkTheme}
-                    customStyle={{ padding: '8px 0' }}
-                    showLineNumbers={showLineNumbers}
-                    {...props}
-                >
-                    {text}
-                </SyntaxHighlighter>
-            </span>
-        </span>
-    );
-};
+				<SyntaxHighlighter
+					language={language}
+					style={theme === 'light' ? lightTheme : darkTheme}
+					customStyle={{ padding: '8px 0' }}
+					showLineNumbers={showLineNumbers}
+					{...props}
+				>
+					{text}
+				</SyntaxHighlighter>
+			</span>
+		</span>
+	)
+}

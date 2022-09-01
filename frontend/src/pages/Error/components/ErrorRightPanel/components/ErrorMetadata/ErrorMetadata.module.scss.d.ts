@@ -1,1 +1,1 @@
-export const metadataContainer: string;
+export const metadataContainer: string

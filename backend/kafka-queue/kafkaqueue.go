@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +23,7 @@ const KafkaOperationTimeout = 25 * time.Second
 
 const (
 	taskRetries           = 5
-	prefetchQueueCapacity = 128
+	prefetchQueueCapacity = 64
 	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
@@ -102,12 +101,8 @@ func New(topic string, mode Mode) *Queue {
 				ResourceName: topic,
 				Configs: []kafka.AlterConfigRequestConfig{
 					{
-						Name:  "retention.ms",
-						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
-					},
-					{
-						Name:  "delete.retention.ms",
-						Value: strconv.FormatInt((time.Hour * 24).Milliseconds(), 10),
+						Name:  "cleanup.policy",
+						Value: "delete",
 					},
 				},
 			},
@@ -138,7 +133,7 @@ func New(topic string, mode Mode) *Queue {
 			},
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
-			RequiredAcks: kafka.RequireOne,
+			RequiredAcks: kafka.RequireAll,
 			Compression:  kafka.Zstd,
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async: false,
@@ -219,7 +214,7 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 		},
 	)
 	if err != nil {
-		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
+		log.Errorf("failed to send message, size %d, key %s, type %d, err %s", size.Of(msgBytes), partitionKey, msg.Type, err.Error())
 		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)

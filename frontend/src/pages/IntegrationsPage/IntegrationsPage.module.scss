@@ -1,9 +1,9 @@
 .integrationsContainer {
-    display: grid;
-    grid-gap: var(--size-large);
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	display: grid;
+	grid-gap: var(--size-large);
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 .modalBtn {
-    padding-bottom: 4px !important;
-    padding-top: 4px !important;
+	padding-bottom: 4px !important;
+	padding-top: 4px !important;
 }

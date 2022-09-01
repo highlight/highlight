@@ -1,1 +1,1 @@
-export const statusCell: string;
+export const statusCell: string
