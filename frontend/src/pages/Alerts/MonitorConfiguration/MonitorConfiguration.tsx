@@ -7,18 +7,13 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import { useGetMetricsTimelineQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import {
-	DashboardMetricConfig,
-	MetricAggregator,
-	MetricTagFilter,
-} from '@graph/schemas'
+import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
 	MetricSelector,
 	TagFilters,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, Slider } from 'antd'
@@ -52,8 +47,6 @@ interface Props {
 	onSlackChannelsChange: (newChannels: string[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
-	config: DashboardMetricConfig
-	onConfigChange: (newConfig: DashboardMetricConfig) => void
 	onFormSubmit: (values: any) => void
 	channelSuggestions: any[]
 	emailSuggestions: string[]
@@ -74,13 +67,11 @@ const MonitorConfiguration = ({
 	aggregatePeriodMinutes,
 	metricToMonitorName,
 	monitorName,
-	config,
 	emails,
 	onEmailsChange,
 	threshold,
 	filters,
 	onFormSubmit,
-	onConfigChange,
 	channelSuggestions,
 	emailSuggestions,
 	isSlackIntegrated,
@@ -140,10 +131,7 @@ const MonitorConfiguration = ({
 			const now = new Date()
 			const pointsToGenerate = 100
 			return Array.from(new Array(pointsToGenerate)).map((_, index) => {
-				const randomValue =
-					Math.random() *
-						((config.max_needs_improvement_value || 1) * 0.7) +
-					(config.max_good_value || 2) * 0.2
+				const randomValue = Math.random() * 1000
 				return {
 					value: randomValue,
 					date: moment(now)
@@ -161,13 +149,7 @@ const MonitorConfiguration = ({
 				),
 			}))
 		}
-	}, [
-		config.max_good_value,
-		config.max_needs_improvement_value,
-		data,
-		loading,
-		aggregatePeriodMinutes,
-	])
+	}, [data, loading, aggregatePeriodMinutes])
 	const graphMin = useMemo(() => {
 		return (
 			Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
@@ -292,10 +274,6 @@ const MonitorConfiguration = ({
 					<MetricSelector
 						onSelectMetric={(e) => {
 							onMetricToMonitorNameChange(e)
-							onConfigChange(
-								WEB_VITALS_CONFIGURATION[e] ||
-									WEB_VITALS_CONFIGURATION['LCP'],
-							)
 						}}
 						currentMetric={metricToMonitorName}
 					/>
@@ -567,6 +545,7 @@ const MonitorConfiguration = ({
 							htmlType="submit"
 							className={alertConfigurationCardStyles.saveButton}
 							type="primary"
+							disabled={!metricToMonitorName}
 						>
 							{formSubmitButtonLabel}
 						</Button>

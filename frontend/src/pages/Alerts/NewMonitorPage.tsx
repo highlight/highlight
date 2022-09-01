@@ -1,17 +1,12 @@
 import Card from '@components/Card/Card'
 import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import {
-	DashboardMetricConfig,
-	MetricAggregator,
-	MetricTagFilter,
-} from '@graph/schemas'
+import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
 import message from 'antd/lib/message'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHistory } from 'react-router-dom'
 import { useSearchParam } from 'react-use'
@@ -38,10 +33,6 @@ const NewMonitorPage = ({
 	const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
 		newMonitorTypeSearchParam || 'LCP',
 	)
-	const [config, setConfig] = useState<DashboardMetricConfig>(
-		WEB_VITALS_CONFIGURATION[metricToMonitorName] ||
-			WEB_VITALS_CONFIGURATION['LCP'],
-	)
 	const [monitorName, setMonitorName] = useState('New Monitor')
 	const [aggregator, setAggregator] = useState<MetricAggregator>(
 		MetricAggregator.P50,
@@ -51,15 +42,13 @@ const NewMonitorPage = ({
 	const [filters, setFilters] = useState<MetricTagFilter[]>([])
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [emails, setEmails] = useState<string[]>([])
-	const [units, setUnits] = useState<string>(
-		WEB_VITALS_CONFIGURATION[metricToMonitorName]?.units || '',
-	)
+	const [units, setUnits] = useState<string>()
 	const [createMonitor] = useCreateMetricMonitorMutation({
 		variables: {
 			project_id,
 			aggregator,
 			periodMinutes: periodMinutes,
-			metric_to_monitor: metricToMonitorName,
+			metric_to_monitor: metricToMonitorName || '',
 			name: monitorName,
 			slack_channels: slackChannels.map((webhook_channel_id: string) => ({
 				webhook_channel_name: channelSuggestions.find(
@@ -86,12 +75,6 @@ const NewMonitorPage = ({
 		history.push(`/${project_id}/alerts`)
 	}
 
-	useEffect(() => {
-		if (config?.max_good_value) {
-			setThreshold(config.max_good_value)
-		}
-	}, [config])
-
 	return (
 		<div>
 			<Helmet>
@@ -109,7 +92,6 @@ const NewMonitorPage = ({
 							setPeriodMinutes(Number(p))
 						}
 						onMonitorNameChange={setMonitorName}
-						onConfigChange={setConfig}
 						onMetricToMonitorNameChange={setMetricToMonitorName}
 						onSlackChannelsChange={setSlackChannels}
 						slackChannels={slackChannels}
@@ -117,7 +99,6 @@ const NewMonitorPage = ({
 						onFiltersChange={setFilters}
 						aggregator={aggregator}
 						aggregatePeriodMinutes={periodMinutes}
-						config={config}
 						loading={loading}
 						metricToMonitorName={metricToMonitorName}
 						monitorName={monitorName}

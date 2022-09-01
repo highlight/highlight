@@ -4,14 +4,9 @@ import {
 	useUpdateMetricMonitorMutation,
 } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations'
-import {
-	DashboardMetricConfig,
-	MetricAggregator,
-	MetricTagFilter,
-} from '@graph/schemas'
+import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -38,11 +33,7 @@ const EditMonitorPage = ({
 	const { slackUrl, loading, alertsPayload } = useAlertsContext()
 	const existingMonitor = id ? findMonitor(id, alertsPayload) : undefined
 	const history = useHistory()
-	const [metricToMonitorName, setMetricToMonitorName] =
-		useState<string>('LCP')
-	const [config, setConfig] = useState<DashboardMetricConfig>(
-		WEB_VITALS_CONFIGURATION[metricToMonitorName],
-	)
+	const [metricToMonitorName, setMetricToMonitorName] = useState<string>()
 	const [monitorName, setMonitorName] = useState('')
 	const [aggregator, setAggregator] = useState<MetricAggregator>(
 		MetricAggregator.P50,
@@ -92,12 +83,6 @@ const EditMonitorPage = ({
 	}
 
 	useEffect(() => {
-		if (config?.max_good_value) {
-			setThreshold(config.max_good_value)
-		}
-	}, [config])
-
-	useEffect(() => {
 		if (!loading && existingMonitor) {
 			const {
 				channels_to_notify,
@@ -138,6 +123,10 @@ const EditMonitorPage = ({
 		}
 	}, [alertsPayload, existingMonitor, history, loading, project_id])
 
+	if (!metricToMonitorName) {
+		return null
+	}
+
 	return (
 		<div>
 			<Helmet>
@@ -155,7 +144,6 @@ const EditMonitorPage = ({
 							setPeriodMinutes(Number(p))
 						}
 						onMonitorNameChange={setMonitorName}
-						onConfigChange={setConfig}
 						onMetricToMonitorNameChange={setMetricToMonitorName}
 						onSlackChannelsChange={setSlackChannels}
 						slackChannels={slackChannels}
@@ -163,7 +151,6 @@ const EditMonitorPage = ({
 						onFiltersChange={setFilters}
 						aggregator={aggregator}
 						aggregatePeriodMinutes={periodMinutes}
-						config={config}
 						loading={loading}
 						metricToMonitorName={metricToMonitorName}
 						monitorName={monitorName}
