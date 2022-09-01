@@ -20,33 +20,26 @@ export const SearchSelect = ({
 	loadOptions: (input: string) => void
 	value?: string
 }) => {
-	const [isTyping, setIsTyping] = useState(false)
-
-	return (
-		<Select
-			className={styles.select}
-			// this mode allows using the select component as a single searchable input
-			// @ts-ignore
-			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
-			placeholder={'graphql.operation.users'}
-			autoFocus
-			onChange={() => {
-				setIsTyping(false)
-			}}
-			onInputKeyDown={() => setIsTyping(true)}
-			onSelect={(newValue: SearchOption) => {
-				onSelect(newValue?.value || '')
-			}}
-			defaultValue={{ label: value, value: value } as SearchOption}
-			loading={isTyping}
-			options={options}
-			notFoundContent={<span>`No results found`</span>}
-			labelInValue
-			filterOption={false}
-			onSearch={loadOptions}
-		/>
-	)
-}
+    return (
+        <Select
+            className={styles.select}
+            // this mode allows using the select component as a single searchable input
+            // @ts-ignore
+            mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
+            placeholder={'graphql.operation.users'}
+            autoFocus
+            onSelect={(newValue: SearchOption) => {
+                onSelect(newValue?.value || '');
+            }}
+            defaultValue={{ label: value, value: value } as SearchOption}
+            options={options}
+            notFoundContent={<span>`No results found`</span>}
+            labelInValue
+            filterOption={false}
+            onSearch={loadOptions}
+        />
+    );
+};
 
 export const SimpleSearchSelect = ({
 	onSelect,
