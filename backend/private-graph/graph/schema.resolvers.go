@@ -271,7 +271,20 @@ func (r *metricMonitorResolver) EmailsToNotify(ctx context.Context, obj *model.M
 
 // Filters is the resolver for the filters field.
 func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.MetricTagFilter, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for emails to notify")
+	}
+	var filters []*model.DashboardMetricFilter
+	if err := r.DB.Where(&model.DashboardMetricFilter{MetricMonitorID: obj.ID}).Find(&filters).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitor filters")
+	}
+	return lo.Map(filters, func(t *model.DashboardMetricFilter, i int) *modelInputs.MetricTagFilter {
+		return &modelInputs.MetricTagFilter{
+			Tag:   t.Tag,
+			Op:    t.Op,
+			Value: t.Value,
+		}
+	}), nil
 }
 
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.

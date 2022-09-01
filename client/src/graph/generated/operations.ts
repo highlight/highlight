@@ -14,175 +14,166 @@ export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
 }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-	ID: string
-	String: string
-	Boolean: boolean
-	Int: number
-	Float: number
-	Any: any
-	Int64: any
-	Timestamp: any
+    ID: string
+    String: string
+    Boolean: boolean
+    Int: number
+    Float: number
+    Any: any
+    Int64: any
+    Timestamp: any
 }
 
 export type BackendErrorObjectInput = {
-	event: Scalars['String']
-	payload?: InputMaybe<Scalars['String']>
-	request_id: Scalars['String']
-	session_secure_id: Scalars['String']
-	source: Scalars['String']
-	stackTrace: Scalars['String']
-	timestamp: Scalars['Timestamp']
-	type: Scalars['String']
-	url: Scalars['String']
+    event: Scalars['String']
+    payload?: InputMaybe<Scalars['String']>
+    request_id: Scalars['String']
+    session_secure_id: Scalars['String']
+    source: Scalars['String']
+    stackTrace: Scalars['String']
+    timestamp: Scalars['Timestamp']
+    type: Scalars['String']
+    url: Scalars['String']
 }
 
 export type ErrorObjectInput = {
-	columnNumber: Scalars['Int']
-	event: Scalars['String']
-	lineNumber: Scalars['Int']
-	payload?: InputMaybe<Scalars['String']>
-	source: Scalars['String']
-	stackTrace: Array<InputMaybe<StackFrameInput>>
-	timestamp: Scalars['Timestamp']
-	type: Scalars['String']
-	url: Scalars['String']
+    columnNumber: Scalars['Int']
+    event: Scalars['String']
+    lineNumber: Scalars['Int']
+    payload?: InputMaybe<Scalars['String']>
+    source: Scalars['String']
+    stackTrace: Array<InputMaybe<StackFrameInput>>
+    timestamp: Scalars['Timestamp']
+    type: Scalars['String']
+    url: Scalars['String']
 }
 
 export type InitializeSessionResponse = {
-	__typename?: 'InitializeSessionResponse'
-	project_id: Scalars['ID']
-	secure_id: Scalars['String']
+    __typename?: 'InitializeSessionResponse'
+    project_id: Scalars['ID']
+    secure_id: Scalars['String']
 }
 
 export type MetricInput = {
-	category?: InputMaybe<Scalars['String']>
-	group?: InputMaybe<Scalars['String']>
-	name: Scalars['String']
-	session_secure_id: Scalars['String']
-	timestamp: Scalars['Timestamp']
-	type?: InputMaybe<Scalars['Any']>
-	url?: InputMaybe<Scalars['String']>
-	value: Scalars['Float']
+    category?: InputMaybe<Scalars['String']>
+    group?: InputMaybe<Scalars['String']>
+    name: Scalars['String']
+    session_secure_id: Scalars['String']
+    timestamp: Scalars['Timestamp']
+    type?: InputMaybe<Scalars['Any']>
+    url?: InputMaybe<Scalars['String']>
+    value: Scalars['Float']
 }
 
 export type Mutation = {
-	__typename?: 'Mutation'
-	addSessionFeedback: Scalars['String']
-	addSessionProperties: Scalars['String']
-	identifySession: Scalars['String']
-	initializeSession: InitializeSessionResponse
-	markBackendSetup: Scalars['String']
-	pushBackendPayload?: Maybe<Scalars['Any']>
-	pushMetrics: Scalars['Int']
-	pushPayload: Scalars['Int']
+    __typename?: 'Mutation'
+    addSessionFeedback: Scalars['String']
+    addSessionProperties: Scalars['String']
+    identifySession: Scalars['String']
+    initializeSession: InitializeSessionResponse
+    markBackendSetup: Scalars['String']
+    pushBackendPayload?: Maybe<Scalars['Any']>
+    pushMetrics: Scalars['Int']
+    pushPayload: Scalars['Int']
 }
-
 export type MutationAddSessionFeedbackArgs = {
-	session_secure_id: Scalars['String']
-	timestamp: Scalars['Timestamp']
-	user_email?: InputMaybe<Scalars['String']>
-	user_name?: InputMaybe<Scalars['String']>
-	verbatim: Scalars['String']
+    session_secure_id: Scalars['String']
+    timestamp: Scalars['Timestamp']
+    user_email?: InputMaybe<Scalars['String']>
+    user_name?: InputMaybe<Scalars['String']>
+    verbatim: Scalars['String']
 }
-
 export type MutationAddSessionPropertiesArgs = {
-	properties_object?: InputMaybe<Scalars['Any']>
-	session_secure_id: Scalars['String']
+    properties_object?: InputMaybe<Scalars['Any']>
+    session_secure_id: Scalars['String']
 }
-
 export type MutationIdentifySessionArgs = {
-	session_secure_id: Scalars['String']
-	user_identifier: Scalars['String']
-	user_object?: InputMaybe<Scalars['Any']>
+    session_secure_id: Scalars['String']
+    user_identifier: Scalars['String']
+    user_object?: InputMaybe<Scalars['Any']>
 }
-
 export type MutationInitializeSessionArgs = {
-	appVersion?: InputMaybe<Scalars['String']>
-	clientConfig: Scalars['String']
-	clientVersion: Scalars['String']
-	client_id: Scalars['String']
-	enable_recording_network_contents: Scalars['Boolean']
-	enable_strict_privacy: Scalars['Boolean']
-	environment: Scalars['String']
-	fingerprint: Scalars['String']
-	firstloadVersion: Scalars['String']
-	organization_verbose_id: Scalars['String']
-	session_secure_id: Scalars['String']
+    appVersion?: InputMaybe<Scalars['String']>
+    clientConfig: Scalars['String']
+    clientVersion: Scalars['String']
+    client_id: Scalars['String']
+    enable_recording_network_contents: Scalars['Boolean']
+    enable_strict_privacy: Scalars['Boolean']
+    environment: Scalars['String']
+    fingerprint: Scalars['String']
+    firstloadVersion: Scalars['String']
+    organization_verbose_id: Scalars['String']
+    session_secure_id: Scalars['String']
 }
-
 export type MutationMarkBackendSetupArgs = {
-	session_secure_id: Scalars['String']
+    session_secure_id: Scalars['String']
 }
-
 export type MutationPushBackendPayloadArgs = {
-	errors: Array<InputMaybe<BackendErrorObjectInput>>
+    errors: Array<InputMaybe<BackendErrorObjectInput>>
 }
-
 export type MutationPushMetricsArgs = {
-	metrics: Array<InputMaybe<MetricInput>>
+    metrics: Array<InputMaybe<MetricInput>>
 }
-
 export type MutationPushPayloadArgs = {
-	errors: Array<InputMaybe<ErrorObjectInput>>
-	events: ReplayEventsInput
-	has_session_unloaded?: InputMaybe<Scalars['Boolean']>
-	highlight_logs?: InputMaybe<Scalars['String']>
-	is_beacon?: InputMaybe<Scalars['Boolean']>
-	messages: Scalars['String']
-	payload_id?: InputMaybe<Scalars['ID']>
-	resources: Scalars['String']
-	session_secure_id: Scalars['String']
+    errors: Array<InputMaybe<ErrorObjectInput>>
+    events: ReplayEventsInput
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>
+    highlight_logs?: InputMaybe<Scalars['String']>
+    is_beacon?: InputMaybe<Scalars['Boolean']>
+    messages: Scalars['String']
+    payload_id?: InputMaybe<Scalars['ID']>
+    resources: Scalars['String']
+    session_secure_id: Scalars['String']
 }
 
 export type Query = {
-	__typename?: 'Query'
-	ignore?: Maybe<Scalars['Any']>
+    __typename?: 'Query'
+    ignore?: Maybe<Scalars['Any']>
 }
-
 export type QueryIgnoreArgs = {
-	id: Scalars['ID']
+    id: Scalars['ID']
 }
 
 export type ReplayEventInput = {
-	_sid: Scalars['Float']
-	data: Scalars['Any']
-	timestamp: Scalars['Float']
-	type: Scalars['Int']
+    _sid: Scalars['Float']
+    data: Scalars['Any']
+    timestamp: Scalars['Float']
+    type: Scalars['Int']
 }
 
 export type ReplayEventsInput = {
-	events: Array<InputMaybe<ReplayEventInput>>
+    events: Array<InputMaybe<ReplayEventInput>>
 }
 
 export type Session = {
-	__typename?: 'Session'
-	id?: Maybe<Scalars['ID']>
-	organization_id: Scalars['ID']
-	project_id: Scalars['ID']
-	secure_id: Scalars['String']
+    __typename?: 'Session'
+    id?: Maybe<Scalars['ID']>
+    organization_id: Scalars['ID']
+    project_id: Scalars['ID']
+    secure_id: Scalars['String']
 }
 
 export type StackFrameInput = {
-	args?: InputMaybe<Array<InputMaybe<Scalars['Any']>>>
-	columnNumber?: InputMaybe<Scalars['Int']>
-	fileName?: InputMaybe<Scalars['String']>
-	functionName?: InputMaybe<Scalars['String']>
-	isEval?: InputMaybe<Scalars['Boolean']>
-	isNative?: InputMaybe<Scalars['Boolean']>
-	lineNumber?: InputMaybe<Scalars['Int']>
-	source?: InputMaybe<Scalars['String']>
+    args?: InputMaybe<Array<InputMaybe<Scalars['Any']>>>
+    columnNumber?: InputMaybe<Scalars['Int']>
+    fileName?: InputMaybe<Scalars['String']>
+    functionName?: InputMaybe<Scalars['String']>
+    isEval?: InputMaybe<Scalars['Boolean']>
+    isNative?: InputMaybe<Scalars['Boolean']>
+    lineNumber?: InputMaybe<Scalars['Int']>
+    source?: InputMaybe<Scalars['String']>
 }
 
 export type PushPayloadMutationVariables = Exact<{
-	session_secure_id: Scalars['String']
-	events: ReplayEventsInput
-	messages: Scalars['String']
-	resources: Scalars['String']
-	errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>
-	is_beacon?: InputMaybe<Scalars['Boolean']>
-	has_session_unloaded?: InputMaybe<Scalars['Boolean']>
-	highlight_logs?: InputMaybe<Scalars['String']>
-	payload_id?: InputMaybe<Scalars['ID']>
+    session_secure_id: Scalars['String']
+    events: ReplayEventsInput
+    messages: Scalars['String']
+    resources: Scalars['String']
+    errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>
+    is_beacon?: InputMaybe<Scalars['Boolean']>
+    has_session_unloaded?: InputMaybe<Scalars['Boolean']>
+    highlight_logs?: InputMaybe<Scalars['String']>
+    payload_id?: InputMaybe<Scalars['ID']>
 }>
 
 export type PushPayloadMutation = {
@@ -191,9 +182,9 @@ export type PushPayloadMutation = {
 }
 
 export type IdentifySessionMutationVariables = Exact<{
-	session_secure_id: Scalars['String']
-	user_identifier: Scalars['String']
-	user_object?: InputMaybe<Scalars['Any']>
+    session_secure_id: Scalars['String']
+    user_identifier: Scalars['String']
+    user_object?: InputMaybe<Scalars['Any']>
 }>
 
 export type IdentifySessionMutation = {
@@ -202,8 +193,8 @@ export type IdentifySessionMutation = {
 }
 
 export type AddSessionPropertiesMutationVariables = Exact<{
-	session_secure_id: Scalars['String']
-	properties_object?: InputMaybe<Scalars['Any']>
+    session_secure_id: Scalars['String']
+    properties_object?: InputMaybe<Scalars['Any']>
 }>
 
 export type AddSessionPropertiesMutation = {
@@ -212,7 +203,7 @@ export type AddSessionPropertiesMutation = {
 }
 
 export type PushMetricsMutationVariables = Exact<{
-	metrics: Array<InputMaybe<MetricInput>> | InputMaybe<MetricInput>
+    metrics: Array<InputMaybe<MetricInput>> | InputMaybe<MetricInput>
 }>
 
 export type PushMetricsMutation = {
@@ -221,11 +212,11 @@ export type PushMetricsMutation = {
 }
 
 export type AddSessionFeedbackMutationVariables = Exact<{
-	session_secure_id: Scalars['String']
-	user_name?: InputMaybe<Scalars['String']>
-	user_email?: InputMaybe<Scalars['String']>
-	verbatim: Scalars['String']
-	timestamp: Scalars['Timestamp']
+    session_secure_id: Scalars['String']
+    user_name?: InputMaybe<Scalars['String']>
+    user_email?: InputMaybe<Scalars['String']>
+    verbatim: Scalars['String']
+    timestamp: Scalars['Timestamp']
 }>
 
 export type AddSessionFeedbackMutation = {
@@ -234,17 +225,17 @@ export type AddSessionFeedbackMutation = {
 }
 
 export type InitializeSessionMutationVariables = Exact<{
-	session_secure_id: Scalars['String']
-	organization_verbose_id: Scalars['String']
-	enable_strict_privacy: Scalars['Boolean']
-	enable_recording_network_contents: Scalars['Boolean']
-	clientVersion: Scalars['String']
-	firstloadVersion: Scalars['String']
-	clientConfig: Scalars['String']
-	environment: Scalars['String']
-	id: Scalars['String']
-	appVersion?: InputMaybe<Scalars['String']>
-	client_id: Scalars['String']
+    session_secure_id: Scalars['String']
+    organization_verbose_id: Scalars['String']
+    enable_strict_privacy: Scalars['Boolean']
+    enable_recording_network_contents: Scalars['Boolean']
+    clientVersion: Scalars['String']
+    firstloadVersion: Scalars['String']
+    clientConfig: Scalars['String']
+    environment: Scalars['String']
+    id: Scalars['String']
+    appVersion?: InputMaybe<Scalars['String']>
+    client_id: Scalars['String']
 }>
 
 export type InitializeSessionMutation = {
@@ -257,124 +248,125 @@ export type InitializeSessionMutation = {
 }
 
 export type IgnoreQueryVariables = Exact<{
-	id: Scalars['ID']
+    id: Scalars['ID']
 }>
 
 export type IgnoreQuery = { __typename?: 'Query'; ignore?: any | null }
 
 export const PushPayloadDocument = gql`
-	mutation PushPayload(
-		$session_secure_id: String!
-		$events: ReplayEventsInput!
-		$messages: String!
-		$resources: String!
-		$errors: [ErrorObjectInput]!
-		$is_beacon: Boolean
-		$has_session_unloaded: Boolean
-		$highlight_logs: String
-		$payload_id: ID
-	) {
-		pushPayload(
-			session_secure_id: $session_secure_id
-			events: $events
-			messages: $messages
-			resources: $resources
-			errors: $errors
-			is_beacon: $is_beacon
-			has_session_unloaded: $has_session_unloaded
-			highlight_logs: $highlight_logs
-			payload_id: $payload_id
-		)
-	}
+    mutation PushPayload(
+        $session_secure_id: String!
+        $events: ReplayEventsInput!
+        $messages: String!
+        $resources: String!
+        $errors: [ErrorObjectInput]!
+        $is_beacon: Boolean
+        $has_session_unloaded: Boolean
+        $highlight_logs: String
+        $payload_id: ID
+    ) {
+        pushPayload(
+            session_secure_id: $session_secure_id
+            events: $events
+            messages: $messages
+            resources: $resources
+            errors: $errors
+            is_beacon: $is_beacon
+            has_session_unloaded: $has_session_unloaded
+            highlight_logs: $highlight_logs
+            payload_id: $payload_id
+        )
+    }
 `
 export const IdentifySessionDocument = gql`
-	mutation identifySession(
-		$session_secure_id: String!
-		$user_identifier: String!
-		$user_object: Any
-	) {
-		identifySession(
-			session_secure_id: $session_secure_id
-			user_identifier: $user_identifier
-			user_object: $user_object
-		)
-	}
+    mutation identifySession(
+        $session_secure_id: String!
+        $user_identifier: String!
+        $user_object: Any
+    ) {
+        identifySession(
+            session_secure_id: $session_secure_id
+            user_identifier: $user_identifier
+            user_object: $user_object
+        )
+    }
 `
 export const AddSessionPropertiesDocument = gql`
-	mutation addSessionProperties(
-		$session_secure_id: String!
-		$properties_object: Any
-	) {
-		addSessionProperties(
-			session_secure_id: $session_secure_id
-			properties_object: $properties_object
-		)
-	}
+    mutation addSessionProperties(
+        $session_secure_id: String!
+        $properties_object: Any
+    ) {
+        addSessionProperties(
+            session_secure_id: $session_secure_id
+            properties_object: $properties_object
+        )
+    }
 `
 export const PushMetricsDocument = gql`
-	mutation pushMetrics($metrics: [MetricInput]!) {
-		pushMetrics(metrics: $metrics)
-	}
+    mutation pushMetrics($metrics: [MetricInput]!) {
+        pushMetrics(metrics: $metrics)
+    }
 `
 export const AddSessionFeedbackDocument = gql`
-	mutation addSessionFeedback(
-		$session_secure_id: String!
-		$user_name: String
-		$user_email: String
-		$verbatim: String!
-		$timestamp: Timestamp!
-	) {
-		addSessionFeedback(
-			session_secure_id: $session_secure_id
-			user_name: $user_name
-			user_email: $user_email
-			verbatim: $verbatim
-			timestamp: $timestamp
-		)
-	}
+    mutation addSessionFeedback(
+        $session_secure_id: String!
+        $user_name: String
+        $user_email: String
+        $verbatim: String!
+        $timestamp: Timestamp!
+    ) {
+        addSessionFeedback(
+            session_secure_id: $session_secure_id
+            user_name: $user_name
+            user_email: $user_email
+            verbatim: $verbatim
+            timestamp: $timestamp
+        )
+    }
 `
 export const InitializeSessionDocument = gql`
-	mutation initializeSession(
-		$session_secure_id: String!
-		$organization_verbose_id: String!
-		$enable_strict_privacy: Boolean!
-		$enable_recording_network_contents: Boolean!
-		$clientVersion: String!
-		$firstloadVersion: String!
-		$clientConfig: String!
-		$environment: String!
-		$id: String!
-		$appVersion: String
-		$client_id: String!
-	) {
-		initializeSession(
-			session_secure_id: $session_secure_id
-			organization_verbose_id: $organization_verbose_id
-			enable_strict_privacy: $enable_strict_privacy
-			enable_recording_network_contents: $enable_recording_network_contents
-			clientVersion: $clientVersion
-			firstloadVersion: $firstloadVersion
-			clientConfig: $clientConfig
-			environment: $environment
-			appVersion: $appVersion
-			fingerprint: $id
-			client_id: $client_id
-		) {
-			secure_id
-			project_id
-		}
-	}
+    mutation initializeSession(
+        $session_secure_id: String!
+        $organization_verbose_id: String!
+        $enable_strict_privacy: Boolean!
+        $enable_recording_network_contents: Boolean!
+        $clientVersion: String!
+        $firstloadVersion: String!
+        $clientConfig: String!
+        $environment: String!
+        $id: String!
+        $appVersion: String
+        $client_id: String!
+    ) {
+        initializeSession(
+            session_secure_id: $session_secure_id
+            organization_verbose_id: $organization_verbose_id
+            enable_strict_privacy: $enable_strict_privacy
+            enable_recording_network_contents: $enable_recording_network_contents
+            clientVersion: $clientVersion
+            firstloadVersion: $firstloadVersion
+            clientConfig: $clientConfig
+            environment: $environment
+            appVersion: $appVersion
+            fingerprint: $id
+            client_id: $client_id
+        ) {
+            secure_id
+            project_id
+        }
+    }
 `
 export const IgnoreDocument = gql`
-	query Ignore($id: ID!) {
-		ignore(id: $id)
-	}
+    query Ignore($id: ID!) {
+        ignore(id: $id)
+    }
 `
 
 export type SdkFunctionWrapper = <T>(
-	action: (requestHeaders?: Record<string, string>) => Promise<T>,
-	operationName: string,
-	operationType?: string,
+    action: (requestHeaders?: Record<string, string>) => Promise<T>,
+    operationName: string,
+    operationType?: string
+,
 ) => Promise<T>
 
 const defaultWrapper: SdkFunctionWrapper = (
