@@ -1735,7 +1735,6 @@ const QueryBuilder = ({
 		}
 
 		const query = parseGroup(isAnd, rules)
-		setSearchQuery(query)
 		const newState = JSON.stringify({
 			isAnd,
 			rules: serializeRules(rules),
@@ -1748,7 +1747,9 @@ const QueryBuilder = ({
 				...params,
 				query: newState,
 			}))
+			return
 		}
+		setSearchQuery(query)
 	}, [
 		getQueryFromParams,
 		isAnd,
