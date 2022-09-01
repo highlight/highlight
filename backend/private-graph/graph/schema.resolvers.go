@@ -1899,18 +1899,26 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
 
-	var mmFilters []*model.DashboardMetricFilter
+	var createdFilterIDs []int
 	for _, f := range filters {
-		mmFilters = append(mmFilters, &model.DashboardMetricFilter{
+		var created struct{ ID int }
+		if err := r.DB.Where(&model.DashboardMetricFilter{
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.DASHBOARD_METRIC_FILTERS_UNIQ,
+			DoNothing:    true,
+		}).Create(&model.DashboardMetricFilter{
 			MetricMonitorID: metricMonitor.ID,
 			Tag:             f.Tag,
 			Op:              f.Op,
 			Value:           f.Value,
-		})
+		}).Scan(&created).Error; err != nil {
+			return nil, e.Wrap(err, "failed to create metric monitor filter")
+		}
+		createdFilterIDs = append(createdFilterIDs, created.ID)
 	}
-	if err := r.DB.Model(&metricMonitor).Association("Filters").Replace(&mmFilters); err != nil {
-		return nil, e.Wrap(err, "failed to associate filter with metric monitor")
-	}
+	r.DB.Exec(`DELETE FROM dashboard_metric_filters WHERE metric_monitor_id = ? AND id NOT IN ?`, metricMonitor.ID, createdFilterIDs)
 
 	if slackChannels != nil {
 		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)

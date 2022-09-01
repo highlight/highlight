@@ -352,9 +352,9 @@ type DashboardMetric struct {
 
 type DashboardMetricFilter struct {
 	Model
-	MetricID        int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	MetricMonitorID int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Tag             string                        `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
+	MetricID        int
+	MetricMonitorID int
+	Tag             string
 	Op              modelInputs.MetricTagFilterOp `gorm:"default:equals"`
 	Value           string
 }
@@ -689,6 +689,7 @@ const (
 	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
 	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
 	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
+	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
 
 type DailyErrorCount struct {
@@ -1207,6 +1208,26 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 				END;
 			END $$;
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
+	}
+
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metric_filters' and constraint_name = '%s')
+					THEN
+						ALTER TABLE dashboard_metric_filters
+						ADD CONSTRAINT %s
+							UNIQUE (metric_id, metric_monitor_id, tag);
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'metric_groups.%s already exists';
+				END;
+			END $$;
+	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
 		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 

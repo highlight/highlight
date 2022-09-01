@@ -484,28 +484,20 @@ export const TagFilters = ({
 					>
 						<TagFilterSelector
 							metricName={metricName}
-							onSelectTag={(t) => {
+							onSelectTag={(t, tagIdx) => {
 								// ensure changing an existing tag updates rather than adding
-								const newTags = []
-								let newTag = true
-								for (const x of currentTags) {
-									if (x.tag === t.tag) {
-										newTag = false
-										newTags.push({
-											tag: x.tag,
-											op: t.op,
-											value: t.value,
-										} as MetricTagFilter)
-									} else {
-										newTags.push(x)
-									}
+								if (tagIdx >= currentTags.length) {
+									onSelectTags([...currentTags, t])
+								} else {
+									onSelectTags([
+										...currentTags.slice(0, tagIdx),
+										t,
+										...currentTags.slice(tagIdx + 1),
+									])
 								}
-								if (newTag) {
-									newTags.push(t)
-								}
-								onSelectTags(newTags)
 							}}
 							currentTag={v}
+							tagIdx={idx}
 							usedTags={currentTags.map((t) => t.tag)}
 						/>
 						<Button
@@ -535,11 +527,13 @@ const OperatorOptions = [
 export const TagFilterSelector = ({
 	metricName,
 	onSelectTag,
+	tagIdx,
 	currentTag,
 	usedTags,
 }: {
 	metricName: string
-	onSelectTag: (tags: MetricTagFilter) => void
+	onSelectTag: (tag: MetricTagFilter, idx: number) => void
+	tagIdx: number
 	currentTag?: MetricTagFilter
 	usedTags?: string[]
 }) => {
@@ -574,26 +568,30 @@ export const TagFilterSelector = ({
 				}
 				value={currentTag?.tag}
 				onSelect={(v) => {
-					onSelectTag({
-						tag: v,
-						op: currentTag?.op || MetricTagFilterOp.Equals,
-						value: currentTag?.value || '',
-					})
+					onSelectTag(
+						{
+							tag: v,
+							op: currentTag?.op || MetricTagFilterOp.Equals,
+							value: '',
+						},
+						tagIdx,
+					)
 				}}
 			/>
 			<StandardDropdown
 				gray
 				data={OperatorOptions}
 				defaultValue={OperatorOptions[0]}
-				value={
-					OperatorOptions.filter((o) => o.value == currentTag?.op)[0]
-				}
+				value={OperatorOptions.find((o) => o.value == currentTag?.op)}
 				onSelect={(v) => {
-					onSelectTag({
-						tag: currentTag?.tag || '',
-						op: v,
-						value: currentTag?.value || '',
-					})
+					onSelectTag(
+						{
+							tag: currentTag?.tag || '',
+							op: v,
+							value: currentTag?.value || '',
+						},
+						tagIdx,
+					)
 				}}
 			/>
 			<SimpleSearchSelect
@@ -602,11 +600,14 @@ export const TagFilterSelector = ({
 				value={currentTag?.value}
 				freeSolo
 				onSelect={(v) => {
-					onSelectTag({
-						tag: currentTag?.tag || '',
-						op: currentTag?.op || MetricTagFilterOp.Equals,
-						value: v,
-					})
+					onSelectTag(
+						{
+							tag: currentTag?.tag || '',
+							op: currentTag?.op || MetricTagFilterOp.Equals,
+							value: v,
+						},
+						tagIdx,
+					)
 				}}
 			/>
 		</>
