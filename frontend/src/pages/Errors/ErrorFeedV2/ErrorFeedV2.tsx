@@ -45,8 +45,10 @@ export const ErrorFeedV2 = () => {
 	} = useErrorSearchContext()
 	const projectHasManyErrors = errorsCount > PAGE_SIZE
 
-	const [errorFeedIsInTopScrollPosition, setErrorFeedIsInTopScrollPosition] =
-		useState(true)
+	const [
+		errorFeedIsInTopScrollPosition,
+		setErrorFeedIsInTopScrollPosition,
+	] = useState(true)
 	useEffect(() => {
 		if (backendSearchQuery) {
 			setSearchResultsLoading(true)
@@ -57,7 +59,7 @@ export const ErrorFeedV2 = () => {
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
-			page,
+			page: page && page > 0 ? page : 1,
 			project_id,
 		},
 		onCompleted: (r) => {
