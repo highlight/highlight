@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/go-redis/redis"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
@@ -84,8 +85,17 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		if intScore > maxScore {
 			maxScore = intScore
 		}
+
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		asBytes := []byte(z.Member.(string))
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
 		eventsObjects = append(eventsObjects, model.EventsObject{
-			Events: z.Member.(string),
+			Events: string(decoded),
 		})
 	}
 
@@ -121,6 +131,8 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 }
 
 func (r *Client) AddEventPayload(sessionID int, score float64, payload string) error {
+	encoded := string(snappy.Encode(nil, []byte(payload)))
+
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
 	var zAddAndExpire = redis.NewScript(`
 		local key = KEYS[1]
@@ -138,7 +150,7 @@ func (r *Client) AddEventPayload(sessionID int, score float64, payload string) e
 	`)
 
 	keys := []string{EventsKey(sessionID)}
-	values := []interface{}{score, payload}
+	values := []interface{}{score, encoded}
 	cmd := zAddAndExpire.Run(r.redisClient, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
