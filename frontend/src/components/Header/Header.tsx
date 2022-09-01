@@ -33,11 +33,10 @@ import styles from './Header.module.scss';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
-    const { project_id, workspace_id } =
-        useParams<{
-            project_id: string;
-            workspace_id: string;
-        }>();
+    const { project_id, workspace_id } = useParams<{
+        project_id: string;
+        workspace_id: string;
+    }>();
     const projectIdRemapped =
         project_id === DEMO_WORKSPACE_APPLICATION_ID
             ? DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -128,8 +127,10 @@ const BillingBanner = () => {
     const { data, loading } = useGetBillingDetailsForProjectQuery({
         variables: { project_id },
     });
-    const [hasReportedTrialExtension, setHasReportedTrialExtension] =
-        useLocalStorage('highlightReportedTrialExtension', false);
+    const [
+        hasReportedTrialExtension,
+        setHasReportedTrialExtension,
+    ] = useLocalStorage('highlightReportedTrialExtension', false);
     const { integrated } = useIntegrated();
     const { issues: billingIssues } = useBillingHook({ project_id });
 
@@ -285,7 +286,7 @@ const OnPremiseBanner = () => {
         >
             <div className={classNames(styles.trialTimeText)}>
                 Running Highlight On-premise{' '}
-                {`v${process.env.REACT_APP_COMMIT_SHA}`}
+                {`v${import.meta.env.REACT_APP_COMMIT_SHA}`}
             </div>
         </div>
     );

@@ -29,7 +29,7 @@ import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params';
 import classNames from 'classnames';
 import Firebase from 'firebase/app';
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { useToggle } from 'react-use';
 import {
@@ -49,13 +49,14 @@ import ApplicationRouter from './ApplicationRouter';
 
 export const ProjectRouter = () => {
     const { isLoggedIn } = useAuthContext();
-    const [showKeyboardShortcutsGuide, toggleShowKeyboardShortcutsGuide] =
-        useToggle(false);
+    const [
+        showKeyboardShortcutsGuide,
+        toggleShowKeyboardShortcutsGuide,
+    ] = useToggle(false);
     const [showBanner, toggleShowBanner] = useToggle(false);
-    const { project_id } =
-        useParams<{
-            project_id: string;
-        }>();
+    const { project_id } = useParams<{
+        project_id: string;
+    }>();
     const { setLoadingState } = useAppLoadingContext();
 
     const projectIdRemapped =
@@ -76,7 +77,7 @@ export const ProjectRouter = () => {
 
     useEffect(() => {
         const uri =
-            process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+            import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
             window.location.origin + '/private';
         let intervalId: NodeJS.Timeout;
         Firebase.auth()
@@ -158,13 +159,15 @@ export const ProjectRouter = () => {
     // Params and hooks for SearchContextProvider
 
     const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [showStarredSessions, setShowStarredSessions] =
-        useState<boolean>(false);
+    const [showStarredSessions, setShowStarredSessions] = useState<boolean>(
+        false
+    );
     const [searchParams, setSearchParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
-    const [searchResultsLoading, setSearchResultsLoading] =
-        useState<boolean>(false);
+    const [searchResultsLoading, setSearchResultsLoading] = useState<boolean>(
+        false
+    );
     const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false);
 
     const [page, setPage] = useState<number>();
@@ -176,33 +179,39 @@ export const ProjectRouter = () => {
         undefined
     );
 
-    const [backendSearchQuery, setBackendSearchQuery] =
-        useState<BackendSearchQuery>(undefined);
+    const [
+        backendSearchQuery,
+        setBackendSearchQuery,
+    ] = useState<BackendSearchQuery>(undefined);
 
-    const [queryBuilderInput, setQueryBuilderInput] =
-        useState<QueryBuilderInput>(undefined);
+    const [
+        queryBuilderInput,
+        setQueryBuilderInput,
+    ] = useState<QueryBuilderInput>(undefined);
 
-    const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-        useQueryParams({
-            user_properties: FieldArrayParam,
-            identified: BooleanParam,
-            browser: StringParam,
-            date_range: JsonParam,
-            excluded_properties: FieldArrayParam,
-            hide_viewed: BooleanParam,
-            length_range: JsonParam,
-            os: StringParam,
-            referrer: StringParam,
-            track_properties: FieldArrayParam,
-            excluded_track_properties: FieldArrayParam,
-            visited_url: StringParam,
-            first_time: BooleanParam,
-            device_id: StringParam,
-            show_live_sessions: BooleanParam,
-            environments: ArrayParam,
-            app_versions: ArrayParam,
-            query: QueryBuilderStateParam,
-        });
+    const [
+        searchParamsToUrlParams,
+        setSearchParamsToUrlParams,
+    ] = useQueryParams({
+        user_properties: FieldArrayParam,
+        identified: BooleanParam,
+        browser: StringParam,
+        date_range: JsonParam,
+        excluded_properties: FieldArrayParam,
+        hide_viewed: BooleanParam,
+        length_range: JsonParam,
+        os: StringParam,
+        referrer: StringParam,
+        track_properties: FieldArrayParam,
+        excluded_track_properties: FieldArrayParam,
+        visited_url: StringParam,
+        first_time: BooleanParam,
+        device_id: StringParam,
+        show_live_sessions: BooleanParam,
+        environments: ArrayParam,
+        app_versions: ArrayParam,
+        query: QueryBuilderStateParam,
+    });
     const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
         'segment',
         JsonParam

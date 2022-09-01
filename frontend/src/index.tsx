@@ -1,7 +1,7 @@
-import 'antd/dist/antd.css';
-import './index.scss';
 import '@highlight-run/react/dist/highlight.css';
 import '@highlight-run/rrweb/dist/rrweb.min.css';
+import 'antd/dist/antd.css';
+import './index.scss';
 
 import { ApolloError, ApolloProvider, QueryLazyOptions } from '@apollo/client';
 import {
@@ -45,8 +45,8 @@ import packageJson from '../package.json';
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 
-const dev = process.env.NODE_ENV === 'development';
-let commitSHA = process.env.REACT_APP_COMMIT_SHA || '';
+const dev = import.meta.env.NODE_ENV === 'development';
+let commitSHA = import.meta.env.REACT_APP_COMMIT_SHA || '';
 if (commitSHA.length > 8) {
     commitSHA = commitSHA.substring(0, 8);
 }
@@ -99,16 +99,16 @@ if (dev) {
     }-localhost`;
     window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
-        favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
+        favicon.href = `${import.meta.env.PUBLIC_URL}/favicon-localhost.ico`;
     }
 } else if (window.location.href.includes('onrender')) {
     if (favicon) {
-        favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
+        favicon.href = `${import.meta.env.PUBLIC_URL}/favicon-pr.ico`;
     }
     window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
 }
-H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
+H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 if (!isOnPrem) {
     H.start();
 
@@ -179,11 +179,10 @@ const App = () => {
 };
 
 const AuthenticationRoleRouter = () => {
-    const { workspace_id, project_id } =
-        useParams<{
-            workspace_id: string;
-            project_id: string;
-        }>();
+    const { workspace_id, project_id } = useParams<{
+        workspace_id: string;
+        project_id: string;
+    }>();
     const [
         getWorkspaceAdminsQuery,
         {
