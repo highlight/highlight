@@ -73,9 +73,9 @@ const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
 			field_name: rest.join('_'),
 			query: input,
 		})
-		const suggestions = (
-			fetched.data.fields_opensearch ?? []
-		)?.map((val) => ({ label: val, value: val }))
+		const suggestions = (fetched.data.fields_opensearch ?? [])?.map(
+			(val) => ({ label: val, value: val }),
+		)
 		return suggestions
 	}
 
@@ -202,10 +202,8 @@ const OpenSearchQueryPage: React.FC = () => {
 		variables: { project_id: '1' },
 	})
 
-	const [
-		getSessions,
-		{ data: sessionsData, loading: sessionsLoading },
-	] = useGetSessionsOpenSearchLazyQuery({ fetchPolicy: 'no-cache' })
+	const [getSessions, { data: sessionsData, loading: sessionsLoading }] =
+		useGetSessionsOpenSearchLazyQuery({ fetchPolicy: 'no-cache' })
 
 	const fields =
 		data?.field_types.reduce(
@@ -357,7 +355,7 @@ const OpenSearchQueryPage: React.FC = () => {
 			</div>
 			{!sessionsLoading && (
 				<div>
-					{sessionsData?.sessions_opensearch?.totalCount ?? 0} results
+					{sessionsData?.sessions_opensearch.totalCount ?? 0} results
 				</div>
 			)}
 		</div>
