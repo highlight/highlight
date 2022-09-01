@@ -1070,6 +1070,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
+	useRedis := redis.UseRedis(projectID, input.SessionSecureID)
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1099,6 +1100,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       &model.T, // A session is excluded by default until it receives events
+		ProcessWithRedis:               useRedis,
 	}
 
 	// Get the user's ip, get geolocation data
@@ -1263,8 +1265,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 func (r *Resolver) MarkBackendSetupImpl(sessionSecureID string, projectID int) error {
 	if projectID == 0 {
+		if sessionSecureID == "" {
+			return e.New("MarkBackendSetupImpl called without secureID")
+		}
 		session := &model.Session{}
-		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 			log.Error(e.Wrapf(err, "no session found for mark backend setup: %s", sessionSecureID))
 			return err
 		}
@@ -1386,9 +1391,9 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	})
 	return nil
 }
-func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}, backfill bool) error {
+func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {
 	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionID", sessionID))
+		tracer.ResourceName("go.sessions.IdentifySessionImpl"), tracer.Tag("sessionSecureID", sessionSecureID))
 	defer outerSpan.Finish()
 
 	obj, ok := userObject.(map[string]interface{})
@@ -1409,12 +1414,16 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 	}
 
 	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
-		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionID", sessionID))
+		tracer.ResourceName("go.sessions.IdentifySessionImpl.getSession"), tracer.Tag("sessionSecureID", sessionSecureID))
+	if sessionSecureID == "" {
+		return e.New("IdentifySessionImpl called without secureID")
+	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
+	sessionID := session.ID
 
 	setUserPropsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl.SetUserProperties"), tracer.Tag("sessionID", sessionID))
@@ -1497,7 +1506,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionID int, userI
 		doBackfillSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 			tracer.ResourceName("go.sessions.IdentifySessionImpl.DoBackfill"), tracer.Tag("sessionID", sessionID))
 		for _, session := range backfillSessions {
-			if err := r.IdentifySessionImpl(ctx, session.ID, userIdentifier, userObject, true); err != nil {
+			if err := r.IdentifySessionImpl(ctx, session.SecureID, userIdentifier, userObject, true); err != nil {
 				return e.Wrapf(err, "[IdentifySession] [client_id: %v] error identifying session {id: %d}", session.ClientID, session.ID)
 			}
 		}
@@ -1805,8 +1814,11 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 
 func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
 	if sessionID == 0 || projectID == 0 {
+		if sessionSecureID == "" {
+			return e.New("PushMetricsImpl called without secureID")
+		}
 		session := &model.Session{}
-		if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).First(&session).Error; err != nil {
+		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 			log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
 			return err
 		}
@@ -2142,9 +2154,9 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
-	querySessionSpan.SetTag("sessionID", sessionID)
+	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
@@ -2157,14 +2169,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 			}
 		}
 	}
+	if sessionSecureID == "" {
+		return e.New("ProcessPayload called without secureID")
+	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
+	querySessionSpan.SetTag("secure_id", sessionObj.SecureID)
 	querySessionSpan.SetTag("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
+	sessionID := sessionObj.ID
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
@@ -2264,7 +2281,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionID int, events cus
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
 
-			if redis.UseRedis(projectID) {
+			if sessionObj.ProcessWithRedis {
 				score := float64(payloadIdDeref)
 				// A little bit of a hack to encode
 				if isBeacon {

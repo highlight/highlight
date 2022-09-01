@@ -1,149 +1,149 @@
 .App {
-    text-align: center;
+	text-align: center;
 }
 
 .Collapsible__contentInner {
-    margin: 1px;
+	margin: 1px;
 }
 
 .ant-picker-input input::placeholder {
-    color: var(--color-gray-500);
-    font-size: 14px;
-    font-weight: 300;
+	color: var(--color-gray-500);
+	font-size: 14px;
+	font-weight: 300;
 }
 
 .ant-picker-suffix {
-    color: var(--color-gray-500);
+	color: var(--color-gray-500);
 }
 
 .ant-picker-input > input {
-    font-weight: 300;
+	font-weight: 300;
 }
 
 .ant-picker-dropdown {
-    z-index: 9999999999 !important;
+	z-index: 9999999999 !important;
 }
 
 .ant-dropdown {
-    z-index: 999999 !important;
+	z-index: 999999 !important;
 }
 
 .ant-dropdown-menu-item {
-    font-family: var(--header-font-family);
+	font-family: var(--header-font-family);
 }
 
 .ant-tabs {
-    height: 100%;
+	height: 100%;
 }
 
 .ant-tabs-nav-wrap {
-    padding-bottom: 0;
-    padding-left: var(--size-large);
-    padding-right: var(--size-large);
-    padding-top: 0;
+	padding-bottom: 0;
+	padding-left: var(--size-large);
+	padding-right: var(--size-large);
+	padding-top: 0;
 }
 
 .ant-tabs-content {
-    display: flex;
-    height: 100%;
-    width: 100%;
+	display: flex;
+	height: 100%;
+	width: 100%;
 }
 
 .ant-tabs-tab-btn {
-    color: var(--color-gray-500);
-    font-size: 14px;
-    outline: none;
-    outline-color: initial;
-    outline-style: none;
-    outline-width: initial;
-    transition: all 0.3s;
+	color: var(--color-gray-500);
+	font-size: 14px;
+	outline: none;
+	outline-color: initial;
+	outline-style: none;
+	outline-width: initial;
+	transition: all 0.3s;
 }
 
 .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: var(--text-primary) !important;
+	color: var(--text-primary) !important;
 }
 
 .ant-tabs-tab {
-    margin: 0 16px !important;
+	margin: 0 16px !important;
 }
 
 .ant-tabs-tab::after {
-    background: var(--color-gray-400);
-    border-radius: 5px;
-    bottom: 0;
-    content: '';
-    height: 3px;
-    opacity: 0;
-    position: absolute;
-    transition: opacity 0.2s ease-in-out;
-    width: 100%;
+	background: var(--color-gray-400);
+	border-radius: 5px;
+	bottom: 0;
+	content: '';
+	height: 3px;
+	opacity: 0;
+	position: absolute;
+	transition: opacity 0.2s ease-in-out;
+	width: 100%;
 }
 
 .ant-tabs-tab:hover.ant-tabs-tab::after {
-    opacity: 1;
+	opacity: 1;
 }
 
 .ant-tabs-ink-bar {
-    background: var(--text-primary) !important;
-    border-radius: 5px;
-    height: 3px !important;
+	background: var(--text-primary) !important;
+	border-radius: 5px;
+	height: 3px !important;
 }
 
 .ant-tabs-nav {
-    margin-bottom: 0 !important;
+	margin-bottom: 0 !important;
 }
 
 .ant-tabs-top > .ant-tabs-nav::before,
 .ant-tabs-bottom > .ant-tabs-nav::before,
 .ant-tabs-top > div > .ant-tabs-nav::before,
 .ant-tabs-bottom > div > .ant-tabs-nav::before {
-    border-bottom: 1px solid var(--color-gray-300) !important;
+	border-bottom: 1px solid var(--color-gray-300) !important;
 }
 
 .ant-popover-inner-content {
-    padding-bottom: 0 !important;
+	padding-bottom: 0 !important;
 }
 
 /* stylelint-disable */
 input[name='option-input'] {
-    /* stylelint-enable */
-    background-color: transparent !important;
-    border: 0 !important;
-    font-weight: 300;
-    outline: none !important;
+	/* stylelint-enable */
+	background-color: transparent !important;
+	border: 0 !important;
+	font-weight: 300;
+	outline: none !important;
 }
 
 .Collapsible {
-    width: 100%;
+	width: 100%;
 }
 
 .replayer-wrapper {
-    position: absolute;
+	position: absolute;
 }
 
 .rc-slider {
-    cursor: pointer;
-    padding: 0 !important;
+	cursor: pointer;
+	padding: 0 !important;
 }
 
 iframe {
-    background-color: var(--color-primary-background);
-    border: 0;
-    z-index: -10;
+	background-color: var(--color-primary-background);
+	border: 0;
+	z-index: -10;
 }
 
 .ant-table-cell {
-    border-bottom: 0 !important;
-    cursor: pointer;
-    padding: 0 !important;
+	border-bottom: 0 !important;
+	cursor: pointer;
+	padding: 0 !important;
 
-    > * {
-        align-items: center;
-        display: flex;
-        height: 100%;
-    }
+	> * {
+		align-items: center;
+		display: flex;
+		height: 100%;
+	}
 }
 
 .ant-table-body {
-    overflow-y: auto !important;
+	overflow-y: auto !important;
 }

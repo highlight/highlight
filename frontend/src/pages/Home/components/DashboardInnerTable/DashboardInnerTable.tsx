@@ -1,9 +1,9 @@
-import React from 'react';
+import React from 'react'
 
-import styles from './DashboardInnerTable.module.scss';
+import styles from './DashboardInnerTable.module.scss'
 
 export const DashboardInnerTable = ({
-    children,
+	children,
 }: React.PropsWithChildren<{}>) => {
-    return <div className={styles.card}>{children}</div>;
-};
+	return <div className={styles.card}>{children}</div>
+}

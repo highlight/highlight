@@ -1,55 +1,55 @@
 # options for analysis running
 run:
-  timeout: 2m
-  skip-dirs:
-    - private-graph/graph/generated
-    - public-graph/graph/generated
-    - highlight-go
+    timeout: 2m
+    skip-dirs:
+        - private-graph/graph/generated
+        - public-graph/graph/generated
+        - highlight-go
 
 # output configuration options
 output:
-  # sorts results by: filepath, line and column
-  sort-results: true
+    # sorts results by: filepath, line and column
+    sort-results: true
 
 linters:
-  # enable all linters
-  enable:
-    - deadcode
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - structcheck
-    - typecheck
-    - unused
-    - varcheck
-    - depguard
+    # enable all linters
+    enable:
+        - deadcode
+        - errcheck
+        - gosimple
+        - govet
+        - ineffassign
+        - staticcheck
+        - structcheck
+        - typecheck
+        - unused
+        - varcheck
+        - depguard
 
 # all available settings of specific linters
 linters-settings:
-  gosimple:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.15"
+    gosimple:
+        # Select the Go version to target. The default is '1.13'.
+        go: '1.15'
 
-  staticcheck:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.15"
-    checks: ["all"]
+    staticcheck:
+        # Select the Go version to target. The default is '1.13'.
+        go: '1.15'
+        checks: ['all']
 
-  stylecheck:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.15"
+    stylecheck:
+        # Select the Go version to target. The default is '1.13'.
+        go: '1.15'
 
-  unused:
-    # Select the Go version to target. The default is '1.13'.
-    go: "1.15"
+    unused:
+        # Select the Go version to target. The default is '1.13'.
+        go: '1.15'
 
-  depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      - errors
-    packages-with-error-message:
-      # specify an error message to output when a blacklisted package is used
-      - errors: "error handling is allowed only by github.com/pkg/errors"
+    depguard:
+        list-type: blacklist
+        include-go-root: true
+        packages:
+            - errors
+        packages-with-error-message:
+            # specify an error message to output when a blacklisted package is used
+            - errors: 'error handling is allowed only by github.com/pkg/errors'

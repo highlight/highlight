@@ -1,119 +1,119 @@
 .configurationContainer {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--size-large);
+	display: flex;
+	flex-direction: column;
+	row-gap: var(--size-large);
 
-    :global(.ant-form-item) {
-        margin-bottom: 0;
-    }
+	:global(.ant-form-item) {
+		margin-bottom: 0;
+	}
 }
 
 .integrationAlert {
-    margin-bottom: var(--size-xxLarge);
+	margin-bottom: var(--size-xxLarge);
 
-    .integrationButton {
-        margin-top: var(--size-large);
-    }
+	.integrationButton {
+		margin-top: var(--size-large);
+	}
 }
 
 .hiddenSlackIntegrationButton {
-    display: none;
+	display: none;
 }
 
 .cellWithTooltip {
-    column-gap: var(--size-xxSmall);
-    display: flex;
-    padding: 0 0.5rem;
+	column-gap: var(--size-xxSmall);
+	display: flex;
+	padding: 0 0.5rem;
 }
 
 .nameCell {
-    align-items: flex-start;
-    display: flex;
-    flex-direction: column;
-    height: auto;
+	align-items: flex-start;
+	display: flex;
+	flex-direction: column;
+	height: auto;
 
-    .primary {
-        font-size: 16px;
-        font-weight: 500;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 500px;
-    }
+	.primary {
+		font-size: 16px;
+		font-weight: 500;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		width: 500px;
+	}
 }
 
 .subTitleContainer {
-    align-items: center;
-    display: flex;
-    height: 40px;
-    margin-bottom: var(--size-medium);
-    margin-top: var(--size-small);
+	align-items: center;
+	display: flex;
+	height: 40px;
+	margin-bottom: var(--size-medium);
+	margin-top: var(--size-small);
 
-    p {
-        align-self: flex-start;
-        color: var(--color-gray-500);
-        font-size: 18px;
-        margin-bottom: 0 !important;
-        margin-top: 0 !important;
-    }
+	p {
+		align-self: flex-start;
+		color: var(--color-gray-500);
+		font-size: 18px;
+		margin-bottom: 0 !important;
+		margin-top: 0 !important;
+	}
 
-    .callToAction {
-        margin-left: auto;
-        transform: translateY(-49px);
-    }
+	.callToAction {
+		margin-left: auto;
+		transform: translateY(-49px);
+	}
 }
 
 .configureButton {
-    align-items: center;
-    color: var(--color-gray-500) !important;
-    display: flex;
-    font-weight: 300;
-    justify-content: flex-end;
+	align-items: center;
+	color: var(--color-gray-500) !important;
+	display: flex;
+	font-weight: 300;
+	justify-content: flex-end;
 
-    &:hover {
-        color: var(--color-gray-500) !important;
-    }
+	&:hover {
+		color: var(--color-gray-500) !important;
+	}
 
-    svg {
-        color: var(--color-gray-400);
-        height: var(--size-large);
-        width: var(--size-large);
-    }
+	svg {
+		color: var(--color-gray-400);
+		height: var(--size-large);
+		width: var(--size-large);
+	}
 }
 
 .emptyContainer {
-    cursor: auto;
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-    max-width: 400px;
-    padding-bottom: var(--size-xLarge);
-    padding-top: var(--size-xLarge);
+	cursor: auto;
+	display: flex;
+	flex-direction: column;
+	margin: 0 auto;
+	max-width: 400px;
+	padding-bottom: var(--size-xLarge);
+	padding-top: var(--size-xLarge);
 }
 
 .intercomButton {
-    color: var(--color-purple);
-    cursor: pointer;
-    display: inline-block;
-    line-height: 1;
+	color: var(--color-purple);
+	cursor: pointer;
+	display: inline-block;
+	line-height: 1;
 }
 
 .chart {
-    display: flex;
-    justify-content: center;
-    .innerChart {
-        align-items: center;
-        background-color: var(--color-gray-100);
-        border-radius: 5px;
-        display: flex;
-        height: 54px;
-        justify-content: center;
-        padding: var(--size-small);
-        width: 124px;
-    }
+	display: flex;
+	justify-content: center;
+	.innerChart {
+		align-items: center;
+		background-color: var(--color-gray-100);
+		border-radius: 5px;
+		display: flex;
+		height: 54px;
+		justify-content: center;
+		padding: var(--size-small);
+		width: 124px;
+	}
 }
 
 .frequencyGraphEmptyMessage {
-    font-size: 12px;
-    margin-bottom: 0 !important;
+	font-size: 12px;
+	margin-bottom: 0 !important;
 }

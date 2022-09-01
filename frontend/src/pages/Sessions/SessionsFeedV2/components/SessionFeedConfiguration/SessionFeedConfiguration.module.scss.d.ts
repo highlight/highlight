@@ -1,2 +1,2 @@
-export const label: string;
-export const popover: string;
+export const label: string
+export const popover: string

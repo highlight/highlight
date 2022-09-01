@@ -1,2 +1,2 @@
-export const card: string;
-export const selected: string;
+export const card: string
+export const selected: string

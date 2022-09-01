@@ -26,3 +26,5 @@ backend/dump.rdb
 # Editor Artifacts
 **/.idea
 .vscode/*.log
+
+dump.rdb

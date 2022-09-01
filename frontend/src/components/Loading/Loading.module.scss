@@ -1,77 +1,77 @@
 .spinnerStyle {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    width: 100px;
-    z-index: 10;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	width: 100px;
+	z-index: 10;
 }
 
 .spinnerWrapper {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    width: 100%;
+	align-items: center;
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	width: 100%;
 }
 
 .loadingWrapper {
-    align-items: center;
-    background: var(--color-primary-background);
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    position: absolute;
-    width: 100vw;
-    z-index: 9999999999;
+	align-items: center;
+	background: var(--color-primary-background);
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	position: absolute;
+	width: 100vw;
+	z-index: 9999999999;
 }
 
 .background {
-    --background-color: var(--color-primary-background);
-    --dot-color: var(--color-gray-200);
-    --dot-size: 2px;
-    --square-size: 50px;
-    background-image: radial-gradient(
-        var(--dot-color) var(--dot-size),
-        var(--background-color) var(--dot-size)
-    );
-    background-position: 0 0;
-    background-size: var(--square-size) var(--square-size);
-    height: 100vh;
-    position: absolute;
-    width: 100vw;
-    z-index: -1;
+	--background-color: var(--color-primary-background);
+	--dot-color: var(--color-gray-200);
+	--dot-size: 2px;
+	--square-size: 50px;
+	background-image: radial-gradient(
+		var(--dot-color) var(--dot-size),
+		var(--background-color) var(--dot-size)
+	);
+	background-position: 0 0;
+	background-size: var(--square-size) var(--square-size);
+	height: 100vh;
+	position: absolute;
+	width: 100vw;
+	z-index: -1;
 }
 
 .logoContainer {
-    --logo-size: 60px;
-    display: grid;
-    height: var(--logo-size);
-    width: var(--logo-size);
+	--logo-size: 60px;
+	display: grid;
+	height: var(--logo-size);
+	width: var(--logo-size);
 
-    .logo {
-        grid-column-start: 1;
-        grid-row-start: 1;
-        height: var(--logo-size);
-        width: var(--logo-size);
-        z-index: 2;
+	.logo {
+		grid-column-start: 1;
+		grid-row-start: 1;
+		height: var(--logo-size);
+		width: var(--logo-size);
+		z-index: 2;
 
-        svg {
-            height: 100%;
-            width: 100%;
-        }
-    }
+		svg {
+			height: 100%;
+			width: 100%;
+		}
+	}
 
-    .logoBackground {
-        background: linear-gradient(
-            180deg,
-            var(--logo-gradient-start-color) 0%,
-            var(--logo-gradient-end-color) 100%
-        );
-        border-radius: 50%;
-        grid-column-start: 1;
-        grid-row-start: 1;
-        height: var(--logo-size);
-        transform-origin: center;
-        width: var(--logo-size);
-    }
+	.logoBackground {
+		background: linear-gradient(
+			180deg,
+			var(--logo-gradient-start-color) 0%,
+			var(--logo-gradient-end-color) 100%
+		);
+		border-radius: 50%;
+		grid-column-start: 1;
+		grid-row-start: 1;
+		height: var(--logo-size);
+		transform-origin: center;
+		width: var(--logo-size);
+	}
 }

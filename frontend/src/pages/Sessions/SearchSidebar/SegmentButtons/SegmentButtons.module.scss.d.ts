@@ -1,2 +1,2 @@
-export const modalSubTitle: string;
-export const queryBuilderContainer: string;
+export const modalSubTitle: string
+export const queryBuilderContainer: string

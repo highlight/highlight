@@ -1,28 +1,28 @@
 .tabPane {
-    height: 100%;
-    overflow-y: auto;
+	height: 100%;
+	overflow-y: auto;
 
-    &.withPadding {
-        padding: var(--size-small) var(--size-medium);
-    }
+	&.withPadding {
+		padding: var(--size-small) var(--size-medium);
+	}
 }
 
 .extraContentContainer {
-    align-items: center;
-    column-gap: var(--size-medium);
-    display: flex;
+	align-items: center;
+	column-gap: var(--size-medium);
+	display: flex;
 
-    &.withHeaderPadding {
-        padding-right: var(--size-large);
-    }
+	&.withHeaderPadding {
+		padding-right: var(--size-large);
+	}
 }
 
 .tabs {
-    font-family: var(--header-font-family) !important;
+	font-family: var(--header-font-family) !important;
 
-    &.noHeaderPadding {
-        :global(.ant-tabs-nav-wrap) {
-            padding: 0;
-        }
-    }
+	&.noHeaderPadding {
+		:global(.ant-tabs-nav-wrap) {
+			padding: 0;
+		}
+	}
 }

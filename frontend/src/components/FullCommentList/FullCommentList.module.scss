@@ -1,70 +1,70 @@
 .commentStream {
-    color: var(--color-gray-500);
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-    height: 100%;
-    position: relative;
+	color: var(--color-gray-500);
+	display: flex;
+	flex-direction: column;
+	font-size: 12px;
+	height: 100%;
+	position: relative;
 
-    > div::-webkit-scrollbar {
-        display: none;
-    }
+	> div::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .comment {
-    margin: var(--size-xxSmall) var(--size-large);
-    margin-bottom: var(--size-medium);
-    margin-top: 0;
+	margin: var(--size-xxSmall) var(--size-large);
+	margin-bottom: var(--size-medium);
+	margin-top: 0;
 
-    &:first-of-type {
-        padding-top: 0;
-    }
+	&:first-of-type {
+		padding-top: 0;
+	}
 }
 
 .firstComment {
-    margin-top: var(--size-xSmall);
+	margin-top: var(--size-xSmall);
 }
 
 .noCommentsContainer {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    height: inherit;
-    justify-content: center;
-    margin: var(--size-xxLarge);
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	height: inherit;
+	justify-content: center;
+	margin: var(--size-xxLarge);
 }
 
 .noCommentsTextContainer {
-    text-align: center;
-    top: 35%;
-    width: 200px;
+	text-align: center;
+	top: 35%;
+	width: 200px;
 
-    h2 {
-        color: var(--text-primary);
-        font-size: 14px !important;
-        font-weight: 400 !important;
-        margin: 0;
-        margin-bottom: var(--size-xSmall);
-    }
+	h2 {
+		color: var(--text-primary);
+		font-size: 14px !important;
+		font-weight: 400 !important;
+		margin: 0;
+		margin-bottom: var(--size-xSmall);
+	}
 
-    p {
-        color: var(--color-gray-500);
-        font-size: 12px !important;
-        margin: 0;
-    }
+	p {
+		color: var(--color-gray-500);
+		font-size: 12px !important;
+		margin: 0;
+	}
 }
 
 .timestamp {
-    color: var(--color-gray-500);
-    margin: 0 !important;
+	color: var(--color-gray-500);
+	margin: 0 !important;
 }
 
 .skeleton {
-    border-radius: var(--size-xSmall) !important;
-    display: block !important;
-    height: 90px;
-    margin: var(--size-xxSmall) var(--size-large);
-    margin-bottom: var(--size-medium);
-    margin-top: var(--size-xSmall);
-    width: auto !important;
+	border-radius: var(--size-xSmall) !important;
+	display: block !important;
+	height: 90px;
+	margin: var(--size-xxSmall) var(--size-large);
+	margin-bottom: var(--size-medium);
+	margin-top: var(--size-xSmall);
+	width: auto !important;
 }

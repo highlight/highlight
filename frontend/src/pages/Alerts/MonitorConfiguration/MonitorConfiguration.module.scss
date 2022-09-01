@@ -1,69 +1,69 @@
 // set the vertical chart slider color scheme
 :global {
-    .ant-slider:hover .ant-slider-track {
-        background-color: var(--color-blue-400) !important;
-    }
+	.ant-slider:hover .ant-slider-track {
+		background-color: var(--color-blue-400) !important;
+	}
 
-    .ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
-        border-color: var(--color-blue-400) !important;
-    }
+	.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
+		border-color: var(--color-blue-400) !important;
+	}
 
-    .ant-slider-dot {
-        border-color: var(--color-blue-400) !important;
-    }
+	.ant-slider-dot {
+		border-color: var(--color-blue-400) !important;
+	}
 
-    .ant-slider-handle {
-        border-color: var(--color-blue-400) !important;
-    }
+	.ant-slider-handle {
+		border-color: var(--color-blue-400) !important;
+	}
 
-    .ant-slider-handle:focus {
-        border-color: var(--color-blue-400) !important;
-        box-shadow: 0 0 0 5px var(--color-blue-400) !important;
-    }
+	.ant-slider-handle:focus {
+		border-color: var(--color-blue-400) !important;
+		box-shadow: 0 0 0 5px var(--color-blue-400) !important;
+	}
 
-    .ant-slider-handle:hover {
-        border-color: var(--color-blue-400) !important;
-    }
+	.ant-slider-handle:hover {
+		border-color: var(--color-blue-400) !important;
+	}
 
-    .ant-slider-handle-dragging.ant-slider-handle-dragging.ant-slider-handle-dragging {
-        border-color: var(--color-blue-400) !important;
-        box-shadow: 0 0 0 5px var(--color-blue-400) !important;
-    }
+	.ant-slider-handle-dragging.ant-slider-handle-dragging.ant-slider-handle-dragging {
+		border-color: var(--color-blue-400) !important;
+		box-shadow: 0 0 0 5px var(--color-blue-400) !important;
+	}
 }
 
 .chartContainer {
-    margin-bottom: var(--size-large);
+	margin-bottom: var(--size-large);
 }
 
 .formFooter {
-    display: flex;
-    justify-content: space-between;
-    margin-top: var(--size-large);
+	display: flex;
+	justify-content: space-between;
+	margin-top: var(--size-large);
 }
 
 .actionsContainer {
-    column-gap: var(--size-large);
-    display: flex;
-    margin-left: auto;
+	column-gap: var(--size-large);
+	display: flex;
+	margin-left: auto;
 }
 
 .select {
-    width: 100%;
+	width: 100%;
 }
 
 .slider {
-    left: 27px;
-    top: 36px;
-    z-index: 99999;
+	left: 27px;
+	top: 36px;
+	z-index: 99999;
 }
 
 .thresholdRow {
-    display: flex;
+	display: flex;
 }
 .threshold {
-    flex-grow: 1;
+	flex-grow: 1;
 }
 .thresholdUnits {
-    margin-left: var(--size-xxSmall);
-    width: 160px;
+	margin-left: var(--size-xxSmall);
+	width: 160px;
 }

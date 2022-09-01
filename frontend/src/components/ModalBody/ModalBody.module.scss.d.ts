@@ -1,1 +1,1 @@
-export const modalBody: string;
+export const modalBody: string

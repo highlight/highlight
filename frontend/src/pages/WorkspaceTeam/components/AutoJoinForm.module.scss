@@ -1,21 +1,21 @@
 .container {
-    align-items: center;
-    column-gap: var(--size-large);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    max-height: fit-content;
-    min-height: var(--size-xxLarge);
+	align-items: center;
+	column-gap: var(--size-large);
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	max-height: fit-content;
+	min-height: var(--size-xxLarge);
 }
 
 .switchClass {
-    flex-shrink: 0;
+	flex-shrink: 0;
 }
 
 .select {
-    width: 100%;
+	width: 100%;
 
-    &:global(.ant-select-disabled .ant-select-selector) {
-        background-color: var(--color-primary-background) !important;
-    }
+	&:global(.ant-select-disabled .ant-select-selector) {
+		background-color: var(--color-primary-background) !important;
+	}
 }
