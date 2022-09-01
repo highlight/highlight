@@ -1,1 +1,1 @@
-export const keyPerformanceIndicatorsContainer: string;
+export const keyPerformanceIndicatorsContainer: string

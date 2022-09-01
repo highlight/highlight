@@ -1,79 +1,79 @@
 .speedText {
-    color: var(--color-gray-500);
-    font-size: 12px;
+	color: var(--color-gray-500);
+	font-size: 12px;
 
-    &:active {
-        color: var(--color-gray-500);
-    }
+	&:active {
+		color: var(--color-gray-500);
+	}
 }
 
 .speedButton {
-    align-items: center;
-    background: var(--color-purple-200);
-    border: 0;
-    border-radius: 2px;
-    display: flex;
-    height: 18px;
-    justify-content: center;
-    padding: 0;
-    width: 18px;
+	align-items: center;
+	background: var(--color-purple-200);
+	border: 0;
+	border-radius: 2px;
+	display: flex;
+	height: 18px;
+	justify-content: center;
+	padding: 0;
+	width: 18px;
 
-    svg {
-        color: var(--color-purple) !important;
-    }
+	svg {
+		color: var(--color-purple) !important;
+	}
 
-    &:hover {
-        svg {
-            color: var(--text-primary-inverted) !important;
-        }
-    }
+	&:hover {
+		svg {
+			color: var(--text-primary-inverted) !important;
+		}
+	}
 
-    &:focus {
-        background: var(--color-purple-200);
-    }
+	&:focus {
+		background: var(--color-purple-200);
+	}
 
-    &:disabled {
-        background: var(--color-gray-400);
-        color: var(--color-gray-300) !important;
+	&:disabled {
+		background: var(--color-gray-400);
+		color: var(--color-gray-300) !important;
 
-        svg {
-            color: var(--color-gray-300) !important;
-        }
-    }
+		svg {
+			color: var(--color-gray-300) !important;
+		}
+	}
 }
 
 .speedControlContainer {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex !important;
+	align-items: center;
+	column-gap: var(--size-xxSmall);
+	display: flex !important;
 }
 
 .shortcutButton {
-    border: 1px solid var(--color-gray-300);
-    height: var(--size-large);
+	border: 1px solid var(--color-gray-300);
+	height: var(--size-large);
 }
 
 .icon {
-    height: var(--size-medium);
-    width: var(--size-medium);
+	height: var(--size-medium);
+	width: var(--size-medium);
 }
 
 .popover {
-    :global(.ant-popover-arrow) {
-        display: none;
-    }
+	:global(.ant-popover-arrow) {
+		display: none;
+	}
 }
 
 .popoverTitle {
-    font-size: 18px;
+	font-size: 18px;
 }
 
 .popoverContent {
-    width: 300px;
+	width: 300px;
 }
 
 .downIndicator {
-    font-size: 24px;
-    padding-bottom: var(--size-xxSmall);
-    text-align: center;
+	font-size: 24px;
+	padding-bottom: var(--size-xxSmall);
+	text-align: center;
 }

@@ -1,24 +1,24 @@
-import moment from 'moment';
-import React from 'react';
+import moment from 'moment'
+import React from 'react'
 
-import Tooltip from '../Tooltip/Tooltip';
+import Tooltip from '../Tooltip/Tooltip'
 
 interface Props {
-    datetime: string;
+	datetime: string
 }
 
 const RelativeTime = ({ datetime }: Props) => {
-    const momentDatetime = moment(datetime);
+	const momentDatetime = moment(datetime)
 
-    return (
-        <Tooltip
-            title={momentDatetime.format('MMMM Do YYYY, h:mm A')}
-            align={{ offset: [0, 8] }}
-            mouseEnterDelay={0}
-        >
-            <span>{momentDatetime.fromNow()}</span>
-        </Tooltip>
-    );
-};
+	return (
+		<Tooltip
+			title={momentDatetime.format('MMMM Do YYYY, h:mm A')}
+			align={{ offset: [0, 8] }}
+			mouseEnterDelay={0}
+		>
+			<span>{momentDatetime.fromNow()}</span>
+		</Tooltip>
+	)
+}
 
-export default RelativeTime;
+export default RelativeTime

@@ -1,1 +1,1 @@
-export const select: string;
+export const select: string

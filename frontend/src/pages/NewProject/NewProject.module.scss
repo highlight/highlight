@@ -1,42 +1,42 @@
 .box {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    max-width: 500px;
-    padding: 30px;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	max-width: 500px;
+	padding: 30px;
 }
 
 .title {
-    font-size: 24px;
-    margin-bottom: 10px;
+	font-size: 24px;
+	margin-bottom: 10px;
 }
 
 .subTitle {
-    color: var(--color-gray-500) !important;
-    font-size: 16px;
-    line-height: 1.5 !important;
-    margin-bottom: var(--size-large) !important;
+	color: var(--color-gray-500) !important;
+	font-size: 16px;
+	line-height: 1.5 !important;
+	margin-bottom: var(--size-large) !important;
 }
 
 .switchWorkspace {
-    color: var(--color-purple);
-    cursor: pointer;
+	color: var(--color-purple);
+	cursor: pointer;
 }
 
 .button {
-    display: flex;
-    margin-bottom: 0;
-    margin-top: 0;
+	display: flex;
+	margin-bottom: 0;
+	margin-top: 0;
 
-    .workspaceCount {
-        color: var(--color-white);
-        font-size: var(--size-xSmall);
-        height: var(--size-small);
-        margin-left: var(--size-xxSmall);
-        width: var(--size-small);
-    }
+	.workspaceCount {
+		color: var(--color-white);
+		font-size: var(--size-xSmall);
+		height: var(--size-small);
+		margin-left: var(--size-xxSmall);
+		width: var(--size-small);
+	}
 }
 
 .cardForm {
-    grid-row-gap: 20px;
+	grid-row-gap: 20px;
 }

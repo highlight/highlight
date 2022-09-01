@@ -1,2 +1,2 @@
-export const detailedView: string;
-export const wrapper: string;
+export const detailedView: string
+export const wrapper: string

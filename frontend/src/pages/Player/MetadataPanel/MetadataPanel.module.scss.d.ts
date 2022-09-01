@@ -1,1 +1,1 @@
-export const metadataPanel: string;
+export const metadataPanel: string

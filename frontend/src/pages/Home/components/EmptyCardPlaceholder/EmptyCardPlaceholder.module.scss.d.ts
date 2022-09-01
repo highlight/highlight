@@ -1,2 +1,2 @@
-export const emptyCardPlaceholder: string;
-export const graphicContainer: string;
+export const emptyCardPlaceholder: string
+export const graphicContainer: string

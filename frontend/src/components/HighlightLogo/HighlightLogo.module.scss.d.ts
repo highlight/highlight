@@ -1,2 +1,2 @@
-export const logo: string;
-export const logoText: string;
+export const logo: string
+export const logoText: string
