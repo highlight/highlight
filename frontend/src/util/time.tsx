@@ -29,7 +29,7 @@ export function MillisToMinutesAndSecondsVerbose(millis: number) {
 export function GetHistogramBucketSize(
 	timeRange: moment.Duration,
 ): DateHistogramBucketSize {
-	const TARGET_BUCKETS = 30 // Return as many buckets as possible, up to TARGET_BUCKETS
+	const TARGET_BUCKETS = 35 // Return as many buckets as possible, up to TARGET_BUCKETS
 	const POSSIBLE_BUCKET_SIZES: DateHistogramBucketSize[] = [
 		{
 			calendar_interval: OpenSearchCalendarInterval.Minute,

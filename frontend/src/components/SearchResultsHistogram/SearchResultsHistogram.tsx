@@ -2,6 +2,7 @@ import Histogram, { Series } from '@components/Histogram/Histogram'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import moment from 'moment'
 import React, { useCallback } from 'react'
+import Skeleton from 'react-loading-skeleton'
 
 import styles from './SearchResultsHistogram.module.css'
 
@@ -88,16 +89,21 @@ export const SearchResultsHistogram = React.memo(
 		)
 		return (
 			<div className={styles.histogramWrapper}>
-				<Histogram
-					onAreaChanged={onAreaChanged}
-					onBucketClicked={onBucketClicked}
-					seriesList={seriesList}
-					timeFormatter={timeFormatter}
-					bucketTimes={bucketTimes}
-					tooltipContent={tooltipContent}
-					tooltipDelayMs={500}
-					loading={loading}
-				/>
+				{loading ? (
+					<Skeleton
+						style={{ height: '100%', lineHeight: 'inherit' }}
+					/>
+				) : (
+					<Histogram
+						onAreaChanged={onAreaChanged}
+						onBucketClicked={onBucketClicked}
+						seriesList={seriesList}
+						timeFormatter={timeFormatter}
+						bucketTimes={bucketTimes}
+						tooltipContent={tooltipContent}
+						tooltipDelayMs={500}
+					/>
+				)}
 			</div>
 		)
 	},
