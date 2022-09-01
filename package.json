@@ -15,6 +15,8 @@
         "g": "hygen"
     },
     "devDependencies": {
+        "@types/node": "^18.7.14",
+        "chalk": "^5.0.1",
         "hygen": "^6.2.7"
     }
 }
