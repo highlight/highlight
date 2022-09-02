@@ -10,6 +10,7 @@ import {
 	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
+import { GetSessionQuery } from '@graph/operations'
 import {
 	ErrorObject,
 	Session,
@@ -269,7 +270,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			secure_id: session_secure_id,
 		},
 		onCompleted: useCallback(
-			(data: any) => {
+			(data: GetSessionQuery) => {
 				if (data.session === null) {
 					setSessionViewability(SessionViewability.ERROR)
 				} else if (

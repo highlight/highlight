@@ -226,14 +226,14 @@ const TimelineIndicatorsBarGraph = React.memo(
 		)
 
 		const onBucketClicked = useCallback(
-			(bucketIndex: any) => {
+			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
 			},
 			[seriesState.bucketTimes, setTime],
 		)
 
 		const onAreaChanged = useCallback(
-			(left: any, right: any) => {
+			(left: number, right: number) => {
 				setZoomAreaLeft(
 					(zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
 						(zoomAreaLeft ?? 0),
@@ -326,7 +326,7 @@ const TimelineIndicatorsBarGraph = React.memo(
 		)
 
 		const gotoAction = useCallback(
-			(bucketIndex: any) => {
+			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
 			},
 			[seriesState.bucketTimes, setTime],
