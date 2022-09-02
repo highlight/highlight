@@ -3,6 +3,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -22,6 +23,7 @@ const IntegrationAuthCallbackPage = () => {
 	})
 
 	const { addLinearIntegrationToProject } = useLinearIntegration()
+	const { addFrontIntegrationToProject } = useFrontIntegration()
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.EXTENDED_LOADING)
@@ -57,6 +59,9 @@ const IntegrationAuthCallbackPage = () => {
 				} else if (integrationName.toLocaleLowerCase() === 'linear') {
 					await addLinearIntegrationToProject(code, project_id)
 					message.success('Highlight is now synced with Linear!', 5)
+				} else if (integrationName.toLowerCase() === 'front') {
+					await addFrontIntegrationToProject(code, project_id)
+					message.success('Highlight is now synced with Front!', 5)
 				}
 			} catch (e: any) {
 				H.consumeError(e)
@@ -75,6 +80,7 @@ const IntegrationAuthCallbackPage = () => {
 		history,
 		setLoadingState,
 		addLinearIntegrationToProject,
+		addFrontIntegrationToProject,
 	])
 
 	return null

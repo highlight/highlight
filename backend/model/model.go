@@ -271,6 +271,7 @@ type Project struct {
 	StripeCustomerID  *string
 	StripePriceID     *string
 	ZapierAccessToken *string
+	FrontAccessToken  *string
 	BillingEmail      *string
 	Secret            *string    `json:"-"`
 	Admins            []Admin    `gorm:"many2many:project_admins;"`

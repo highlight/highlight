@@ -3,6 +3,7 @@ import { useSlackBot } from '@components/Header/components/PersonalNotificationB
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
+import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
@@ -32,9 +33,23 @@ const IntegrationsPage = () => {
 	const { isClearbitIntegratedWithWorkspace, loading: loadingClearbit } =
 		useClearbitIntegration()
 
+	const { isFrontIntegratedWithProject, loading: loadingFront } =
+		useFrontIntegration()
+
 	const loading = useMemo(
-		() => loadingLinear || loadingSlack || loadingZapier || loadingClearbit,
-		[loadingLinear, loadingSlack, loadingZapier, loadingClearbit],
+		() =>
+			loadingLinear ||
+			loadingSlack ||
+			loadingZapier ||
+			loadingClearbit ||
+			loadingFront,
+		[
+			loadingLinear,
+			loadingSlack,
+			loadingZapier,
+			loadingClearbit,
+			loadingFront,
+		],
 	)
 
 	const integrations = useMemo(() => {
@@ -46,12 +61,15 @@ const IntegrationsPage = () => {
 				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
 				(inter.key === 'linear' && isLinearIntegratedWithProject) ||
 				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
-				(inter.key === 'clearbit' && isClearbitIntegratedWithWorkspace),
+				(inter.key === 'clearbit' &&
+					isClearbitIntegratedWithWorkspace) ||
+				(inter.key === 'front' && isFrontIntegratedWithProject),
 		}))
 	}, [
 		isSlackConnectedToWorkspace,
 		isLinearIntegratedWithProject,
 		isZapierIntegratedWithProject,
+		isFrontIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
 		isHighlightAdmin,
 	])

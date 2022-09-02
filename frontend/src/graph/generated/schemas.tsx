@@ -208,6 +208,7 @@ export enum IntegrationType {
 	Slack = 'Slack',
 	Linear = 'Linear',
 	Zapier = 'Zapier',
+	Front = 'Front',
 }
 
 export enum ErrorState {

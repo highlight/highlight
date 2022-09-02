@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gorm.io/gorm/clause"
+	"io"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -1566,6 +1567,60 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+func (r *Resolver) AddFrontToProject(project *model.Project, code string) error {
+	var (
+		ok                bool
+		FrontClientID     string
+		FrontClientSecret string
+	)
+
+	if FrontClientID, ok = os.LookupEnv("FRONT_CLIENT_ID"); !ok || FrontClientID == "" {
+		return e.New("FRONT_CLIENT_ID not set")
+	}
+	if FrontClientSecret, ok = os.LookupEnv("FRONT_CLIENT_SECRET"); !ok || FrontClientSecret == "" {
+		return e.New("FRONT_CLIENT_SECRET not set")
+	}
+
+	redirect := os.Getenv("FRONTEND_URI") + "/callback/front"
+	body := strings.NewReader(fmt.Sprintf("code=%s;redirect_uri=%s;grant_type=authorization_code", code, redirect))
+	req, err := http.NewRequest("POST", "https://app.frontapp.com/oauth/token", body)
+	if err != nil {
+		return e.Wrap(err, "failed to create front oauth http request")
+	}
+	req.SetBasicAuth(FrontClientID, FrontClientSecret)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return e.Wrap(err, "failed to send front oauth http request")
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Errorf("failed to close front response body: %s", err)
+		}
+	}(resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return e.Wrap(err, "failed to read front oauth http request")
+	}
+
+	var response struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := json.Unmarshal(data, &response); err != nil {
+		return e.Wrap(err, "failed to json unmarshal front oauth http request")
+	}
+
+	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &response.AccessToken}).Error; err != nil {
+		return e.Wrap(err, "error updating front access token on project")
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -1651,6 +1706,14 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
+	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil
