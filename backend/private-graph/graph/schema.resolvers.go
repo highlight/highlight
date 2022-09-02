@@ -3473,6 +3473,36 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}, nil
 }
 
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []opensearch.OpenSearchError{}
+	options := opensearch.SearchOptions{
+		MaxResults:        ptr.Int(0),
+		SortField:         ptr.String("updated_at"),
+		SortOrder:         ptr.String("desc"),
+		ReturnCount:       ptr.Bool(false),
+		ExcludeFields:     []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+		ProjectIDOnParent: ptr.Bool(true),
+		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
+	}
+
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
 	return r.canAdminViewErrorGroup(ctx, secureID, true)
@@ -4273,37 +4303,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	q := fmt.Sprintf(`
-	{"bool": {
-		"must":[
-			{"bool": {
-				"must_not":[
-					{"term":{"Excluded":true}},
-					{"term":{"within_billing_quota":false}},
-					{"bool": {
-						"must":[
-							{"term":{"processed":"true"}},
-							{"bool":
-								{"should": [
-									{"range": {
-										"active_length": {
-											"lt": 1000
-										}
-									}},
-									{"range": {
-										"length": {
-											"lt": 1000
-										}
-								  	}}
-							  	]}
-						  	}
-					  	]
-					}}
-				]
-			}},
-			%s
-		]
-	}}`, query)
+	q := FormatSessionsQuery(query)
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -4312,6 +4312,54 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
+	}, nil
+}
+
+// SessionsHistogram is the resolver for the sessions_histogram field.
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.Session{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(0),
+		SortField:     ptr.String("created_at"),
+		ReturnCount:   ptr.Bool(false),
+		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+		Aggregation: GetDateHistogramAggregation(histogramOptions, "created_at",
+			&opensearch.TermsAggregation{
+				Field:   "has_errors",
+				Missing: ptr.String("false"),
+			}),
+	}
+	q := FormatSessionsQuery(query)
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	noErrorsCounts, withErrorsCounts := []int64{}, []int64{}
+	for _, dateBucket := range aggs {
+		noErrors, withErrors := int64(0), int64(0)
+		for _, errorsBucket := range dateBucket.SubAggregationResults {
+			if errorsBucket.Key == "false" {
+				noErrors = errorsBucket.DocCount
+			} else if errorsBucket.Key == "true" {
+				withErrors = errorsBucket.DocCount
+			}
+		}
+		noErrorsCounts = append(noErrorsCounts, noErrors)
+		withErrorsCounts = append(withErrorsCounts, withErrors)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 

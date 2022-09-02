@@ -2336,6 +2336,22 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetSessionsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	histogram_options: Types.DateHistogramOptions
+}>
+
+export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
+	sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
+		Types.SessionsHistogram,
+		| 'bucket_times'
+		| 'sessions_without_errors'
+		| 'sessions_with_errors'
+		| 'total_sessions'
+	>
+}
+
 export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -2375,6 +2391,19 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					}
 			>
 		}
+}
+
+export type GetErrorsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	histogram_options: Types.DateHistogramOptions
+}>
+
+export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
+	errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
+		Types.ErrorsHistogram,
+		'bucket_times' | 'error_objects'
+	>
 }
 
 export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>
@@ -3932,7 +3961,9 @@ export const namedOperations = {
 		GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
 		GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
 		GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+		GetSessionsHistogram: 'GetSessionsHistogram' as const,
 		GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
+		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
 		GetWorkspaces: 'GetWorkspaces' as const,

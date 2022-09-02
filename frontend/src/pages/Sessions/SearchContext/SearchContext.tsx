@@ -9,6 +9,8 @@ export type UserProperty = {
 	value: string
 }
 
+// It seems only the the query property is used by the QueryBuilder, the rest of the
+// properties are for back-compat with saved segments
 export type SearchParams = {
 	user_properties: Array<UserProperty>
 	excluded_properties?: Array<UserProperty>
@@ -76,5 +78,28 @@ export const showLiveSessions = (searchParams: SearchParams): boolean => {
 	return searchParams?.show_live_sessions ?? false
 }
 
-export const [useSearchContext, SearchContextProvider] =
-	createContext<SearchContext>('SearchContext')
+export const updateSearchTimeRange = (
+	searchParams: SearchParams,
+	serializedValue: string, // TODO
+): SearchParams => {
+	if (!searchParams.query) {
+		console.error('Please use the searchParams from searchContext')
+		return searchParams
+	}
+	const query = JSON.parse(searchParams.query) as QueryBuilderState
+	query.rules = query.rules.map((rule) => {
+		if (rule[0] === 'custom_created_at') {
+			rule[2] = serializedValue
+		}
+		return rule
+	})
+	return {
+		...searchParams,
+		query: JSON.stringify(query),
+	}
+}
+
+export const [
+	useSearchContext,
+	SearchContextProvider,
+] = createContext<SearchContext>('SearchContext')
