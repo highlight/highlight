@@ -6,7 +6,10 @@ interface Props {
 	featureIsOn?: boolean
 }
 
-const HighlightGate: React.FC<Props> = ({ children, featureIsOn = true }) => {
+const HighlightGate: React.FC<React.PropsWithChildren<Props>> = ({
+	children,
+	featureIsOn = true,
+}) => {
 	const { isHighlightAdmin } = useAuthContext()
 
 	if (!isHighlightAdmin || !featureIsOn) {

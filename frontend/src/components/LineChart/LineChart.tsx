@@ -111,7 +111,8 @@ const LineChart = ({
 	const [showTooltip, setShowTooltip] = React.useState(false)
 
 	const isNonXAxisKey = useCallback(
-		(keyName) => keyName !== xAxisDataKeyName && keyName !== '__typename',
+		(keyName: any) =>
+			keyName !== xAxisDataKeyName && keyName !== '__typename',
 		[xAxisDataKeyName],
 	)
 

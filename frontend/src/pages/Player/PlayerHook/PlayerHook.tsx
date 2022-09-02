@@ -269,7 +269,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			secure_id: session_secure_id,
 		},
 		onCompleted: useCallback(
-			(data) => {
+			(data: any) => {
 				if (data.session === null) {
 					setSessionViewability(SessionViewability.ERROR)
 				} else if (

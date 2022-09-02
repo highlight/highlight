@@ -11,7 +11,7 @@ interface InnerProps extends Props {
 	expanded: boolean
 }
 
-const CollapsibleImpl: React.FC<InnerProps> = ({
+const CollapsibleImpl: React.FC<React.PropsWithChildren<InnerProps>> = ({
 	title,
 	children,
 	contentClassName,
@@ -70,7 +70,7 @@ interface Props {
 	stacked?: boolean
 }
 
-export const StatelessCollapsible: React.FC<Props> = ({
+export const StatelessCollapsible: React.FC<React.PropsWithChildren<Props>> = ({
 	title,
 	children,
 	contentClassName,
@@ -96,7 +96,7 @@ export const StatelessCollapsible: React.FC<Props> = ({
 	)
 }
 
-const Collapsible: React.FC<Props> = ({
+const Collapsible: React.FC<React.PropsWithChildren<Props>> = ({
 	title,
 	children,
 	contentClassName,

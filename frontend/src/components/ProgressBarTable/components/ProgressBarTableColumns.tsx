@@ -34,7 +34,7 @@ interface ProgressBarTableRowGroupProps {
 }
 
 export const ProgressBarTableRowGroup: React.FC<
-	ProgressBarTableRowGroupProps
+	React.PropsWithChildren<ProgressBarTableRowGroupProps>
 > = ({ alignment = 'leading', children }) => {
 	return (
 		<div
