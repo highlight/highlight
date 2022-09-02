@@ -59,6 +59,8 @@ $avatar-size: 36px;
 }
 
 #enhancedName {
+	align-items: center;
+	display: flex;
 	font-weight: 400 !important;
 	margin-bottom: 0 !important;
 }
@@ -82,7 +84,7 @@ $avatar-size: 36px;
 	display: flex;
 	flex-direction: column;
 	padding-left: calc($avatar-size + var(--size-small));
-	row-gap: var(--size-xxSmall);
+	row-gap: var(--size-small);
 }
 
 .userEnhanced {
@@ -283,9 +285,8 @@ $avatar-size: 36px;
 
 .tooltip {
 	color: var(--color-gray-500);
-	position: absolute;
-	right: var(--size-medium);
-	top: var(--size-medium);
+	display: flex;
+	margin-left: auto;
 }
 
 .blurred {

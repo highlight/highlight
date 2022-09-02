@@ -352,16 +352,6 @@ export const UserDetailsBox = React.memo(
 
 		return (
 			<div className={styles.userEnhanced}>
-				{!loading && (
-					<div className={styles.tooltip}>
-						<InfoTooltip
-							title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
-							size="medium"
-							hideArrow
-							placement="topLeft"
-						/>
-					</div>
-				)}
 				<div className={styles.enhancedTextSection}>
 					{loading ? (
 						<Skeleton height="2rem" />
@@ -369,7 +359,17 @@ export const UserDetailsBox = React.memo(
 						<>
 							{data?.enhanced_user_details?.name && (
 								<h4 id={styles.enhancedName}>
-									{data?.enhanced_user_details?.name}
+									<span>
+										{data?.enhanced_user_details?.name}
+									</span>
+									<div className={styles.tooltip}>
+										<InfoTooltip
+											title={`This is enriched information for ${data?.enhanced_user_details?.email}. Highlight shows additional information like social handles, website, title, and company. This feature is enabled via the Clearbit Integration for the Startup plan and above.`}
+											size="medium"
+											hideArrow
+											placement="topLeft"
+										/>
+									</div>
 								</h4>
 							)}
 							{data?.enhanced_user_details?.bio && (
@@ -380,7 +380,7 @@ export const UserDetailsBox = React.memo(
 							{hasDiverseSocialLinks(data) && (
 								<div className={styles.enhancedLinksGrid}>
 									{data?.enhanced_user_details?.socials?.map(
-										(e) =>
+										(e: any) =>
 											e && (
 												<SocialComponent
 													socialLink={e}
