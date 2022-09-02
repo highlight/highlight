@@ -27,6 +27,8 @@
 		"intro.js-react": "^0.6.0",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
+		"patch-package": "^6.4.7",
+		"postinstall-postinstall": "^2.1.0",
 		"prop-types": "^15.5.7",
 		"query-string": "6.14.1",
 		"randomcolor": "^0.6.2",
@@ -77,6 +79,7 @@
 		"validator": "13.7.0"
 	},
 	"scripts": {
+		"prepare": "patch-package",
 		"start": "HTTPS=true doppler run -- craco start",
 		"styles": "tsm src -w --logLevel=error",
 		"gql": "graphql-codegen --config --watch codegen.yml",
