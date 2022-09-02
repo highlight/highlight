@@ -29,6 +29,7 @@
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"react/no-unescaped-entities": "off",
 		"react/prop-types": "off",
+		"react/react-in-jsx-scope": "off",
 		"@typescript-eslint/ban-types": "off",
 		"@typescript-eslint/ban-ts-comment": "off",
 		"@typescript-eslint/no-empty-function": "off",
