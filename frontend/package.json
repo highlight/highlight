@@ -69,13 +69,13 @@
 		"react-virtualized-auto-sizer": "^1.0.6",
 		"react-virtuoso": "^2.13.1",
 		"recharts": "^2.1.13",
-		"sanitize-html": "^2.7.1",
 		"source-map-explorer": "^2.5.2",
 		"stacktrace-js": "^2.0.2",
 		"subscriptions-transport-ws": "^0.11.0",
 		"use-http": "^1.0.26",
 		"use-query-params": "^1.2.0",
-		"validator": "13.7.0"
+		"validator": "13.7.0",
+		"xss": "^1.0.14"
 	},
 	"scripts": {
 		"prepare": "patch-package",
