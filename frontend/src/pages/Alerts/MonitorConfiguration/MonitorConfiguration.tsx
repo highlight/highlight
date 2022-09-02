@@ -5,7 +5,7 @@ import LineChart from '@components/LineChart/LineChart'
 import Select from '@components/Select/Select'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
-import { useGetMetricsTimelineQuery } from '@graph/hooks'
+import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
@@ -189,6 +189,14 @@ const MonitorConfiguration = ({
 		id: email,
 	}))
 
+	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
+		variables: {
+			project_id,
+			metric_name: metricToMonitorName,
+		},
+		fetchPolicy: 'cache-first',
+	})
+
 	return (
 		<div>
 			<div className={styles.chartContainer}>
@@ -281,23 +289,26 @@ const MonitorConfiguration = ({
 					<MetricSelector
 						onSelectMetric={(e) => {
 							onMetricToMonitorNameChange(e)
+							onFiltersChange([])
 						}}
 						currentMetric={metricToMonitorName}
 					/>
 				</section>
 
-				<section>
-					<h3>Filters</h3>
-					<p>
-						Filter the metric values based on custom tags. For
-						example, monitor latency for a particular URL.
-					</p>
-					<TagFilters
-						metricName={metricToMonitorName}
-						onSelectTags={(t) => onFiltersChange(t)}
-						currentTags={filters}
-					/>
-				</section>
+				{!tagsLoading && tags?.metric_tags.length ? (
+					<section>
+						<h3>Filters</h3>
+						<p>
+							Filter the metric values based on custom tags. For
+							example, monitor latency for a particular URL.
+						</p>
+						<TagFilters
+							metricName={metricToMonitorName}
+							onSelectTags={(t) => onFiltersChange(t)}
+							currentTags={filters}
+						/>
+					</section>
+				) : null}
 
 				<section>
 					<h3>Function</h3>

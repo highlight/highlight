@@ -103,6 +103,7 @@ export const EditMetricModal = ({
 	onCancel: () => void
 	shown?: boolean
 }) => {
+	const { project_id } = useParams<{ project_id: string }>()
 	const [minValue, setMinValue] = useState<boolean>(
 		metricConfig.min_value !== null,
 	)
@@ -133,6 +134,14 @@ export const EditMetricModal = ({
 		metricConfig.filters || [],
 	)
 	const [groups, setGroups] = useState<string[]>(metricConfig.groups || [])
+
+	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
+		variables: {
+			project_id,
+			metric_name: metricName,
+		},
+		fetchPolicy: 'cache-first',
+	})
 
 	useEffect(() => {
 		if (!metricConfig.component_type && !metricConfig.chart_type) {
@@ -333,7 +342,7 @@ export const EditMetricModal = ({
 						</>
 					) : null}
 
-					{chartType ? (
+					{chartType && !tagsLoading && tags?.metric_tags.length ? (
 						<section className={styles.section}>
 							<h3>Filter by</h3>
 							<TagFilters
@@ -543,6 +552,7 @@ export const TagFilterSelector = ({
 			project_id,
 			metric_name: metricName,
 		},
+		fetchPolicy: 'cache-first',
 	})
 	const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
 		variables: {
@@ -550,6 +560,7 @@ export const TagFilterSelector = ({
 			metric_name: metricName,
 			tag_name: currentTag?.tag || '',
 		},
+		fetchPolicy: 'cache-first',
 	})
 
 	useEffect(() => {
