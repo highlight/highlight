@@ -1,6 +1,4 @@
 import {
-	// Disabling here because we are using this file as a proxy.
-	// eslint-disable-next-line no-restricted-imports
 	Popover as AntDesignPopover,
 	PopoverProps as AntDesignPopoverProps,
 } from 'antd'
@@ -61,8 +59,12 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
 				>
-					{title}
-					<div className={styles.content}>{props.content}</div>
+					{typeof title === 'function' ? title() : title}
+					<div className={styles.content}>
+						{typeof props.content === 'function'
+							? props.content()
+							: props.content}
+					</div>
 				</div>
 			}
 		>

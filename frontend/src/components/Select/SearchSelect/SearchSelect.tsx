@@ -1,6 +1,6 @@
 import { Select } from 'antd'
 import _ from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import styles from './SearchSelect.module.scss'
 
@@ -40,7 +40,7 @@ export const SearchSelect = ({
 			defaultValue={{ label: value, value: value } as SearchOption}
 			loading={isTyping}
 			options={options}
-			notFoundContent={() => <span>`No results found`</span>}
+			notFoundContent={<span>`No results found`</span>}
 			labelInValue
 			filterOption={false}
 			onSearch={loadOptions}
