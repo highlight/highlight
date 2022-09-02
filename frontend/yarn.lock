@@ -2163,14 +2163,11 @@
     prop-types "^15.6.0"
     react-transition-group "^4.3.0"
 
-"@highlight-run/react@^1.1.6":
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.1.6.tgz#b5f045f2797cd7942e1ed82f674d5df6665c6b84"
-  integrity sha512-vNaaJOKVEdUgMhWF+LIwGyzpCedpnsx3NEooucOKN0Ada+Lgs1huDH1rotHTH6R2qyEYen/TfRkJaO4P4g7dZA==
+"@highlight-run/react@^1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.1.12.tgz#3e96f6608054c018d35c4329263772100d211553"
+  integrity sha512-w0UsnnvbPXHfT8zyB+M5MCRKPDigAQR8tjWfw+5siPKSoM/ezOXCwuyUDNdPawLxIoQNuJp/Nx7CIkwCXa7rOg==
   dependencies:
-    "@types/node" "^12.0.0"
-    "@types/react" "^17.0.0"
-    "@types/react-dom" "^17.0.0"
     babel-plugin-css-modules-transform "^1.6.2"
     typescript "^4.1.2"
 
@@ -3028,11 +3025,6 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.0.4.tgz#48aedbf35efb3af1248e4cd4d792c730290cd5d6"
   integrity sha512-M0+G6V0Y4YV8cqzHssZpaNCqvYwlCiulmm0PwpNLF55r/+cT8Ol42CHRU1SEaYFH2rTwiiE1aYg/2g2rrtGdPA==
 
-"@types/node@^12.0.0":
-  version "12.20.24"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.24.tgz#c37ac69cb2948afb4cef95f424fa0037971a9a5c"
-  integrity sha512-yxDeaQIAJlMav7fH5AQqPH1u8YIuhYJXYBzxaQ4PifsU0GDO38MSdmEDeRlIxrKbC6NbEaaEHDanWb+y30U8SQ==
-
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz#e486d0d97396d79beedd0a6e33f4534ff6b4973e"
@@ -3078,7 +3070,7 @@
     "@types/react" "*"
     date-fns "^2.16.1"
 
-"@types/react-dom@*", "@types/react-dom@^17.0.0":
+"@types/react-dom@*":
   version "17.0.9"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-17.0.9.tgz#441a981da9d7be117042e1a6fd3dac4b30f55add"
   integrity sha512-wIvGxLfgpVDSAMH5utdL9Ngm5Owu0VsGmldro3ORLXV8CShrL8awVj06NuEXFQ5xyaYfdca7Sgbk/50Ri1GdPg==
@@ -3181,7 +3173,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^17.0.0":
+"@types/react@*":
   version "17.0.20"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.20.tgz#a4284b184d47975c71658cd69e759b6bd37c3b8c"
   integrity sha512-wWZrPlihslrPpcKyCSlmIlruakxr57/buQN1RjlIeaaTWDLtJkTtRW429MoQJergvVKc4IWBpRhWw7YNh/7GVA==
