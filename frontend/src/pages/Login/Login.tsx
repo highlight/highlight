@@ -107,7 +107,6 @@ enum LoginFormState {
 
 // TODO:
 //  - Google Sign In
-//  - Email/Password Sign In
 const LoginForm = () => {
     const [signUpParam] = useQueryParam('sign_up', BooleanParam);
     const [formState, setFormState] = useState<LoginFormState>(
