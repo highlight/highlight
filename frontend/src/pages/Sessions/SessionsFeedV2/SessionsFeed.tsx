@@ -72,8 +72,7 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 				bucket_size:
 					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
 				time_zone:
-					Intl.DateTimeFormat().resolvedOptions().timeZone ??
-					'America/Los_Angeles',
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 				bounds: {
 					start_date:
 						backendSearchQuery?.startDate.toISOString() as string,

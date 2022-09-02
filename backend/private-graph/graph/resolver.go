@@ -393,7 +393,7 @@ func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookback
 				CalendarInterval: "day",
 				SortOrder:        "desc",
 				Format:           "yyyy-MM-dd",
-				TimeZone:         "America/Los_Angeles", // TODO pass timezone from client
+				TimeZone:         "UTC",
 			},
 		},
 	}
