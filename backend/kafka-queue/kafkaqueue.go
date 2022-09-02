@@ -362,21 +362,19 @@ func (p *Queue) resetConsumerOffset(partitionOffsets map[int]int64) (error error
 	if err != nil {
 		return errors.Wrap(err, "failed to create consumer group")
 	}
-	defer func(group *kafka.ConsumerGroup) {
-		err := group.Close()
-		if err != nil {
-			log.Error("failed to close consumer group")
-		}
-	}(group)
 
 	gen, err := group.Next(context.Background())
 	if err != nil {
 		return errors.Wrap(err, "failed to establish next group generation")
 	}
-	err = gen.CommitOffsets(map[string]map[int]int64{p.Topic: partitionOffsets})
+	err = gen.CommitOffsets(map[string]map[int]int64{cfg.Topic: partitionOffsets})
 	if err != nil {
 		return errors.Wrap(err, "failed to commit new offsets")
 	}
 
+	if err = group.Close(); err != nil {
+		return errors.Wrap(err, "failed to close consumer group")
+	}
+	log.Infof("reset consumer offsets: %+v", partitionOffsets)
 	return
 }
