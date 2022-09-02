@@ -11,7 +11,7 @@ type Props = {
 	primaryColor: string
 } & React.HTMLProps<HTMLDivElement>
 
-const RightPanelCard: React.FC<Props> = ({
+const RightPanelCard: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	selected,
 	primaryColor,

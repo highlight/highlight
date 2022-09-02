@@ -21,7 +21,7 @@ interface Props {
 	afterDeleteHandler?: () => void
 }
 
-const DeleteErrorSegmentModal: React.FC<Props> = ({
+const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 	hideModalHandler,
 	showModal,
 	segmentToDelete,

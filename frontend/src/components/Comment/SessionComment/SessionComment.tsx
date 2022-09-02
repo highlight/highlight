@@ -137,7 +137,7 @@ interface SessionCommentFooterProps {
 }
 
 export const ExperimentalSessionCommentFooter: React.FC<
-	SessionCommentFooterProps
+	React.PropsWithChildren<SessionCommentFooterProps>
 > = ({ children }) => {
 	const { admin } = useAuthContext()
 
