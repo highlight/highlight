@@ -6,22 +6,6 @@
 	width: 100vw;
 }
 
-.astronautGraphicWrapper {
-	position: fixed;
-	inset: 0;
-	display: flex;
-	justify-content: flex-end;
-	overflow: hidden;
-}
-
-.loginPage {
-	width: 100%;
-	height: 100%;
-	position: relative; /* relative so it stays on top of the background graphic */
-	padding: 1rem;
-	display: flex;
-}
-
 .loginTitle {
 	font-size: 23px;
 }
@@ -43,12 +27,6 @@
 	max-width: 420px;
 	height: fit-content;
 	margin: auto;
-}
-
-@media (min-width: 768px) {
-	.loginPage {
-		padding: 4rem;
-	}
 }
 
 .loginForm {
