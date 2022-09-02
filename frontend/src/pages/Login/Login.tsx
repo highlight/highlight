@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext';
+import Alert from '@components/Alert/Alert';
 import Input from '@components/Input/Input';
+import Space from '@components/Space/Space';
 import {
     AppLoadingState,
     useAppLoadingContext,
@@ -11,6 +13,7 @@ import { AppRouter } from '@routers/AppRouter/AppRouter';
 import { auth, googleProvider } from '@util/auth';
 import { message } from 'antd';
 import classNames from 'classnames';
+import firebase from 'firebase';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -98,13 +101,20 @@ enum LoginFormState {
     MissingUserDetails,
     // The user has finished onboarding and can continue to the page in the url
     FinishedOnboarding,
+    // The user has MFA configured and needs to enter a code
+    EnterMultiFactorCode,
 }
 
+// TODO:
+//  - Google Sign In
+//  - Email/Password Sign In
 const LoginForm = () => {
     const [signUpParam] = useQueryParam('sign_up', BooleanParam);
     const [formState, setFormState] = useState<LoginFormState>(
         signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn
     );
+    // TODO: Look into better types
+    const [resolver, setResolver] = useState<any>();
     const [, setSignUpReferral] = useLocalStorage(
         'HighlightSignUpReferral',
         ''
@@ -126,7 +136,13 @@ const LoginForm = () => {
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => {})
                 .catch((error) => {
-                    setError(error.toString());
+                    if (error.code == 'auth/multi-factor-auth-required') {
+                        console.log(error.resolver);
+                        setResolver(error.resolver);
+                        setFormState(LoginFormState.EnterMultiFactorCode);
+                    } else {
+                        setError(error.toString());
+                    }
                 })
                 .finally(() => setIsLoadingFirebase(false));
         } else if (formState === LoginFormState.ResetPassword) {
@@ -193,6 +209,11 @@ const LoginForm = () => {
             } else {
                 setFormState(LoginFormState.FinishedOnboarding);
             }
+        } else if (
+            !isLoggedIn &&
+            formState === LoginFormState.FinishedOnboarding
+        ) {
+            setFormState(LoginFormState.SignIn);
         }
     }, [admin, admin?.email_verified, formState, isLoggedIn]);
 
@@ -218,6 +239,10 @@ const LoginForm = () => {
         );
     } else if (isLoggedIn && formState === LoginFormState.FinishedOnboarding) {
         return <AuthAdminRouter />;
+    }
+
+    if (formState === LoginFormState.EnterMultiFactorCode) {
+        return <VerifyPhone resolver={resolver} />;
     }
 
     return (
@@ -407,6 +432,81 @@ const LoginForm = () => {
                 </div>
             </div>
         </Landing>
+    );
+};
+
+interface VerifyPhoneProps {
+    resolver: any;
+}
+
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
+    const [error, setError] = useState<string | null>();
+    const [verificationCode, setVerificationCode] = useState<string>('');
+    const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>();
+    const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+
+    useEffect(() => {
+        setRecaptchaVerifier(
+            new firebase.auth.RecaptchaVerifier('recaptcha', {
+                size: 'invisible',
+            })
+        );
+    }, []);
+
+    const verify = async () => {
+        setError(null);
+
+        const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+            {
+                multiFactorHint: resolver.hints[0],
+                session: resolver.session,
+            },
+            recaptchaVerifier
+        );
+
+        const cred = firebase.auth.PhoneAuthProvider.credential(
+            verificationId,
+            verificationCode
+        );
+        const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(
+            cred
+        );
+
+        try {
+            const userCredential = await resolver.resolveSignIn(
+                multiFactorAssertion
+            );
+            console.log(userCredential);
+        } catch (e: any) {
+            setError(e.message);
+        }
+    };
+
+    return (
+        <>
+            <Space direction="vertical" size="medium">
+                {error && (
+                    <Alert
+                        shouldAlwaysShow
+                        closable={false}
+                        trackingId="2faVerifyError"
+                        type="error"
+                        description={error}
+                    />
+                )}
+                <p>Enter the code sent to your phone to verify your device.</p>
+                <Input
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="Verification code"
+                />
+                <Button trackingId="setup2fa" onClick={verify}>
+                    Submit
+                </Button>
+            </Space>
+
+            <div id="recaptcha"></div>
+        </>
     );
 };
 

@@ -1,1 +1,1 @@
-export const auth: string;
+export const error: string;

@@ -1,5 +1,8 @@
+import Alert from '@components/Alert/Alert';
 import Button from '@components/Button/Button/Button';
+import { FieldsBox } from '@components/FieldsBox/FieldsBox';
 import Input from '@components/Input/Input';
+import Space from '@components/Space/Space';
 import { auth } from '@util/auth';
 import { client } from '@util/graph';
 import firebase from 'firebase';
@@ -8,8 +11,6 @@ import React, { useEffect, useState } from 'react';
 
 import styles from './Auth.module.scss';
 
-const mfaDisplayName = 'Phone';
-
 enum AuthState {
     Enroll,
     Enrolled,
@@ -17,7 +18,7 @@ enum AuthState {
 }
 
 const Auth: React.FC = () => {
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [status, setStatus] = useState<AuthState>(AuthState.Enroll);
     const Component = STATUS_COMPONENT_MAP[status];
 
@@ -25,28 +26,43 @@ const Auth: React.FC = () => {
         if (auth.currentUser?.multiFactor.enrolledFactors.length) {
             setStatus(AuthState.Enrolled);
             return;
-        }
-
-        // Firebase won't allow a user to enable 2FA unless they have recently
-        // signed in. If they haven't logged in recently, show a login form.
-        if (
+        } else if (
+            // Firebase won't allow a user to modify 2FA unless they recently
+            // authenticated. If they haven't recently, make them log in.
             moment().diff(moment(auth.currentUser?.metadata.lastSignInTime)) >
-            10 * 60 * 1000
+            5 * 60 * 1000
         ) {
             setStatus(AuthState.Login);
+            return;
         }
     }, []);
 
     return (
-        <div className={styles.auth}>
+        <FieldsBox>
+            {status !== AuthState.Enrolled && (
+                <>
+                    <h2>Set up two-factor authentication</h2>
+
+                    <p>
+                        Add an additional layer of security for your account by
+                        enabling SMS-based two-factor authentication.
+                    </p>
+                </>
+            )}
+
+            {error && (
+                <Alert
+                    shouldAlwaysShow
+                    closable={false}
+                    trackingId="2faError"
+                    type="error"
+                    description={JSON.stringify(error)}
+                    className={styles.error}
+                />
+            )}
+
             <Component setStatus={setStatus} setError={setError} />
-            {error && <div>{JSON.stringify(error)}</div>}
-            Enrolled Factors:{' '}
-            <code>
-                {JSON.stringify(auth.currentUser?.multiFactor.enrolledFactors)}
-            </code>
-            <div id="recaptcha"></div>
-        </div>
+        </FieldsBox>
     );
 };
 
@@ -57,8 +73,13 @@ interface Props {
 
 const Login: React.FC<Props> = ({ setError, setStatus }) => {
     return (
-        <div>
-            <h2>Log In Again</h2>
+        <Space direction="vertical" size="medium">
+            <Alert
+                shouldAlwaysShow
+                closable={false}
+                trackingId="2faSignIn"
+                description="In order to enable 2FA you will need to log in again. After logging back in you should be returned to this page."
+            />
 
             <Button
                 trackingId="logInAgainFor2fa"
@@ -69,80 +90,161 @@ const Login: React.FC<Props> = ({ setError, setStatus }) => {
             >
                 Sign Out
             </Button>
-        </div>
+        </Space>
     );
 };
 
 const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
-    const [setup, setSetup] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState<string>('');
+    const [verificationId, setVerificationId] = useState<string>('');
 
-    useEffect(() => {
-        const authorize = async () => {
-            const recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-                'recaptcha',
-                {
-                    size: 'invisible',
-                }
-            );
-            await recaptchaVerifier.verify();
+    const enroll = async () => {
+        setError(null);
 
-            const multiFactorSession = await auth.currentUser?.multiFactor.getSession();
-            const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
-
-            // Send SMS verification code.
-            const verificationId =
-                (await phoneAuthProvider
-                    .verifyPhoneNumber(
-                        {
-                            phoneNumber,
-                            session: multiFactorSession,
-                        },
-                        recaptchaVerifier
-                    )
-                    .catch(setError)) || '';
-
-            // Ask user for the verification code.
-            const verificationCode = prompt('Please enter your code') || '';
-            const cred = firebase.auth.PhoneAuthProvider.credential(
-                verificationId,
-                verificationCode
-            );
-            const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(
-                cred
-            );
-
-            // Complete enrollment.
-            await auth.currentUser?.multiFactor
-                .enroll(multiFactorAssertion, mfaDisplayName)
-                .catch(setError);
-
-            setStatus(AuthState.Enrolled);
-        };
-
-        if (setup) {
-            authorize();
+        if (phoneNumber.length < 10) {
+            setError('Please use a valid phone number;');
         }
-    }, [setup]);
+
+        const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`;
+
+        // TODO: Store once in useEffect hook.
+        const recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+            'recaptcha',
+            {
+                size: 'invisible',
+            }
+        );
+        await recaptchaVerifier.verify();
+
+        const multiFactorSession = await auth.currentUser?.multiFactor.getSession();
+        const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
+
+        // Send SMS verification code.
+        try {
+            const vId = await phoneAuthProvider.verifyPhoneNumber(
+                {
+                    phoneNumber: formattedPhoneNumber,
+                    session: multiFactorSession,
+                },
+                recaptchaVerifier
+            );
+
+            setVerificationId(vId);
+        } catch (e) {
+            setError(e);
+            return;
+        }
+    };
 
     return (
-        <div>
+        <>
+            <Space size="medium" direction="vertical">
+                {!verificationId ? (
+                    <>
+                        <Input
+                            addonBefore="+1"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="Enter your phone number"
+                        />
+
+                        <Button trackingId="setup2fa" onClick={enroll}>
+                            Setup 2FA
+                        </Button>
+                    </>
+                ) : (
+                    // TODO: Extract to new component that can be rendered
+                    // independently (in the login flow).
+                    <VerifyPhone
+                        phoneNumber={phoneNumber}
+                        verificationId={verificationId}
+                        onSuccess={() => setStatus(AuthState.Enrolled)}
+                    />
+                )}
+            </Space>
+
+            <div id="recaptcha"></div>
+        </>
+    );
+};
+
+interface VerifyPhoneProps {
+    phoneNumber: string;
+    verificationId: string;
+    onSuccess: () => void;
+}
+
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
+    phoneNumber,
+    verificationId,
+    onSuccess,
+}) => {
+    const [error, setError] = useState<string | null>();
+    const [verificationCode, setVerificationCode] = useState<string>('');
+
+    const handleCodeSubmit = async () => {
+        setError(null);
+
+        const cred = firebase.auth.PhoneAuthProvider.credential(
+            verificationId,
+            verificationCode
+        );
+        const multiFactorAssertion = firebase.auth.PhoneMultiFactorGenerator.assertion(
+            cred
+        );
+
+        // Complete enrollment.
+        try {
+            await auth.currentUser?.multiFactor.enroll(
+                multiFactorAssertion,
+                `***-***-${phoneNumber.slice(-4)}`
+            );
+
+            onSuccess();
+        } catch (e: any) {
+            setError(e.message);
+        }
+    };
+
+    return (
+        <>
+            {error && (
+                <Alert
+                    shouldAlwaysShow
+                    closable={false}
+                    trackingId="2faVerifyError"
+                    type="error"
+                    description={error}
+                    className={styles.error}
+                />
+            )}
+
+            <p>Enter the code sent to your phone to verify your device.</p>
+
             <Input
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Verification code"
             />
 
-            <Button trackingId="setup2fa" onClick={() => setSetup(true)}>
-                Setup 2FA
+            <Button trackingId="setup2fa" onClick={handleCodeSubmit}>
+                Submit
             </Button>
-        </div>
+        </>
     );
 };
 
 const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
     return (
-        <div>
-            Enrolled!{' '}
+        <Space direction="vertical" size="medium">
+            <h2>Enrolled in two-factor authentication 🔒</h2>
+
+            <div>
+                You have{' '}
+                {auth.currentUser?.multiFactor.enrolledFactors[0].displayName}{' '}
+                set as your backup phone number.
+            </div>
+
             <Button
                 trackingId="remove2fa"
                 onClick={async () => {
@@ -150,17 +252,25 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
                         auth.currentUser?.multiFactor.enrolledFactors[0];
 
                     if (currentFactor) {
-                        await auth.currentUser?.multiFactor.unenroll(
-                            currentFactor
-                        );
+                        try {
+                            await auth.currentUser?.multiFactor.unenroll(
+                                currentFactor
+                            );
+                        } catch (e: any) {
+                            if (e.code === 'auth/requires-recent-login') {
+                                setStatus(AuthState.Login);
+                            }
 
-                        setStatus(AuthState.Enroll);
+                            setError(e.message);
+                        } finally {
+                            setStatus(AuthState.Enroll);
+                        }
                     }
                 }}
             >
                 Remove 2FA
             </Button>
-        </div>
+        </Space>
     );
 };
 

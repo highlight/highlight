@@ -63,6 +63,7 @@ const ProjectSettings = () => {
                                                     </>
                                                 ),
                                             },
+                                            // TODO: Move to a new user settings page
                                             {
                                                 key: 'auth',
                                                 title: 'Authentication',
