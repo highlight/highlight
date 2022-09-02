@@ -157,7 +157,7 @@
 		"stylelint-config-sass-guidelines": "^9.0.1",
 		"stylelint-config-standard": "^26.0.0",
 		"typed-scss-modules": "^3.4.0",
-		"typescript": "^4.7.4"
+		"typescript": "^4.8.2"
 	},
 	"resolutions": {
 		"**/postcss-custom-properties": "^12.1.7",
