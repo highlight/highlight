@@ -44,7 +44,6 @@ import { QueryParamProvider } from 'use-query-params'
 
 import packageJson from '../package.json'
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
-import * as serviceWorker from './serviceWorker'
 
 const dev = process.env.NODE_ENV === 'development'
 let commitSHA = process.env.REACT_APP_COMMIT_SHA || ''
@@ -374,7 +373,3 @@ ReactDOM.render(
 	document.getElementById('root'),
 )
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister()
