@@ -152,7 +152,7 @@ function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	return [doScroll, ref]
 }
 
-const OptionLabelName: React.FC = (props) => {
+const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const [className, setClassName] = useState<string>(styles.shadowContainer)
@@ -1660,7 +1660,6 @@ const QueryBuilder = ({
 		}
 
 		const query = parseGroup(isAnd, rules)
-		setSearchQuery(JSON.stringify(query))
 		const newState = JSON.stringify({
 			isAnd,
 			rules: serializeRules(rules),
@@ -1673,7 +1672,9 @@ const QueryBuilder = ({
 				...params,
 				query: newState,
 			}))
+			return
 		}
+		setSearchQuery(JSON.stringify(query))
 	}, [
 		getQueryFromParams,
 		isAnd,

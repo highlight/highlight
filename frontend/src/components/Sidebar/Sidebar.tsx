@@ -185,10 +185,12 @@ export const Sidebar = () => {
 	)
 }
 
-const MiniSidebarItem: React.FC<{
-	route: string
-	text: string
-}> = ({ route, text, children }) => {
+const MiniSidebarItem: React.FC<
+	React.PropsWithChildren<{
+		route: string
+		text: string
+	}>
+> = ({ route, text, children }) => {
 	const { project_id, workspace_id } = useParams<{
 		project_id: string
 		workspace_id: string

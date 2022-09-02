@@ -8,11 +8,9 @@ import React from 'react'
 
 import styles from './SlackIntegrationConfig.module.scss'
 
-const SlackIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
-	setIntegrationEnabled,
-	integrationEnabled,
-}) => {
+const SlackIntegrationConfig: React.FC<
+	React.PropsWithChildren<IntegrationConfigProps>
+> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot({
 		type: 'Organization',

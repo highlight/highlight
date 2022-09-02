@@ -57,7 +57,7 @@ export const ErrorFeedV2 = () => {
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
-			page,
+			page: page && page > 0 ? page : 1,
 			project_id,
 		},
 		onCompleted: (r) => {

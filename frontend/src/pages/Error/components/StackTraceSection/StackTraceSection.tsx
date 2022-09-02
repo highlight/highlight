@@ -177,7 +177,7 @@ const getErrorMessage = (error: string | undefined): string | undefined => {
 	return undefined
 }
 
-const StackSection: React.FC<StackSectionProps> = ({
+const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	fileName,
 	functionName,
 	lineNumber,

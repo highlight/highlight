@@ -17,7 +17,7 @@ type Props = ButtonProps & {
 	iconButton?: boolean
 }
 
-const ToggleButton: React.FC<Props> = ({
+const ToggleButton: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	trackingId,
 	toggled,
