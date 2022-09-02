@@ -57,11 +57,8 @@ import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCa
 import styles from './SessionsFeed.module.scss'
 
 const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
-	const {
-		searchParams,
-		setSearchParams,
-		backendSearchQuery,
-	} = useSearchContext()
+	const { searchParams, setSearchParams, backendSearchQuery } =
+		useSearchContext()
 	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
 	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
 		[],
@@ -72,13 +69,16 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 			project_id: projectId,
 			query: backendSearchQuery?.searchQuery as string,
 			histogram_options: {
-				bucket_size: backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ??
 					'America/Los_Angeles',
 				bounds: {
-					start_date: backendSearchQuery?.startDate.toISOString() as string,
-					end_date: backendSearchQuery?.endDate.toISOString() as string,
+					start_date:
+						backendSearchQuery?.startDate.toISOString() as string,
+					end_date:
+						backendSearchQuery?.endDate.toISOString() as string,
 				},
 			},
 		},
@@ -111,7 +111,7 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 	})
 
 	const updateTimeRange = useCallback(
-		(newStartTime, newEndTime) => {
+		(newStartTime: Date, newEndTime: Date) => {
 			const newSearchParams = {
 				...searchParams,
 				query: updateQueriedTimeRange(
@@ -178,22 +178,21 @@ export const SessionFeed = React.memo(() => {
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
 	})
-	const {
-		data: unprocessedSessionsOpenSearch,
-	} = useGetSessionsOpenSearchQuery({
-		variables: {
-			project_id,
-			count: PAGE_SIZE,
-			page: 1,
-			query: getUnprocessedSessionsQuery(
-				backendSearchQuery?.searchQuery || '',
-			),
-			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-		},
-		skip: !backendSearchQuery,
-		pollInterval: 5000,
-		fetchPolicy: 'network-only',
-	})
+	const { data: unprocessedSessionsOpenSearch } =
+		useGetSessionsOpenSearchQuery({
+			variables: {
+				project_id,
+				count: PAGE_SIZE,
+				page: 1,
+				query: getUnprocessedSessionsQuery(
+					backendSearchQuery?.searchQuery || '',
+				),
+				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
+			},
+			skip: !backendSearchQuery,
+			pollInterval: 5000,
+			fetchPolicy: 'network-only',
+		})
 
 	// Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {

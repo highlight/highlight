@@ -14,7 +14,7 @@ interface Props {
 	className?: string
 }
 
-const Tag: React.FC<Props> = ({
+const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	backgroundColor,
 	color = 'var(--text-primary)',

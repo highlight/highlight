@@ -44,12 +44,8 @@ const TimelineIndicatorsBarGraph = React.memo(
 			setZoomAreaRight,
 		} = useToolbarItemsContext()
 		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-		const {
-			time,
-			sessionMetadata,
-			setTime,
-			setCurrentEvent,
-		} = useReplayerContext()
+		const { time, sessionMetadata, setTime, setCurrentEvent } =
+			useReplayerContext()
 		const { session_secure_id } = useParams<{
 			session_secure_id: string
 		}>()
@@ -230,14 +226,14 @@ const TimelineIndicatorsBarGraph = React.memo(
 		)
 
 		const onBucketClicked = useCallback(
-			(bucketIndex) => {
+			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
 			},
 			[seriesState.bucketTimes, setTime],
 		)
 
 		const onAreaChanged = useCallback(
-			(left, right) => {
+			(left: number, right: number) => {
 				setZoomAreaLeft(
 					(zoomAreaRight - zoomAreaLeft) * left * percentPerBar +
 						(zoomAreaLeft ?? 0),
@@ -327,7 +323,7 @@ const TimelineIndicatorsBarGraph = React.memo(
 		)
 
 		const gotoAction = useCallback(
-			(bucketIndex) => {
+			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
 			},
 			[seriesState.bucketTimes, setTime],

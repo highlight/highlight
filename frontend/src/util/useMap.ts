@@ -15,7 +15,7 @@ function useMap<K, V>(
 ): Return<K, V> {
 	const [map, setMap] = useState(new Map(initialState))
 
-	const set = useCallback((key, value) => {
+	const set = useCallback((key: K, value: V) => {
 		setMap((prev) => {
 			const copy = new Map(prev)
 			copy.set(key, value)
@@ -37,7 +37,7 @@ function useMap<K, V>(
 		})
 	}, [])
 
-	const remove = useCallback((key) => {
+	const remove = useCallback((key: K) => {
 		setMap((prev) => {
 			const copy = new Map(prev)
 			copy.delete(key)

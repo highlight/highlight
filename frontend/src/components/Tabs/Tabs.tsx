@@ -1,9 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
+import useLocalStorage from '@rehooks/local-storage'
 import { Tabs as AntDesignTabs, TabsProps } from 'antd'
+import classNames from 'classnames'
 import React, { useEffect } from 'react'
 const { TabPane } = AntDesignTabs
-import useLocalStorage from '@rehooks/local-storage'
-import classNames from 'classnames'
+
+import { isRenderable } from '@util/react'
 
 import styles from './Tabs.module.scss'
 
@@ -79,7 +81,7 @@ const Tabs = ({
 				setActiveTab(activeKey)
 			}}
 			tabBarExtraContent={
-				tabBarExtraContent ? (
+				isRenderable(tabBarExtraContent) ? (
 					<div
 						className={classNames(
 							styles.extraContentContainer,
@@ -91,7 +93,9 @@ const Tabs = ({
 					>
 						{tabBarExtraContent}
 					</div>
-				) : null
+				) : (
+					tabBarExtraContent
+				)
 			}
 			id={tabsHtmlId}
 			className={classNames(styles.tabs, className, {

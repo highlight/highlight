@@ -1,6 +1,6 @@
 import { GetErrorGroupQuery } from '@graph/operations'
+import { useWindowSize } from '@hooks/useWindowSize'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
-import useWindowSize from '@rehooks/window-size'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
@@ -27,7 +27,7 @@ export const ErrorCreateCommentModal = ({
 		error_secure_id: string
 	}>()
 
-	const { innerWidth, innerHeight } = useWindowSize()
+	const { width, height } = useWindowSize()
 
 	const currentUrl = `${
 		window.location.port !== ''
@@ -47,8 +47,8 @@ export const ErrorCreateCommentModal = ({
 			commentModalPosition={
 				show !== CreateModalType.None
 					? {
-							x: innerWidth / 2 - 250,
-							y: innerHeight / 2 - 210,
+							x: width / 2 - 250,
+							y: height / 2 - 210,
 					  }
 					: undefined
 			}

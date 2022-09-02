@@ -9,7 +9,7 @@ type Props = {
 	fullWidth?: boolean
 } & Omit<React.HTMLAttributes<HTMLDivElement>, 'title'>
 
-const DataCard: React.FC<Props> = ({
+const DataCard: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	title,
 	fullWidth = false,

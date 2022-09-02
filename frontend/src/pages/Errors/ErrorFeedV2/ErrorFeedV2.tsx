@@ -44,11 +44,8 @@ import styles from './ErrorFeedV2.module.scss'
 const PAGE_SIZE = 10
 
 const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
-	const {
-		backendSearchQuery,
-		searchParams,
-		setSearchParams,
-	} = useErrorSearchContext()
+	const { backendSearchQuery, searchParams, setSearchParams } =
+		useErrorSearchContext()
 	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
 	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
 		[],
@@ -58,13 +55,16 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 			query: backendSearchQuery?.childSearchQuery as string,
 			project_id: projectID,
 			histogram_options: {
-				bucket_size: backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ??
 					'America/Los_Angeles',
 				bounds: {
-					start_date: backendSearchQuery?.startDate.toISOString() as string,
-					end_date: backendSearchQuery?.endDate.toISOString() as string,
+					start_date:
+						backendSearchQuery?.startDate.toISOString() as string,
+					end_date:
+						backendSearchQuery?.endDate.toISOString() as string,
 				},
 			},
 		},
@@ -92,7 +92,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 	})
 
 	const updateTimeRange = useCallback(
-		(newStartTime, newEndTime) => {
+		(newStartTime: Date, newEndTime: Date) => {
 			const newSearchParams = {
 				...searchParams,
 				query: updateQueriedTimeRange(
@@ -138,10 +138,8 @@ export const ErrorFeedV2 = () => {
 	} = useErrorSearchContext()
 	const projectHasManyErrors = errorsCount > PAGE_SIZE
 
-	const [
-		errorFeedIsInTopScrollPosition,
-		setErrorFeedIsInTopScrollPosition,
-	] = useState(true)
+	const [errorFeedIsInTopScrollPosition, setErrorFeedIsInTopScrollPosition] =
+		useState(true)
 	useEffect(() => {
 		if (backendSearchQuery) {
 			setSearchResultsLoading(true)

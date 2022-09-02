@@ -156,7 +156,7 @@ function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	return [doScroll, ref]
 }
 
-const OptionLabelName: React.FC = (props) => {
+const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const [className, setClassName] = useState<string>(styles.shadowContainer)
@@ -1259,9 +1259,8 @@ const QueryBuilder = ({
 					case 'is':
 						return {
 							term: {
-								[`${name}${
-									isKeyword ? '.keyword' : ''
-								}`]: value,
+								[`${name}${isKeyword ? '.keyword' : ''}`]:
+									value,
 							},
 						}
 					case 'contains':
@@ -1275,9 +1274,8 @@ const QueryBuilder = ({
 					case 'matches':
 						return {
 							regexp: {
-								[`${name}${
-									isKeyword ? '.keyword' : ''
-								}`]: value,
+								[`${name}${isKeyword ? '.keyword' : ''}`]:
+									value,
 							},
 						}
 					case 'exists':
@@ -1426,11 +1424,10 @@ const QueryBuilder = ({
 							[isAnd ? 'must' : 'should']: [
 								{
 									bool: {
-										[isAnd
-											? 'must'
-											: 'should']: standardRules.map(
-											(rule) => parseRule(rule),
-										),
+										[isAnd ? 'must' : 'should']:
+											standardRules.map((rule) =>
+												parseRule(rule),
+											),
 									},
 								},
 								{
@@ -1438,11 +1435,11 @@ const QueryBuilder = ({
 										type: 'child',
 										query: {
 											bool: {
-												[isAnd
-													? 'must'
-													: 'should']: errorObjectRules.map(
-													(rule) => parseRule(rule),
-												),
+												[isAnd ? 'must' : 'should']:
+													errorObjectRules.map(
+														(rule) =>
+															parseRule(rule),
+													),
 											},
 										},
 									},
@@ -1458,22 +1455,20 @@ const QueryBuilder = ({
 										parent_type: 'parent',
 										query: {
 											bool: {
-												[isAnd
-													? 'must'
-													: 'should']: standardRules.map(
-													(rule) => parseRule(rule),
-												),
+												[isAnd ? 'must' : 'should']:
+													standardRules.map((rule) =>
+														parseRule(rule),
+													),
 											},
 										},
 									},
 								},
 								{
 									bool: {
-										[isAnd
-											? 'must'
-											: 'should']: errorObjectRules.map(
-											(rule) => parseRule(rule),
-										),
+										[isAnd ? 'must' : 'should']:
+											errorObjectRules.map((rule) =>
+												parseRule(rule),
+											),
 									},
 								},
 							],
