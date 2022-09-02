@@ -1607,14 +1607,16 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 	}
 
 	var response struct {
-		AccessToken  string `json:"access_token"`
-		RefreshToken string `json:"refresh_token"`
+		AccessToken  string    `json:"access_token"`
+		RefreshToken string    `json:"refresh_token"`
+		ExpiresAt    time.Time `json:"expires_at"`
 	}
 	if err := json.Unmarshal(data, &response); err != nil {
 		return e.Wrap(err, "failed to json unmarshal front oauth http request")
 	}
 
-	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &response.AccessToken}).Error; err != nil {
+	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &response.AccessToken,
+		FrontRefreshToken: &response.RefreshToken, FrontTokenExpiresAt: &response.ExpiresAt}).Error; err != nil {
 		return e.Wrap(err, "error updating front access token on project")
 	}
 
