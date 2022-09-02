@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
+import Button from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Tooltip from '@components/Tooltip/Tooltip'
@@ -20,12 +21,15 @@ import {
 import SvgInformationIcon from '@icons/InformationIcon'
 import UserCross from '@icons/UserCross'
 import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { mustUpgradeForClearbit } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import {
 	FaExternalLinkSquareAlt,
 	FaFacebookSquare,
@@ -37,7 +41,10 @@ import {
 import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier'
 import { ReactComponent as StarIcon } from '../../../static/star.svg'
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg'
-import { getIdentifiedUserProfileImage } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
+import {
+	getDisplayNameAndField,
+	getIdentifiedUserProfileImage,
+} from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { useReplayerContext } from '../ReplayerContext'
 import styles from './MetadataBox.module.scss'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
@@ -46,6 +53,9 @@ export const MetadataBox = React.memo(() => {
 	const { isLoggedIn } = useAuthContext()
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
+	const { setSearchParams } = useSearchContext()
+	const { setShowLeftPanel } = usePlayerConfiguration()
+
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 	const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
 		update(cache) {
@@ -61,20 +71,52 @@ export const MetadataBox = React.memo(() => {
 			})
 		},
 	})
-	const created = new Date(session?.created_at ?? 0)
-	const customAvatarImage = getIdentifiedUserProfileImage(
-		session as Maybe<Session>,
-	)
-	const backfilled = sessionIsBackfilled(session)
 
 	// clear enhanced avatar when session changes
 	useEffect(() => {
 		setEnhancedAvatar(undefined)
 	}, [session_secure_id])
 
+	const created = new Date(session?.created_at ?? 0)
+	const customAvatarImage = getIdentifiedUserProfileImage(
+		session as Maybe<Session>,
+	)
+	const backfilled = sessionIsBackfilled(session)
+
 	const geoData = [session?.city, session?.state, session?.country]
 		.filter((part) => !!part)
 		.join(', ')
+
+	const [displayValue, field] = getDisplayNameAndField(session)
+	const searchIdentifier = useCallback(() => {
+		const hasIdentifier = !!session?.identifier
+		const newSearchParams = {
+			...EmptySessionsSearchParams,
+		}
+
+		if (hasIdentifier && field !== null) {
+			newSearchParams.user_properties = [
+				{
+					id: '0',
+					name: field,
+					value: displayValue,
+				},
+			]
+		} else if (session?.fingerprint) {
+			newSearchParams.device_id = session.fingerprint.toString()
+		}
+
+		setSearchParams(newSearchParams)
+		setShowLeftPanel(true)
+	}, [
+		displayValue,
+		field,
+		session?.fingerprint,
+		session?.identifier,
+		setSearchParams,
+		setShowLeftPanel,
+	])
+
 	return (
 		<div
 			className={classNames(styles.userBox, {
@@ -131,9 +173,46 @@ export const MetadataBox = React.memo(() => {
 						<>
 							<h4 className={styles.userIdHeader}>
 								<UserIdentifier
-									session={session}
+									displayValue={displayValue}
 									className={styles.userIdentifier}
+									onClick={searchIdentifier}
 								/>
+								{isLoggedIn && (
+									<div
+										className={styles.starIconWrapper}
+										onClick={() => {
+											markSessionAsStarred({
+												variables: {
+													secure_id:
+														session_secure_id,
+													starred: !session?.starred,
+												},
+											})
+												.then(() => {
+													message.success(
+														'Updated session status!',
+														3,
+													)
+												})
+												.catch(() => {
+													message.error(
+														'Error updating session status!',
+														3,
+													)
+												})
+										}}
+									>
+										{session?.starred ? (
+											<FilledStarIcon
+												className={styles.starredIcon}
+											/>
+										) : (
+											<StarIcon
+												className={styles.unstarredIcon}
+											/>
+										)}
+									</div>
+								)}
 							</h4>
 							<p className={styles.userIdSubHeader}>
 								{created.toLocaleString('en-us', {
@@ -171,40 +250,17 @@ export const MetadataBox = React.memo(() => {
 									</span>
 								</p>
 							)}
+							<Button
+								className={styles.viewAllSessionsButton}
+								trackingId="ViewAllUserSessions"
+								type="text"
+								onClick={searchIdentifier}
+							>
+								<span>More sessions by {displayValue}</span>
+							</Button>
 						</>
 					)}
 				</div>
-				{isLoggedIn && (
-					<div
-						className={styles.starIconWrapper}
-						onClick={() => {
-							markSessionAsStarred({
-								variables: {
-									secure_id: session_secure_id,
-									starred: !session?.starred,
-								},
-							})
-								.then(() => {
-									message.success(
-										'Updated session status!',
-										3,
-									)
-								})
-								.catch(() => {
-									message.error(
-										'Error updating session status!',
-										3,
-									)
-								})
-						}}
-					>
-						{session?.starred ? (
-							<FilledStarIcon className={styles.starredIcon} />
-						) : (
-							<StarIcon className={styles.unstarredIcon} />
-						)}
-					</div>
-				)}
 			</div>
 			<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
 		</div>

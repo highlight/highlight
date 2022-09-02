@@ -1,4 +1,5 @@
 $backfill-height: 30px;
+$avatar-size: 36px;
 
 .userBox {
 	background-color: var(--color-primary-background);
@@ -53,8 +54,8 @@ $backfill-height: 30px;
 }
 
 .avatar {
-	height: 36px;
-	width: 36px;
+	height: $avatar-size;
+	width: $avatar-size;
 }
 
 #enhancedName {
@@ -80,11 +81,12 @@ $backfill-height: 30px;
 .enhancedTextSection {
 	display: flex;
 	flex-direction: column;
+	padding-left: calc($avatar-size + var(--size-small));
 	row-gap: var(--size-xxSmall);
 }
 
 .userEnhanced {
-	padding: 16px 28px;
+	padding: var(--size-medium);
 	position: relative;
 }
 
@@ -112,13 +114,9 @@ $backfill-height: 30px;
 .userMainSection {
 	border-bottom: 1px solid var(--color-gray-300);
 	box-sizing: border-box;
-	column-gap: var(--size-small);
 	display: flex;
 	flex-direction: row;
-	padding-bottom: var(--size-medium);
-	padding-left: 22px;
-	padding-right: 22px;
-	padding-top: var(--size-medium);
+	padding: var(--size-medium);
 }
 
 .userDetailsSection {
@@ -166,7 +164,10 @@ $backfill-height: 30px;
 	display: flex;
 	flex-direction: column;
 	font-weight: 400;
-	padding-right: 20px;
+	max-width: calc(
+		var(--right-panel-width) - $avatar-size - 2 * var(--size-medium)
+	);
+	padding-left: var(--size-small);
 	row-gap: var(--size-xxSmall);
 	width: 100%;
 }
@@ -180,14 +181,16 @@ $backfill-height: 30px;
 }
 
 .userIdHeader {
+	align-items: center;
 	color: var(--text-primary);
+	display: flex;
+	flex-wrap: nowrap;
 	font-size: 14px;
 	font-weight: 300;
 	margin: 0;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	// Spacing for the star icon.
-	width: calc(100% - 50px);
+	width: 100%;
 }
 
 .userIdSubHeader {
@@ -232,7 +235,10 @@ $backfill-height: 30px;
 }
 
 .starIconWrapper {
-	width: var(--size-medium);
+	flex-shrink: 0;
+	height: var(--size-medium) !important;
+	margin-left: auto;
+	width: var(--size-medium) !important;
 
 	&:hover {
 		cursor: pointer;
@@ -240,15 +246,13 @@ $backfill-height: 30px;
 }
 
 .starredIcon {
-	color: var(--color-yellow-200);
-	fill: var(--color-yellow-200);
-	stroke: var(--color-yellow-200);
+	color: var(--color-yellow-300);
+	fill: var(--color-yellow-300);
+	stroke: var(--color-yellow-300);
 }
 
 .unstarredIcon {
-	color: var(--color-gray-500);
 	fill: var(--color-gray-500);
-	stroke: var(--color-gray-500);
 }
 
 .deviceDetails {
@@ -259,6 +263,22 @@ $backfill-height: 30px;
 
 .userIdentifier {
 	margin-top: 0;
+}
+
+.viewAllSessionsButton {
+	background-color: var(--color-purple-100);
+	display: block;
+	font-size: var(--size-small);
+	left: calc(-1 * var(--size-xSmall));
+	margin: var(--size-xxSmall) 0 0 !important;
+	max-width: min-content;
+	padding: var(--size-xxSmall) var(--size-xSmall);
+	span {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }
 
 .tooltip {
