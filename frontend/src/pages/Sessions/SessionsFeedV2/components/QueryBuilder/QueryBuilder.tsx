@@ -259,7 +259,7 @@ export const updateQueriedTimeRange = (
 	const parsedQuery = JSON.parse(query) as QueryBuilderState
 	parsedQuery.rules = parsedQuery.rules.map((rule) => {
 		if (rule[0] === timeRangeField.value) {
-			rule[2] = serializedValue // TODO
+			rule[2] = serializedValue
 		}
 		return rule
 	})

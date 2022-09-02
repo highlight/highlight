@@ -119,8 +119,19 @@ export const SearchResultsHistogram = React.memo(
 			[bucketTimes, updateTimeRange],
 		)
 		const onBucketClicked = useCallback(
-			(bucketIndex: number) => onAreaChanged(bucketIndex, bucketIndex),
-			[onAreaChanged],
+			(bucketIndex: number) => {
+				// Only update the search query if the count is non-zero
+				if (
+					seriesList.find(
+						(series) =>
+							bucketIndex < series.counts.length &&
+							series.counts[bucketIndex] > 0,
+					)
+				) {
+					onAreaChanged(bucketIndex, bucketIndex)
+				}
+			},
+			[onAreaChanged, seriesList],
 		)
 		const timeFormatter = useCallback(
 			(t: number) => {

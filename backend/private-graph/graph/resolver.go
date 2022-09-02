@@ -2596,36 +2596,60 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 
 func FormatSessionsQuery(query string) string {
 	return fmt.Sprintf(`
-		{"bool": {
-			"must":[
-				{"bool": {
-					"must_not":[
-						{"term":{"Excluded":true}},
-						{"term":{"within_billing_quota":false}},
-						{"bool": {
-							"must":[
-								{"term":{"processed":"true"}},
-								{"bool":
-									{"should": [
-										{"range": {
-											"active_length": {
-												"lt": 1000
+	{
+		"bool": {
+		   "must": [
+			  {
+				 "bool": {
+					"must_not": [
+					   {
+						  "term": {
+							 "Excluded": true
+						  }
+					   },
+					   {
+						  "term": {
+							 "within_billing_quota": false
+						  }
+					   },
+					   {
+						  "bool": {
+							 "must": [
+								{
+								   "term": {
+									  "processed": "true"
+								   }
+								},
+								{
+								   "bool": {
+									  "should": [
+										 {
+											"range": {
+											   "active_length": {
+												  "lt": 1000
+											   }
 											}
-										}},
-										{"range": {
-											"length": {
-												"lt": 1000
+										 },
+										 {
+											"range": {
+											   "length": {
+												  "lt": 1000
+											   }
 											}
-									  	}}
-								  	]}
-							  	}
-						  	]
-						}}
+										 }
+									  ]
+								   }
+								}
+							 ]
+						  }
+					   }
 					]
-				}},
-				%s
-			]
-		}}`, query)
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, query)
 }
 
 func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
