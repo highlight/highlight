@@ -45,8 +45,8 @@ import { QueryParamProvider } from 'use-query-params'
 import packageJson from '../package.json'
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
 
-const dev = process.env.NODE_ENV === 'development'
-let commitSHA = process.env.REACT_APP_COMMIT_SHA || ''
+const dev = import.meta.env.DEV
+let commitSHA = import.meta.env.REACT_APP_COMMIT_SHA || ''
 if (commitSHA.length > 8) {
 	commitSHA = commitSHA.substring(0, 8)
 }
@@ -96,16 +96,16 @@ if (dev) {
 	}-localhost`
 	window.document.title = `⚙️ ${window.document.title}`
 	if (favicon) {
-		favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`
+		favicon.href = `/favicon-localhost.ico`
 	}
 } else if (window.location.href.includes('onrender')) {
 	if (favicon) {
-		favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`
+		favicon.href = `/favicon-pr.ico`
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
 }
-H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
 
@@ -372,4 +372,3 @@ ReactDOM.render(
 	</React.StrictMode>,
 	document.getElementById('root'),
 )
-
