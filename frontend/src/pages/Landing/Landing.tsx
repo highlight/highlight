@@ -1,10 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { UserDropdown } from '@components/Header/UserDropdown/UserDropdown'
-import React, { useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 
-import styles from './Landing.module.scss'
-
-export const Landing: React.FC<{}> = ({ children }) => {
+export const Landing = ({ children }: { children: ReactNode }) => {
 	const { isLoggedIn } = useAuthContext()
 
 	useEffect(() => {
@@ -14,11 +12,14 @@ export const Landing: React.FC<{}> = ({ children }) => {
 	}, [])
 
 	return (
-		<div className={styles.contentWrapper}>
-			<div className={styles.userDropdownContainer}>
+		<div
+			className="flex min-h-screen w-full flex-col items-center overflow-y-auto bg-midnight p-8"
+			style={{ transform: `translateZ(0)` }} // scroll optimization
+		>
+			<div className="fixed right-5 top-5">
 				{isLoggedIn && <UserDropdown border />}
 			</div>
-			{children}
+			<div className="m-auto">{children}</div>
 		</div>
 	)
 }

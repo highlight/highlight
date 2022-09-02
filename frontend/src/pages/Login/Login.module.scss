@@ -45,14 +45,6 @@
 	margin: auto;
 }
 
-/* using a viewport height unit ensures that the login page is left-aligned
-when there is enough space between the left and the astronaut */
-@media (min-width: 150vh) {
-	.loginFormWrapper {
-		margin: auto 0 auto;
-	}
-}
-
 @media (min-width: 768px) {
 	.loginPage {
 		padding: 4rem;
