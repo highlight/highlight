@@ -10,11 +10,9 @@ import { Redirect, useHistory } from 'react-router-dom'
 
 import styles from './ClearbitIntegrationConfig.module.scss'
 
-const ClearbitIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
-	setIntegrationEnabled,
-	integrationEnabled,
-}) => {
+const ClearbitIntegrationConfig: React.FC<
+	React.PropsWithChildren<IntegrationConfigProps>
+> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
 	const [redirectToBilling, setRedirectToBilling] = React.useState(false)
 	const {
 		isClearbitIntegratedWithWorkspace,

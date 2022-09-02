@@ -20,7 +20,7 @@ interface Props {
 /**
  * Used to add space between children.
  */
-const Space: React.FC<Props> = ({
+const Space: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	direction = 'horizontal',
 	align = 'start',
