@@ -11,6 +11,7 @@ import {
 } from '@graph/schemas';
 import { LINE_COLORS } from '@pages/Dashboards/components/DashboardCard/DashboardCard';
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage';
+import { getGraphQLResolverName } from '@pages/Player/utils/utils';
 import { useParams } from '@util/react-router/useParams';
 import { Dropdown, Menu } from 'antd';
 import moment from 'moment';
@@ -25,6 +26,25 @@ interface Props {
 
 const RequestMetrics: React.FC<Props> = ({ resource }) => {
     const { project_id } = useParams<{ project_id: string }>();
+
+    const graphQlOperation = getGraphQLResolverName(resource);
+
+    const filters = [
+        {
+            tag: 'url',
+            op: MetricTagFilterOp.Equals,
+            value: resource.name,
+        },
+    ];
+
+    if (graphQlOperation) {
+        filters.push({
+            tag: 'graphql_operation',
+            op: MetricTagFilterOp.Equals,
+            value: graphQlOperation,
+        });
+    }
+
     const { data } = useGetMetricsTimelineQuery({
         variables: {
             project_id,
@@ -38,13 +58,7 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 resolution_minutes: 1,
                 units: 'ms',
-                filters: [
-                    {
-                        tag: 'url',
-                        op: MetricTagFilterOp.Equals,
-                        value: resource.name,
-                    },
-                ],
+                filters,
             },
         },
         fetchPolicy: 'cache-first',
