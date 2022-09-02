@@ -14,7 +14,7 @@ interface Props {
 	onCopyTooltipText: string
 }
 
-const CopyText: React.FC<Props> = ({
+const CopyText: React.FC<React.PropsWithChildren<Props>> = ({
 	text,
 	className,
 	inline,

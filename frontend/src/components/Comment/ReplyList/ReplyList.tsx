@@ -12,7 +12,10 @@ interface ReplyListProps {
 	scrollReplies?: boolean
 }
 
-const ReplyList: React.FC<ReplyListProps> = ({ replies, scrollReplies }) => {
+const ReplyList: React.FC<React.PropsWithChildren<ReplyListProps>> = ({
+	replies,
+	scrollReplies,
+}) => {
 	return (
 		<div
 			className={classNames(styles.repliesList, {

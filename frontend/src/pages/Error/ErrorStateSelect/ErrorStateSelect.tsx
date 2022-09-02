@@ -19,10 +19,12 @@ export const ErrorStateOptions = Object.keys(ErrorState).map((key) => ({
 	id: key.toUpperCase(),
 }))
 
-export const ErrorStateSelect: React.FC<{
-	state?: ErrorState
-	loading: boolean
-}> = ({ state: initialErrorState, loading }) => {
+export const ErrorStateSelect: React.FC<
+	React.PropsWithChildren<{
+		state?: ErrorState
+		loading: boolean
+	}>
+> = ({ state: initialErrorState, loading }) => {
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState, { loading: updateLoading }] =
 		useUpdateErrorGroupStateMutation()

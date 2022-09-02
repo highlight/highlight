@@ -51,9 +51,9 @@ interface AutoCompleteWidgetProps {
 	maxLength: number
 }
 
-const AutoCompleteWidget: React.FC<AutoCompleteWidgetProps> = (
-	props: AutoCompleteWidgetProps,
-) => {
+const AutoCompleteWidget: React.FC<
+	React.PropsWithChildren<AutoCompleteWidgetProps>
+> = (props: AutoCompleteWidgetProps) => {
 	const { refetch } = useGetFieldsOpensearchQuery({
 		skip: true,
 		fetchPolicy: 'no-cache',
@@ -197,7 +197,7 @@ const parseGroup = (tree: JsonGroup): any => {
 	}
 }
 
-const OpenSearchQueryPage: React.FC = () => {
+const OpenSearchQueryPage: React.FC<React.PropsWithChildren<unknown>> = () => {
 	const { data, loading } = useGetFieldTypesQuery({
 		variables: { project_id: '1' },
 	})

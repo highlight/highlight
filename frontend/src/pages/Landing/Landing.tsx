@@ -4,7 +4,9 @@ import React, { useEffect } from 'react'
 
 import styles from './Landing.module.scss'
 
-export const Landing: React.FC<{}> = ({ children }) => {
+export const Landing: React.FC<React.PropsWithChildren<{}>> = ({
+	children,
+}) => {
 	const { isLoggedIn } = useAuthContext()
 
 	useEffect(() => {
