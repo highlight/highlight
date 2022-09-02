@@ -26,7 +26,6 @@ interface Props {
 
 const RequestMetrics: React.FC<Props> = ({ resource }) => {
     const { project_id } = useParams<{ project_id: string }>();
-
     const graphQlOperation = getGraphQLResolverName(resource);
 
     const filters = [

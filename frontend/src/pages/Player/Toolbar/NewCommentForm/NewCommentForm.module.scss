@@ -1,133 +1,133 @@
 .actionButtons {
-    display: flex;
-    gap: var(--size-xSmall);
-    justify-content: flex-end;
+	display: flex;
+	gap: var(--size-xSmall);
+	justify-content: flex-end;
 
-    button {
-        align-items: center;
-        display: flex;
-        flex-direction: row;
-        gap: var(--size-small);
-    }
+	button {
+		align-items: center;
+		display: flex;
+		flex-direction: row;
+		gap: var(--size-small);
+	}
 }
 
 .textBoxStyles {
-    font-size: inherit !important;
+	font-size: inherit !important;
 }
 
 .integrationIcon {
-    border-radius: var(--size-xxSmall);
-    margin-bottom: 2px;
-    margin-right: var(--size-xSmall);
-    width: calc(var(--size-medium) + 2px);
+	border-radius: var(--size-xxSmall);
+	margin-bottom: 2px;
+	margin-right: var(--size-xSmall);
+	width: calc(var(--size-medium) + 2px);
 }
 
 .integrationIcon.largeSize {
-    margin-bottom: 4px;
-    width: calc(var(--size-large) + 2px);
+	margin-bottom: 4px;
+	width: calc(var(--size-large) + 2px);
 }
 
 .formItemSpacer {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-xSmall);
-    justify-content: space-between;
-    row-gap: var(--size-medium);
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xSmall);
+	justify-content: space-between;
+	row-gap: var(--size-medium);
 }
 
 .actionButtonsContainer {
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 .commentInputContainer {
-    background: var(--color-gray-200);
-    border: 1px solid transparent;
-    border-radius: var(--border-radius);
-    box-shadow: none !important;
-    height: 100px;
-    padding-bottom: var(--size-xSmall) !important;
-    padding-left: var(--size-small) !important;
-    padding-right: var(--size-small) !important;
-    padding-top: var(--size-xSmall) !important;
-    transition: all 0.2s ease-in-out;
+	background: var(--color-gray-200);
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+	box-shadow: none !important;
+	height: 100px;
+	padding-bottom: var(--size-xSmall) !important;
+	padding-left: var(--size-small) !important;
+	padding-right: var(--size-small) !important;
+	padding-top: var(--size-xSmall) !important;
+	transition: all 0.2s ease-in-out;
 
-    div {
-        height: 100%;
-    }
+	div {
+		height: 100%;
+	}
 
-    textarea {
-        color: var(--text-primary) !important;
-        height: 100%;
-    }
+	textarea {
+		color: var(--text-primary) !important;
+		height: 100%;
+	}
 
-    &:hover,
-    &:active,
-    &:focus-within {
-        background: var(--color-primary-background);
-        border-color: var(--color-purple);
-        box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
-    }
+	&:hover,
+	&:active,
+	&:focus-within {
+		background: var(--color-primary-background);
+		border-color: var(--color-purple);
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
+	}
 }
 
 .intercomLink {
-    cursor: pointer;
-    text-decoration: underline;
+	cursor: pointer;
+	text-decoration: underline;
 }
 
 .form {
-    :global(.ant-form-item) {
-        margin-bottom: 0 !important;
-    }
+	:global(.ant-form-item) {
+		margin-bottom: 0 !important;
+	}
 }
 
 .hide {
-    animation-fill-mode: forwards;
-    opacity: 0;
-    visibility: hidden !important;
+	animation-fill-mode: forwards;
+	opacity: 0;
+	visibility: hidden !important;
 }
 
 .slides {
-    align-items: flex-start;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    row-gap: var(--size-medium);
-    transition: transform 0.25s ease;
-    width: calc(200% + (var(--size-medium) / 2));
+	align-items: flex-start;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	row-gap: var(--size-medium);
+	transition: transform 0.25s ease;
+	width: calc(200% + (var(--size-medium) / 2));
 
-    > div {
-        transition: opacity 0.25s, visibility 0.15s linear;
-        visibility: visible;
-        width: 100%;
-    }
+	> div {
+		transition: opacity 0.25s, visibility 0.15s linear;
+		visibility: visible;
+		width: 100%;
+	}
 }
 
 .showSecondSlide {
-    transform: translateX(calc(-50% - var(--size-xxSmall)));
+	transform: translateX(calc(-50% - var(--size-xxSmall)));
 }
 
 .slidesContainer {
-    margin-left: calc(-1 * var(--size-large));
-    margin-right: calc(-1 * var(--size-large));
-    overflow-x: hidden;
-    padding-bottom: var(--size-xSmall);
-    padding-left: var(--size-large);
-    padding-right: var(--size-large);
-    padding-top: var(--size-xSmall);
+	margin-left: calc(-1 * var(--size-large));
+	margin-right: calc(-1 * var(--size-large));
+	overflow-x: hidden;
+	padding-bottom: var(--size-xSmall);
+	padding-left: var(--size-large);
+	padding-right: var(--size-large);
+	padding-top: var(--size-xSmall);
 }
 
 .submitButton {
-    transition: background-color 0.3s ease;
+	transition: background-color 0.3s ease;
 }
 
 .loading {
-    background-color: var(--color-gray-400);
-    border: solid 1px var(--color-gray-400);
+	background-color: var(--color-gray-400);
+	border: solid 1px var(--color-gray-400);
 
-    &:hover,
-    &:active,
-    &:focus-within {
-        background-color: var(--color-gray-400);
-        border: solid 1px var(--color-gray-400);
-    }
+	&:hover,
+	&:active,
+	&:focus-within {
+		background-color: var(--color-gray-400);
+		border: solid 1px var(--color-gray-400);
+	}
 }

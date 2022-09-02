@@ -24,3 +24,4 @@ export const shadowLeft: string;
 export const shadowParent: string;
 export const shadowRight: string;
 export const syncButton: string;
+export const timeRangeContainer: string;

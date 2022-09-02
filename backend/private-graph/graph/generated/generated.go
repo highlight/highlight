@@ -337,6 +337,11 @@ type ComplexityRoot struct {
 		LinesBefore  func(childComplexity int) int
 	}
 
+	ErrorsHistogram struct {
+		BucketTimes  func(childComplexity int) int
+		ErrorObjects func(childComplexity int) int
+	}
+
 	EventChunk struct {
 		ChunkIndex func(childComplexity int) int
 		SessionID  func(childComplexity int) int
@@ -552,6 +557,7 @@ type ComplexityRoot struct {
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
+		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
 		EventChunks                  func(childComplexity int, secureID string) int
 		Events                       func(childComplexity int, sessionSecureID string) int
@@ -595,6 +601,7 @@ type ComplexityRoot struct {
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
 		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
+		SessionsHistogram            func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
 		SessionsOpensearch           func(childComplexity int, projectID int, count int, query string, sortDesc bool, page *int) int
 		SlackChannelSuggestion       func(childComplexity int, projectID int) int
 		SlackMembers                 func(childComplexity int, projectID int) int
@@ -796,6 +803,13 @@ type ComplexityRoot struct {
 	SessionResults struct {
 		Sessions   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
+	}
+
+	SessionsHistogram struct {
+		BucketTimes           func(childComplexity int) int
+		SessionsWithErrors    func(childComplexity int) int
+		SessionsWithoutErrors func(childComplexity int) int
+		TotalSessions         func(childComplexity int) int
 	}
 
 	SlackSyncResponse struct {
@@ -1000,6 +1014,7 @@ type QueryResolver interface {
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
 	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model1.ErrorResults, error)
+	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -1031,6 +1046,7 @@ type QueryResolver interface {
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model1.SessionResults, error)
+	SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
 	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
@@ -2480,6 +2496,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
+
+	case "ErrorsHistogram.bucket_times":
+		if e.complexity.ErrorsHistogram.BucketTimes == nil {
+			break
+		}
+
+		return e.complexity.ErrorsHistogram.BucketTimes(childComplexity), true
+
+	case "ErrorsHistogram.error_objects":
+		if e.complexity.ErrorsHistogram.ErrorObjects == nil {
+			break
+		}
+
+		return e.complexity.ErrorsHistogram.ErrorObjects(childComplexity), true
 
 	case "EventChunk.chunk_index":
 		if e.complexity.EventChunk.ChunkIndex == nil {
@@ -4077,6 +4107,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Errors(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.errors_histogram":
+		if e.complexity.Query.ErrorsHistogram == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errors_histogram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorsHistogram(childComplexity, args["project_id"].(int), args["query"].(string), args["histogram_options"].(model.DateHistogramOptions)), true
+
 	case "Query.event_chunk_url":
 		if e.complexity.Query.EventChunkURL == nil {
 			break
@@ -4577,6 +4619,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SessionIntervals(childComplexity, args["session_secure_id"].(string)), true
+
+	case "Query.sessions_histogram":
+		if e.complexity.Query.SessionsHistogram == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sessions_histogram_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionsHistogram(childComplexity, args["project_id"].(int), args["query"].(string), args["histogram_options"].(model.DateHistogramOptions)), true
 
 	case "Query.sessions_opensearch":
 		if e.complexity.Query.SessionsOpensearch == nil {
@@ -5770,6 +5824,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
+	case "SessionsHistogram.bucket_times":
+		if e.complexity.SessionsHistogram.BucketTimes == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.BucketTimes(childComplexity), true
+
+	case "SessionsHistogram.sessions_with_errors":
+		if e.complexity.SessionsHistogram.SessionsWithErrors == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.SessionsWithErrors(childComplexity), true
+
+	case "SessionsHistogram.sessions_without_errors":
+		if e.complexity.SessionsHistogram.SessionsWithoutErrors == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.SessionsWithoutErrors(childComplexity), true
+
+	case "SessionsHistogram.total_sessions":
+		if e.complexity.SessionsHistogram.TotalSessions == nil {
+			break
+		}
+
+		return e.complexity.SessionsHistogram.TotalSessions(childComplexity), true
+
 	case "SlackSyncResponse.newChannelsAddedCount":
 		if e.complexity.SlackSyncResponse.NewChannelsAddedCount == nil {
 			break
@@ -6136,6 +6218,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAdminAboutYouDetails,
 		ec.unmarshalInputDashboardMetricConfigInput,
 		ec.unmarshalInputDashboardParamsInput,
+		ec.unmarshalInputDateHistogramBucketSize,
+		ec.unmarshalInputDateHistogramOptions,
 		ec.unmarshalInputDateRangeInput,
 		ec.unmarshalInputErrorSearchParamsInput,
 		ec.unmarshalInputHistogramParamsInput,
@@ -6233,1444 +6317,1487 @@ scalar Int64
 scalar StringArray
 
 type Field {
-    id: ID!
-    name: String!
-    value: String!
-    type: String
+	id: ID!
+	name: String!
+	value: String!
+	type: String
 }
 
 type Session {
-    id: ID!
-    secure_id: String!
-    client_id: String!
-    fingerprint: Int
-    os_name: String!
-    os_version: String!
-    browser_name: String!
-    browser_version: String!
-    city: String!
-    state: String!
-    country: String!
-    postal: String!
-    environment: String
-    app_version: String
-    client_version: String
-    firstload_version: String
-    client_config: String
-    language: String!
-    identifier: String!
-    identified: Boolean!
-    created_at: Timestamp
-    length: Int
-    active_length: Int
-    user_object: Any
-    user_properties: String
-    fields: [Field]
-    viewed: Boolean
-    starred: Boolean
-    processed: Boolean
-    excluded: Boolean
-    has_rage_clicks: Boolean
-    has_errors: Boolean
-    first_time: Boolean
-    field_group: String
-    enable_strict_privacy: Boolean
-    enable_recording_network_contents: Boolean
-    object_storage_enabled: Boolean
-    payload_size: Int64
-    within_billing_quota: Boolean
-    is_public: Boolean
-    event_counts: String
-    direct_download_url: String
-    resources_url: String
-    messages_url: String
-    deviceMemory: Int
-    last_user_interaction_time: Timestamp!
-    chunked: Boolean
+	id: ID!
+	secure_id: String!
+	client_id: String!
+	fingerprint: Int
+	os_name: String!
+	os_version: String!
+	browser_name: String!
+	browser_version: String!
+	city: String!
+	state: String!
+	country: String!
+	postal: String!
+	environment: String
+	app_version: String
+	client_version: String
+	firstload_version: String
+	client_config: String
+	language: String!
+	identifier: String!
+	identified: Boolean!
+	created_at: Timestamp
+	length: Int
+	active_length: Int
+	user_object: Any
+	user_properties: String
+	fields: [Field]
+	viewed: Boolean
+	starred: Boolean
+	processed: Boolean
+	excluded: Boolean
+	has_rage_clicks: Boolean
+	has_errors: Boolean
+	first_time: Boolean
+	field_group: String
+	enable_strict_privacy: Boolean
+	enable_recording_network_contents: Boolean
+	object_storage_enabled: Boolean
+	payload_size: Int64
+	within_billing_quota: Boolean
+	is_public: Boolean
+	event_counts: String
+	direct_download_url: String
+	resources_url: String
+	messages_url: String
+	deviceMemory: Int
+	last_user_interaction_time: Timestamp!
+	chunked: Boolean
 }
 
 type SessionInterval {
-    session_secure_id: String!
-    start_time: Timestamp!
-    end_time: Timestamp!
-    duration: Int!
-    active: Boolean!
+	session_secure_id: String!
+	start_time: Timestamp!
+	end_time: Timestamp!
+	duration: Int!
+	active: Boolean!
 }
 
 type TimelineIndicatorEvent {
-    session_secure_id: String!
-    timestamp: Float!
-    sid: Float!
-    data: Any
-    type: Int!
+	session_secure_id: String!
+	timestamp: Float!
+	sid: Float!
+	data: Any
+	type: Int!
 }
 
 type RageClickEvent {
-    id: ID!
-    project_id: ID!
-    session_secure_id: String!
-    start_timestamp: Timestamp!
-    end_timestamp: Timestamp!
-    total_clicks: Int!
+	id: ID!
+	project_id: ID!
+	session_secure_id: String!
+	start_timestamp: Timestamp!
+	end_timestamp: Timestamp!
+	total_clicks: Int!
 }
 
 type RageClickEventForProject {
-    identifier: String!
-    session_secure_id: String!
-    total_clicks: Int!
-    user_properties: String!
+	identifier: String!
+	session_secure_id: String!
+	total_clicks: Int!
+	user_properties: String!
 }
 
 type BillingDetails {
-    plan: Plan!
-    meter: Int64!
-    membersMeter: Int64!
-    sessionsOutOfQuota: Int64!
+	plan: Plan!
+	meter: Int64!
+	membersMeter: Int64!
+	sessionsOutOfQuota: Int64!
 }
 
 type Invoice {
-    amountDue: Int64
-    amountPaid: Int64
-    attemptCount: Int64
-    date: Timestamp
-    url: String
-    status: String
+	amountDue: Int64
+	amountPaid: Int64
+	attemptCount: Int64
+	date: Timestamp
+	url: String
+	status: String
 }
 
 type SubscriptionDetails {
-    baseAmount: Int64!
-    discountPercent: Float!
-    discountAmount: Int64!
-    lastInvoice: Invoice
+	baseAmount: Int64!
+	discountPercent: Float!
+	discountAmount: Int64!
+	lastInvoice: Invoice
 }
 
 type Plan {
-    type: PlanType!
-    interval: SubscriptionInterval!
-    quota: Int!
-    membersLimit: Int
+	type: PlanType!
+	interval: SubscriptionInterval!
+	quota: Int!
+	membersLimit: Int
 }
 
 enum PlanType {
-    Free
-    Basic
-    Startup
-    Enterprise
+	Free
+	Basic
+	Startup
+	Enterprise
 }
 
 enum SubscriptionInterval {
-    Monthly
-    Annual
+	Monthly
+	Annual
+}
+
+enum OpenSearchCalendarInterval {
+	minute
+	hour
+	day
+	week
+	month
+	quarter
+	year
 }
 
 type EnhancedUserDetailsResult {
-    id: ID
-    name: String
-    avatar: String
-    bio: String
-    socials: [SocialLink]
-    email: String
+	id: ID
+	name: String
+	avatar: String
+	bio: String
+	socials: [SocialLink]
+	email: String
 }
 
 type LinearTeam {
-    team_id: String!
-    name: String!
-    key: String!
+	team_id: String!
+	name: String!
+	key: String!
 }
 
 type SocialLink {
-    type: SocialType!
-    link: String
+	type: SocialType!
+	link: String
 }
 
 enum SocialType {
-    Github
-    LinkedIn
-    Twitter
-    Facebook
-    Site
+	Github
+	LinkedIn
+	Twitter
+	Facebook
+	Site
 }
 
 enum IntegrationType {
-    Slack
-    Linear
-    Zapier
+	Slack
+	Linear
+	Zapier
 }
 
 enum ErrorState {
-    OPEN
-    RESOLVED
-    IGNORED
+	OPEN
+	RESOLVED
+	IGNORED
 }
 
 enum AdminRole {
-    ADMIN
-    MEMBER
+	ADMIN
+	MEMBER
 }
 
 enum SessionCommentType {
-    Admin
-    FEEDBACK
+	Admin
+	FEEDBACK
 }
 
 type Project {
-    id: ID!
-    verbose_id: String!
-    name: String!
-    billing_email: String
-    secret: String
-    workspace_id: ID!
-    excluded_users: StringArray
-    error_json_paths: StringArray
-    rage_click_window_seconds: Int
-    rage_click_radius_pixels: Int
-    rage_click_count: Int
-    backend_domains: StringArray
+	id: ID!
+	verbose_id: String!
+	name: String!
+	billing_email: String
+	secret: String
+	workspace_id: ID!
+	excluded_users: StringArray
+	error_json_paths: StringArray
+	rage_click_window_seconds: Int
+	rage_click_radius_pixels: Int
+	rage_click_count: Int
+	backend_domains: StringArray
 }
 
 type Account {
-    id: ID!
-    name: String!
-    session_count_cur: Int!
-    view_count_cur: Int!
-    session_count_prev: Int!
-    view_count_prev: Int!
-    session_count_prev_prev: Int!
-    session_limit: Int!
-    paid_prev: Int!
-    paid_prev_prev: Int!
-    email: String!
-    subscription_start: Timestamp
-    plan_tier: String!
-    unlimited_members: Boolean!
-    stripe_customer_id: String!
-    member_count: Int!
-    member_limit: Int
+	id: ID!
+	name: String!
+	session_count_cur: Int!
+	view_count_cur: Int!
+	session_count_prev: Int!
+	view_count_prev: Int!
+	session_count_prev_prev: Int!
+	session_limit: Int!
+	paid_prev: Int!
+	paid_prev_prev: Int!
+	email: String!
+	subscription_start: Timestamp
+	plan_tier: String!
+	unlimited_members: Boolean!
+	stripe_customer_id: String!
+	member_count: Int!
+	member_limit: Int
 }
 
 type AccountDetailsMember {
-    id: ID!
-    name: String!
-    email: String!
-    last_active: Timestamp
+	id: ID!
+	name: String!
+	email: String!
+	last_active: Timestamp
 }
 
 type AccountDetails {
-    id: ID!
-    name: String!
-    session_count_per_month: [NamedCount]
-    session_count_per_day: [NamedCount]
-    stripe_customer_id: String!
-    members: [AccountDetailsMember!]!
+	id: ID!
+	name: String!
+	session_count_per_month: [NamedCount]
+	session_count_per_day: [NamedCount]
+	stripe_customer_id: String!
+	members: [AccountDetailsMember!]!
 }
 
 type NamedCount {
-    name: String!
-    count: Int!
+	name: String!
+	count: Int!
 }
 
 type Workspace {
-    id: ID!
-    name: String!
-    slack_webhook_channel: String
-    slack_channels: String
-    secret: String
-    projects: [Project]!
-    plan_tier: String!
-    unlimited_members: Boolean!
-    trial_end_date: Timestamp
-    billing_period_end: Timestamp
-    next_invoice_date: Timestamp
-    allow_meter_overage: Boolean!
-    allowed_auto_join_email_origins: String
-    eligible_for_trial_extension: Boolean!
-    trial_extension_enabled: Boolean!
-    clearbit_enabled: Boolean!
+	id: ID!
+	name: String!
+	slack_webhook_channel: String
+	slack_channels: String
+	secret: String
+	projects: [Project]!
+	plan_tier: String!
+	unlimited_members: Boolean!
+	trial_end_date: Timestamp
+	billing_period_end: Timestamp
+	next_invoice_date: Timestamp
+	allow_meter_overage: Boolean!
+	allowed_auto_join_email_origins: String
+	eligible_for_trial_extension: Boolean!
+	trial_extension_enabled: Boolean!
+	clearbit_enabled: Boolean!
 }
 
 type Segment {
-    id: ID!
-    name: String!
-    params: SearchParams!
-    project_id: ID!
+	id: ID!
+	name: String!
+	params: SearchParams!
+	project_id: ID!
 }
 
 type ErrorSegment {
-    id: ID!
-    name: String!
-    params: ErrorSearchParams!
-    project_id: ID!
+	id: ID!
+	name: String!
+	params: ErrorSearchParams!
+	project_id: ID!
 }
 
 type ErrorObject {
-    id: ID!
-    project_id: Int!
-    session_id: Int!
-    error_group_id: Int!
-    error_group_secure_id: String!
-    event: [String]!
-    type: String!
-    url: String!
-    source: String
-    lineNumber: Int
-    columnNumber: Int
-    stack_trace: String!
-    structured_stack_trace: [ErrorTrace]!
-    timestamp: Timestamp
-    payload: String
-    request_id: String
+	id: ID!
+	project_id: Int!
+	session_id: Int!
+	error_group_id: Int!
+	error_group_secure_id: String!
+	event: [String]!
+	type: String!
+	url: String!
+	source: String
+	lineNumber: Int
+	columnNumber: Int
+	stack_trace: String!
+	structured_stack_trace: [ErrorTrace]!
+	timestamp: Timestamp
+	payload: String
+	request_id: String
 }
 
 type ErrorField {
-    project_id: Int
-    name: String!
-    value: String!
+	project_id: Int
+	name: String!
+	value: String!
 }
 
 type ErrorGroup {
-    created_at: Timestamp!
-    id: ID!
-    secure_id: String!
-    project_id: Int!
-    type: String!
-    event: [String]!
-    structured_stack_trace: [ErrorTrace]!
-    metadata_log: [ErrorMetadata]!
-    mapped_stack_trace: String
-    stack_trace: String
-    fields: [ErrorField]
-    state: ErrorState!
-    environments: String
-    error_frequency: [Int64]!
-    is_public: Boolean!
+	created_at: Timestamp!
+	id: ID!
+	secure_id: String!
+	project_id: Int!
+	type: String!
+	event: [String]!
+	structured_stack_trace: [ErrorTrace]!
+	metadata_log: [ErrorMetadata]!
+	mapped_stack_trace: String
+	stack_trace: String
+	fields: [ErrorField]
+	state: ErrorState!
+	environments: String
+	error_frequency: [Int64]!
+	is_public: Boolean!
 }
 
 type ErrorMetadata {
-    error_id: Int!
-    session_id: Int!
-    session_secure_id: String!
-    environment: String
-    timestamp: Timestamp
-    os: String
-    browser: String
-    visited_url: String
-    fingerprint: String!
-    identifier: String
-    user_properties: String
-    request_id: String
-    payload: String
+	error_id: Int!
+	session_id: Int!
+	session_secure_id: String!
+	environment: String
+	timestamp: Timestamp
+	os: String
+	browser: String
+	visited_url: String
+	fingerprint: String!
+	identifier: String
+	user_properties: String
+	request_id: String
+	payload: String
 }
 
 type ErrorTrace {
-    fileName: String
-    lineNumber: Int
-    functionName: String
-    columnNumber: Int
-    error: String
-    lineContent: String
-    linesBefore: String
-    linesAfter: String
+	fileName: String
+	lineNumber: Int
+	functionName: String
+	columnNumber: Int
+	error: String
+	lineContent: String
+	linesBefore: String
+	linesAfter: String
 }
 
 type S3File {
-    key: String
+	key: String
 }
 
 type ReferrerTablePayload {
-    host: String!
-    count: Int!
-    percent: Float!
+	host: String!
+	count: Int!
+	percent: Float!
 }
 
 type TopUsersPayload {
-    id: ID!
-    identifier: String!
-    total_active_time: Int!
-    active_time_percentage: Float!
-    user_properties: String!
+	id: ID!
+	identifier: String!
+	total_active_time: Int!
+	active_time_percentage: Float!
+	user_properties: String!
 }
 
 type NewUsersCount {
-    count: Int64!
+	count: Int64!
 }
 
 type AverageSessionLength {
-    length: Float!
+	length: Float!
 }
 
 type UserFingerprintCount {
-    count: Int64!
+	count: Int64!
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-    user_properties: [UserPropertyInput]
-    excluded_properties: [UserPropertyInput]
-    track_properties: [UserPropertyInput]
-    excluded_track_properties: [UserPropertyInput]
-    environments: [String]
-    app_versions: [String]
-    date_range: DateRangeInput
-    length_range: LengthRangeInput
-    os: String
-    browser: String
-    device_id: String
-    visited_url: String
-    referrer: String
-    identified: Boolean
-    hide_viewed: Boolean
-    first_time: Boolean
-    show_live_sessions: Boolean
-    query: String
+	user_properties: [UserPropertyInput]
+	excluded_properties: [UserPropertyInput]
+	track_properties: [UserPropertyInput]
+	excluded_track_properties: [UserPropertyInput]
+	environments: [String]
+	app_versions: [String]
+	date_range: DateRangeInput
+	length_range: LengthRangeInput
+	os: String
+	browser: String
+	device_id: String
+	visited_url: String
+	referrer: String
+	identified: Boolean
+	hide_viewed: Boolean
+	first_time: Boolean
+	show_live_sessions: Boolean
+	query: String
 }
 
 input DashboardParamsInput {
-    date_range: DateRangeInput
-    resolution_minutes: Int
-    timezone: String
-    units: String
-    aggregator: MetricAggregator
-    filters: [MetricTagFilterInput!]
-    groups: [String!]
+	date_range: DateRangeInput
+	resolution_minutes: Int
+	timezone: String
+	units: String
+	aggregator: MetricAggregator
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
 }
 
 input HistogramParamsInput {
-    date_range: DateRangeInput
-    buckets: Int
-    min_value: Float
-    min_percentile: Float
-    max_value: Float
-    max_percentile: Float
-    units: String
-    filters: [MetricTagFilterInput!]
+	date_range: DateRangeInput
+	buckets: Int
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	units: String
+	filters: [MetricTagFilterInput!]
 }
 
 enum MetricTagFilterOp {
-    equals
-    contains
+	equals
+	contains
 }
 
 type MetricTagFilter {
-    tag: String!
-    op: MetricTagFilterOp!
-    value: String!
+	tag: String!
+	op: MetricTagFilterOp!
+	value: String!
 }
 
 input MetricTagFilterInput {
-    tag: String!
-    op: MetricTagFilterOp!
-    value: String!
+	tag: String!
+	op: MetricTagFilterOp!
+	value: String!
+}
+
+input DateHistogramBucketSize {
+	calendar_interval: OpenSearchCalendarInterval!
+	multiple: Int!
+}
+
+input DateHistogramOptions {
+	bucket_size: DateHistogramBucketSize!
+	time_zone: String!
+	bounds: DateRangeInput!
 }
 
 enum NetworkRequestAttribute {
-    method
-    initiator_type
-    url
-    body_size
-    response_size
-    status
-    latency
-    request_id
-    graphql_operation
+	method
+	initiator_type
+	url
+	body_size
+	response_size
+	status
+	latency
+	request_id
+	graphql_operation
 }
 
 input NetworkHistogramParamsInput {
-    lookback_days: Int
-    attribute: NetworkRequestAttribute
+	lookback_days: Int
+	attribute: NetworkRequestAttribute
 }
 
 type SearchParams {
-    user_properties: [UserProperty]
-    excluded_properties: [UserProperty]
-    track_properties: [UserProperty]
-    excluded_track_properties: [UserProperty]
-    environments: [String]
-    app_versions: [String]
-    date_range: DateRange
-    length_range: LengthRange
-    os: String
-    browser: String
-    visited_url: String
-    device_id: String
-    referrer: String
-    identified: Boolean
-    hide_viewed: Boolean
-    first_time: Boolean
-    show_live_sessions: Boolean
-    query: String
+	user_properties: [UserProperty]
+	excluded_properties: [UserProperty]
+	track_properties: [UserProperty]
+	excluded_track_properties: [UserProperty]
+	environments: [String]
+	app_versions: [String]
+	date_range: DateRange
+	length_range: LengthRange
+	os: String
+	browser: String
+	visited_url: String
+	device_id: String
+	referrer: String
+	identified: Boolean
+	hide_viewed: Boolean
+	first_time: Boolean
+	show_live_sessions: Boolean
+	query: String
 }
 
 input AdminAboutYouDetails {
-    first_name: String!
-    last_name: String!
-    user_defined_role: String!
-    user_defined_persona: String!
-    referral: String!
-    phone: String
+	first_name: String!
+	last_name: String!
+	user_defined_role: String!
+	user_defined_persona: String!
+	referral: String!
+	phone: String
 }
 
 input ErrorSearchParamsInput {
-    date_range: DateRangeInput
-    os: String
-    browser: String
-    visited_url: String
-    state: ErrorState
-    event: String
-    type: String
-    query: String
+	date_range: DateRangeInput
+	os: String
+	browser: String
+	visited_url: String
+	state: ErrorState
+	event: String
+	type: String
+	query: String
 }
 
 type ErrorSearchParams {
-    date_range: DateRange
-    os: String
-    browser: String
-    visited_url: String
-    state: ErrorState
-    event: String
-    query: String
+	date_range: DateRange
+	os: String
+	browser: String
+	visited_url: String
+	state: ErrorState
+	event: String
+	query: String
 }
 
 type DateRange {
-    start_date: Timestamp
-    end_date: Timestamp
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 input DateRangeInput {
-    start_date: Timestamp
-    end_date: Timestamp
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
-    min: Float
-    max: Float
+	min: Float
+	max: Float
 }
 
 input LengthRangeInput {
-    min: Float
-    max: Float
+	min: Float
+	max: Float
 }
 
 type UserProperty {
-    id: ID!
-    name: String!
-    value: String!
+	id: ID!
+	name: String!
+	value: String!
 }
 
 input UserPropertyInput {
-    id: ID
-    name: String!
-    value: String!
+	id: ID
+	name: String!
+	value: String!
 }
 
 type User {
-    id: ID!
+	id: ID!
 }
 
 type Admin {
-    id: ID!
-    name: String!
-    uid: String!
-    email: String!
-    phone: String
-    photo_url: String
-    slack_im_channel_id: String
-    email_verified: Boolean
-    referral: String
-    user_defined_role: String
-    about_you_details_filled: Boolean
-    user_defined_persona: String
+	id: ID!
+	name: String!
+	uid: String!
+	email: String!
+	phone: String
+	photo_url: String
+	slack_im_channel_id: String
+	email_verified: Boolean
+	referral: String
+	user_defined_role: String
+	about_you_details_filled: Boolean
+	user_defined_persona: String
 }
 
 type WorkspaceAdminRole {
-    admin: Admin!
-    role: String!
+	admin: Admin!
+	role: String!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
 type SanitizedAdmin {
-    id: ID!
-    name: String
-    email: String!
-    photo_url: String
+	id: ID!
+	name: String
+	email: String!
+	photo_url: String
 }
 
 input SanitizedAdminInput {
-    id: ID!
-    name: String
-    email: String!
+	id: ID!
+	name: String
+	email: String!
+}
+
+type SessionsHistogram {
+	bucket_times: [Timestamp!]!
+	sessions_without_errors: [Int64!]!
+	sessions_with_errors: [Int64!]!
+	total_sessions: [Int64!]!
+}
+
+type ErrorsHistogram {
+	bucket_times: [Timestamp!]!
+	error_objects: [Int64!]!
 }
 
 type SessionResults {
-    sessions: [Session!]!
-    totalCount: Int64!
+	sessions: [Session!]!
+	totalCount: Int64!
 }
 
 type ErrorResults {
-    error_groups: [ErrorGroup!]!
-    totalCount: Int64!
+	error_groups: [ErrorGroup!]!
+	totalCount: Int64!
 }
 
 # 2 way connector type between highlight objects and external integration objects
 # should be used to update information from/to platforms
 type ExternalAttachment {
-    id: ID!
-    integration_type: IntegrationType!
+	id: ID!
+	integration_type: IntegrationType!
 
-    external_id: String!
-    title: String
+	external_id: String!
+	title: String
 
-    # associations to highlight objects
-    session_comment_id: Int
-    error_comment_id: Int
+	# associations to highlight objects
+	session_comment_id: Int
+	error_comment_id: Int
 }
 
 type SessionComment {
-    id: ID!
-    project_id: ID!
-    timestamp: Int
-    created_at: Timestamp!
-    updated_at: Timestamp!
-    session_id: Int!
-    session_secure_id: String!
-    author: SanitizedAdmin
-    text: String!
-    x_coordinate: Float
-    y_coordinate: Float
-    type: SessionCommentType!
-    metadata: Any
-    tags: [String]!
-    attachments: [ExternalAttachment]!
-    replies: [CommentReply]!
+	id: ID!
+	project_id: ID!
+	timestamp: Int
+	created_at: Timestamp!
+	updated_at: Timestamp!
+	session_id: Int!
+	session_secure_id: String!
+	author: SanitizedAdmin
+	text: String!
+	x_coordinate: Float
+	y_coordinate: Float
+	type: SessionCommentType!
+	metadata: Any
+	tags: [String]!
+	attachments: [ExternalAttachment]!
+	replies: [CommentReply]!
 }
 
 type SlackSyncResponse {
-    success: Boolean!
-    newChannelsAddedCount: Int!
+	success: Boolean!
+	newChannelsAddedCount: Int!
 }
 
 type SessionCommentTag {
-    id: ID!
-    name: String!
+	id: ID!
+	name: String!
 }
 
 input SessionCommentTagInput {
-    id: ID
-    name: String!
+	id: ID
+	name: String!
 }
 
 type ErrorComment {
-    id: ID!
-    project_id: ID!
-    created_at: Timestamp!
-    error_id: Int!
-    error_secure_id: String!
-    updated_at: Timestamp!
-    author: SanitizedAdmin!
-    text: String!
-    attachments: [ExternalAttachment]!
-    replies: [CommentReply]!
+	id: ID!
+	project_id: ID!
+	created_at: Timestamp!
+	error_id: Int!
+	error_secure_id: String!
+	updated_at: Timestamp!
+	author: SanitizedAdmin!
+	text: String!
+	attachments: [ExternalAttachment]!
+	replies: [CommentReply]!
 }
 
 type CommentReply {
-    id: ID!
-    created_at: Timestamp!
-    updated_at: Timestamp!
+	id: ID!
+	created_at: Timestamp!
+	updated_at: Timestamp!
 
-    author: SanitizedAdmin!
-    text: String!
+	author: SanitizedAdmin!
+	text: String!
 }
 
 enum SessionLifecycle {
-    All
-    Live
-    Completed
+	All
+	Live
+	Completed
 }
 
 type DailySessionCount {
-    project_id: ID!
-    date: Timestamp!
-    count: Int64!
+	project_id: ID!
+	date: Timestamp!
+	count: Int64!
 }
 
 type DailyErrorCount {
-    project_id: ID!
-    date: Timestamp!
-    count: Int64!
+	project_id: ID!
+	date: Timestamp!
+	count: Int64!
 }
 
 type ErrorDistributionItem {
-    name: String!
-    value: Int64!
+	name: String!
+	value: Int64!
 }
 
 type Dashboard {
-    id: ID!
-    project_id: ID!
-    layout: String!
-    name: String!
-    last_admin_to_edit_id: ID!
+	id: ID!
+	project_id: ID!
+	layout: String!
+	name: String!
+	last_admin_to_edit_id: ID!
 }
 
 type SanitizedSlackChannel {
-    webhook_channel: String
-    webhook_channel_id: String
+	webhook_channel: String
+	webhook_channel_id: String
 }
 
 input SanitizedSlackChannelInput {
-    webhook_channel_name: String
-    webhook_channel_id: String
+	webhook_channel_name: String
+	webhook_channel_id: String
 }
 
 type ErrorAlert {
-    id: ID!
-    updated_at: Timestamp!
-    Name: String
-    ChannelsToNotify: [SanitizedSlackChannel]!
-    EmailsToNotify: [String]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int!
-    ThresholdWindow: Int
-    LastAdminToEditID: ID
-    Type: String!
-    RegexGroups: [String]!
-    Frequency: Int!
-    DailyFrequency: [Int64]!
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	Name: String
+	ChannelsToNotify: [SanitizedSlackChannel]!
+	EmailsToNotify: [String]!
+	ExcludedEnvironments: [String]!
+	CountThreshold: Int!
+	ThresholdWindow: Int
+	LastAdminToEditID: ID
+	Type: String!
+	RegexGroups: [String]!
+	Frequency: Int!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
 }
 
 type TrackProperty {
-    id: ID!
-    name: String!
-    value: String!
+	id: ID!
+	name: String!
+	value: String!
 }
 
 input TrackPropertyInput {
-    id: ID
-    name: String!
-    value: String!
+	id: ID
+	name: String!
+	value: String!
 }
 
 type SessionAlert {
-    id: ID!
-    updated_at: Timestamp!
-    Name: String
-    ChannelsToNotify: [SanitizedSlackChannel]!
-    EmailsToNotify: [String]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int!
-    TrackProperties: [TrackProperty]!
-    UserProperties: [UserProperty]!
-    ThresholdWindow: Int
-    LastAdminToEditID: ID
-    Type: String!
-    ExcludeRules: [String]!
-    DailyFrequency: [Int64]!
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	Name: String
+	ChannelsToNotify: [SanitizedSlackChannel]!
+	EmailsToNotify: [String]!
+	ExcludedEnvironments: [String]!
+	CountThreshold: Int!
+	TrackProperties: [TrackProperty]!
+	UserProperties: [UserProperty]!
+	ThresholdWindow: Int
+	LastAdminToEditID: ID
+	Type: String!
+	ExcludeRules: [String]!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
 }
 
 type WorkspaceInviteLink {
-    id: ID!
-    invitee_email: String
-    invitee_role: String!
-    expiration_date: Timestamp!
-    secret: String!
+	id: ID!
+	invitee_email: String
+	invitee_role: String!
+	expiration_date: Timestamp!
+	secret: String!
 }
 
 type SessionPayload {
-    events: [Any]!
-    errors: [ErrorObject]!
-    rage_clicks: [RageClickEvent!]!
-    session_comments: [SessionComment]!
-    last_user_interaction_time: Timestamp!
+	events: [Any]!
+	errors: [ErrorObject]!
+	rage_clicks: [RageClickEvent!]!
+	session_comments: [SessionComment]!
+	last_user_interaction_time: Timestamp!
 }
 
 type Metric {
-    name: String!
-    value: Float!
+	name: String!
+	value: Float!
 }
 
 type DashboardPayload {
-    date: String!
-    value: Float!
-    aggregator: MetricAggregator
-    group: String
+	date: String!
+	value: Float!
+	aggregator: MetricAggregator
+	group: String
 }
 
 type HistogramBucket {
-    bucket: Float!
-    range_start: Float!
-    range_end: Float!
-    count: Int!
+	bucket: Float!
+	range_start: Float!
+	range_end: Float!
+	count: Int!
 }
 
 type HistogramPayload {
-    buckets: [HistogramBucket!]!
-    min: Float!
-    max: Float!
+	buckets: [HistogramBucket!]!
+	min: Float!
+	max: Float!
 }
 
 type CategoryHistogramBucket {
-    category: String!
-    count: Int!
+	category: String!
+	count: Int!
 }
 
 type CategoryHistogramPayload {
-    buckets: [CategoryHistogramBucket!]!
+	buckets: [CategoryHistogramBucket!]!
 }
 
 enum DashboardChartType {
-    Timeline
-    TimelineBar
-    Histogram
+	Timeline
+	TimelineBar
+	Histogram
 }
 
 enum MetricAggregator {
-    Avg
-    P50
-    P75
-    P90
-    P95
-    P99
-    Max
-    Count
+	Avg
+	P50
+	P75
+	P90
+	P95
+	P99
+	Max
+	Count
 }
 
 input DashboardMetricConfigInput {
-    name: String!
-    description: String!
-    component_type: MetricViewComponentType
-    max_good_value: Float
-    max_needs_improvement_value: Float
-    poor_value: Float
-    units: String
-    help_article: String
-    chart_type: DashboardChartType
-    aggregator: MetricAggregator
-    min_value: Float
-    min_percentile: Float
-    max_value: Float
-    max_percentile: Float
-    filters: [MetricTagFilterInput!]
-    groups: [String!]
+	name: String!
+	description: String!
+	component_type: MetricViewComponentType
+	max_good_value: Float
+	max_needs_improvement_value: Float
+	poor_value: Float
+	units: String
+	help_article: String
+	chart_type: DashboardChartType
+	aggregator: MetricAggregator
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
 }
 
 enum MetricViewComponentType {
-    KeyPerformanceGauge
-    SessionCountChart
-    ErrorCountChart
-    ReferrersTable
-    ActiveUsersTable
-    RageClicksTable
-    TopRoutesTable
+	KeyPerformanceGauge
+	SessionCountChart
+	ErrorCountChart
+	ReferrersTable
+	ActiveUsersTable
+	RageClicksTable
+	TopRoutesTable
 }
 
 type DashboardMetricConfig {
-    name: String!
-    description: String!
-    component_type: MetricViewComponentType
-    max_good_value: Float
-    max_needs_improvement_value: Float
-    poor_value: Float
-    units: String
-    help_article: String
-    chart_type: DashboardChartType
-    aggregator: MetricAggregator
-    min_value: Float
-    min_percentile: Float
-    max_value: Float
-    max_percentile: Float
-    filters: [MetricTagFilter!]
-    groups: [String!]
+	name: String!
+	description: String!
+	component_type: MetricViewComponentType
+	max_good_value: Float
+	max_needs_improvement_value: Float
+	poor_value: Float
+	units: String
+	help_article: String
+	chart_type: DashboardChartType
+	aggregator: MetricAggregator
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	filters: [MetricTagFilter!]
+	groups: [String!]
 }
 
 type DashboardDefinition {
-    id: ID!
-    updated_at: Timestamp!
-    project_id: ID!
-    name: String!
-    metrics: [DashboardMetricConfig!]!
-    last_admin_to_edit_id: Int
-    layout: String
+	id: ID!
+	updated_at: Timestamp!
+	project_id: ID!
+	name: String!
+	metrics: [DashboardMetricConfig!]!
+	last_admin_to_edit_id: Int
+	layout: String
 }
 
 type MetricPreview {
-    date: Timestamp!
-    value: Float!
+	date: Timestamp!
+	value: Float!
 }
 
 type MetricMonitor {
-    id: ID!
-    updated_at: Timestamp!
-    name: String!
-    channels_to_notify: [SanitizedSlackChannel]!
-    emails_to_notify: [String]!
-    aggregator: MetricAggregator!
-    period_minutes: Int
-    metric_to_monitor: String!
-    last_admin_to_edit_id: ID!
-    threshold: Float!
-    units: String
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	name: String!
+	channels_to_notify: [SanitizedSlackChannel]!
+	emails_to_notify: [String]!
+	aggregator: MetricAggregator!
+	period_minutes: Int
+	metric_to_monitor: String!
+	last_admin_to_edit_id: ID!
+	threshold: Float!
+	units: String
+	disabled: Boolean!
 }
 
 type EventChunk {
-    session_id: Int!
-    chunk_index: Int!
-    timestamp: Int64!
+	session_id: Int!
+	chunk_index: Int!
+	timestamp: Int64!
 }
 
 scalar Upload
 
 type Query {
-    accounts: [Account]
-    account_details(workspace_id: ID!): AccountDetails!
-    session(secure_id: String!): Session
-    events(session_secure_id: String!): [Any]
-    session_intervals(session_secure_id: String!): [SessionInterval!]!
-    timeline_indicator_events(
-        session_secure_id: String!
-    ): [TimelineIndicatorEvent!]!
-    rage_clicks(session_secure_id: String!): [RageClickEvent!]!
-    rageClicksForProject(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): [RageClickEventForProject!]!
-    error_groups_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-        page: Int
-    ): ErrorResults!
-    error_group(secure_id: String!): ErrorGroup
-    messages(session_secure_id: String!): [Any]
-    enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
-    errors(session_secure_id: String!): [ErrorObject]
-    resources(session_secure_id: String!): [Any]
-    web_vitals(session_secure_id: String!): [Metric!]!
-    session_comments(session_secure_id: String!): [SessionComment]!
-    session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
-    session_comments_for_admin: [SessionComment]!
-    session_comments_for_project(project_id: ID!): [SessionComment]!
-    error_comments(error_group_secure_id: String!): [ErrorComment]!
-    error_comments_for_admin: [ErrorComment]!
-    error_comments_for_project(project_id: ID!): [ErrorComment]!
-    workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
-    workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
-    isIntegrated(project_id: ID!): Boolean
-    isBackendIntegrated(project_id: ID!): Boolean
-    unprocessedSessionsCount(project_id: ID!): Int64
-    liveUsersCount(project_id: ID!): Int64
-    adminHasCreatedComment(admin_id: ID!): Boolean
-    projectHasViewedASession(project_id: ID!): Session
-    dailySessionsCount(
-        project_id: ID!
-        date_range: DateRangeInput!
-    ): [DailySessionCount]!
-    dailyErrorsCount(
-        project_id: ID!
-        date_range: DateRangeInput!
-    ): [DailyErrorCount]!
-    dailyErrorFrequency(
-        project_id: ID!
-        error_group_secure_id: String!
-        date_offset: Int!
-    ): [Int64!]!
-    errorDistribution(
-        project_id: ID!
-        error_group_secure_id: String!
-        property: String!
-    ): [ErrorDistributionItem]!
-    referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-    newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-    topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
-    averageSessionLength(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): AverageSessionLength
-    userFingerprintCount(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): UserFingerprintCount
-    sessions_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-        sort_desc: Boolean!
-        page: Int
-    ): SessionResults!
-    field_types(project_id: ID!): [Field!]!
-    fields_opensearch(
-        project_id: ID!
-        count: Int!
-        field_type: String!
-        field_name: String!
-        query: String!
-    ): [String!]!
-    error_fields_opensearch(
-        project_id: ID!
-        count: Int!
-        field_type: String!
-        field_name: String!
-        query: String!
-    ): [String!]!
-    quickFields_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-    ): [Field]!
-    billingDetailsForProject(project_id: ID!): BillingDetails
-    billingDetails(workspace_id: ID!): BillingDetails!
-    # gets all the projects of a user
-    field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
-    property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
-    error_field_suggestion(
-        project_id: ID!
-        name: String!
-        query: String!
-    ): [ErrorField]
-    projects: [Project]
-    workspaces: [Workspace]
-    workspaces_count: Int64!
-    joinable_workspaces: [Workspace]
-    error_alerts(project_id: ID!): [ErrorAlert]!
-    session_feedback_alerts(project_id: ID!): [SessionAlert]!
-    new_user_alerts(project_id: ID!): [SessionAlert]
-    track_properties_alerts(project_id: ID!): [SessionAlert]!
-    user_properties_alerts(project_id: ID!): [SessionAlert]!
-    new_session_alerts(project_id: ID!): [SessionAlert]!
-    rage_click_alerts(project_id: ID!): [SessionAlert]!
-    projectSuggestion(query: String!): [Project]!
-    workspaceSuggestion(query: String!): [Workspace]!
-    environment_suggestion(project_id: ID!): [Field]
-    app_version_suggestion(project_id: ID!): [String]!
-    identifier_suggestion(project_id: ID!, query: String!): [String!]!
-    slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
-    slack_members(project_id: ID!): [SanitizedSlackChannel]!
-    generate_zapier_access_token(project_id: ID!): String!
-    is_integrated_with(
-        integration_type: IntegrationType!
-        project_id: ID!
-    ): Boolean!
-    linear_teams(project_id: ID!): [LinearTeam!]
-    project(id: ID!): Project
-    workspace(id: ID!): Workspace
-    workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
-    workspace_for_project(project_id: ID!): Workspace
-    admin: Admin
-    admin_role(workspace_id: ID!): WorkspaceAdminRole
-    admin_role_by_project(project_id: ID!): WorkspaceAdminRole
-    segments(project_id: ID!): [Segment]
-    error_segments(project_id: ID!): [ErrorSegment]
-    api_key_to_org_id(api_key: String!): ID
-    customer_portal_url(workspace_id: ID!): String!
-    subscription_details(workspace_id: ID!): SubscriptionDetails!
-    dashboard_definitions(project_id: ID!): [DashboardDefinition]!
-    suggested_metrics(project_id: ID!, prefix: String!): [String!]!
-    metric_tags(project_id: ID!, metric_name: String!): [String!]!
-    metric_tag_values(
-        project_id: ID!
-        metric_name: String!
-        tag_name: String!
-    ): [String!]!
-    metrics_timeline(
-        project_id: ID!
-        metric_name: String!
-        params: DashboardParamsInput!
-    ): [DashboardPayload]!
-    metrics_histogram(
-        project_id: ID!
-        metric_name: String!
-        params: HistogramParamsInput!
-    ): HistogramPayload
-    network_histogram(
-        project_id: ID!
-        params: NetworkHistogramParamsInput!
-    ): CategoryHistogramPayload
-    metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
-    event_chunk_url(secure_id: String!, index: Int!): String!
-    event_chunks(secure_id: String!): [EventChunk!]!
-    sourcemap_files(project_id: ID!, version: String): [S3File!]!
-    sourcemap_versions(project_id: ID!): [String!]!
+	accounts: [Account]
+	account_details(workspace_id: ID!): AccountDetails!
+	session(secure_id: String!): Session
+	events(session_secure_id: String!): [Any]
+	session_intervals(session_secure_id: String!): [SessionInterval!]!
+	timeline_indicator_events(
+		session_secure_id: String!
+	): [TimelineIndicatorEvent!]!
+	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
+	rageClicksForProject(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): [RageClickEventForProject!]!
+	error_groups_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+		page: Int
+	): ErrorResults!
+	errors_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
+	error_group(secure_id: String!): ErrorGroup
+	messages(session_secure_id: String!): [Any]
+	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
+	errors(session_secure_id: String!): [ErrorObject]
+	resources(session_secure_id: String!): [Any]
+	web_vitals(session_secure_id: String!): [Metric!]!
+	session_comments(session_secure_id: String!): [SessionComment]!
+	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
+	session_comments_for_admin: [SessionComment]!
+	session_comments_for_project(project_id: ID!): [SessionComment]!
+	error_comments(error_group_secure_id: String!): [ErrorComment]!
+	error_comments_for_admin: [ErrorComment]!
+	error_comments_for_project(project_id: ID!): [ErrorComment]!
+	workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
+	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
+	isIntegrated(project_id: ID!): Boolean
+	isBackendIntegrated(project_id: ID!): Boolean
+	unprocessedSessionsCount(project_id: ID!): Int64
+	liveUsersCount(project_id: ID!): Int64
+	adminHasCreatedComment(admin_id: ID!): Boolean
+	projectHasViewedASession(project_id: ID!): Session
+	dailySessionsCount(
+		project_id: ID!
+		date_range: DateRangeInput!
+	): [DailySessionCount]!
+	dailyErrorsCount(
+		project_id: ID!
+		date_range: DateRangeInput!
+	): [DailyErrorCount]!
+	dailyErrorFrequency(
+		project_id: ID!
+		error_group_secure_id: String!
+		date_offset: Int!
+	): [Int64!]!
+	errorDistribution(
+		project_id: ID!
+		error_group_secure_id: String!
+		property: String!
+	): [ErrorDistributionItem]!
+	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
+	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
+	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	averageSessionLength(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): AverageSessionLength
+	userFingerprintCount(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): UserFingerprintCount
+	sessions_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
+	sessions_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): SessionsHistogram!
+	field_types(project_id: ID!): [Field!]!
+	fields_opensearch(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+	): [String!]!
+	error_fields_opensearch(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+	): [String!]!
+	quickFields_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+	): [Field]!
+	billingDetailsForProject(project_id: ID!): BillingDetails
+	billingDetails(workspace_id: ID!): BillingDetails!
+	# gets all the projects of a user
+	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
+	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
+	error_field_suggestion(
+		project_id: ID!
+		name: String!
+		query: String!
+	): [ErrorField]
+	projects: [Project]
+	workspaces: [Workspace]
+	workspaces_count: Int64!
+	joinable_workspaces: [Workspace]
+	error_alerts(project_id: ID!): [ErrorAlert]!
+	session_feedback_alerts(project_id: ID!): [SessionAlert]!
+	new_user_alerts(project_id: ID!): [SessionAlert]
+	track_properties_alerts(project_id: ID!): [SessionAlert]!
+	user_properties_alerts(project_id: ID!): [SessionAlert]!
+	new_session_alerts(project_id: ID!): [SessionAlert]!
+	rage_click_alerts(project_id: ID!): [SessionAlert]!
+	projectSuggestion(query: String!): [Project]!
+	workspaceSuggestion(query: String!): [Workspace]!
+	environment_suggestion(project_id: ID!): [Field]
+	app_version_suggestion(project_id: ID!): [String]!
+	identifier_suggestion(project_id: ID!, query: String!): [String!]!
+	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	slack_members(project_id: ID!): [SanitizedSlackChannel]!
+	generate_zapier_access_token(project_id: ID!): String!
+	is_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
+	): Boolean!
+	linear_teams(project_id: ID!): [LinearTeam!]
+	project(id: ID!): Project
+	workspace(id: ID!): Workspace
+	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspace_for_project(project_id: ID!): Workspace
+	admin: Admin
+	admin_role(workspace_id: ID!): WorkspaceAdminRole
+	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
+	segments(project_id: ID!): [Segment]
+	error_segments(project_id: ID!): [ErrorSegment]
+	api_key_to_org_id(api_key: String!): ID
+	customer_portal_url(workspace_id: ID!): String!
+	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
+	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tag_values(
+		project_id: ID!
+		metric_name: String!
+		tag_name: String!
+	): [String!]!
+	metrics_timeline(
+		project_id: ID!
+		metric_name: String!
+		params: DashboardParamsInput!
+	): [DashboardPayload]!
+	metrics_histogram(
+		project_id: ID!
+		metric_name: String!
+		params: HistogramParamsInput!
+	): HistogramPayload
+	network_histogram(
+		project_id: ID!
+		params: NetworkHistogramParamsInput!
+	): CategoryHistogramPayload
+	metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
+	event_chunk_url(secure_id: String!, index: Int!): String!
+	event_chunks(secure_id: String!): [EventChunk!]!
+	sourcemap_files(project_id: ID!, version: String): [S3File!]!
+	sourcemap_versions(project_id: ID!): [String!]!
 }
 
 type Mutation {
-    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
-    createProject(name: String!, workspace_id: ID!): Project
-    createWorkspace(name: String!): Workspace
-    editProject(
-        id: ID!
-        name: String
-        billing_email: String
-        excluded_users: StringArray
-        error_json_paths: StringArray
-        rage_click_window_seconds: Int
-        rage_click_radius_pixels: Int
-        rage_click_count: Int
-        backend_domains: StringArray
-    ): Project
-    editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
-    deleteProject(id: ID!): Boolean
-    sendAdminProjectInvite(
-        project_id: ID!
-        email: String!
-        base_url: String!
-    ): String
-    sendAdminWorkspaceInvite(
-        workspace_id: ID!
-        email: String!
-        base_url: String!
-        role: String!
-    ): String
-    addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
-    joinWorkspace(workspace_id: ID!): ID
-    updateAllowedEmailOrigins(
-        workspace_id: ID!
-        allowed_auto_join_email_origins: String!
-    ): ID
-    changeAdminRole(
-        workspace_id: ID!
-        admin_id: ID!
-        new_role: String!
-    ): Boolean!
-    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
-    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-    createSegment(
-        project_id: ID!
-        name: String!
-        params: SearchParamsInput!
-    ): Segment
-    emailSignup(email: String!): String!
-    editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
-    deleteSegment(segment_id: ID!): Boolean
-    createErrorSegment(
-        project_id: ID!
-        name: String!
-        params: ErrorSearchParamsInput!
-    ): ErrorSegment
-    editErrorSegment(
-        id: ID!
-        project_id: ID!
-        params: ErrorSearchParamsInput!
-    ): Boolean
-    deleteErrorSegment(segment_id: ID!): Boolean
-    # If this endpoint returns a checkout_id, we initiate a stripe checkout.
-    # Otherwise, we simply update the subscription.
-    createOrUpdateStripeSubscription(
-        workspace_id: ID!
-        plan_type: PlanType!
-        interval: SubscriptionInterval!
-    ): String
-    updateBillingDetails(workspace_id: ID!): Boolean
-    createSessionComment(
-        project_id: ID!
-        session_secure_id: String!
-        session_timestamp: Int!
-        text: String!
-        text_for_email: String!
-        x_coordinate: Float!
-        y_coordinate: Float!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        session_url: String!
-        time: Float!
-        author_name: String!
-        session_image: String
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-        tags: [SessionCommentTagInput]!
-        additional_context: String
-    ): SessionComment
-    createIssueForSessionComment(
-        project_id: ID!
-        session_url: String!
-        session_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        time: Float!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): SessionComment
-    deleteSessionComment(id: ID!): Boolean
-    replyToSessionComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        sessionURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    createErrorComment(
-        project_id: ID!
-        error_group_secure_id: String!
-        text: String!
-        text_for_email: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        error_url: String!
-        author_name: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    createIssueForErrorComment(
-        project_id: ID!
-        error_url: String!
-        error_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    deleteErrorComment(id: ID!): Boolean
-    replyToErrorComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        errorURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    openSlackConversation(
-        project_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
-    addIntegrationToProject(
-        integration_type: IntegrationType
-        project_id: ID!
-        code: String!
-    ): Boolean!
-    removeIntegrationFromProject(
-        integration_type: IntegrationType
-        project_id: ID!
-    ): Boolean!
-    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-    createDefaultAlerts(
-        project_id: ID!
-        alert_types: [String!]!
-        slack_channels: [SanitizedSlackChannelInput!]!
-        emails: [String]!
-    ): Boolean
-    createRageClickAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-    ): SessionAlert
-    createMetricMonitor(
-        project_id: ID!
-        name: String!
-        aggregator: MetricAggregator!
-        periodMinutes: Int
-        threshold: Float!
-        units: String
-        metric_to_monitor: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-    ): MetricMonitor
-    updateMetricMonitor(
-        metric_monitor_id: ID!
-        project_id: ID!
-        name: String
-        aggregator: MetricAggregator
-        periodMinutes: Int
-        threshold: Float
-        units: String
-        metric_to_monitor: String
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        disabled: Boolean
-    ): MetricMonitor
-    createErrorAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        regex_groups: [String]!
-        frequency: Int!
-    ): ErrorAlert
-    updateErrorAlert(
-        project_id: ID!
-        name: String
-        error_alert_id: ID!
-        count_threshold: Int
-        threshold_window: Int
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        regex_groups: [String]
-        frequency: Int
-        disabled: Boolean
-    ): ErrorAlert
-    deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
-    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
-    updateSessionFeedbackAlert(
-        project_id: ID!
-        session_feedback_alert_id: ID!
-        name: String
-        count_threshold: Int
-        threshold_window: Int
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        disabled: Boolean
-    ): SessionAlert
-    createSessionFeedbackAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-    ): SessionAlert
-    updateRageClickAlert(
-        project_id: ID!
-        rage_click_alert_id: ID!
-        name: String
-        count_threshold: Int
-        threshold_window: Int
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        disabled: Boolean
-    ): SessionAlert
-    updateNewUserAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String
-        count_threshold: Int
-        threshold_window: Int
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        disabled: Boolean
-    ): SessionAlert
-    createNewUserAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-    ): SessionAlert
-    updateTrackPropertiesAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        track_properties: [TrackPropertyInput]
-        threshold_window: Int
-        disabled: Boolean
-    ): SessionAlert
-    createTrackPropertiesAlert(
-        project_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        track_properties: [TrackPropertyInput]!
-        threshold_window: Int!
-    ): SessionAlert
-    createUserPropertiesAlert(
-        project_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        user_properties: [UserPropertyInput]!
-        threshold_window: Int!
-    ): SessionAlert
-    deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-    updateUserPropertiesAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        user_properties: [UserPropertyInput]
-        threshold_window: Int
-        disabled: Boolean
-    ): SessionAlert
-    updateNewSessionAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String
-        count_threshold: Int
-        slack_channels: [SanitizedSlackChannelInput]
-        emails: [String]
-        environments: [String]
-        threshold_window: Int
-        exclude_rules: [String]
-        disabled: Boolean
-    ): SessionAlert
-    createNewSessionAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-        exclude_rules: [String]!
-    ): SessionAlert
-    updateSessionIsPublic(
-        session_secure_id: String!
-        is_public: Boolean!
-    ): Session
-    updateErrorGroupIsPublic(
-        error_group_secure_id: String!
-        is_public: Boolean!
-    ): ErrorGroup
-    updateAllowMeterOverage(
-        workspace_id: ID!
-        allow_meter_overage: Boolean!
-    ): Workspace
-    submitRegistrationForm(
-        workspace_id: ID!
-        team_size: String!
-        role: String!
-        use_case: String!
-        heard_about: String!
-        pun: String
-    ): Boolean
-    requestAccess(project_id: ID!): Boolean
-    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
-    upsertDashboard(
-        id: ID
-        project_id: ID!
-        name: String!
-        metrics: [DashboardMetricConfigInput!]!
-        layout: String
-    ): ID!
+	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createProject(name: String!, workspace_id: ID!): Project
+	createWorkspace(name: String!): Workspace
+	editProject(
+		id: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+	): Project
+	editWorkspace(id: ID!, name: String): Workspace
+	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+	deleteProject(id: ID!): Boolean
+	sendAdminProjectInvite(
+		project_id: ID!
+		email: String!
+		base_url: String!
+	): String
+	sendAdminWorkspaceInvite(
+		workspace_id: ID!
+		email: String!
+		base_url: String!
+		role: String!
+	): String
+	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	joinWorkspace(workspace_id: ID!): ID
+	updateAllowedEmailOrigins(
+		workspace_id: ID!
+		allowed_auto_join_email_origins: String!
+	): ID
+	changeAdminRole(
+		workspace_id: ID!
+		admin_id: ID!
+		new_role: String!
+	): Boolean!
+	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
+	createSegment(
+		project_id: ID!
+		name: String!
+		params: SearchParamsInput!
+	): Segment
+	emailSignup(email: String!): String!
+	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	deleteSegment(segment_id: ID!): Boolean
+	createErrorSegment(
+		project_id: ID!
+		name: String!
+		params: ErrorSearchParamsInput!
+	): ErrorSegment
+	editErrorSegment(
+		id: ID!
+		project_id: ID!
+		params: ErrorSearchParamsInput!
+	): Boolean
+	deleteErrorSegment(segment_id: ID!): Boolean
+	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
+	# Otherwise, we simply update the subscription.
+	createOrUpdateStripeSubscription(
+		workspace_id: ID!
+		plan_type: PlanType!
+		interval: SubscriptionInterval!
+	): String
+	updateBillingDetails(workspace_id: ID!): Boolean
+	createSessionComment(
+		project_id: ID!
+		session_secure_id: String!
+		session_timestamp: Int!
+		text: String!
+		text_for_email: String!
+		x_coordinate: Float!
+		y_coordinate: Float!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		session_url: String!
+		time: Float!
+		author_name: String!
+		session_image: String
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+		tags: [SessionCommentTagInput]!
+		additional_context: String
+	): SessionComment
+	createIssueForSessionComment(
+		project_id: ID!
+		session_url: String!
+		session_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		time: Float!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): SessionComment
+	deleteSessionComment(id: ID!): Boolean
+	replyToSessionComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		sessionURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	createErrorComment(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	createIssueForErrorComment(
+		project_id: ID!
+		error_url: String!
+		error_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	deleteErrorComment(id: ID!): Boolean
+	replyToErrorComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		errorURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	openSlackConversation(
+		project_id: ID!
+		code: String!
+		redirect_path: String!
+	): Boolean
+	addIntegrationToProject(
+		integration_type: IntegrationType
+		project_id: ID!
+		code: String!
+	): Boolean!
+	removeIntegrationFromProject(
+		integration_type: IntegrationType
+		project_id: ID!
+	): Boolean!
+	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
+	createDefaultAlerts(
+		project_id: ID!
+		alert_types: [String!]!
+		slack_channels: [SanitizedSlackChannelInput!]!
+		emails: [String]!
+	): Boolean
+	createRageClickAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+	): SessionAlert
+	createMetricMonitor(
+		project_id: ID!
+		name: String!
+		aggregator: MetricAggregator!
+		periodMinutes: Int
+		threshold: Float!
+		units: String
+		metric_to_monitor: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+	): MetricMonitor
+	updateMetricMonitor(
+		metric_monitor_id: ID!
+		project_id: ID!
+		name: String
+		aggregator: MetricAggregator
+		periodMinutes: Int
+		threshold: Float
+		units: String
+		metric_to_monitor: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		disabled: Boolean
+	): MetricMonitor
+	createErrorAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		regex_groups: [String]!
+		frequency: Int!
+	): ErrorAlert
+	updateErrorAlert(
+		project_id: ID!
+		name: String
+		error_alert_id: ID!
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		regex_groups: [String]
+		frequency: Int
+		disabled: Boolean
+	): ErrorAlert
+	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
+	updateSessionFeedbackAlert(
+		project_id: ID!
+		session_feedback_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	createSessionFeedbackAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+	): SessionAlert
+	updateRageClickAlert(
+		project_id: ID!
+		rage_click_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	updateNewUserAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	createNewUserAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		threshold_window: Int!
+	): SessionAlert
+	updateTrackPropertiesAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		track_properties: [TrackPropertyInput]
+		threshold_window: Int
+		disabled: Boolean
+	): SessionAlert
+	createTrackPropertiesAlert(
+		project_id: ID!
+		name: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		track_properties: [TrackPropertyInput]!
+		threshold_window: Int!
+	): SessionAlert
+	createUserPropertiesAlert(
+		project_id: ID!
+		name: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		user_properties: [UserPropertyInput]!
+		threshold_window: Int!
+	): SessionAlert
+	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+	updateUserPropertiesAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		user_properties: [UserPropertyInput]
+		threshold_window: Int
+		disabled: Boolean
+	): SessionAlert
+	updateNewSessionAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		count_threshold: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		threshold_window: Int
+		exclude_rules: [String]
+		disabled: Boolean
+	): SessionAlert
+	createNewSessionAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		threshold_window: Int!
+		exclude_rules: [String]!
+	): SessionAlert
+	updateSessionIsPublic(
+		session_secure_id: String!
+		is_public: Boolean!
+	): Session
+	updateErrorGroupIsPublic(
+		error_group_secure_id: String!
+		is_public: Boolean!
+	): ErrorGroup
+	updateAllowMeterOverage(
+		workspace_id: ID!
+		allow_meter_overage: Boolean!
+	): Workspace
+	submitRegistrationForm(
+		workspace_id: ID!
+		team_size: String!
+		role: String!
+		use_case: String!
+		heard_about: String!
+		pun: String
+	): Boolean
+	requestAccess(project_id: ID!): Boolean
+	modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
+	upsertDashboard(
+		id: ID
+		project_id: ID!
+		name: String!
+		metrics: [DashboardMetricConfigInput!]!
+		layout: String
+	): ID!
 }
 
 type Subscription {
-    session_payload_appended(
-        session_secure_id: String!
-        initial_events_count: Int!
-    ): SessionPayload
+	session_payload_appended(
+		session_secure_id: String!
+		initial_events_count: Int!
+	): SessionPayload
 }
 `, BuiltIn: false},
 }
@@ -11328,6 +11455,39 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_errors_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	var arg2 model.DateHistogramOptions
+	if tmp, ok := rawArgs["histogram_options"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
+		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["histogram_options"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_event_chunk_url_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12150,6 +12310,39 @@ func (ec *executionContext) field_Query_session_intervals_args(ctx context.Conte
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sessions_histogram_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	var arg2 model.DateHistogramOptions
+	if tmp, ok := rawArgs["histogram_options"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("histogram_options"))
+		arg2, err = ec.unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["histogram_options"] = arg2
 	return args, nil
 }
 
@@ -21068,6 +21261,94 @@ func (ec *executionContext) fieldContext_ErrorTrace_linesAfter(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketTimes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorsHistogram_error_objects(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorsHistogram_error_objects(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorObjects, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorsHistogram_error_objects(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EventChunk_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.EventChunk) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EventChunk_session_id(ctx, field)
 	if err != nil {
@@ -29379,6 +29660,67 @@ func (ec *executionContext) fieldContext_Query_error_groups_opensearch(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_errors_histogram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["histogram_options"].(model.DateHistogramOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorsHistogram)
+	fc.Result = res
+	return ec.marshalNErrorsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorsHistogram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_errors_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucket_times":
+				return ec.fieldContext_ErrorsHistogram_bucket_times(ctx, field)
+			case "error_objects":
+				return ec.fieldContext_ErrorsHistogram_error_objects(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorsHistogram", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_errors_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_error_group(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_error_group(ctx, field)
 	if err != nil {
@@ -31442,6 +31784,71 @@ func (ec *executionContext) fieldContext_Query_sessions_opensearch(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sessions_opensearch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sessions_histogram(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionsHistogram(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["histogram_options"].(model.DateHistogramOptions))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SessionsHistogram)
+	fc.Result = res
+	return ec.marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sessions_histogram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "bucket_times":
+				return ec.fieldContext_SessionsHistogram_bucket_times(ctx, field)
+			case "sessions_without_errors":
+				return ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
+			case "sessions_with_errors":
+				return ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
+			case "total_sessions":
+				return ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SessionsHistogram", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sessions_histogram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41185,6 +41592,182 @@ func (ec *executionContext) fieldContext_SessionResults_totalCount(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _SessionsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_bucket_times(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BucketTimes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_bucket_times(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsHistogram_sessions_without_errors(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_sessions_without_errors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsWithoutErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_sessions_without_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsHistogram_sessions_with_errors(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_sessions_with_errors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsWithErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_sessions_with_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionsHistogram_total_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionsHistogram) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionsHistogram_total_sessions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalSessions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionsHistogram_total_sessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionsHistogram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SlackSyncResponse_success(ctx context.Context, field graphql.CollectedField, obj *model.SlackSyncResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SlackSyncResponse_success(ctx, field)
 	if err != nil {
@@ -45517,6 +46100,86 @@ func (ec *executionContext) unmarshalInputDashboardParamsInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDateHistogramBucketSize(ctx context.Context, obj interface{}) (model.DateHistogramBucketSize, error) {
+	var it model.DateHistogramBucketSize
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"calendar_interval", "multiple"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "calendar_interval":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("calendar_interval"))
+			it.CalendarInterval, err = ec.unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "multiple":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("multiple"))
+			it.Multiple, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputDateHistogramOptions(ctx context.Context, obj interface{}) (model.DateHistogramOptions, error) {
+	var it model.DateHistogramOptions
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"bucket_size", "time_zone", "bounds"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "bucket_size":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bucket_size"))
+			it.BucketSize, err = ec.unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "time_zone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time_zone"))
+			it.TimeZone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "bounds":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bounds"))
+			it.Bounds, err = ec.unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, obj interface{}) (model.DateRangeInput, error) {
 	var it model.DateRangeInput
 	asMap := map[string]interface{}{}
@@ -48109,6 +48772,41 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var errorsHistogramImplementors = []string{"ErrorsHistogram"}
+
+func (ec *executionContext) _ErrorsHistogram(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorsHistogram) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorsHistogramImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorsHistogram")
+		case "bucket_times":
+
+			out.Values[i] = ec._ErrorsHistogram_bucket_times(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "error_objects":
+
+			out.Values[i] = ec._ErrorsHistogram_error_objects(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var eventChunkImplementors = []string{"EventChunk"}
 
 func (ec *executionContext) _EventChunk(ctx context.Context, sel ast.SelectionSet, obj *model1.EventChunk) graphql.Marshaler {
@@ -49543,6 +50241,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "errors_histogram":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errors_histogram(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "error_group":
 			field := field
 
@@ -50201,6 +50922,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions_opensearch(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "sessions_histogram":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sessions_histogram(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -52698,6 +53442,55 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var sessionsHistogramImplementors = []string{"SessionsHistogram"}
+
+func (ec *executionContext) _SessionsHistogram(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionsHistogram) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sessionsHistogramImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SessionsHistogram")
+		case "bucket_times":
+
+			out.Values[i] = ec._SessionsHistogram_bucket_times(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessions_without_errors":
+
+			out.Values[i] = ec._SessionsHistogram_sessions_without_errors(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessions_with_errors":
+
+			out.Values[i] = ec._SessionsHistogram_sessions_with_errors(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "total_sessions":
+
+			out.Values[i] = ec._SessionsHistogram_total_sessions(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var slackSyncResponseImplementors = []string{"SlackSyncResponse"}
 
 func (ec *executionContext) _SlackSyncResponse(ctx context.Context, sel ast.SelectionSet, obj *model.SlackSyncResponse) graphql.Marshaler {
@@ -54095,9 +54888,24 @@ func (ec *executionContext) marshalNDashboardPayload2ᚕᚖgithubᚗcomᚋhighli
 	return ret
 }
 
+func (ec *executionContext) unmarshalNDateHistogramBucketSize2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramBucketSize(ctx context.Context, v interface{}) (*model.DateHistogramBucketSize, error) {
+	res, err := ec.unmarshalInputDateHistogramBucketSize(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDateHistogramOptions2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateHistogramOptions(ctx context.Context, v interface{}) (model.DateHistogramOptions, error) {
+	res, err := ec.unmarshalInputDateHistogramOptions(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDateRangeInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (model.DateRangeInput, error) {
 	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (*model.DateRangeInput, error) {
+	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNErrorAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorAlert) graphql.Marshaler {
@@ -54417,6 +55225,20 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑ
 	wg.Wait()
 
 	return ret
+}
+
+func (ec *executionContext) marshalNErrorsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorsHistogram(ctx context.Context, sel ast.SelectionSet, v model1.ErrorsHistogram) graphql.Marshaler {
+	return ec._ErrorsHistogram(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNErrorsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorsHistogram(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorsHistogram) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ErrorsHistogram(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEventChunk2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐEventChunkᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.EventChunk) graphql.Marshaler {
@@ -55032,6 +55854,16 @@ func (ec *executionContext) marshalNMetricTagFilterOp2githubᚗcomᚋhighlight�
 func (ec *executionContext) unmarshalNNetworkHistogramParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNetworkHistogramParamsInput(ctx context.Context, v interface{}) (model.NetworkHistogramParamsInput, error) {
 	res, err := ec.unmarshalInputNetworkHistogramParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx context.Context, v interface{}) (model.OpenSearchCalendarInterval, error) {
+	var res model.OpenSearchCalendarInterval
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOpenSearchCalendarInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOpenSearchCalendarInterval(ctx context.Context, sel ast.SelectionSet, v model.OpenSearchCalendarInterval) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
@@ -55816,6 +56648,20 @@ func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlight�
 	return ec._SessionResults(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSessionsHistogram2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v model1.SessionsHistogram) graphql.Marshaler {
+	return ec._SessionsHistogram(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSessionsHistogram2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionsHistogram(ctx context.Context, sel ast.SelectionSet, v *model1.SessionsHistogram) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SessionsHistogram(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNSlackSyncResponse2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSlackSyncResponse(ctx context.Context, sel ast.SelectionSet, v model.SlackSyncResponse) graphql.Marshaler {
 	return ec._SlackSyncResponse(ctx, sel, &v)
 }
@@ -56025,6 +56871,38 @@ func (ec *executionContext) marshalNTimestamp2timeᚐTime(ctx context.Context, s
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx context.Context, v interface{}) ([]time.Time, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]time.Time, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTimestamp2timeᚐTime(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNTimestamp2ᚕtimeᚐTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []time.Time) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNTimestamp2timeᚐTime(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNTimestamp2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {

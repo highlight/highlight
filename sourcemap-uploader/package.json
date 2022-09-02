@@ -12,8 +12,7 @@
   },
   "bin": "./index.js",
   "devDependencies": {
-    "@types/yargs": "^17.0.0",
-    "prettier": "2.3.1"
+    "@types/yargs": "^17.0.0"
   },
   "dependencies": {
     "aws-sdk": "^2.1163.0",

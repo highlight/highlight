@@ -1,165 +1,165 @@
 .eventWrapper {
-    align-items: center;
-    display: flex;
-    font-size: 12px;
-    height: max-content;
+	align-items: center;
+	display: flex;
+	font-size: 12px;
+	height: max-content;
 }
 
 .streamElement {
-    align-items: center;
-    background-color: inherit;
-    border-radius: 6px;
-    color: var(--color-gray-500);
-    column-gap: var(--size-small);
-    display: grid;
-    fill: var(--color-gray-500);
-    font-family: var(--body-font-family);
-    font-size: 12px !important;
-    grid-template-columns: 22px 1fr min-content;
-    height: 100%;
-    position: relative;
-    width: 100%;
+	align-items: center;
+	background-color: inherit;
+	border-radius: 6px;
+	color: var(--color-gray-500);
+	column-gap: var(--size-small);
+	display: grid;
+	fill: var(--color-gray-500);
+	font-family: var(--body-font-family);
+	font-size: 12px !important;
+	grid-template-columns: 22px 1fr min-content;
+	height: 100%;
+	position: relative;
+	width: 100%;
 
-    &.noTimestamp {
-        grid-template-columns: 22px 1fr;
-    }
+	&.noTimestamp {
+		grid-template-columns: 22px 1fr;
+	}
 }
 
 .card {
-    cursor: pointer;
+	cursor: pointer;
 }
 
 .cardContainer {
-    padding-bottom: var(--size-medium);
+	padding-bottom: var(--size-medium);
 
-    &.firstCard {
-        padding-top: var(--size-medium);
-    }
+	&.firstCard {
+		padding-top: var(--size-medium);
+	}
 }
 
 .eventTime {
-    align-items: center;
-    display: flex;
-    font-size: 10px;
-    height: 100%;
-    justify-content: flex-end;
-    margin-left: 10px;
-    padding: 5px;
-    padding-right: 0;
-    width: max-content;
+	align-items: center;
+	display: flex;
+	font-size: 10px;
+	height: 100%;
+	justify-content: flex-end;
+	margin-left: 10px;
+	padding: 5px;
+	padding-right: 0;
+	width: max-content;
 }
 
 .iconWrapper {
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 5px;
+	background: var(--primary-color);
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 5px;
 }
 
 .playIcon {
-    height: 20px;
-    width: 20px;
+	height: 20px;
+	width: 20px;
 }
 
 .directionIcon {
-    color: var(--text-primary-inverted);
-    fill: var(--text-primary-inverted);
-    height: var(--size-small);
-    transition: transform 0.3s;
-    width: var(--size-small);
+	color: var(--text-primary-inverted);
+	fill: var(--text-primary-inverted);
+	height: var(--size-small);
+	transition: transform 0.3s;
+	width: var(--size-small);
 }
 
 .defaultIcon {
-    color: var(--text-primary-inverted);
-    height: var(--size-small);
-    width: var(--size-small);
+	color: var(--text-primary-inverted);
+	height: var(--size-small);
+	width: var(--size-small);
 }
 
 .tiltedIcon {
-    color: var(--text-primary-inverted);
-    fill: var(--text-primary-inverted);
-    height: var(--size-small);
-    transform: rotate(-20deg);
-    width: var(--size-small);
+	color: var(--text-primary-inverted);
+	fill: var(--text-primary-inverted);
+	height: var(--size-small);
+	transform: rotate(-20deg);
+	width: var(--size-small);
 }
 
 .eventText {
-    color: var(--color-gray-500) !important;
-    margin: 0 !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: color 0.2s ease-in-out;
-    white-space: nowrap;
+	color: var(--color-gray-500) !important;
+	margin: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	transition: color 0.2s ease-in-out;
+	white-space: nowrap;
 
-    &.eventTextSelected {
-        color: var(--text-primary) !important;
-    }
+	&.eventTextSelected {
+		color: var(--text-primary) !important;
+	}
 }
 
 .eventContent {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    min-width: 100%;
+	align-items: center;
+	display: flex;
+	height: 100%;
+	min-width: 100%;
 }
 
 .eventContentVerbose {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-width: 100%;
 }
 
 .timestamp {
-    grid-column-end: 3;
-    grid-column-start: 1;
+	grid-column-end: 3;
+	grid-column-start: 1;
 }
 
 .goToButton {
-    color: var(--color-gray-500);
-    grid-column-start: 3;
-    grid-row-start: 3;
-    position: absolute;
-    right: -8px;
-    top: -6px;
+	color: var(--color-gray-500);
+	grid-column-start: 3;
+	grid-row-start: 3;
+	position: absolute;
+	right: -8px;
+	top: -6px;
 
-    &:hover {
-        color: var(--text-primary);
-        fill: var(--text-primary);
+	&:hover {
+		color: var(--text-primary);
+		fill: var(--text-primary);
 
-        svg {
-            fill: var(--text-primary);
-        }
-    }
+		svg {
+			fill: var(--text-primary);
+		}
+	}
 }
 
 .payloadContainer {
-    border-top: 1px solid var(--color-gray-300);
-    grid-column-end: -1;
-    grid-column-start: 1;
-    margin: 0 -18px;
-    margin-top: var(--size-xSmall);
-    padding: var(--size-small) 18px;
+	border-top: 1px solid var(--color-gray-300);
+	grid-column-end: -1;
+	grid-column-start: 1;
+	margin: 0 -18px;
+	margin-top: var(--size-xSmall);
+	padding: var(--size-small) 18px;
 }
 
 .selectedIcon {
-    fill: var(--text-primary);
-    transform: rotate(180deg);
+	fill: var(--text-primary);
+	transform: rotate(180deg);
 }
 
 .headerRow {
-    align-items: center;
-    display: flex;
+	align-items: center;
+	display: flex;
 }
 
 .payloadTitle {
-    font-size: 12px !important;
-    margin-bottom: var(--size-xSmall) !important;
+	font-size: 12px !important;
+	margin-bottom: var(--size-xSmall) !important;
 
-    > div {
-        overflow-wrap: anywhere;
-    }
+	> div {
+		overflow-wrap: anywhere;
+	}
 }

@@ -1,47 +1,47 @@
 .space {
-    display: flex;
-    flex-direction: row;
+	display: flex;
+	flex-direction: row;
 }
 
 .alignStart {
-    align-items: flex-start;
+	align-items: flex-start;
 }
 
 .alignEnd {
-    align-items: flex-end;
+	align-items: flex-end;
 }
 
 .alignCenter {
-    align-items: center;
+	align-items: center;
 }
 
 .verticalDirection {
-    flex-direction: column;
+	flex-direction: column;
 }
 
 .wrap {
-    flex-wrap: wrap;
+	flex-wrap: wrap;
 }
 
 .xxSmall {
-    gap: var(--size-xxSmall);
+	gap: var(--size-xxSmall);
 }
 
 .xSmall {
-    gap: var(--size-xSmall);
+	gap: var(--size-xSmall);
 }
 .small {
-    gap: var(--size-small);
+	gap: var(--size-small);
 }
 .medium {
-    gap: var(--size-medium);
+	gap: var(--size-medium);
 }
 .large {
-    gap: var(--size-large);
+	gap: var(--size-large);
 }
 .xLarge {
-    gap: var(--size-xLarge);
+	gap: var(--size-xLarge);
 }
 .xxLarge {
-    gap: var(--size-xxLarge);
+	gap: var(--size-xxLarge);
 }

@@ -1,87 +1,87 @@
 .dropdownName {
-    font-size: 16px;
-    margin-bottom: 2px;
+	font-size: 16px;
+	margin-bottom: 2px;
 }
 
 .dropdownEmail {
-    color: var(--color-gray-500);
-    margin: 0 !important;
-    margin-top: var(--size-xSmall) !important;
+	color: var(--color-gray-500);
+	margin: 0 !important;
+	margin-top: var(--size-xSmall) !important;
 }
 
 .logoutIcon {
-    height: 16px;
-    margin-left: auto;
-    width: 16px;
+	height: 16px;
+	margin-left: auto;
+	width: 16px;
 }
 
 .avatarWrapper {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    padding: 10px;
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	padding: 10px;
 }
 
 .userInfoWrapper {
-    align-items: center;
-    border-bottom: 1px solid var(--color-gray-300);
-    display: flex;
-    flex-direction: row;
-    justify-self: center;
+	align-items: center;
+	border-bottom: 1px solid var(--color-gray-300);
+	display: flex;
+	flex-direction: row;
+	justify-self: center;
 }
 
 .dropdownInner {
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    box-shadow: var(--box-shadow);
-    color: var(--text-primary);
-    margin-right: 30px;
-    margin-top: -10px;
-    overflow: hidden;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 8px;
+	box-shadow: var(--box-shadow);
+	color: var(--text-primary);
+	margin-right: 30px;
+	margin-top: -10px;
+	overflow: hidden;
 }
 
 .dropdownLogout {
-    align-items: center;
-    color: var(--color-red-400);
-    cursor: pointer;
-    display: flex;
-    padding: 14px;
-    transition: 0.2s;
-    width: 100%;
+	align-items: center;
+	color: var(--color-red-400);
+	cursor: pointer;
+	display: flex;
+	padding: 14px;
+	transition: 0.2s;
+	width: 100%;
 }
 
 .dropdownLogout:hover {
-    background-color: var(--color-red-200);
+	background-color: var(--color-red-200);
 }
 
 .dropdownLogoutText {
-    font-size: 16px;
+	font-size: 16px;
 }
 
 .dropdownMenu {
-    box-shadow: none;
-    min-width: 200px;
+	box-shadow: none;
+	min-width: 200px;
 }
 
 .accountIconWrapper {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    height: 100%;
-    justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	height: 100%;
+	justify-content: center;
 }
 
 .accountIcon {
-    cursor: pointer;
-    fill: var(--color-purple);
-    height: 25px;
-    margin-right: 30px;
-    width: 25px;
+	cursor: pointer;
+	fill: var(--color-purple);
+	height: 25px;
+	margin-right: 30px;
+	width: 25px;
 }
 
 .userCopy {
-    padding: 14px;
-    padding-left: 6px;
-    padding-right: 25px;
+	padding: 14px;
+	padding-left: 6px;
+	padding-right: 25px;
 }

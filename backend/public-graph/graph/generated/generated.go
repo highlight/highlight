@@ -333,123 +333,123 @@ scalar Timestamp
 scalar Int64
 
 type Session {
-    id: ID
-    secure_id: String!
-    organization_id: ID!
-    project_id: ID!
+	id: ID
+	secure_id: String!
+	organization_id: ID!
+	project_id: ID!
 }
 
 input StackFrameInput {
-    functionName: String
-    args: [Any]
-    fileName: String
-    lineNumber: Int
-    columnNumber: Int
-    isEval: Boolean
-    isNative: Boolean
-    source: String
+	functionName: String
+	args: [Any]
+	fileName: String
+	lineNumber: Int
+	columnNumber: Int
+	isEval: Boolean
+	isNative: Boolean
+	source: String
 }
 
 input ErrorObjectInput {
-    event: String!
-    type: String!
-    url: String!
-    source: String!
-    lineNumber: Int!
-    columnNumber: Int!
-    stackTrace: [StackFrameInput]!
-    timestamp: Timestamp!
-    payload: String
+	event: String!
+	type: String!
+	url: String!
+	source: String!
+	lineNumber: Int!
+	columnNumber: Int!
+	stackTrace: [StackFrameInput]!
+	timestamp: Timestamp!
+	payload: String
 }
 
 input BackendErrorObjectInput {
-    session_secure_id: String!
-    request_id: String!
-    event: String!
-    type: String!
-    url: String!
-    source: String!
-    stackTrace: String!
-    timestamp: Timestamp!
-    payload: String
+	session_secure_id: String!
+	request_id: String!
+	event: String!
+	type: String!
+	url: String!
+	source: String!
+	stackTrace: String!
+	timestamp: Timestamp!
+	payload: String
 }
 
 input MetricInput {
-    session_secure_id: String!
-    group: String
-    name: String!
-    value: Float!
-    category: String
-    timestamp: Timestamp!
-    # kept for backwards compatibility with old clients, do not use
-    type: Any
-    url: String
+	session_secure_id: String!
+	group: String
+	name: String!
+	value: Float!
+	category: String
+	timestamp: Timestamp!
+	# kept for backwards compatibility with old clients, do not use
+	type: Any
+	url: String
 }
 
 input ReplayEventInput {
-    type: Int!
-    timestamp: Float!
-    _sid: Float!
-    data: Any!
+	type: Int!
+	timestamp: Float!
+	_sid: Float!
+	data: Any!
 }
 
 input ReplayEventsInput {
-    events: [ReplayEventInput]!
+	events: [ReplayEventInput]!
 }
 
 type InitializeSessionResponse {
-    secure_id: String!
-    project_id: ID!
+	secure_id: String!
+	project_id: ID!
 }
 
 type Mutation {
-    initializeSession(
-        session_secure_id: String!
-        organization_verbose_id: String!
-        enable_strict_privacy: Boolean!
-        enable_recording_network_contents: Boolean!
-        clientVersion: String!
-        firstloadVersion: String!
-        clientConfig: String!
-        environment: String!
-        appVersion: String
-        fingerprint: String!
-        client_id: String!
-    ): InitializeSessionResponse!
-    identifySession(
-        session_secure_id: String!
-        user_identifier: String!
-        user_object: Any
-    ): String!
-    addSessionProperties(
-        session_secure_id: String!
-        properties_object: Any
-    ): String!
-    pushPayload(
-        session_secure_id: String!
-        events: ReplayEventsInput!
-        messages: String!
-        resources: String!
-        errors: [ErrorObjectInput]!
-        is_beacon: Boolean
-        has_session_unloaded: Boolean
-        highlight_logs: String
-        payload_id: ID # Optional for backwards compatibility with older clients
-    ): Int!
-    pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
-    pushMetrics(metrics: [MetricInput]!): Int!
-    markBackendSetup(session_secure_id: String!): String!
-    addSessionFeedback(
-        session_secure_id: String!
-        user_name: String
-        user_email: String
-        verbatim: String!
-        timestamp: Timestamp!
-    ): String!
+	initializeSession(
+		session_secure_id: String!
+		organization_verbose_id: String!
+		enable_strict_privacy: Boolean!
+		enable_recording_network_contents: Boolean!
+		clientVersion: String!
+		firstloadVersion: String!
+		clientConfig: String!
+		environment: String!
+		appVersion: String
+		fingerprint: String!
+		client_id: String!
+	): InitializeSessionResponse!
+	identifySession(
+		session_secure_id: String!
+		user_identifier: String!
+		user_object: Any
+	): String!
+	addSessionProperties(
+		session_secure_id: String!
+		properties_object: Any
+	): String!
+	pushPayload(
+		session_secure_id: String!
+		events: ReplayEventsInput!
+		messages: String!
+		resources: String!
+		errors: [ErrorObjectInput]!
+		is_beacon: Boolean
+		has_session_unloaded: Boolean
+		highlight_logs: String
+		payload_id: ID # Optional for backwards compatibility with older clients
+	): Int!
+	pushBackendPayload(errors: [BackendErrorObjectInput]!): Any
+	pushMetrics(metrics: [MetricInput]!): Int!
+	markBackendSetup(session_secure_id: String!): String!
+	addSessionFeedback(
+		session_secure_id: String!
+		user_name: String
+		user_email: String
+		verbatim: String!
+		timestamp: Timestamp!
+	): String!
 }
 
 type Query {
-    ignore(id: ID!): Any
+	ignore(id: ID!): Any
 }
 `, BuiltIn: false},
 }

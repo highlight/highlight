@@ -1,11 +1,11 @@
 .hostContainer {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
+	align-items: center;
+	column-gap: var(--size-xxSmall);
+	display: flex;
 
-    span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }

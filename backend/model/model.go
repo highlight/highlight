@@ -462,6 +462,13 @@ type EmailSignup struct {
 	ApolloDataShortened string
 }
 
+type SessionsHistogram struct {
+	BucketTimes           []time.Time `json:"bucket_times"`
+	SessionsWithoutErrors []int64     `json:"sessions_without_errors"`
+	SessionsWithErrors    []int64     `json:"sessions_with_errors"`
+	TotalSessions         []int64     `json:"total_sessions"`
+}
+
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
@@ -789,6 +796,11 @@ func (m *EventsObject) Contents() string {
 }
 
 const PARTITION_SESSION_ID = 30000000
+
+type ErrorsHistogram struct {
+	BucketTimes  []time.Time `json:"bucket_times"`
+	ErrorObjects []int64     `json:"error_objects"`
+}
 
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup

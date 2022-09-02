@@ -1,16 +1,16 @@
 .noDataMessageContainer {
-    grid-column-end: -1;
-    grid-column-start: 1;
+	grid-column-end: -1;
+	grid-column-start: 1;
 
-    p {
-        line-height: 1.5rem !important;
-    }
+	p {
+		line-height: 1.5rem !important;
+	}
 
-    p:not(:last-of-type) {
-        margin-bottom: var(--size-medium) !important;
-    }
+	p:not(:last-of-type) {
+		margin-bottom: var(--size-medium) !important;
+	}
 }
 
 .modalContentContainer {
-    overflow-y: auto;
+	overflow-y: auto;
 }

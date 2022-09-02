@@ -43,15 +43,15 @@ const DashboardPage = ({
     containerStyles?: React.CSSProperties;
 }) => {
     const history = useHistory<{ dashboardName: string }>();
-    const { id } = useParams<{ id: string }>();
     const { search } = useLocation();
+    const { id } = useParams<{ id: string }>();
     const { timeRange } = useDataTimeRange();
     const { dashboards, allAdmins, updateDashboard } = useDashboardsContext();
     const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false);
-    const metricAutoAdded = useRef<boolean>(false);
     const [layout, setLayout] = useState<Layouts>({ lg: [] });
     const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] });
     const [dashboard, setDashboard] = useState<DashboardDefinition>();
+    const metricAutoAdded = useRef<boolean>(false);
 
     useEffect(() => {
         const dashboard = dashboards.find((d) =>
@@ -66,14 +66,11 @@ const DashboardPage = ({
                 setLayout(parsedLayout);
                 setPersistedLayout(parsedLayout);
             }
-            history.replace({
-                search: location.search,
-                state: {
-                    dashboardName: name,
-                },
-            });
+            history.replace({ state: { dashboardName: name } });
         }
     }, [dashboardName, dashboards, history, id]);
+
+    const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
     // Logic for adding a new metric based on the add_to_dashboard URL param.
     useEffect(() => {
@@ -100,8 +97,6 @@ const DashboardPage = ({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dashboard]);
-
-    const [, setNewMetrics] = useState<DashboardMetricConfig[]>([]);
 
     const pushNewMetricConfig = (
         nm: DashboardMetricConfig[],
