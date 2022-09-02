@@ -15,7 +15,7 @@ import { message } from 'antd';
 import classNames from 'classnames';
 import firebase from 'firebase';
 import { H } from 'highlight.run';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
@@ -440,20 +440,23 @@ interface VerifyPhoneProps {
 }
 
 export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
+    const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>();
     const [verificationCode, setVerificationCode] = useState<string>('');
-    const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>();
+    const recaptchaVerifier = useRef<any>();
     const phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
 
     useEffect(() => {
-        setRecaptchaVerifier(
-            new firebase.auth.RecaptchaVerifier('recaptcha', {
+        recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
+            'recaptcha',
+            {
                 size: 'invisible',
-            })
+            }
         );
     }, []);
 
     const verify = async () => {
+        setLoading(true);
         setError(null);
 
         const verificationId = await phoneAuthProvider.verifyPhoneNumber(
@@ -461,7 +464,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
                 multiFactorHint: resolver.hints[0],
                 session: resolver.session,
             },
-            recaptchaVerifier
+            recaptchaVerifier.current
         );
 
         const cred = firebase.auth.PhoneAuthProvider.credential(
@@ -476,9 +479,12 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
             const userCredential = await resolver.resolveSignIn(
                 multiFactorAssertion
             );
+            // TODO: Navigate to new page or something...
             console.log(userCredential);
         } catch (e: any) {
             setError(e.message);
+        } finally {
+            setLoading(false);
         }
     };
 
