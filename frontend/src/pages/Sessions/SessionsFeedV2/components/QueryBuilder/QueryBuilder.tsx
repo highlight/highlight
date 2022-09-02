@@ -5,7 +5,10 @@ import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { BaseSearchContext } from '@context/BaseSearchContext'
+import {
+	BackendSearchQuery,
+	BaseSearchContext,
+} from '@context/BaseSearchContext'
 import { useGetAppVersionsQuery } from '@graph/hooks'
 import { GetFieldTypesQuery } from '@graph/operations'
 import { Exact, Field } from '@graph/schemas'
@@ -1503,6 +1506,7 @@ const QueryBuilder = ({
 		},
 	}
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
+	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
 	const timeRangeRule = useMemo<RuleProps | undefined>(
 		() => rules.find((rule) => rule.field?.value === timeRangeField.value),
@@ -1577,8 +1581,8 @@ const QueryBuilder = ({
 		return results
 	}
 
-	const setSearchQuery = useCallback(
-		(searchQuery: OpenSearchQuery) => {
+	const updateSerializedQuery = useCallback(
+		(isAnd: boolean, rules: RuleProps[]) => {
 			if (!timeRangeRule) return
 			const startDate = moment(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
@@ -1586,7 +1590,8 @@ const QueryBuilder = ({
 			const endDate = moment(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
-			setBackendSearchQuery({
+			const searchQuery = parseGroup(isAnd, rules)
+			serializedQuery.current = {
 				searchQuery: JSON.stringify(searchQuery.query),
 				childSearchQuery: searchQuery.childQuery
 					? JSON.stringify(searchQuery.childQuery)
@@ -1596,10 +1601,11 @@ const QueryBuilder = ({
 				histogramBucketSize: GetHistogramBucketSize(
 					moment.duration(endDate.diff(startDate)),
 				),
-			})
+			}
 		},
-		[setBackendSearchQuery, timeRangeRule],
+		[parseGroup, timeRangeRule],
 	)
+
 	const getOperatorOptionsCallback = (
 		options: FieldOptions | undefined,
 		val: OnChangeInput,
@@ -1707,6 +1713,14 @@ const QueryBuilder = ({
 	}, [searchParams.query, toggleIsAnd, qbState])
 
 	useEffect(() => {
+		if (rules.every(isComplete)) {
+			// For relative time ranges, the serialized query will be different every time you serialize,
+			// so serialize once and only once every time the rules list changes
+			updateSerializedQuery(isAnd, rules)
+		}
+	}, [isAnd, rules, updateSerializedQuery])
+
+	useEffect(() => {
 		// Only update the external state if not readonly
 		if (readonly) {
 			return
@@ -1729,7 +1743,6 @@ const QueryBuilder = ({
 			return
 		}
 
-		const query = parseGroup(isAnd, rules)
 		const newState = JSON.stringify({
 			isAnd,
 			rules: serializeRules(rules),
@@ -1744,17 +1757,19 @@ const QueryBuilder = ({
 			}))
 			return
 		}
-		setSearchQuery(query)
+
+		if (serializedQuery.current) {
+			setBackendSearchQuery(serializedQuery.current)
+		}
 	}, [
 		getQueryFromParams,
 		isAnd,
-		parseGroup,
 		qbState,
 		rules,
 		searchParams,
 		setSearchParams,
-		setSearchQuery,
 		readonly,
+		setBackendSearchQuery,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
@@ -1815,8 +1830,11 @@ const QueryBuilder = ({
 									styles.syncButton,
 								)}
 								onClick={() => {
-									const query = parseGroup(isAnd, rules)
-									setSearchQuery(query)
+									// Re-generate the absolute times used in the serialized query
+									updateSerializedQuery(isAnd, rules)
+									setBackendSearchQuery(
+										serializedQuery.current,
+									)
 								}}
 								disabled={syncButtonDisabled}
 								trackingId={'RefreshSearchResults'}
