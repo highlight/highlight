@@ -3,11 +3,12 @@ import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
-import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 
 import styles from './FrontIntegrationConfig.module.scss'
+
+const FRONT_CLIENT_ID = 'e77eb8f15b02423c9525'
 
 const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModelOpen,
@@ -67,8 +68,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		)
 	}
 
-	const clientId = 'asdf'
-	const redirectURI = `${GetBaseURL()}/callback/front`
+	const redirectURI = `https://app.highlight.run/callback/front`
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
@@ -91,7 +91,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://app.frontapp.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectURI}`}
+					href={`https://app.frontapp.com/oauth/authorize?response_type=code&client_id=${FRONT_CLIENT_ID}&redirect_uri=${redirectURI}`}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
