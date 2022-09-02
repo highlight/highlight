@@ -436,7 +436,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 	q := query
 	if projectID != -1 {
-		if options.ProjectIDOnParent != nil && *options.ProjectIDOnParent == true {
+		if options.ProjectIDOnParent != nil && *options.ProjectIDOnParent {
 			q = fmt.Sprintf(
 				`{"bool":{"must":[{"has_parent": {"parent_type": "parent","query": {"term":{"project_id":"%d"}}}}, %s]}}`,
 				projectID, query)
