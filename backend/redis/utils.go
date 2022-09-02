@@ -61,6 +61,28 @@ func NewClient() *Client {
 
 }
 
+func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
+	cmd := r.redisClient.ZRem(EventsKey(sessionId), valuesToRemove...)
+	if cmd.Err() != nil {
+		return errors.Wrap(cmd.Err(), "error removing values from Redis")
+	}
+	return nil
+}
+
+func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId int) ([]redis.Z, error) {
+	maxScore := "(" + strconv.FormatInt(int64(nextPayloadId), 10)
+
+	vals, err := r.redisClient.ZRangeByScoreWithScores(EventsKey(sessionId), redis.ZRangeBy{
+		Min: "-inf",
+		Max: maxScore,
+	}).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving prior events from Redis")
+	}
+
+	return vals, nil
+}
+
 func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]model.EventsObject, error, *model.EventsCursor) {
 	// Session is live if the cursor is not the default
 	isLive := cursor != model.EventsCursor{}

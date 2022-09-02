@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 
 	"github.com/andybalholm/brotli"
@@ -50,6 +51,7 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
+	RawEvents                  PayloadType = "raw-events"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
@@ -151,6 +153,23 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
+}
+
+func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []byte) error {
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
+
+	options := s3.PutObjectInput{
+		Bucket: &S3SessionsPayloadBucketName,
+		Key:    &key,
+		Body:   bytes.NewBuffer(events),
+	}
+	_, err := s.S3Client.PutObject(ctx, &options)
+	if err != nil {
+		return errors.Wrap(err, "error uploading raw events to S3")
+	}
+
+	return nil
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
