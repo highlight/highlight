@@ -12,8 +12,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -155,21 +157,77 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
 }
 
-func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []byte) error {
+func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []redis.Z) error {
+	marshalled, err := json.Marshal(events)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling range to JSON")
+	}
+
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
 	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
 
 	options := s3.PutObjectInput{
 		Bucket: &S3SessionsPayloadBucketName,
 		Key:    &key,
-		Body:   bytes.NewBuffer(events),
+		Body:   bytes.NewReader(marshalled),
 	}
-	_, err := s.S3Client.PutObject(ctx, &options)
+	_, err = s.S3Client.PutObject(ctx, &options)
 	if err != nil {
 		return errors.Wrap(err, "error uploading raw events to S3")
 	}
 
 	return nil
+}
+
+func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) ([][]redis.Z, error) {
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
+
+	options := s3.ListObjectsV2Input{
+		Bucket: &S3SessionsPayloadBucketName,
+		Prefix: &prefix,
+	}
+
+	output, err := s.S3Client.ListObjectsV2(ctx, &options)
+	if err != nil {
+		return nil, errors.Wrap(err, "error listing objects in S3")
+	}
+
+	var g errgroup.Group
+	results := make([][]redis.Z, len(output.Contents))
+	for idx, object := range output.Contents {
+		idx := idx
+		object := object
+		g.Go(func() error {
+			var result []redis.Z
+			output, err := s.S3Client.GetObject(ctx, &s3.GetObjectInput{
+				Bucket: &S3SessionsPayloadBucketName,
+				Key:    object.Key,
+			})
+			if err != nil {
+				return errors.Wrap(err, "error retrieving object from S3")
+			}
+
+			buf := new(bytes.Buffer)
+			_, err = buf.ReadFrom(output.Body)
+			if err != nil {
+				return errors.Wrap(err, "error reading from s3 buffer")
+			}
+
+			if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
+				return errors.Wrap(err, "error unmarshalling JSON")
+			}
+
+			results[idx] = result
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, errors.Wrap(err, "error in task retrieving object from S3")
+	}
+
+	return results, nil
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
