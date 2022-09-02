@@ -1213,22 +1213,35 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 
 	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
+		BEGIN
 			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metric_filters' and constraint_name = '%s')
-					THEN
-						ALTER TABLE dashboard_metric_filters
+				DROP INDEX IF EXISTS idx_metric_tag_filter_metric_id_tag;
+				IF EXISTS
+					(SELECT constraint_name
+					 from information_schema.key_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = 'dashboard_metric_filters_chart_id')
+				THEN
+					ALTER TABLE dashboard_metric_filters
+						DROP CONSTRAINT dashboard_metric_filters_chart_id;
+				END IF;
+				IF NOT EXISTS
+					(SELECT constraint_name
+					 from information_schema.constraint_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = '%s')
+				THEN
+					ALTER TABLE dashboard_metric_filters
 						ADD CONSTRAINT %s
-							UNIQUE (metric_id, metric_monitor_id, tag);
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'metric_groups.%s already exists';
-				END;
-			END $$;
+						UNIQUE (metric_id, metric_monitor_id, tag);
+				END IF;
+			EXCEPTION
+				WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%s already exists';
+			END;
+		END $$;
 	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
+		return false, e.Wrap(err, "Error adding unique constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`
