@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import BarChart from '@components/BarChart/BarChart'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
@@ -118,6 +119,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 
 export const ErrorFeedV2 = () => {
 	const { project_id } = useParams<{ project_id: string }>()
+	const { isHighlightAdmin } = useAuthContext()
 	const [data, setData] = useState<ErrorResults>({
 		error_groups: [],
 		totalCount: 0,
@@ -180,7 +182,7 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
-			{(loading || data.totalCount > 0) && histogram}
+			{isHighlightAdmin && (loading || data.totalCount > 0) && histogram}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{loading ? (

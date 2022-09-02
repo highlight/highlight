@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -141,6 +142,7 @@ export const SessionFeed = React.memo(() => {
 		project_id: string
 		session_secure_id: string
 	}>()
+	const { isHighlightAdmin } = useAuthContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 	const {
 		autoPlaySessions,
@@ -317,7 +319,9 @@ export const SessionFeed = React.memo(() => {
 				<SegmentPickerForPlayer />
 				<SessionsQueryBuilder />
 			</div>
-			{(loading || sessionResults.totalCount > 0) && histogram}
+			{isHighlightAdmin &&
+				(loading || sessionResults.totalCount > 0) &&
+				histogram}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{sessionResults.totalCount === -1 ? (
