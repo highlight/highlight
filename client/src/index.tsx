@@ -223,9 +223,9 @@ export class Highlight {
 					`Web worker sent payloadID ${e.data.response.id} size ${
 						e.data.response.eventsSize
 					}.
-                Total since snapshot: ${
+                Total since snapshot: ${(
 					this._eventBytesSinceSnapshot / 1000000
-				}MB`,
+				).toFixed(1)}MB`,
 				)
 			} else if (e.data.response?.type === MessageType.CustomEvent) {
 				this.addCustomEvent(
