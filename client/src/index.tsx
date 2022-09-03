@@ -293,6 +293,10 @@ export class Highlight {
 		this.sessionData.sessionStartTime = Date.now()
 		this._firstLoadListeners.stopListening()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
+		if (this.recordStop) {
+			this.recordStop()
+			this.recordStop = undefined
+		}
 		await this.initialize()
 		if (user_identifier && user_object) {
 			await this.identify(user_identifier, user_object)
