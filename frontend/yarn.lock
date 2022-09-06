@@ -3105,11 +3105,6 @@ caseless@^0.12.0, caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==
 
-cash-dom@^4.1.5:
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/cash-dom/-/cash-dom-4.1.5.tgz#0ef0cf205bc7603aa4e2dfada5808442a7a0e6ca"
-  integrity sha512-E6MO0A6ms5iZPtexznQXWRkFEvqdPqCmdx/SiJr2PnhOQNhZNfALkLG5t83Hk3J5JELzED7PJuzhMoS2tT64XA==
-
 chai@^4.3.6:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.6.tgz#ffe4ba2d9fa9d6680cc0b370adae709ec9011e9c"
@@ -6129,11 +6124,6 @@ lodash.curry@^4.0.1:
   resolved "https://registry.yarnpkg.com/lodash.curry/-/lodash.curry-4.1.1.tgz#248e36072ede906501d75966200a86dab8b23170"
   integrity sha1-JI42By7ekGUB11lmIAqG2riyMXA=
 
-lodash.debounce@^4.0.8:
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
-  integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
-
 lodash.flow@^3.3.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/lodash.flow/-/lodash.flow-3.5.0.tgz#87bf40292b8cf83e4e8ce1a3ae4209e20071675a"
@@ -8061,16 +8051,6 @@ react-resize-detector@^7.1.2:
   integrity sha512-zXnPJ2m8+6oq9Nn8zsep/orts9vQv3elrpA+R8XTcW7DVVUJ9vwDwMXaBtykAYjMnkCIaOoK9vObyR7ZgFNlOw==
   dependencies:
     lodash "^4.17.21"
-
-react-resize-panel-ts@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/react-resize-panel-ts/-/react-resize-panel-ts-0.0.5.tgz#3d8b0bf1a4996105dffc59c9370ae6d68db3e437"
-  integrity sha512-Ovqw4qgf2E9aUBcsf19wZN/KS7eqJjxtri7wT0e2JUbestZlMDFz4A2C0XLuyhL0sdSPwIpFuiGG1gHj6Lts4g==
-  dependencies:
-    cash-dom "^4.1.5"
-    classnames "^2.2.6"
-    lodash.debounce "^4.0.8"
-    react-draggable "^4.0.3"
 
 react-router-dom@^5.2.0:
   version "5.2.0"
