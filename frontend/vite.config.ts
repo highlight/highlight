@@ -22,11 +22,12 @@ export default defineConfig({
 					libName: 'antd',
 					style: (name) => `antd/es/${name}/style/index.js`,
 				},
-				{
-					libName: 'lodash',
-					libDirectory: '',
-					camel2DashComponentName: false,
-				},
+				// TODO: enable this later to reduce bundle size
+				// {
+				// 	libName: 'lodash',
+				// 	libDirectory: '',
+				// 	camel2DashComponentName: false,
+				// },
 			],
 		}),
 	],
