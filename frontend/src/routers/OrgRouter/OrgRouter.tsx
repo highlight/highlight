@@ -29,7 +29,7 @@ import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
 import classNames from 'classnames'
 import Firebase from 'firebase/app'
 import _ from 'lodash'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouteMatch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 import {
@@ -75,7 +75,7 @@ export const ProjectRouter = () => {
 
 	useEffect(() => {
 		const uri =
-			process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
 			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
 		Firebase.auth()

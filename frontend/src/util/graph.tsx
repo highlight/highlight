@@ -17,7 +17,7 @@ import { persistCache } from 'apollo3-cache-persist'
 import Firebase from 'firebase/app'
 
 const uri =
-	process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+	import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
 	window.location.origin + '/private'
 const highlightGraph = createHttpLink({
 	uri,
@@ -139,7 +139,7 @@ export const client = new ApolloClient({
 		(operation) => {
 			// Don't query GraphCDN for localhost.
 			// GraphCDN only caches production data.
-			if (process.env.NODE_ENV === 'development') {
+			if (import.meta.env.NODE_ENV === 'development') {
 				return false
 			}
 
@@ -152,5 +152,5 @@ export const client = new ApolloClient({
 	),
 	cache: cache,
 	assumeImmutableResults: true,
-	connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev',
+	connectToDevTools: import.meta.env.REACT_APP_ENVIRONMENT === 'dev',
 })
