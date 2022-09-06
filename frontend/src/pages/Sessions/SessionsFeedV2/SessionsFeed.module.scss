@@ -196,7 +196,6 @@
 	display: flex;
 	flex-shrink: 1;
 	flex-wrap: wrap;
-	margin-bottom: var(--size-medium);
 	row-gap: var(--size-small);
 }
 
@@ -204,6 +203,7 @@
 	align-items: center;
 	display: flex;
 	flex-shrink: 1;
+	margin-top: var(--size-medium);
 	padding-bottom: var(--size-xSmall);
 	position: relative;
 }

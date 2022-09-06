@@ -393,6 +393,7 @@ func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookback
 				CalendarInterval: "day",
 				SortOrder:        "desc",
 				Format:           "yyyy-MM-dd",
+				TimeZone:         "UTC",
 			},
 		},
 	}
@@ -2591,4 +2592,123 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		}
 	}
 	return
+}
+
+func FormatSessionsQuery(query string) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				 "bool": {
+					"must_not": [
+					   {
+						  "term": {
+							 "Excluded": true
+						  }
+					   },
+					   {
+						  "term": {
+							 "within_billing_quota": false
+						  }
+					   },
+					   {
+						  "bool": {
+							 "must": [
+								{
+								   "term": {
+									  "processed": "true"
+								   }
+								},
+								{
+								   "bool": {
+									  "should": [
+										 {
+											"range": {
+											   "active_length": {
+												  "lt": 1000
+											   }
+											}
+										 },
+										 {
+											"range": {
+											   "length": {
+												  "lt": 1000
+											   }
+											}
+										 }
+									  ]
+								   }
+								}
+							 ]
+						  }
+					   }
+					]
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, query)
+}
+
+func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
+	aggregation := opensearch.DateHistogramAggregation{
+		Field:            field,
+		CalendarInterval: histogramOptions.BucketSize.CalendarInterval.String(),
+		SortOrder:        "asc",
+		Format:           "epoch_millis",
+		TimeZone:         histogramOptions.TimeZone,
+		DateBounds: &opensearch.DateBounds{
+			Min: histogramOptions.Bounds.StartDate.UnixMilli(),
+			Max: histogramOptions.Bounds.EndDate.UnixMilli(),
+		},
+	}
+	if subAggregation != nil {
+		aggregation.SubAggregation = subAggregation
+	}
+	return &aggregation
+}
+
+func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
+	bucketTimes, totalCounts := []time.Time{}, []int64{}
+	for _, date_bucket := range aggs {
+		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+		if err != nil {
+			log.Errorf("Error parsing date bucket key for histogram: %s", err.Error())
+			break
+		}
+		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))
+		totalCounts = append(totalCounts, date_bucket.DocCount)
+	}
+	if len(aggs) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+	return bucketTimes, totalCounts
+}
+
+func MergeHistogramBucketTimes(bucketTimes []time.Time, multiple int) []time.Time {
+	newBucketTimes := []time.Time{}
+	for i := 0; i < len(bucketTimes); i++ {
+		// The last time is the end time of the search query and should not be removed
+		if i%multiple == 0 || i == len(bucketTimes)-1 {
+			newBucketTimes = append(newBucketTimes, bucketTimes[i])
+		}
+	}
+	return newBucketTimes
+}
+
+func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
+	newBuckets := []int64{}
+	newBucketsIndex := -1
+	for i := 0; i < len(bucketCounts); i++ {
+		if i%multiple == 0 {
+			newBuckets = append(newBuckets, bucketCounts[i])
+			newBucketsIndex++
+		} else {
+			newBuckets[newBucketsIndex] += bucketCounts[i]
+		}
+	}
+	return newBuckets
 }

@@ -72,6 +72,7 @@ type Aggregation interface {
 
 type TermsAggregation struct {
 	Field          string
+	Missing        *string // Optional: The value to use when the field is missing.
 	SubAggregation Aggregation
 	Include        *string
 	Size           *int
@@ -93,10 +94,15 @@ func (t *TermsAggregation) GetAggsString() string {
 		sizePart = fmt.Sprintf(`, "size": %d`, *t.Size)
 	}
 
+	missing := ""
+	if t.Missing != nil {
+		missing = fmt.Sprintf(`, "missing": "%s"`, *t.Missing)
+	}
 	return fmt.Sprintf(`
 		"aggregate": {
 			"terms": {
 				"field": "%s"
+				%s
 				%s
 				%s
 			},
@@ -104,7 +110,12 @@ func (t *TermsAggregation) GetAggsString() string {
 				%s
 			}
 		}
-	`, t.Field, includePart, sizePart, subAggString)
+	`, t.Field, includePart, sizePart, missing, subAggString)
+}
+
+type DateBounds struct {
+	Min int64
+	Max int64
 }
 
 type DateHistogramAggregation struct {
@@ -112,6 +123,8 @@ type DateHistogramAggregation struct {
 	CalendarInterval string
 	SortOrder        string
 	Format           string
+	TimeZone         string
+	DateBounds       *DateBounds
 	SubAggregation   Aggregation
 }
 
@@ -119,6 +132,15 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 	subAggString := ""
 	if d.SubAggregation != nil {
 		subAggString = d.SubAggregation.GetAggsString()
+	}
+	boundsString := ""
+	if d.DateBounds != nil {
+		boundsString = fmt.Sprintf(
+			`, "extended_bounds": {"min": %d, "max": %d}, "hard_bounds": {"min": %d, "max": %d}, "min_doc_count": 0`,
+			d.DateBounds.Min,
+			d.DateBounds.Max,
+			d.DateBounds.Min,
+			d.DateBounds.Max)
 	}
 	return fmt.Sprintf(`
 		"aggregate": {
@@ -128,13 +150,15 @@ func (d *DateHistogramAggregation) GetAggsString() string {
 				"order": {
 					"_key": "%s"
 				},
-				"format": "%s"
+				"format": "%s",
+				"time_zone": "%s"
+				%s
 			},
 			"aggs": {
 				%s
 			}
 		}
-	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, subAggString)
+	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, boundsString, subAggString)
 }
 
 type AggregationResult struct {
@@ -153,13 +177,14 @@ type aggregateBucket struct {
 }
 
 type SearchOptions struct {
-	MaxResults    *int
-	ResultsFrom   *int
-	SortField     *string
-	SortOrder     *string
-	ReturnCount   *bool
-	ExcludeFields []string
-	Aggregation   Aggregation
+	MaxResults        *int
+	ResultsFrom       *int
+	SortField         *string
+	SortOrder         *string
+	ReturnCount       *bool
+	ProjectIDOnParent *bool
+	ExcludeFields     []string
+	Aggregation       Aggregation
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -411,7 +436,13 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 	q := query
 	if projectID != -1 {
-		q = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+		if options.ProjectIDOnParent != nil && *options.ProjectIDOnParent {
+			q = fmt.Sprintf(
+				`{"bool":{"must":[{"has_parent": {"parent_type": "parent","query": {"term":{"project_id":"%d"}}}}, %s]}}`,
+				projectID, query)
+		} else {
+			q = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+		}
 	}
 
 	sort := ""

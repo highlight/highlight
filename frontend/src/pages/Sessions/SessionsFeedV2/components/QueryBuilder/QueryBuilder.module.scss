@@ -213,6 +213,10 @@ span:last-child {
 	}
 }
 
+.timeRangeContainer .ruleItem span {
+	max-width: 100%;
+}
+
 .removeRule {
 	border-bottom-right-radius: 3px;
 	border-top-right-radius: 3px;
