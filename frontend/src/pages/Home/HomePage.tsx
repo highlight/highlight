@@ -19,7 +19,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import Lottie from 'lottie-react'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import { Link, useHistory } from 'react-router-dom'
@@ -73,6 +73,19 @@ const HomePage = () => {
 		return null
 	}
 
+	function getHeaderText() {
+		if (!integrated) {
+			return 'Welcome to Highlight.'
+		}
+
+		if (adminData?.admin?.name) {
+			const firstName = adminData.admin.name.split(' ')[0]
+			return `Hey ${firstName}, welcome back to Highlight.`
+		}
+
+		return 'Welcome back to Highlight.'
+	}
+
 	return (
 		<HomePageFiltersContext
 			value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
@@ -87,19 +100,7 @@ const HomePage = () => {
 				>
 					<div className={styles.headerContainer}>
 						<div>
-							<h2>
-								{integrated
-									? `${
-											adminData?.admin?.name
-												? `Hey ${
-														adminData.admin.name.split(
-															' ',
-														)[0]
-												  }, welcome`
-												: `Welcome`
-									  } back to Highlight.`
-									: 'Welcome to Highlight'}
-							</h2>
+							<h2>{getHeaderText()}</h2>
 							{integrated && (
 								<p className={styles.subTitle}>
 									Here’s an overview of your team’s sessions
