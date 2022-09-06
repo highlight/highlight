@@ -22,7 +22,6 @@ import {
 } from '@context/AppLoadingContext'
 import { datadogLogs } from '@datadog/browser-logs'
 import {
-	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
 } from '@graph/hooks'
@@ -181,7 +180,7 @@ const AuthenticationRoleRouter = () => {
 		project_id: string
 	}>()
 	const [
-		getWorkspaceAdminsQuery,
+		getAdminWorkspaceRoleQuery,
 		{
 			error: adminWError,
 			data: adminWData,
@@ -190,7 +189,7 @@ const AuthenticationRoleRouter = () => {
 		},
 	] = useGetAdminRoleLazyQuery()
 	const [
-		getWorkspaceAdminsByProjectIdQuery,
+		getAdminProjectRoleQuery,
 		{
 			error: adminPError,
 			data: adminPData,
@@ -198,15 +197,6 @@ const AuthenticationRoleRouter = () => {
 			refetch: pRefetch,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
-	const [
-		getAdminSimpleQuery,
-		{
-			error: adminSError,
-			data: adminSData,
-			called: sCalled,
-			refetch: sRefetch,
-		},
-	] = useGetAdminLazyQuery()
 	let getAdminQuery:
 			| ((
 					workspace_id:
@@ -217,33 +207,26 @@ const AuthenticationRoleRouter = () => {
 					project_id:
 						| QueryLazyOptions<Exact<{ project_id: string }>>
 						| undefined,
-			  ) => void)
-			| (() => void),
+			  ) => void),
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
 		called: boolean,
 		refetch: any
 	if (workspace_id) {
-		getAdminQuery = getWorkspaceAdminsQuery
+		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
-	} else if (project_id) {
-		getAdminQuery = getWorkspaceAdminsByProjectIdQuery
+	} else {
+		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
 		called = pCalled
 		refetch = pRefetch
-	} else {
-		getAdminQuery = getAdminSimpleQuery
-		adminError = adminSError
-		adminData = adminSData?.admin
-		called = sCalled
-		refetch = sRefetch
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
@@ -310,7 +293,7 @@ const AuthenticationRoleRouter = () => {
 				admin: isLoggedIn(authRole)
 					? adminData ?? undefined
 					: undefined,
-				workspaceRole: adminRole,
+				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: isLoggedIn(authRole),
 				isHighlightAdmin: isHighlightAdmin(authRole),
