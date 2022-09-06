@@ -179,7 +179,7 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	return nil
 }
 
-func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) ([][]redis.Z, error) {
+func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) (map[int]string, error) {
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
 	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
 
@@ -227,7 +227,20 @@ func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, proje
 		return nil, errors.Wrap(err, "error in task retrieving object from S3")
 	}
 
-	return results, nil
+	eventRows := map[int]string{}
+	for _, zRange := range results {
+		for _, z := range zRange {
+			intScore := int(z.Score)
+			// Beacon events have decimals, skip them
+			if z.Score != float64(intScore) {
+				continue
+			}
+
+			eventRows[intScore] = z.Member.(string)
+		}
+	}
+
+	return eventRows, nil
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {

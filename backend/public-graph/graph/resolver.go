@@ -2298,7 +2298,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					// If there are prior events, push them to S3 and remove them from Redis
 					if len(zRange) != 0 {
-						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, marshalled); err != nil {
+						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
 							return e.Wrap(err, "error pushing events to S3")
 						}
 

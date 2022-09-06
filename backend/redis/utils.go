@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/go-redis/redis"
@@ -83,7 +84,7 @@ func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId 
 	return vals, nil
 }
 
-func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]model.EventsObject, error, *model.EventsCursor) {
+func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
 	// Session is live if the cursor is not the default
 	isLive := cursor != model.EventsCursor{}
 
@@ -100,26 +101,34 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		return nil, errors.Wrap(err, "error retrieving events from Redis"), nil
 	}
 
-	eventsObjects := []model.EventsObject{}
-
-	if len(vals) == 0 {
-		return eventsObjects, nil, &cursor
-	}
-
-	maxScore := 0
 	for idx, z := range vals {
 		intScore := int(z.Score)
 		// Beacon events have decimals, skip them if it's live mode or not the last event
 		if z.Score != float64(intScore) && (isLive || idx != len(vals)-1) {
 			continue
 		}
-		if intScore > maxScore {
-			maxScore = intScore
-		}
+
+		events[intScore] = z.Member.(string)
+	}
+
+	keys := make([]int, 0, len(events))
+	for k := range events {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	eventsObjects := []model.EventsObject{}
+	if len(keys) == 0 {
+		return eventsObjects, nil, &cursor
+	}
+
+	maxScore := keys[len(keys)-1]
+
+	for _, k := range keys {
+		asBytes := []byte(events[k])
 
 		// Messages may be encoded with `snappy`.
 		// Try decoding them, but if decoding fails, use the original message.
-		asBytes := []byte(z.Member.(string))
 		decoded, err := snappy.Decode(nil, asBytes)
 		if err != nil {
 			decoded = asBytes
@@ -137,7 +146,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
 	allEvents := make([]interface{}, 0)
 
-	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor)
+	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, map[int]string{})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting events objects"), nil
 	}
