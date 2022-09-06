@@ -27,7 +27,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { dinero, down, toUnit } from 'dinero.js'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import Skeleton from 'react-loading-skeleton'
 import { Route, Switch as RouteSwitch, useLocation } from 'react-router-dom'
@@ -81,7 +81,7 @@ export const useBillingHook = ({
 }
 
 const getStripePromiseOrNull = () => {
-	const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK
+	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
 	if (stripe_publishable_key) {
 		return loadStripe(stripe_publishable_key)
 	}
