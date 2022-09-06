@@ -55,11 +55,22 @@ export const DevToolsWindow = React.memo(
 						>
 							<div className="relative h-2 w-10 rounded-full bg-gray-200" />
 						</button>
-						<DevToolsTabs
-							closeDevToolsHandler={() => {
-								setOpenDevTools(false)
-							}}
+						<Tabs
 							tabs={TABS}
+							id="DevTools"
+							noPadding
+							className={styles.tabs}
+							tabBarExtraContent={
+								<>
+									<DOMInteractionsToggle />
+									<SvgXIcon
+										className={styles.closeStyle}
+										onClick={() => {
+											setOpenDevTools(false)
+										}}
+									/>
+								</>
+							}
 						/>
 					</div>
 				)}
@@ -67,31 +78,6 @@ export const DevToolsWindow = React.memo(
 		)
 	},
 )
-
-interface Props {
-	closeDevToolsHandler: () => void
-	tabs: TabItem[]
-}
-
-const DevToolsTabs = React.memo(({ closeDevToolsHandler, tabs }: Props) => {
-	return (
-		<Tabs
-			tabs={tabs}
-			id="DevTools"
-			noPadding
-			className={styles.tabs}
-			tabBarExtraContent={
-				<>
-					<DOMInteractionsToggle />
-					<SvgXIcon
-						className={styles.closeStyle}
-						onClick={closeDevToolsHandler}
-					/>
-				</>
-			}
-		/>
-	)
-})
 
 function ResizePanel({
 	children,
