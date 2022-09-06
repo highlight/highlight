@@ -1,0 +1,12 @@
+{
+	"$schema": "https://unpkg.com/graphql-config@4.3.5/config-schema.json",
+	"projects": {
+		"frontend": {
+			"schema": "./backend/private-graph/graph/schema.graphqls",
+			"documents": [
+				"./frontend/src/**/*.graphql",
+				"./frontend/src/**/*.gql"
+			]
+		}
+	}
+}
