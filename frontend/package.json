@@ -85,7 +85,7 @@
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"gql:nowatch": "graphql-codegen --config codegen.yml",
 		"build": "vite build",
-		"test": "vitest",
+		"test": "TZ=UTC vitest",
 		"lint": "yarn lint:es && stylelint \"**/*.scss\"",
 		"lint:es": "eslint --fix \"src/**/*.{ts,tsx}\"",
 		"lint:css": "stylelint \"**/*.scss\" --fix",

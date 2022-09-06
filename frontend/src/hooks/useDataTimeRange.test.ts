@@ -3,8 +3,7 @@ import { act, renderHook } from '@testing-library/react-hooks/dom'
 import useDataTimeRange from './useDataTimeRange'
 
 describe('useDataTimeRange', () => {
-	// this fails due to local time zone issues
-	it.skip('rounds times correctly', () => {
+	it('rounds times correctly', () => {
 		const { result } = renderHook(() => useDataTimeRange())
 
 		act(() => {
