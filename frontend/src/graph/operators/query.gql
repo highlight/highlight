@@ -609,20 +609,20 @@ query GetSessionsOpenSearch(
 }
 
 query GetSessionsHistogram(
-    $project_id: ID!
-    $query: String!
-    $histogram_options: DateHistogramOptions!
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
 ) {
-    sessions_histogram(
-        project_id: $project_id
-        query: $query
-        histogram_options: $histogram_options
-    ) {
-        bucket_times
-        sessions_without_errors
-        sessions_with_errors
-        total_sessions
-    }
+	sessions_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		sessions_without_errors
+		sessions_with_errors
+		total_sessions
+	}
 }
 
 query GetErrorGroupsOpenSearch(
@@ -660,18 +660,18 @@ query GetErrorGroupsOpenSearch(
 }
 
 query GetErrorsHistogram(
-    $project_id: ID!
-    $query: String!
-    $histogram_options: DateHistogramOptions!
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
 ) {
-    errors_histogram(
-        project_id: $project_id
-        query: $query
-        histogram_options: $histogram_options
-    ) {
-        bucket_times
-        error_objects
-    }
+	errors_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		error_objects
+	}
 }
 
 query GetProjects {
@@ -1113,42 +1113,46 @@ query GetUserSuggestion($project_id: ID!, $query: String!) {
 
 query GetSegments($project_id: ID!) {
 	segments(project_id: $project_id) {
-		id
-		name
-		params {
-			user_properties {
-				name
-				value
-			}
-			excluded_properties {
-				name
-				value
-			}
-			track_properties {
-				name
-				value
-			}
-			date_range {
-				start_date
-				end_date
-			}
-			length_range {
-				min
-				max
-			}
-			os
-			browser
-			visited_url
-			referrer
-			identified
-			hide_viewed
-			first_time
-			app_versions
-			environments
-			device_id
-			show_live_sessions
-			query
+		...segment
+	}
+}
+
+fragment segment on Segment {
+	id
+	name
+	params {
+		user_properties {
+			name
+			value
 		}
+		excluded_properties {
+			name
+			value
+		}
+		track_properties {
+			name
+			value
+		}
+		date_range {
+			start_date
+			end_date
+		}
+		length_range {
+			min
+			max
+		}
+		os
+		browser
+		visited_url
+		referrer
+		identified
+		hide_viewed
+		first_time
+		app_versions
+		environments
+		device_id
+		show_live_sessions
+		query
 	}
 }
 

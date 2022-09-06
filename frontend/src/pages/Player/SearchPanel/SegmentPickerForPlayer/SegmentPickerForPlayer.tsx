@@ -1,13 +1,15 @@
 import { namedOperations } from '@graph/operations'
 import SvgXIcon from '@icons/XIcon'
-import { message, Select as AntDesignSelect } from 'antd'
-import classNames from 'classnames'
-const { Option } = AntDesignSelect
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
+import { message, Select as AntDesignSelect } from 'antd'
+import classNames from 'classnames'
 import _ from 'lodash'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextTransition from 'react-text-transition'
+
+import { getSegmentOptions } from '../../../../features/segments/getSegmentOptions'
+const { Option } = AntDesignSelect
 
 import Button from '../../../../components/Button/Button/Button'
 import Select from '../../../../components/Select/Select'
@@ -92,24 +94,7 @@ const SegmentPickerForPlayer = () => {
 	}, [searchParams, existingParams])
 
 	const showUpdateSegmentOption = paramsIsDifferent && segmentName
-	const segmentOptions = [
-		{
-			displayValue: 'Starred',
-			id: STARRED_SEGMENT_ID,
-			value: 'Starred',
-		},
-		...(data?.segments || [])
-			.map((segment) => ({
-				displayValue: segment?.name || '',
-				value: segment?.name || '',
-				id: segment?.id || '',
-			}))
-			.sort((a, b) =>
-				a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
-					? 1
-					: -1,
-			),
-	]
+	const segmentOptions = getSegmentOptions(data?.segments || [])
 
 	return (
 		<section className={styles.segmentPickerSection}>

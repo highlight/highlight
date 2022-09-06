@@ -56,6 +56,46 @@ export const SessionPayloadFragmentFragmentDoc = gql`
 		last_user_interaction_time
 	}
 `
+export const SegmentFragmentDoc = gql`
+	fragment segment on Segment {
+		id
+		name
+		params {
+			user_properties {
+				name
+				value
+			}
+			excluded_properties {
+				name
+				value
+			}
+			track_properties {
+				name
+				value
+			}
+			date_range {
+				start_date
+				end_date
+			}
+			length_range {
+				min
+				max
+			}
+			os
+			browser
+			visited_url
+			referrer
+			identified
+			hide_viewed
+			first_time
+			app_versions
+			environments
+			device_id
+			show_live_sessions
+			query
+		}
+	}
+`
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 		markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -8268,44 +8308,10 @@ export type GetUserSuggestionQueryResult = Apollo.QueryResult<
 export const GetSegmentsDocument = gql`
 	query GetSegments($project_id: ID!) {
 		segments(project_id: $project_id) {
-			id
-			name
-			params {
-				user_properties {
-					name
-					value
-				}
-				excluded_properties {
-					name
-					value
-				}
-				track_properties {
-					name
-					value
-				}
-				date_range {
-					start_date
-					end_date
-				}
-				length_range {
-					min
-					max
-				}
-				os
-				browser
-				visited_url
-				referrer
-				identified
-				hide_viewed
-				first_time
-				app_versions
-				environments
-				device_id
-				show_live_sessions
-				query
-			}
+			...segment
 		}
 	}
+	${SegmentFragmentDoc}
 `
 
 /**
