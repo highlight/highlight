@@ -38,7 +38,7 @@ func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Cl
 
 func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	var metricMonitors []*model.MetricMonitor
-	if err := DB.Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
+	if err := DB.Preload("Filters").Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("Error querying for metric monitors")
 		}
@@ -57,6 +57,14 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 		if metricMonitor.PeriodMinutes != nil && *metricMonitor.PeriodMinutes > 0 {
 			resMins = *metricMonitor.PeriodMinutes
 		}
+		var filters []*modelInputs.MetricTagFilterInput
+		for _, f := range metricMonitor.Filters {
+			filters = append(filters, &modelInputs.MetricTagFilterInput{
+				Tag:   f.Tag,
+				Op:    f.Op,
+				Value: f.Value,
+			})
+		}
 		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
 			DateRange: &modelInputs.DateRangeInput{
 				StartDate: &start,
@@ -65,6 +73,7 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			ResolutionMinutes: pointy.Int(resMins),
 			Aggregator:        &metricMonitor.Aggregator,
 			Units:             metricMonitor.Units,
+			Filters:           filters,
 		})
 		if err != nil {
 			log.Error(err)
