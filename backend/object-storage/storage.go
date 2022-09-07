@@ -169,11 +169,11 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
 
 	options := s3.PutObjectInput{
-		Bucket: &S3SessionsPayloadBucketName,
+		Bucket: &S3SessionsStagingBucketName,
 		Key:    &key,
 		Body:   buf,
 	}
-	_, err := s.S3Client.PutObject(ctx, &options)
+	_, err := s.S3ClientEast2.PutObject(ctx, &options)
 	if err != nil {
 		return errors.Wrap(err, "error uploading raw events to S3")
 	}
@@ -186,11 +186,11 @@ func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, proje
 	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
 
 	options := s3.ListObjectsV2Input{
-		Bucket: &S3SessionsPayloadBucketName,
+		Bucket: &S3SessionsStagingBucketName,
 		Prefix: &prefix,
 	}
 
-	output, err := s.S3Client.ListObjectsV2(ctx, &options)
+	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &options)
 	if err != nil {
 		return nil, errors.Wrap(err, "error listing objects in S3")
 	}
@@ -202,7 +202,7 @@ func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, proje
 		object := object
 		g.Go(func() error {
 			var result []redis.Z
-			output, err := s.S3Client.GetObject(ctx, &s3.GetObjectInput{
+			output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{
 				Bucket: &S3SessionsPayloadBucketName,
 				Key:    object.Key,
 			})
