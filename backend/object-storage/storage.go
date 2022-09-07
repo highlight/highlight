@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"encoding/gob"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -158,9 +159,10 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 }
 
 func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []redis.Z) error {
-	marshalled, err := json.Marshal(events)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling range to JSON")
+	buf := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buf)
+	if err := encoder.Encode(events); err != nil {
+		return errors.Wrap(err, "error encoding gob")
 	}
 
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
@@ -169,9 +171,9 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	options := s3.PutObjectInput{
 		Bucket: &S3SessionsPayloadBucketName,
 		Key:    &key,
-		Body:   bytes.NewReader(marshalled),
+		Body:   buf,
 	}
-	_, err = s.S3Client.PutObject(ctx, &options)
+	_, err := s.S3Client.PutObject(ctx, &options)
 	if err != nil {
 		return errors.Wrap(err, "error uploading raw events to S3")
 	}
@@ -214,8 +216,9 @@ func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, proje
 				return errors.Wrap(err, "error reading from s3 buffer")
 			}
 
-			if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
-				return errors.Wrap(err, "error unmarshalling JSON")
+			decoder := gob.NewDecoder(buf)
+			if err := decoder.Decode(&result); err != nil {
+				return errors.Wrap(err, "error decoding gob")
 			}
 
 			results[idx] = result

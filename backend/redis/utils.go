@@ -173,6 +173,24 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 func (r *Client) AddEventPayload(sessionID int, score float64, payload string) error {
 	encoded := string(snappy.Encode(nil, []byte(payload)))
 
+	// test := []redis.Z{}
+	// test = append(test, redis.Z{Member: encoded, Score: 1.0})
+	// var result []redis.Z
+
+	// buf := new(bytes.Buffer)
+	// encoder := gob.NewEncoder(buf)
+	// _ = encoder.Encode(test)
+	// decoder := gob.NewDecoder(buf)
+	// _ = decoder.Decode(&result)
+	// // m, _ := gob.Marshal(test)
+	// // _ = xml.Unmarshal(m, &result)
+	// _, err := snappy.Decode(nil, []byte(result[0].Member.(string)))
+	// if err != nil {
+	// 	log.Error(err)
+	// 	// log.Info(m)
+	// 	return errors.Wrap(err, "error decoding")
+	// }
+
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
 	var zAddAndExpire = redis.NewScript(`
 		local key = KEYS[1]

@@ -2290,7 +2290,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					score += .5
 				}
 
-				if hasFullSnapshot {
+				// Gated for project_id = 1 for now
+				if hasFullSnapshot && projectID == 1 {
 					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
 					if err != nil {
 						return e.Wrap(err, "error retrieving previous event objects")
