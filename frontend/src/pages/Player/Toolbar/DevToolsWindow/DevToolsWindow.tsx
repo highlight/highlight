@@ -94,6 +94,8 @@ function ResizePanel({
 	useHTMLElementEvent(handle, 'pointerdown', (event) => {
 		if (handle && event.composedPath().includes(handle)) {
 			setDragging(true)
+			event.preventDefault()
+			event.stopPropagation()
 		}
 	})
 
@@ -104,13 +106,17 @@ function ResizePanel({
 				const panelRect = panel.getBoundingClientRect()
 				const newHeight = panelRect.height - event.movementY
 				panel.style.height = `${newHeight}px`
+				event.preventDefault()
+				event.stopPropagation()
 			}
 		},
 		{ passive: true },
 	)
 
-	useWindowEvent('pointerup', () => {
+	useWindowEvent('pointerup', (event) => {
 		setDragging(false)
+		event.preventDefault()
+		event.stopPropagation()
 	})
 
 	return <>{children({ panelRef, handleRef })}</>
