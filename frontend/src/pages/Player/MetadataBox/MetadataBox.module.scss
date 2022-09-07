@@ -199,7 +199,7 @@ $avatar-size: 36px;
 	color: var(--color-gray-500);
 	display: block;
 	font-size: 12px;
-	line-height: 17px;
+	line-height: 17px !important;
 	margin: 0 !important;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -272,6 +272,8 @@ $avatar-size: 36px;
 	display: flex;
 	font-size: var(--size-small);
 	gap: var(--size-xxSmall);
+	left: -1px;
+	line-height: 15px !important;
 	max-width: min-content;
 	padding: 0;
 	span {
