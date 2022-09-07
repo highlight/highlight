@@ -58,6 +58,11 @@ const options: HighlightOptions = {
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
+		destinationDomains: [
+			'pri.highlight.run',
+			'pub.highlight.run',
+			'localhost:8082',
+		],
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
