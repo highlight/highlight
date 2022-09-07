@@ -207,12 +207,12 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	zRange, err := w.Resolver.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+	s3Events, err := w.Resolver.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects from S3")
 	}
 
-	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, zRange)
+	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects from Redis")
 	}

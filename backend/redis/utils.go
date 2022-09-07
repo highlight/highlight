@@ -143,10 +143,10 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 	return eventsObjects, nil, &nextCursor
 }
 
-func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]interface{}, error, *model.EventsCursor) {
 	allEvents := make([]interface{}, 0)
 
-	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, map[int]string{})
+	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, events)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting events objects"), nil
 	}
@@ -172,24 +172,6 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 
 func (r *Client) AddEventPayload(sessionID int, score float64, payload string) error {
 	encoded := string(snappy.Encode(nil, []byte(payload)))
-
-	// test := []redis.Z{}
-	// test = append(test, redis.Z{Member: encoded, Score: 1.0})
-	// var result []redis.Z
-
-	// buf := new(bytes.Buffer)
-	// encoder := gob.NewEncoder(buf)
-	// _ = encoder.Encode(test)
-	// decoder := gob.NewDecoder(buf)
-	// _ = decoder.Decode(&result)
-	// // m, _ := gob.Marshal(test)
-	// // _ = xml.Unmarshal(m, &result)
-	// _, err := snappy.Decode(nil, []byte(result[0].Member.(string)))
-	// if err != nil {
-	// 	log.Error(err)
-	// 	// log.Info(m)
-	// 	return errors.Wrap(err, "error decoding")
-	// }
 
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
 	var zAddAndExpire = redis.NewScript(`

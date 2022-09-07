@@ -171,7 +171,7 @@ func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projec
 	options := s3.PutObjectInput{
 		Bucket: &S3SessionsStagingBucketName,
 		Key:    &key,
-		Body:   buf,
+		Body:   bytes.NewReader(buf.Bytes()),
 	}
 	_, err := s.S3ClientEast2.PutObject(ctx, &options)
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, proje
 		g.Go(func() error {
 			var result []redis.Z
 			output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{
-				Bucket: &S3SessionsPayloadBucketName,
+				Bucket: &S3SessionsStagingBucketName,
 				Key:    object.Key,
 			})
 			if err != nil {
