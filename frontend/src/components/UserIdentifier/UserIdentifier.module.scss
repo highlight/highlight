@@ -5,17 +5,11 @@
 	width: 100%;
 }
 
-.identifierButton {
-	color: var(--color-purple);
+.identifier {
+	font-weight: 500;
 	max-width: calc(100% - 1.2em - 2 * var(--size-xxSmall));
-
-	padding: 0;
-
-	> span {
-		font-weight: 500;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .identifierActionButton {

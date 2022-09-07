@@ -31,6 +31,7 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useCallback, useEffect } from 'react'
 import {
+	FaExternalLinkAlt,
 	FaExternalLinkSquareAlt,
 	FaFacebookSquare,
 	FaGithubSquare,
@@ -175,7 +176,6 @@ export const MetadataBox = React.memo(() => {
 								<UserIdentifier
 									displayValue={displayValue}
 									className={styles.userIdentifier}
-									onClick={searchIdentifier}
 								/>
 								{isLoggedIn && (
 									<div
@@ -216,18 +216,17 @@ export const MetadataBox = React.memo(() => {
 							</h4>
 							<p className={styles.userIdSubHeader}>
 								{created.toLocaleString('en-us', {
-									day: 'numeric',
-									month: 'short',
-									year: 'numeric',
-									weekday: 'long',
-								})}
-							</p>
-							<p className={styles.userIdSubHeader}>
-								{created.toLocaleString('en-us', {
-									second: '2-digit',
 									hour: '2-digit',
 									minute: '2-digit',
 									timeZoneName: 'short',
+									day: 'numeric',
+									month: 'short',
+									weekday: 'long',
+									year:
+										created.getFullYear() !==
+										new Date().getFullYear()
+											? 'numeric'
+											: undefined,
 								})}
 							</p>
 							{geoData && (
@@ -256,7 +255,8 @@ export const MetadataBox = React.memo(() => {
 								type="text"
 								onClick={searchIdentifier}
 							>
-								<span>More sessions by {displayValue}</span>
+								<span>All sessions for this user</span>
+								<FaExternalLinkAlt size={10} />
 							</Button>
 						</>
 					)}

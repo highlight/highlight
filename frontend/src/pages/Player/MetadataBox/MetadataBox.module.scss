@@ -268,13 +268,12 @@ $avatar-size: 36px;
 }
 
 .viewAllSessionsButton {
-	background-color: var(--color-purple-100);
-	display: block;
+	color: var(--color-purple) !important;
+	display: flex;
 	font-size: var(--size-small);
-	left: calc(-1 * var(--size-xSmall));
-	margin: var(--size-xxSmall) 0 0 !important;
+	gap: var(--size-xxSmall);
 	max-width: min-content;
-	padding: var(--size-xxSmall) var(--size-xSmall);
+	padding: 0;
 	span {
 		display: block;
 		overflow: hidden;
