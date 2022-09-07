@@ -1174,7 +1174,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	if len(input.NetworkRecordingDomains) > 0 {
 		project.BackendDomains = input.NetworkRecordingDomains
-		if err := r.DB.Debug().Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
 			return nil, e.Wrap(err, "failed to update project backend domains")
 		}
 	}
