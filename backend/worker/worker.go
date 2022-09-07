@@ -1169,8 +1169,6 @@ func (w *Worker) RefreshMaterializedViews() {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
-	time.Sleep(5 * time.Second)
-
 	type AggregateSessionCount struct {
 		WorkspaceID int   `json:"workspace_id"`
 		Count       int64 `json:"count"`
