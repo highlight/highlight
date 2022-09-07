@@ -355,9 +355,9 @@ func (r *Resolver) isAdminInProject(ctx context.Context, projectID int) (*model.
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.New("project doesn't exist")
+	var project model.Project
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
