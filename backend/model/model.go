@@ -352,10 +352,11 @@ type DashboardMetric struct {
 
 type DashboardMetricFilter struct {
 	Model
-	MetricID int                           `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Tag      string                        `gorm:"uniqueIndex:idx_metric_tag_filter_metric_id_tag;not null;"`
-	Op       modelInputs.MetricTagFilterOp `gorm:"default:equals"`
-	Value    string
+	MetricID        int
+	MetricMonitorID int
+	Tag             string
+	Op              modelInputs.MetricTagFilterOp `gorm:"default:equals"`
+	Value           string
 }
 
 type SlackChannel struct {
@@ -684,11 +685,11 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL                              = "sessions"
-	DAILY_ERROR_COUNTS_TBL                    = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ                   = "date_project_id_error_type_uniq"
-	METRIC_GROUPS_NAME_SESSION_UNIQ           = "metric_groups_name_session_uniq"
-	DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT = "dashboard_metric_filters_chart_id"
+	SESSIONS_TBL                    = "sessions"
+	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
+	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
 
 type DailyErrorCount struct {
@@ -773,10 +774,11 @@ type MetricMonitor struct {
 	Threshold         float64
 	Units             *string // Threshold value is in these Units.
 	MetricToMonitor   string
-	ChannelsToNotify  *string `gorm:"channels_to_notify"`
-	EmailsToNotify    *string `gorm:"emails_to_notify"`
-	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
-	Disabled          *bool   `gorm:"default:false"`
+	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
+	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
+	Disabled          *bool                    `gorm:"default:false"`
+	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
 }
 
 func (m *MessagesObject) Contents() string {
@@ -1211,23 +1213,35 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 
 	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
+		BEGIN
 			BEGIN
-				BEGIN
-					IF NOT EXISTS
-						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'dashboard_metrics' and constraint_name = '%[1]s')
-					THEN
-						alter table dashboard_metric_filters
-							add constraint %[1]s
-								foreign key (metric_id) references dashboard_metrics (id)
-									on update cascade on delete cascade;
-					END IF;
-				EXCEPTION
-					WHEN duplicate_table
-					THEN RAISE NOTICE 'dashboard_metric_filters.%[1]s already exists';
-				END;
-			END $$;
-	`, DASHBOARD_METRIC_FILTERS_CHART_CONSTRAINT)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding foreign constraint on dashboard_metric_filters")
+				DROP INDEX IF EXISTS idx_metric_tag_filter_metric_id_tag;
+				IF EXISTS
+					(SELECT constraint_name
+					 from information_schema.key_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = 'dashboard_metric_filters_chart_id')
+				THEN
+					ALTER TABLE dashboard_metric_filters
+						DROP CONSTRAINT dashboard_metric_filters_chart_id;
+				END IF;
+				IF NOT EXISTS
+					(SELECT constraint_name
+					 from information_schema.constraint_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = '%s')
+				THEN
+					ALTER TABLE dashboard_metric_filters
+						ADD CONSTRAINT %s
+						UNIQUE (metric_id, metric_monitor_id, tag);
+				END IF;
+			EXCEPTION
+				WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%s already exists';
+			END;
+		END $$;
+	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
+		return false, e.Wrap(err, "Error adding unique constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`

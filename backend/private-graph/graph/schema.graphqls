@@ -918,6 +918,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
+	filters: [MetricTagFilter!]
 }
 
 type EventChunk {
@@ -1297,6 +1298,7 @@ type Mutation {
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
 		emails: [String]!
+		filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	updateMetricMonitor(
 		metric_monitor_id: ID!
@@ -1310,6 +1312,7 @@ type Mutation {
 		slack_channels: [SanitizedSlackChannelInput]
 		emails: [String]
 		disabled: Boolean
+		filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	createErrorAlert(
 		project_id: ID!
