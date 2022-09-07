@@ -312,7 +312,9 @@ export const CustomTooltip = ({
 							></div>
 							<span>
 								<span className={styles.tooltipValue}>
-									{entry.value.toFixed(precision)}
+									{entry.value?.toFixed
+										? entry.value.toFixed(precision)
+										: entry.value}
 								</span>{' '}
 								{yAxisLabel}
 								{entry?.payload.range_start ? (

@@ -269,6 +269,24 @@ func (r *metricMonitorResolver) EmailsToNotify(ctx context.Context, obj *model.M
 	return emailsToNotify, nil
 }
 
+// Filters is the resolver for the filters field.
+func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.MetricTagFilter, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for Slack or email notifications")
+	}
+	var filters []*model.DashboardMetricFilter
+	if err := r.DB.Where(&model.DashboardMetricFilter{MetricMonitorID: obj.ID}).Find(&filters).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitor filters")
+	}
+	return lo.Map(filters, func(t *model.DashboardMetricFilter, i int) *modelInputs.MetricTagFilter {
+		return &modelInputs.MetricTagFilter{
+			Tag:   t.Tag,
+			Op:    t.Op,
+			Value: t.Value,
+		}
+	}), nil
+}
+
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1816,7 +1834,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1834,6 +1852,15 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		return nil, err
 	}
 
+	var mmFilters []*model.DashboardMetricFilter
+	for _, f := range filters {
+		mmFilters = append(mmFilters, &model.DashboardMetricFilter{
+			Tag:   f.Tag,
+			Op:    f.Op,
+			Value: f.Value,
+		})
+	}
+
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:         projectID,
 		Name:              name,
@@ -1845,6 +1872,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		ChannelsToNotify:  channelsString,
 		EmailsToNotify:    emailsString,
 		LastAdminToEditID: admin.ID,
+		Filters:           mmFilters,
 	}
 
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
@@ -1858,7 +1886,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1870,6 +1898,27 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}, ProjectID: projectID}).Find(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
+
+	var createdFilterIDs []int
+	for _, f := range filters {
+		var created struct{ ID int }
+		if err := r.DB.Where(&model.DashboardMetricFilter{
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.DASHBOARD_METRIC_FILTERS_UNIQ,
+			DoNothing:    true,
+		}).Create(&model.DashboardMetricFilter{
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+			Op:              f.Op,
+			Value:           f.Value,
+		}).Scan(&created).Error; err != nil {
+			return nil, e.Wrap(err, "failed to create metric monitor filter")
+		}
+		createdFilterIDs = append(createdFilterIDs, created.ID)
+	}
+	r.DB.Exec(`DELETE FROM dashboard_metric_filters WHERE metric_monitor_id = ? AND id NOT IN ?`, metricMonitor.ID, createdFilterIDs)
 
 	if slackChannels != nil {
 		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)

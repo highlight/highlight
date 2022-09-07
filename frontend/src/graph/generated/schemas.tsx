@@ -998,6 +998,7 @@ export type MetricMonitor = {
 	threshold: Scalars['Float']
 	units?: Maybe<Scalars['String']>
 	disabled: Scalars['Boolean']
+	filters?: Maybe<Array<MetricTagFilter>>
 }
 
 export type EventChunk = {
@@ -1855,6 +1856,7 @@ export type MutationCreateMetricMonitorArgs = {
 	metric_to_monitor: Scalars['String']
 	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
 	emails: Array<Maybe<Scalars['String']>>
+	filters?: Maybe<Array<MetricTagFilterInput>>
 }
 
 export type MutationUpdateMetricMonitorArgs = {
@@ -1869,6 +1871,7 @@ export type MutationUpdateMetricMonitorArgs = {
 	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
 	emails?: Maybe<Array<Maybe<Scalars['String']>>>
 	disabled?: Maybe<Scalars['Boolean']>
+	filters?: Maybe<Array<MetricTagFilterInput>>
 }
 
 export type MutationCreateErrorAlertArgs = {

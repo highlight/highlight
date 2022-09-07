@@ -2,19 +2,18 @@ import Button from '@components/Button/Button/Button'
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown'
 import Input from '@components/Input/Input'
 import LineChart from '@components/LineChart/LineChart'
-import Select, { OptionType } from '@components/Select/Select'
+import Select from '@components/Select/Select'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
-import {
-	useGetMetricsTimelineQuery,
-	useGetSuggestedMetricsQuery,
-} from '@graph/hooks'
+import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { DashboardMetricConfig, MetricAggregator } from '@graph/schemas'
+import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
-import { getDefaultMetricConfig } from '@pages/Dashboards/Metrics'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
+import {
+	MetricSelector,
+	TagFilters,
+} from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Divider, Slider } from 'antd'
@@ -40,14 +39,14 @@ interface Props {
 	onAggregatePeriodChange: (newPeriod: string) => void
 	threshold: number
 	onThresholdChange: (newThreshold: number) => void
+	filters: MetricTagFilter[]
+	onFiltersChange: (newFilters: MetricTagFilter[]) => void
 	units?: string
 	onUnitsChange: (newUnits: string) => void
 	slackChannels: string[]
 	onSlackChannelsChange: (newChannels: string[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
-	config: DashboardMetricConfig
-	onConfigChange: (newConfig: DashboardMetricConfig) => void
 	onFormSubmit: (values: any) => void
 	channelSuggestions: any[]
 	emailSuggestions: string[]
@@ -68,12 +67,11 @@ const MonitorConfiguration = ({
 	aggregatePeriodMinutes,
 	metricToMonitorName,
 	monitorName,
-	config,
 	emails,
 	onEmailsChange,
 	threshold,
+	filters,
 	onFormSubmit,
-	onConfigChange,
 	channelSuggestions,
 	emailSuggestions,
 	isSlackIntegrated,
@@ -86,6 +84,7 @@ const MonitorConfiguration = ({
 	onMonitorNameChange,
 	onMetricToMonitorNameChange,
 	onThresholdChange,
+	onFiltersChange,
 	units,
 	onUnitsChange,
 	onSlackChannelsChange,
@@ -116,17 +115,18 @@ const MonitorConfiguration = ({
 						.toISOString(),
 					end_date: endDate.toISOString(),
 				},
+				filters,
 				resolution_minutes: aggregatePeriodMinutes,
 				units: units || undefined,
 			},
 		},
 	})
-	const { data: metricOptions } = useGetSuggestedMetricsQuery({
-		variables: {
-			project_id,
-			prefix: '',
-		},
-	})
+
+	const format = useMemo(() => {
+		return aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
+			? 'D MMM h:mm A'
+			: 'h:mm A'
+	}, [aggregatePeriodMinutes])
 
 	const graphData = useMemo(() => {
 		if (loading) {
@@ -137,34 +137,21 @@ const MonitorConfiguration = ({
 			const now = new Date()
 			const pointsToGenerate = 100
 			return Array.from(new Array(pointsToGenerate)).map((_, index) => {
-				const randomValue =
-					Math.random() *
-						((config.max_needs_improvement_value || 1) * 0.7) +
-					(config.max_good_value || 2) * 0.2
+				const randomValue = Math.random() * 1000
 				return {
 					value: randomValue,
 					date: moment(now)
 						.subtract(pointsToGenerate - index, 'minutes')
-						.format('h:mm A'),
+						.format(),
 				}
 			})
 		} else {
 			return data.metrics_timeline.map((point) => ({
 				value: point?.value,
-				date: moment(point?.date).format(
-					aggregatePeriodMinutes > (24 / PREVIEW_PERIODS) * 60
-						? 'D MMM h:mm A'
-						: 'h:mm A',
-				),
+				date: moment(point?.date).format(),
 			}))
 		}
-	}, [
-		config.max_good_value,
-		config.max_needs_improvement_value,
-		data,
-		loading,
-		aggregatePeriodMinutes,
-	])
+	}, [data, loading])
 	const graphMin = useMemo(() => {
 		return (
 			Math.floor(Math.min(...graphData.map((x) => x.value || 0)) / 10) *
@@ -176,16 +163,6 @@ const MonitorConfiguration = ({
 			Math.ceil(Math.max(...graphData.map((x) => x.value || 0)) / 10) * 10
 		)
 	}, [graphData])
-
-	const metricTypeOptions: OptionType[] =
-		metricOptions?.suggested_metrics.map((key) => {
-			const config = getDefaultMetricConfig(key)
-			return {
-				displayValue: config.description || config.name,
-				id: config.name,
-				value: key,
-			}
-		}) || []
 
 	const periodOptions = [
 		{ label: '1 minute', value: 1 },
@@ -212,6 +189,14 @@ const MonitorConfiguration = ({
 		id: email,
 	}))
 
+	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
+		variables: {
+			project_id,
+			metric_name: metricToMonitorName,
+		},
+		fetchPolicy: 'cache-first',
+	})
+
 	return (
 		<div>
 			<div className={styles.chartContainer}>
@@ -220,12 +205,9 @@ const MonitorConfiguration = ({
 				) : (
 					<>
 						<div
-							style={{
-								position: 'relative',
-								float: 'right',
-								height: '100%',
-								width: '100%',
-							}}
+							className={
+								'relative float-right h-full w-full pb-5'
+							}
 						>
 							<LineChart
 								height={235}
@@ -236,6 +218,9 @@ const MonitorConfiguration = ({
 								data={graphData}
 								hideLegend
 								xAxisDataKeyName="date"
+								xAxisTickFormatter={(tickItem) =>
+									moment(tickItem).format(format)
+								}
 								lineColorMapping={{
 									value: 'var(--color-blue-400)',
 								}}
@@ -243,7 +228,9 @@ const MonitorConfiguration = ({
 								referenceAreaProps={
 									graphData.length > 0
 										? {
-												x1: graphData[0].date,
+												x1: moment(
+													graphData[0].date,
+												).format(format),
 												y1: threshold,
 												fill: 'var(--color-red-200)',
 												fillOpacity: 0.3,
@@ -290,26 +277,40 @@ const MonitorConfiguration = ({
 					</>
 				)}
 			</div>
-			<form name="newMonitor" onSubmit={onFormSubmit} autoComplete="off">
+			<form
+				name="newMonitor"
+				onSubmit={onFormSubmit}
+				autoComplete="off"
+				className={'flex flex-col gap-2'}
+			>
 				<section>
 					<h3>Metric to Monitor</h3>
 					<p>
 						Select which metric you'd like to create a monitor for.
 					</p>
-					<Select
-						options={metricTypeOptions}
-						placeholder="Metric to Monitor"
-						className={styles.select}
-						value={metricToMonitorName}
-						onChange={(e) => {
+					<MetricSelector
+						onSelectMetric={(e) => {
 							onMetricToMonitorNameChange(e)
-							onConfigChange(
-								WEB_VITALS_CONFIGURATION[e] ||
-									WEB_VITALS_CONFIGURATION['LCP'],
-							)
+							onFiltersChange([])
 						}}
+						currentMetric={metricToMonitorName}
 					/>
 				</section>
+
+				{!tagsLoading && tags?.metric_tags.length ? (
+					<section>
+						<h3>Filters</h3>
+						<p>
+							Filter the metric values based on custom tags. For
+							example, monitor latency for a particular URL.
+						</p>
+						<TagFilters
+							metricName={metricToMonitorName}
+							onSelectTags={(t) => onFiltersChange(t)}
+							currentTags={filters}
+						/>
+					</section>
+				) : null}
 
 				<section>
 					<h3>Function</h3>
@@ -564,6 +565,7 @@ const MonitorConfiguration = ({
 							htmlType="submit"
 							className={alertConfigurationCardStyles.saveButton}
 							type="primary"
+							disabled={!metricToMonitorName}
 						>
 							{formSubmitButtonLabel}
 						</Button>

@@ -561,6 +561,7 @@ mutation CreateMetricMonitor(
 	$name: String!
 	$aggregator: MetricAggregator!
 	$threshold: Float!
+	$filters: [MetricTagFilterInput!]
 	$units: String
 	$periodMinutes: Int
 	$metric_to_monitor: String!
@@ -570,6 +571,7 @@ mutation CreateMetricMonitor(
 	createMetricMonitor(
 		project_id: $project_id
 		threshold: $threshold
+		filters: $filters
 		units: $units
 		name: $name
 		aggregator: $aggregator
@@ -601,6 +603,7 @@ mutation UpdateMetricMonitor(
 	$name: String
 	$aggregator: MetricAggregator
 	$threshold: Float
+	$filters: [MetricTagFilterInput!]
 	$units: String
 	$periodMinutes: Int
 	$metric_to_monitor: String
@@ -612,6 +615,7 @@ mutation UpdateMetricMonitor(
 		metric_monitor_id: $metric_monitor_id
 		project_id: $project_id
 		threshold: $threshold
+		filters: $filters
 		units: $units
 		name: $name
 		aggregator: $aggregator
