@@ -47,12 +47,14 @@ export const SimpleSearchSelect = ({
 	value,
 	freeSolo,
 	placeholder,
+	autoFocus = true,
 }: {
 	onSelect: (name: string) => void
 	options: string[]
 	value?: string
 	freeSolo?: boolean
 	placeholder?: string
+	autoFocus?: boolean
 }) => {
 	const [filteredOptions, setFilteredOptions] = useState<string[]>([])
 	const [extraOption, setExtraOption] = useState<SearchOption>()
@@ -86,7 +88,7 @@ export const SimpleSearchSelect = ({
 			// @ts-ignore
 			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
 			placeholder={placeholder || 'graphql_operation'}
-			autoFocus
+			autoFocus={autoFocus}
 			onChange={(x) => {
 				if (freeSolo) {
 					setExtraOption(x)

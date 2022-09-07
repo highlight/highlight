@@ -205,12 +205,9 @@ const MonitorConfiguration = ({
 				) : (
 					<>
 						<div
-							style={{
-								position: 'relative',
-								float: 'right',
-								height: '100%',
-								width: '100%',
-							}}
+							className={
+								'relative float-right h-full w-full pb-5'
+							}
 						>
 							<LineChart
 								height={235}
@@ -280,7 +277,12 @@ const MonitorConfiguration = ({
 					</>
 				)}
 			</div>
-			<form name="newMonitor" onSubmit={onFormSubmit} autoComplete="off">
+			<form
+				name="newMonitor"
+				onSubmit={onFormSubmit}
+				autoComplete="off"
+				className={'flex flex-col gap-2'}
+			>
 				<section>
 					<h3>Metric to Monitor</h3>
 					<p>

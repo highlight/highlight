@@ -477,7 +477,7 @@ export const TagFilters = ({
 	currentTags: MetricTagFilter[]
 }) => {
 	return (
-		<>
+		<div className={'flex flex-col gap-2'}>
 			{[...currentTags, undefined].map((v, idx) => (
 				<div
 					className={styles.tagFilterGroup}
@@ -524,7 +524,7 @@ export const TagFilters = ({
 					</div>
 				</div>
 			))}
-		</>
+		</div>
 	)
 }
 
@@ -577,6 +577,7 @@ export const TagFilterSelector = ({
 						usedTags ? !usedTags.includes(t) : true,
 					) || []
 				}
+				autoFocus={tagIdx >= (usedTags?.length || 0)}
 				value={currentTag?.tag}
 				onSelect={(v) => {
 					onSelectTag(
@@ -610,6 +611,7 @@ export const TagFilterSelector = ({
 				options={values?.metric_tag_values || []}
 				value={currentTag?.value}
 				freeSolo
+				autoFocus={false}
 				onSelect={(v) => {
 					onSelectTag(
 						{
