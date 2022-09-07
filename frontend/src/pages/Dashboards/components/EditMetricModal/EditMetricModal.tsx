@@ -65,7 +65,7 @@ export const EditMetricModal = ({
 	onDelete,
 	onCancel,
 	shown = false,
-	canChangeType = false,
+	canChangeType = true,
 }: {
 	metricIdx: number
 	metricConfig: DashboardMetricConfig

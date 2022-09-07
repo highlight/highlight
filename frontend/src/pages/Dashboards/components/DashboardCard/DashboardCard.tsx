@@ -441,7 +441,7 @@ const ChartContainer = React.memo(
 				chartType === DashboardChartType.TimelineBar
 			) {
 				if (refetchTimeline) {
-					refetchTimeline().catch(console.error)
+					refetchTimeline()
 				} else {
 					loadTimeline()
 				}
