@@ -173,7 +173,7 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	_isRecordingEvents!: boolean
+	recordStop!: (() => void) | undefined
 	_payloadId!: number
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -223,9 +223,9 @@ export class Highlight {
 					`Web worker sent payloadID ${e.data.response.id} size ${
 						e.data.response.eventsSize
 					}.
-                Total since snapshot: ${
+                Total since snapshot: ${(
 					this._eventBytesSinceSnapshot / 1000000
-				}MB`,
+				).toFixed(1)}MB`,
 				)
 			} else if (e.data.response?.type === MessageType.CustomEvent) {
 				this.addCustomEvent(
@@ -257,7 +257,6 @@ export class Highlight {
 		}
 		// these should not be in initMembers since we want them to
 		// persist across session resets
-		this._isRecordingEvents = false
 		this._hasPreviouslyInitialized = false
 		// Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
 		this._firstLoadListeners =
@@ -294,6 +293,10 @@ export class Highlight {
 		this.sessionData.sessionStartTime = Date.now()
 		this._firstLoadListeners.stopListening()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
+		if (this.recordStop) {
+			this.recordStop()
+			this.recordStop = undefined
+		}
 		await this.initialize()
 		if (user_identifier && user_object) {
 			await this.identify(user_identifier, user_object)
@@ -618,10 +621,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 			setTimeout(() => {
 				// Skip if we're already recording events
-				if (this._isRecordingEvents) {
+				if (this.recordStop) {
 					return
 				}
-				const recordStop = record({
+				this.recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
@@ -645,14 +648,13 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 				})
-				if (recordStop) {
-					this.listeners.push(recordStop)
+				if (this.recordStop) {
+					this.listeners.push(this.recordStop)
 				}
 				this.addCustomEvent('Viewport', {
 					height: window.innerHeight,
 					width: window.innerWidth,
 				})
-				this._isRecordingEvents = true
 			}, 1)
 
 			if (document.referrer) {
@@ -933,7 +935,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 		this.state = 'NotRecording'
 		this._firstLoadListeners.stopListening()
-		this._isRecordingEvents = false
+		if (this.recordStop) {
+			this.recordStop()
+			this.recordStop = undefined
+		}
 	}
 
 	getCurrentSessionTimestamp() {

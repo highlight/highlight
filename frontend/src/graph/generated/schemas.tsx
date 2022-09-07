@@ -163,6 +163,16 @@ export enum SubscriptionInterval {
 	Annual = 'Annual',
 }
 
+export enum OpenSearchCalendarInterval {
+	Minute = 'minute',
+	Hour = 'hour',
+	Day = 'day',
+	Week = 'week',
+	Month = 'month',
+	Quarter = 'quarter',
+	Year = 'year',
+}
+
 export type EnhancedUserDetailsResult = {
 	__typename?: 'EnhancedUserDetailsResult'
 	id?: Maybe<Scalars['ID']>
@@ -484,6 +494,17 @@ export type MetricTagFilterInput = {
 	value: Scalars['String']
 }
 
+export type DateHistogramBucketSize = {
+	calendar_interval: OpenSearchCalendarInterval
+	multiple: Scalars['Int']
+}
+
+export type DateHistogramOptions = {
+	bucket_size: DateHistogramBucketSize
+	time_zone: Scalars['String']
+	bounds: DateRangeInput
+}
+
 export enum NetworkRequestAttribute {
 	Method = 'method',
 	InitiatorType = 'initiator_type',
@@ -628,6 +649,20 @@ export type SanitizedAdminInput = {
 	id: Scalars['ID']
 	name?: Maybe<Scalars['String']>
 	email: Scalars['String']
+}
+
+export type SessionsHistogram = {
+	__typename?: 'SessionsHistogram'
+	bucket_times: Array<Scalars['Timestamp']>
+	sessions_without_errors: Array<Scalars['Int64']>
+	sessions_with_errors: Array<Scalars['Int64']>
+	total_sessions: Array<Scalars['Int64']>
+}
+
+export type ErrorsHistogram = {
+	__typename?: 'ErrorsHistogram'
+	bucket_times: Array<Scalars['Timestamp']>
+	error_objects: Array<Scalars['Int64']>
 }
 
 export type SessionResults = {
@@ -983,6 +1018,7 @@ export type Query = {
 	rage_clicks: Array<RageClickEvent>
 	rageClicksForProject: Array<RageClickEventForProject>
 	error_groups_opensearch: ErrorResults
+	errors_histogram: ErrorsHistogram
 	error_group?: Maybe<ErrorGroup>
 	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
@@ -1014,6 +1050,7 @@ export type Query = {
 	averageSessionLength?: Maybe<AverageSessionLength>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	sessions_opensearch: SessionResults
+	sessions_histogram: SessionsHistogram
 	field_types: Array<Field>
 	fields_opensearch: Array<Scalars['String']>
 	error_fields_opensearch: Array<Scalars['String']>
@@ -1104,6 +1141,12 @@ export type QueryError_Groups_OpensearchArgs = {
 	count: Scalars['Int']
 	query: Scalars['String']
 	page?: Maybe<Scalars['Int']>
+}
+
+export type QueryErrors_HistogramArgs = {
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	histogram_options: DateHistogramOptions
 }
 
 export type QueryError_GroupArgs = {
@@ -1235,6 +1278,12 @@ export type QuerySessions_OpensearchArgs = {
 	query: Scalars['String']
 	sort_desc: Scalars['Boolean']
 	page?: Maybe<Scalars['Int']>
+}
+
+export type QuerySessions_HistogramArgs = {
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	histogram_options: DateHistogramOptions
 }
 
 export type QueryField_TypesArgs = {

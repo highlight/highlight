@@ -1,21 +1,39 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import BarChart from '@components/BarChart/BarChart'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { Series } from '@components/Histogram/Histogram'
 import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
-import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
-import { ErrorGroup, ErrorResults, ErrorState, Maybe } from '@graph/schemas'
-import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
+import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
+import {
+	useGetErrorGroupsOpenSearchQuery,
+	useGetErrorsHistogramQuery,
+} from '@graph/hooks'
+import {
+	DateHistogramBucketSize,
+	ErrorGroup,
+	ErrorResults,
+	ErrorState,
+	Maybe,
+} from '@graph/schemas'
+import ErrorQueryBuilder, {
+	TIME_RANGE_FIELD,
+} from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors'
+import {
+	serializeAbsoluteTimeRange,
+	updateQueriedTimeRange,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import useLocalStorage from '@rehooks/local-storage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames/bind'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { Link } from 'react-router-dom'
 
@@ -25,8 +43,82 @@ import styles from './ErrorFeedV2.module.scss'
 
 const PAGE_SIZE = 10
 
+const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
+	const { backendSearchQuery, searchParams, setSearchParams } =
+		useErrorSearchContext()
+	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
+	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
+		[],
+	)
+	const { loading } = useGetErrorsHistogramQuery({
+		variables: {
+			query: backendSearchQuery?.childSearchQuery as string,
+			project_id: projectID,
+			histogram_options: {
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				time_zone:
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				bounds: {
+					start_date:
+						backendSearchQuery?.startDate.toISOString() as string,
+					end_date:
+						backendSearchQuery?.endDate.toISOString() as string,
+				},
+			},
+		},
+		onCompleted: (r) => {
+			let seriesList: Series[] = []
+			let bucketTimes: number[] = []
+			const histogramData = r?.errors_histogram
+			if (backendSearchQuery && histogramData) {
+				bucketTimes = histogramData.bucket_times.map((startTime) =>
+					new Date(startTime).valueOf(),
+				)
+				seriesList = [
+					{
+						label: 'Errors logged',
+						color: '--color-purple',
+						counts: histogramData.error_objects,
+					},
+				]
+			}
+			setHistogramSeriesList(seriesList)
+			setHistogramBucketTimes(bucketTimes)
+		},
+		skip: !backendSearchQuery?.childSearchQuery,
+		fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
+	})
+
+	const updateTimeRange = useCallback(
+		(newStartTime: Date, newEndTime: Date) => {
+			const newSearchParams = {
+				...searchParams,
+				query: updateQueriedTimeRange(
+					searchParams.query || '',
+					TIME_RANGE_FIELD,
+					serializeAbsoluteTimeRange(newStartTime, newEndTime),
+				),
+			}
+			setSearchParams(newSearchParams)
+		},
+		[searchParams, setSearchParams],
+	)
+
+	return (
+		<SearchResultsHistogram
+			seriesList={histogramSeriesList}
+			bucketTimes={histogramBucketTimes}
+			bucketSize={backendSearchQuery?.histogramBucketSize}
+			loading={loading}
+			updateTimeRange={updateTimeRange}
+		/>
+	)
+}
+
 export const ErrorFeedV2 = () => {
 	const { project_id } = useParams<{ project_id: string }>()
+	const { isHighlightAdmin } = useAuthContext()
 	const [data, setData] = useState<ErrorResults>({
 		error_groups: [],
 		totalCount: 0,
@@ -57,7 +149,7 @@ export const ErrorFeedV2 = () => {
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
-			page,
+			page: page && page > 0 ? page : 1,
 			project_id,
 		},
 		onCompleted: (r) => {
@@ -73,6 +165,7 @@ export const ErrorFeedV2 = () => {
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
 	})
+	const histogram = useHistogram(project_id, projectHasManyErrors)
 
 	const onFeedScrollListener = (
 		e: React.UIEvent<HTMLElement> | undefined,
@@ -86,6 +179,7 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
+			{isHighlightAdmin && (loading || data.totalCount > 0) && histogram}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{loading ? (

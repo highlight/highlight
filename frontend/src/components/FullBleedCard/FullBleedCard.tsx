@@ -9,7 +9,11 @@ interface Props {
 	animation?: React.ReactNode
 }
 
-const FullBleedCard: React.FC<Props> = ({ animation, title, children }) => {
+const FullBleedCard: React.FC<React.PropsWithChildren<Props>> = ({
+	animation,
+	title,
+	children,
+}) => {
 	return (
 		<div className={styles.fullBleedCard}>
 			<ElevatedCard title={title} animation={animation}>

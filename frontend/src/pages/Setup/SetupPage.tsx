@@ -1310,12 +1310,9 @@ type SectionProps = {
 	defaultOpen?: boolean
 }
 
-export const Section: FunctionComponent<SectionProps> = ({
-	children,
-	id,
-	title,
-	defaultOpen,
-}) => {
+export const Section: FunctionComponent<
+	React.PropsWithChildren<SectionProps>
+> = ({ children, id, title, defaultOpen }) => {
 	return (
 		<Collapsible title={title} id={id} defaultOpen={defaultOpen}>
 			{children}

@@ -1,7 +1,9 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { Series } from '@components/Histogram/Histogram'
 import {
 	PAGE_SIZE,
 	Pagination,
@@ -9,20 +11,28 @@ import {
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
+import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetBillingDetailsForProjectQuery,
+	useGetSessionsHistogramQuery,
 	useGetSessionsOpenSearchQuery,
 } from '@graph/hooks'
 import { GetSessionsOpenSearchQuery } from '@graph/operations'
-import { PlanType } from '@graph/schemas'
+import { DateHistogramBucketSize, PlanType } from '@graph/schemas'
 import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import {
+	QueryBuilderState,
+	serializeAbsoluteTimeRange,
+	updateQueriedTimeRange,
+} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
 import SessionFeedConfiguration, {
 	formatCount,
 } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import SessionsQueryBuilder, {
+	TIME_RANGE_FIELD,
+} from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
 import useLocalStorage from '@rehooks/local-storage'
@@ -46,12 +56,92 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard'
 import styles from './SessionsFeed.module.scss'
 
+const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
+	const { searchParams, setSearchParams, backendSearchQuery } =
+		useSearchContext()
+	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
+	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
+		[],
+	)
+
+	const { loading } = useGetSessionsHistogramQuery({
+		variables: {
+			project_id: projectId,
+			query: backendSearchQuery?.searchQuery as string,
+			histogram_options: {
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				time_zone:
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				bounds: {
+					start_date:
+						backendSearchQuery?.startDate.toISOString() as string,
+					end_date:
+						backendSearchQuery?.endDate.toISOString() as string,
+				},
+			},
+		},
+		onCompleted: (r) => {
+			let seriesList: Series[] = []
+			let bucketTimes: number[] = []
+			const histogramData = r?.sessions_histogram
+			if (backendSearchQuery && histogramData) {
+				bucketTimes = histogramData.bucket_times.map((startTime) =>
+					new Date(startTime).valueOf(),
+				)
+				seriesList = [
+					{
+						label: 'Sessions without errors',
+						color: '--color-purple',
+						counts: histogramData.sessions_without_errors,
+					},
+					{
+						label: 'Sessions with errors',
+						color: '--color-red-600',
+						counts: histogramData.sessions_with_errors,
+					},
+				]
+			}
+			setHistogramSeriesList(seriesList)
+			setHistogramBucketTimes(bucketTimes)
+		},
+		skip: !backendSearchQuery,
+		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+	})
+
+	const updateTimeRange = useCallback(
+		(newStartTime: Date, newEndTime: Date) => {
+			const newSearchParams = {
+				...searchParams,
+				query: updateQueriedTimeRange(
+					searchParams.query || '',
+					TIME_RANGE_FIELD,
+					serializeAbsoluteTimeRange(newStartTime, newEndTime),
+				),
+			}
+			setSearchParams(newSearchParams)
+		},
+		[searchParams, setSearchParams],
+	)
+
+	return (
+		<SearchResultsHistogram
+			seriesList={histogramSeriesList}
+			bucketTimes={histogramBucketTimes}
+			bucketSize={backendSearchQuery?.histogramBucketSize}
+			loading={loading}
+			updateTimeRange={updateTimeRange}
+		/>
+	)
+}
+
 export const SessionFeed = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
 	const { project_id, session_secure_id } = useParams<{
 		project_id: string
 		session_secure_id: string
 	}>()
+	const { isHighlightAdmin } = useAuthContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
 	const {
 		autoPlaySessions,
@@ -110,7 +200,7 @@ export const SessionFeed = React.memo(() => {
 
 	// Get the unprocessedSessionsCount from either the SQL or OpenSearch query
 	const unprocessedSessionsCount: number | undefined =
-		unprocessedSessionsOpenSearch?.sessions_opensearch.totalCount
+		unprocessedSessionsOpenSearch?.sessions_opensearch?.totalCount
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
 		if (response?.sessions_opensearch) {
@@ -127,7 +217,7 @@ export const SessionFeed = React.memo(() => {
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
-			page: page,
+			page: page && page > 0 ? page : 1,
 			project_id,
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
@@ -135,6 +225,7 @@ export const SessionFeed = React.memo(() => {
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
+	const histogram = useHistogram(project_id, projectHasManySessions)
 
 	useEffect(() => {
 		// we just loaded the page for the first time
@@ -226,6 +317,9 @@ export const SessionFeed = React.memo(() => {
 				<SegmentPickerForPlayer />
 				<SessionsQueryBuilder />
 			</div>
+			{isHighlightAdmin &&
+				(loading || sessionResults.totalCount > 0) &&
+				histogram}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{sessionResults.totalCount === -1 ? (

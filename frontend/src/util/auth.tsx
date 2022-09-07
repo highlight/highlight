@@ -5,8 +5,9 @@ import Firebase from 'firebase/app'
 let firebaseConfig: any
 let firebaseConfigString: string
 
-if (process.env.REACT_APP_FIREBASE_CONFIG_OBJECT) {
-	firebaseConfigString = process.env.REACT_APP_FIREBASE_CONFIG_OBJECT ?? ''
+if (import.meta.env.REACT_APP_FIREBASE_CONFIG_OBJECT) {
+	firebaseConfigString =
+		import.meta.env.REACT_APP_FIREBASE_CONFIG_OBJECT ?? ''
 } else {
 	firebaseConfigString = window._highlightFirebaseConfigString
 }

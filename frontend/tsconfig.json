@@ -1,5 +1,4 @@
 {
-	"extends": "./tsconfig.paths.json",
 	"compilerOptions": {
 		"target": "es5",
 		"lib": ["dom", "es2019", "dom.iterable", "esnext"],
@@ -17,7 +16,20 @@
 		"jsx": "react-jsx",
 		"allowJs": true,
 		"typeRoots": ["./node_modules/@types", "./src/@types"],
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"baseUrl": "src",
+		"paths": {
+			"@components/*": ["./components/*"],
+			"@icons/*": ["./static/*"],
+			"@util/*": ["./util/*"],
+			"@hooks/*": ["./hooks/*"],
+			"@pages/*": ["./pages/*"],
+			"@routers/*": ["./routers/*"],
+			"@graph/*": ["./graph/generated/*"],
+			"@authentication/*": ["./authentication/*"],
+			"@context/*": ["./context/*"],
+			"@lottie/*": ["./lottie/*"]
+		}
 	},
-	"include": ["./src"]
+	"exclude": ["**/node_modules/**", "**/build/**"]
 }

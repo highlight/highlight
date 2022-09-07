@@ -1,6 +1,6 @@
 import { Select } from 'antd'
 import _ from 'lodash'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import styles from './SearchSelect.module.scss'
 
@@ -40,7 +40,7 @@ export const SearchSelect = ({
 			defaultValue={{ label: value, value: value } as SearchOption}
 			loading={isTyping}
 			options={options}
-			notFoundContent={() => <span>`No results found`</span>}
+			notFoundContent={<span>`No results found`</span>}
 			labelInValue
 			filterOption={false}
 			onSearch={loadOptions}
@@ -72,9 +72,9 @@ export const SimpleSearchSelect = ({
 		)
 	}
 
-	// Ignore this so we have a consistent reference so debounce works.
 	const loadOptions = useMemo(
 		() => _.debounce(getValueOptions, 100),
+		// Ignore this so we have a consistent reference so debounce works.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[options],
 	)

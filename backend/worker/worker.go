@@ -18,6 +18,7 @@ import (
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/leonelquinteros/hubspot"
 
 	"gorm.io/gorm"
 
@@ -1166,6 +1167,42 @@ func (w *Worker) RefreshMaterializedViews() {
 
 	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
+	}
+
+	type AggregateSessionCount struct {
+		WorkspaceID int   `json:"workspace_id"`
+		Count       int64 `json:"count"`
+	}
+	counts := []AggregateSessionCount{}
+
+	if err := w.Resolver.DB.Raw(`
+		SELECT p.workspace_id, sum(d.count) as count
+		FROM daily_session_counts_view d
+		INNER JOIN projects p
+		ON d.project_id = p.id
+		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+	}
+
+	var g errgroup.Group
+	for _, c := range counts {
+		c := c
+		g.Go(func() error {
+			if !util.IsDevOrTestEnv() {
+				if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
+					Name:     "highlight_session_count",
+					Property: "highlight_session_count",
+					Value:    c.Count,
+				}}); err != nil {
+					return e.Wrap(err, "error updating highlight session count in hubspot")
+				}
+			}
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }
 

@@ -33,7 +33,7 @@ interface NewIssueModalProps {
 	selectedIntegration: Integration
 	commentType: 'ErrorComment' | 'SessionComment'
 }
-const NewIssueModal: React.FC<NewIssueModalProps> = ({
+const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	visible,
 	changeVisible,
 	commentId,

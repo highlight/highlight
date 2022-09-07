@@ -21,7 +21,7 @@ type TooltipProps = Pick<
 /**
  * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
  */
-const Tooltip: React.FC<TooltipProps> = ({
+const Tooltip: React.FC<React.PropsWithChildren<TooltipProps>> = ({
 	children,
 	mouseEnterDelay = 1,
 	...props

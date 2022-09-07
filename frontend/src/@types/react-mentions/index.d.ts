@@ -18,7 +18,7 @@ declare module '@highlight-run/react-mentions' {
 	/**
 	 * Each Mention component represents a data source for a specific class of mentionable objects, such as users, template variables, issues, etc.
 	 */
-	export const Mention: React.SFC<MentionProps>
+	export const Mention: React.FC<React.PropsWithChildren<MentionProps>>
 
 	/**
 	 * The properties for the @see MentionsInput component.
