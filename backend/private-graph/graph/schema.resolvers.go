@@ -272,7 +272,7 @@ func (r *metricMonitorResolver) EmailsToNotify(ctx context.Context, obj *model.M
 // Filters is the resolver for the filters field.
 func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.MetricTagFilter, error) {
 	if obj == nil {
-		return nil, e.New("empty metric monitor object for emails to notify")
+		return nil, e.New("empty metric monitor object for Slack or email notifications")
 	}
 	var filters []*model.DashboardMetricFilter
 	if err := r.DB.Where(&model.DashboardMetricFilter{MetricMonitorID: obj.ID}).Find(&filters).Error; err != nil {
