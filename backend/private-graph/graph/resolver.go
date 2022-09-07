@@ -327,43 +327,47 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 		return nil, e.Wrap(err, "error retrieving user")
 	}
 
-	workspace := model.Workspace{}
-	if err := r.DB.Order("name asc").
-		Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Model(&admin).Association("Workspaces").Find(&workspace); err != nil {
-		return nil, e.Wrap(err, "error getting associated workspaces")
+	if _, err = r.GetAdminRole(admin.ID, workspaceID); err != nil {
+		return nil, e.Wrap(err, "failed to get admin role for workspace")
+	}
+	workspace, err := r.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user workspace")
 	}
 
-	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
-	}
-
-	return &workspace, nil
+	return workspace, nil
 }
 
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
-func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
+func (r *Resolver) isAdminInProject(ctx context.Context, projectID int) (*model.Project, error) {
 	if util.IsTestEnv() {
 		return nil, nil
 	}
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying project")
 		}
 		return project, nil
 	}
-	projects, err := r.Query().Projects(ctx)
+	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying projects")
+		return nil, e.Wrap(err, "error retrieving user")
 	}
-	for _, p := range projects {
-		if p.ID == project_id {
-			return p, nil
-		}
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.New("project doesn't exist")
 	}
-	return nil, e.New("admin doesn't exist in project")
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.New("workspace doesn't exist")
+	}
+	_, err = r.GetAdminRole(admin.ID, workspace.ID)
+	if err != nil {
+		return nil, e.New("admin doesn't have access to project")
+	}
+	return project, nil
 }
 
 func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
