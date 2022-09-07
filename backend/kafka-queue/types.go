@@ -49,6 +49,7 @@ type InitializeSessionArgs struct {
 	AcceptLanguage                 string
 	IP                             string
 	ClientID                       string
+	NetworkRecordingDomains        []string
 }
 
 type IdentifySessionArgs struct {
