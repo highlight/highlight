@@ -181,7 +181,7 @@ const AuthenticationRoleRouter = () => {
 		project_id: string
 	}>()
 	const [
-		getWorkspaceAdminsQuery,
+		getAdminWorkspaceRoleQuery,
 		{
 			error: adminWError,
 			data: adminWData,
@@ -190,7 +190,7 @@ const AuthenticationRoleRouter = () => {
 		},
 	] = useGetAdminRoleLazyQuery()
 	const [
-		getWorkspaceAdminsByProjectIdQuery,
+		getAdminProjectRoleQuery,
 		{
 			error: adminPError,
 			data: adminPData,
@@ -225,14 +225,14 @@ const AuthenticationRoleRouter = () => {
 		called: boolean,
 		refetch: any
 	if (workspace_id) {
-		getAdminQuery = getWorkspaceAdminsQuery
+		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
 	} else if (project_id) {
-		getAdminQuery = getWorkspaceAdminsByProjectIdQuery
+		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
@@ -310,7 +310,7 @@ const AuthenticationRoleRouter = () => {
 				admin: isLoggedIn(authRole)
 					? adminData ?? undefined
 					: undefined,
-				workspaceRole: adminRole,
+				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: isLoggedIn(authRole),
 				isHighlightAdmin: isHighlightAdmin(authRole),

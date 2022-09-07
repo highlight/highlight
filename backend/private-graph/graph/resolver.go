@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -279,7 +280,10 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		return nil, e.New("405: This invite link has expired.")
 	}
 
-	if err := r.DB.Create(&model.WorkspaceAdmin{
+	if err := r.DB.Clauses(clause.OnConflict{
+		OnConstraint: "workspace_admins_pkey",
+		DoNothing:    true,
+	}).Create(&model.WorkspaceAdmin{
 		AdminID:     admin.ID,
 		WorkspaceID: workspace.ID,
 		Role:        inviteLink.InviteeRole,
