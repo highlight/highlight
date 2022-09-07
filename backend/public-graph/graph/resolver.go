@@ -1172,6 +1172,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
 
+	if len(input.NetworkRecordingDomains) > 0 {
+		project.BackendDomains = input.NetworkRecordingDomains
+		if err := r.DB.Debug().Where(&model.Project{Model: model.Model{ID: projectID}}).Updates(&model.Project{BackendDomains: project.BackendDomains}).Error; err != nil {
+			return nil, e.Wrap(err, "failed to update project backend domains")
+		}
+	}
+
 	go func() {
 		defer util.Recover()
 		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
