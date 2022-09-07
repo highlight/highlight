@@ -22,6 +22,7 @@ import {
 } from '@context/AppLoadingContext'
 import { datadogLogs } from '@datadog/browser-logs'
 import {
+	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
 } from '@graph/hooks'
@@ -197,6 +198,15 @@ const AuthenticationRoleRouter = () => {
 			refetch: pRefetch,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
+	const [
+		getAdminSimpleQuery,
+		{
+			error: adminSError,
+			data: adminSData,
+			called: sCalled,
+			refetch: sRefetch,
+		},
+	] = useGetAdminLazyQuery()
 	let getAdminQuery:
 			| ((
 					workspace_id:
@@ -207,7 +217,8 @@ const AuthenticationRoleRouter = () => {
 					project_id:
 						| QueryLazyOptions<Exact<{ project_id: string }>>
 						| undefined,
-			  ) => void),
+			  ) => void)
+			| (() => void),
 		adminError: ApolloError | undefined,
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
@@ -220,13 +231,19 @@ const AuthenticationRoleRouter = () => {
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
-	} else {
+	} else if (project_id) {
 		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
 		called = pCalled
 		refetch = pRefetch
+	} else {
+		getAdminQuery = getAdminSimpleQuery
+		adminError = adminSError
+		adminData = adminSData?.admin
+		called = sCalled
+		refetch = sRefetch
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
