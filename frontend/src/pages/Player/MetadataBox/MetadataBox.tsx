@@ -255,7 +255,7 @@ export const MetadataBox = React.memo(() => {
 								type="text"
 								onClick={searchIdentifier}
 							>
-								<span>All sessions for this user</span>
+								<span>All Sessions for this User</span>
 								<FaExternalLinkAlt size={10} />
 							</Button>
 						</>
