@@ -24,7 +24,7 @@ export const getIdentifiedUserProfileImage = (
 
 // Fallback logic for the display name shown for the session card
 export const getDisplayNameAndField = (
-	session: Maybe<Session>,
+	session?: Maybe<Session>,
 ): [string, string | null] => {
 	let userProperties
 	try {
@@ -51,6 +51,6 @@ export const getDisplayNameAndField = (
 }
 
 // Fallback logic for the display name shown for the session card
-export const getDisplayName = (session: Maybe<Session>): string => {
+export const getDisplayName = (session?: Maybe<Session>): string => {
 	return getDisplayNameAndField(session)[0]
 }
