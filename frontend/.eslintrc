@@ -4,9 +4,10 @@
 		"plugin:react/recommended",
 		"plugin:@typescript-eslint/recommended",
 		"prettier/@typescript-eslint",
-		"plugin:react-hooks/recommended"
+		"plugin:react-hooks/recommended",
+		"plugin:tailwindcss/recommended"
 	],
-	"plugins": ["simple-import-sort", "unused-imports"],
+	"plugins": ["simple-import-sort", "unused-imports", "tailwindcss"],
 	"env": {
 		"commonjs": true,
 		"es6": true,
@@ -29,6 +30,7 @@
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"react/no-unescaped-entities": "off",
 		"react/prop-types": "off",
+		"react/react-in-jsx-scope": "off",
 		"@typescript-eslint/ban-types": "off",
 		"@typescript-eslint/ban-ts-comment": "off",
 		"@typescript-eslint/no-empty-function": "off",
@@ -37,6 +39,7 @@
 		"@typescript-eslint/no-unused-vars": "warn",
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
+		"tailwindcss/no-custom-classname": "off",
 		"no-restricted-imports": [
 			"error",
 			{

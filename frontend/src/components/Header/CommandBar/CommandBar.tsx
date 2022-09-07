@@ -33,9 +33,9 @@ const THEME = {
 	trigger: 'atom-trigger',
 }
 
-const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
-	history,
-}) => {
+const CommandPaletteComponent: React.FC<
+	React.PropsWithChildren<RouteComponentProps>
+> = ({ history }) => {
 	const [normalizedWorkspaces, setNormalizedWorkspaces] = useState({})
 	const [getProjects, { data }] = useGetProjectSuggestionLazyQuery({
 		onCompleted: (data) => {

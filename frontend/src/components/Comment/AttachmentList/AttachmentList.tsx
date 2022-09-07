@@ -39,7 +39,9 @@ interface AttachmentListProps {
 	attachments: Maybe<ExternalAttachment>[]
 }
 
-const AttachmentList: React.FC<AttachmentListProps> = ({ attachments }) => {
+const AttachmentList: React.FC<
+	React.PropsWithChildren<AttachmentListProps>
+> = ({ attachments }) => {
 	const attachmentParsed = React.useMemo(
 		() =>
 			attachments.map(

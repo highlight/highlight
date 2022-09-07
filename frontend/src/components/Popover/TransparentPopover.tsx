@@ -25,10 +25,9 @@ type TransparentPopoverProps = Pick<
  * A proxy for Ant Design's popover. This component should be used instead of directly using Ant Design's.
  * This is different than Popover as the container does not have any styles.
  */
-const TransparentPopover: React.FC<TransparentPopoverProps> = ({
-	children,
-	...props
-}) => {
+const TransparentPopover: React.FC<
+	React.PropsWithChildren<TransparentPopoverProps>
+> = ({ children, ...props }) => {
 	return (
 		<AntDesignPopover
 			overlayClassName={styles.popover}

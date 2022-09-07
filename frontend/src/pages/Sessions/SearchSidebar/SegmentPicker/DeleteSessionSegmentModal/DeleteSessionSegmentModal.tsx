@@ -25,7 +25,7 @@ interface Props {
 	afterDeleteHandler?: () => void
 }
 
-const DeleteSessionSegmentModal: React.FC<Props> = ({
+const DeleteSessionSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 	hideModalHandler,
 	showModal,
 	segmentToDelete,

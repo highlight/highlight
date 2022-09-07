@@ -516,9 +516,9 @@ const timeFilter = [
 	{ label: 'This year', value: 30 * 12 },
 ] as const
 
-export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
-	errorGroup,
-}) => {
+export const ErrorFrequencyGraph: React.FC<
+	React.PropsWithChildren<FrequencyGraphProps>
+> = ({ errorGroup }) => {
 	const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
 		Array(LookbackPeriod).fill(0),
 	)
