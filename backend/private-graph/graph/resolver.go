@@ -344,20 +344,16 @@ func (r *Resolver) isAdminInProject(ctx context.Context, projectID int) (*model.
 	if util.IsTestEnv() {
 		return nil, nil
 	}
+	project := &model.Project{}
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
 	if r.isWhitelistedAccount(ctx) {
-		project := &model.Project{}
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-			return nil, e.Wrap(err, "error querying project")
-		}
 		return project, nil
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
-	}
-	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
