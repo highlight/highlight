@@ -5385,10 +5385,8 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 		}, nil
 	}
 
-	role, err := r.GetAdminRole(admin.ID, workspaceID)
-	if err != nil {
-		return nil, err
-	}
+	// ok to have empty string role, treated as unauthenticated user
+	role, _ := r.GetAdminRole(admin.ID, workspaceID)
 	return &model.WorkspaceAdminRole{
 		Admin: admin,
 		Role:  role,
@@ -5409,20 +5407,15 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 		}, nil
 	}
 
+	var role string
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		if workspace, err := r.GetWorkspace(project.WorkspaceID); err == nil {
+			// ok to have empty string role, treated as unauthenticated user
+			role, _ = r.GetAdminRole(admin.ID, workspace.ID)
+		}
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	role, err := r.GetAdminRole(admin.ID, workspace.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &model.WorkspaceAdminRole{
 		Admin: admin,
 		Role:  role,
