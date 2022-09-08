@@ -69,6 +69,10 @@ const DashboardPage = ({
 		}
 	}, [dashboardName, dashboards, history, id])
 
+	useEffect(() => {
+		setNewDashboardCardIdx(undefined)
+	}, [dashboard])
+
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 
 	const pushNewMetricConfig = (
