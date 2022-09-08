@@ -216,7 +216,8 @@ export class Highlight {
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
 
-		this._worker = new HighlightClientWorker() as HighlightClientRequestWorker
+		this._worker =
+			new HighlightClientWorker() as HighlightClientRequestWorker
 		this._worker.onmessage = (e) => {
 			if (e.data.response?.type === MessageType.AsyncEvents) {
 				this._eventBytesSinceSnapshot += e.data.response.eventsSize
@@ -370,7 +371,8 @@ export class Highlight {
 		if (window.Intercom) {
 			window.Intercom('onShow', () => {
 				window.Intercom('update', {
-					highlightSessionURL: this.getCurrentSessionURLWithTimestamp(),
+					highlightSessionURL:
+						this.getCurrentSessionURLWithTimestamp(),
 				})
 				this.addProperties({ event: 'Intercom onShow' })
 			})
@@ -483,10 +485,10 @@ export class Highlight {
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
-				const {
-					onToggleFeedbackFormVisibility,
-				} = initializeFeedbackWidget(this.feedbackWidgetOptions)
-				this._onToggleFeedbackFormVisibility = onToggleFeedbackFormVisibility
+				const { onToggleFeedbackFormVisibility } =
+					initializeFeedbackWidget(this.feedbackWidgetOptions)
+				this._onToggleFeedbackFormVisibility =
+					onToggleFeedbackFormVisibility
 			}
 
 			const recordingStartTime = window.sessionStorage.getItem(
@@ -645,8 +647,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							fps: this.samplingStrategy.canvas,
 							resizeQuality: this.samplingStrategy.canvasQuality,
 							resizeFactor: this.samplingStrategy.canvasFactor,
-							maxSnapshotDimension: this.samplingStrategy
-								.canvasMaxSnapshotDimension,
+							maxSnapshotDimension:
+								this.samplingStrategy
+									.canvasMaxSnapshotDimension,
 						},
 					},
 					keepIframeSrcFn: (_src) => {
@@ -1150,12 +1153,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			// 4. this.events is cleared (we lose M events)
 			this.events = this.events.slice(events.length)
 
-			this._firstLoadListeners.messages = this._firstLoadListeners.messages.slice(
-				messages.length,
-			)
-			this._firstLoadListeners.errors = this._firstLoadListeners.errors.slice(
-				errors.length,
-			)
+			this._firstLoadListeners.messages =
+				this._firstLoadListeners.messages.slice(messages.length)
+			this._firstLoadListeners.errors =
+				this._firstLoadListeners.errors.slice(errors.length)
 			clearHighlightLogs(highlightLogs)
 		}
 	}
