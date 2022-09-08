@@ -265,7 +265,6 @@ const DashboardCard = ({
 						updateMetric={updateMetric}
 						showEditModal={showEditModal}
 						setShowEditModal={setShowEditModal}
-						setShowDeleteModal={setShowDeleteModal}
 						setUpdatingData={setUpdatingData}
 					/>
 				</div>
