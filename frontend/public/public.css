@@ -4,7 +4,7 @@
 	font-style: normal;
 	font-weight: 200;
 	src: local('Steradian UltraLight'), local('SteradianUltraLight'),
-		url('./font/SteradianUltraLight.woff2') format('woff2');
+		url('/font/SteradianUltraLight.woff2') format('woff2');
 }
 
 @font-face {
@@ -13,7 +13,7 @@
 	font-style: normal;
 	font-weight: normal;
 	src: local('Steradian Regular'), local('SteradianRegular'),
-		url('./font/SteradianRegular.woff2') format('woff2');
+		url('/font/SteradianRegular.woff2') format('woff2');
 }
 
 @font-face {
@@ -22,7 +22,7 @@
 	font-style: normal;
 	font-weight: 100;
 	src: local('Steradian Thin'), local('SteradianThin'),
-		url('./font/SteradianThin.woff2') format('woff2');
+		url('/font/SteradianThin.woff2') format('woff2');
 }
 
 @font-face {
@@ -31,7 +31,7 @@
 	font-style: normal;
 	font-weight: 800;
 	src: local('Steradian Black'), local('SteradianBlack'),
-		url('./font/SteradianBlack.woff2') format('woff2');
+		url('/font/SteradianBlack.woff2') format('woff2');
 }
 
 @font-face {
@@ -40,7 +40,7 @@
 	font-style: normal;
 	font-weight: bold;
 	src: local('Steradian Bold'), local('SteradianBold'),
-		url('./font/SteradianBold.woff2') format('woff2');
+		url('/font/SteradianBold.woff2') format('woff2');
 }
 
 @font-face {
@@ -49,7 +49,7 @@
 	font-style: normal;
 	font-weight: 500;
 	src: local('Steradian Medium'), local('SteradianMedium'),
-		url('./font/SteradianMedium.woff2') format('woff2');
+		url('/font/SteradianMedium.woff2') format('woff2');
 }
 
 @font-face {
@@ -58,7 +58,7 @@
 	font-style: normal;
 	font-weight: 200;
 	src: local('Steradian ExtraLight'), local('SteradianExtraLight'),
-		url('./font/SteradianExtraLight.woff2') format('woff2');
+		url('/font/SteradianExtraLight.woff2') format('woff2');
 }
 
 @font-face {
@@ -67,5 +67,5 @@
 	font-style: normal;
 	font-weight: 300;
 	src: local('Steradian Light'), local('SteradianLight'),
-		url('./font/SteradianLight.woff2') format('woff2');
+		url('/font/SteradianLight.woff2') format('woff2');
 }

@@ -14,10 +14,6 @@ import {
 	useGetMetricsTimelineLazyQuery,
 } from '@graph/hooks'
 import {
-	GetMetricsHistogramQuery,
-	GetMetricsTimelineQuery,
-} from '@graph/operations'
-import {
 	DashboardChartType,
 	DashboardMetricConfig,
 	Maybe,
@@ -363,10 +359,6 @@ const ChartContainer = React.memo(
 		const [chartInitialLoading, setChartInitialLoading] = useState(true)
 		const { timeRange, setTimeRange } = useDataTimeRange()
 		const { lookback: lookbackMinutes } = timeRange
-		const [histogramData, setHistogramData] =
-			useState<GetMetricsHistogramQuery>()
-		const [timelineData, setTimelineData] =
-			useState<GetMetricsTimelineQuery>()
 		const [referenceArea, setReferenceArea] = useState<{
 			start: string
 			end: string
@@ -379,7 +371,11 @@ const ChartContainer = React.memo(
 		const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS)
 		const [
 			loadTimeline,
-			{ loading: timelineLoading, refetch: refetchTimeline },
+			{
+				loading: timelineLoading,
+				refetch: refetchTimeline,
+				data: timelineData,
+			},
 		] = useGetMetricsTimelineLazyQuery({
 			variables: {
 				project_id,
@@ -395,16 +391,18 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: (data) => {
-				if (data.metrics_timeline) {
-					setTimelineData(data)
-				}
+			onCompleted: () => {
 				setChartInitialLoading(false)
 			},
+			onError: console.error,
 		})
 		const [
 			loadHistogram,
-			{ loading: histogramLoading, refetch: refetchHistogram },
+			{
+				loading: histogramLoading,
+				refetch: refetchHistogram,
+				data: histogramData,
+			},
 		] = useGetMetricsHistogramLazyQuery({
 			variables: {
 				project_id,
@@ -421,18 +419,16 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: (data) => {
-				if (data.metrics_histogram) {
-					setHistogramData(data)
-				}
+			onCompleted: () => {
 				setChartInitialLoading(false)
 			},
+			onError: console.error,
 		})
 
 		useEffect(() => {
 			if (chartType === DashboardChartType.Histogram) {
 				if (refetchHistogram) {
-					refetchHistogram().catch(console.error)
+					refetchHistogram()
 				} else {
 					loadHistogram()
 				}
@@ -441,7 +437,7 @@ const ChartContainer = React.memo(
 				chartType === DashboardChartType.TimelineBar
 			) {
 				if (refetchTimeline) {
-					refetchTimeline().catch(console.error)
+					refetchTimeline()
 				} else {
 					loadTimeline()
 				}
@@ -680,9 +676,6 @@ const ChartContainer = React.memo(
 						xAxisProps={{
 							ticks: timelineTicks.ticks,
 							tickCount: timelineTicks.ticks.length,
-							domain: ['dataMin', 'dataMax'],
-							scale: 'point',
-							interval: 0, // show all ticks
 						}}
 						yAxisLabel={metricConfig.units || ''}
 					/>

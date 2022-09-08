@@ -84,6 +84,7 @@ export type HighlightClassOptions = {
 	enableSegmentIntegration?: boolean
 	enableStrictPrivacy?: boolean
 	enableCanvasRecording?: boolean
+	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
@@ -147,6 +148,7 @@ export class Highlight {
 	enableSegmentIntegration!: boolean
 	enableStrictPrivacy!: boolean
 	enableCanvasRecording!: boolean
+	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
 	inlineImages!: boolean
 	inlineStylesheet!: boolean
@@ -312,6 +314,8 @@ export class Highlight {
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy || false
 		this.enableCanvasRecording = options.enableCanvasRecording || false
+		this.enablePerformanceRecording =
+			options.enablePerformanceRecording ?? true
 		this.inlineImages = options.inlineImages || false
 		this.inlineStylesheet = options.inlineStylesheet || false
 		this.samplingStrategy = options.samplingStrategy || {
@@ -474,10 +478,8 @@ export class Highlight {
 		try {
 			// disable recording for filtered projects while allowing for reloaded sessions
 			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				if (true || Math.random() > 0.1) {
-					this._firstLoadListeners?.stopListening()
-					return
-				}
+				this._firstLoadListeners?.stopListening()
+				return
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
@@ -529,6 +531,14 @@ export class Highlight {
 
 			const client = await this.fingerprintjs
 			const fingerprint = await client.get()
+			let destinationDomains: string[] = []
+			if (
+				typeof this.options.networkRecording === 'object' &&
+				this.options.networkRecording.destinationDomains?.length
+			) {
+				destinationDomains =
+					this.options.networkRecording.destinationDomains
+			}
 			const gr = await this.graphqlSDK.initializeSession({
 				organization_verbose_id: this.organizationID,
 				enable_strict_privacy: this.enableStrictPrivacy,
@@ -541,6 +551,7 @@ export class Highlight {
 				appVersion: this.appVersion,
 				session_secure_id: this.sessionData.sessionSecureID,
 				client_id: clientID,
+				network_recording_domains: destinationDomains,
 			})
 			if (
 				gr.initializeSession.secure_id !==
@@ -859,11 +870,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				})
 			}
 
-			this.listeners.push(
-				PerformanceListener((payload: PerformancePayload) => {
-					this.addCustomEvent('Performance', stringify(payload))
-				}, this._recordingStartTime),
-			)
+			if (this.enablePerformanceRecording) {
+				this.listeners.push(
+					PerformanceListener((payload: PerformancePayload) => {
+						this.addCustomEvent('Performance', stringify(payload))
+					}, this._recordingStartTime),
+				)
+			}
+
 			// setup electron main thread window visiblity events listener
 			if (window.electron?.ipcRenderer) {
 				window.electron.ipcRenderer.on(

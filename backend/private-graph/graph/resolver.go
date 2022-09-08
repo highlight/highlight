@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -279,7 +280,10 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		return nil, e.New("405: This invite link has expired.")
 	}
 
-	if err := r.DB.Create(&model.WorkspaceAdmin{
+	if err := r.DB.Clauses(clause.OnConflict{
+		OnConstraint: "workspace_admins_pkey",
+		DoNothing:    true,
+	}).Create(&model.WorkspaceAdmin{
 		AdminID:     admin.ID,
 		WorkspaceID: workspace.ID,
 		Role:        inviteLink.InviteeRole,
@@ -2170,7 +2174,16 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
 	if s.ProcessWithRedis {
-		return r.Redis.GetEvents(ctx, s, cursor)
+		isLive := cursor != model.EventsCursor{}
+		s3Events := map[int]string{}
+		if !isLive {
+			var err error
+			s3Events, err = r.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+			}
+		}
+		return r.Redis.GetEvents(ctx, s, cursor, s3Events)
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",

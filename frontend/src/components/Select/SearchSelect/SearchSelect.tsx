@@ -20,8 +20,6 @@ export const SearchSelect = ({
 	loadOptions: (input: string) => void
 	value?: string
 }) => {
-	const [isTyping, setIsTyping] = useState(false)
-
 	return (
 		<Select
 			className={styles.select}
@@ -30,15 +28,10 @@ export const SearchSelect = ({
 			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
 			placeholder={'graphql.operation.users'}
 			autoFocus
-			onChange={() => {
-				setIsTyping(false)
-			}}
-			onInputKeyDown={() => setIsTyping(true)}
 			onSelect={(newValue: SearchOption) => {
 				onSelect(newValue?.value || '')
 			}}
 			defaultValue={{ label: value, value: value } as SearchOption}
-			loading={isTyping}
 			options={options}
 			notFoundContent={<span>`No results found`</span>}
 			labelInValue
@@ -54,12 +47,14 @@ export const SimpleSearchSelect = ({
 	value,
 	freeSolo,
 	placeholder,
+	autoFocus = true,
 }: {
 	onSelect: (name: string) => void
 	options: string[]
 	value?: string
 	freeSolo?: boolean
 	placeholder?: string
+	autoFocus?: boolean
 }) => {
 	const [filteredOptions, setFilteredOptions] = useState<string[]>([])
 	const [extraOption, setExtraOption] = useState<SearchOption>()
@@ -93,7 +88,7 @@ export const SimpleSearchSelect = ({
 			// @ts-ignore
 			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
 			placeholder={placeholder || 'graphql_operation'}
-			autoFocus
+			autoFocus={autoFocus}
 			onChange={(x) => {
 				if (freeSolo) {
 					setExtraOption(x)
