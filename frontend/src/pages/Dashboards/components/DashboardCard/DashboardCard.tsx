@@ -423,6 +423,7 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
+			onError: console.error,
 		})
 
 		useEffect(() => {
@@ -690,9 +691,6 @@ const ChartContainer = React.memo(
 						xAxisProps={{
 							ticks: timelineTicks.ticks,
 							tickCount: timelineTicks.ticks.length,
-							domain: ['dataMin', 'dataMax'],
-							scale: 'point',
-							interval: 0, // show all ticks
 						}}
 						yAxisLabel={metricConfig.units || ''}
 					/>

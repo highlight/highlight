@@ -115,6 +115,11 @@ export declare type HighlightOptions = {
 	 */
 	enableCanvasRecording?: boolean
 	/**
+	 * Specifies whether to record performance metrics (e.g. FPS, device memory).
+	 * @default true
+	 */
+	enablePerformanceRecording?: boolean
+	/**
 	 * Configure the recording sampling options, eg. how frequently we record canvas updates.
 	 */
 	samplingStrategy?: SamplingStrategy

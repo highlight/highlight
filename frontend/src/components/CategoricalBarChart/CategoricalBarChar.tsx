@@ -78,18 +78,11 @@ const CategoricalBarChart = ({
 					height={300}
 					data={groupedData}
 					syncId={syncId}
-					margin={{
-						top: 42,
-						right: 4,
-						left: -6,
-						bottom: 2,
-					}}
-					barSize={20}
 					barGap={0}
-					barCategoryGap={0}
+					// use a smaller, proportional gap when bars get numerous and small
+					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
 				>
 					<CartesianGrid
-						strokeDasharray=""
 						vertical={true}
 						stroke="var(--color-gray-200)"
 					/>
@@ -117,17 +110,15 @@ const CategoricalBarChart = ({
 						position={{ y: 0 }}
 						content={
 							<RechartTooltip
-								render={(payload: any[]) => {
-									return (
-										<CustomTooltip
-											payload={payload}
-											yAxisLabel={yAxisLabel}
-											referenceLines={referenceLines}
-											precision={0}
-											units={xAxisUnits || ''}
-										/>
-									)
-								}}
+								render={(payload: any[]) => (
+									<CustomTooltip
+										payload={payload}
+										yAxisLabel={yAxisLabel}
+										referenceLines={referenceLines}
+										precision={0}
+										units={xAxisUnits || ''}
+									/>
+								)}
 							/>
 						}
 					/>
@@ -137,15 +128,13 @@ const CategoricalBarChart = ({
 							height={18}
 							iconType={'square'}
 							iconSize={8}
-							content={(props) => {
-								return (
-									<CustomLegend
-										props={props}
-										dataTypesToShow={yAxisKeys}
-										setDataTypesToShow={() => {}}
-									/>
-								)
-							}}
+							content={(props) => (
+								<CustomLegend
+									props={props}
+									dataTypesToShow={yAxisKeys}
+									setDataTypesToShow={() => {}}
+								/>
+							)}
 						/>
 					)}
 					{referenceLines?.map((referenceLine, index) => (

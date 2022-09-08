@@ -54,7 +54,7 @@ type ComplexityRoot struct {
 		AddSessionFeedback   func(childComplexity int, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
 		AddSessionProperties func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
-		InitializeSession    func(childComplexity int, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string) int
+		InitializeSession    func(childComplexity int, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string) int
 		MarkBackendSetup     func(childComplexity int, sessionSecureID string) int
 		PushBackendPayload   func(childComplexity int, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
@@ -74,7 +74,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string) (*model.InitializeSessionResponse, error)
+	InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string) (*model.InitializeSessionResponse, error)
 	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
 	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
 	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
@@ -162,7 +162,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["session_secure_id"].(string), args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["client_id"].(string)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["session_secure_id"].(string), args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["fingerprint"].(string), args["client_id"].(string), args["network_recording_domains"].([]string)), true
 
 	case "Mutation.markBackendSetup":
 		if e.complexity.Mutation.MarkBackendSetup == nil {
@@ -415,6 +415,7 @@ type Mutation {
 		appVersion: String
 		fingerprint: String!
 		client_id: String!
+		network_recording_domains: [String!]
 	): InitializeSessionResponse!
 	identifySession(
 		session_secure_id: String!
@@ -669,6 +670,15 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["client_id"] = arg10
+	var arg11 []string
+	if tmp, ok := rawArgs["network_recording_domains"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("network_recording_domains"))
+		arg11, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["network_recording_domains"] = arg11
 	return args, nil
 }
 
@@ -974,7 +984,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, fc.Args["session_secure_id"].(string), fc.Args["organization_verbose_id"].(string), fc.Args["enable_strict_privacy"].(bool), fc.Args["enable_recording_network_contents"].(bool), fc.Args["clientVersion"].(string), fc.Args["firstloadVersion"].(string), fc.Args["clientConfig"].(string), fc.Args["environment"].(string), fc.Args["appVersion"].(*string), fc.Args["fingerprint"].(string), fc.Args["client_id"].(string))
+		return ec.resolvers.Mutation().InitializeSession(rctx, fc.Args["session_secure_id"].(string), fc.Args["organization_verbose_id"].(string), fc.Args["enable_strict_privacy"].(bool), fc.Args["enable_recording_network_contents"].(bool), fc.Args["clientVersion"].(string), fc.Args["firstloadVersion"].(string), fc.Args["clientConfig"].(string), fc.Args["environment"].(string), fc.Args["appVersion"].(*string), fc.Args["fingerprint"].(string), fc.Args["client_id"].(string), fc.Args["network_recording_domains"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5164,6 +5174,44 @@ func (ec *executionContext) unmarshalOStackFrameInput2ᚖgithubᚗcomᚋhighligh
 	}
 	res, err := ec.unmarshalInputStackFrameInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
