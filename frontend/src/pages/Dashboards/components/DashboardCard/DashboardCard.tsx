@@ -214,7 +214,6 @@ const DashboardCard = ({
 									className={'flex justify-center'}
 									style={{ width: 40, height: 32 }}
 									icon={<TrashIcon />}
-									danger
 									trackingId={'DashboardCardDelete'}
 									onClick={() => {
 										setShowDeleteModal(true)
