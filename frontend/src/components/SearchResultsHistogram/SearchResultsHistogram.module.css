@@ -1,24 +1,24 @@
 .histogramWrapper {
-    height: 62px;
-    margin-top: var(--size-xSmall);
+	height: 62px;
+	margin-top: var(--size-xSmall);
 }
 
 .histogramTooltip {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    margin-top: 5px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-top: 5px;
 }
 
 .histogramSeriesTooltip {
-    align-items: center;
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
+	align-items: center;
+	display: flex;
+	flex-direction: row;
+	gap: 5px;
 }
 
 .histogramSeriesIcon {
-    border-radius: 50%;
-    height: 15px;
-    width: 15px;
+	border-radius: 50%;
+	height: 15px;
+	width: 15px;
 }

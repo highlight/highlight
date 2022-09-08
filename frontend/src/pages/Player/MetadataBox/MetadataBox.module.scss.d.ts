@@ -36,3 +36,4 @@ export const userInfoWrapper: string
 export const userMainSection: string
 export const userProfile: string
 export const userText: string
+export const viewAllSessionsButton: string

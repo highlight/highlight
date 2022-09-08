@@ -103,6 +103,7 @@ export const EditMetricModal = ({
 	onCancel: () => void
 	shown?: boolean
 }) => {
+	const { project_id } = useParams<{ project_id: string }>()
 	const [minValue, setMinValue] = useState<boolean>(
 		metricConfig.min_value !== null,
 	)
@@ -133,6 +134,14 @@ export const EditMetricModal = ({
 		metricConfig.filters || [],
 	)
 	const [groups, setGroups] = useState<string[]>(metricConfig.groups || [])
+
+	const { data: tags, loading: tagsLoading } = useGetMetricTagsQuery({
+		variables: {
+			project_id,
+			metric_name: metricName,
+		},
+		fetchPolicy: 'cache-first',
+	})
 
 	useEffect(() => {
 		if (!metricConfig.component_type && !metricConfig.chart_type) {
@@ -333,7 +342,7 @@ export const EditMetricModal = ({
 						</>
 					) : null}
 
-					{chartType ? (
+					{chartType && !tagsLoading && tags?.metric_tags.length ? (
 						<section className={styles.section}>
 							<h3>Filter by</h3>
 							<TagFilters
@@ -468,7 +477,7 @@ export const TagFilters = ({
 	currentTags: MetricTagFilter[]
 }) => {
 	return (
-		<>
+		<div className={'flex flex-col gap-2'}>
 			{[...currentTags, undefined].map((v, idx) => (
 				<div
 					className={styles.tagFilterGroup}
@@ -484,28 +493,20 @@ export const TagFilters = ({
 					>
 						<TagFilterSelector
 							metricName={metricName}
-							onSelectTag={(t) => {
+							onSelectTag={(t, tagIdx) => {
 								// ensure changing an existing tag updates rather than adding
-								const newTags = []
-								let newTag = true
-								for (const x of currentTags) {
-									if (x.tag === t.tag) {
-										newTag = false
-										newTags.push({
-											tag: x.tag,
-											op: t.op,
-											value: t.value,
-										} as MetricTagFilter)
-									} else {
-										newTags.push(x)
-									}
+								if (tagIdx >= currentTags.length) {
+									onSelectTags([...currentTags, t])
+								} else {
+									onSelectTags([
+										...currentTags.slice(0, tagIdx),
+										t,
+										...currentTags.slice(tagIdx + 1),
+									])
 								}
-								if (newTag) {
-									newTags.push(t)
-								}
-								onSelectTags(newTags)
 							}}
 							currentTag={v}
+							tagIdx={idx}
 							usedTags={currentTags.map((t) => t.tag)}
 						/>
 						<Button
@@ -523,7 +524,7 @@ export const TagFilters = ({
 					</div>
 				</div>
 			))}
-		</>
+		</div>
 	)
 }
 
@@ -535,39 +536,38 @@ const OperatorOptions = [
 export const TagFilterSelector = ({
 	metricName,
 	onSelectTag,
+	tagIdx,
 	currentTag,
 	usedTags,
 }: {
 	metricName: string
-	onSelectTag: (tags: MetricTagFilter) => void
+	onSelectTag: (tag: MetricTagFilter, idx: number) => void
+	tagIdx: number
 	currentTag?: MetricTagFilter
 	usedTags?: string[]
 }) => {
-	const [tag, setTag] = useState<string | undefined>(currentTag?.tag)
-	const [op, setOp] = useState<MetricTagFilterOp>(
-		currentTag?.op || MetricTagFilterOp.Equals,
-	)
-	const [value, setValue] = useState<string | undefined>(currentTag?.value)
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data } = useGetMetricTagsQuery({
 		variables: {
 			project_id,
 			metric_name: metricName,
 		},
+		fetchPolicy: 'cache-first',
 	})
 	const [load, { data: values }] = useGetMetricTagValuesLazyQuery({
 		variables: {
 			project_id,
 			metric_name: metricName,
-			tag_name: tag || '',
+			tag_name: currentTag?.tag || '',
 		},
+		fetchPolicy: 'cache-first',
 	})
 
 	useEffect(() => {
-		if (tag?.length) {
+		if (currentTag?.tag?.length) {
 			load()
 		}
-	}, [tag, load])
+	}, [currentTag?.tag, load])
 
 	return (
 		<>
@@ -577,41 +577,57 @@ export const TagFilterSelector = ({
 						usedTags ? !usedTags.includes(t) : true,
 					) || []
 				}
-				value={tag}
+				autoFocus={tagIdx >= (usedTags?.length || 0)}
+				value={currentTag?.tag}
 				onSelect={(v) => {
-					setTag(v)
-					setValue(undefined)
+					onSelectTag(
+						{
+							tag: v,
+							op: currentTag?.op || MetricTagFilterOp.Equals,
+							value: '',
+						},
+						tagIdx,
+					)
 				}}
 			/>
 			<StandardDropdown
 				gray
 				data={OperatorOptions}
 				defaultValue={OperatorOptions[0]}
-				value={OperatorOptions.filter((o) => o.value == op)[0]}
+				value={OperatorOptions.find((o) => o.value == currentTag?.op)}
 				onSelect={(v) => {
-					setOp(v)
-					if (tag?.length && value?.length) {
-						onSelectTag({ tag, op: v, value })
-					}
+					onSelectTag(
+						{
+							tag: currentTag?.tag || '',
+							op: v,
+							value: currentTag?.value || '',
+						},
+						tagIdx,
+					)
 				}}
 			/>
 			<SimpleSearchSelect
 				placeholder={'GetSession'}
 				options={values?.metric_tag_values || []}
-				value={value}
+				value={currentTag?.value}
 				freeSolo
+				autoFocus={false}
 				onSelect={(v) => {
-					setTag(v)
-					if (tag?.length) {
-						onSelectTag({ tag, op, value: v })
-					}
+					onSelectTag(
+						{
+							tag: currentTag?.tag || '',
+							op: currentTag?.op || MetricTagFilterOp.Equals,
+							value: v,
+						},
+						tagIdx,
+					)
 				}}
 			/>
 		</>
 	)
 }
 
-const MetricSelector = ({
+export const MetricSelector = ({
 	onSelectMetric,
 	currentMetric,
 }: {
