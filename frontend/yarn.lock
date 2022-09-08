@@ -1689,10 +1689,10 @@
     prop-types "^15.6.0"
     react-transition-group "^4.3.0"
 
-"@highlight-run/react@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.2.0.tgz#4e88550b179de6a509e31be1bcb5616375e5e76b"
-  integrity sha512-7X2jEfDpjqnVJTmQhTkYunLXpTCBou46WtGI+KPC3gP/hP8b8cW2SGwy6n4oZgfnmL6rctr382g+X/jS0gnblA==
+"@highlight-run/react@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@highlight-run/react/-/react-1.2.1.tgz#39131015cff3085c9143af2c70b2101f81d86aae"
+  integrity sha512-1jNQSvxXdE8gplA59xFiefX4M4lzqlpX1Y9StsuE6kcZ+5Um/EDAzv5HxPUd83VGx3CIy94T5ABD9BSi0M+7hg==
 
 "@highlight-run/rrdom@0.1.17":
   version "0.1.17"
