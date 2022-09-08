@@ -16,9 +16,9 @@ export type Scalars = {
 	Int: number
 	Float: number
 	Any: any
-	Timestamp: any
-	Int64: any
-	StringArray: any
+	Timestamp: string
+	Int64: number
+	StringArray: string[]
 	Upload: any
 }
 
