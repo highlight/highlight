@@ -1,7 +1,7 @@
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import PerformancePage from '@pages/Player/Toolbar/DevToolsWindow/PerformancePage/PerformancePage'
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs'
 import SvgXIcon from '../../../../static/XIcon'
@@ -46,7 +46,10 @@ export const DevToolsWindow = React.memo(
 		]
 
 		return (
-			<ResizePanel>
+			<ResizePanel
+				defaultHeight={500}
+				heightPersistenceKey="devToolsPanelHeight"
+			>
 				{({ panelRef, handleRef }) => (
 					<div className={styles.devToolsWrapper} ref={panelRef}>
 						<button
@@ -81,15 +84,41 @@ export const DevToolsWindow = React.memo(
 
 function ResizePanel({
 	children,
+	defaultHeight,
+	heightPersistenceKey,
 }: {
 	children: (props: {
 		panelRef: (element: HTMLElement | null) => void
 		handleRef: (element: HTMLElement | null) => void
 	}) => React.ReactNode
+	defaultHeight?: number
+	heightPersistenceKey?: string
 }) {
-	const [panel, panelRef] = React.useState<HTMLElement | null>()
+	const [panel, setPanel] = React.useState<HTMLElement | null>()
 	const [handle, handleRef] = React.useState<HTMLElement | null>()
 	const [dragging, setDragging] = React.useState(false)
+
+	const panelRef = useCallback(
+		(element: HTMLElement | null) => {
+			if (!element) return
+			setPanel(element)
+
+			let initialHeight = defaultHeight
+			if (heightPersistenceKey) {
+				const storedHeight = Number(
+					localStorage.getItem(heightPersistenceKey),
+				)
+				if (Number.isFinite(storedHeight)) {
+					initialHeight = storedHeight
+				}
+			}
+
+			if (initialHeight) {
+				element.style.height = `${initialHeight}px`
+			}
+		},
+		[defaultHeight, heightPersistenceKey],
+	)
 
 	useHTMLElementEvent(handle, 'pointerdown', (event) => {
 		if (handle && event.composedPath().includes(handle)) {
@@ -105,7 +134,15 @@ function ResizePanel({
 			if (dragging && panel) {
 				const panelRect = panel.getBoundingClientRect()
 				const newHeight = panelRect.height - event.movementY
+
 				panel.style.height = `${newHeight}px`
+				if (heightPersistenceKey) {
+					localStorage.setItem(
+						heightPersistenceKey,
+						String(newHeight),
+					)
+				}
+
 				event.preventDefault()
 				event.stopPropagation()
 			}
