@@ -47,6 +47,7 @@ const DashboardPage = ({
 	const { timeRange } = useDataTimeRange()
 	const { dashboards, allAdmins, updateDashboard } = useDashboardsContext()
 	const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false)
+	const [newDashboardCardIdx, setNewDashboardCardIdx] = useState<number>()
 	const [layout, setLayout] = useState<Layouts>({ lg: [] })
 	const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] })
 	const [dashboard, setDashboard] = useState<DashboardDefinition>()
@@ -163,6 +164,7 @@ const DashboardPage = ({
 								type="ghost"
 								onClick={() => {
 									setNewMetrics((d) => {
+										setNewDashboardCardIdx(d.length)
 										const nm = [
 											...d,
 											getDefaultMetricConfig(''),
@@ -217,6 +219,7 @@ const DashboardPage = ({
 				persistedLayout={persistedLayout}
 				setLayout={setLayout}
 				setCanSaveChanges={setCanSaveChanges}
+				newDashboardCardIdx={newDashboardCardIdx}
 				containerStyles={containerStyles}
 			/>
 		</LeadAlignLayout>
@@ -230,6 +233,7 @@ export const DashboardGrid = ({
 	persistedLayout,
 	setLayout,
 	setCanSaveChanges,
+	newDashboardCardIdx,
 	containerStyles,
 }: {
 	dashboard: DashboardDefinition
@@ -238,6 +242,7 @@ export const DashboardGrid = ({
 	persistedLayout: Layouts
 	setLayout: React.Dispatch<React.SetStateAction<Layouts>>
 	setCanSaveChanges: React.Dispatch<React.SetStateAction<boolean>>
+	newDashboardCardIdx?: number
 	containerStyles?: React.CSSProperties
 }) => {
 	const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
@@ -300,6 +305,8 @@ export const DashboardGrid = ({
 				isResizable
 				containerPadding={[0, 0]}
 				rowHeight={85}
+				// issue in the react-grid-layout typedefs
+				// @ts-ignore
 				resizeHandle={(
 					handle: 'se',
 					ref: React.Ref<HTMLDivElement>,
@@ -318,6 +325,7 @@ export const DashboardGrid = ({
 								updateMetric={updateMetric}
 								deleteMetric={deleteMetric}
 								key={metric.name}
+								editModalShown={index === newDashboardCardIdx}
 							/>
 						) : (
 							<DashboardComponentCard

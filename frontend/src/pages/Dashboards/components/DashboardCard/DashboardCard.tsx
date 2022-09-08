@@ -69,6 +69,7 @@ interface Props {
 	metricConfig: DashboardMetricConfig
 	updateMetric: UpdateMetricFn
 	deleteMetric: DeleteMetricFn
+	editModalShown?: boolean
 }
 
 const DashboardCard = ({
@@ -76,8 +77,11 @@ const DashboardCard = ({
 	metricConfig,
 	updateMetric,
 	deleteMetric,
+	editModalShown,
 }: Props) => {
-	const [showEditModal, setShowEditModal] = useState<boolean>(false)
+	const [showEditModal, setShowEditModal] = useState<boolean>(
+		editModalShown || false,
+	)
 	const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
 	const [updatingData, setUpdatingData] = useState<boolean>(true)
 	const { project_id } = useParams<{ project_id: string }>()
