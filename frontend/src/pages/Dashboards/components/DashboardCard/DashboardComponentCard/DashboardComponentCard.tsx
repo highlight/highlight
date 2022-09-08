@@ -1,3 +1,4 @@
+import Button from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Input from '@components/Input/Input'
 import { LoadingBar } from '@components/Loading/Loading'
@@ -102,26 +103,43 @@ export const DashboardComponentCard = ({
 								)}
 							</span>
 						</div>
-						{PrebuiltComponentMap[componentType].hasSearch && (
-							<div
-								style={{
-									marginRight: 'var(--size-small)',
-									paddingRight: 'var(--size-xxLarge)',
-									width: 150,
-									height: 24,
-								}}
-							>
-								<Input
-									allowClear
-									placeholder="Search ..."
-									value={filterSearchTerm}
-									onChange={(event) => {
-										setFilterSearchTerm(event.target.value)
+						<div className="flex justify-end gap-2 align-middle">
+							{PrebuiltComponentMap[componentType].hasSearch && (
+								<div
+									style={{
+										width: 150,
+										height: 24,
 									}}
-									size="small"
-								/>
+								>
+									<Input
+										allowClear
+										placeholder="Search ..."
+										value={filterSearchTerm}
+										onChange={(event) => {
+											setFilterSearchTerm(
+												event.target.value,
+											)
+										}}
+										size="small"
+									/>
+								</div>
+							)}
+							<Button
+								className={'flex justify-center'}
+								icon={<EditIcon />}
+								style={{ width: 40, height: 32 }}
+								trackingId={'DashboardCardEditMetric'}
+								onClick={() => {
+									setShowEditModal(true)
+								}}
+							/>
+							<div
+								className={classNames(styles.draggable)}
+								data-drag-handle=""
+							>
+								<SvgDragIcon />
 							</div>
-						)}
+						</div>
 					</div>
 					{updatingData && <LoadingBar height={2} width={'100%'} />}
 				</div>
@@ -138,24 +156,6 @@ export const DashboardComponentCard = ({
 					updateMetric={updateMetric}
 					canChangeType={false}
 				/>
-				<EditIcon
-					className={classNames(styles.overlayButton)}
-					style={{
-						marginRight: 'var(--size-xSmall)',
-					}}
-					onClick={() => {
-						setShowEditModal(true)
-					}}
-				/>
-				<div
-					className={classNames(
-						styles.draggable,
-						styles.draggableOverlay,
-					)}
-					data-drag-handle=""
-				>
-					<SvgDragIcon />
-				</div>
 				{React.createElement(PrebuiltComponentMap[componentType].fc, {
 					setUpdatingData,
 					filterSearchTerm,

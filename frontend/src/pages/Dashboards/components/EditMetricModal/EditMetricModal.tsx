@@ -62,7 +62,6 @@ export const EditMetricModal = ({
 	metricIdx,
 	metricConfig,
 	updateMetric,
-	onDelete,
 	onCancel,
 	shown = false,
 	canChangeType = true,
@@ -70,7 +69,6 @@ export const EditMetricModal = ({
 	metricIdx: number
 	metricConfig: DashboardMetricConfig
 	updateMetric: UpdateMetricFn
-	onDelete?: () => void
 	onCancel: () => void
 	shown?: boolean
 	canChangeType?: boolean
@@ -343,24 +341,6 @@ export const EditMetricModal = ({
 
 					<CardFormActionsContainer>
 						<div className={styles.submitRow}>
-							{onDelete && (
-								<Button
-									style={{ width: 100 }}
-									icon={
-										<TrashIcon
-											style={{
-												marginRight:
-													'var(--size-xSmall)',
-											}}
-										/>
-									}
-									danger
-									trackingId={'DashboardCardDelete'}
-									onClick={onDelete}
-								>
-									Delete
-								</Button>
-							)}
 							<Button
 								type={'primary'}
 								style={{

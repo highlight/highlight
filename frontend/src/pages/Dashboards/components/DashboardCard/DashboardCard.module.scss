@@ -30,12 +30,6 @@
 	justify-content: center;
 }
 
-.draggableOverlay {
-	position: absolute;
-	right: var(--size-medium);
-	top: 18px;
-}
-
 .overlayButton {
 	position: absolute;
 	right: var(--size-xLarge);
@@ -67,23 +61,6 @@
 .description {
 	color: var(--color-gray-500) !important;
 	margin-top: 0 !important;
-}
-
-.chartButtons {
-	align-items: center;
-	display: flex;
-	justify-content: flex-end;
-	width: 300px;
-
-	button {
-		height: var(--size-xLarge);
-		padding: var(--size-small);
-	}
-
-	ul li {
-		height: var(--size-xLarge);
-		padding: var(--size-small);
-	}
 }
 
 .monitorItem {

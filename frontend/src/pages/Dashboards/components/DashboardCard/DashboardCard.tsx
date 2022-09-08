@@ -28,6 +28,7 @@ import SvgAnnouncementIcon from '@icons/AnnouncementIcon'
 import SvgDragIcon from '@icons/DragIcon'
 import EditIcon from '@icons/EditIcon'
 import SvgPlusIcon from '@icons/PlusIcon'
+import TrashIcon from '@icons/TrashIcon'
 import {
 	EditMetricModal,
 	UpdateMetricFn,
@@ -121,12 +122,8 @@ const DashboardCard = ({
 									)}
 								</span>
 							</div>
-							<div className={styles.chartButtons}>
-								<div
-									style={{
-										marginRight: 'var(--size-xSmall)',
-									}}
-								>
+							<div className="flex justify-end gap-2 align-middle">
+								<div>
 									{metricConfig.name.length ? (
 										metricMonitorsLoading ? (
 											<Skeleton width={111} />
@@ -210,24 +207,24 @@ const DashboardCard = ({
 									)}
 								</div>
 								<Button
-									icon={
-										<EditIcon
-											style={{
-												marginRight:
-													'var(--size-xSmall)',
-											}}
-										/>
-									}
-									style={{
-										marginRight: 'var(--size-xSmall)',
+									className={'flex justify-center'}
+									style={{ width: 40, height: 32 }}
+									icon={<TrashIcon />}
+									danger
+									trackingId={'DashboardCardDelete'}
+									onClick={() => {
+										setShowDeleteModal(true)
 									}}
+								/>
+								<Button
+									className={'flex justify-center'}
+									icon={<EditIcon />}
+									style={{ width: 40, height: 32 }}
 									trackingId={'DashboardCardEditMetric'}
 									onClick={() => {
 										setShowEditModal(true)
 									}}
-								>
-									Edit
-								</Button>
+								/>
 								<div
 									className={styles.draggable}
 									data-drag-handle=""
@@ -338,7 +335,6 @@ const ChartContainer = React.memo(
 		setPoorValue,
 		updateMetric,
 		setShowEditModal,
-		setShowDeleteModal,
 		setUpdatingData,
 	}: {
 		metricIdx: number
@@ -354,7 +350,6 @@ const ChartContainer = React.memo(
 		setPoorValue?: (v: number) => void
 		updateMetric: UpdateMetricFn
 		setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>
-		setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>
 		setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
 		const NUM_BUCKETS = 60
@@ -564,9 +559,6 @@ const ChartContainer = React.memo(
 					shown={showEditModal}
 					onCancel={() => {
 						setShowEditModal(false)
-					}}
-					onDelete={() => {
-						setShowDeleteModal(true)
 					}}
 					metricConfig={metricConfig}
 					metricIdx={metricIdx}
