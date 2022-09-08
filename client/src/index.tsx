@@ -533,6 +533,14 @@ export class Highlight {
 
 			const client = await this.fingerprintjs
 			const fingerprint = await client.get()
+			let destinationDomains: string[] = []
+			if (
+				typeof this.options.networkRecording === 'object' &&
+				this.options.networkRecording.destinationDomains?.length
+			) {
+				destinationDomains =
+					this.options.networkRecording.destinationDomains
+			}
 			const gr = await this.graphqlSDK.initializeSession({
 				organization_verbose_id: this.organizationID,
 				enable_strict_privacy: this.enableStrictPrivacy,
@@ -545,6 +553,7 @@ export class Highlight {
 				appVersion: this.appVersion,
 				session_secure_id: this.sessionData.sessionSecureID,
 				client_id: clientID,
+				network_recording_domains: destinationDomains,
 			})
 			if (
 				gr.initializeSession.secure_id !==

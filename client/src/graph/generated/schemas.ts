@@ -101,10 +101,10 @@ export type MutationInitializeSessionArgs = {
   environment: Scalars['String'];
   fingerprint: Scalars['String'];
   firstloadVersion: Scalars['String'];
+  network_recording_domains?: InputMaybe<Array<Scalars['String']>>
   organization_verbose_id: Scalars['String'];
   session_secure_id: Scalars['String'];
 };
-
 
 export type MutationMarkBackendSetupArgs = {
   session_secure_id: Scalars['String'];
