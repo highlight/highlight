@@ -30,12 +30,6 @@
 	justify-content: center;
 }
 
-.draggableOverlay {
-	position: absolute;
-	right: var(--size-medium);
-	top: 18px;
-}
-
 .overlayButton {
 	position: absolute;
 	right: var(--size-xLarge);
@@ -67,23 +61,6 @@
 .description {
 	color: var(--color-gray-500) !important;
 	margin-top: 0 !important;
-}
-
-.chartButtons {
-	align-items: center;
-	display: flex;
-	justify-content: flex-end;
-	width: 300px;
-
-	button {
-		height: var(--size-xLarge);
-		padding: var(--size-small);
-	}
-
-	ul li {
-		height: var(--size-xLarge);
-		padding: var(--size-small);
-	}
 }
 
 .monitorItem {
@@ -144,9 +121,10 @@
 }
 
 .mainHeaderContent {
-	align-items: center;
+	align-items: flex-start;
 	display: flex;
 	justify-content: space-between;
+	min-height: 52px;
 	padding: 10px 10px 10px 20px;
 	width: 100%;
 }
@@ -172,6 +150,7 @@
 	font-size: 16px;
 	font-weight: 500;
 	overflow: hidden;
+	padding-top: 2px;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -191,4 +170,9 @@
 
 .blurChart {
 	filter: blur(2px);
+}
+
+.fixedSize {
+	min-height: 180px;
+	min-width: 600px;
 }

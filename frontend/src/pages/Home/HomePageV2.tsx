@@ -4,17 +4,15 @@ import DemoWorkspaceButton, {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetAdminQuery } from '@graph/hooks'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
-import { HomePageTimeFilter } from '@pages/Home/utils/HomeCharts'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import Lottie from 'lottie-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Link } from 'react-router-dom'
 
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard'
 import WaitingAnimation from '../../lottie/waiting.json'
-import { HomePageFiltersContext } from './components/HomePageFilters/HomePageFiltersContext'
 import styles from './HomePage.module.scss'
 
 const HomePageV2 = () => {
@@ -26,10 +24,6 @@ const HomePageV2 = () => {
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
-	const [dateRangeLength, setDateRangeLength] = useState<number>(
-		HomePageTimeFilter[1].value,
-	)
-	const [hasData, setHasData] = useState<boolean>(true)
 	const { integrated, loading: integratedLoading } = useIntegrated()
 
 	if (integratedLoading || adminLoading) {
@@ -37,9 +31,7 @@ const HomePageV2 = () => {
 	}
 
 	return (
-		<HomePageFiltersContext
-			value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
-		>
+		<>
 			<Helmet>
 				<title>Home</title>
 			</Helmet>
@@ -67,7 +59,7 @@ const HomePageV2 = () => {
 							dashboardName={'Home'}
 						/>
 					</div>
-					{!hasData && !integrated && (
+					{!integrated && (
 						<div className={styles.noDataContainer}>
 							<ElevatedCard
 								title={
@@ -110,7 +102,7 @@ const HomePageV2 = () => {
 					)}
 				</div>
 			</div>
-		</HomePageFiltersContext>
+		</>
 	)
 }
 

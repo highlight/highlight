@@ -3,6 +3,9 @@ module.exports = {
 	content: ['{src,public}/**/*.{js,jsx,ts,tsx}', 'index.html'],
 	theme: {
 		extend: {
+			blur: {
+				xs: '2px',
+			},
 			colors: {
 				'primary-1': '#B19CFF',
 				'primary-2': '#6C37F4',
@@ -30,4 +33,5 @@ module.exports = {
 	corePlugins: {
 		preflight: false,
 	},
+	important: true,
 }

@@ -47,6 +47,7 @@ const DashboardPage = ({
 	const { timeRange } = useDataTimeRange()
 	const { dashboards, allAdmins, updateDashboard } = useDashboardsContext()
 	const [canSaveChanges, setCanSaveChanges] = useState<boolean>(false)
+	const [newDashboardCardIdx, setNewDashboardCardIdx] = useState<number>()
 	const [layout, setLayout] = useState<Layouts>({ lg: [] })
 	const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] })
 	const [dashboard, setDashboard] = useState<DashboardDefinition>()
@@ -163,6 +164,7 @@ const DashboardPage = ({
 								type="ghost"
 								onClick={() => {
 									setNewMetrics((d) => {
+										setNewDashboardCardIdx(d.length)
 										const nm = [
 											...d,
 											getDefaultMetricConfig(''),
@@ -217,6 +219,7 @@ const DashboardPage = ({
 				persistedLayout={persistedLayout}
 				setLayout={setLayout}
 				setCanSaveChanges={setCanSaveChanges}
+				newDashboardCardIdx={newDashboardCardIdx}
 				containerStyles={containerStyles}
 			/>
 		</LeadAlignLayout>
@@ -230,6 +233,7 @@ export const DashboardGrid = ({
 	persistedLayout,
 	setLayout,
 	setCanSaveChanges,
+	newDashboardCardIdx,
 	containerStyles,
 }: {
 	dashboard: DashboardDefinition
@@ -238,6 +242,7 @@ export const DashboardGrid = ({
 	persistedLayout: Layouts
 	setLayout: React.Dispatch<React.SetStateAction<Layouts>>
 	setCanSaveChanges: React.Dispatch<React.SetStateAction<boolean>>
+	newDashboardCardIdx?: number
 	containerStyles?: React.CSSProperties
 }) => {
 	const handleDashboardChange = (newLayout: ReactGridLayout.Layout[]) => {
@@ -281,6 +286,7 @@ export const DashboardGrid = ({
 			style={containerStyles}
 		>
 			<ResponsiveGridLayout
+				useCSSTransforms={false}
 				layouts={layout}
 				cols={{
 					lg: 12,
@@ -290,16 +296,22 @@ export const DashboardGrid = ({
 					xxs: 2,
 				}}
 				breakpoints={{
-					lg: 1600,
-					md: 1330,
-					sm: 920,
-					xs: 768,
-					xxs: 480,
+					lg: 1200,
+					md: 1000,
+					sm: 900,
+					xs: 700,
+					xxs: 400,
 				}}
 				isDraggable
 				isResizable
 				containerPadding={[0, 0]}
-				rowHeight={115}
+				rowHeight={85}
+				// issue in the react-grid-layout typedefs
+				// @ts-ignore
+				resizeHandle={(
+					handle: 'se',
+					ref: React.Ref<HTMLDivElement>,
+				) => <div ref={ref} className={styles.resize} />}
 				resizeHandles={['se']}
 				draggableHandle="[data-drag-handle]"
 				onDragStop={handleDashboardChange}
@@ -314,6 +326,7 @@ export const DashboardGrid = ({
 								updateMetric={updateMetric}
 								deleteMetric={deleteMetric}
 								key={metric.name}
+								editModalShown={index === newDashboardCardIdx}
 							/>
 						) : (
 							<DashboardComponentCard

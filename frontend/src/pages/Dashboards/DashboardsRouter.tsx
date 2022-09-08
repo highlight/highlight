@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	useGetDashboardDefinitionsQuery,
 	useGetWorkspaceAdminsByProjectIdQuery,
@@ -9,13 +8,15 @@ import { DashboardsContextProvider } from '@pages/Dashboards/DashboardsContext/D
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
 import DashboardPage from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import DashboardsHomePage from '@pages/Dashboards/pages/DashboardsHomePage/DashboardsHomePage'
-import HomePage from '@pages/Home/HomePage'
 import HomePageV2 from '@pages/Home/HomePageV2'
 import {
 	DEFAULT_HOME_DASHBOARD_LAYOUT,
 	HOME_DASHBOARD_CONFIGURATION,
 } from '@pages/Home/utils/HomePageUtils'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
+import {
+	FRONTEND_OBSERVABILITY_CONFIGURATION,
+	WEB_VITALS_CONFIGURATION,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
@@ -25,7 +26,6 @@ import { Route, Switch, useRouteMatch } from 'react-router-dom'
 const DashboardsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { path } = useRouteMatch()
-	const { isHighlightAdmin } = useAuthContext()
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id },
 	})
@@ -63,8 +63,25 @@ const DashboardsRouter = () => {
 					},
 				}).catch(H.consumeError)
 			}
+			if (
+				!data?.dashboard_definitions?.some(
+					(d) => d?.name === 'Frontend Observability',
+				)
+			) {
+				upsertDashboardMutation({
+					variables: {
+						project_id,
+						metrics: Object.values(
+							FRONTEND_OBSERVABILITY_CONFIGURATION,
+						),
+						name: 'Frontend Observability',
+						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+					},
+				}).catch(H.consumeError)
+			}
 		}
-	}, [project_id, upsertDashboardMutation, loading, error, data, called])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [project_id, loading, error, called, data])
 
 	return (
 		<DashboardsContextProvider
@@ -89,7 +106,7 @@ const DashboardsRouter = () => {
 			</Helmet>
 			<Switch>
 				<Route exact path={`/:project_id/home`}>
-					{isHighlightAdmin ? <HomePageV2 /> : <HomePage />}
+					<HomePageV2 />
 				</Route>
 				<Route exact path={path}>
 					<DashboardsHomePage />
