@@ -1,1 +1,1 @@
-export const personalNotificationButton: string;
+export const personalNotificationButton: string

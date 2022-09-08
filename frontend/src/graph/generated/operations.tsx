@@ -4008,10 +4008,14 @@ export const namedOperations = {
 		GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
 		GetErrorDistribution: 'GetErrorDistribution' as const,
 		GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
-		GetWorkspaceIsIntegratedWithSlack: 'GetWorkspaceIsIntegratedWithSlack' as const,
-		GetWorkspaceIsIntegratedWithLinear: 'GetWorkspaceIsIntegratedWithLinear' as const,
-		GetWorkspaceIsIntegratedWithZapier: 'GetWorkspaceIsIntegratedWithZapier' as const,
-		GenerateNewZapierAccessTokenJwt: 'GenerateNewZapierAccessTokenJwt' as const,
+		GetWorkspaceIsIntegratedWithSlack:
+			'GetWorkspaceIsIntegratedWithSlack' as const,
+		GetWorkspaceIsIntegratedWithLinear:
+			'GetWorkspaceIsIntegratedWithLinear' as const,
+		GetWorkspaceIsIntegratedWithZapier:
+			'GetWorkspaceIsIntegratedWithZapier' as const,
+		GenerateNewZapierAccessTokenJwt:
+			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
 		GetAlertsPagePayload: 'GetAlertsPagePayload' as const,
 		GetMetricMonitors: 'GetMetricMonitors' as const,
@@ -4028,7 +4032,8 @@ export const namedOperations = {
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
 		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
-		CreateOrUpdateStripeSubscription: 'CreateOrUpdateStripeSubscription' as const,
+		CreateOrUpdateStripeSubscription:
+			'CreateOrUpdateStripeSubscription' as const,
 		UpdateBillingDetails: 'UpdateBillingDetails' as const,
 		updateErrorGroupState: 'updateErrorGroupState' as const,
 		SendEmailSignup: 'SendEmailSignup' as const,

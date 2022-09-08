@@ -1,2 +1,2 @@
-export const customTag: string;
-export const tagSelect: string;
+export const customTag: string
+export const tagSelect: string

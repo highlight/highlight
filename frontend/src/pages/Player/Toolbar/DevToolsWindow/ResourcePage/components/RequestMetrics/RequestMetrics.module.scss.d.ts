@@ -1,1 +1,1 @@
-export const requestMetrics: string;
+export const requestMetrics: string
