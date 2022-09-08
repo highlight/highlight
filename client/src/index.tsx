@@ -84,6 +84,7 @@ export type HighlightClassOptions = {
 	enableSegmentIntegration?: boolean
 	enableStrictPrivacy?: boolean
 	enableCanvasRecording?: boolean
+	enablePerformanceRecording?: boolean
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
@@ -147,6 +148,7 @@ export class Highlight {
 	enableSegmentIntegration!: boolean
 	enableStrictPrivacy!: boolean
 	enableCanvasRecording!: boolean
+	enablePerformanceRecording!: boolean
 	samplingStrategy!: SamplingStrategy
 	inlineImages!: boolean
 	inlineStylesheet!: boolean
@@ -313,6 +315,8 @@ export class Highlight {
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy || false
 		this.enableCanvasRecording = options.enableCanvasRecording || false
+		this.enablePerformanceRecording =
+			options.enablePerformanceRecording ?? true
 		this.inlineImages = options.inlineImages || false
 		this.inlineStylesheet = options.inlineStylesheet || false
 		this.samplingStrategy = options.samplingStrategy || {
@@ -869,11 +873,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				})
 			}
 
-			this.listeners.push(
-				PerformanceListener((payload: PerformancePayload) => {
-					this.addCustomEvent('Performance', stringify(payload))
-				}, this._recordingStartTime),
-			)
+			if (this.enablePerformanceRecording) {
+				this.listeners.push(
+					PerformanceListener((payload: PerformancePayload) => {
+						this.addCustomEvent('Performance', stringify(payload))
+					}, this._recordingStartTime),
+				)
+			}
+
 			// setup electron main thread window visiblity events listener
 			if (window.electron?.ipcRenderer) {
 				window.electron.ipcRenderer.on(
