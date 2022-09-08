@@ -286,6 +286,7 @@ export const DashboardGrid = ({
 			style={containerStyles}
 		>
 			<ResponsiveGridLayout
+				useCSSTransforms={false}
 				layouts={layout}
 				cols={{
 					lg: 12,
