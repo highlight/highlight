@@ -13,7 +13,6 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator'
-import styles from './KeyPerformanceIndicators.module.scss'
 import { formatLongNumber, formatShortTime } from './utils/utils'
 
 const KeyPerformanceIndicators = ({
@@ -44,9 +43,12 @@ const KeyPerformanceIndicators = ({
 
 	return (
 		<div
-			className={classNames(styles.keyPerformanceIndicatorsContainer, {
-				[styles.loading]: loading,
-			})}
+			className={classNames(
+				'flex flex-wrap gap-8 h-full mb-8 p-6 w-full',
+				{
+					['blur-xs']: loading,
+				},
+			)}
 		>
 			<KeyPerformanceIndicator
 				value={formatLongNumber(data?.newUsersCount?.count || 0)}

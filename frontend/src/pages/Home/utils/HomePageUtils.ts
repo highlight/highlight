@@ -56,7 +56,7 @@ export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
 	lg: [
 		{
 			...DEFAULT_SINGLE_LAYOUT,
-			w: 5,
+			w: 6,
 			h: 2,
 			x: 0,
 			y: 0,

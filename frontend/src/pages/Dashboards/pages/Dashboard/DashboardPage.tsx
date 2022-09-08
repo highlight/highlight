@@ -296,8 +296,8 @@ export const DashboardGrid = ({
 					xxs: 2,
 				}}
 				breakpoints={{
-					lg: 1400,
-					md: 1200,
+					lg: 1200,
+					md: 1000,
 					sm: 900,
 					xs: 700,
 					xxs: 400,
