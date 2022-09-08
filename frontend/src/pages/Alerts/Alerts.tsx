@@ -23,7 +23,8 @@ import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect, useState } from 'react'
+import { compact } from 'lodash'
+import React from 'react'
 import { Link, useHistory } from 'react-router-dom'
 
 import styles from './Alerts.module.scss'
@@ -281,46 +282,19 @@ function AlertsPageLoaded({
 	const { project_id } = useParams<{ project_id: string }>()
 	const history = useHistory()
 
-	const [maxNum, setMaxNum] = useState(5)
-	useEffect(() => {
-		let tempMax = 5
-		alertsPayload?.error_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.new_user_alerts?.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.session_feedback_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.track_properties_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.user_properties_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.new_session_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		alertsPayload?.rage_click_alerts.forEach((val) => {
-			if (!!val?.DailyFrequency) {
-				tempMax = Math.max(tempMax, ...val.DailyFrequency)
-			}
-		})
-		setMaxNum(tempMax)
-	}, [alertsPayload])
+	const maxNum = (() => {
+		const values = [
+			alertsPayload?.error_alerts,
+			alertsPayload?.new_user_alerts,
+			alertsPayload?.session_feedback_alerts,
+			alertsPayload?.track_properties_alerts,
+			alertsPayload?.user_properties_alerts,
+			alertsPayload?.new_session_alerts,
+			alertsPayload?.rage_click_alerts,
+		].flatMap((alerts) => alerts?.flatMap((alert) => alert?.DailyFrequency))
+
+		return Math.max(...compact(values), 5)
+	})()
 
 	const alertsAsTableRows = [
 		...(alertsPayload?.error_alerts || [])
