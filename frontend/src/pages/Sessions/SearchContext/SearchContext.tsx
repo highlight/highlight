@@ -99,7 +99,5 @@ export const updateSearchTimeRange = (
 	}
 }
 
-export const [
-	useSearchContext,
-	SearchContextProvider,
-] = createContext<SearchContext>('SearchContext')
+export const [useSearchContext, SearchContextProvider] =
+	createContext<SearchContext>('SearchContext')
