@@ -10,6 +10,7 @@ import {
 	DashboardDefinition,
 	DashboardMetricConfig,
 	Maybe,
+	MetricTagFilter,
 	MetricTagFilterOp,
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
@@ -31,7 +32,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { useHistory, useLocation } from 'react-router-dom'
 
-import styles from './DashboardPage.module.scss'
+import styles, { newMetric } from './DashboardPage.module.scss'
+import { capitalize } from 'lodash'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
@@ -68,7 +70,7 @@ const DashboardPage = ({
 				setLayout(parsedLayout)
 				setPersistedLayout(parsedLayout)
 			}
-			history.replace({ state: { dashboardName: name } })
+			history.replace({ state: { dashboardName: name }, search })
 		}
 	}, [dashboardName, dashboards, history, id])
 
@@ -78,9 +80,8 @@ const DashboardPage = ({
 	useEffect(() => {
 		const searchParams = new URLSearchParams(search)
 		const metricToAdd = searchParams.get('addToDashboard')
-		const graphQlOperation = searchParams.get('graphQlOperation')
-		console.log('::: metricToAdd', metricToAdd)
-		console.log('::: graphQlOperation', graphQlOperation)
+		const filterTag = searchParams.get('filterTag') || ''
+		const filterValue = searchParams.get('filterValue') || ''
 
 		if (!dashboard || !metricToAdd || metricAutoAdded.current) {
 			return
@@ -89,21 +90,22 @@ const DashboardPage = ({
 		metricAutoAdded.current = true
 
 		// Change to check both name and filters, if GraphQL request.
-		const canAddMetric = !findDashboardWithLatencyMetric(
-			dashboard,
-			graphQlOperation,
-		)
+		const canAddMetric = !findDashboardMetric(dashboard, metricToAdd, {
+			tag: filterTag,
+			value: filterValue,
+		})
 
-		debugger
 		if (canAddMetric && metricToAdd) {
 			const newMetricConfig = getDefaultMetricConfig(metricToAdd)
+			newMetricConfig.description = capitalize(metricToAdd)
 
-			if (graphQlOperation) {
+			if (filterTag && filterValue) {
+				newMetricConfig.description = `${newMetricConfig.description} (${filterValue})`
 				newMetricConfig.filters = [
 					{
 						op: MetricTagFilterOp.Equals,
-						tag: 'graphql_operation',
-						value: graphQlOperation,
+						tag: filterTag,
+						value: filterValue,
 					},
 				]
 			}
@@ -385,18 +387,17 @@ const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
 	}
 }
 
-export const findDashboardWithLatencyMetric = (
+export const findDashboardMetric = (
 	dashboard: Maybe<DashboardDefinition>,
-	graphQlOperation?: string | null,
+	metricName: string,
+	filter?: Partial<MetricTagFilter> | null,
 ) => {
 	return dashboard?.metrics.find((metric) => {
-		let isMatch = metric.name === 'latency'
+		let isMatch = metric.name === metricName
 
-		if (isMatch && graphQlOperation) {
+		if (isMatch && filter) {
 			isMatch = !!metric.filters?.some(
-				(filter) =>
-					filter.tag === 'graphql_operation' &&
-					filter.value === graphQlOperation,
+				(f) => f.tag === filter.tag && f.value === filter.value,
 			)
 		}
 

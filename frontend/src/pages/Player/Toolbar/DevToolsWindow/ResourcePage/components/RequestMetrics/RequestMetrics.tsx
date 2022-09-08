@@ -10,7 +10,7 @@ import {
 	NetworkRequestAttribute,
 } from '@graph/schemas'
 import { LINE_COLORS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
-import { findDashboardWithLatencyMetric } from '@pages/Dashboards/pages/Dashboard/DashboardPage'
+import { findDashboardMetric } from '@pages/Dashboards/pages/Dashboard/DashboardPage'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/ResourcePage'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
@@ -18,12 +18,6 @@ import { Dropdown, Menu } from 'antd'
 import moment from 'moment'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import {
-	BooleanParam,
-	encodeQueryParams,
-	ObjectParam,
-} from 'serialize-query-params'
-import { JsonParam, StringParam } from 'use-query-params'
 
 import styles from './RequestMetrics.module.scss'
 
@@ -75,31 +69,33 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	})
 
 	const duration = resource.responseEnd - resource.startTime
+	const filter = graphQlOperation
+		? { tag: 'graphql_operation', value: graphQlOperation }
+		: { tag: 'url', value: resource.name }
 
-	const dashboardWithLatency = dashboardsData?.dashboard_definitions.find(
-		(dashboard) =>
-			findDashboardWithLatencyMetric(dashboard, graphQlOperation),
+	const dashboardWithMetric = dashboardsData?.dashboard_definitions.find(
+		(dashboard) => findDashboardMetric(dashboard, 'latency', filter),
 	)
 
 	// If it's a GraphQL request, add a filter to the param.
-	const urlParams = new URLSearchParams('addToDashboard=latency')
-	if (graphQlOperation) {
-		urlParams.set('graphQlOperation', graphQlOperation)
-	}
-	console.log('::: urlParams', urlParams.toString())
+	const urlParams = new URLSearchParams(
+		`addToDashboard=latency&filterTag=${filter.tag}&filterValue=${filter.value}`,
+	)
 
-	const dashboardItems = dashboardsData?.dashboard_definitions.map((dd) => ({
-		label: (
-			<Link
-				to={`/${project_id}/dashboards/${
-					dd?.id
-				}?${urlParams.toString()}`}
-			>
-				{dd?.name}
-			</Link>
-		),
-		key: dd?.id || 0,
-	}))
+	const dashboardItems = dashboardsData?.dashboard_definitions
+		.filter((dd) => dd?.name !== 'Home')
+		.map((dd) => ({
+			label: (
+				<Link
+					to={`/${project_id}/dashboards/${
+						dd?.id
+					}?${urlParams.toString()}`}
+				>
+					{dd?.name}
+				</Link>
+			),
+			key: dd?.id || 0,
+		}))
 
 	if (!data?.metrics_timeline.length) {
 		return null
@@ -108,12 +104,12 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	return (
 		<div className={styles.requestMetrics}>
 			<div>
-				{dashboardWithLatency ? (
+				{dashboardWithMetric ? (
 					<ButtonLink
 						trackingId="viewDashboardFromNetworkRequestDetails"
-						to={`/${project_id}/dashboards/${dashboardWithLatency.id}`}
+						to={`/${project_id}/dashboards/${dashboardWithMetric.id}`}
 					>
-						View on {dashboardWithLatency.name} Dashboard
+						View on {dashboardWithMetric.name} Dashboard
 					</ButtonLink>
 				) : (
 					<Dropdown.Button overlay={<Menu items={dashboardItems} />}>
