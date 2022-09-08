@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -6,18 +5,23 @@ import {
 import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
 import { useGetNetworkHistogramQuery } from '@graph/hooks'
 import { NetworkRequestAttribute } from '@graph/schemas'
+import useDataTimeRange from '@hooks/useDataTimeRange'
+import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
-import React from 'react'
-import Skeleton from 'react-loading-skeleton'
+import classNames from 'classnames'
+import moment from 'moment'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
-import homePageStyles from '../../HomePage.module.scss'
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext'
 import styles from './TopRoutesTable.module.scss'
 
-const TopRoutesTable = () => {
+const TopRoutesTable = ({
+	setUpdatingData,
+}: {
+	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -26,60 +30,56 @@ const TopRoutesTable = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { dateRangeLength } = useHomePageFiltersContext()
+	const { timeRange } = useDataTimeRange()
 
 	const { loading, data } = useGetNetworkHistogramQuery({
 		variables: {
 			project_id: projectIdRemapped,
 			params: {
-				lookback_days: dateRangeLength,
+				lookback_days: moment
+					.duration(timeRange.lookback, 'minutes')
+					.as('days'),
 				attribute: NetworkRequestAttribute.Url,
 			},
 		},
 	})
 
-	if (loading) {
-		return <Skeleton count={1} style={{ width: '100%', height: 300 }} />
-	}
+	useEffect(() => {
+		setUpdatingData(loading)
+	}, [setUpdatingData, loading])
 
 	return (
-		<Card
-			title={
-				<div className={homePageStyles.chartHeaderWrapper}>
-					<h3 id={homePageStyles.h3}>Top Routes</h3>
-				</div>
-			}
-			noTitleBottomMargin
-			full
-		>
-			<ProgressBarTable
-				loading={loading}
-				columns={Columns}
-				data={
-					data?.network_histogram?.buckets
-						.slice()
-						.map((bucket, index) => ({
-							key: index,
-							route: bucket.category,
-							count: bucket.count,
-						})) || []
-				}
-				onClickHandler={() => {}}
-				noDataMessage={
-					!data?.network_histogram?.buckets.length && (
-						<>
-							Have you{' '}
-							<Link
-								to={`/${project_id}/settings/recording#network`}
-							>
-								configured your backend domains?
-							</Link>
-						</>
-					)
-				}
-				noDataTitle={'No route data yet 😔'}
-			/>
-		</Card>
+		<div className={classNames({ [styles.loading]: loading })}>
+			<DashboardInnerTable>
+				<ProgressBarTable
+					loading={loading}
+					columns={Columns}
+					data={
+						data?.network_histogram?.buckets
+							.slice()
+							.map((bucket, index) => ({
+								key: index,
+								route: bucket.category,
+								count: bucket.count,
+							})) || []
+					}
+					onClickHandler={() => {}}
+					noDataMessage={
+						!data?.network_histogram?.buckets.length && (
+							<>
+								Have you{' '}
+								<Link
+									to={`/${project_id}/settings/recording#network`}
+								>
+									configured your backend domains?
+								</Link>
+							</>
+						)
+					}
+					noDataTitle={'No route data yet 😔'}
+				/>
+			</DashboardInnerTable>
+		</div>
 	)
 }
 

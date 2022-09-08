@@ -1,4 +1,3 @@
-import Card from '@components/Card/Card'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -9,25 +8,30 @@ import {
 	ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
 import { useGetRageClicksForProjectQuery } from '@graph/hooks'
+import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
+import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
-import React, { useMemo, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
+import moment from 'moment'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
-import Input from '../../../../components/Input/Input'
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
-import homePageStyles from '../../HomePage.module.scss'
-import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext'
 import styles from './RageClicksForProjectTable.module.scss'
 
-const RageClicksForProjectTable = () => {
+const RageClicksForProjectTable = ({
+	filterSearchTerm,
+	setUpdatingData,
+}: {
+	filterSearchTerm: string
+	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
 	const [tableData, setTableData] = useState<
 		{
 			key: string
@@ -47,12 +51,16 @@ const RageClicksForProjectTable = () => {
 
 	const { setSearchParams, setSegmentName, setSelectedSegment } =
 		useSearchContext()
-	const { dateRangeLength } = useHomePageFiltersContext()
+	const { timeRange } = useDataTimeRange()
 	const history = useHistory()
-	const [filterSearchTerm, setFilterSearchTerm] = useState('')
 
 	const { loading } = useGetRageClicksForProjectQuery({
-		variables: { project_id, lookBackPeriod: dateRangeLength },
+		variables: {
+			project_id,
+			lookBackPeriod: moment
+				.duration(timeRange.lookback, 'minutes')
+				.as('days'),
+		},
 		onCompleted: (data) => {
 			if (data.rageClicksForProject) {
 				const transformedData = data.rageClicksForProject.map(
@@ -80,71 +88,53 @@ const RageClicksForProjectTable = () => {
 		})
 	}, [filterSearchTerm, tableData])
 
-	if (loading) {
-		return <Skeleton count={1} style={{ width: '100%', height: 300 }} />
-	}
+	useEffect(() => {
+		setUpdatingData(loading)
+	}, [setUpdatingData, loading])
 
 	return (
-		<Card
-			title={
-				<div
-					className={classNames(
-						homePageStyles.chartHeaderWrapper,
-						homePageStyles.smallMargin,
-					)}
-				>
-					<h3 id={homePageStyles.h3}>Rage Clicks</h3>
-					<div style={{ paddingRight: 'var(--size-xxLarge)' }}>
-						<Input
-							allowClear
-							placeholder="Search for user"
-							value={filterSearchTerm}
-							onChange={(event) => {
-								setFilterSearchTerm(event.target.value)
-							}}
-							size="small"
-							disabled={loading}
-						/>
-					</div>
-				</div>
-			}
-			full
-		>
-			<ProgressBarTable
-				loading={loading}
-				columns={Columns}
-				data={filteredTableData}
-				onClickHandler={(record) => {
-					setSegmentName(null)
-					setSelectedSegment(undefined)
-					setSearchParams({
-						...EmptySessionsSearchParams,
-					})
-					message.success(
-						`Showing most recent session for ${record.identifier} with rage clicks.`,
-					)
-					history.push(
-						`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
-					)
-				}}
-				noDataMessage={
-					filteredTableData.length === 0 &&
-					filterSearchTerm !== '' ? (
-						<></>
-					) : (
-						<>
-							Woohoo! There are no rage clicks for the past{' '}
-							{dateRangeLength} days!
-						</>
-					)
-				}
-				noDataTitle={
-					filteredTableData.length === 0 && filterSearchTerm !== ''
-						? `No rage clicks found from '${filterSearchTerm}' 🎉`
-						: 'No rage clicks yet! 🎉'
-				}
-			/>
-		</Card>
+		<div className={classNames({ [styles.loading]: loading })}>
+			<DashboardInnerTable>
+				<ProgressBarTable
+					loading={loading}
+					columns={Columns}
+					data={filteredTableData}
+					onClickHandler={(record) => {
+						setSegmentName(null)
+						setSelectedSegment(undefined)
+						setSearchParams({
+							...EmptySessionsSearchParams,
+						})
+						message.success(
+							`Showing most recent session for ${record.identifier} with rage clicks.`,
+						)
+						history.push(
+							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
+						)
+					}}
+					noDataMessage={
+						filteredTableData.length === 0 &&
+						filterSearchTerm !== '' ? (
+							<></>
+						) : (
+							<>
+								Woohoo! There are no rage clicks for the past{' '}
+								{moment
+									.duration(timeRange.lookback, 'minutes')
+									.humanize()}
+								{'!'}
+							</>
+						)
+					}
+					noDataTitle={
+						filteredTableData.length === 0 &&
+						filterSearchTerm !== ''
+							? `No rage clicks found from '${filterSearchTerm}' 🎉`
+							: 'No rage clicks yet! 🎉'
+					}
+				/>
+			</DashboardInnerTable>
+		</div>
 	)
 }
 

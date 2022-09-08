@@ -4,12 +4,12 @@ import moment from 'moment'
 const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 
 const defaultEndDate = moment().format(FORMAT)
-export const defaultLookback = 15
+export const defaultLookback = 24 * 60
 
 export interface DataTimeRange {
 	start_date: string
 	end_date: string
-	lookback: number
+	lookback: number // in minutes
 	absolute: boolean
 }
 

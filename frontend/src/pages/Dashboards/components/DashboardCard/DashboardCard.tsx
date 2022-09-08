@@ -14,6 +14,10 @@ import {
 	useGetMetricsTimelineLazyQuery,
 } from '@graph/hooks'
 import {
+	GetMetricsHistogramQuery,
+	GetMetricsTimelineQuery,
+} from '@graph/operations'
+import {
 	DashboardChartType,
 	DashboardMetricConfig,
 	Maybe,
@@ -24,6 +28,7 @@ import SvgAnnouncementIcon from '@icons/AnnouncementIcon'
 import SvgDragIcon from '@icons/DragIcon'
 import EditIcon from '@icons/EditIcon'
 import SvgPlusIcon from '@icons/PlusIcon'
+import TrashIcon from '@icons/TrashIcon'
 import {
 	EditMetricModal,
 	UpdateMetricFn,
@@ -64,6 +69,7 @@ interface Props {
 	metricConfig: DashboardMetricConfig
 	updateMetric: UpdateMetricFn
 	deleteMetric: DeleteMetricFn
+	editModalShown?: boolean
 }
 
 const DashboardCard = ({
@@ -71,8 +77,11 @@ const DashboardCard = ({
 	metricConfig,
 	updateMetric,
 	deleteMetric,
+	editModalShown,
 }: Props) => {
-	const [showEditModal, setShowEditModal] = useState<boolean>(false)
+	const [showEditModal, setShowEditModal] = useState<boolean>(
+		editModalShown || false,
+	)
 	const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false)
 	const [updatingData, setUpdatingData] = useState<boolean>(true)
 	const { project_id } = useParams<{ project_id: string }>()
@@ -117,12 +126,8 @@ const DashboardCard = ({
 									)}
 								</span>
 							</div>
-							<div className={styles.chartButtons}>
-								<div
-									style={{
-										marginRight: 'var(--size-xSmall)',
-									}}
-								>
+							<div className="flex justify-end gap-2 align-middle">
+								<div>
 									{metricConfig.name.length ? (
 										metricMonitorsLoading ? (
 											<Skeleton width={111} />
@@ -206,24 +211,23 @@ const DashboardCard = ({
 									)}
 								</div>
 								<Button
-									icon={
-										<EditIcon
-											style={{
-												marginRight:
-													'var(--size-xSmall)',
-											}}
-										/>
-									}
-									style={{
-										marginRight: 'var(--size-xSmall)',
+									className={'flex justify-center'}
+									style={{ width: 40, height: 32 }}
+									icon={<TrashIcon />}
+									trackingId={'DashboardCardDelete'}
+									onClick={() => {
+										setShowDeleteModal(true)
 									}}
+								/>
+								<Button
+									className={'flex justify-center'}
+									icon={<EditIcon />}
+									style={{ width: 40, height: 32 }}
 									trackingId={'DashboardCardEditMetric'}
 									onClick={() => {
 										setShowEditModal(true)
 									}}
-								>
-									Edit
-								</Button>
+								/>
 								<div
 									className={styles.draggable}
 									data-drag-handle=""
@@ -264,7 +268,6 @@ const DashboardCard = ({
 						updateMetric={updateMetric}
 						showEditModal={showEditModal}
 						setShowEditModal={setShowEditModal}
-						setShowDeleteModal={setShowDeleteModal}
 						setUpdatingData={setUpdatingData}
 					/>
 				</div>
@@ -334,7 +337,6 @@ const ChartContainer = React.memo(
 		setPoorValue,
 		updateMetric,
 		setShowEditModal,
-		setShowDeleteModal,
 		setUpdatingData,
 	}: {
 		metricIdx: number
@@ -350,7 +352,6 @@ const ChartContainer = React.memo(
 		setPoorValue?: (v: number) => void
 		updateMetric: UpdateMetricFn
 		setShowEditModal: React.Dispatch<React.SetStateAction<boolean>>
-		setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>
 		setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
 		const NUM_BUCKETS = 60
@@ -359,6 +360,10 @@ const ChartContainer = React.memo(
 		const [chartInitialLoading, setChartInitialLoading] = useState(true)
 		const { timeRange, setTimeRange } = useDataTimeRange()
 		const { lookback: lookbackMinutes } = timeRange
+		const [histogramData, setHistogramData] =
+			useState<GetMetricsHistogramQuery>()
+		const [timelineData, setTimelineData] =
+			useState<GetMetricsTimelineQuery>()
 		const [referenceArea, setReferenceArea] = useState<{
 			start: string
 			end: string
@@ -374,7 +379,8 @@ const ChartContainer = React.memo(
 			{
 				loading: timelineLoading,
 				refetch: refetchTimeline,
-				data: timelineData,
+				data: nextTimelineData,
+				called: timelineCalled,
 			},
 		] = useGetMetricsTimelineLazyQuery({
 			variables: {
@@ -391,17 +397,14 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: () => {
-				setChartInitialLoading(false)
-			},
-			onError: console.error,
 		})
 		const [
 			loadHistogram,
 			{
 				loading: histogramLoading,
 				refetch: refetchHistogram,
-				data: histogramData,
+				data: nextHistogramData,
+				called: histogramCalled,
 			},
 		] = useGetMetricsHistogramLazyQuery({
 			variables: {
@@ -419,16 +422,30 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: () => {
-				setChartInitialLoading(false)
-			},
 			onError: console.error,
 		})
 
 		useEffect(() => {
+			if (histogramCalled && !histogramLoading) {
+				setHistogramData(nextHistogramData)
+				setChartInitialLoading(false)
+			} else if (timelineCalled && !timelineLoading) {
+				setTimelineData(nextTimelineData)
+				setChartInitialLoading(false)
+			}
+		}, [
+			timelineLoading,
+			nextTimelineData,
+			timelineCalled,
+			histogramLoading,
+			nextHistogramData,
+			histogramCalled,
+		])
+
+		useEffect(() => {
 			if (chartType === DashboardChartType.Histogram) {
 				if (refetchHistogram) {
-					refetchHistogram()
+					refetchHistogram()?.catch(console.error)
 				} else {
 					loadHistogram()
 				}
@@ -437,7 +454,7 @@ const ChartContainer = React.memo(
 				chartType === DashboardChartType.TimelineBar
 			) {
 				if (refetchTimeline) {
-					refetchTimeline()
+					refetchTimeline()?.catch(console.error)
 				} else {
 					loadTimeline()
 				}
@@ -560,9 +577,6 @@ const ChartContainer = React.memo(
 					shown={showEditModal}
 					onCancel={() => {
 						setShowEditModal(false)
-					}}
-					onDelete={() => {
-						setShowDeleteModal(true)
 					}}
 					metricConfig={metricConfig}
 					metricIdx={metricIdx}
