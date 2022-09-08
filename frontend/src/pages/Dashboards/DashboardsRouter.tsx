@@ -13,7 +13,10 @@ import {
 	DEFAULT_HOME_DASHBOARD_LAYOUT,
 	HOME_DASHBOARD_CONFIGURATION,
 } from '@pages/Home/utils/HomePageUtils'
-import { WEB_VITALS_CONFIGURATION } from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
+import {
+	FRONTEND_OBSERVABILITY_CONFIGURATION,
+	WEB_VITALS_CONFIGURATION,
+} from '@pages/Player/StreamElement/Renderers/WebVitals/utils/WebVitalsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
@@ -60,8 +63,25 @@ const DashboardsRouter = () => {
 					},
 				}).catch(H.consumeError)
 			}
+			if (
+				!data?.dashboard_definitions?.some(
+					(d) => d?.name === 'Frontend Observability',
+				)
+			) {
+				upsertDashboardMutation({
+					variables: {
+						project_id,
+						metrics: Object.values(
+							FRONTEND_OBSERVABILITY_CONFIGURATION,
+						),
+						name: 'Frontend Observability',
+						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+					},
+				}).catch(H.consumeError)
+			}
 		}
-	}, [project_id, upsertDashboardMutation, loading, error, data, called])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [project_id, loading, error, called, data])
 
 	return (
 		<DashboardsContextProvider
