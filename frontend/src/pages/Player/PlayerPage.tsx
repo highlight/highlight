@@ -52,6 +52,9 @@ import useResizeAware from 'react-resize-aware'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './PlayerPage.module.scss'
+import { NumberParam, useQueryParam } from 'use-query-params'
+import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import moment from 'moment/moment'
 
 interface Props {
 	integrated: boolean
@@ -181,6 +184,12 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
+	const [tsAbs] = useQueryParam(PlayerSearchParameters.tsAbs, NumberParam)
+	const isRecentSession =
+		typeof tsAbs === 'number'
+			? moment.duration(moment().diff(tsAbs)).asHours() < 4
+			: false
+
 	return (
 		<PlayerUIContextProvider
 			value={{
@@ -265,7 +274,11 @@ const Player = ({ integrated }: Props) => {
 					{sessionViewability === SessionViewability.ERROR ? (
 						<ErrorState
 							shownWithHeader
-							message="This session does not exist or has not been made public."
+							message={
+								isRecentSession
+									? 'This session is not public or may not have been processed yet.'
+									: 'This session does not exist or has not been made public.'
+							}
 						/>
 					) : sessionViewability ===
 					  SessionViewability.EMPTY_SESSION ? (

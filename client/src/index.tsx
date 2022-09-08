@@ -368,7 +368,7 @@ export class Highlight {
 			window.Intercom('onShow', () => {
 				window.Intercom('update', {
 					highlightSessionURL:
-						this.getCurrentSessionURLWithTimestamp(),
+						this.getCurrentSessionURLWithAbsTimestamp(),
 				})
 				this.addProperties({ event: 'Intercom onShow' })
 			})
@@ -476,10 +476,8 @@ export class Highlight {
 		try {
 			// disable recording for filtered projects while allowing for reloaded sessions
 			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				if (true || Math.random() > 0.1) {
-					this._firstLoadListeners?.stopListening()
-					return
-				}
+				this._firstLoadListeners?.stopListening()
+				return
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
@@ -953,6 +951,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		const { projectID, sessionSecureID } = this.sessionData
 		const relativeTimestamp = (now - this._recordingStartTime) / 1000
 		return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?ts=${relativeTimestamp}`
+	}
+
+	getCurrentSessionURLWithAbsTimestamp() {
+		const now = new Date().getTime()
+		const { projectID, sessionSecureID } = this.sessionData
+		return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}?tsAbs=${now}`
 	}
 
 	getCurrentSessionURL() {
