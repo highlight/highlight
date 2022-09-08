@@ -377,7 +377,12 @@ const ChartContainer = React.memo(
 		const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS)
 		const [
 			loadTimeline,
-			{ loading: timelineLoading, refetch: refetchTimeline },
+			{
+				loading: timelineLoading,
+				refetch: refetchTimeline,
+				data: nextTimelineData,
+				called: timelineCalled,
+			},
 		] = useGetMetricsTimelineLazyQuery({
 			variables: {
 				project_id,
@@ -393,16 +398,15 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: (data) => {
-				if (data.metrics_timeline) {
-					setTimelineData(data)
-				}
-				setChartInitialLoading(false)
-			},
 		})
 		const [
 			loadHistogram,
-			{ loading: histogramLoading, refetch: refetchHistogram },
+			{
+				loading: histogramLoading,
+				refetch: refetchHistogram,
+				data: nextHistogramData,
+				called: histogramCalled,
+			},
 		] = useGetMetricsHistogramLazyQuery({
 			variables: {
 				project_id,
@@ -419,18 +423,29 @@ const ChartContainer = React.memo(
 				},
 			},
 			fetchPolicy: 'cache-first',
-			onCompleted: (data) => {
-				if (data.metrics_histogram) {
-					setHistogramData(data)
-				}
-				setChartInitialLoading(false)
-			},
 		})
+
+		useEffect(() => {
+			if (histogramCalled && !histogramLoading) {
+				setHistogramData(nextHistogramData)
+				setChartInitialLoading(false)
+			} else if (timelineCalled && !timelineLoading) {
+				setTimelineData(nextTimelineData)
+				setChartInitialLoading(false)
+			}
+		}, [
+			timelineLoading,
+			nextTimelineData,
+			timelineCalled,
+			histogramLoading,
+			nextHistogramData,
+			histogramCalled,
+		])
 
 		useEffect(() => {
 			if (chartType === DashboardChartType.Histogram) {
 				if (refetchHistogram) {
-					refetchHistogram().catch(console.error)
+					refetchHistogram()?.catch(console.error)
 				} else {
 					loadHistogram()
 				}
@@ -439,7 +454,7 @@ const ChartContainer = React.memo(
 				chartType === DashboardChartType.TimelineBar
 			) {
 				if (refetchTimeline) {
-					refetchTimeline()
+					refetchTimeline()?.catch(console.error)
 				} else {
 					loadTimeline()
 				}
