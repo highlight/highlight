@@ -72,7 +72,7 @@
 	},
 	"cSpell.words": ["Blocklist", "interactable"],
 	"[yaml]": {
-		"editor.defaultFormatter": "redhat.vscode-yaml"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"[sql]": {
 		"editor.defaultFormatter": "mtxr.sqltools"
