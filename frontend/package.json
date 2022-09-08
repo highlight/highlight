@@ -4,6 +4,7 @@
 	"private": true,
 	"dependencies": {
 		"@apollo/client": "3.4.17",
+		"@babel/core": "^7.19.0",
 		"@datadog/browser-logs": "^4.13.0",
 		"@highlight-run/react": "^1.1.12",
 		"@highlight-run/react-mentions": "4.4.1",
@@ -14,6 +15,7 @@
 		"@types/react-virtualized-auto-sizer": "^1.0.1",
 		"antd": "^4.17.0",
 		"apollo3-cache-persist": "^0.14.0",
+		"babel-plugin-react-wrapped-display-name": "^1.0.0",
 		"classnames": "^2.3.1",
 		"color-hash": "^2.0.1",
 		"dinero.js": "^2.0.0-alpha.8",
