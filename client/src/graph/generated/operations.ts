@@ -104,10 +104,10 @@ export type MutationInitializeSessionArgs = {
   environment: Scalars['String'];
   fingerprint: Scalars['String'];
   firstloadVersion: Scalars['String'];
+  network_recording_domains?: InputMaybe<Array<Scalars['String']>>
   organization_verbose_id: Scalars['String'];
   session_secure_id: Scalars['String'];
 };
-
 
 export type MutationMarkBackendSetupArgs = {
   session_secure_id: Scalars['String'];
@@ -238,6 +238,9 @@ export type InitializeSessionMutationVariables = Exact<{
   id: Scalars['String'];
   appVersion?: InputMaybe<Scalars['String']>;
   client_id: Scalars['String'];
+  network_recording_domains?: InputMaybe<
+    Array<Scalars['String']> | Scalars['String']
+  >
 }>;
 
 
@@ -300,19 +303,20 @@ export const AddSessionFeedbackDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($session_secure_id: String!, $organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String, $client_id: String!) {
-  initializeSession(
-    session_secure_id: $session_secure_id
-    organization_verbose_id: $organization_verbose_id
-    enable_strict_privacy: $enable_strict_privacy
-    enable_recording_network_contents: $enable_recording_network_contents
-    clientVersion: $clientVersion
-    firstloadVersion: $firstloadVersion
-    clientConfig: $clientConfig
-    environment: $environment
-    appVersion: $appVersion
-    fingerprint: $id
-    client_id: $client_id
+    mutation initializeSession($session_secure_id: String!, $organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $enable_recording_network_contents: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!, $appVersion: String,$client_id: String!, $network_recording_domains: [String!]) {
+		initializeSession(
+			session_secure_id: $session_secure_id
+			organization_verbose_id: $organization_verbose_id
+			enable_strict_privacy: $enable_strict_privacy
+			enable_recording_network_contents: $enable_recording_network_contents
+			clientVersion: $clientVersion
+			firstloadVersion: $firstloadVersion
+			clientConfig: $clientConfig
+			environment: $environment
+			appVersion: $appVersion
+			fingerprint: $id
+			client_id: $client_id
+			network_recording_domains: $network_recording_domains
   ) {
     secure_id
     project_id
