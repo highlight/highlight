@@ -50,7 +50,7 @@ export const UserDropdown = ({ border }: Props) => {
 						</div>
 						<Link
 							className={styles.dropdownMyAccount}
-							to={`/w/${a_data?.workspace_id}/my_account`}
+							to="/account"
 						>
 							My Account
 						</Link>
@@ -62,7 +62,7 @@ export const UserDropdown = ({ border }: Props) => {
 								} catch (e) {
 									console.log(e)
 								}
-								client.clearStore()
+								await client.clearStore()
 							}}
 						>
 							<span className={styles.dropdownLogoutText}>

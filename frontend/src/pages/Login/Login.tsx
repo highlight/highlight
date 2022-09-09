@@ -15,13 +15,7 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
-import React, {
-	Dispatch,
-	SetStateAction,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -245,7 +239,7 @@ const LoginForm = () => {
 	}
 
 	if (formState === LoginFormState.EnterMultiFactorCode) {
-		return <VerifyPhone resolver={resolver} setFormState={setFormState} />
+		return <VerifyPhone resolver={resolver} />
 	}
 
 	return (
@@ -440,13 +434,9 @@ const LoginForm = () => {
 
 interface VerifyPhoneProps {
 	resolver: any
-	setFormState: Dispatch<SetStateAction<LoginFormState>>
 }
 
-export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
-	resolver,
-	setFormState,
-}) => {
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string | null>()
 	const [verificationCode, setVerificationCode] = useState<string>('')
@@ -482,12 +472,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 			const multiFactorAssertion =
 				firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
 
-			const userCredential = await resolver.resolveSignIn(
-				multiFactorAssertion,
-			)
-			// TODO: Navigate to new page or something...
-			console.log(userCredential)
-			setFormState(LoginFormState.FinishedOnboarding)
+			await resolver.resolveSignIn(multiFactorAssertion)
 		} catch (e: any) {
 			setError(e.message)
 		} finally {
@@ -527,6 +512,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 								}}
 								autoFocus
 								required
+								autoComplete="off"
 							/>
 						</div>
 

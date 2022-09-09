@@ -10,6 +10,7 @@ import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
+import UserSettings from '@pages/UserSettings/UserSettings'
 import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
@@ -80,6 +81,9 @@ export const AppRouter = () => {
 					</Route>
 					<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
 						<DefaultWorkspaceRouter />
+					</Route>
+					<Route path="/account">
+						<UserSettings />
 					</Route>
 					<Route path="/">
 						{isLoggedIn ? (
