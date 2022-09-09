@@ -1573,12 +1573,15 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
 	}
 
+	return r.saveFrontOAuth(project, oauth)
+}
+
+func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
 	exp := time.Unix(oauth.ExpiresAt, 0)
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
 		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
 		return e.Wrap(err, "error updating front access token on project")
 	}
-
 	return nil
 }
 

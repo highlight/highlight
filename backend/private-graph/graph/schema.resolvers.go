@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/front"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -5156,6 +5157,20 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeFront {
+		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
+			return false, nil
+		}
+		oauth, err := front.RefreshOAuth(&front.OAuthToken{
+			AccessToken:  *project.FrontAccessToken,
+			RefreshToken: *project.FrontRefreshToken,
+			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
+		})
+		if err != nil {
+			return false, e.Wrap(err, "failed to refresh oauth")
+		}
+		if err := r.saveFrontOAuth(project, oauth); err != nil {
+			return false, e.Wrap(err, "failed to save oauth")
+		}
 		return project.FrontAccessToken != nil, nil
 	}
 
