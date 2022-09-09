@@ -6,6 +6,7 @@ import {
 } from '@graph/hooks'
 import {
 	MetricAggregator,
+	MetricTagFilter,
 	MetricTagFilterOp,
 	NetworkRequestAttribute,
 } from '@graph/schemas'
@@ -69,17 +70,14 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 	})
 
 	const duration = resource.responseEnd - resource.startTime
-	const filter = graphQlOperation
-		? { tag: 'graphql_operation', value: graphQlOperation }
-		: { tag: 'url', value: resource.name }
+	const metricConfig = {
+		name: 'latency',
+		description: `Latency (${graphQlOperation || resource.name})`,
+		filters,
+	}
 
 	const dashboardWithMetric = dashboardsData?.dashboard_definitions.find(
-		(dashboard) => findDashboardMetric(dashboard, 'latency', filter),
-	)
-
-	// If it's a GraphQL request, add a filter to the param.
-	const urlParams = new URLSearchParams(
-		`addToDashboard=latency&filterTag=${filter.tag}&filterValue=${filter.value}`,
+		(dashboard) => findDashboardMetric(dashboard, metricConfig),
 	)
 
 	const dashboardItems = dashboardsData?.dashboard_definitions
@@ -87,9 +85,10 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 		.map((dd) => ({
 			label: (
 				<Link
-					to={`/${project_id}/dashboards/${
-						dd?.id
-					}?${urlParams.toString()}`}
+					to={{
+						pathname: `/${project_id}/dashboards/${dd?.id}`,
+						state: { metricConfig },
+					}}
 				>
 					{dd?.name}
 				</Link>
