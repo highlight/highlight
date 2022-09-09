@@ -48,14 +48,15 @@ const DEFAULT_SINGLE_LAYOUT = {
 	x: 0,
 	y: 0,
 	i: '0',
-	minW: 1,
-	minH: 1,
+	minW: 2,
+	minH: 2,
 	static: false,
 }
 export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
 	lg: [
 		{
 			...DEFAULT_SINGLE_LAYOUT,
+			minW: 6,
 			w: 6,
 			h: 2,
 			x: 0,
