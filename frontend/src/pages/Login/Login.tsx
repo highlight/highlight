@@ -105,8 +105,6 @@ enum LoginFormState {
 	EnterMultiFactorCode,
 }
 
-// TODO:
-//  - Google Sign In
 const LoginForm = () => {
 	const [signUpParam] = useQueryParam('sign_up', BooleanParam)
 	const [formState, setFormState] = useState<LoginFormState>(
@@ -133,7 +131,6 @@ const LoginForm = () => {
 				.then(() => {})
 				.catch((error) => {
 					if (error.code == 'auth/multi-factor-auth-required') {
-						console.log(error.resolver)
 						setResolver(error.resolver)
 						setFormState(LoginFormState.EnterMultiFactorCode)
 					} else {
@@ -402,12 +399,27 @@ const LoginForm = () => {
 									commonStyles.secondaryButton,
 									styles.googleButton,
 								)}
-								onClick={() => {
-									auth.signInWithRedirect(
-										googleProvider,
-									).catch((e) =>
-										setFirebaseError(JSON.stringify(e)),
-									)
+								onClick={async () => {
+									await auth
+										.signInWithPopup(googleProvider)
+										.catch((error) => {
+											if (
+												error.code ===
+												'auth/multi-factor-auth-required'
+											) {
+												console.log('::: ERROR', error)
+												setResolver(error.resolver)
+												setFormState(
+													LoginFormState.EnterMultiFactorCode,
+												)
+											} else {
+												setFirebaseError(
+													JSON.stringify(
+														error.message,
+													),
+												)
+											}
+										})
 								}}
 								loading={isLoadingFirebase}
 							>

@@ -8,7 +8,7 @@ import { client } from '@util/graph'
 import { message } from 'antd'
 import firebase from 'firebase'
 import moment from 'moment'
-import React, { FormEvent, useEffect, useState } from 'react'
+import React, { FormEvent, useEffect, useRef, useState } from 'react'
 
 import styles from './Auth.module.scss'
 
@@ -98,6 +98,16 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [phoneNumber, setPhoneNumber] = useState<string>('')
 	const [verificationId, setVerificationId] = useState<string>('')
+	const recaptchaVerifier = useRef<any>()
+
+	useEffect(() => {
+		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
+			'recaptcha',
+			{
+				size: 'invisible',
+			},
+		)
+	}, [])
 
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -110,14 +120,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 
 		const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`
 
-		// TODO: Store once in useEffect hook. Causes an error without it.
-		const recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-			'recaptcha',
-			{
-				size: 'invisible',
-			},
-		)
-		await recaptchaVerifier.verify()
+		await recaptchaVerifier.current.verify()
 
 		const multiFactorSession =
 			await auth.currentUser?.multiFactor.getSession()
@@ -130,7 +133,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 					phoneNumber: formattedPhoneNumber,
 					session: multiFactorSession,
 				},
-				recaptchaVerifier,
+				recaptchaVerifier.current,
 			)
 
 			setVerificationId(vId)
