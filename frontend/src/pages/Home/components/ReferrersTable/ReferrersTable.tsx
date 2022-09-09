@@ -76,7 +76,7 @@ const ReferrersTable = ({
 				<ProgressBarTable
 					columns={Columns}
 					data={tableData}
-					loading={loading}
+					loading={false}
 					onClickHandler={(record) => {
 						setSegmentName(null)
 						setSelectedSegment(undefined)
