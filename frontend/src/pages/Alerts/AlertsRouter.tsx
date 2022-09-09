@@ -1,130 +1,130 @@
-import Breadcrumb from '@components/Breadcrumb/Breadcrumb';
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils';
-import LeadAlignLayout from '@components/layout/LeadAlignLayout';
-import { useGetAlertsPagePayloadQuery } from '@graph/hooks';
-import { GetAlertsPagePayloadQuery } from '@graph/operations';
-import AlertsPage from '@pages/Alerts/Alerts';
-import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext';
-import EditAlertsPage from '@pages/Alerts/EditAlertsPage';
-import EditMonitorPage from '@pages/Alerts/EditMonitorPage';
-import NewAlertPage from '@pages/Alerts/NewAlertPage';
-import NewMonitorPage from '@pages/Alerts/NewMonitorPage';
-import { useParams } from '@util/react-router/useParams';
-import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
+import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import LeadAlignLayout from '@components/layout/LeadAlignLayout'
+import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
+import { GetAlertsPagePayloadQuery } from '@graph/operations'
+import AlertsPage from '@pages/Alerts/Alerts'
+import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext'
+import EditAlertsPage from '@pages/Alerts/EditAlertsPage'
+import EditMonitorPage from '@pages/Alerts/EditMonitorPage'
+import NewAlertPage from '@pages/Alerts/NewAlertPage'
+import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
+import { useParams } from '@util/react-router/useParams'
+import React, { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet'
 import {
-    Redirect,
-    Route,
-    Switch,
-    useHistory,
-    useRouteMatch,
-} from 'react-router-dom';
+	Redirect,
+	Route,
+	Switch,
+	useHistory,
+	useRouteMatch,
+} from 'react-router-dom'
 
 const AlertsRouter = () => {
-    const { project_id } = useParams<{ project_id: string }>();
-    const { path } = useRouteMatch();
-    const [alertsPayload, setAlertsPayload] = useState<
-        GetAlertsPagePayloadQuery | undefined
-    >(undefined);
-    const { data, loading } = useGetAlertsPagePayloadQuery({
-        variables: { project_id },
-    });
-    const slackUrl = getSlackUrl('Organization', project_id);
-    const history = useHistory<{ errorName: string }>();
+	const { project_id } = useParams<{ project_id: string }>()
+	const { path } = useRouteMatch()
+	const [alertsPayload, setAlertsPayload] = useState<
+		GetAlertsPagePayloadQuery | undefined
+	>(undefined)
+	const { data, loading } = useGetAlertsPagePayloadQuery({
+		variables: { project_id },
+	})
+	const slackUrl = getSlackUrl('Organization', project_id)
+	const history = useHistory<{ errorName: string }>()
 
-    useEffect(() => {
-        if (!loading) {
-            setAlertsPayload(data);
-        }
-    }, [data, loading]);
+	useEffect(() => {
+		if (!loading) {
+			setAlertsPayload(data)
+		}
+	}, [data, loading])
 
-    return (
-        <AlertsContextProvider
-            value={{
-                alertsPayload,
-                setAlertsPayload,
-                loading,
-                slackUrl,
-            }}
-        >
-            <Helmet>
-                <title>Alerts</title>
-            </Helmet>
-            <LeadAlignLayout maxWidth={1200}>
-                <Breadcrumb
-                    getBreadcrumbName={(url) =>
-                        getAlertsBreadcrumbNames(history.location.state)(url)
-                    }
-                    linkRenderAs="h2"
-                />
-                <Switch>
-                    <Route exact path={path}>
-                        <AlertsPage />
-                    </Route>
-                    <Route exact path={`${path}/new`}>
-                        <NewAlertPage />
-                    </Route>
-                    <Route exact path={`${path}/monitor`}>
-                        <Redirect to={`/${project_id}/alerts`} />
-                    </Route>
-                    <Route exact path={`${path}/new/monitor`}>
-                        <NewMonitorPage
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            isSlackIntegrated={
-                                data?.is_integrated_with_slack || false
-                            }
-                            emailSuggestions={(data?.admins || []).map(
-                                (wa) => wa.admin!.email
-                            )}
-                        />
-                    </Route>
-                    <Route exact path={`${path}/monitor/:id`}>
-                        <EditMonitorPage
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            isSlackIntegrated={
-                                data?.is_integrated_with_slack || false
-                            }
-                            emailSuggestions={(data?.admins || []).map(
-                                (wa) => wa.admin!.email
-                            )}
-                        />
-                    </Route>
-                    <Route exact path={`${path}/new/:type`}>
-                        <NewAlertPage />
-                    </Route>
-                    <Route path={`${path}/:id`}>
-                        <EditAlertsPage />
-                    </Route>
-                </Switch>
-            </LeadAlignLayout>
-        </AlertsContextProvider>
-    );
-};
+	return (
+		<AlertsContextProvider
+			value={{
+				alertsPayload,
+				setAlertsPayload,
+				loading,
+				slackUrl,
+			}}
+		>
+			<Helmet>
+				<title>Alerts</title>
+			</Helmet>
+			<LeadAlignLayout maxWidth={1200}>
+				<Breadcrumb
+					getBreadcrumbName={(url) =>
+						getAlertsBreadcrumbNames(history.location.state)(url)
+					}
+					linkRenderAs="h2"
+				/>
+				<Switch>
+					<Route exact path={path}>
+						<AlertsPage />
+					</Route>
+					<Route exact path={`${path}/new`}>
+						<NewAlertPage />
+					</Route>
+					<Route exact path={`${path}/monitor`}>
+						<Redirect to={`/${project_id}/alerts`} />
+					</Route>
+					<Route exact path={`${path}/new/monitor`}>
+						<NewMonitorPage
+							channelSuggestions={
+								data?.slack_channel_suggestion || []
+							}
+							isSlackIntegrated={
+								data?.is_integrated_with_slack || false
+							}
+							emailSuggestions={(data?.admins || []).map(
+								(wa) => wa.admin!.email,
+							)}
+						/>
+					</Route>
+					<Route exact path={`${path}/monitor/:id`}>
+						<EditMonitorPage
+							channelSuggestions={
+								data?.slack_channel_suggestion || []
+							}
+							isSlackIntegrated={
+								data?.is_integrated_with_slack || false
+							}
+							emailSuggestions={(data?.admins || []).map(
+								(wa) => wa.admin!.email,
+							)}
+						/>
+					</Route>
+					<Route exact path={`${path}/new/:type`}>
+						<NewAlertPage />
+					</Route>
+					<Route path={`${path}/:id`}>
+						<EditAlertsPage />
+					</Route>
+				</Switch>
+			</LeadAlignLayout>
+		</AlertsContextProvider>
+	)
+}
 
-export default AlertsRouter;
+export default AlertsRouter
 
 const getAlertsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
-    return (url: string) => {
-        if (url.endsWith('/alerts')) {
-            return 'Alerts';
-        }
+	return (url: string) => {
+		if (url.endsWith('/alerts')) {
+			return 'Alerts'
+		}
 
-        if (url.endsWith('/monitor')) {
-            return 'Metric Monitor';
-        }
+		if (url.endsWith('/monitor')) {
+			return 'Metric Monitor'
+		}
 
-        if (url.endsWith('/alerts/new')) {
-            return 'Create';
-        }
+		if (url.endsWith('/alerts/new')) {
+			return 'Create'
+		}
 
-        if (url.includes('/alerts/new/')) {
-            return `${suffixes?.errorName}`;
-        }
+		if (url.includes('/alerts/new/')) {
+			return `${suffixes?.errorName}`
+		}
 
-        return `Edit ${suffixes?.errorName || ''}`;
-    };
-};
+		return `Edit ${suffixes?.errorName || ''}`
+	}
+}

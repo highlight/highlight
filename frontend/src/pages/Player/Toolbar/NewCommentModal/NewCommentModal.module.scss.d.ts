@@ -1,1 +1,1 @@
-export const commentModal: string;
+export const commentModal: string

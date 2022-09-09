@@ -18,6 +18,7 @@ import (
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/leonelquinteros/hubspot"
 
 	"gorm.io/gorm"
 
@@ -207,9 +208,14 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 	eventsWriter := manager.Events.Writer()
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
 
-	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{})
+	s3Events, err := w.Resolver.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
 	if err != nil {
-		return errors.Wrap(err, "error retrieving events objects")
+		return errors.Wrap(err, "error retrieving events objects from S3")
+	}
+
+	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
+	if err != nil {
+		return errors.Wrap(err, "error retrieving events objects from Redis")
 	}
 
 	for _, eventObject := range eventsObjects {
@@ -983,11 +989,13 @@ func (w *Worker) Start() {
 								SELECT ID FROM (
 									SELECT id
 									FROM sessions
-									WHERE (processed = false) AND (excluded = false)
-										AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-										AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-										AND (COALESCE(retry_count, 0) < ?)
+									WHERE (processed = false) 
+										AND (excluded = false)
+										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+										AND (retry_count < ?)
 									LIMIT ?
+									FOR UPDATE SKIP LOCKED
 								) s
 								ORDER BY id
 								FOR UPDATE SKIP LOCKED
@@ -1164,6 +1172,42 @@ func (w *Worker) RefreshMaterializedViews() {
 
 	}); err != nil {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
+	}
+
+	type AggregateSessionCount struct {
+		WorkspaceID int   `json:"workspace_id"`
+		Count       int64 `json:"count"`
+	}
+	counts := []AggregateSessionCount{}
+
+	if err := w.Resolver.DB.Raw(`
+		SELECT p.workspace_id, sum(d.count) as count
+		FROM daily_session_counts_view d
+		INNER JOIN projects p
+		ON d.project_id = p.id
+		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+	}
+
+	var g errgroup.Group
+	for _, c := range counts {
+		c := c
+		g.Go(func() error {
+			if !util.IsDevOrTestEnv() {
+				if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
+					Name:     "highlight_session_count",
+					Property: "highlight_session_count",
+					Value:    c.Count,
+				}}); err != nil {
+					return e.Wrap(err, "error updating highlight session count in hubspot")
+				}
+			}
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -1475,19 +1519,16 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
-		// sleep between 1m and 60m to ensure lots of worker containers do not cause
-		// db contention running this same query. can cause significant load when there are many sessions
-		time.Sleep(1*time.Minute + time.Duration(59*float64(time.Minute.Nanoseconds())*rand.Float64()))
+		time.Sleep(1 * time.Minute)
 		var count int64
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE
-				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (COALESCE(retry_count, 0) < ?)
-				AND NOT processed
-				AND NOT excluded;
+			WHERE (processed = false) 
+				AND (excluded = false)
+				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND (retry_count < ?)
 			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
 			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue

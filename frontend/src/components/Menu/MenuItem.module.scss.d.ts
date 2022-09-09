@@ -1,1 +1,1 @@
-export const menuItem: string;
+export const menuItem: string

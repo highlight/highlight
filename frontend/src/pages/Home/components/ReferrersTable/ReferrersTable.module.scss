@@ -1,7 +1,11 @@
 .hostContainer {
-    span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.loading {
+	filter: blur(2px);
 }

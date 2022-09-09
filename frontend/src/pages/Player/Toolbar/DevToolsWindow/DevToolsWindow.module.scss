@@ -1,165 +1,165 @@
 .devToolsWrapper {
-    --player-toolbar-height: 45px;
-    background-color: var(--color-primary-background);
-    border-left: 1px solid var(--color-gray-300);
-    border-right: 1px solid var(--color-gray-300);
-    border-top: 1px solid var(--color-gray-300);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    position: relative;
-    width: 100%;
+	--player-toolbar-height: 45px;
+	background-color: var(--color-primary-background);
+	border-left: 1px solid var(--color-gray-300);
+	border-right: 1px solid var(--color-gray-300);
+	border-top: 1px solid var(--color-gray-300);
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	position: relative;
+	width: 100%;
 }
 
 .emptySection {
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    padding-bottom: 30px;
-    width: 100%;
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	padding-bottom: 30px;
+	width: 100%;
 }
 
 .optionsWrapper {
-    display: flex;
-    font-family: var(--header-font-family) !important;
-    height: 100%;
-    overflow: hidden;
-    padding-left: var(--size-large);
+	display: flex;
+	font-family: var(--header-font-family) !important;
+	height: 100%;
+	overflow: hidden;
+	padding-left: var(--size-large);
 }
 
 .emptyWrapper {
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    padding-top: 80px;
-    width: 100%;
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	padding-top: 80px;
+	width: 100%;
 }
 
 .skeletonWrapper {
-    height: 100%;
-    padding: 25px;
-    padding-top: 10px;
-    width: 100%;
+	height: 100%;
+	padding: 25px;
+	padding-top: 10px;
+	width: 100%;
 }
 
 .toggleWrapper {
-    cursor: pointer;
-    display: flex;
-    flex-direction: row;
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
 }
 
 .devToolsType {
-    align-items: center;
-    border: 1px solid var(--color-purple);
-    cursor: pointer;
-    display: flex;
-    font-size: 11px;
-    height: 30px;
-    justify-content: center;
-    transition: 0.2s;
-    width: 85px;
+	align-items: center;
+	border: 1px solid var(--color-purple);
+	cursor: pointer;
+	display: flex;
+	font-size: 11px;
+	height: 30px;
+	justify-content: center;
+	transition: 0.2s;
+	width: 85px;
 }
 
 .option {
-    align-items: center;
-    border-bottom: 3px solid transparent;
-    color: var(--color-gray-500);
-    cursor: pointer;
-    display: flex;
-    font-size: 14px;
-    font-weight: 300;
-    margin: 0 15px;
-    padding-bottom: var(--size-xSmall);
-    padding-top: var(--size-small);
-    position: relative;
-    transition: 0.2s;
+	align-items: center;
+	border-bottom: 3px solid transparent;
+	color: var(--color-gray-500);
+	cursor: pointer;
+	display: flex;
+	font-size: 14px;
+	font-weight: 300;
+	margin: 0 15px;
+	padding-bottom: var(--size-xSmall);
+	padding-top: var(--size-small);
+	position: relative;
+	transition: 0.2s;
 
-    &::after {
-        background: var(--color-gray-400);
-        border-radius: 5px;
-        bottom: -3px;
-        content: '';
-        height: 3px;
-        opacity: 0;
-        position: absolute;
+	&::after {
+		background: var(--color-gray-400);
+		border-radius: 5px;
+		bottom: -3px;
+		content: '';
+		height: 3px;
+		opacity: 0;
+		position: absolute;
 
-        transition: opacity 0.2s ease-in-out;
-        width: 100%;
-    }
+		transition: opacity 0.2s ease-in-out;
+		width: 100%;
+	}
 
-    &:hover {
-        &::after {
-            opacity: 1;
-        }
-    }
+	&:hover {
+		&::after {
+			opacity: 1;
+		}
+	}
 
-    &.selected {
-        border-bottom: 3px solid var(--text-primary);
-        color: var(--text-primary);
-        font-weight: 400;
+	&.selected {
+		border-bottom: 3px solid var(--text-primary);
+		color: var(--text-primary);
+		font-weight: 400;
 
-        &:hover {
-            &::after {
-                background: var(--text-primary);
-                opacity: 1;
-            }
-        }
-    }
+		&:hover {
+			&::after {
+				background: var(--text-primary);
+				opacity: 1;
+			}
+		}
+	}
 }
 
 .topBar {
-    background-color: var(--color-primary-background);
-    border-bottom: 1px solid var(--color-gray-300);
-    height: 45px;
-    overflow-y: auto;
+	background-color: var(--color-primary-background);
+	border-bottom: 1px solid var(--color-gray-300);
+	height: 45px;
+	overflow-y: auto;
 }
 
 .resizeContainer {
-    height: 34vh;
-    max-height: 80vh;
-    min-height: 45px;
-    overflow: hidden;
-    z-index: 10;
+	height: 34vh;
+	max-height: 80vh;
+	min-height: 45px;
+	overflow: hidden;
+	z-index: 10;
 }
 
 .resizeHandle {
-    display: none;
+	display: none;
 }
 
 .resizeBorder {
-    background: var(--color-gray-300);
-    // Fitts' Law, we're making the hit target larger than what it looks visually to make it easier to hit.
-    border-radius: var(--size-medium);
-    cursor: ns-resize;
-    height: var(--size-xxSmall);
-    margin: 0 auto;
-    padding: 3px 0;
-    position: relative;
-    transform: translateY(18px);
-    width: 42px;
-    z-index: 98;
+	background: var(--color-gray-300);
+	// Fitts' Law, we're making the hit target larger than what it looks visually to make it easier to hit.
+	border-radius: var(--size-medium);
+	cursor: ns-resize;
+	height: var(--size-xxSmall);
+	margin: 0 auto;
+	padding: 3px 0;
+	position: relative;
+	transform: translateY(18px);
+	width: 42px;
+	z-index: 98;
 }
 
 .closeStyle {
-    color: var(--color-gray-500);
-    cursor: pointer;
-    height: 14px;
-    transform: translateY(-16px);
-    width: 14px;
+	color: var(--color-gray-500);
+	cursor: pointer;
+	height: 14px;
+	transform: translateY(-16px);
+	width: 14px;
 }
 
 .tabs {
-    :global(.ant-tabs-nav) {
-        align-items: flex-end;
-        height: var(--size-xxxLarge);
-    }
+	:global(.ant-tabs-nav) {
+		align-items: flex-end;
+		height: var(--size-xxxLarge);
+	}
 
-    :global(.ant-tabs-nav-wrap) {
-        align-self: flex-end !important;
-        height: 46px;
-    }
+	:global(.ant-tabs-nav-wrap) {
+		align-self: flex-end !important;
+		height: 46px;
+	}
 }

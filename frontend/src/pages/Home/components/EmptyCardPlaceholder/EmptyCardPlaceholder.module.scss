@@ -1,11 +1,11 @@
 .emptyCardPlaceholder {
-    cursor: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+	cursor: auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .graphicContainer {
-    margin-bottom: var(--size-medium);
-    margin-top: var(--size-xSmall);
+	margin-bottom: var(--size-xLarge);
+	margin-top: var(--size-xLarge);
 }

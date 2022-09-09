@@ -1,20 +1,36 @@
 {
-    "name": "highlight",
-    "version": "1.0.0",
-    "main": "index.js",
-    "repository": "git@github.com:highlight-run/highlight.git",
-    "author": "Highlight",
-    "license": "MIT",
-    "dependencies": {
-        "concurrently": "^6.5.1"
-    },
-    "scripts": {
-        "frontend:start": "concurrently -n frontend:build,frontend:gql,frontend:styles,client:build,client:gql,client:lint,firstload:build 'cd frontend && yarn start' 'cd frontend && yarn gql' 'cd frontend && yarn styles' 'cd client && yarn dev' 'cd client && yarn gql' 'cd client && yarn lint-watch' 'cd firstload && yarn dev'",
-        "frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
-        "generate": "hygen",
-        "g": "hygen"
-    },
-    "devDependencies": {
-        "hygen": "^6.2.7"
-    }
+	"name": "highlight",
+	"version": "1.0.0",
+	"main": "index.js",
+	"repository": "git@github.com:highlight-run/highlight.git",
+	"author": "Highlight",
+	"license": "MIT",
+	"dependencies": {
+		"concurrently": "^6.5.1"
+	},
+	"scripts": {
+		"prepare": "husky install",
+		"frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
+		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
+		"dev": "run-p --print-label --race dev:*",
+		"dev:backend": "cd backend && make start",
+		"dev:frontend": "cd frontend && yarn dev",
+		"dev:client": "cd client && yarn dev",
+		"dev:client-gql": "cd client && yarn gql",
+		"dev:firstload": "cd firstload && yarn dev",
+		"dev:redis": "redis-server",
+		"generate": "hygen",
+		"g": "hygen",
+		"format": "prettier --write --ignore-unknown . \"!./data\"",
+		"format-check": "prettier --check --ignore-unknown . \"!./data\""
+	},
+	"devDependencies": {
+		"@types/node": "^18.7.14",
+		"chalk": "^5.0.1",
+		"husky": "^8.0.1",
+		"hygen": "^6.2.7",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^2.7.1",
+		"pretty-quick": "^3.1.3"
+	}
 }

@@ -1,2 +1,2 @@
-export const header: string;
-export const workspaceTabs: string;
+export const header: string
+export const workspaceTabs: string

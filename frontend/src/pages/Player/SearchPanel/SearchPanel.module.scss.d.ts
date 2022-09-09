@@ -1,2 +1,2 @@
-export const bannerShown: string;
-export const searchPanel: string;
+export const bannerShown: string
+export const searchPanel: string

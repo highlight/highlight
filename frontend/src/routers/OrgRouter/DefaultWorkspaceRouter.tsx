@@ -1,43 +1,43 @@
-import { useAuthContext } from '@authentication/AuthContext';
+import { useAuthContext } from '@authentication/AuthContext'
 import {
-    AppLoadingState,
-    useAppLoadingContext,
-} from '@context/AppLoadingContext';
-import { useGetWorkspacesQuery } from '@graph/hooks';
-import LoginForm from '@pages/Login/Login';
-import { useParams } from '@util/react-router/useParams';
-import React, { useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
+import { useGetWorkspacesQuery } from '@graph/hooks'
+import LoginForm from '@pages/Login/Login'
+import { useParams } from '@util/react-router/useParams'
+import React, { useEffect } from 'react'
+import { Redirect } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
-    const { isLoggedIn } = useAuthContext();
+	const { isLoggedIn } = useAuthContext()
 
-    const { page_id } = useParams<{
-        page_id: string;
-    }>();
-    const { setLoadingState } = useAppLoadingContext();
+	const { page_id } = useParams<{
+		page_id: string
+	}>()
+	const { setLoadingState } = useAppLoadingContext()
 
-    const { data, loading } = useGetWorkspacesQuery({
-        skip: !isLoggedIn,
-    });
+	const { data, loading } = useGetWorkspacesQuery({
+		skip: !isLoggedIn,
+	})
 
-    useEffect(() => {
-        if (isLoggedIn) {
-            setLoadingState(AppLoadingState.LOADED);
-        }
-    }, [isLoggedIn, setLoadingState]);
+	useEffect(() => {
+		if (isLoggedIn) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [isLoggedIn, setLoadingState])
 
-    if (loading || !data?.workspaces?.length) {
-        return null;
-    }
+	if (loading || !data?.workspaces?.length) {
+		return null
+	}
 
-    if (!isLoggedIn) {
-        return null;
-    }
+	if (!isLoggedIn) {
+		return null
+	}
 
-    const firstWorkspace = data.workspaces[0];
-    if (firstWorkspace?.id.length) {
-        return <Redirect to={`/w/${firstWorkspace.id}/${page_id}`} />;
-    }
-    return <LoginForm />;
-};
+	const firstWorkspace = data.workspaces[0]
+	if (firstWorkspace?.id.length) {
+		return <Redirect to={`/w/${firstWorkspace.id}/${page_id}`} />
+	}
+	return <LoginForm />
+}

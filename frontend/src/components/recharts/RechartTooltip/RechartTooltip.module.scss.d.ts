@@ -1,1 +1,1 @@
-export const tooltip: string;
+export const tooltip: string

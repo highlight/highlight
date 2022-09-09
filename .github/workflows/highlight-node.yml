@@ -19,8 +19,6 @@ jobs:
               run: cd highlight-node && yarn install
             - name: Install other dependencies
               run: cd client && yarn install
-            - name: Runs linting
-              run: cd highlight-node && yarn lint
             # - name: Run tests
             #   run: cd highlight-node && yarn test
             - name: Build Bundle

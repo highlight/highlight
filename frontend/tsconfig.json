@@ -1,33 +1,35 @@
 {
-  "extends": "./tsconfig.paths.json",
-  "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "es2019",
-      "dom.iterable",
-      "esnext"
-    ],
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "downlevelIteration": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "allowJs": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/@types"
-    ],
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": [
-    "./src"
-  ]
+	"compilerOptions": {
+		"target": "es5",
+		"lib": ["dom", "es2019", "dom.iterable", "esnext"],
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"downlevelIteration": true,
+		"noEmit": true,
+		"jsx": "react-jsx",
+		"allowJs": true,
+		"typeRoots": ["./node_modules/@types", "./src/@types"],
+		"noFallthroughCasesInSwitch": true,
+		"baseUrl": "src",
+		"paths": {
+			"@components/*": ["./components/*"],
+			"@icons/*": ["./static/*"],
+			"@util/*": ["./util/*"],
+			"@hooks/*": ["./hooks/*"],
+			"@pages/*": ["./pages/*"],
+			"@routers/*": ["./routers/*"],
+			"@graph/*": ["./graph/generated/*"],
+			"@authentication/*": ["./authentication/*"],
+			"@context/*": ["./context/*"],
+			"@lottie/*": ["./lottie/*"]
+		}
+	},
+	"exclude": ["**/node_modules/**", "**/build/**"]
 }

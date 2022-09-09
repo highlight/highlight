@@ -1,1 +1,1 @@
-export const skeleton: string;
+export const skeleton: string

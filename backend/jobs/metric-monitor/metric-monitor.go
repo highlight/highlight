@@ -3,13 +3,14 @@ package metric_monitor
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/openlyinc/pointy"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -18,6 +19,10 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+)
+
+const (
+	sigFigs = 4
 )
 
 func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client) {
@@ -33,7 +38,7 @@ func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Cl
 
 func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	var metricMonitors []*model.MetricMonitor
-	if err := DB.Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
+	if err := DB.Preload("Filters").Model(&model.MetricMonitor{}).Where("disabled = ?", false).Find(&metricMonitors).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("Error querying for metric monitors")
 		}
@@ -52,6 +57,14 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 		if metricMonitor.PeriodMinutes != nil && *metricMonitor.PeriodMinutes > 0 {
 			resMins = *metricMonitor.PeriodMinutes
 		}
+		var filters []*modelInputs.MetricTagFilterInput
+		for _, f := range metricMonitor.Filters {
+			filters = append(filters, &modelInputs.MetricTagFilterInput{
+				Tag:   f.Tag,
+				Op:    f.Op,
+				Value: f.Value,
+			})
+		}
 		payload, err := graph.GetMetricTimeline(context.Background(), TDB, metricMonitor.ProjectID, metricMonitor.MetricToMonitor, modelInputs.DashboardParamsInput{
 			DateRange: &modelInputs.DateRangeInput{
 				StartDate: &start,
@@ -60,6 +73,7 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			ResolutionMinutes: pointy.Int(resMins),
 			Aggregator:        &metricMonitor.Aggregator,
 			Units:             metricMonitor.Units,
+			Filters:           filters,
 		})
 		if err != nil {
 			log.Error(err)
@@ -86,16 +100,28 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 				return
 			}
 
-			// This is to remove trailing 0
-			// Example: 0.00100 should only display 0.001.
-			valueWithNoTrailingZeroes := strconv.FormatFloat(value, 'f', -1, 64)
-			thresholdWithNoTrailingZeros := strconv.FormatFloat(metricMonitor.Threshold, 'f', -1, 64)
+			valueRepr := strconv.FormatFloat(value, 'g', sigFigs, 64)
+			thresholdRepr := strconv.FormatFloat(metricMonitor.Threshold, 'g', sigFigs, 64)
+			diffRepr := strconv.FormatFloat(value-metricMonitor.Threshold, 'g', sigFigs, 64)
 			unitsStr := ""
 			if metricMonitor.Units != nil {
 				unitsStr = *metricMonitor.Units
 			}
 
-			message := fmt.Sprintf("🚨 *%s* Fired!\n*%s* is currently `%f%s` over the threshold.\n(Value: `%s%s`, Threshold: `%s%s`)", metricMonitor.Name, metricMonitor.MetricToMonitor, value-metricMonitor.Threshold, unitsStr, valueWithNoTrailingZeroes, unitsStr, thresholdWithNoTrailingZeros, unitsStr)
+			message := fmt.Sprintf(
+				"🚨 *%s* fired!\n*%s* is currently *%s %s* over the threshold.\n"+
+					"_Value_: %s %s | _Threshold_: %s %s",
+				metricMonitor.Name,
+				metricMonitor.MetricToMonitor,
+				diffRepr,
+				unitsStr,
+				valueRepr,
+				unitsStr,
+				thresholdRepr,
+				unitsStr,
+			)
+
+			fmt.Println(message)
 
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
@@ -110,7 +136,20 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			monitorURL := fmt.Sprintf("%s/%d/alerts/monitor/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
 
 			for _, email := range emailsToNotify {
-				message = fmt.Sprintf("<b>%s</b> is currently <b>%f%s</b> over the threshold.<br>(Value: <b>%s%s</b>, Threshold: <b>%s%s</b>)<br><br><a href=\"%s\">View Monitor</a>", metricMonitor.Name, value-metricMonitor.Threshold, unitsStr, valueWithNoTrailingZeroes, unitsStr, thresholdWithNoTrailingZeros, unitsStr, monitorURL)
+				message = fmt.Sprintf(
+					"<b>%s</b> is currently <b>%s %s</b> over the threshold.<br>"+
+						"<em>Value</em>: %s <em>%s</em> | <em>Threshold: %s <em>%s</em>"+
+						"<br><br>"+
+						"<a href=\"%s\">View Monitor</a>",
+					metricMonitor.Name,
+					diffRepr,
+					unitsStr,
+					valueRepr,
+					unitsStr,
+					thresholdRepr,
+					unitsStr,
+					monitorURL,
+				)
 				if err := Email.SendAlertEmail(MailClient, *email, message, metricMonitor.MetricToMonitor, metricMonitor.Name); err != nil {
 					log.Error(err)
 

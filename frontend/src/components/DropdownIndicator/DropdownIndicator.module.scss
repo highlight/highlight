@@ -1,36 +1,36 @@
 .loadingIcon {
-    color: var(--color-gray-600);
+	color: var(--color-gray-600);
 }
 
 .dropdownIndicator {
-    left: 0;
-    position: absolute;
-    top: var(--size-xSmall);
-    z-index: 999999999999;
+	left: 0;
+	position: absolute;
+	top: var(--size-xSmall);
+	z-index: 999999999999;
 
-    &.spinner {
-        top: 6px;
-    }
+	&.spinner {
+		top: 6px;
+	}
 }
 
 .searchIcon {
-    color: var(--color-gray-600);
-    height: var(--size-medium);
-    margin-left: var(--size-small);
-    width: var(--size-medium);
+	color: var(--color-gray-600);
+	height: var(--size-medium);
+	margin-left: var(--size-small);
+	width: var(--size-medium);
 }
 
 .loadingIconContainer {
-    --size: var(--size-medium);
-    height: var(--size) !important;
-    margin-left: var(--size-small);
-    top: 3px !important;
-    width: var(--size) !important;
+	--size: var(--size-medium);
+	height: var(--size) !important;
+	margin-left: var(--size-small);
+	top: 3px !important;
+	width: var(--size) !important;
 
-    :global(.ant-spin),
-    :global(svg),
-    .loadingIcon {
-        height: var(--size);
-        width: var(--size);
-    }
+	:global(.ant-spin),
+	:global(svg),
+	.loadingIcon {
+		height: var(--size);
+		width: var(--size);
+	}
 }

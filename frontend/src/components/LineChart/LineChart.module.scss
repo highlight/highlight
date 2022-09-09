@@ -1,79 +1,80 @@
 .legendContainer {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    margin-top: var(--size-xSmall);
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin-top: var(--size-xSmall);
 }
 
 .legendItem {
-    align-items: center;
-    color: var(--color-gray-500) !important;
-    column-gap: var(--size-xxSmall);
-    display: flex;
-    font-size: 12px;
-    padding-bottom: 0 !important;
-    padding-top: 0 !important;
+	align-items: center;
+	color: var(--color-gray-500) !important;
+	column-gap: var(--size-xxSmall);
+	display: flex;
+	font-size: 12px;
+	padding-bottom: 0 !important;
+	padding-top: 0 !important;
 }
 
 .legendValue {
-    color: var(--color-gray-500) !important;
+	color: var(--color-gray-500) !important;
 
-    &.notShowing {
-        text-decoration: line-through;
-    }
+	&.notShowing {
+		text-decoration: line-through;
+	}
 }
 
 .legendIcon {
-    border-radius: 2px;
-    flex-shrink: 0;
-    height: var(--size-small);
-    width: var(--size-small);
+	border-radius: 2px;
+	flex-shrink: 0;
+	height: var(--size-small);
+	width: var(--size-small);
 
-    &.notShowing {
-        filter: grayscale(0.5);
-    }
+	&.notShowing {
+		filter: grayscale(0.5);
+	}
 }
 
 .tooltipEntry {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0 !important;
+	align-items: center;
+	column-gap: var(--size-xxSmall);
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 0 !important;
 }
 
 .referenceLineValue {
-    color: var(--color-gray-500);
+	color: var(--color-gray-500);
 }
 
 .tooltipRow {
-    align-items: center;
-    column-gap: var(--size-xSmall);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
+	align-items: center;
+	column-gap: var(--size-xSmall);
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	margin-bottom: var(--size-medium);
+	width: 100%;
 }
 
 .tooltipGrid {
-    display: grid;
-    grid-column-gap: var(--size-xSmall);
-    grid-template-columns: 1fr 10px 64px 10px;
-    width: 100%;
+	display: grid;
+	grid-column-gap: var(--size-xSmall);
+	grid-template-columns: 1fr 10px 64px 10px;
+	width: 100%;
 }
 
 .scoreIcon {
-    --size: var(--size-small);
-    align-items: center;
-    color: var(--color-gray-500);
-    display: flex;
-    flex-shrink: 0;
-    height: var(--size);
-    width: var(--size);
+	--size: var(--size-small);
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	flex-shrink: 0;
+	height: var(--size);
+	width: var(--size);
 }
 
 .tooltipValue {
-    color: var(--text-primary);
-    font-size: 12px;
-    line-height: initial;
+	color: var(--text-primary);
+	font-size: 12px;
+	line-height: initial;
 }

@@ -1,194 +1,178 @@
 .card {
-    height: 100%;
+	height: 100%;
 
-    :global(.recharts-cartesian-axis-tick) {
-        user-select: none;
-    }
+	:global(.recharts-cartesian-axis-tick) {
+		user-select: none;
+	}
 }
 
 .componentCard {
-    height: 100%;
-    width: 100%;
+	height: 100%;
+	width: 100%;
 }
 
 .noDataContainer {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin: 0 auto;
-    max-width: 300px;
-    padding-top: var(--size-medium);
-    text-align: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 0 auto;
+	max-width: 300px;
+	padding-top: var(--size-medium);
+	text-align: center;
 }
 
 .draggable {
-    align-items: center;
-    color: var(--color-gray-500);
-    cursor: move;
-    display: flex;
-    justify-content: center;
-}
-
-.draggableOverlay {
-    position: absolute;
-    right: var(--size-medium);
-    top: 18px;
+	align-items: center;
+	color: var(--color-gray-500);
+	cursor: move;
+	display: flex;
+	justify-content: center;
 }
 
 .overlayButton {
-    position: absolute;
-    right: var(--size-xLarge);
-    top: var(--size-medium);
+	position: absolute;
+	right: var(--size-xLarge);
+	top: var(--size-medium);
 }
 
 .button {
-    justify-content: center;
+	justify-content: center;
 }
 
 .infoTooltip {
-    margin-left: var(--size-xxSmall);
+	margin-left: var(--size-xxSmall);
 }
 
 .actionsContainer {
-    column-gap: var(--size-large);
-    display: flex;
-    margin-top: var(--size-xLarge);
+	column-gap: var(--size-large);
+	display: flex;
+	margin-top: var(--size-xLarge);
 
-    > * {
-        width: 50%;
-    }
+	> * {
+		width: 50%;
+	}
 
-    .button {
-        justify-content: center;
-    }
+	.button {
+		justify-content: center;
+	}
 }
 
 .description {
-    color: var(--color-gray-500) !important;
-    margin-top: 0 !important;
-}
-
-.chartButtons {
-    align-items: center;
-    display: flex;
-    justify-content: flex-end;
-    width: 300px;
-
-    button {
-        height: var(--size-xLarge);
-        padding: var(--size-small);
-    }
-
-    ul li {
-        height: var(--size-xLarge);
-        padding: var(--size-small);
-    }
+	color: var(--color-gray-500) !important;
+	margin-top: 0 !important;
 }
 
 .monitorItem {
-    align-items: center;
-    border: 1px solid var(--color-gray-400);
-    border-radius: var(--border-radius);
-    column-gap: var(--size-xxSmall) !important;
-    display: flex;
-    height: var(--size-xLarge);
-    margin: 0 !important;
-    padding: 10px 8px 10px 14px !important;
+	align-items: center;
+	border: 1px solid var(--color-gray-400);
+	border-radius: var(--border-radius);
+	column-gap: var(--size-xxSmall) !important;
+	display: flex;
+	height: var(--size-xLarge);
+	margin: 0 !important;
+	padding: 10px 8px 10px 14px !important;
 }
 
 .monitorName {
-    display: inline-block;
-    line-height: 20px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 70px;
+	display: inline-block;
+	line-height: 20px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 70px;
 }
 
 .submitRow {
-    display: flex;
-    justify-content: flex-end;
-    padding-top: var(--size-small);
-    width: 100%;
+	display: flex;
+	justify-content: flex-end;
+	padding-top: var(--size-small);
+	width: 100%;
 }
 
 .minMaxRow {
-    display: grid;
-    grid-gap: var(--size-medium);
-    grid-template-columns: 80px 1fr 150px 80px 1fr 150px;
+	display: grid;
+	grid-gap: var(--size-medium);
+	grid-template-columns: 80px 1fr 150px 80px 1fr 150px;
 }
 
 .formLabel {
-    margin-bottom: 0;
-    margin-top: 4px;
+	margin-bottom: 0;
+	margin-top: 4px;
 }
 
 .removeTagFilterButton {
-    height: 48px;
-    padding: 0 16px;
+	height: 48px;
+	padding: 0 16px;
 }
 
 .chartInner {
-    padding: 0 10px 16px 16px;
+	padding: 0 10px 16px 16px;
 }
 
 .chartWrapper {
-    padding: 10px;
+	padding: 10px;
 }
 
 .createNewAlertRow {
-    align-items: center;
-    display: flex;
-    justify-content: center;
+	align-items: center;
+	display: flex;
+	justify-content: center;
 }
 
 .mainHeaderContent {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 10px 10px 20px;
-    width: 100%;
+	align-items: flex-start;
+	display: flex;
+	justify-content: space-between;
+	min-height: 52px;
+	padding: 10px 10px 10px 20px;
+	width: 100%;
 }
 
 .cardHeader {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 
-    > button {
-        margin-bottom: var(--size-medium);
-    }
+	> button {
+		margin-bottom: var(--size-medium);
+	}
 }
 
 .headerContainer {
-    overflow: hidden;
+	overflow: hidden;
 }
 
 .header {
-    color: var(--color-text-primary);
-    display: block;
-    font-size: 16px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	color: var(--color-text-primary);
+	display: block;
+	font-size: 16px;
+	font-weight: 500;
+	overflow: hidden;
+	padding-top: 2px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .headerActions {
-    align-items: center;
-    display: flex;
-    justify-content: center;
+	align-items: center;
+	display: flex;
+	justify-content: center;
 }
 
 .subheader {
-    color: var(--color-gray-700);
-    display: block;
-    font-size: 12px;
-    font-weight: 400;
+	color: var(--color-gray-700);
+	display: block;
+	font-size: 12px;
+	font-weight: 400;
 }
 
 .blurChart {
-    filter: blur(2px);
+	filter: blur(2px);
+}
+
+.fixedSize {
+	min-height: 180px;
+	min-width: 600px;
 }

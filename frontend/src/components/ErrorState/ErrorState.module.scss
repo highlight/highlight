@@ -1,35 +1,35 @@
 .errorWrapper {
-    align-items: center;
-    background: var(--color-purple);
-    display: flex;
-    height: 100vh;
-    justify-content: center;
-    position: absolute;
-    width: 100vw;
+	align-items: center;
+	background: var(--color-purple);
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	position: absolute;
+	width: 100vw;
 
-    &.shownWithHeader {
-        background: var(--color-primary-background);
-        height: calc(100vh - var(--header-height));
-    }
+	&.shownWithHeader {
+		background: var(--color-primary-background);
+		height: calc(100vh - var(--header-height));
+	}
 }
 
 .errorBody {
-    max-width: 800px;
-    word-wrap: break-word;
+	max-width: 800px;
+	word-wrap: break-word;
 }
 
 .buttonGroup {
-    display: flex;
-    margin-top: 25px;
+	display: flex;
+	margin-top: 25px;
 }
 
 .expandButton {
-    color: var(--color-purple);
-    cursor: pointer;
+	color: var(--color-purple);
+	cursor: pointer;
 }
 
 .loggedInButtonGroup {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
 }

@@ -1,2 +1,2 @@
-export const antSelectSelector: string;
-export const select: string;
+export const antSelectSelector: string
+export const select: string
