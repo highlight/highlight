@@ -104,7 +104,6 @@ const Columns: ColumnsType<any> = [
 		title: 'Referrers',
 		dataIndex: 'host',
 		key: 'host',
-		width: '40%',
 		render: (host) => (
 			<div className={styles.hostContainer}>
 				<span>{host}</span>

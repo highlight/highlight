@@ -160,7 +160,6 @@ const Columns: ColumnsType<any> = [
 		title: 'User',
 		dataIndex: 'identifier',
 		key: 'identifier',
-		width: '40%',
 		render: (user, record) => {
 			return (
 				<div className={styles.hostContainer}>
