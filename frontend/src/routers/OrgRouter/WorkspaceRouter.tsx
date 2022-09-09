@@ -7,6 +7,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
 import LoginForm from '@pages/Login/Login'
+import UserSettings from '@pages/UserSettings/UserSettings'
 import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter'
@@ -111,7 +112,7 @@ export const WorkspaceRouter = () => {
 							title={'Enter this Workspace?'}
 							message={`
                         Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin. 
+                        Request access and we'll shoot an email to your workspace admin.
                         Alternatively, feel free to make an account!
                         `}
 							shownWithHeader
@@ -128,6 +129,9 @@ export const WorkspaceRouter = () => {
 								</Route>
 								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
 									<WorkspaceTabs />
+								</Route>
+								<Route path="/w/:workspace_id/my_account">
+									<UserSettings />
 								</Route>
 								<Route path="/w/:workspace_id(\d+)">
 									{isLoggedIn ? (

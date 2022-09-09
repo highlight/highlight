@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"prepare": "husky install",
-		"frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
+		"frontend:install": "yarn && concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race dev:*",
 		"dev:backend": "cd backend && make start",

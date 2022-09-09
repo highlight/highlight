@@ -257,6 +257,7 @@ const AuthenticationRoleRouter = () => {
 	useEffect(() => {
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			(user) => {
+				debugger
 				if (user) {
 					if (!called) {
 						getAdminQuery({
@@ -306,6 +307,7 @@ const AuthenticationRoleRouter = () => {
 			)
 		}
 	}, [authRole, setLoadingState])
+	debugger
 
 	return (
 		<AuthContextProvider

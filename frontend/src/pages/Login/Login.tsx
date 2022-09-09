@@ -15,7 +15,13 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
-import React, { useEffect, useRef, useState } from 'react'
+import React, {
+	Dispatch,
+	SetStateAction,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -234,11 +240,12 @@ const LoginForm = () => {
 			/>
 		)
 	} else if (isLoggedIn && formState === LoginFormState.FinishedOnboarding) {
+		// TODO: Figure out why we aren't getting here :thinking:
 		return <AuthAdminRouter />
 	}
 
 	if (formState === LoginFormState.EnterMultiFactorCode) {
-		return <VerifyPhone resolver={resolver} />
+		return <VerifyPhone resolver={resolver} setFormState={setFormState} />
 	}
 
 	return (
@@ -433,9 +440,13 @@ const LoginForm = () => {
 
 interface VerifyPhoneProps {
 	resolver: any
+	setFormState: Dispatch<SetStateAction<LoginFormState>>
 }
 
-export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
+	resolver,
+	setFormState,
+}) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string | null>()
 	const [verificationCode, setVerificationCode] = useState<string>('')
@@ -455,27 +466,28 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 		setLoading(true)
 		setError(null)
 
-		const verificationId = await phoneAuthProvider.verifyPhoneNumber(
-			{
-				multiFactorHint: resolver.hints[0],
-				session: resolver.session,
-			},
-			recaptchaVerifier.current,
-		)
-
-		const cred = firebase.auth.PhoneAuthProvider.credential(
-			verificationId,
-			verificationCode,
-		)
-		const multiFactorAssertion =
-			firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
-
 		try {
+			const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+				{
+					multiFactorHint: resolver.hints[0],
+					session: resolver.session,
+				},
+				recaptchaVerifier.current,
+			)
+
+			const cred = firebase.auth.PhoneAuthProvider.credential(
+				verificationId,
+				verificationCode,
+			)
+			const multiFactorAssertion =
+				firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
+
 			const userCredential = await resolver.resolveSignIn(
 				multiFactorAssertion,
 			)
 			// TODO: Navigate to new page or something...
 			console.log(userCredential)
+			setFormState(LoginFormState.FinishedOnboarding)
 		} catch (e: any) {
 			setError(e.message)
 		} finally {
@@ -484,30 +496,55 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 	}
 
 	return (
-		<>
-			<Space direction="vertical" size="medium">
-				{error && (
-					<Alert
-						shouldAlwaysShow
-						closable={false}
-						trackingId="2faVerifyError"
-						type="error"
-						description={error}
-					/>
-				)}
-				<p>Enter the code sent to your phone to verify your device.</p>
-				<Input
-					value={verificationCode}
-					onChange={(e) => setVerificationCode(e.target.value)}
-					placeholder="Verification code"
-				/>
-				<Button trackingId="setup2fa" onClick={verify}>
-					Submit
-				</Button>
-			</Space>
+		<Landing>
+			<div className={styles.loginPage}>
+				<div className={styles.loginFormWrapper}>
+					<div className={styles.loginTitleWrapper}>
+						<h2 className={styles.loginTitle}>Verify via SMS</h2>
+						<p className={styles.loginSubTitle}>
+							Enter the code we sent to your phone.
+						</p>
+					</div>
 
+					<Space direction="vertical" size="medium">
+						{error && (
+							<Alert
+								shouldAlwaysShow
+								closable={false}
+								trackingId="2faVerifyError"
+								type="error"
+								description={error}
+							/>
+						)}
+
+						<div className={styles.inputContainer}>
+							<Input
+								placeholder="Verification code"
+								name="verification_code"
+								value={verificationCode}
+								onChange={(e) => {
+									setVerificationCode(e.target.value)
+								}}
+								autoFocus
+								required
+							/>
+						</div>
+
+						<Button
+							className={commonStyles.submitButton}
+							type="primary"
+							htmlType="submit"
+							loading={loading}
+							trackingId="setup2fa"
+							onClick={verify}
+						>
+							Submit
+						</Button>
+					</Space>
+				</div>
+			</div>
 			<div id="recaptcha"></div>
-		</>
+		</Landing>
 	)
 }
 

@@ -1,6 +1,7 @@
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 
 import { useGetAdminQuery } from '../../../graph/generated/hooks'
 import { auth } from '../../../util/auth'
@@ -47,6 +48,12 @@ export const UserDropdown = ({ border }: Props) => {
 								</p>
 							</div>
 						</div>
+						<Link
+							className={styles.dropdownMyAccount}
+							to={`/w/${a_data?.workspace_id}/my_account`}
+						>
+							My Account
+						</Link>
 						<div
 							className={styles.dropdownLogout}
 							onClick={async () => {
