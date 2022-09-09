@@ -21,7 +21,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		project_id: string
 	}>()
 	const { removeFrontIntegrationFromProject, isFrontIntegratedWithProject } =
-		useFrontIntegration({ repoll: !integrationEnabled })
+		useFrontIntegration()
 
 	useEffect(() => {
 		if (isFrontIntegratedWithProject && !integrationEnabled) {

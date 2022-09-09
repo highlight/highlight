@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/front"
 	"gorm.io/gorm/clause"
-	"io"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -1568,55 +1568,14 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 }
 
 func (r *Resolver) AddFrontToProject(project *model.Project, code string) error {
-	var (
-		ok                bool
-		FrontClientID     string
-		FrontClientSecret string
-	)
-
-	if FrontClientID, ok = os.LookupEnv("FRONT_CLIENT_ID"); !ok || FrontClientID == "" {
-		return e.New("FRONT_CLIENT_ID not set")
-	}
-	if FrontClientSecret, ok = os.LookupEnv("FRONT_CLIENT_SECRET"); !ok || FrontClientSecret == "" {
-		return e.New("FRONT_CLIENT_SECRET not set")
-	}
-
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/front"
-	body := strings.NewReader(fmt.Sprintf("code=%s;redirect_uri=%s;grant_type=authorization_code", code, redirect))
-	req, err := http.NewRequest("POST", "https://app.frontapp.com/oauth/token", body)
+	oauth, err := front.OAuth(code, nil)
 	if err != nil {
-		return e.Wrap(err, "failed to create front oauth http request")
-	}
-	req.SetBasicAuth(FrontClientID, FrontClientSecret)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return e.Wrap(err, "failed to send front oauth http request")
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Errorf("failed to close front response body: %s", err)
-		}
-	}(resp.Body)
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return e.Wrap(err, "failed to read front oauth http request")
+		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
 	}
 
-	var response struct {
-		AccessToken  string    `json:"access_token"`
-		RefreshToken string    `json:"refresh_token"`
-		ExpiresAt    time.Time `json:"expires_at"`
-	}
-	if err := json.Unmarshal(data, &response); err != nil {
-		return e.Wrap(err, "failed to json unmarshal front oauth http request")
-	}
-
-	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &response.AccessToken,
-		FrontRefreshToken: &response.RefreshToken, FrontTokenExpiresAt: &response.ExpiresAt}).Error; err != nil {
+	exp := time.Unix(oauth.ExpiresAt, 0)
+	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
+		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
 		return e.Wrap(err, "error updating front access token on project")
 	}
 

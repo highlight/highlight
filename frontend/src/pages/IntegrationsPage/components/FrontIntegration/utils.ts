@@ -6,25 +6,14 @@ import {
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
-const REPOLL_INTERVAL = 2000
-
-export const useFrontIntegration = (props?: { repoll?: boolean }) => {
-	const { repoll } = props || {}
+export const useFrontIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { data, loading, stopPolling, startPolling } =
-		useGetWorkspaceIsIntegratedWithFrontQuery({
-			variables: { project_id: project_id },
-		})
-
-	useEffect(() => {
-		if (repoll) {
-			startPolling(REPOLL_INTERVAL)
-		} else {
-			stopPolling()
-		}
-	}, [repoll, startPolling, stopPolling])
+	const { data, loading } = useGetWorkspaceIsIntegratedWithFrontQuery({
+		variables: { project_id: project_id },
+		skip: !project_id,
+	})
 
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
