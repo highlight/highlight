@@ -19,6 +19,7 @@ export const pillButtonTextVisible: string
 export const pillLive: string
 export const pillLoading: string
 export const pillStatic: string
+export const resize: string
 export const rightControllerSection: string
 export const rightControllerText: string
 export const section: string

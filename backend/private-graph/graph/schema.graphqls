@@ -136,6 +136,16 @@ enum SubscriptionInterval {
 	Annual
 }
 
+enum OpenSearchCalendarInterval {
+	minute
+	hour
+	day
+	week
+	month
+	quarter
+	year
+}
+
 type EnhancedUserDetailsResult {
 	id: ID
 	name: String
@@ -436,6 +446,17 @@ input MetricTagFilterInput {
 	value: String!
 }
 
+input DateHistogramBucketSize {
+	calendar_interval: OpenSearchCalendarInterval!
+	multiple: Int!
+}
+
+input DateHistogramOptions {
+	bucket_size: DateHistogramBucketSize!
+	time_zone: String!
+	bounds: DateRangeInput!
+}
+
 enum NetworkRequestAttribute {
 	method
 	initiator_type
@@ -572,6 +593,18 @@ input SanitizedAdminInput {
 	id: ID!
 	name: String
 	email: String!
+}
+
+type SessionsHistogram {
+	bucket_times: [Timestamp!]!
+	sessions_without_errors: [Int64!]!
+	sessions_with_errors: [Int64!]!
+	total_sessions: [Int64!]!
+}
+
+type ErrorsHistogram {
+	bucket_times: [Timestamp!]!
+	error_objects: [Int64!]!
 }
 
 type SessionResults {
@@ -885,6 +918,7 @@ type MetricMonitor {
 	threshold: Float!
 	units: String
 	disabled: Boolean!
+	filters: [MetricTagFilter!]
 }
 
 type EventChunk {
@@ -915,6 +949,11 @@ type Query {
 		query: String!
 		page: Int
 	): ErrorResults!
+	errors_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
@@ -972,6 +1011,11 @@ type Query {
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
+	sessions_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): SessionsHistogram!
 	field_types(project_id: ID!): [Field!]!
 	fields_opensearch(
 		project_id: ID!
@@ -1254,6 +1298,7 @@ type Mutation {
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
 		emails: [String]!
+		filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	updateMetricMonitor(
 		metric_monitor_id: ID!
@@ -1267,6 +1312,7 @@ type Mutation {
 		slack_channels: [SanitizedSlackChannelInput]
 		emails: [String]
 		disabled: Boolean
+		filters: [MetricTagFilterInput!]
 	): MetricMonitor
 	createErrorAlert(
 		project_id: ID!

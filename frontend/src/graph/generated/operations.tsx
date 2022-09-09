@@ -661,6 +661,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
 	aggregator: Types.MetricAggregator
 	threshold: Types.Scalars['Float']
+	filters?: Types.Maybe<
+		Array<Types.MetricTagFilterInput> | Types.MetricTagFilterInput
+	>
 	units?: Types.Maybe<Types.Scalars['String']>
 	periodMinutes?: Types.Maybe<Types.Scalars['Int']>
 	metric_to_monitor: Types.Scalars['String']
@@ -705,6 +708,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 	name?: Types.Maybe<Types.Scalars['String']>
 	aggregator?: Types.Maybe<Types.MetricAggregator>
 	threshold?: Types.Maybe<Types.Scalars['Float']>
+	filters?: Types.Maybe<
+		Array<Types.MetricTagFilterInput> | Types.MetricTagFilterInput
+	>
 	units?: Types.Maybe<Types.Scalars['String']>
 	periodMinutes?: Types.Maybe<Types.Scalars['Int']>
 	metric_to_monitor?: Types.Maybe<Types.Scalars['String']>
@@ -2336,6 +2342,22 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 		}
 }
 
+export type GetSessionsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	histogram_options: Types.DateHistogramOptions
+}>
+
+export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
+	sessions_histogram: { __typename?: 'SessionsHistogram' } & Pick<
+		Types.SessionsHistogram,
+		| 'bucket_times'
+		| 'sessions_without_errors'
+		| 'sessions_with_errors'
+		| 'total_sessions'
+	>
+}
+
 export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
@@ -2375,6 +2397,19 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					}
 			>
 		}
+}
+
+export type GetErrorsHistogramQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	histogram_options: Types.DateHistogramOptions
+}>
+
+export type GetErrorsHistogramQuery = { __typename?: 'Query' } & {
+	errors_histogram: { __typename?: 'ErrorsHistogram' } & Pick<
+		Types.ErrorsHistogram,
+		'bucket_times' | 'error_objects'
+	>
 }
 
 export type GetProjectsQueryVariables = Types.Exact<{ [key: string]: never }>
@@ -3726,6 +3761,14 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							>
 						>
 					>
+					filters?: Types.Maybe<
+						Array<
+							{ __typename?: 'MetricTagFilter' } & Pick<
+								Types.MetricTagFilter,
+								'tag' | 'op' | 'value'
+							>
+						>
+					>
 				}
 		>
 	>
@@ -3932,7 +3975,9 @@ export const namedOperations = {
 		GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
 		GetErrorFieldsOpensearch: 'GetErrorFieldsOpensearch' as const,
 		GetSessionsOpenSearch: 'GetSessionsOpenSearch' as const,
+		GetSessionsHistogram: 'GetSessionsHistogram' as const,
 		GetErrorGroupsOpenSearch: 'GetErrorGroupsOpenSearch' as const,
+		GetErrorsHistogram: 'GetErrorsHistogram' as const,
 		GetProjects: 'GetProjects' as const,
 		GetWorkspace: 'GetWorkspace' as const,
 		GetWorkspaces: 'GetWorkspaces' as const,

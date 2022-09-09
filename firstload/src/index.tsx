@@ -98,6 +98,7 @@ export const H: HighlightPublicInterface = {
 				enableSegmentIntegration: options?.enableSegmentIntegration,
 				enableStrictPrivacy: options?.enableStrictPrivacy || false,
 				enableCanvasRecording: options?.enableCanvasRecording,
+				enablePerformanceRecording: options?.enablePerformanceRecording,
 				samplingStrategy: options?.samplingStrategy,
 				inlineImages: options?.inlineImages || false,
 				inlineStylesheet: options?.inlineStylesheet || false,

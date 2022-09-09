@@ -1174,26 +1174,6 @@ const JsAppInstructions = ({
 							text={`yarn add highlight.run @highlight-run/react`}
 							language="shell"
 						/>
-						{platform === PlatformType.NextJs ? (
-							<>
-								<p>
-									On Next.JS, you'll need to add our
-									precompiled styles to ensure components look
-									correct.
-								</p>
-								<p>
-									Add{' '}
-									<CodeBlock
-										text={`import '@highlight-run/react/dist/highlight.css'`}
-										language="javascript"
-									/>{' '}
-									to your main component's file and ensure
-									your
-									<code>@highlight-run/react</code>
-									version is <code>{'>='}1.1.4</code>
-								</p>
-							</>
-						) : null}
 					</>
 				) : (
 					<>

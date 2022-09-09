@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"encoding/gob"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -12,7 +13,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
+	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -50,6 +54,7 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
+	RawEvents                  PayloadType = "raw-events"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
@@ -151,6 +156,94 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
+}
+
+func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []redis.Z) error {
+	buf := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buf)
+	if err := encoder.Encode(events); err != nil {
+		return errors.Wrap(err, "error encoding gob")
+	}
+
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
+
+	options := s3.PutObjectInput{
+		Bucket: &S3SessionsStagingBucketName,
+		Key:    &key,
+		Body:   bytes.NewReader(buf.Bytes()),
+	}
+	_, err := s.S3ClientEast2.PutObject(ctx, &options)
+	if err != nil {
+		return errors.Wrap(err, "error uploading raw events to S3")
+	}
+
+	return nil
+}
+
+func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) (map[int]string, error) {
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
+
+	options := s3.ListObjectsV2Input{
+		Bucket: &S3SessionsStagingBucketName,
+		Prefix: &prefix,
+	}
+
+	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &options)
+	if err != nil {
+		return nil, errors.Wrap(err, "error listing objects in S3")
+	}
+
+	var g errgroup.Group
+	results := make([][]redis.Z, len(output.Contents))
+	for idx, object := range output.Contents {
+		idx := idx
+		object := object
+		g.Go(func() error {
+			var result []redis.Z
+			output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{
+				Bucket: &S3SessionsStagingBucketName,
+				Key:    object.Key,
+			})
+			if err != nil {
+				return errors.Wrap(err, "error retrieving object from S3")
+			}
+
+			buf := new(bytes.Buffer)
+			_, err = buf.ReadFrom(output.Body)
+			if err != nil {
+				return errors.Wrap(err, "error reading from s3 buffer")
+			}
+
+			decoder := gob.NewDecoder(buf)
+			if err := decoder.Decode(&result); err != nil {
+				return errors.Wrap(err, "error decoding gob")
+			}
+
+			results[idx] = result
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, errors.Wrap(err, "error in task retrieving object from S3")
+	}
+
+	eventRows := map[int]string{}
+	for _, zRange := range results {
+		for _, z := range zRange {
+			intScore := int(z.Score)
+			// Beacon events have decimals, skip them
+			if z.Score != float64(intScore) {
+				continue
+			}
+
+			eventRows[intScore] = z.Member.(string)
+		}
+	}
+
+	return eventRows, nil
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {

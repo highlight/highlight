@@ -26,7 +26,7 @@ import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
 
-const TIME_RANGE_FIELD: SelectOption = {
+export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
 	label: 'created_at',
 	value: 'custom_created_at',
@@ -216,7 +216,7 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 	}
 	if (params.referrer) {
 		rules.push(
-			deserializeGroup('session_referrer', 'is', [params.referrer]),
+			deserializeGroup('session_referrer', 'contains', [params.referrer]),
 		)
 	}
 	if (params.identified) {

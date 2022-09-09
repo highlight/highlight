@@ -2,9 +2,13 @@ import { useAuthContext } from '@authentication/AuthContext'
 import Button from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
+import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { BaseSearchContext } from '@context/BaseSearchContext'
+import {
+	BackendSearchQuery,
+	BaseSearchContext,
+} from '@context/BaseSearchContext'
 import { useGetAppVersionsQuery } from '@graph/hooks'
 import { GetFieldTypesQuery } from '@graph/operations'
 import { Exact, Field } from '@graph/schemas'
@@ -14,7 +18,6 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { useParams } from '@util/react-router/useParams'
-import { GetHistogramBucketSize } from '@util/time'
 import { Checkbox } from 'antd'
 import classNames from 'classnames'
 import _ from 'lodash'
@@ -51,6 +54,10 @@ interface MultiselectOption {
 type OnChangeInput = SelectOption | MultiselectOption | undefined
 type OnChange = (val: OnChangeInput) => void
 type LoadOptions = (input: string, callback: any) => Promise<any>
+type OpenSearchQuery = {
+	query: any
+	childQuery?: any
+}
 
 interface RuleSettings {
 	onChangeKey: OnChange
@@ -242,13 +249,37 @@ const getDateLabel = (value: string): string => {
 	const split = value.split('_')
 	const start = split[0]
 	const end = split[1]
-	const startStr = moment(start).format('MMM D')
-	const endStr = moment(end).format('MMM D')
+	const startStr = moment(start).format('MMM D h:mm a')
+	const endStr = moment(end).format('MMM D h:mm a')
 	return `${startStr} to ${endStr}`
+}
+
+export const updateQueriedTimeRange = (
+	query: string,
+	timeRangeField: SelectOption,
+	serializedValue: string,
+): string => {
+	const parsedQuery = JSON.parse(query) as QueryBuilderState
+	parsedQuery.rules = parsedQuery.rules.map((rule) => {
+		if (rule[0] === timeRangeField.value) {
+			rule[2] = serializedValue
+		}
+		return rule
+	})
+	return JSON.stringify(parsedQuery)
 }
 
 export const isAbsoluteTimeRange = (value?: string): boolean => {
 	return !!value && value.includes('_')
+}
+
+export const serializeAbsoluteTimeRange = (
+	start: Date | undefined,
+	end: Date | undefined,
+) => {
+	const startIso = moment(start).toISOString()
+	const endIso = moment(end).toISOString()
+	return `${startIso}_${endIso}`
 }
 
 export const getAbsoluteStartTime = (value?: string): string | null => {
@@ -588,9 +619,7 @@ const PopoutContent = ({
 							: undefined
 					}
 					onChange={(start, end) => {
-						const startIso = moment(start).toISOString()
-						const endIso = moment(end).toISOString()
-						const value = `${startIso}_${endIso}`
+						const value = serializeAbsoluteTimeRange(start, end)
 
 						onChange({
 							kind: 'multi',
@@ -1374,16 +1403,18 @@ const QueryBuilder = ({
 	)
 
 	const parseGroup = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): any => {
+		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
 			const errorObjectRules = rules.filter(
 				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
 			)
 			if (errorObjectRules.length === 0) {
 				return {
-					bool: {
-						[isAnd ? 'must' : 'should']: rules.map((rule) =>
-							parseRule(rule),
-						),
+					query: {
+						bool: {
+							[isAnd ? 'must' : 'should']: rules.map((rule) =>
+								parseRule(rule),
+							),
+						},
 					},
 				}
 			} else {
@@ -1391,30 +1422,60 @@ const QueryBuilder = ({
 					(r) => getType(r.field!.value) !== ERROR_FIELD_TYPE,
 				)
 				return {
-					bool: {
-						[isAnd ? 'must' : 'should']: [
-							{
-								bool: {
-									[isAnd ? 'must' : 'should']:
-										standardRules.map((rule) =>
-											parseRule(rule),
-										),
+					query: {
+						bool: {
+							[isAnd ? 'must' : 'should']: [
+								{
+									bool: {
+										[isAnd ? 'must' : 'should']:
+											standardRules.map((rule) =>
+												parseRule(rule),
+											),
+									},
 								},
-							},
-							{
-								has_child: {
-									type: 'child',
-									query: {
-										bool: {
-											[isAnd ? 'must' : 'should']:
-												errorObjectRules.map((rule) =>
-													parseRule(rule),
-												),
+								{
+									has_child: {
+										type: 'child',
+										query: {
+											bool: {
+												[isAnd ? 'must' : 'should']:
+													errorObjectRules.map(
+														(rule) =>
+															parseRule(rule),
+													),
+											},
 										},
 									},
 								},
-							},
-						],
+							],
+						},
+					},
+					childQuery: {
+						bool: {
+							[isAnd ? 'must' : 'should']: [
+								{
+									has_parent: {
+										parent_type: 'parent',
+										query: {
+											bool: {
+												[isAnd ? 'must' : 'should']:
+													standardRules.map((rule) =>
+														parseRule(rule),
+													),
+											},
+										},
+									},
+								},
+								{
+									bool: {
+										[isAnd ? 'must' : 'should']:
+											errorObjectRules.map((rule) =>
+												parseRule(rule),
+											),
+									},
+								},
+							],
+						},
 					},
 				}
 			}
@@ -1445,6 +1506,7 @@ const QueryBuilder = ({
 		},
 	}
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
+	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
 	const timeRangeRule = useMemo<RuleProps | undefined>(
 		() => rules.find((rule) => rule.field?.value === timeRangeField.value),
@@ -1466,19 +1528,28 @@ const QueryBuilder = ({
 		})
 		setCurrentStep(1)
 	}
-	const addRule = (rule: RuleProps) => {
-		setRules([...rules, rule])
-		setCurrentRule(undefined)
-	}
-	const removeRule = (targetRule: RuleProps) =>
-		setRules(rules.filter((rule) => rule !== targetRule))
-	const updateRule = (targetRule: RuleProps, newProps: any) => {
-		setRules(
-			rules.map((rule) =>
-				rule !== targetRule ? rule : { ...rule, ...newProps },
-			),
-		)
-	}
+	const addRule = useCallback(
+		(rule: RuleProps) => {
+			setRules([...rules, rule])
+			setCurrentRule(undefined)
+		},
+		[rules],
+	)
+	const removeRule = useCallback(
+		(targetRule: RuleProps) =>
+			setRules(rules.filter((rule) => rule !== targetRule)),
+		[rules],
+	)
+	const updateRule = useCallback(
+		(targetRule: RuleProps, newProps: any) => {
+			setRules(
+				rules.map((rule) =>
+					rule !== targetRule ? rule : { ...rule, ...newProps },
+				),
+			)
+		},
+		[rules],
+	)
 
 	const [isAnd, toggleIsAnd] = useToggle(true)
 
@@ -1510,8 +1581,8 @@ const QueryBuilder = ({
 		return results
 	}
 
-	const setSearchQuery = useCallback(
-		(searchQuery: string) => {
+	const updateSerializedQuery = useCallback(
+		(isAnd: boolean, rules: RuleProps[]) => {
 			if (!timeRangeRule) return
 			const startDate = moment(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
@@ -1519,17 +1590,22 @@ const QueryBuilder = ({
 			const endDate = moment(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
-			setBackendSearchQuery({
-				searchQuery,
+			const searchQuery = parseGroup(isAnd, rules)
+			serializedQuery.current = {
+				searchQuery: JSON.stringify(searchQuery.query),
+				childSearchQuery: searchQuery.childQuery
+					? JSON.stringify(searchQuery.childQuery)
+					: undefined,
 				startDate,
 				endDate,
 				histogramBucketSize: GetHistogramBucketSize(
 					moment.duration(endDate.diff(startDate)),
 				),
-			})
+			}
 		},
-		[setBackendSearchQuery, timeRangeRule],
+		[parseGroup, timeRangeRule],
 	)
+
 	const getOperatorOptionsCallback = (
 		options: FieldOptions | undefined,
 		val: OnChangeInput,
@@ -1637,6 +1713,14 @@ const QueryBuilder = ({
 	}, [searchParams.query, toggleIsAnd, qbState])
 
 	useEffect(() => {
+		if (rules.every(isComplete)) {
+			// For relative time ranges, the serialized query will be different every time you serialize,
+			// so serialize once and only once every time the rules list changes
+			updateSerializedQuery(isAnd, rules)
+		}
+	}, [isAnd, rules, updateSerializedQuery])
+
+	useEffect(() => {
 		// Only update the external state if not readonly
 		if (readonly) {
 			return
@@ -1659,7 +1743,6 @@ const QueryBuilder = ({
 			return
 		}
 
-		const query = parseGroup(isAnd, rules)
 		const newState = JSON.stringify({
 			isAnd,
 			rules: serializeRules(rules),
@@ -1674,17 +1757,19 @@ const QueryBuilder = ({
 			}))
 			return
 		}
-		setSearchQuery(JSON.stringify(query))
+
+		if (serializedQuery.current) {
+			setBackendSearchQuery(serializedQuery.current)
+		}
 	}, [
 		getQueryFromParams,
 		isAnd,
-		parseGroup,
 		qbState,
 		rules,
 		searchParams,
 		setSearchParams,
-		setSearchQuery,
 		readonly,
+		setBackendSearchQuery,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
@@ -1704,13 +1789,36 @@ const QueryBuilder = ({
 		<div className={styles.builderContainer}>
 			{timeRangeRule && (
 				<div className={styles.rulesContainer}>
-					<div className={styles.ruleContainer}>
+					<div
+						className={classNames(
+							styles.ruleContainer,
+							styles.timeRangeContainer,
+						)}
+					>
 						<TimeRangeFilter
 							rule={timeRangeRule}
 							onChangeValue={(val) =>
 								updateRule(timeRangeRule, { val: val })
 							}
 						/>
+						{!readonly &&
+							timeRangeRule.val?.options[0].value !==
+								defaultTimeRangeRule.val?.options[0].value && (
+								<Button
+									trackingId="resetTimeRangeRule"
+									className={classNames(
+										styles.ruleItem,
+										styles.removeRule,
+									)}
+									onClick={() =>
+										updateRule(timeRangeRule, {
+											val: defaultTimeRangeRule.val,
+										})
+									}
+								>
+									<SvgXIcon />
+								</Button>
+							)}
 					</div>
 					{!readonly &&
 						!isAbsoluteTimeRange(
@@ -1722,8 +1830,11 @@ const QueryBuilder = ({
 									styles.syncButton,
 								)}
 								onClick={() => {
-									const query = parseGroup(isAnd, rules)
-									setSearchQuery(JSON.stringify(query))
+									// Re-generate the absolute times used in the serialized query
+									updateSerializedQuery(isAnd, rules)
+									setBackendSearchQuery(
+										serializedQuery.current,
+									)
 								}}
 								disabled={syncButtonDisabled}
 								trackingId={'RefreshSearchResults'}

@@ -81,6 +81,14 @@ export declare type NetworkRecordingOptions = {
 	 * }
 	 */
 	bodyKeysToRecord?: string[]
+	/**
+	 * Record frontend network request metrics that are sent to
+	 * the following list of domains. A domain substring match is used to
+	 * determine if a network request matches one of the following values.
+	 * @example destinationDomains: ['backend.example.com']
+	 * // if your frontend makes requests to `backend.example.com` that you would like to record
+	 */
+	destinationDomains?: string[]
 }
 
 export declare type IntegrationOptions = {

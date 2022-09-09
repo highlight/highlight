@@ -608,6 +608,23 @@ query GetSessionsOpenSearch(
 	}
 }
 
+query GetSessionsHistogram(
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
+) {
+	sessions_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		sessions_without_errors
+		sessions_with_errors
+		total_sessions
+	}
+}
+
 query GetErrorGroupsOpenSearch(
 	$project_id: ID!
 	$count: Int!
@@ -639,6 +656,21 @@ query GetErrorGroupsOpenSearch(
 			error_frequency
 		}
 		totalCount
+	}
+}
+
+query GetErrorsHistogram(
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
+) {
+	errors_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		error_objects
 	}
 }
 
@@ -1458,6 +1490,11 @@ query GetAlertsPagePayload($project_id: ID!) {
 		metric_to_monitor
 		last_admin_to_edit_id
 		threshold
+		filters {
+			tag
+			op
+			value
+		}
 		units
 		disabled
 	}

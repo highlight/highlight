@@ -71,3 +71,37 @@ export const WEB_VITALS_CONFIGURATION: {
 		aggregator: MetricAggregator.P50,
 	},
 }
+
+export const FRONTEND_OBSERVABILITY_CONFIGURATION: {
+	[key in string]: DashboardMetricConfig
+} = {
+	latency: {
+		max_good_value: 1,
+		name: 'latency',
+		description: 'Network Request Latency',
+		max_needs_improvement_value: 2.5,
+		poor_value: 0,
+		units: 'ms',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P90,
+	},
+	requestSize: {
+		name: 'body_size',
+		description: 'Network Request Size',
+		units: 'kb',
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.P50,
+	},
+	responseSize: {
+		name: 'response_size',
+		description: 'Network Response Size',
+		units: 'kb',
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.P50,
+	},
+	statusCode: {
+		name: 'status',
+		description: 'HTTP Status Code',
+		chart_type: DashboardChartType.Histogram,
+	},
+}

@@ -1,4 +1,3 @@
-import '@highlight-run/react/dist/highlight.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import 'antd/dist/antd.css'
 import './index.scss'
@@ -44,10 +43,9 @@ import { QueryParamProvider } from 'use-query-params'
 
 import packageJson from '../package.json'
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
-import * as serviceWorker from './serviceWorker'
 
-const dev = process.env.NODE_ENV === 'development'
-let commitSHA = process.env.REACT_APP_COMMIT_SHA || ''
+const dev = import.meta.env.DEV
+let commitSHA = import.meta.env.REACT_APP_COMMIT_SHA || ''
 if (commitSHA.length > 8) {
 	commitSHA = commitSHA.substring(0, 8)
 }
@@ -59,6 +57,11 @@ const options: HighlightOptions = {
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
+		destinationDomains: [
+			'pri.highlight.run',
+			'pub.highlight.run',
+			'localhost:8082',
+		],
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
@@ -97,16 +100,16 @@ if (dev) {
 	}-localhost`
 	window.document.title = `⚙️ ${window.document.title}`
 	if (favicon) {
-		favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`
+		favicon.href = `/favicon-localhost.ico`
 	}
 } else if (window.location.href.includes('onrender')) {
 	if (favicon) {
-		favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`
+		favicon.href = `/favicon-pr.ico`
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
 }
-H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options)
+H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
 
@@ -182,7 +185,7 @@ const AuthenticationRoleRouter = () => {
 		project_id: string
 	}>()
 	const [
-		getWorkspaceAdminsQuery,
+		getAdminWorkspaceRoleQuery,
 		{
 			error: adminWError,
 			data: adminWData,
@@ -191,7 +194,7 @@ const AuthenticationRoleRouter = () => {
 		},
 	] = useGetAdminRoleLazyQuery()
 	const [
-		getWorkspaceAdminsByProjectIdQuery,
+		getAdminProjectRoleQuery,
 		{
 			error: adminPError,
 			data: adminPData,
@@ -226,14 +229,14 @@ const AuthenticationRoleRouter = () => {
 		called: boolean,
 		refetch: any
 	if (workspace_id) {
-		getAdminQuery = getWorkspaceAdminsQuery
+		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
 	} else if (project_id) {
-		getAdminQuery = getWorkspaceAdminsByProjectIdQuery
+		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
@@ -311,7 +314,7 @@ const AuthenticationRoleRouter = () => {
 				admin: isLoggedIn(authRole)
 					? adminData ?? undefined
 					: undefined,
-				workspaceRole: adminRole,
+				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: isLoggedIn(authRole),
 				isHighlightAdmin: isHighlightAdmin(authRole),
@@ -373,8 +376,3 @@ ReactDOM.render(
 	</React.StrictMode>,
 	document.getElementById('root'),
 )
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister()

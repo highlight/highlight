@@ -33,6 +33,8 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
 	yAxisLabel: string
 	hideLegend?: boolean
 	referenceAreaProps?: ReferenceAreaProps
+	onClickHandler?: () => void
+	barSize?: number
 }
 
 const BarChartV2 = ({
@@ -52,6 +54,8 @@ const BarChartV2 = ({
 	hideLegend = false,
 	referenceAreaProps,
 	xAxisProps,
+	onClickHandler,
+	barSize,
 }: Props) => {
 	yAxisKeys =
 		yAxisKeys ||
@@ -62,7 +66,7 @@ const BarChartV2 = ({
 						keyName !== '__typename',
 			  )
 			: [])
-	const { min, max } = findDataDomain(data, 'range_end')
+	const { min, max } = findDataDomain(data, xAxisDataKeyName)
 	const gridColor = 'none'
 	const labelColor = 'var(--color-gray-500)'
 	const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(yAxisKeys)
@@ -90,13 +94,14 @@ const BarChartV2 = ({
 					width={500}
 					height={300}
 					data={data}
+					onClick={onClickHandler}
 					margin={{
 						top: 42,
 						right: 4,
 						left: -18,
 						bottom: 0,
 					}}
-					barSize={7}
+					barSize={barSize || 7}
 					barGap={0}
 					barCategoryGap={0}
 				>

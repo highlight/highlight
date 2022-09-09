@@ -1,39 +1,29 @@
-import Card from '@components/Card/Card'
+import BarChartV2 from '@components/BarChartV2/BarCharV2'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import {
 	useGetDailyErrorsCountQuery,
 	useGetDailySessionsCountQuery,
 } from '@graph/hooks'
-import { useHomePageFiltersContext } from '@pages/Home/components/HomePageFilters/HomePageFiltersContext'
-import styles from '@pages/Home/HomePage.module.scss'
+import useDataTimeRange from '@hooks/useDataTimeRange'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { dailyCountData } from '@util/dashboardCalculations'
-import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import classNames from 'classnames'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
-import {
-	Area,
-	CartesianGrid,
-	ComposedChart,
-	Line,
-	ResponsiveContainer,
-	Tooltip as RechartsTooltip,
-	XAxis,
-	YAxis,
-} from 'recharts'
+import { ResponsiveContainer } from 'recharts'
+
+import styles from './HomeCharts.module.scss'
 
 type DailyCount = {
-	date: string
+	date: moment.Moment
 	count: number
 	label: string
 }
@@ -46,7 +36,11 @@ export const HomePageTimeFilter = [
 	{ label: 'This year', value: 30 * 12 },
 ] as const
 
-export const SessionCountGraph = () => {
+export const SessionCountGraph = ({
+	setUpdatingData,
+}: {
+	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -57,7 +51,7 @@ export const SessionCountGraph = () => {
 
 	const { setSearchParams, setSegmentName, setSelectedSegment } =
 		useSearchContext()
-	const { dateRangeLength, setHasData } = useHomePageFiltersContext()
+	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
 	)
@@ -67,26 +61,32 @@ export const SessionCountGraph = () => {
 		variables: {
 			project_id,
 			date_range: {
-				start_date: moment
-					.utc()
-					.subtract(dateRangeLength, 'd')
-					.startOf('day'),
-				end_date: moment.utc().startOf('day'),
+				start_date: timeRange.start_date,
+				end_date: timeRange.end_date,
 			},
 		},
 		onCompleted: (response) => {
 			if (response.dailySessionsCount) {
-				setHasData(response.dailySessionsCount.length > 0)
 				const dateRangeData = dailyCountData(
 					response.dailySessionsCount,
-					dateRangeLength,
+					Math.ceil(
+						moment
+							.duration(timeRange.lookback, 'minutes')
+							.as('days'),
+					),
 				)
 				const sessionCounts = dateRangeData.map((val, idx) => ({
 					date: moment()
 						.utc()
 						.startOf('day')
-						.subtract(dateRangeLength - 1 - idx, 'days')
-						.format('D MMM YYYY'),
+						.subtract(
+							moment
+								.duration(timeRange.lookback, 'minutes')
+								.as('days') -
+								1 -
+								idx,
+							'days',
+						),
 					count: val,
 					label: 'sessions',
 				}))
@@ -101,15 +101,17 @@ export const SessionCountGraph = () => {
 		refetch()
 	}, [refetch, project_id])
 
-	return loading ? (
-		<Skeleton count={1} style={{ width: '100%', height: 334 }} />
-	) : (
-		<Card title="Sessions" full>
+	useEffect(() => {
+		setUpdatingData(loading)
+	}, [setUpdatingData, loading])
+
+	return (
+		<div className={classNames({ [styles.loading]: loading })}>
 			<DailyChart
 				data={sessionCountData}
 				name="Sessions"
 				onClickHandler={(payload: any) => {
-					const date = moment(payload.activeLabel)
+					const date = moment(payload.activePayload[0].payload.date)
 					setSegmentName(null)
 					setSelectedSegment(undefined)
 					setSearchParams({
@@ -126,11 +128,15 @@ export const SessionCountGraph = () => {
 					history.push(`/${projectIdRemapped}/sessions`)
 				}}
 			/>
-		</Card>
+		</div>
 	)
 }
 
-export const ErrorCountGraph = () => {
+export const ErrorCountGraph = ({
+	setUpdatingData,
+}: {
+	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -139,7 +145,7 @@ export const ErrorCountGraph = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { dateRangeLength } = useHomePageFiltersContext()
+	const { timeRange } = useDataTimeRange()
 	const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([])
 	const history = useHistory()
 
@@ -147,25 +153,32 @@ export const ErrorCountGraph = () => {
 		variables: {
 			project_id,
 			date_range: {
-				start_date: moment
-					.utc()
-					.subtract(dateRangeLength, 'd')
-					.startOf('day'),
-				end_date: moment.utc().startOf('day'),
+				start_date: timeRange.start_date,
+				end_date: timeRange.end_date,
 			},
 		},
 		onCompleted: (response) => {
 			if (response.dailyErrorsCount) {
 				const dateRangeData = dailyCountData(
 					response.dailyErrorsCount,
-					dateRangeLength,
+					Math.ceil(
+						moment
+							.duration(timeRange.lookback, 'minutes')
+							.as('days'),
+					),
 				)
 				const errorCounts = dateRangeData.map((val, idx) => ({
 					date: moment()
 						.utc()
 						.startOf('day')
-						.subtract(dateRangeLength - 1 - idx, 'days')
-						.format('D MMM YYYY'),
+						.subtract(
+							moment
+								.duration(timeRange.lookback, 'minutes')
+								.as('days') -
+								1 -
+								idx,
+							'days',
+						),
 					count: val,
 					label: 'errors',
 				}))
@@ -174,21 +187,25 @@ export const ErrorCountGraph = () => {
 		},
 	})
 
-	return loading ? (
-		<Skeleton count={1} style={{ width: '100%', height: 334 }} />
-	) : (
-		<Card title="Errors" full>
+	useEffect(() => {
+		setUpdatingData(loading)
+	}, [setUpdatingData, loading])
+
+	return (
+		<div className={classNames({ [styles.loading]: loading })}>
 			<DailyChart
 				data={errorCountData}
 				lineColor={'var(--color-orange-400)'}
 				name="Errors"
 				onClickHandler={(payload: any) => {
 					history.push(
-						`/${projectIdRemapped}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`,
+						`/${projectIdRemapped}/errors?${
+							SessionPageSearchParams.date
+						}=${payload.activePayload[0].payload.date.toDate()}`,
 					)
 				}}
 			/>
-		</Card>
+		</div>
 	)
 }
 
@@ -203,96 +220,24 @@ const DailyChart = ({
 	name: string
 	onClickHandler?: any
 }) => {
-	const gridColor = 'none'
-	const labelColor = 'var(--color-gray-500)'
-
-	const gradientId = `${name}-colorUv`
-
 	return (
 		<ResponsiveContainer width="100%" height={275}>
-			<ComposedChart
-				width={500}
-				height={300}
+			<BarChartV2
+				height={275}
+				barSize={12}
 				data={data}
-				margin={{
-					top: 0,
-					right: 0,
-					left: 0,
-					bottom: 0,
+				barColorMapping={{
+					count: lineColor,
 				}}
-				onClick={(payload: any) => {
-					if (onClickHandler) {
-						onClickHandler(payload)
-					}
-				}}
-				className={styles.composedChart}
-			>
-				<defs>
-					<linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-						<stop
-							offset="5%"
-							stopColor={lineColor}
-							stopOpacity={0.2}
-						/>
-						<stop
-							offset="95%"
-							stopColor="var(--color-primary-background)"
-							stopOpacity={0.1}
-						/>
-					</linearGradient>
-				</defs>
-				<CartesianGrid stroke={gridColor} />
-				<XAxis
-					dataKey="date"
-					interval="preserveStart"
-					tickFormatter={(tickItem) => {
-						return moment(tickItem, 'DD MMM YYYY').format('D MMM')
-					}}
-					tick={{ fontSize: '11px', fill: labelColor }}
-					tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-					axisLine={{ stroke: gridColor }}
-					dy={5}
-				/>
-				<YAxis
-					interval="preserveStart"
-					width={45}
-					allowDecimals={false}
-					tickFormatter={(tickItem) => formatNumber(tickItem)}
-					tick={{ fontSize: '11px', fill: labelColor }}
-					tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-					axisLine={{ stroke: gridColor }}
-					dx={-5}
-				/>
-				<RechartsTooltip
-					position={{ y: 0 }}
-					contentStyle={{
-						paddingBottom: '16px',
-					}}
-					itemStyle={{
-						padding: 0,
-					}}
-					content={<RechartTooltip />}
-				/>
-				<Line
-					dataKey="count"
-					stroke={lineColor}
-					strokeWidth={1.5}
-					type="monotone"
-					dot={false}
-					activeDot={{
-						fill: lineColor,
-						fillOpacity: 1,
-					}}
-				></Line>
-				<Area
-					type="monotone"
-					dataKey="count"
-					strokeWidth={0}
-					fillOpacity={1}
-					fill={`url(#${gradientId})`}
-					activeDot={false}
-				/>
-			</ComposedChart>
+				xAxisDataKeyName="date"
+				xAxisLabel={''}
+				xAxisTickFormatter={(value: number) =>
+					moment(value).format('D MMM YYYY')
+				}
+				yAxisLabel={name}
+				yAxisKeys={['count']}
+				onClickHandler={onClickHandler}
+			/>
 		</ResponsiveContainer>
 	)
 }

@@ -1,12 +1,14 @@
+import { DateHistogramBucketSize } from '@graph/schemas'
 import moment from 'moment'
 
 export type BackendSearchQuery =
 	| undefined
 	| {
 			searchQuery: string
+			childSearchQuery?: string
 			startDate: moment.Moment
 			endDate: moment.Moment
-			histogramBucketSize: string
+			histogramBucketSize: DateHistogramBucketSize
 	  }
 
 export type BaseSearchContext<T> = {

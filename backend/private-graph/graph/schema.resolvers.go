@@ -269,6 +269,24 @@ func (r *metricMonitorResolver) EmailsToNotify(ctx context.Context, obj *model.M
 	return emailsToNotify, nil
 }
 
+// Filters is the resolver for the filters field.
+func (r *metricMonitorResolver) Filters(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.MetricTagFilter, error) {
+	if obj == nil {
+		return nil, e.New("empty metric monitor object for Slack or email notifications")
+	}
+	var filters []*model.DashboardMetricFilter
+	if err := r.DB.Where(&model.DashboardMetricFilter{MetricMonitorID: obj.ID}).Find(&filters).Error; err != nil {
+		return nil, e.Wrap(err, "error querying metric monitor filters")
+	}
+	return lo.Map(filters, func(t *model.DashboardMetricFilter, i int) *modelInputs.MetricTagFilter {
+		return &modelInputs.MetricTagFilter{
+			Tag:   t.Tag,
+			Op:    t.Op,
+			Value: t.Value,
+		}
+	}), nil
+}
+
 // UpdateAdminAboutYouDetails is the resolver for the updateAdminAboutYouDetails field.
 func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, adminDetails modelInputs.AdminAboutYouDetails) (bool, error) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1816,7 +1834,7 @@ func (r *mutationResolver) CreateRageClickAlert(ctx context.Context, projectID i
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1834,6 +1852,15 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		return nil, err
 	}
 
+	var mmFilters []*model.DashboardMetricFilter
+	for _, f := range filters {
+		mmFilters = append(mmFilters, &model.DashboardMetricFilter{
+			Tag:   f.Tag,
+			Op:    f.Op,
+			Value: f.Value,
+		})
+	}
+
 	newMetricMonitor := &model.MetricMonitor{
 		ProjectID:         projectID,
 		Name:              name,
@@ -1845,6 +1872,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		ChannelsToNotify:  channelsString,
 		EmailsToNotify:    emailsString,
 		LastAdminToEditID: admin.ID,
+		Filters:           mmFilters,
 	}
 
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
@@ -1858,7 +1886,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -1870,6 +1898,27 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 	if err := r.DB.Where(&model.MetricMonitor{Model: model.Model{ID: metricMonitorID}, ProjectID: projectID}).Find(&metricMonitor).Error; err != nil {
 		return nil, e.Wrap(err, "error querying metric monitor")
 	}
+
+	var createdFilterIDs []int
+	for _, f := range filters {
+		var created struct{ ID int }
+		if err := r.DB.Where(&model.DashboardMetricFilter{
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+		}).Clauses(clause.Returning{}, clause.OnConflict{
+			OnConstraint: model.DASHBOARD_METRIC_FILTERS_UNIQ,
+			DoNothing:    true,
+		}).Create(&model.DashboardMetricFilter{
+			MetricMonitorID: metricMonitor.ID,
+			Tag:             f.Tag,
+			Op:              f.Op,
+			Value:           f.Value,
+		}).Scan(&created).Error; err != nil {
+			return nil, e.Wrap(err, "failed to create metric monitor filter")
+		}
+		createdFilterIDs = append(createdFilterIDs, created.ID)
+	}
+	r.DB.Exec(`DELETE FROM dashboard_metric_filters WHERE metric_monitor_id = ? AND id NOT IN ?`, metricMonitor.ID, createdFilterIDs)
 
 	if slackChannels != nil {
 		channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
@@ -3473,6 +3522,36 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}, nil
 }
 
+// ErrorsHistogram is the resolver for the errors_histogram field.
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []opensearch.OpenSearchError{}
+	options := opensearch.SearchOptions{
+		MaxResults:        ptr.Int(0),
+		SortField:         ptr.String("updated_at"),
+		SortOrder:         ptr.String("desc"),
+		ReturnCount:       ptr.Bool(false),
+		ExcludeFields:     []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
+		ProjectIDOnParent: ptr.Bool(true),
+		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
+	}
+
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
 	return r.canAdminViewErrorGroup(ctx, secureID, true)
@@ -4273,37 +4352,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-	q := fmt.Sprintf(`
-	{"bool": {
-		"must":[
-			{"bool": {
-				"must_not":[
-					{"term":{"Excluded":true}},
-					{"term":{"within_billing_quota":false}},
-					{"bool": {
-						"must":[
-							{"term":{"processed":"true"}},
-							{"bool":
-								{"should": [
-									{"range": {
-										"active_length": {
-											"lt": 1000
-										}
-									}},
-									{"range": {
-										"length": {
-											"lt": 1000
-										}
-								  	}}
-							  	]}
-						  	}
-					  	]
-					}}
-				]
-			}},
-			%s
-		]
-	}}`, query)
+	q := FormatSessionsQuery(query)
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -4312,6 +4361,54 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
+	}, nil
+}
+
+// SessionsHistogram is the resolver for the sessions_histogram field.
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, nil
+	}
+
+	results := []model.Session{}
+	options := opensearch.SearchOptions{
+		MaxResults:    ptr.Int(0),
+		SortField:     ptr.String("created_at"),
+		ReturnCount:   ptr.Bool(false),
+		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
+		Aggregation: GetDateHistogramAggregation(histogramOptions, "created_at",
+			&opensearch.TermsAggregation{
+				Field:   "has_errors",
+				Missing: ptr.String("false"),
+			}),
+	}
+	q := FormatSessionsQuery(query)
+	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, q, options, &results)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totalCounts := GetBucketTimesAndTotalCounts(aggs, histogramOptions)
+	noErrorsCounts, withErrorsCounts := []int64{}, []int64{}
+	for _, dateBucket := range aggs {
+		noErrors, withErrors := int64(0), int64(0)
+		for _, errorsBucket := range dateBucket.SubAggregationResults {
+			if errorsBucket.Key == "false" {
+				noErrors = errorsBucket.DocCount
+			} else if errorsBucket.Key == "true" {
+				withErrors = errorsBucket.DocCount
+			}
+		}
+		noErrorsCounts = append(noErrorsCounts, noErrors)
+		withErrorsCounts = append(withErrorsCounts, withErrors)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 
@@ -5288,10 +5385,8 @@ func (r *queryResolver) AdminRole(ctx context.Context, workspaceID int) (*model.
 		}, nil
 	}
 
-	role, err := r.GetAdminRole(admin.ID, workspaceID)
-	if err != nil {
-		return nil, err
-	}
+	// ok to have empty string role, treated as unauthenticated user
+	role, _ := r.GetAdminRole(admin.ID, workspaceID)
 	return &model.WorkspaceAdminRole{
 		Admin: admin,
 		Role:  role,
@@ -5312,20 +5407,15 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 		}, nil
 	}
 
+	var role string
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		if workspace, err := r.GetWorkspace(project.WorkspaceID); err == nil {
+			// ok to have empty string role, treated as unauthenticated user
+			role, _ = r.GetAdminRole(admin.ID, workspace.ID)
+		}
 	}
 
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	role, err := r.GetAdminRole(admin.ID, workspace.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &model.WorkspaceAdminRole{
 		Admin: admin,
 		Role:  role,
@@ -5610,7 +5700,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 	}
 
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
-	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
 		minPercentile := 0.01

@@ -2290,6 +2290,7 @@ export const CreateMetricMonitorDocument = gql`
 		$name: String!
 		$aggregator: MetricAggregator!
 		$threshold: Float!
+		$filters: [MetricTagFilterInput!]
 		$units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String!
@@ -2299,6 +2300,7 @@ export const CreateMetricMonitorDocument = gql`
 		createMetricMonitor(
 			project_id: $project_id
 			threshold: $threshold
+			filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -2346,6 +2348,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      filters: // value for 'filters'
  *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -2381,6 +2384,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$name: String
 		$aggregator: MetricAggregator
 		$threshold: Float
+		$filters: [MetricTagFilterInput!]
 		$units: String
 		$periodMinutes: Int
 		$metric_to_monitor: String
@@ -2392,6 +2396,7 @@ export const UpdateMetricMonitorDocument = gql`
 			metric_monitor_id: $metric_monitor_id
 			project_id: $project_id
 			threshold: $threshold
+			filters: $filters
 			units: $units
 			name: $name
 			aggregator: $aggregator
@@ -2441,6 +2446,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      aggregator: // value for 'aggregator'
  *      threshold: // value for 'threshold'
+ *      filters: // value for 'filters'
  *      units: // value for 'units'
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
@@ -6147,6 +6153,75 @@ export type GetSessionsOpenSearchQueryResult = Apollo.QueryResult<
 	Types.GetSessionsOpenSearchQuery,
 	Types.GetSessionsOpenSearchQueryVariables
 >
+export const GetSessionsHistogramDocument = gql`
+	query GetSessionsHistogram(
+		$project_id: ID!
+		$query: String!
+		$histogram_options: DateHistogramOptions!
+	) {
+		sessions_histogram(
+			project_id: $project_id
+			query: $query
+			histogram_options: $histogram_options
+		) {
+			bucket_times
+			sessions_without_errors
+			sessions_with_errors
+			total_sessions
+		}
+	}
+`
+
+/**
+ * __useGetSessionsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetSessionsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      histogram_options: // value for 'histogram_options'
+ *   },
+ * });
+ */
+export function useGetSessionsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>(GetSessionsHistogramDocument, baseOptions)
+}
+export function useGetSessionsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionsHistogramQuery,
+		Types.GetSessionsHistogramQueryVariables
+	>(GetSessionsHistogramDocument, baseOptions)
+}
+export type GetSessionsHistogramQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramQuery
+>
+export type GetSessionsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetSessionsHistogramLazyQuery
+>
+export type GetSessionsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetSessionsHistogramQuery,
+	Types.GetSessionsHistogramQueryVariables
+>
 export const GetErrorGroupsOpenSearchDocument = gql`
 	query GetErrorGroupsOpenSearch(
 		$project_id: ID!
@@ -6233,6 +6308,73 @@ export type GetErrorGroupsOpenSearchLazyQueryHookResult = ReturnType<
 export type GetErrorGroupsOpenSearchQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupsOpenSearchQuery,
 	Types.GetErrorGroupsOpenSearchQueryVariables
+>
+export const GetErrorsHistogramDocument = gql`
+	query GetErrorsHistogram(
+		$project_id: ID!
+		$query: String!
+		$histogram_options: DateHistogramOptions!
+	) {
+		errors_histogram(
+			project_id: $project_id
+			query: $query
+			histogram_options: $histogram_options
+		) {
+			bucket_times
+			error_objects
+		}
+	}
+`
+
+/**
+ * __useGetErrorsHistogramQuery__
+ *
+ * To run a query within a React component, call `useGetErrorsHistogramQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsHistogramQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorsHistogramQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      histogram_options: // value for 'histogram_options'
+ *   },
+ * });
+ */
+export function useGetErrorsHistogramQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
+}
+export function useGetErrorsHistogramLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorsHistogramQuery,
+		Types.GetErrorsHistogramQueryVariables
+	>(GetErrorsHistogramDocument, baseOptions)
+}
+export type GetErrorsHistogramQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramQuery
+>
+export type GetErrorsHistogramLazyQueryHookResult = ReturnType<
+	typeof useGetErrorsHistogramLazyQuery
+>
+export type GetErrorsHistogramQueryResult = Apollo.QueryResult<
+	Types.GetErrorsHistogramQuery,
+	Types.GetErrorsHistogramQueryVariables
 >
 export const GetProjectsDocument = gql`
 	query GetProjects {
@@ -9527,6 +9669,11 @@ export const GetAlertsPagePayloadDocument = gql`
 			metric_to_monitor
 			last_admin_to_edit_id
 			threshold
+			filters {
+				tag
+				op
+				value
+			}
 			units
 			disabled
 		}
