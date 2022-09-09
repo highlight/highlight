@@ -5,9 +5,10 @@ import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
 import { auth } from '@util/auth'
 import { client } from '@util/graph'
+import { message } from 'antd'
 import firebase from 'firebase'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { FormEvent, useEffect, useState } from 'react'
 
 import styles from './Auth.module.scss'
 
@@ -69,7 +70,7 @@ interface Props {
 	setStatus: (status: AuthState) => void
 }
 
-const Login: React.FC<Props> = ({ setError, setStatus }) => {
+const Login: React.FC<Props> = () => {
 	return (
 		<Space direction="vertical" size="medium">
 			<Alert
@@ -81,6 +82,7 @@ const Login: React.FC<Props> = ({ setError, setStatus }) => {
 
 			<Button
 				trackingId="logInAgainFor2fa"
+				type="primary"
 				onClick={() => {
 					auth.signOut()
 					client.clearStore()
@@ -93,10 +95,13 @@ const Login: React.FC<Props> = ({ setError, setStatus }) => {
 }
 
 const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
+	const [loading, setLoading] = useState<boolean>(false)
 	const [phoneNumber, setPhoneNumber] = useState<string>('')
 	const [verificationId, setVerificationId] = useState<string>('')
 
-	const enroll = async () => {
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		setLoading(true)
 		setError(null)
 
 		if (phoneNumber.length < 10) {
@@ -105,7 +110,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 
 		const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`
 
-		// TODO: Store once in useEffect hook.
+		// TODO: Store once in useEffect hook. Causes an error without it.
 		const recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
 			'recaptcha',
 			{
@@ -131,15 +136,16 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			setVerificationId(vId)
 		} catch (e) {
 			setError(e)
-			return
+		} finally {
+			setLoading(false)
 		}
 	}
 
 	return (
 		<>
-			<Space size="medium" direction="vertical">
-				{!verificationId ? (
-					<>
+			{!verificationId ? (
+				<form onSubmit={handleSubmit}>
+					<Space size="medium" direction="vertical">
 						<Input
 							addonBefore="+1"
 							value={phoneNumber}
@@ -147,20 +153,23 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 							placeholder="Enter your phone number"
 						/>
 
-						<Button trackingId="setup2fa" onClick={enroll}>
+						<Button
+							type="primary"
+							htmlType="submit"
+							trackingId="setup2fa"
+							loading={loading}
+						>
 							Setup 2FA
 						</Button>
-					</>
-				) : (
-					// TODO: Extract to new component that can be rendered
-					// independently (in the login flow).
-					<VerifyPhone
-						phoneNumber={phoneNumber}
-						verificationId={verificationId}
-						onSuccess={() => setStatus(AuthState.Enrolled)}
-					/>
-				)}
-			</Space>
+					</Space>
+				</form>
+			) : (
+				<VerifyPhone
+					phoneNumber={phoneNumber}
+					verificationId={verificationId}
+					onSuccess={() => setStatus(AuthState.Enrolled)}
+				/>
+			)}
 
 			<div id="recaptcha"></div>
 		</>
@@ -178,10 +187,13 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 	verificationId,
 	onSuccess,
 }) => {
+	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string | null>()
 	const [verificationCode, setVerificationCode] = useState<string>('')
 
-	const handleCodeSubmit = async () => {
+	const handleCodeSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		setLoading(true)
 		setError(null)
 
 		const cred = firebase.auth.PhoneAuthProvider.credential(
@@ -201,6 +213,8 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 			onSuccess()
 		} catch (e: any) {
 			setError(e.message)
+		} finally {
+			setLoading(false)
 		}
 	}
 
@@ -219,15 +233,24 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 
 			<p>Enter the code sent to your phone to verify your device.</p>
 
-			<Input
-				value={verificationCode}
-				onChange={(e) => setVerificationCode(e.target.value)}
-				placeholder="Verification code"
-			/>
+			<form onSubmit={handleCodeSubmit}>
+				<Space direction="vertical" size="medium">
+					<Input
+						value={verificationCode}
+						onChange={(e) => setVerificationCode(e.target.value)}
+						placeholder="Verification code"
+					/>
 
-			<Button trackingId="setup2fa" onClick={handleCodeSubmit}>
-				Submit
-			</Button>
+					<Button
+						type="primary"
+						htmlType="submit"
+						trackingId="setup2fa"
+						loading={loading}
+					>
+						Submit
+					</Button>
+				</Space>
+			</form>
 		</>
 	)
 }
@@ -248,6 +271,7 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 
 			<Button
 				trackingId="remove2fa"
+				type="primary"
 				onClick={async () => {
 					const currentFactor =
 						auth.currentUser?.multiFactor.enrolledFactors[0]
@@ -257,6 +281,8 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 							await auth.currentUser?.multiFactor.unenroll(
 								currentFactor,
 							)
+
+							message.success('2FA removed successfully')
 						} catch (e: any) {
 							if (e.code === 'auth/requires-recent-login') {
 								setStatus(AuthState.Login)
