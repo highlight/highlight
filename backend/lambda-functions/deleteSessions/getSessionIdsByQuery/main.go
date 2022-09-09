@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -11,25 +12,29 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
+var db *gorm.DB
+var opensearchClient *opensearch.Client
+
 func init() {
+	var err error
+	db, err = model.SetupDB(os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "error setting up DB"))
+	}
+
+	opensearchClient, err = opensearch.NewOpensearchClient()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "error creating opensearch client"))
+	}
 }
 
-func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) (utils.BatchIdResponse, error) {
-	response := utils.BatchIdResponse{}
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
-	if err != nil {
-		return response, errors.Wrap(err, "error setting up DB")
-	}
-
-	opensearchClient, err := opensearch.NewOpensearchClient()
-	if err != nil {
-		return response, errors.Wrap(err, "error creating opensearch client")
-	}
-
+func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) ([]utils.BatchIdResponse, error) {
 	taskId := uuid.New().String()
 	lastId := 0
+	responses := []utils.BatchIdResponse{}
 	for {
 		batchId := uuid.New().String()
 		toDelete := []model.DeleteSessionsTask{}
@@ -48,12 +53,13 @@ func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) (utils.B
 		_, _, err := opensearchClient.Search([]opensearch.Index{opensearch.IndexSessions},
 			event.ProjectId, event.Query, options, &results)
 		if err != nil {
-			return response, err
+			return nil, err
 		}
 
 		if len(results) == 0 {
 			break
 		}
+		lastId = results[len(results)-1].ID
 
 		for _, r := range results {
 			toDelete = append(toDelete, model.DeleteSessionsTask{
@@ -63,12 +69,14 @@ func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) (utils.B
 			})
 		}
 
-		if err := db.Create(toDelete).Error; err != nil {
-			return response, errors.Wrap(err, "error saving DeleteSessionsTasks")
+		if err := db.Create(&toDelete).Error; err != nil {
+			return nil, errors.Wrap(err, "error saving DeleteSessionsTasks")
 		}
+
+		responses = append(responses, utils.BatchIdResponse{TaskId: taskId, BatchId: batchId})
 	}
 
-	return response, nil
+	return responses, nil
 }
 
 func main() {

@@ -28,6 +28,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/snappy v0.0.4
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.5.2
@@ -108,7 +109,6 @@ require (
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/pprof v0.0.0-20210423192551-a2663126120b // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hasura/go-graphql-client v0.3.0 // indirect
