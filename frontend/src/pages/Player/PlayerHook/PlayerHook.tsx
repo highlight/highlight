@@ -55,6 +55,7 @@ import {
 	getCommentsInSessionIntervalsRelative,
 	getEventsForTimelineIndicator,
 	getSessionIntervals,
+	loadiFrameResources,
 	PlayerSearchParameters,
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
@@ -236,27 +237,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[eventChunksData?.event_chunks],
 	)
-
-	const onevent = (e: any) => {
-		const event = e as HighlightEvent
-		if (usefulEvent(event)) {
-			setCurrentEvent(event.identifier)
-		}
-
-		if ((event as customEvent)?.data?.tag === 'Stop') {
-			setState(ReplayerState.SessionRecordingStopped)
-		}
-		if (event.type === 5) {
-			switch (event.data.tag) {
-				case 'Navigate':
-				case 'Reload':
-					setCurrentUrl(event.data.payload as string)
-					return
-				default:
-					return
-			}
-		}
-	}
 
 	const { data: timelineIndicatorEventsData } =
 		useGetTimelineIndicatorEventsQuery({
@@ -584,50 +564,61 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [setShowLeftPanel, setShowRightPanel])
 
-	const loadiFrameResources = (r: Replayer) => {
-		// Inject the Material font icons into the player if it's a Boardgent session.
-		// Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
-		if (project_id === '669' && r.iframe.contentDocument) {
-			const cssLink = document.createElement('link')
-			cssLink.href =
-				'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css'
-			cssLink.rel = 'stylesheet'
-			cssLink.type = 'text/css'
-			r.iframe.contentDocument.head.appendChild(cssLink)
+	const updateCurrentUrl = useCallback(() => {
+		if (!replayer) {
+			return
 		}
-		// Inject FontAwesome for Gelt Finance sessions.
-		// Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
-		if (project_id === '896' && r.iframe.contentDocument) {
-			const scriptLink = document.createElement('script')
-			scriptLink.src = 'https://kit.fontawesome.com/2fb433086f.js'
-			scriptLink.crossOrigin = 'anonymous'
-			r.iframe.contentDocument.head.appendChild(scriptLink)
+
+		setCurrentUrl(
+			findLatestUrl(
+				getAllUrlEvents(events),
+				replayer.getCurrentTime() + replayer.getMetaData().startTime,
+			),
+		)
+	}, [setCurrentUrl, events, replayer])
+
+	const onevent = useCallback(
+		(e: any) => {
+			const event = e as HighlightEvent
+			if (usefulEvent(event)) {
+				setCurrentEvent(event.identifier)
+			}
+
+			if ((event as customEvent)?.data?.tag === 'Stop') {
+				setState(ReplayerState.SessionRecordingStopped)
+			}
+			if (event.type === 5) {
+				switch (event.data.tag) {
+					case 'Navigate':
+					case 'Reload':
+						setCurrentUrl(event.data.payload as string)
+						return
+					default:
+						return
+				}
+			}
+		},
+		[setCurrentEvent, setState, setCurrentUrl],
+	)
+
+	// set event listeners for the replayer
+	useEffect(() => {
+		if (!replayer) {
+			return
 		}
-		// Add missing stylesheets for Mazumago
-		// Context: https://linear.app/highlight/issue/HIG-2441/mazumago-styling-issue
-		if (
-			(project_id === '1026' ||
-				project_id === '1028' ||
-				project_id === '1017') &&
-			r.iframe.contentDocument
-		) {
-			const cssRoboto = document.createElement('link')
-			cssRoboto.href =
-				'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap'
-			cssRoboto.rel = 'stylesheet'
-			r.iframe.contentDocument.head.appendChild(cssRoboto)
-			const cssIcons = document.createElement('link')
-			cssIcons.href =
-				'https://fonts.googleapis.com/icon?family=Material+Icons'
-			cssIcons.rel = 'stylesheet'
-			r.iframe.contentDocument.head.appendChild(cssIcons)
-			const scriptLink = document.createElement('script')
-			scriptLink.src =
-				'https://unpkg.com/@mui/material@5.9.0/umd/material-ui.production.min.js'
-			scriptLink.crossOrigin = 'anonymous'
-			r.iframe.contentDocument.head.appendChild(scriptLink)
-		}
-	}
+		replayer.on('event-cast', onevent)
+		replayer.on('resize', (_e) => {
+			const e = _e as viewportResizeDimension
+			setViewport(e)
+		})
+		replayer.on('pause', () => {
+			updateCurrentUrl()
+		})
+		replayer.on('start', () => {
+			updateCurrentUrl()
+			loadiFrameResources(replayer, project_id)
+		})
+	}, [replayer, updateCurrentUrl, setViewport])
 
 	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
 	const initReplayer = (newEvents: HighlightEvent[]) => {
@@ -665,24 +656,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			setCurrentUrl(onlyUrlEvents[0].data.payload)
 		}
 		setPerformancePayloads(getAllPerformanceEvents(newEvents))
-		r.on('event-cast', onevent)
-		r.on('resize', (_e) => {
-			const e = _e as viewportResizeDimension
-			setViewport(e)
-		})
-		r.on('pause', () => {
-			setCurrentUrl(
-				findLatestUrl(
-					onlyUrlEvents,
-					r.getCurrentTime() + r.getMetaData().startTime,
-				),
-			)
-		})
-		r.on('start', () => {
-			const newTs = r.getCurrentTime() + r.getMetaData().startTime
-			setCurrentUrl(findLatestUrl(onlyUrlEvents, newTs))
-			loadiFrameResources(r)
-		})
 		setReplayer(r)
 		if (isLiveMode) {
 			r.startLive(newEvents[0].timestamp)
@@ -751,9 +724,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 
 		setEvents(nextEvents)
-
-		// This hook shouldn't depend on `showPlayerMouseTail`. The player is updated through a setter. Making this hook depend on `showPlayerMouseTrail` will cause the player to be remounted when `showPlayerMouseTrail` changes.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [chunkEvents, eventChunksData])
 
 	const [eventsDataLoaded, setEventsDataLoaded] = useState(false)
