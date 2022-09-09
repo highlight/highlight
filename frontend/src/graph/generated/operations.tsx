@@ -1530,6 +1530,15 @@ export type UpsertDashboardMutation = { __typename?: 'Mutation' } & Pick<
 	'upsertDashboard'
 >
 
+export type DeleteDashboardMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteDashboard'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4108,6 +4117,7 @@ export const namedOperations = {
 		RequestAccess: 'RequestAccess' as const,
 		ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
 		UpsertDashboard: 'UpsertDashboard' as const,
+		DeleteDashboard: 'DeleteDashboard' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

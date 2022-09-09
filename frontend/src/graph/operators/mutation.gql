@@ -1243,3 +1243,7 @@ mutation UpsertDashboard(
 		layout: $layout
 	)
 }
+
+mutation DeleteDashboard($id: ID!) {
+	deleteDashboard(id: $id)
+}

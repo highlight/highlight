@@ -3,8 +3,13 @@ import 'react-resizable/css/styles.css'
 
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import {
+	GetDashboardDefinitionsDocument,
+	useDeleteDashboardMutation,
+} from '@graph/hooks'
 import {
 	Admin,
 	DashboardDefinition,
@@ -13,6 +18,7 @@ import {
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
+import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { DashboardComponentCard } from '@pages/Dashboards/components/DashboardCard/DashboardComponentCard/DashboardComponentCard'
@@ -216,15 +222,18 @@ const DashboardPage = ({
 										return nm
 									})
 								}}
+								icon={
+									<PlusIcon
+										style={{ marginRight: '0.5rem' }}
+									/>
+								}
 							>
 								Add
-								<PlusIcon
-									style={{
-										marginLeft: '1em',
-										marginBottom: '0.1em',
-									}}
-								/>
 							</Button>
+							<DeleteDashboardButton
+								dashboardId={dashboard.id}
+								projectId={dashboard.project_id}
+							/>
 							<TimeRangePicker />
 						</div>
 					</div>
@@ -414,3 +423,40 @@ export const findDashboardMetric = (
 }
 
 export default DashboardPage
+
+function DeleteDashboardButton({
+	dashboardId,
+	projectId,
+}: {
+	dashboardId: string
+	projectId: string
+}) {
+	const history = useHistory()
+
+	const [mutate] = useDeleteDashboardMutation({
+		variables: { id: dashboardId },
+		onCompleted: () => {
+			history.push(`/${projectId}/dashboards`)
+		},
+		refetchQueries: [GetDashboardDefinitionsDocument],
+	})
+
+	return (
+		<ConfirmModal
+			trackingId="DeleteDashboardModal"
+			buttonText="Delete dashboard"
+			buttonProps={{
+				trackingId: 'DeleteDashboard',
+				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
+				danger: true,
+			}}
+			modalTitleText="Are you sure you want to delete this dashboard?"
+			confirmText="Delete dashboard"
+			cancelText="Never mind"
+			onConfirmHandler={async (actions) => {
+				await mutate()
+				actions.close()
+			}}
+		/>
+	)
+}

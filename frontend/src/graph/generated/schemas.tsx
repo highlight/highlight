@@ -1580,6 +1580,7 @@ export type Mutation = {
 	requestAccess?: Maybe<Scalars['Boolean']>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	upsertDashboard: Scalars['ID']
+	deleteDashboard: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -2078,6 +2079,10 @@ export type MutationUpsertDashboardArgs = {
 	name: Scalars['String']
 	metrics: Array<DashboardMetricConfigInput>
 	layout?: Maybe<Scalars['String']>
+}
+
+export type MutationDeleteDashboardArgs = {
+	id?: Maybe<Scalars['ID']>
 }
 
 export type Subscription = {
