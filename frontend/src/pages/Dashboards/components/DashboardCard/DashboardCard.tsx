@@ -101,7 +101,7 @@ const DashboardCard = ({
 				interactable
 				className={styles.card}
 				title={
-					<div className={styles.cardHeader}>
+					<div className="relative">
 						<div className={styles.mainHeaderContent}>
 							<div className={styles.headerContainer}>
 								<span className={styles.header}>
@@ -249,7 +249,9 @@ const DashboardCard = ({
 							}}
 						/>
 						{updatingData && (
-							<LoadingBar height={2} width={'100%'} />
+							<div className="absolute inset-x-0 bottom-0">
+								<LoadingBar height={2} width={'100%'} />
+							</div>
 						)}
 					</div>
 				}
