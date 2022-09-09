@@ -32,12 +32,10 @@ export const PrebuiltComponentMap: {
 			setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 		}>
 		hasSearch?: boolean
-		fixedSize?: boolean
 	}
 } = {
 	[MetricViewComponentType.KeyPerformanceGauge]: {
 		fc: KeyPerformanceIndicators,
-		fixedSize: true,
 	},
 	[MetricViewComponentType.SessionCountChart]: { fc: SessionCountGraph },
 	[MetricViewComponentType.ErrorCountChart]: { fc: ErrorCountGraph },
@@ -73,10 +71,7 @@ export const DashboardComponentCard = ({
 	return (
 		<DashboardInnerCard
 			interactable
-			className={classNames(styles.card, {
-				[styles.fixedSize]:
-					PrebuiltComponentMap[componentType].fixedSize,
-			})}
+			className={styles.card}
 			title={
 				<div className={styles.cardHeader}>
 					<div className={styles.mainHeaderContent}>
