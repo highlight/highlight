@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/snappy"
@@ -41,6 +42,10 @@ func UseRedis(projectId int, sessionSecureId string) bool {
 
 func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
+}
+
+func SessionInitializedKey(sessionSecureId string) string {
+	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
 func NewClient() *Client {
@@ -197,4 +202,32 @@ func (r *Client) AddEventPayload(sessionID int, score float64, payload string) e
 		return errors.Wrap(err, "error adding events payload in Redis")
 	}
 	return nil
+}
+
+func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
+	cmd := r.redisClient.Set(key, value, exp)
+	if cmd.Err() != nil {
+		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
+	}
+	return nil
+}
+
+func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
+	cmd := r.redisClient.Get(key)
+	if cmd.Err() != nil {
+		return false, errors.Wrap(cmd.Err(), "error getting flag from Redis")
+	}
+	i, err := cmd.Int()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to deserialize flag from Redis")
+	}
+	return i > 0, nil
+}
+
+func (r *Client) SetSessionInitialized(ctx context.Context, sessionSecureId string, initialized bool) error {
+	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
+}
+
+func (r *Client) IsSessionInitialized(ctx context.Context, sessionSecureId string) (bool, error) {
+	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }

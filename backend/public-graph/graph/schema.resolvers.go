@@ -56,6 +56,9 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				NetworkRecordingDomains:        networkRecordingDomains,
 			},
 		}, sessionSecureID)
+		if err != nil {
+			err = r.Redis.SetSessionInitialized(ctx, sessionSecureID, true)
+		}
 	}
 
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
