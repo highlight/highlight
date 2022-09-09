@@ -9,6 +9,7 @@ import {
 	Admin,
 	DashboardDefinition,
 	DashboardMetricConfig,
+	Maybe,
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
@@ -25,13 +26,17 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
+
+type RouteState = Maybe<{
+	metricConfig?: DashboardMetricConfig
+}>
 
 const DashboardPage = ({
 	dashboardName,
@@ -42,7 +47,8 @@ const DashboardPage = ({
 	header?: React.ReactNode
 	containerStyles?: React.CSSProperties
 }) => {
-	const history = useHistory<{ dashboardName: string }>()
+	const history = useHistory<RouteState>()
+	const { state: locationState } = useLocation<RouteState>()
 	const { id } = useParams<{ id: string }>()
 	const { timeRange } = useDataTimeRange()
 	const { dashboards, allAdmins, updateDashboard } = useDashboardsContext()
@@ -51,6 +57,8 @@ const DashboardPage = ({
 	const [layout, setLayout] = useState<Layouts>({ lg: [] })
 	const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] })
 	const [dashboard, setDashboard] = useState<DashboardDefinition>()
+	const metricAutoAdded = useRef<boolean>(false)
+	const metricConfig = locationState?.metricConfig
 
 	useEffect(() => {
 		const dashboard = dashboards.find((d) =>
@@ -65,15 +73,45 @@ const DashboardPage = ({
 				setLayout(parsedLayout)
 				setPersistedLayout(parsedLayout)
 			}
-			history.replace({ state: { dashboardName: name } })
 		}
-	}, [dashboardName, dashboards, history, id])
+	}, [dashboardName, dashboards, id])
 
 	useEffect(() => {
 		setNewDashboardCardIdx(undefined)
 	}, [dashboard])
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
+
+	// Logic for adding a new metric based on the addToDashboard URL param.
+	useEffect(() => {
+		if (!dashboard || !metricConfig || metricAutoAdded.current) {
+			return
+		}
+
+		metricAutoAdded.current = true
+
+		// Change to check both name and filters, if GraphQL request.
+		const canAddMetric = !findDashboardMetric(dashboard, metricConfig)
+
+		if (canAddMetric && metricConfig) {
+			pushNewMetricConfig([
+				...dashboard.metrics,
+				{
+					...getDefaultMetricConfig(metricConfig.name),
+					...metricConfig,
+				},
+			])
+
+			message.success(
+				`${metricConfig.description} added successfully.`,
+				3000,
+			)
+
+			history.replace({ state: {} })
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dashboard])
 
 	const pushNewMetricConfig = (
 		nm: DashboardMetricConfig[],
@@ -124,8 +162,9 @@ const DashboardPage = ({
 							<Breadcrumb
 								getBreadcrumbName={(url) =>
 									getDashboardsBreadcrumbNames(
-										history.location.state,
-									)(url)
+										dashboard.name,
+										url,
+									)
 								}
 								linkRenderAs="h2"
 							/>
@@ -347,14 +386,31 @@ export const DashboardGrid = ({
 	)
 }
 
-const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
-	return (url: string) => {
-		if (url.endsWith('/dashboards')) {
-			return 'Dashboards'
+const getDashboardsBreadcrumbNames = (dashboardName: string, url: string) => {
+	if (url.endsWith('/dashboards')) {
+		return 'Dashboards'
+	}
+
+	return dashboardName
+}
+
+export const findDashboardMetric = (
+	dashboard: Maybe<DashboardDefinition>,
+	metricConfig: DashboardMetricConfig,
+) => {
+	return dashboard?.metrics.find((metric) => {
+		let isMatch = metric.name === metricConfig.name
+
+		if (isMatch && metricConfig.filters) {
+			isMatch = metricConfig.filters?.every((f) =>
+				metric.filters?.some(
+					(fi) => fi.tag === f.tag && fi.value === f.value,
+				),
+			)
 		}
 
-		return `${suffixes?.dashboardName}`
-	}
+		return isMatch ? metric : false
+	})
 }
 
 export default DashboardPage
