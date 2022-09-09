@@ -1838,6 +1838,12 @@ type SendWelcomeSlackMessageInput struct {
 	IncludeEditLink      bool
 }
 
+type DeleteSessionsTask struct {
+	TaskID    string // UUID
+	SessionID int
+	BatchID   string // UUID
+}
+
 func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {
 	if obj == nil {
 		return e.New("Alert needs to be defined.")

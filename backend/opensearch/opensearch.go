@@ -491,13 +491,25 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		includesStr = fmt.Sprintf(`, "includes": [%s]`, innerIncludes)
 	}
 
+	searchAfterStr := ""
+	if len(options.SearchAfter) > 0 {
+		innerSearchAfter := ""
+		for _, sa := range options.SearchAfter {
+			if innerSearchAfter != "" {
+				innerSearchAfter += ", "
+			}
+			innerSearchAfter += fmt.Sprintf("%#v", sa)
+		}
+		searchAfterStr = fmt.Sprintf(`, "search_after": [%s]`, innerSearchAfter)
+	}
+
 	aggs := ""
 	if options.Aggregation != nil {
 		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
 	}
 
-	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
-		excludesStr, includesStr, count, from, q, sort, trackTotalHits, aggs)
+	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}, %s, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+		excludesStr, includesStr, searchAfterStr, count, from, q, sort, trackTotalHits, aggs)
 	content := strings.NewReader(contentStr)
 
 	searchIndexes := []string{}

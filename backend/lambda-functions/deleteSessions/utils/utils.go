@@ -6,5 +6,5 @@ type QuerySessionsInput struct {
 }
 
 type BatchIdResponse struct {
-	BatchId int `json:"batchId"`
+	BatchId string `json:"batchId"`
 }
