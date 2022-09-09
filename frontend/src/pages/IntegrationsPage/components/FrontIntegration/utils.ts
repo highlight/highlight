@@ -28,7 +28,7 @@ export const useFrontIntegration = (props?: { repoll?: boolean }) => {
 
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
 		refetchQueries: [
-			namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+			namedOperations.Query.GetWorkspaceIsIntegratedWithFront,
 		],
 	})
 
@@ -36,7 +36,7 @@ export const useFrontIntegration = (props?: { repoll?: boolean }) => {
 		(code: string, projectId?: string) =>
 			addIntegrationToProject({
 				variables: {
-					integration_type: IntegrationType.Linear,
+					integration_type: IntegrationType.Front,
 					code: code,
 					project_id: projectId || project_id,
 				},
@@ -47,7 +47,7 @@ export const useFrontIntegration = (props?: { repoll?: boolean }) => {
 	const [removeIntegrationFromProject] =
 		useRemoveIntegrationFromProjectMutation({
 			refetchQueries: [
-				namedOperations.Query.GetWorkspaceIsIntegratedWithLinear,
+				namedOperations.Query.GetWorkspaceIsIntegratedWithFront,
 			],
 		})
 

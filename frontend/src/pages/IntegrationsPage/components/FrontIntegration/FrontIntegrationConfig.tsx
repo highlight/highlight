@@ -3,6 +3,8 @@ import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import { useParams } from '@util/react-router/useParams'
+import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 
@@ -15,6 +17,9 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setIntegrationEnabled,
 	integrationEnabled,
 }) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
 	const { removeFrontIntegrationFromProject, isFrontIntegratedWithProject } =
 		useFrontIntegration({ repoll: !integrationEnabled })
 
@@ -68,7 +73,8 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		)
 	}
 
-	const redirectURI = `https://app.highlight.run/callback/front`
+	const redirectURI = `${GetBaseURL()}/callback/front`
+	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
@@ -91,7 +97,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://app.frontapp.com/oauth/authorize?response_type=code&client_id=${FRONT_CLIENT_ID}&redirect_uri=${redirectURI}`}
+					href={`https://app.frontapp.com/oauth/authorize?response_type=code&client_id=${FRONT_CLIENT_ID}&state=${state}&redirect_uri=${redirectURI}`}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />

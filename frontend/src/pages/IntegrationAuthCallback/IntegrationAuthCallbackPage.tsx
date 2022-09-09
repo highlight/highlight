@@ -8,61 +8,102 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useHistory } from 'react-router-dom'
 
-const IntegrationAuthCallbackPage = () => {
-	const { integrationName } = useParams<{
-		integrationName: string
-	}>()
+interface Props {
+	code: string
+	projectId?: string
+	next?: string
+}
+
+const logError = (e: any) => {
+	H.consumeError(e)
+	message
+		.error('Failed to add integration to project. Please try again.')
+		?.then(console.error)
+}
+
+const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
 	const history = useHistory()
 	const { setLoadingState } = useAppLoadingContext()
 
 	const { addSlackToWorkspace } = useSlackBot({
 		type: 'Organization',
 	})
+	useEffect(() => {
+		let nextUrl = '/integrations'
+		;(async () => {
+			try {
+				if (!projectId || !code) return
+
+				if (next) {
+					nextUrl = `/${projectId}/${next}`
+				} else {
+					nextUrl = `/${projectId}/integrations`
+				}
+
+				await addSlackToWorkspace(code, projectId)
+			} catch (e: any) {
+				logError(e)
+			} finally {
+				history.push(nextUrl)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [code, projectId, next, addSlackToWorkspace, history, setLoadingState])
+
+	return null
+}
+const LinearIntegrationCallback = ({ code, projectId, next }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
 
 	const { addLinearIntegrationToProject } = useLinearIntegration()
+
+	useEffect(() => {
+		let nextUrl = '/integrations'
+		;(async () => {
+			try {
+				if (!projectId || !code) return
+
+				if (next) {
+					nextUrl = `/${projectId}/${next}`
+				} else {
+					nextUrl = `/${projectId}/integrations`
+				}
+
+				await addLinearIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with Linear!', 5)
+			} catch (e: any) {
+				logError(e)
+			} finally {
+				history.push(nextUrl)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		code,
+		projectId,
+		next,
+		history,
+		setLoadingState,
+		addLinearIntegrationToProject,
+	])
+	return null
+}
+const FrontIntegrationCallback = ({ code, projectId }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
 	const { addFrontIntegrationToProject } = useFrontIntegration()
 
 	useEffect(() => {
-		setLoadingState(AppLoadingState.EXTENDED_LOADING)
-		const urlParams = new URLSearchParams(window.location.search)
-		const code = urlParams.get('code')
-		const state = urlParams.get('state') || ''
-		let next = '/integrations'
+		if (!projectId || !code) return
+		const next = `/${projectId}/integrations`
 		;(async () => {
 			try {
-				const parsedState = JSON.parse(atob(state))
-				const project_id = parsedState['project_id']
-
-				if (!project_id) {
-					throw new Error(
-						'Error adding integration: no project_id in state query string',
-					)
-				}
-
-				if (!parsedState['next']) {
-					next = `/${project_id}/${parsedState['next']}`
-				} else {
-					next = `/${project_id}/integrations`
-				}
-
-				if (!code) {
-					throw new Error(
-						'Error adding integration: no code in url query string',
-					)
-				}
-
-				if (integrationName.toLowerCase() === 'slack') {
-					await addSlackToWorkspace(code, project_id)
-				} else if (integrationName.toLocaleLowerCase() === 'linear') {
-					await addLinearIntegrationToProject(code, project_id)
-					message.success('Highlight is now synced with Linear!', 5)
-				} else if (integrationName.toLowerCase() === 'front') {
-					await addFrontIntegrationToProject(code, project_id)
-					message.success('Highlight is now synced with Front!', 5)
-				}
+				await addFrontIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with Front!', 5)
 			} catch (e: any) {
 				H.consumeError(e)
 				console.error(e)
@@ -75,13 +116,68 @@ const IntegrationAuthCallbackPage = () => {
 			}
 		})()
 	}, [
-		addSlackToWorkspace,
-		integrationName,
 		history,
 		setLoadingState,
-		addLinearIntegrationToProject,
 		addFrontIntegrationToProject,
+		code,
+		projectId,
 	])
+
+	return null
+}
+
+const IntegrationAuthCallbackPage = () => {
+	const { integrationName } = useParams<{
+		integrationName: string
+	}>()
+	const { setLoadingState } = useAppLoadingContext()
+
+	useEffect(() => {
+		setLoadingState(AppLoadingState.EXTENDED_LOADING)
+	}, [setLoadingState])
+
+	const { code, projectId, next } = useMemo(() => {
+		const urlParams = new URLSearchParams(window.location.search)
+		const code = urlParams.get('code')!
+		const state = urlParams.get('state') || ''
+		let projectId: string | undefined = undefined
+		let next: string | undefined = undefined
+		if (state) {
+			let parsedState: any
+			try {
+				parsedState = JSON.parse(atob(state))
+			} catch (e) {
+				parsedState = JSON.parse(state)
+			}
+			projectId = parsedState['project_id']
+			next = parsedState['next']
+		}
+		return {
+			code,
+			projectId,
+			next,
+		}
+	}, [])
+
+	if (integrationName.toLowerCase() === 'slack') {
+		return (
+			<SlackIntegrationCallback
+				code={code}
+				projectId={projectId}
+				next={next}
+			/>
+		)
+	} else if (integrationName.toLowerCase() === 'linear') {
+		return (
+			<LinearIntegrationCallback
+				code={code}
+				projectId={projectId}
+				next={next}
+			/>
+		)
+	} else if (integrationName.toLowerCase() === 'front') {
+		return <FrontIntegrationCallback code={code} projectId={projectId} />
+	}
 
 	return null
 }
