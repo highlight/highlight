@@ -58,7 +58,6 @@ const DashboardPage = ({
 	const [dashboard, setDashboard] = useState<DashboardDefinition>()
 	const metricAutoAdded = useRef<boolean>(false)
 	const metricConfig = locationState?.metricConfig
-	console.log('::: metricConfig', metricConfig)
 
 	useEffect(() => {
 		const dashboard = dashboards.find((d) =>
