@@ -221,211 +221,228 @@ export default function LoginForm() {
 	}
 
 	const heroBugClass = classNames(
-		'pointer-events-none absolute h-36 w-36 object-contain hidden xl:block',
+		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
 	)
+
+	function getLoginTitleText() {
+		if (formState === LoginFormState.ResetPassword) {
+			return 'Reset your password'
+		}
+		if (formState === LoginFormState.SignIn) {
+			return 'Welcome back to Highlight.'
+		}
+		return 'Welcome to Highlight.'
+	}
 
 	return (
 		<Landing>
-			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-12">
-				<img
-					src={heroBugLeft}
-					className={classNames(
-						heroBugClass,
-						'-left-32 rotate-[-30deg]',
-					)}
-				/>
-
-				<img
-					src={heroBugRight}
-					className={classNames(heroBugClass, '-right-32 top-0')}
-				/>
-
-				<div className="w-full max-w-sm rounded-md bg-white p-8">
-					<form onSubmit={onSubmit} className={styles.loginForm}>
-						<div className={styles.loginTitleWrapper}>
-							<h2 className={styles.loginTitle}>
-								{formState === LoginFormState.ResetPassword ? (
-									<>Reset your Password.</>
-								) : (
-									<>
-										Welcome{' '}
-										{formState === LoginFormState.SignIn &&
-											'back'}{' '}
-										to Highlight.
-									</>
-								)}
-							</h2>
-							<p className={styles.loginSubTitle}>
-								{formState === LoginFormState.SignIn ? (
-									<>
-										New here?{' '}
-										<span
-											onClick={() => {
-												changeState(
-													LoginFormState.SignUp,
-												)
-											}}
-											className={
-												styles.loginStateSwitcher
-											}
-										>
-											Create an account.
-										</span>
-									</>
-								) : formState ===
-								  LoginFormState.ResetPassword ? (
-									<>
-										Want to{' '}
-										<span
-											onClick={() => {
-												changeState(
-													LoginFormState.SignIn,
-												)
-											}}
-											className={
-												styles.loginStateSwitcher
-											}
-										>
-											sign in
-										</span>{' '}
-										again?
-									</>
-								) : (
-									<>
-										Already have an account?{' '}
-										<span
-											onClick={() => {
-												changeState(
-													LoginFormState.SignIn,
-												)
-											}}
-											className={
-												styles.loginStateSwitcher
-											}
-										>
-											Sign in.
-										</span>
-									</>
-								)}
+			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
+				<section className="flex w-full max-w-md flex-col items-center gap-6">
+					<div className="flex flex-col items-center gap-2 text-center font-poppins font-semibold">
+						<h2 className="text-4xl tracking-wide text-white">
+							{getLoginTitleText()}
+						</h2>
+						{formState === LoginFormState.SignUp && (
+							<p className="text-xl tracking-wider text-white">
+								It's time to squash some bugs.
 							</p>
-						</div>
-						<div className={styles.inputContainer}>
-							<Input
-								placeholder={'Email'}
-								name="email"
-								type={'email'}
-								value={email}
-								onChange={(e) => {
-									setEmail(e.target.value)
-								}}
-								autoFocus
-								required
-							/>
-							{formState !== LoginFormState.ResetPassword && (
+						)}
+					</div>
+					<div className="w-full rounded-md bg-white px-8 py-6">
+						<form onSubmit={onSubmit} className={styles.loginForm}>
+							<div className={styles.loginTitleWrapper}>
+								<p className={styles.loginSubTitle}>
+									{formState === LoginFormState.SignIn ? (
+										<>
+											New here?{' '}
+											<span
+												onClick={() => {
+													changeState(
+														LoginFormState.SignUp,
+													)
+												}}
+												className={
+													styles.loginStateSwitcher
+												}
+											>
+												Create an account.
+											</span>
+										</>
+									) : formState ===
+									  LoginFormState.ResetPassword ? (
+										<>
+											Want to{' '}
+											<span
+												onClick={() => {
+													changeState(
+														LoginFormState.SignIn,
+													)
+												}}
+												className={
+													styles.loginStateSwitcher
+												}
+											>
+												sign in
+											</span>{' '}
+											again?
+										</>
+									) : (
+										<>
+											Already have an account?{' '}
+											<span
+												onClick={() => {
+													changeState(
+														LoginFormState.SignIn,
+													)
+												}}
+												className={
+													styles.loginStateSwitcher
+												}
+											>
+												Sign in.
+											</span>
+										</>
+									)}
+								</p>
+							</div>
+							<div className={styles.inputContainer}>
 								<Input
-									placeholder={'Password'}
-									type="password"
-									name="password"
-									value={password}
+									placeholder={'Email'}
+									name="email"
+									type={'email'}
+									value={email}
 									onChange={(e) => {
-										setPassword(e.target.value)
+										setEmail(e.target.value)
 									}}
+									autoFocus
 									required
 								/>
-							)}
-							{formState === LoginFormState.SignUp && (
-								<>
+								{formState !== LoginFormState.ResetPassword && (
 									<Input
-										placeholder={'Confirm Password'}
+										placeholder={'Password'}
 										type="password"
-										name="confirm-password"
-										required
-										value={passwordConfirmation}
+										name="password"
+										value={password}
 										onChange={(e) => {
-											setPasswordConfirmation(
-												e.target.value,
-											)
+											setPassword(e.target.value)
 										}}
+										required
 									/>
-								</>
-							)}
-						</div>
-						{error && (
-							<div className={commonStyles.errorMessage}>
-								{error}
+								)}
+								{formState === LoginFormState.SignUp && (
+									<>
+										<Input
+											placeholder={'Confirm Password'}
+											type="password"
+											name="confirm-password"
+											required
+											value={passwordConfirmation}
+											onChange={(e) => {
+												setPasswordConfirmation(
+													e.target.value,
+												)
+											}}
+										/>
+									</>
+								)}
 							</div>
-						)}
-						{formState !== LoginFormState.ResetPassword && (
-							<span
-								onClick={() => {
-									changeState(LoginFormState.ResetPassword)
-								}}
-								className={classNames(
-									styles.loginStateSwitcher,
-									styles.resetPasswordText,
-								)}
-							>
-								Forgot your password?
-							</span>
-						)}
-						<Button
-							trackingId="LoginSignInUp"
-							className={commonStyles.submitButton}
-							type="primary"
-							htmlType="submit"
-							loading={isLoadingFirebase}
-						>
-							{formState === LoginFormState.SignIn
-								? 'Sign In'
-								: formState === LoginFormState.SignUp
-								? 'Sign Up'
-								: 'Reset Password'}
-						</Button>
-					</form>
-					{formState !== LoginFormState.ResetPassword && (
-						<>
-							<p className={styles.otherSigninText}>
-								or sign{' '}
-								{formState === LoginFormState.SignIn
-									? 'in'
-									: 'up'}{' '}
-								with
-							</p>
+							{error && (
+								<div className={commonStyles.errorMessage}>
+									{error}
+								</div>
+							)}
+							{formState !== LoginFormState.ResetPassword && (
+								<span
+									onClick={() => {
+										changeState(
+											LoginFormState.ResetPassword,
+										)
+									}}
+									className={classNames(
+										styles.loginStateSwitcher,
+										styles.resetPasswordText,
+									)}
+								>
+									Forgot your password?
+								</span>
+							)}
 							<Button
-								trackingId="LoginWithGoogle"
-								className={classNames(
-									commonStyles.secondaryButton,
-									styles.googleButton,
-								)}
-								onClick={() => {
-									auth.signInWithRedirect(
-										googleProvider,
-									).catch((e) =>
-										setFirebaseError(JSON.stringify(e)),
-									)
-								}}
+								trackingId="LoginSignInUp"
+								className={commonStyles.submitButton}
+								type="primary"
+								htmlType="submit"
 								loading={isLoadingFirebase}
 							>
-								<GoogleLogo
-									className={styles.googleLogoStyle}
-								/>
-								<span className={styles.googleText}>
-									Google Sign{' '}
-									{formState === LoginFormState.SignIn
-										? 'In'
-										: 'Up'}
-								</span>
+								{formState === LoginFormState.SignIn
+									? 'Sign In'
+									: formState === LoginFormState.SignUp
+									? 'Sign Up'
+									: 'Reset Password'}
 							</Button>
-							<div className={commonStyles.errorMessage}>
-								{firebaseError}
-							</div>
-						</>
-					)}
-				</div>
+						</form>
+						{formState !== LoginFormState.ResetPassword && (
+							<>
+								<p className={styles.otherSigninText}>
+									or sign{' '}
+									{formState === LoginFormState.SignIn
+										? 'in'
+										: 'up'}{' '}
+									with
+								</p>
+								<Button
+									trackingId="LoginWithGoogle"
+									className={classNames(
+										commonStyles.secondaryButton,
+										styles.googleButton,
+									)}
+									onClick={() => {
+										auth.signInWithRedirect(
+											googleProvider,
+										).catch((e) =>
+											setFirebaseError(JSON.stringify(e)),
+										)
+									}}
+									loading={isLoadingFirebase}
+								>
+									<GoogleLogo
+										className={styles.googleLogoStyle}
+									/>
+									<span className={styles.googleText}>
+										Google Sign{' '}
+										{formState === LoginFormState.SignIn
+											? 'In'
+											: 'Up'}
+									</span>
+								</Button>
+								<div className={commonStyles.errorMessage}>
+									{firebaseError}
+								</div>
+							</>
+						)}
+					</div>
+				</section>
 
-				<div className="hidden min-w-0 flex-1 lg:block">
-					<Testimonial />
-				</div>
+				{formState === LoginFormState.SignUp && (
+					<>
+						<img
+							src={heroBugLeft}
+							className={classNames(heroBugClass, '-left-56')}
+							style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
+						/>
+
+						<img
+							src={heroBugRight}
+							className={classNames(
+								heroBugClass,
+								'-right-56 -top-28',
+							)}
+						/>
+
+						<div className="hidden min-w-0 flex-1 xl:block">
+							<Testimonial />
+						</div>
+					</>
+				)}
 			</div>
 		</Landing>
 	)
@@ -433,15 +450,15 @@ export default function LoginForm() {
 
 function Testimonial() {
 	return (
-		<div className="flex flex-col gap-8 text-white">
-			<p className="text-3xl font-semibold text-white">
+		<div className="flex flex-col gap-8 font-poppins tracking-wide text-white">
+			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size
 				</span>
 				, Highlight makes debugging and fixing bugs faster than ever.
 			</p>
-			<blockquote className="border-y-0 border-l-2 border-r-0 border-solid border-white pl-8 text-lg">
-				<p className="relative text-white">
+			<blockquote className="border-y-0 border-l-2 border-r-0 border-solid border-white pr-32 pl-8 text-lg">
+				<p className="relative font-semibold text-white">
 					<span
 						aria-hidden
 						className="absolute right-full -top-3 block select-none pr-2 text-4xl "
@@ -475,10 +492,10 @@ function Testimonial() {
 				</div>
 			</blockquote>
 			<section>
-				<p className="text-lg text-white">
+				<p className="m-0 text-lg font-semibold text-white">
 					Trusted by teams everywhere
 				</p>
-				<div className="mt-4 flex flex-wrap gap-4">
+				<div className="mt-2 flex gap-x-12 gap-y-3">
 					<PipeLogo />
 					<ImpiraLogo />
 					<MageLogo />
