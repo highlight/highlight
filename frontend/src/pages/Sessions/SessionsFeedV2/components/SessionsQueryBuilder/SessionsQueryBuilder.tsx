@@ -216,7 +216,7 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 	}
 	if (params.referrer) {
 		rules.push(
-			deserializeGroup('session_referrer', 'is', [params.referrer]),
+			deserializeGroup('session_referrer', 'contains', [params.referrer]),
 		)
 	}
 	if (params.identified) {

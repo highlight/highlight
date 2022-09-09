@@ -14,6 +14,7 @@ import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { validateEmail } from '@util/string'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -104,6 +105,15 @@ const RageClicksForProjectTable = ({
 						setSelectedSegment(undefined)
 						setSearchParams({
 							...EmptySessionsSearchParams,
+							user_properties: [
+								{
+									id: record.id,
+									name: validateEmail(record.identifier)
+										? 'email'
+										: 'identifier',
+									value: record.identifier,
+								},
+							],
 						})
 						message.success(
 							`Showing most recent session for ${record.identifier} with rage clicks.`,
