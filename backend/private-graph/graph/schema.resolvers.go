@@ -3143,6 +3143,24 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	return dashboard.ID, nil
 }
 
+// DeleteDashboard is the resolver for the deleteDashboard field.
+func (r *mutationResolver) DeleteDashboard(ctx context.Context, id *int) (bool, error) {
+	var dashboard model.Dashboard
+	if result := r.DB.First(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	if _, err := r.isAdminInProject(ctx, dashboard.ProjectID); err != nil {
+		return false, err
+	}
+
+	if result := r.DB.Delete(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	return true, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {

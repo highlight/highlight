@@ -1483,6 +1483,7 @@ type Mutation {
 		metrics: [DashboardMetricConfigInput!]!
 		layout: String
 	): ID!
+	deleteDashboard(id: ID): Boolean!
 }
 
 type Subscription {
