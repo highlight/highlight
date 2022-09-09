@@ -654,7 +654,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			mouseTail: showPlayerMouseTail,
 			UNSAFE_replayCanvas: true,
 			liveMode: isLiveMode,
-			useVirtualDom: false,
+			useVirtualDom: true,
 		})
 
 		const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents)
