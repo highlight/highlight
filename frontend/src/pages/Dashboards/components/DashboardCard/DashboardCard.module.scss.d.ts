@@ -9,7 +9,6 @@ export const componentCard: string
 export const createNewAlertRow: string
 export const description: string
 export const draggable: string
-export const fixedSize: string
 export const formLabel: string
 export const header: string
 export const headerActions: string

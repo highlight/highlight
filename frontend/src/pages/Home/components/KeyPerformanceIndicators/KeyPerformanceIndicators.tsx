@@ -44,7 +44,7 @@ const KeyPerformanceIndicators = ({
 	return (
 		<div
 			className={classNames(
-				'flex flex-wrap gap-8 h-full mb-8 p-6 w-full',
+				'flex flex-wrap justify-between gap-8 h-full mb-8 p-6 w-full',
 				{
 					['blur-xs']: loading,
 				},
