@@ -78,7 +78,7 @@ export const DashboardComponentCard = ({
 					PrebuiltComponentMap[componentType].fixedSize,
 			})}
 			title={
-				<div className={styles.cardHeader}>
+				<div className="relative">
 					<div className={styles.mainHeaderContent}>
 						<div className={styles.headerContainer}>
 							<span className={styles.header}>
@@ -141,7 +141,11 @@ export const DashboardComponentCard = ({
 							</div>
 						</div>
 					</div>
-					{updatingData && <LoadingBar height={2} width={'100%'} />}
+					{updatingData && (
+						<div className="absolute inset-x-0 bottom-0">
+							<LoadingBar height={2} width={'100%'} />
+						</div>
+					)}
 				</div>
 			}
 		>
