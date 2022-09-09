@@ -415,6 +415,7 @@ const Player = ({ integrated }: Props) => {
 												}}
 												className={classNames(
 													styles.rrwebPlayerDiv,
+													'highlight-block',
 												)}
 												id="player"
 											/>
