@@ -97,6 +97,7 @@ const ActiveUsersTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
+						history.push(`/${projectIdRemapped}/sessions`)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
@@ -114,7 +115,6 @@ const ActiveUsersTable = ({
 						message.success(
 							`Showing sessions for ${record.identifier}`,
 						)
-						history.push(`/${projectIdRemapped}/sessions`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&
@@ -160,6 +160,7 @@ const Columns: ColumnsType<any> = [
 		title: 'User',
 		dataIndex: 'identifier',
 		key: 'identifier',
+		width: '40%',
 		render: (user, record) => {
 			return (
 				<div className={styles.hostContainer}>

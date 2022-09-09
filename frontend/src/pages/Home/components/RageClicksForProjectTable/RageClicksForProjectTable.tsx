@@ -101,6 +101,9 @@ const RageClicksForProjectTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
+						history.push(
+							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
+						)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
@@ -117,9 +120,6 @@ const RageClicksForProjectTable = ({
 						})
 						message.success(
 							`Showing most recent session for ${record.identifier} with rage clicks.`,
-						)
-						history.push(
-							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
 						)
 					}}
 					noDataMessage={

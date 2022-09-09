@@ -16,7 +16,7 @@
 	height: 1rem;
 	overflow: hidden;
 	position: relative;
-	width: var(--size-xLarge);
+	width: var(--size-large);
 
 	&::after {
 		background: var(--text-primary);
@@ -33,11 +33,12 @@
 	align-items: center;
 	border: 1px solid var(--color-gray-300);
 	border-radius: var(--border-radius);
-	column-gap: var(--size-xSmall);
+	column-gap: var(--size-xxSmall);
 	display: flex;
 	flex-wrap: nowrap;
-	justify-content: flex-end;
-	padding: var(--size-xxSmall) var(--size-small);
+	justify-content: space-between;
+	min-width: 68px;
+	padding: var(--size-xxSmall) var(--size-xSmall);
 	white-space: nowrap;
 	width: fit-content;
 }
