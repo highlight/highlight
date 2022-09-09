@@ -52,7 +52,7 @@ const TopRoutesTable = ({
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
-					loading={loading}
+					loading={false}
 					columns={Columns}
 					data={
 						data?.network_histogram?.buckets

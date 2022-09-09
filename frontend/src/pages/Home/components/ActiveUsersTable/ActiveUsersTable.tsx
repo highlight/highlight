@@ -93,7 +93,7 @@ const ActiveUsersTable = ({
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
-					loading={loading}
+					loading={false}
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
