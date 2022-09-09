@@ -1,4 +1,3 @@
-import '@highlight-run/react/dist/highlight.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import 'antd/dist/antd.css'
 import './index.scss'
@@ -58,6 +57,11 @@ const options: HighlightOptions = {
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
+		destinationDomains: [
+			'pri.highlight.run',
+			'pub.highlight.run',
+			'localhost:8082',
+		],
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -41,6 +42,8 @@ func LambdaHandler(ctx context.Context, event utils.BatchIdResponse) (*utils.Bat
 		s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: &storage.S3SessionsPayloadBucketName,
 		})
+
+		s3Client.ListObjectsV2()
 	}
 
 	// Initialize a session in us-west-2 that the SDK will use to load

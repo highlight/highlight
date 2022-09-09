@@ -2234,8 +2234,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			var lastUserInteractionTimestamp time.Time
+			hasFullSnapshot := false
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot {
+					hasFullSnapshot = true
 					// If we see a snapshot event, attempt to inject CORS stylesheets.
 					d, err := parse.InjectStylesheets(event.Data)
 					if err != nil {
@@ -2293,6 +2295,29 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				// A little bit of a hack to encode
 				if isBeacon {
 					score += .5
+				}
+
+				// Gated for project_id = 1 for now
+				if hasFullSnapshot {
+					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
+					if err != nil {
+						return e.Wrap(err, "error retrieving previous event objects")
+					}
+
+					// If there are prior events, push them to S3 and remove them from Redis
+					if len(zRange) != 0 {
+						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
+							return e.Wrap(err, "error pushing events to S3")
+						}
+
+						values := []interface{}{}
+						for _, z := range zRange {
+							values = append(values, z.Member)
+						}
+						if err := r.Redis.RemoveValues(ctx, sessionID, values); err != nil {
+							return e.Wrap(err, "error removing previous values")
+						}
+					}
 				}
 
 				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {

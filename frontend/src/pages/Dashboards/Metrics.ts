@@ -9,7 +9,7 @@ export const LAYOUT_ROW_WIDTH = 12
 export const LAYOUT_CHART_WIDTH = LAYOUT_ROW_WIDTH / 2
 export const DEFAULT_SINGLE_LAYOUT = {
 	w: LAYOUT_CHART_WIDTH,
-	h: 3,
+	h: 4,
 	x: 0,
 	y: 0,
 	i: '0',

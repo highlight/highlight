@@ -34,7 +34,12 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import styles from './EditMetricModal.module.scss'
 
-const CHART_TYPES = [
+const CHART_TYPES: {
+	title: string
+	description: string
+	chartType?: DashboardChartType
+	componentType?: MetricViewComponentType
+}[] = [
 	{
 		title: 'Time Series / Line',
 		description: `Line graph that plots the values of the metric on the Y axis with time on the X axis. Use this if you want to see how values change over time.`,
@@ -50,41 +55,6 @@ const CHART_TYPES = [
 		description: `Histogram of occurrences of different values. Use this if you want to visualize where the majority of the values lie and view outliers.`,
 		chartType: DashboardChartType.Histogram,
 	},
-	{
-		title: 'Key Visitor Metrics',
-		description: `Top metrics about visits to your app.`,
-		componentType: MetricViewComponentType.KeyPerformanceGauge,
-	},
-	{
-		title: 'Session Count',
-		description: `Number of sessions over time.`,
-		componentType: MetricViewComponentType.SessionCountChart,
-	},
-	{
-		title: 'Error Count',
-		description: `Number of errors over time.`,
-		componentType: MetricViewComponentType.ErrorCountChart,
-	},
-	{
-		title: 'App Referrers',
-		description: `Top web referrers.`,
-		componentType: MetricViewComponentType.ReferrersTable,
-	},
-	{
-		title: 'Active Users',
-		description: `Top identified users.`,
-		componentType: MetricViewComponentType.ActiveUsersTable,
-	},
-	{
-		title: 'Rage Clicks',
-		description: `Instances of rage clicks.`,
-		componentType: MetricViewComponentType.RageClicksTable,
-	},
-	{
-		title: 'Top Routes',
-		description: `Most accessed routes.`,
-		componentType: MetricViewComponentType.TopRoutesTable,
-	},
 ]
 
 export type UpdateMetricFn = (idx: number, value: DashboardMetricConfig) => void
@@ -92,16 +62,16 @@ export const EditMetricModal = ({
 	metricIdx,
 	metricConfig,
 	updateMetric,
-	onDelete,
 	onCancel,
 	shown = false,
+	canChangeType = true,
 }: {
 	metricIdx: number
 	metricConfig: DashboardMetricConfig
 	updateMetric: UpdateMetricFn
-	onDelete: () => void
 	onCancel: () => void
 	shown?: boolean
+	canChangeType?: boolean
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const [minValue, setMinValue] = useState<boolean>(
@@ -204,33 +174,38 @@ export const EditMetricModal = ({
 						/>
 					</section>
 
-					<section className={styles.section}>
-						<h3>Metric View Type</h3>
-						<div className={styles.typesContainer}>
-							{CHART_TYPES.map((c) => (
-								<CardSelect
-									key={c.title}
-									title={c.title}
-									description={c.description}
-									descriptionClass={styles.typeSubheader}
-									isSelected={
-										componentType
-											? componentType === c.componentType
-											: chartType === c.chartType
-									}
-									onClick={() => {
-										if (c.componentType) {
-											setChartType(undefined)
-											setComponentType(c.componentType)
-										} else {
-											setChartType(c.chartType)
-											setComponentType(undefined)
+					{canChangeType && (
+						<section className={styles.section}>
+							<h3>Metric View Type</h3>
+							<div className={styles.typesContainer}>
+								{CHART_TYPES.map((c) => (
+									<CardSelect
+										key={c.title}
+										title={c.title}
+										description={c.description}
+										descriptionClass={styles.typeSubheader}
+										isSelected={
+											componentType
+												? componentType ===
+												  c.componentType
+												: chartType === c.chartType
 										}
-									}}
-								/>
-							))}
-						</div>
-					</section>
+										onClick={() => {
+											if (c.componentType) {
+												setChartType(undefined)
+												setComponentType(
+													c.componentType,
+												)
+											} else {
+												setChartType(c.chartType)
+												setComponentType(undefined)
+											}
+										}}
+									/>
+								))}
+							</div>
+						</section>
+					)}
 
 					{chartType === DashboardChartType.Timeline ||
 					chartType === DashboardChartType.TimelineBar ? (
@@ -366,21 +341,6 @@ export const EditMetricModal = ({
 
 					<CardFormActionsContainer>
 						<div className={styles.submitRow}>
-							<Button
-								style={{ width: 100 }}
-								icon={
-									<TrashIcon
-										style={{
-											marginRight: 'var(--size-xSmall)',
-										}}
-									/>
-								}
-								danger
-								trackingId={'DashboardCardDelete'}
-								onClick={onDelete}
-							>
-								Delete
-							</Button>
 							<Button
 								type={'primary'}
 								style={{

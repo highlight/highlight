@@ -63,6 +63,15 @@ var (
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
 )
 
+var BytesConversion = map[string]int64{
+	"b":  1,
+	"kb": 1024,
+	"mb": 1024 * 1024,
+	"gb": 1024 * 1024 * 1024,
+	"tb": 1024 * 1024 * 1024 * 1024,
+	"pb": 1024 * 1024 * 1024 * 1024 * 1024,
+}
+
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB
@@ -2174,7 +2183,16 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
 	if s.ProcessWithRedis {
-		return r.Redis.GetEvents(ctx, s, cursor)
+		isLive := cursor != model.EventsCursor{}
+		s3Events := map[int]string{}
+		if !isLive {
+			var err error
+			s3Events, err = r.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+			}
+		}
+		return r.Redis.GetEvents(ctx, s, cursor, s3Events)
 	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -2462,23 +2480,30 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 	return aggregateStatement
 }
 
-func CalculateTimeUnitConversion(originalUnits *string, desiredUnits *string) float64 {
+func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) float64 {
 	div := 1.0
 	if originalUnits == nil {
 		originalUnits = pointy.String("s")
 	}
-	if desiredUnits != nil {
-		o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
-		if err != nil {
-			return div
-		}
-		d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
-		if err != nil {
-			return div
-		}
-		return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
+	if desiredUnits == nil {
+		return div
 	}
-	return div
+	if *originalUnits == "b" {
+		bytes, ok := BytesConversion[*desiredUnits]
+		if !ok {
+			return div
+		}
+		return float64(bytes)
+	}
+	o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
+	if err != nil {
+		return div
+	}
+	d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
+	if err != nil {
+		return div
+	}
+	return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
 }
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
@@ -2488,6 +2513,9 @@ func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	}
 	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
+	}
+	if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("b")
 	}
 	return
 }
@@ -2526,7 +2554,7 @@ func GetTagGroups(groups []string) (result string) {
 }
 
 func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
-	div := CalculateTimeUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	tagGroups := GetTagGroups(params.Groups)
 	resMins := 60

@@ -246,6 +246,9 @@ export type InitializeSessionMutationVariables = Exact<{
 	id: Scalars['String']
 	appVersion?: InputMaybe<Scalars['String']>
 	client_id: Scalars['String']
+	network_recording_domains?: InputMaybe<
+		Array<Scalars['String']> | Scalars['String']
+	>
 }>
 
 export type InitializeSessionMutation = {
@@ -347,6 +350,7 @@ export const InitializeSessionDocument = gql`
 		$id: String!
 		$appVersion: String
 		$client_id: String!
+		$network_recording_domains: [String!]
 	) {
 		initializeSession(
 			session_secure_id: $session_secure_id
@@ -360,6 +364,7 @@ export const InitializeSessionDocument = gql`
 			appVersion: $appVersion
 			fingerprint: $id
 			client_id: $client_id
+			network_recording_domains: $network_recording_domains
 		) {
 			secure_id
 			project_id

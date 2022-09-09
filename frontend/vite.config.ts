@@ -13,7 +13,11 @@ const __dirname = dirname(__filename)
 
 export default defineConfig({
 	plugins: [
-		react(),
+		react({
+			babel: {
+				plugins: ['babel-plugin-react-wrapped-display-name'],
+			},
+		}),
 		tsconfigPaths(),
 		svgr(),
 		vitePluginImp({
