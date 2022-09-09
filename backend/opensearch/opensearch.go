@@ -184,7 +184,9 @@ type SearchOptions struct {
 	ReturnCount       *bool
 	ProjectIDOnParent *bool
 	ExcludeFields     []string
+	IncludeFields     []string
 	Aggregation       Aggregation
+	SearchAfter       []interface{}
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -474,8 +476,19 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		if excludesStr != "" {
 			excludesStr += ", "
 		}
-
 		excludesStr += `"` + e + `"`
+	}
+
+	includesStr := ""
+	if len(options.IncludeFields) > 0 {
+		innerIncludes := ""
+		for _, e := range options.IncludeFields {
+			if innerIncludes != "" {
+				innerIncludes += ", "
+			}
+			innerIncludes += `"` + e + `"`
+		}
+		includesStr = fmt.Sprintf(`, "includes": [%s]`, innerIncludes)
 	}
 
 	aggs := ""
@@ -483,8 +496,8 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
 	}
 
-	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
-		excludesStr, count, from, q, sort, trackTotalHits, aggs)
+	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+		excludesStr, includesStr, count, from, q, sort, trackTotalHits, aggs)
 	content := strings.NewReader(contentStr)
 
 	searchIndexes := []string{}

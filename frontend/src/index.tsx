@@ -70,6 +70,7 @@ const options: HighlightOptions = {
 	},
 	enableSegmentIntegration: true,
 	enableCanvasRecording: true,
+	enablePerformanceRecording: true,
 	samplingStrategy: {
 		canvas: 15,
 		canvasQuality: 'low',
