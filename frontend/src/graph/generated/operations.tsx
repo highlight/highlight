@@ -2029,6 +2029,15 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type IsSessionPendingQueryVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type IsSessionPendingQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'isSessionPending'
+>
+
 export type GetAccountsQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetAccountsQuery = { __typename?: 'Query' } & {
@@ -3963,6 +3972,7 @@ export const namedOperations = {
 		GetSessionComments: 'GetSessionComments' as const,
 		GetNotifications: 'GetNotifications' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
+		isSessionPending: 'isSessionPending' as const,
 		GetAccounts: 'GetAccounts' as const,
 		GetAccountDetails: 'GetAccountDetails' as const,
 		GetErrorComments: 'GetErrorComments' as const,
