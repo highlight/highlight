@@ -566,6 +566,38 @@ const ChartContainer = React.memo(
 			]
 		}
 
+		const onMouseUp = () => {
+			if (Object.values(referenceArea).includes('')) {
+				return
+			}
+
+			const { start, end } = referenceArea
+
+			if (end > start) {
+				setTimeRange(start, end, true)
+			} else {
+				setTimeRange(end, start, true)
+			}
+
+			setReferenceArea({ start: '', end: '' })
+		}
+		const onMouseMove = (e?: any) => {
+			e?.activeLabel &&
+				referenceArea.start &&
+				setReferenceArea({
+					start: referenceArea.start,
+					end: e.activeLabel,
+				})
+		}
+
+		const onMouseDown = (e?: any) => {
+			e?.activeLabel &&
+				setReferenceArea({
+					start: e.activeLabel,
+					end: referenceArea.end,
+				})
+		}
+
 		return (
 			<div
 				className={classNames({
@@ -640,36 +672,9 @@ const ChartContainer = React.memo(
 							x1: referenceArea.start,
 							x2: referenceArea.end,
 						}}
-						onMouseDown={(e?: any) => {
-							e?.activeLabel &&
-								setReferenceArea({
-									start: e.activeLabel,
-									end: referenceArea.end,
-								})
-						}}
-						onMouseMove={(e?: any) => {
-							e?.activeLabel &&
-								referenceArea.start &&
-								setReferenceArea({
-									start: referenceArea.start,
-									end: e.activeLabel,
-								})
-						}}
-						onMouseUp={() => {
-							if (Object.values(referenceArea).includes('')) {
-								return
-							}
-
-							const { start, end } = referenceArea
-
-							if (end > start) {
-								setTimeRange(start, end, true)
-							} else {
-								setTimeRange(end, start, true)
-							}
-
-							setReferenceArea({ start: '', end: '' })
-						}}
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
 					/>
 				) : chartType === DashboardChartType.TimelineBar ? (
 					<CategoricalBarChart
@@ -695,6 +700,13 @@ const ChartContainer = React.memo(
 							tickCount: timelineTicks.ticks.length,
 						}}
 						yAxisLabel={metricConfig.units || ''}
+						referenceAreaProps={{
+							x1: referenceArea.start,
+							x2: referenceArea.end,
+						}}
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
 					/>
 				) : null}
 			</div>

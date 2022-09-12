@@ -51,6 +51,9 @@ const CategoricalBarChart = ({
 	hideLegend = false,
 	stacked = false,
 	referenceAreaProps,
+	onMouseUp,
+	onMouseMove,
+	onMouseDown,
 	xAxisProps,
 }: Props) => {
 	const [showTooltip, setShowTooltip] = React.useState(false)
@@ -80,10 +83,17 @@ const CategoricalBarChart = ({
 					data={groupedData}
 					syncId={syncId}
 					barGap={0}
-					onMouseMove={() => {
-						setShowTooltip(true)
-					}}
 					onMouseLeave={() => setShowTooltip(false)}
+					onMouseDown={onMouseDown}
+					onMouseMove={(e: any) => {
+						// Not using mouseEnter because it was unreliable.
+						setShowTooltip(true)
+
+						if (typeof onMouseMove === 'function') {
+							onMouseMove(e)
+						}
+					}}
+					onMouseUp={onMouseUp}
 					// use a smaller, proportional gap when bars get numerous and small
 					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
 				>
