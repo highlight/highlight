@@ -78,6 +78,7 @@ const ReferrersTable = ({
 					data={tableData}
 					loading={false}
 					onClickHandler={(record) => {
+						history.push(`/${projectIdRemapped}/sessions`)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
@@ -87,7 +88,6 @@ const ReferrersTable = ({
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)
-						history.push(`/${projectIdRemapped}/sessions`)
 					}}
 					noDataTitle="No referrer data yet 😔"
 					noDataMessage="Doesn't look like your app has been referred to yet."
@@ -119,7 +119,7 @@ const Columns: ColumnsType<any> = [
 				<ProgressBarTableRowGroup alignment="ending">
 					<ProgressBarTablePercentage percent={percent} />
 					<ProgressBarTablePill
-						displayValue={`${record.count} refers`}
+						displayValue={`${record.count}`}
 						icon={<SvgReferrer />}
 					/>
 				</ProgressBarTableRowGroup>
