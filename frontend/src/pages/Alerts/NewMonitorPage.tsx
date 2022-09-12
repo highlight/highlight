@@ -47,7 +47,7 @@ const NewMonitorPage = ({
 	)
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [emails, setEmails] = useState<string[]>([])
-	const [units, setUnits] = useState<string>(metricConfig?.name || '')
+	const [units, setUnits] = useState<string>(metricConfig?.units || '')
 	const [createMonitor] = useCreateMetricMonitorMutation({
 		variables: {
 			project_id,
