@@ -15,6 +15,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -201,16 +202,15 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 	return nil
 }
 
-func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
-	val, err := r.redisClient.Get(key).Result()
-	if err != nil {
+func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
+	val, err := r.redisClient.Get(sessionSecureId).Result()
+	if err == redis.Nil {
+		log.Warnf("key %s does not exist in Redis", sessionSecureId)
+		return false, nil
+	} else if err != nil {
 		return false, errors.Wrap(err, "error getting flag from Redis")
 	}
 	return val == "1" || val == "true", nil
-}
-
-func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
-	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }
 
 func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string, initialized bool) error {
