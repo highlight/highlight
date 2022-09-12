@@ -1,15 +1,18 @@
 import Card from '@components/Card/Card'
 import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
+import {
+	DashboardMetricConfig,
+	MetricAggregator,
+	MetricTagFilter,
+} from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
 import message from 'antd/lib/message'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHistory } from 'react-router-dom'
-import { useSearchParam } from 'react-use'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 
@@ -27,11 +30,11 @@ const NewMonitorPage = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const newMonitorTypeSearchParam = useSearchParam('type')
 	const { slackUrl, loading } = useAlertsContext()
-	const history = useHistory()
+	const history = useHistory<{ metricConfig?: DashboardMetricConfig }>()
+	const metricConfig = history.location.state.metricConfig
 	const [metricToMonitorName, setMetricToMonitorName] = useState<string>(
-		newMonitorTypeSearchParam || 'LCP',
+		metricConfig?.name || 'LCP',
 	)
 	const [monitorName, setMonitorName] = useState('New Monitor')
 	const [aggregator, setAggregator] = useState<MetricAggregator>(
@@ -39,10 +42,12 @@ const NewMonitorPage = ({
 	)
 	const [periodMinutes, setPeriodMinutes] = useState<number>(1)
 	const [threshold, setThreshold] = useState<number>(1000)
-	const [filters, setFilters] = useState<MetricTagFilter[]>([])
+	const [filters, setFilters] = useState<MetricTagFilter[]>(
+		metricConfig?.filters || [],
+	)
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
 	const [emails, setEmails] = useState<string[]>([])
-	const [units, setUnits] = useState<string>()
+	const [units, setUnits] = useState<string>(metricConfig?.name || '')
 	const [createMonitor] = useCreateMetricMonitorMutation({
 		variables: {
 			project_id,
@@ -74,6 +79,11 @@ const NewMonitorPage = ({
 		message.success(`Created ${monitorName} monitor!`)
 		history.push(`/${project_id}/alerts`)
 	}
+
+	useEffect(() => {
+		// Clear state potentially passed to initialize the metric config.
+		history.replace({ ...history.location, state: {} })
+	}, [history])
 
 	return (
 		<div>
