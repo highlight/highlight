@@ -1942,6 +1942,7 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 }
 
 func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[int]int64, errorsBySession map[string]int64, errors int, errorType string) {
+	log.Warnf("updating errors count %+v %+v %d %s", errorsByProject, errorsBySession, errors, errorType)
 	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
 	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
@@ -1978,7 +1979,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*model2.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
-				Timestamp:       time.Now(),
+				Timestamp:       n,
 				Name:            "errors",
 				Value:           float64(count),
 				Category:        pointy.String("__internal"),
@@ -1989,27 +1990,20 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
-	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
+	querySessionSpan.SetTag("numberOfSessions", 1)
 
-	// Query all sessions related to the current batch of error objects
-	sessions := []*model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Scan(&sessions).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from sessionSecureIds")
+	session := &model.Session{}
+	if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
+		retErr := e.New("ProcessBackendPayloadImpl failed to find session " + sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		log.Error(retErr)
 		return
 	}
 
 	querySessionSpan.Finish()
-
-	// Index sessions by secure_id
-	sessionLookup := make(map[string]*model.Session)
-	for _, session := range sessions {
-		sessionLookup[session.SecureID] = session
-	}
 
 	// Filter out empty errors
 	var filteredErrors []*customModels.BackendErrorObjectInput
@@ -2024,7 +2018,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				objString = string(objBytes)
 			}
 			log.WithFields(log.Fields{
-				"project_id":        sessionLookup[errorObject.SessionSecureID],
+				"project_id":        session.ProjectID,
 				"session_secure_id": errorObject.SessionSecureID,
 				"error_object":      objString,
 			}).Warn("caught empty error, continuing...")
@@ -2043,10 +2037,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	errorsBySession := make(map[string]int64)
 	for _, err := range errors {
 		errorsBySession[err.SessionSecureID] += 1
-		session := sessionLookup[err.SessionSecureID]
-		if session == nil {
-			continue
-		}
 		errorsByProject[session.ProjectID] += 1
 	}
 
@@ -2068,29 +2058,24 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 		traceString := string(traceBytes)
 
-		sessionObj := sessionLookup[v.SessionSecureID]
-		if sessionObj == nil {
-			continue
-		}
-		projectID := sessionObj.ProjectID
-
+		projectID := session.ProjectID
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
-			SessionID:   sessionObj.ID,
-			Environment: sessionObj.Environment,
+			SessionID:   session.ID,
+			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,
 			URL:         v.URL,
 			Source:      v.Source,
-			OS:          sessionObj.OSName,
-			Browser:     sessionObj.BrowserName,
+			OS:          session.OSName,
+			Browser:     session.BrowserName,
 			StackTrace:  &traceString,
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
 		}
 
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(sessionObj, errorToInsert), projectID)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
@@ -2100,7 +2085,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			Group      *model.ErrorGroup
 			VisitedURL string
 			SessionObj *model.Session
-		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: session}
 	}
 
 	for _, data := range groups {
@@ -2110,7 +2095,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	putErrorsToDBSpan.Finish()
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
