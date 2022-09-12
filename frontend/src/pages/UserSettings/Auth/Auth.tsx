@@ -31,7 +31,7 @@ const Auth: React.FC = () => {
 			// Firebase won't allow a user to modify 2FA unless they recently
 			// authenticated. If they haven't recently, make them log in.
 			moment().diff(moment(auth.currentUser?.metadata.lastSignInTime)) >
-			5 * 60 * 1000
+			3 * 60 * 1000
 		) {
 			setStatus(AuthState.Login)
 			return

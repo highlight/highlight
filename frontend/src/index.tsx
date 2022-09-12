@@ -262,7 +262,6 @@ const AuthenticationRoleRouter = () => {
 
 				if (user) {
 					if (!called) {
-						// This query fires, but the data doesn't seem to change or trigger a rerender
 						getAdminQuery({
 							variables: { workspace_id, project_id },
 						})
@@ -286,7 +285,7 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly
-		// if a user logs out.
+		// when a user logs out.
 		if (adminData && user) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>

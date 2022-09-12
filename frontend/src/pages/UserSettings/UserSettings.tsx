@@ -5,7 +5,6 @@ import { Helmet } from 'react-helmet'
 
 import commonStyles from '../../Common.module.scss'
 import Auth from './Auth/Auth'
-import styles from './UserSettings.module.scss'
 
 const UserSettings: React.FC = () => {
 	return (

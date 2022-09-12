@@ -130,6 +130,10 @@ export const WorkspaceRouter = () => {
 								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
 									<WorkspaceTabs />
 								</Route>
+								{/*
+								Probably doesn't belong here, but we wanted to reuse the Header,
+								which requires context of a project or workspace.
+								*/}
 								<Route path="/w/:workspace_id/account">
 									<UserSettings />
 								</Route>

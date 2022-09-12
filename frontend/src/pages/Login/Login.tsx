@@ -110,8 +110,8 @@ const LoginForm = () => {
 	const [formState, setFormState] = useState<LoginFormState>(
 		signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn,
 	)
-	// TODO: Look into better types
-	const [resolver, setResolver] = useState<any>()
+	const [resolver, setResolver] =
+		useState<firebase.auth.MultiFactorResolver>()
 	const [, setSignUpReferral] = useLocalStorage('HighlightSignUpReferral', '')
 	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
 	const [firebaseError, setFirebaseError] = useState('')
@@ -129,7 +129,7 @@ const LoginForm = () => {
 		if (formState === LoginFormState.SignIn) {
 			auth.signInWithEmailAndPassword(email, password)
 				.then(() => {})
-				.catch((error) => {
+				.catch((error: firebase.auth.MultiFactorError) => {
 					if (error.code == 'auth/multi-factor-auth-required') {
 						setResolver(error.resolver)
 						setFormState(LoginFormState.EnterMultiFactorCode)
@@ -231,7 +231,6 @@ const LoginForm = () => {
 			/>
 		)
 	} else if (isLoggedIn && formState === LoginFormState.FinishedOnboarding) {
-		// TODO: Figure out why we aren't getting here :thinking:
 		return <AuthAdminRouter />
 	}
 
@@ -402,23 +401,27 @@ const LoginForm = () => {
 								onClick={async () => {
 									await auth
 										.signInWithPopup(googleProvider)
-										.catch((error) => {
-											if (
-												error.code ===
-												'auth/multi-factor-auth-required'
-											) {
-												setResolver(error.resolver)
-												setFormState(
-													LoginFormState.EnterMultiFactorCode,
-												)
-											} else {
-												setFirebaseError(
-													JSON.stringify(
-														error.message,
-													),
-												)
-											}
-										})
+										.catch(
+											(
+												error: firebase.auth.MultiFactorError,
+											) => {
+												if (
+													error.code ===
+													'auth/multi-factor-auth-required'
+												) {
+													setResolver(error.resolver)
+													setFormState(
+														LoginFormState.EnterMultiFactorCode,
+													)
+												} else {
+													setFirebaseError(
+														JSON.stringify(
+															error.message,
+														),
+													)
+												}
+											},
+										)
 								}}
 								loading={isLoadingFirebase}
 							>
@@ -444,7 +447,7 @@ const LoginForm = () => {
 }
 
 interface VerifyPhoneProps {
-	resolver: any
+	resolver: firebase.auth.MultiFactorResolver
 }
 
 export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
@@ -452,7 +455,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 	const [error, setError] = useState<string | null>()
 	const [verificationId, setVerificationId] = useState<string>('')
 	const [verificationCode, setVerificationCode] = useState<string>('')
-	const recaptchaVerifier = useRef<any>()
+	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
 
 	useEffect(() => {
@@ -466,6 +469,11 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 
 	useEffect(() => {
 		const sendAuthCode = async () => {
+			// Should never not be set but the check is necessary for types.
+			if (!recaptchaVerifier.current) {
+				return
+			}
+
 			const vId = await phoneAuthProvider.verifyPhoneNumber(
 				{
 					multiFactorHint: resolver.hints[0],
