@@ -13,6 +13,7 @@ import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { FaBug, FaRegStopCircle } from 'react-icons/fa'
+import { Link, useParams } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import GoToButton from '../../../components/Button/GoToButton'
@@ -65,6 +66,7 @@ export const StreamElement = ({
 	const timeSinceStart = e?.timestamp - start
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveEvent } = usePlayerUIContext()
+	const params = useParams<{ project_id: string }>()
 
 	const showExpandedView = searchQuery.length > 0 || showDetails || selected
 	const shouldShowTimestamp =
@@ -168,6 +170,15 @@ export const StreamElement = ({
 											}
 										/>
 									</h2>
+
+									{e.type === EventType.Custom &&
+										e.data.tag === 'Web Vitals' && (
+											<Link
+												to={`/${params.project_id}/dashboards/web_vitals`}
+											>
+												View web vitals dashboard
+											</Link>
+										)}
 
 									{e.type === EventType.Custom &&
 									e.data.tag === 'Web Vitals' ? (
