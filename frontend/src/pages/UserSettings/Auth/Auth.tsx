@@ -26,28 +26,19 @@ const Auth: React.FC = () => {
 	useEffect(() => {
 		if (auth.currentUser?.multiFactor.enrolledFactors.length) {
 			setStatus(AuthState.Enrolled)
-			return
 		} else if (
 			// Firebase won't allow a user to modify 2FA unless they recently
 			// authenticated. If they haven't recently, make them log in.
 			moment().diff(moment(auth.currentUser?.metadata.lastSignInTime)) >
-			3 * 60 * 1000
+			2 * 60 * 1000
 		) {
 			setStatus(AuthState.Login)
-			return
 		}
 	}, [])
 
 	return (
 		<FieldsBox>
 			<h2>Two-Factor Authentication</h2>
-
-			{status !== AuthState.Enrolled && (
-				<p>
-					Add an additional layer of security for your account by
-					enabling SMS-based two-factor authentication.
-				</p>
-			)}
 
 			{error && (
 				<Alert
@@ -77,7 +68,7 @@ const Login: React.FC<Props> = () => {
 				shouldAlwaysShow
 				closable={false}
 				trackingId="2faSignIn"
-				description="In order to enable 2FA you will need to log in again. After logging back in you should be returned to this page."
+				description="In order to modify your 2FA settings you will need to log in again. After logging back in you will be returned to this page."
 			/>
 
 			<Button
@@ -98,7 +89,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [phoneNumber, setPhoneNumber] = useState<string>('')
 	const [verificationId, setVerificationId] = useState<string>('')
-	const recaptchaVerifier = useRef<any>()
+	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 
 	useEffect(() => {
 		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
@@ -118,9 +109,13 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			setError('Please use a valid phone number;')
 		}
 
+		if (!recaptchaVerifier.current) {
+			return
+		}
+
 		const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`
 
-		await recaptchaVerifier.current.verify()
+		await recaptchaVerifier.current?.verify()
 
 		const multiFactorSession =
 			await auth.currentUser?.multiFactor.getSession()
@@ -137,8 +132,12 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			)
 
 			setVerificationId(vId)
-		} catch (e) {
-			setError(e)
+		} catch (error: any) {
+			if (error.code === 'auth/requires-recent-login') {
+				setStatus(AuthState.Login)
+			} else {
+				setError(error.message)
+			}
 		} finally {
 			setLoading(false)
 		}
@@ -149,6 +148,11 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			{!verificationId ? (
 				<form onSubmit={handleSubmit}>
 					<Space size="medium" direction="vertical">
+						<p>
+							Add an additional layer of security for your account
+							by enabling SMS-based two-factor authentication.
+						</p>
+
 						<Input
 							addonBefore="+1"
 							value={phoneNumber}
@@ -260,17 +264,12 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 
 const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 	return (
-		<Space direction="vertical" size="xxSmall">
-			<div>
-				<p>
-					You are enrolled in two-factor authentication with{' '}
-					{
-						auth.currentUser?.multiFactor.enrolledFactors[0]
-							.displayName
-					}{' '}
-					set as your backup phone number.
-				</p>
-			</div>
+		<Space direction="vertical" size="medium">
+			<p>
+				You are enrolled in two-factor authentication with{' '}
+				{auth.currentUser?.multiFactor.enrolledFactors[0].displayName}{' '}
+				set as your backup phone number.
+			</p>
 
 			<Button
 				trackingId="remove2fa"
@@ -285,15 +284,14 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 								currentFactor,
 							)
 
+							setStatus(AuthState.Enroll)
 							message.success('2FA removed successfully')
 						} catch (e: any) {
 							if (e.code === 'auth/requires-recent-login') {
 								setStatus(AuthState.Login)
+							} else {
+								setError(e.message)
 							}
-
-							setError(e.message)
-						} finally {
-							setStatus(AuthState.Enroll)
 						}
 					}
 				}}
