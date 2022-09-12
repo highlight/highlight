@@ -15,7 +15,7 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -407,7 +407,6 @@ const LoginForm = () => {
 												error.code ===
 												'auth/multi-factor-auth-required'
 											) {
-												console.log('::: ERROR', error)
 												setResolver(error.resolver)
 												setFormState(
 													LoginFormState.EnterMultiFactorCode,
@@ -451,6 +450,7 @@ interface VerifyPhoneProps {
 export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string | null>()
+	const [verificationId, setVerificationId] = useState<string>('')
 	const [verificationCode, setVerificationCode] = useState<string>('')
 	const recaptchaVerifier = useRef<any>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
@@ -464,12 +464,9 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 		)
 	}, [])
 
-	const verify = async () => {
-		setLoading(true)
-		setError(null)
-
-		try {
-			const verificationId = await phoneAuthProvider.verifyPhoneNumber(
+	useEffect(() => {
+		const sendAuthCode = async () => {
+			const vId = await phoneAuthProvider.verifyPhoneNumber(
 				{
 					multiFactorHint: resolver.hints[0],
 					session: resolver.session,
@@ -477,6 +474,19 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 				recaptchaVerifier.current,
 			)
 
+			setVerificationId(vId)
+		}
+
+		sendAuthCode()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		setLoading(true)
+		setError(null)
+
+		try {
 			const cred = firebase.auth.PhoneAuthProvider.credential(
 				verificationId,
 				verificationCode,
@@ -499,49 +509,55 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 					<div className={styles.loginTitleWrapper}>
 						<h2 className={styles.loginTitle}>Verify via SMS</h2>
 						<p className={styles.loginSubTitle}>
-							Enter the code we sent to your phone.
+							{verificationId
+								? 'Enter the code we sent to your phone.'
+								: 'Sending verification code to your phone.'}
 						</p>
 					</div>
 
-					<Space direction="vertical" size="medium">
-						{error && (
-							<Alert
-								shouldAlwaysShow
-								closable={false}
-								trackingId="2faVerifyError"
-								type="error"
-								description={error}
-							/>
-						)}
+					{verificationId && (
+						<form onSubmit={handleSubmit}>
+							<Space direction="vertical" size="medium">
+								{error && (
+									<Alert
+										shouldAlwaysShow
+										closable={false}
+										trackingId="2faVerifyError"
+										type="error"
+										description={error}
+									/>
+								)}
 
-						<div className={styles.inputContainer}>
-							<Input
-								placeholder="Verification code"
-								name="verification_code"
-								value={verificationCode}
-								onChange={(e) => {
-									setVerificationCode(e.target.value)
-								}}
-								autoFocus
-								required
-								autoComplete="off"
-							/>
-						</div>
+								<div className={styles.inputContainer}>
+									<Input
+										placeholder="Verification code"
+										name="verification_code"
+										value={verificationCode}
+										onChange={(e) => {
+											setVerificationCode(e.target.value)
+										}}
+										autoFocus
+										required
+										autoComplete="off"
+									/>
+								</div>
 
-						<Button
-							className={commonStyles.submitButton}
-							type="primary"
-							htmlType="submit"
-							loading={loading}
-							trackingId="setup2fa"
-							onClick={verify}
-						>
-							Submit
-						</Button>
-					</Space>
+								<Button
+									className={commonStyles.submitButton}
+									type="primary"
+									htmlType="submit"
+									loading={loading}
+									trackingId="setup2fa"
+								>
+									Submit
+								</Button>
+							</Space>
+						</form>
+					)}
 				</div>
+
+				<div id="recaptcha"></div>
 			</div>
-			<div id="recaptcha"></div>
 		</Landing>
 	)
 }
