@@ -7175,6 +7175,7 @@ enum MetricAggregator {
 	P99
 	Max
 	Count
+	Sum
 }
 
 input DashboardMetricConfigInput {
