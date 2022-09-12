@@ -1163,6 +1163,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
+	if err := r.PushMetricsImpl(ctx, session.SecureID, []*model2.MetricInput{
+		{
+			SessionSecureID: session.SecureID,
+			Timestamp:       session.CreatedAt,
+			Name:            "sessions",
+			Value:           1,
+			Category:        pointy.String("__internal"),
+		},
+	}); err != nil {
+		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
+	}
+
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
 	}
@@ -1828,19 +1840,18 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
-	if sessionID == 0 || projectID == 0 {
-		if sessionSecureID == "" {
-			return e.New("PushMetricsImpl called without secureID")
-		}
-		session := &model.Session{}
-		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-			log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-			return err
-		}
-		sessionID = session.ID
-		projectID = session.ProjectID
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, metrics []*customModels.MetricInput) error {
+	if sessionSecureID == "" {
+		return e.New("PushMetricsImpl called without secureID")
 	}
+	session := &model.Session{}
+	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+		log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
+		return err
+	}
+	sessionID := session.ID
+	projectID := session.ProjectID
+
 	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
 		group := ""
@@ -1930,6 +1941,54 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
+func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[int]int64, errorsBySession map[string]int64, errors int, errorType string) {
+	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
+	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
+	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
+	dailyErrorCountSpan.SetTag("numberOfSessions", len(errorsBySession))
+	defer dailyErrorCountSpan.Finish()
+
+	// For each project, increment daily error count by the current error count
+	n := time.Now()
+	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+
+	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
+	for projectId, count := range errorsByProject {
+		errorCount := model.DailyErrorCount{
+			ProjectID: projectId,
+			Date:      &currentDate,
+			Count:     count,
+			ErrorType: errorType,
+		}
+		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
+	}
+
+	// Upsert error counts into daily_error_counts
+	if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
+		OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
+		DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
+	}).Create(&dailyErrorCounts).Error; err != nil {
+		wrapped := e.Wrap(err, "error updating daily error count")
+		dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
+		log.Error(wrapped)
+		return
+	}
+
+	for sessionSecureId, count := range errorsBySession {
+		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*model2.MetricInput{
+			{
+				SessionSecureID: sessionSecureId,
+				Timestamp:       time.Now(),
+				Name:            "errors",
+				Value:           float64(count),
+				Category:        pointy.String("__internal"),
+			},
+		}); err != nil {
+			log.Errorf("failed to count errors metric for %s: %s", sessionSecureId, err)
+		}
+	}
+}
+
 func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
@@ -1981,46 +2040,17 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 	// Count the number of errors for each project
 	errorsByProject := make(map[int]int64)
+	errorsBySession := make(map[string]int64)
 	for _, err := range errors {
+		errorsBySession[err.SessionSecureID] += 1
 		session := sessionLookup[err.SessionSecureID]
 		if session == nil {
 			continue
 		}
-		projectID := session.ProjectID
-		errorsByProject[projectID] += 1
+		errorsByProject[session.ProjectID] += 1
 	}
 
-	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
-	dailyErrorCountSpan.SetTag("numberOfErrors", len(errors))
-	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
-
-	// For each project, increment daily error count by the current error count
-	n := time.Now()
-	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-
-	dailyErrorCounts := make([]*model.DailyErrorCount, 0)
-	for projectId, count := range errorsByProject {
-		errorCount := model.DailyErrorCount{
-			ProjectID: projectId,
-			Date:      &currentDate,
-			Count:     count,
-			ErrorType: model.ErrorType.BACKEND,
-		}
-		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
-	}
-
-	// Upsert error counts into daily_error_counts
-	if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
-		OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
-		DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
-	}).Create(&dailyErrorCounts).Error; err != nil {
-		wrapped := e.Wrap(err, "error updating daily error count")
-		dailyErrorCountSpan.Finish(tracer.WithError(wrapped))
-		log.Error(wrapped)
-		return
-	}
-
-	dailyErrorCountSpan.Finish()
+	r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errors), model.ErrorType.BACKEND)
 
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
@@ -2426,23 +2456,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		errors = filteredErrors
 
 		// increment daily error table
-		if len(errors) > 0 {
-			n := time.Now()
-			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-			dailyErrorCount := model.DailyErrorCount{
-				ProjectID: projectID,
-				Date:      &currentDate,
-				Count:     int64(len(errors)),
-				ErrorType: model.ErrorType.FRONTEND,
-			}
-
-			// Upsert error counts into daily_error_counts
-			if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
-				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
-				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
-			}).Create(&dailyErrorCount).Error; err != nil {
-				return e.Wrap(err, "error getting or creating daily error count")
-			}
+		numErrors := int64(len(errors))
+		if numErrors > 0 {
+			r.updateErrorsCount(ctx, map[int]int64{projectID: numErrors}, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db
