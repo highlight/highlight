@@ -201,16 +201,17 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 	return nil
 }
 
-func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
+func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
+	key := SessionInitializedKey(sessionSecureId)
 	val, err := r.redisClient.Get(key).Result()
-	if err != nil {
+
+	// ignore the non-existing session keys
+	if err == redis.Nil {
+		return false, nil
+	} else if err != nil {
 		return false, errors.Wrap(err, "error getting flag from Redis")
 	}
 	return val == "1" || val == "true", nil
-}
-
-func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
-	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }
 
 func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string, initialized bool) error {
