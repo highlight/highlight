@@ -1030,6 +1030,7 @@ export type Query = {
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	isSessionPending?: Maybe<Scalars['Boolean']>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
@@ -1184,6 +1185,10 @@ export type QuerySession_Comment_Tags_For_ProjectArgs = {
 
 export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryIsSessionPendingArgs = {
+	session_secure_id: Scalars['String']
 }
 
 export type QueryError_CommentsArgs = {

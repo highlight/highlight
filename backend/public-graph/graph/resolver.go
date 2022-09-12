@@ -1049,6 +1049,15 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
 	defer outerSpan.Finish()
 
+	defer func() {
+		err := r.Redis.SetIsPendingSession(ctx, input.SessionSecureID, false)
+		if err != nil {
+			log.Error(
+				e.Wrapf(err, "failed to clear `pending` flag for session %s", input.SessionSecureID),
+			)
+		}
+	}()
+
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)

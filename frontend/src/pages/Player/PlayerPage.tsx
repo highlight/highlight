@@ -5,6 +5,7 @@ import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
+import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
@@ -45,7 +46,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -63,6 +64,13 @@ const Player = ({ integrated }: Props) => {
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()
+
+	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
+		variables: {
+			session_secure_id,
+		},
+	})
+
 	const [resizeListener, sizes] = useResizeAware()
 
 	const player = usePlayer()
@@ -181,6 +189,18 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
+	const playerFiller = useMemo(() => {
+		return (
+			<div className={styles.loadingWrapper}>
+				<PlayerSkeleton
+					showingLeftPanel={showLeftPanel}
+					showingRightPanel={showRightPanel}
+					width={playerWrapperRef.current?.clientWidth}
+				/>
+			</div>
+		)
+	}, [showLeftPanel, showRightPanel])
+
 	return (
 		<PlayerUIContextProvider
 			value={{
@@ -263,10 +283,20 @@ const Player = ({ integrated }: Props) => {
 					)}
 					<UnauthorizedViewingForm />
 					{sessionViewability === SessionViewability.ERROR ? (
-						<ErrorState
-							shownWithHeader
-							message="This session does not exist or has not been made public."
-						/>
+						loading ? (
+							playerFiller
+						) : isSessionPendingData?.isSessionPending ? (
+							<ErrorState
+								shownWithHeader
+								title="This session is on the way!"
+								message="We are processing the data and will show the recording here soon. Please come back in a minute."
+							/>
+						) : (
+							<ErrorState
+								shownWithHeader
+								message="This session does not exist or has not been made public."
+							/>
+						)
 					) : sessionViewability ===
 					  SessionViewability.EMPTY_SESSION ? (
 						<ElevatedCard
@@ -413,25 +443,7 @@ const Player = ({ integrated }: Props) => {
 												false ? (
 													<LoadingLiveSessionCard />
 												) : (
-													<div
-														className={
-															styles.loadingWrapper
-														}
-													>
-														<PlayerSkeleton
-															showingLeftPanel={
-																showLeftPanel
-															}
-															showingRightPanel={
-																showRightPanel
-															}
-															width={
-																playerWrapperRef
-																	.current
-																	?.clientWidth
-															}
-														/>
-													</div>
+													playerFiller
 												))}
 										</div>
 										<ResourcesContextProvider
