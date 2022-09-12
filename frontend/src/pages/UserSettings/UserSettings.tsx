@@ -21,7 +21,7 @@ const UserSettings: React.FC = () => {
 			>
 				<div>
 					<div>
-						<h2 className={styles.header}>User Settings</h2>
+						<h2>User Settings</h2>
 					</div>
 
 					<LeadAlignLayout>
