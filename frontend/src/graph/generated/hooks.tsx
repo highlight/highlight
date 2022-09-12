@@ -5243,6 +5243,60 @@ export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
 	Types.GetSessionCommentsForAdminQuery,
 	Types.GetSessionCommentsForAdminQueryVariables
 >
+export const IsSessionPendingDocument = gql`
+	query isSessionPending($session_secure_id: String!) {
+		isSessionPending(session_secure_id: $session_secure_id)
+	}
+`
+
+/**
+ * __useIsSessionPendingQuery__
+ *
+ * To run a query within a React component, call `useIsSessionPendingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useIsSessionPendingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useIsSessionPendingQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useIsSessionPendingQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.IsSessionPendingQuery,
+		Types.IsSessionPendingQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.IsSessionPendingQuery,
+		Types.IsSessionPendingQueryVariables
+	>(IsSessionPendingDocument, baseOptions)
+}
+export function useIsSessionPendingLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.IsSessionPendingQuery,
+		Types.IsSessionPendingQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.IsSessionPendingQuery,
+		Types.IsSessionPendingQueryVariables
+	>(IsSessionPendingDocument, baseOptions)
+}
+export type IsSessionPendingQueryHookResult = ReturnType<
+	typeof useIsSessionPendingQuery
+>
+export type IsSessionPendingLazyQueryHookResult = ReturnType<
+	typeof useIsSessionPendingLazyQuery
+>
+export type IsSessionPendingQueryResult = Apollo.QueryResult<
+	Types.IsSessionPendingQuery,
+	Types.IsSessionPendingQueryVariables
+>
 export const GetAccountsDocument = gql`
 	query GetAccounts {
 		accounts {

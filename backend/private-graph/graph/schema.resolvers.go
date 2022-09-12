@@ -3854,6 +3854,15 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 	return sessionComments, nil
 }
 
+// IsSessionPending is the resolver for the isSessionPending field.
+func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID string) (*bool, error) {
+	isPending, err := r.Redis.IsPendingSession(ctx, sessionSecureID)
+	if err != nil {
+		return pointy.Bool(false), e.Wrap(err, "error retrieving session")
+	}
+	return pointy.Bool(isPending), nil
+}
+
 // ErrorComments is the resolver for the error_comments field.
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)

@@ -51,8 +51,12 @@ const CategoricalBarChart = ({
 	hideLegend = false,
 	stacked = false,
 	referenceAreaProps,
+	onMouseUp,
+	onMouseMove,
+	onMouseDown,
 	xAxisProps,
 }: Props) => {
+	const [showTooltip, setShowTooltip] = React.useState(false)
 	const dateGroups: any = {}
 	for (const x of data) {
 		dateGroups[x.date] = { ...dateGroups[x.date], ...x }
@@ -79,6 +83,17 @@ const CategoricalBarChart = ({
 					data={groupedData}
 					syncId={syncId}
 					barGap={0}
+					onMouseLeave={() => setShowTooltip(false)}
+					onMouseDown={onMouseDown}
+					onMouseMove={(e: any) => {
+						// Not using mouseEnter because it was unreliable.
+						setShowTooltip(true)
+
+						if (typeof onMouseMove === 'function') {
+							onMouseMove(e)
+						}
+					}}
+					onMouseUp={onMouseUp}
 					// use a smaller, proportional gap when bars get numerous and small
 					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
 				>
@@ -105,21 +120,24 @@ const CategoricalBarChart = ({
 						dx={-12}
 						unit={yAxisLabel}
 					/>
-
 					<Tooltip
 						position={{ y: 0 }}
 						content={
-							<RechartTooltip
-								render={(payload: any[]) => (
-									<CustomTooltip
-										payload={payload}
-										yAxisLabel={yAxisLabel}
-										referenceLines={referenceLines}
-										precision={0}
-										units={xAxisUnits || ''}
-									/>
-								)}
-							/>
+							showTooltip ? (
+								<RechartTooltip
+									render={(payload: any[]) => (
+										<CustomTooltip
+											payload={payload}
+											yAxisLabel={yAxisLabel}
+											referenceLines={referenceLines}
+											precision={0}
+											units={xAxisUnits || ''}
+										/>
+									)}
+								/>
+							) : (
+								<></>
+							)
 						}
 					/>
 					{!hideLegend && (
