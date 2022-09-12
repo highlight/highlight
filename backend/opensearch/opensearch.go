@@ -271,6 +271,36 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
+func (c *Client) Delete(index Index, id int) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
+	documentId := strconv.Itoa(id)
+
+	indexStr := GetIndex(index)
+
+	item := opensearchutil.BulkIndexerItem{
+		Index:           indexStr,
+		Action:          "delete",
+		DocumentID:      documentId,
+		RetryOnConflict: pointy.Int(3),
+		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
+			if err != nil {
+				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+			} else {
+				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+			}
+		},
+	}
+
+	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for delete")
+	}
+
+	return nil
+}
+
 func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil

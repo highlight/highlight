@@ -2,36 +2,52 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-var db *gorm.DB
-var opensearchClient *opensearch.Client
+var sendgridClient *sendgrid.Client
 
 func init() {
-	var err error
-	db, err = model.SetupDB(os.Getenv("PSQL_DB"))
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "error setting up DB"))
-	}
-
-	opensearchClient, err = opensearch.NewOpensearchClient()
-	if err != nil {
-		log.Fatal(errors.Wrap(err, "error creating opensearch client"))
-	}
+	sendgridClient = sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 }
 
-func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) ([]utils.BatchIdResponse, error) {
+func LambdaHandler(ctx context.Context, event utils.QuerySessionsInput) error {
+	to := &mail.Email{Address: event.Email}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(email.SendAdminInviteEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Admin_Invitor", adminName)
+	p.SetDynamicTemplateData("Organization_Name", projectOrWorkspaceName)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
+	}
+	return &inviteLink, nil
+
 	taskId := uuid.New().String()
 	lastId := 0
 	responses := []utils.BatchIdResponse{}

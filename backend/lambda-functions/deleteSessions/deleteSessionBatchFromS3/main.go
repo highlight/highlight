@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
@@ -36,39 +36,32 @@ func init() {
 }
 
 func LambdaHandler(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
-	var sessionIds []int
-	for id := range sessionIds {
+	sessionIds, err := utils.GetSessionIdsInBatch(db, event.TaskId, event.BatchId)
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting session ids to delete")
+	}
 
-		s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+	for _, sessionId := range sessionIds {
+		prefix := fmt.Sprintf("%d/%d/", event.ProjectId, sessionId)
+		options := s3.ListObjectsV2Input{
 			Bucket: &storage.S3SessionsPayloadBucketName,
-		})
+			Prefix: &prefix,
+		}
+		output, err := s3Client.ListObjectsV2(ctx, &options)
+		if err != nil {
+			return nil, errors.Wrap(err, "error listing objects in S3")
+		}
 
-		s3Client.ListObjectsV2()
-	}
-
-	// Initialize a session in us-west-2 that the SDK will use to load
-	// credentials from the shared credentials file ~/.aws/credentials.
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("us-west-2")},
-	)
-
-	if err := db.Select("session_id").Where(&model.DeleteSessionsTask{TaskID: event.TaskId, BatchID: event.BatchId}).
-		Find(&sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying session ids to delete")
-	}
-
-	if err := db.Raw(`
-		DELETE FROM session_fields
-		WHERE session_id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting session fields")
-	}
-
-	if err := db.Raw(`
-		DELETE FROM sessions
-		WHERE id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting sessions")
+		for _, object := range output.Contents {
+			options := s3.DeleteObjectInput{
+				Bucket: &storage.S3SessionsPayloadBucketName,
+				Key:    object.Key,
+			}
+			_, err := s3Client.DeleteObject(ctx, &options)
+			if err != nil {
+				return nil, errors.Wrap(err, "error listing objects in S3")
+			}
+		}
 	}
 
 	return &event, nil

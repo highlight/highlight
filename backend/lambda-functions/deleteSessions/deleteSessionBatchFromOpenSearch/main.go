@@ -8,17 +8,24 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
+var opensearchClient *opensearch.Client
 
 func init() {
 	var err error
 	db, err = model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "error setting up DB"))
+	}
+
+	opensearchClient, err = opensearch.NewOpensearchClient()
+	if err != nil {
+		log.Fatal(errors.Wrap(err, "error creating opensearch client"))
 	}
 }
 
@@ -28,19 +35,13 @@ func LambdaHandler(ctx context.Context, event utils.BatchIdResponse) (*utils.Bat
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
 
-	if err := db.Raw(`
-		DELETE FROM session_fields
-		WHERE session_id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting session fields")
+	for _, sessionId := range sessionIds {
+		if err := opensearchClient.Delete(opensearch.IndexSessions, sessionId); err != nil {
+			return nil, errors.Wrap(err, "error creating bulk delete request")
+		}
 	}
 
-	if err := db.Raw(`
-		DELETE FROM sessions
-		WHERE id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting sessions")
-	}
+	opensearchClient.Close()
 
 	return &event, nil
 }
