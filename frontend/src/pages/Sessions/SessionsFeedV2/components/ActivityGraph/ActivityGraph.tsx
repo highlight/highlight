@@ -5,14 +5,9 @@ import { Area, ComposedChart } from 'recharts'
 interface Props {
 	data: any[]
 	height?: number
-	disableAnimation?: boolean
 }
 
-const ActivityGraph = ({
-	data,
-	height = 20,
-	disableAnimation = false,
-}: Props) => {
+const ActivityGraph = ({ data, height = 20 }: Props) => {
 	const gradientId = `session-activity-graph-colorUv`
 	const lineColor = 'var(--color-purple)'
 
@@ -55,7 +50,7 @@ const ActivityGraph = ({
 							</linearGradient>
 						</defs>
 						<Area
-							isAnimationActive={!disableAnimation}
+							isAnimationActive={false}
 							type="natural"
 							dataKey="value"
 							strokeWidth={2}

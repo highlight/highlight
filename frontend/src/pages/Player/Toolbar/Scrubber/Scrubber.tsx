@@ -180,7 +180,6 @@ const Scrubber = ({ chartData, getSliderPercent }: Props) => {
 					<ActivityGraphMemoized
 						data={eventCounts}
 						height={20}
-						disableAnimation
 					></ActivityGraphMemoized>
 				</div>
 				<Draggable
