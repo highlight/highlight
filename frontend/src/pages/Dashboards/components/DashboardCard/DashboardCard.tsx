@@ -595,6 +595,7 @@ const ChartContainer = React.memo(
 				) : chartType === DashboardChartType.Histogram ? (
 					<BarChartV2
 						height={275}
+						syncId="dashboardHistogramChart"
 						data={histogramData?.metrics_histogram?.buckets || []}
 						referenceLines={referenceLines}
 						barColorMapping={{

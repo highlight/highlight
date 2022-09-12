@@ -43,6 +43,7 @@ const BarChartV2 = ({
 	showReferenceLineLabels,
 	xAxisDataKeyName = 'date',
 	data,
+	syncId,
 	xAxisLabel,
 	xAxisUnits,
 	xAxisTickFormatter,
@@ -71,6 +72,7 @@ const BarChartV2 = ({
 	const labelColor = 'var(--color-gray-500)'
 	const [dataTypesToShow, setDataTypesToShow] = useState<string[]>(yAxisKeys)
 	const draggableReferenceLines = referenceLines?.filter((rl) => rl.onDrag)
+	const [showTooltip, setShowTooltip] = React.useState(false)
 
 	return (
 		<div style={{ position: 'relative', width: '100%' }}>
@@ -101,6 +103,11 @@ const BarChartV2 = ({
 						left: -18,
 						bottom: 0,
 					}}
+					syncId={syncId}
+					onMouseLeave={() => setShowTooltip(false)}
+					onMouseMove={() => {
+						setShowTooltip(true)
+					}}
 					barSize={barSize || 7}
 					barGap={0}
 					barCategoryGap={0}
@@ -130,13 +137,12 @@ const BarChartV2 = ({
 						axisLine={{ stroke: gridColor }}
 						dx={-10}
 					/>
-
 					<Tooltip
 						position={{ y: 0 }}
 						content={
-							<RechartTooltip
-								render={(payload: any[]) => {
-									return (
+							showTooltip ? (
+								<RechartTooltip
+									render={(payload: any[]) => (
 										<CustomTooltip
 											payload={payload}
 											yAxisLabel={yAxisLabel}
@@ -144,9 +150,11 @@ const BarChartV2 = ({
 											precision={0}
 											units={xAxisUnits || ''}
 										/>
-									)
-								}}
-							/>
+									)}
+								/>
+							) : (
+								<></>
+							)
 						}
 					/>
 					{!hideLegend && (
