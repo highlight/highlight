@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import Alert from '@components/Alert/Alert'
 import Button from '@components/Button/Button/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
@@ -22,6 +23,7 @@ const Auth: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [status, setStatus] = useState<AuthState>(AuthState.Enroll)
 	const Component = STATUS_COMPONENT_MAP[status]
+	const { isLoggedIn } = useAuthContext()
 
 	useEffect(() => {
 		if (auth.currentUser?.multiFactor.enrolledFactors.length) {
@@ -34,7 +36,9 @@ const Auth: React.FC = () => {
 		) {
 			setStatus(AuthState.Login)
 		}
-	}, [])
+		// Passing isLoggedIn because this component isn't unmounted when logged out
+		// so the state never gets reset after logging in.
+	}, [isLoggedIn])
 
 	return (
 		<FieldsBox>
@@ -63,12 +67,13 @@ interface Props {
 
 const Login: React.FC<Props> = () => {
 	return (
-		<Space direction="vertical" size="medium">
+		<>
 			<Alert
 				shouldAlwaysShow
 				closable={false}
 				trackingId="2faSignIn"
 				description="In order to modify your 2FA settings you will need to log in again. After logging back in you will be returned to this page."
+				className={styles.signInAlert}
 			/>
 
 			<Button
@@ -81,7 +86,7 @@ const Login: React.FC<Props> = () => {
 			>
 				Re-Authenticate
 			</Button>
-		</Space>
+		</>
 	)
 }
 
