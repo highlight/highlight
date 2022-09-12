@@ -480,8 +480,11 @@ export class Highlight {
 		try {
 			// disable recording for filtered projects while allowing for reloaded sessions
 			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				this._firstLoadListeners?.stopListening()
-				return
+				// Record 2% of Solitaired sessions
+				if (Math.random() >= 0.02) {
+					this._firstLoadListeners?.stopListening()
+					return
+				}
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
