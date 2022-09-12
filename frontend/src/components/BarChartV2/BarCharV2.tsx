@@ -25,7 +25,7 @@ import {
 
 import styles from './BarChartV2.module.scss'
 
-type Props = Omit<LineChartProps, 'lineColorMapping'> & {
+type Props = Omit<LineChartProps, 'lineColorMapping' | 'height'> & {
 	xAxisLabel?: string
 	xAxisUnits?: string
 	yAxisKeys?: string[]
@@ -38,7 +38,6 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
 }
 
 const BarChartV2 = ({
-	height,
 	referenceLines,
 	showReferenceLineLabels,
 	xAxisDataKeyName = 'date',
@@ -75,7 +74,7 @@ const BarChartV2 = ({
 	const [showTooltip, setShowTooltip] = React.useState(false)
 
 	return (
-		<div style={{ position: 'relative', width: '100%' }}>
+		<>
 			{!!draggableReferenceLines?.length && (
 				<Slider
 					min={min}
@@ -91,18 +90,10 @@ const BarChartV2 = ({
 					}}
 				/>
 			)}
-			<ResponsiveContainer width="100%" height={height}>
+			<ResponsiveContainer width="100%" height="100%">
 				<RechartsBarChart
-					width={500}
-					height={300}
 					data={data}
 					onClick={onClickHandler}
-					margin={{
-						top: 42,
-						right: 4,
-						left: -18,
-						bottom: 0,
-					}}
 					syncId={syncId}
 					onMouseLeave={() => setShowTooltip(false)}
 					onMouseMove={() => {
@@ -135,7 +126,7 @@ const BarChartV2 = ({
 						tick={{ fontSize: '8px', fill: labelColor }}
 						tickLine={{ stroke: labelColor, visibility: 'hidden' }}
 						axisLine={{ stroke: gridColor }}
-						dx={-10}
+						dx={-12}
 					/>
 					<Tooltip
 						position={{ y: 0 }}
@@ -214,7 +205,7 @@ const BarChartV2 = ({
 					)}
 				</RechartsBarChart>
 			</ResponsiveContainer>
-		</div>
+		</>
 	)
 }
 

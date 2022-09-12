@@ -256,23 +256,21 @@ const DashboardCard = ({
 					</div>
 				}
 			>
-				<div className={styles.chartWrapper}>
-					<ChartContainer
-						metricIdx={metricIdx}
-						metricConfig={metricConfig}
-						chartType={metricConfig.chart_type}
-						aggregator={metricConfig.aggregator}
-						maxGoodValue={metricConfig.max_good_value}
-						maxNeedsImprovementValue={
-							metricConfig.max_needs_improvement_value
-						}
-						poorValue={metricConfig.poor_value}
-						updateMetric={updateMetric}
-						showEditModal={showEditModal}
-						setShowEditModal={setShowEditModal}
-						setUpdatingData={setUpdatingData}
-					/>
-				</div>
+				<ChartContainer
+					metricIdx={metricIdx}
+					metricConfig={metricConfig}
+					chartType={metricConfig.chart_type}
+					aggregator={metricConfig.aggregator}
+					maxGoodValue={metricConfig.max_good_value}
+					maxNeedsImprovementValue={
+						metricConfig.max_needs_improvement_value
+					}
+					poorValue={metricConfig.poor_value}
+					updateMetric={updateMetric}
+					showEditModal={showEditModal}
+					setShowEditModal={setShowEditModal}
+					setUpdatingData={setUpdatingData}
+				/>
 			</DashboardInnerCard>
 		</>
 	)
@@ -600,7 +598,7 @@ const ChartContainer = React.memo(
 
 		return (
 			<div
-				className={classNames({
+				className={classNames('w-full h-full pt-6 pb-20 pl-3 pr-5', {
 					[styles.blurChart]:
 						timelineLoading ||
 						histogramLoading ||
@@ -626,7 +624,6 @@ const ChartContainer = React.memo(
 					</div>
 				) : chartType === DashboardChartType.Histogram ? (
 					<BarChartV2
-						height={275}
 						syncId="dashboardHistogramChart"
 						data={histogramData?.metrics_histogram?.buckets || []}
 						referenceLines={referenceLines}
@@ -644,7 +641,6 @@ const ChartContainer = React.memo(
 					/>
 				) : chartType === DashboardChartType.Timeline ? (
 					<LineChart
-						height={275}
 						syncId="dashboardChart"
 						data={(timelineData?.metrics_timeline || []).map(
 							(x) => ({
@@ -679,7 +675,6 @@ const ChartContainer = React.memo(
 				) : chartType === DashboardChartType.TimelineBar ? (
 					<CategoricalBarChart
 						syncId="dashboardChart"
-						height={275}
 						stacked
 						data={(timelineData?.metrics_timeline || []).map(
 							(x) => ({
