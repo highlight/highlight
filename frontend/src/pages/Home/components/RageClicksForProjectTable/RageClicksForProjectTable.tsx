@@ -41,7 +41,7 @@ const RageClicksForProjectTable = ({
 			totalClicks: number
 			userProperties: string
 		}[]
-	>([])
+	>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -84,7 +84,7 @@ const RageClicksForProjectTable = ({
 			return tableData
 		}
 
-		return tableData.filter((row) => {
+		return tableData?.filter((row) => {
 			return row.identifier.includes(filterSearchTerm)
 		})
 	}, [filterSearchTerm, tableData])
@@ -92,6 +92,10 @@ const RageClicksForProjectTable = ({
 	useEffect(() => {
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
+
+	if (filteredTableData === undefined) {
+		return null
+	}
 
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>

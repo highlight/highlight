@@ -2469,7 +2469,7 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 	}
 	aggregateStatement := fmt.Sprintf(`
       query()
-		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: false)
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: true)
           |> yield(name: "avg")
 	`, resMins, fn)
 	if quantile > 0. {
