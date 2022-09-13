@@ -67,8 +67,7 @@
 		"backend/event-parse/sample-events/*.json": true,
 		"**/*.scss.d.ts": true,
 		// "frontend/src/graph/generated/*": true,
-		"backend/payload/*": true,
-		"**/yarn-error.log": true
+		"backend/payload/*": true
 	},
 	"cSpell.words": ["Blocklist", "interactable"],
 	"[yaml]": {

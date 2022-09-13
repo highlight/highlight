@@ -16,8 +16,8 @@ const tasks = [
 	{
 		name: 'frontend',
 		color: chalk.blueBright,
-		command: 'yarn',
-		args: ['frontend:start'],
+		command: 'pnpm',
+		args: ['run', 'frontend:start'],
 	},
 	{
 		name: 'backend',

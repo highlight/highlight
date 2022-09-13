@@ -949,6 +949,11 @@ const NextBackendInstructions = () => {
 					text={`yarn add @highlight-run/next`}
 					language="shell"
 				/>
+				<p>or with pnpm:</p>
+				<CodeBlock
+					text={`pnpm add @highlight-run/next`}
+					language="shell"
+				/>
 			</Section>
 			<Section title="Initializing Highlight on the Backend" defaultOpen>
 				<p>Initialize the SDK by importing Highlight like so: </p>
@@ -1011,6 +1016,11 @@ const ExpressBackendInstructions = () => {
 				<p>or with Yarn:</p>
 				<CodeBlock
 					text={`yarn add @highlight-run/node`}
+					language="shell"
+				/>
+				<p>or with pnpm:</p>
+				<CodeBlock
+					text={`pnpm add @highlight-run/node`}
 					language="shell"
 				/>
 			</Section>
@@ -1174,6 +1184,11 @@ const JsAppInstructions = ({
 							text={`yarn add highlight.run @highlight-run/react`}
 							language="shell"
 						/>
+						<p>or with pnpm:</p>
+						<CodeBlock
+							text={`pnpm add highlight.run @highlight-run/react`}
+							language="shell"
+						/>
 					</>
 				) : (
 					<>
@@ -1187,6 +1202,11 @@ const JsAppInstructions = ({
 						<p>or with Yarn:</p>
 						<CodeBlock
 							text={`yarn add highlight.run`}
+							language="shell"
+						/>
+						<p>or with pnpm:</p>
+						<CodeBlock
+							text={`pnpm add highlight.run`}
 							language="shell"
 						/>
 					</>

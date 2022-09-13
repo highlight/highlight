@@ -2,22 +2,22 @@ name: Client
 on:
     push:
         paths:
-            - 'client/**'
+            - 'packages/client/**'
             - '.github/workflows/client.yml'
 jobs:
     client:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
             - name: Setup Node.js
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: 16.14.2
-                  registry-url: https://registry.npmjs.org
+                  cache: 'pnpm'
             - name: Install main dependencies
-              run: cd client && yarn install
+              run: pnpm install
             - name: Build Bundle
-              run: cd client && yarn build
+              run: pnpm --filter client build
             - name: Run Test
-              run: cd client && yarn test
+              run: pnpm --filter client test

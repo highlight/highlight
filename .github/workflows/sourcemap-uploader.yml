@@ -2,7 +2,7 @@ name: Sourcemap Uploader
 on:
     push:
         paths:
-            - 'sourcemap-uploader/**'
+            - 'packages/sourcemap-uploader/**'
             - '.github/workflows/sourcemap-uploader.yml'
 jobs:
     upload:
@@ -16,11 +16,11 @@ jobs:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
             - name: Install main dependencies
-              run: cd sourcemap-uploader && yarn install
+              run: pnpm install
             - name: Confirm new version
-              run: cd sourcemap-uploader && python3 ../scripts/compare.py -s sourcemap-uploader
+              run: cd packages/sourcemap-uploader && python3 ../../scripts/compare.py -s sourcemap-uploader
             - name: Publish
               if: github.ref == 'refs/heads/master'
-              run: cd sourcemap-uploader && yarn publish --access public
+              run: pnpm --filter sourcemap-uploader publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -21,6 +21,11 @@ export const GatsbySetup = ({ projectVerboseId }: Props) => {
 					text="yarn add @highlight-run/gatsby-plugin-highlight"
 					language="shell"
 				/>
+				<p>or with pnpm:</p>
+				<CodeBlock
+					text="pnpm add @highlight-run/gatsby-plugin-highlight"
+					language="shell"
+				/>
 			</Section>
 
 			<Section title="Initializing Highlight">

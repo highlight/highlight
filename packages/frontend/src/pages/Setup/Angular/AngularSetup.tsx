@@ -16,6 +16,8 @@ export const AngularSetup = ({ projectVerboseId }: Props) => {
 				<CodeBlock text="npm install highlight.run" language="shell" />
 				<p>or with Yarn:</p>
 				<CodeBlock text="yarn add highlight.run" language="shell" />
+				<p>or with pnpm:</p>
+				<CodeBlock text="pnpm add highlight.run" language="shell" />
 			</Section>
 
 			<Section title="Initializing Highlight" defaultOpen>

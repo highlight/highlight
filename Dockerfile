@@ -21,11 +21,11 @@ ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
-COPY ./frontend/package.json ./frontend/yarn.lock ./
-RUN yarn install
-COPY ./frontend ./
+COPY ./packages/frontend/package.json ./frontend/pnpm-lock.yaml ./
+RUN pnpm install
+COPY ./packages/frontend ./
 COPY ./.prettierrc ./
-RUN CI=false NODE_OPTIONS="--max-old-space-size=7168" yarn build
+RUN CI=false NODE_OPTIONS="--max-old-space-size=7168" pnpm build
 
 FROM alpine
 RUN apk update && apk add build-base

@@ -1,5 +1,5 @@
 node_modules
 build
 dist
-.yarn
 backend/errors/test-files
+pnpm-lock.yaml

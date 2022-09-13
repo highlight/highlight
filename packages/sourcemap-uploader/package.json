@@ -7,9 +7,7 @@
   "type": "module",
   "author": "Highlight",
   "license": "MIT",
-  "scripts": {
-    "format": "yarn prettier --write ."
-  },
+  "scripts": {},
   "bin": "./index.js",
   "devDependencies": {
     "@types/yargs": "^17.0.0"

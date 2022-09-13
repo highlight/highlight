@@ -8,8 +8,8 @@ jobs:
             - uses: actions/setup-node@v3
               with:
                   node-version: 16
-                  cache: 'yarn'
+                  cache: 'pnpm'
             - name: Install dependencies
-              run: yarn
-            - name: Check formatting (if this fails, run `yarn format`)
-              run: yarn format-check || echo "Found some unformatted files! Run 'yarn format' to fix them."
+              run: pnpm i
+            - name: Check formatting (if this fails, run `pnpm format`)
+              run: pnpm run format-check || echo "Found some unformatted files! Run 'pnpm format' to fix them."

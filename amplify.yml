@@ -1,15 +1,15 @@
 version: 1
 applications:
-    - appRoot: frontend
+    - appRoot: packages/frontend
       frontend:
           phases:
               preBuild:
                   commands:
-                      - yarn install
+                      - pnpm install
               build:
                   commands:
                       - (curl -Ls https://cli.doppler.com/install.sh || wget -qO- https://cli.doppler.com/install.sh) | sh
-                      - doppler run -- yarn run build
+                      - doppler run -- pnpm run build
           artifacts:
               baseDirectory: build
               files:
@@ -17,15 +17,15 @@ applications:
           cache:
               paths:
                   - node_modules/**/*
-    - appRoot: client
+    - appRoot: packages/client
       frontend:
           phases:
               preBuild:
                   commands:
-                      - yarn
+                      - pnpm
               build:
                   commands:
-                      - yarn build
+                      - pnpm build
           artifacts:
               baseDirectory: dist
               files:
