@@ -540,6 +540,7 @@ const (
 	MetricAggregatorP99   MetricAggregator = "P99"
 	MetricAggregatorMax   MetricAggregator = "Max"
 	MetricAggregatorCount MetricAggregator = "Count"
+	MetricAggregatorSum   MetricAggregator = "Sum"
 )
 
 var AllMetricAggregator = []MetricAggregator{
@@ -551,11 +552,12 @@ var AllMetricAggregator = []MetricAggregator{
 	MetricAggregatorP99,
 	MetricAggregatorMax,
 	MetricAggregatorCount,
+	MetricAggregatorSum,
 }
 
 func (e MetricAggregator) IsValid() bool {
 	switch e {
-	case MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP75, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorCount:
+	case MetricAggregatorAvg, MetricAggregatorP50, MetricAggregatorP75, MetricAggregatorP90, MetricAggregatorP95, MetricAggregatorP99, MetricAggregatorMax, MetricAggregatorCount, MetricAggregatorSum:
 		return true
 	}
 	return false

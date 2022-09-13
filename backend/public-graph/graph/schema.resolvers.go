@@ -119,16 +119,19 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 
 // PushBackendPayload is the resolver for the pushBackendPayload field.
 func (r *mutationResolver) PushBackendPayload(ctx context.Context, errors []*customModels.BackendErrorObjectInput) (interface{}, error) {
+	errorsBySecureID := map[string][]*customModels.BackendErrorObjectInput{}
 	for _, backendError := range errors {
+		errorsBySecureID[backendError.SessionSecureID] = append(errorsBySecureID[backendError.SessionSecureID], backendError)
+	}
+	for secureID, backendErrors := range errorsBySecureID {
 		err := r.ProducerQueue.Submit(&kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
-				SessionSecureID: backendError.SessionSecureID,
-				Errors:          errors,
-			}}, backendError.SessionSecureID)
+				SessionSecureID: secureID,
+				Errors:          backendErrors,
+			}}, secureID)
 		if err != nil {
-			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", backendError.SessionSecureID))
-			continue
+			log.Error(e.Wrapf(err, "failed to send kafka message for push backend payload %s", secureID))
 		}
 	}
 	return nil, nil

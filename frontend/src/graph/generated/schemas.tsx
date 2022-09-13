@@ -916,6 +916,7 @@ export enum MetricAggregator {
 	P99 = 'P99',
 	Max = 'Max',
 	Count = 'Count',
+	Sum = 'Sum',
 }
 
 export type DashboardMetricConfigInput = {

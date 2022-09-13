@@ -2461,6 +2461,8 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 		quantile = 1.0
 	case modelInputs.MetricAggregatorCount:
 		fn = "count"
+	case modelInputs.MetricAggregatorSum:
+		fn = "sum"
 	case modelInputs.MetricAggregatorAvg:
 	default:
 		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)

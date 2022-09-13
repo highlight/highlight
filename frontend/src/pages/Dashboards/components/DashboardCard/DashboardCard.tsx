@@ -60,6 +60,7 @@ export const LINE_COLORS = {
 	[MetricAggregator.P50]: 'var(--color-blue-400)',
 	[MetricAggregator.Avg]: 'var(--color-gray-400)',
 	[MetricAggregator.Count]: 'var(--color-green-500)',
+	[MetricAggregator.Sum]: 'var(--color-purple-700)',
 }
 
 export type DeleteMetricFn = (idx: number) => void
