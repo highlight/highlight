@@ -15,7 +15,13 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, {
+	FormEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -489,26 +495,35 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		setLoading(true)
-		setError(null)
+	const handleSubmit = useCallback(
+		async (e?: FormEvent<HTMLFormElement>) => {
+			e?.preventDefault()
+			setLoading(true)
+			setError(null)
 
-		try {
-			const cred = firebase.auth.PhoneAuthProvider.credential(
-				verificationId,
-				verificationCode,
-			)
-			const multiFactorAssertion =
-				firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
+			try {
+				const cred = firebase.auth.PhoneAuthProvider.credential(
+					verificationId,
+					verificationCode,
+				)
+				const multiFactorAssertion =
+					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
 
-			await resolver.resolveSignIn(multiFactorAssertion)
-		} catch (e: any) {
-			setError(e.message)
-		} finally {
-			setLoading(false)
+				await resolver.resolveSignIn(multiFactorAssertion)
+			} catch (error: any) {
+				setError(error.message)
+			} finally {
+				setLoading(false)
+			}
+		},
+		[resolver, verificationCode, verificationId],
+	)
+
+	useEffect(() => {
+		if (verificationCode.length >= 6) {
+			handleSubmit()
 		}
-	}
+	}, [handleSubmit, verificationCode])
 
 	return (
 		<Landing>

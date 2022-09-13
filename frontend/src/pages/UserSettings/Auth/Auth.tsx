@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import Alert from '@components/Alert/Alert'
 import Button from '@components/Button/Button/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
@@ -9,7 +8,13 @@ import { client } from '@util/graph'
 import { message } from 'antd'
 import firebase from 'firebase'
 import moment from 'moment'
-import React, { FormEvent, useEffect, useRef, useState } from 'react'
+import React, {
+	FormEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 
 import styles from './Auth.module.scss'
 
@@ -23,7 +28,6 @@ const Auth: React.FC = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [status, setStatus] = useState<AuthState>(AuthState.Enroll)
 	const Component = STATUS_COMPONENT_MAP[status]
-	const { isLoggedIn } = useAuthContext()
 
 	useEffect(() => {
 		if (auth.currentUser?.multiFactor.enrolledFactors.length) {
@@ -36,9 +40,9 @@ const Auth: React.FC = () => {
 		) {
 			setStatus(AuthState.Login)
 		}
-		// Passing isLoggedIn because this component isn't unmounted when logged out
+		// Passing dependency because this component isn't unmounted when logged out
 		// so the state never gets reset after logging in.
-	}, [isLoggedIn])
+	}, [auth.currentUser?.metadata.lastSignInTime])
 
 	return (
 		<FieldsBox>
@@ -50,7 +54,11 @@ const Auth: React.FC = () => {
 					closable={false}
 					trackingId="2faError"
 					type="error"
-					description={JSON.stringify(error)}
+					description={
+						typeof error === 'object'
+							? JSON.stringify(error)
+							: error
+					}
 					className={styles.error}
 				/>
 			)}
@@ -106,15 +114,17 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 	}, [])
 
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		if (!recaptchaVerifier.current) {
+			return
+		}
+
 		e.preventDefault()
 		setLoading(true)
 		setError(null)
 
 		if (phoneNumber.length < 10) {
-			setError('Please use a valid phone number;')
-		}
-
-		if (!recaptchaVerifier.current) {
+			setError('Please use a valid phone number')
+			setLoading(false)
 			return
 		}
 
@@ -203,32 +213,41 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 	const [error, setError] = useState<string | null>()
 	const [verificationCode, setVerificationCode] = useState<string>('')
 
-	const handleCodeSubmit = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		setLoading(true)
-		setError(null)
+	const handleCodeSubmit = useCallback(
+		async (e?: FormEvent<HTMLFormElement>) => {
+			e?.preventDefault()
+			setLoading(true)
+			setError(null)
 
-		const cred = firebase.auth.PhoneAuthProvider.credential(
-			verificationId,
-			verificationCode,
-		)
-		const multiFactorAssertion =
-			firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
-
-		// Complete enrollment.
-		try {
-			await auth.currentUser?.multiFactor.enroll(
-				multiFactorAssertion,
-				`***-***-${phoneNumber.slice(-4)}`,
+			const cred = firebase.auth.PhoneAuthProvider.credential(
+				verificationId,
+				verificationCode,
 			)
+			const multiFactorAssertion =
+				firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
 
-			onSuccess()
-		} catch (e: any) {
-			setError(e.message)
-		} finally {
-			setLoading(false)
+			// Complete enrollment.
+			try {
+				await auth.currentUser?.multiFactor.enroll(
+					multiFactorAssertion,
+					`***-***-${phoneNumber.slice(-4)}`,
+				)
+
+				onSuccess()
+			} catch (e: any) {
+				setError(e.message)
+			} finally {
+				setLoading(false)
+			}
+		},
+		[onSuccess, phoneNumber, verificationCode, verificationId],
+	)
+
+	useEffect(() => {
+		if (verificationCode.length >= 6) {
+			handleCodeSubmit()
 		}
-	}
+	}, [handleCodeSubmit, verificationCode])
 
 	return (
 		<>
