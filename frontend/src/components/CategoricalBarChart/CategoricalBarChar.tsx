@@ -24,7 +24,7 @@ import {
 
 import styles from './CategoricalBarChart.module.scss'
 
-type Props = Omit<LineChartProps, 'lineColorMapping'> & {
+type Props = Omit<LineChartProps, 'lineColorMapping' | 'height'> & {
 	xAxisLabel?: string
 	xAxisUnits?: string
 	barColorMapping: any
@@ -35,7 +35,6 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
 }
 
 const CategoricalBarChart = ({
-	height,
 	referenceLines,
 	showReferenceLineLabels,
 	xAxisDataKeyName = 'date',
@@ -51,8 +50,12 @@ const CategoricalBarChart = ({
 	hideLegend = false,
 	stacked = false,
 	referenceAreaProps,
+	onMouseUp,
+	onMouseMove,
+	onMouseDown,
 	xAxisProps,
 }: Props) => {
+	const [showTooltip, setShowTooltip] = React.useState(false)
 	const dateGroups: any = {}
 	for (const x of data) {
 		dateGroups[x.date] = { ...dateGroups[x.date], ...x }
@@ -71,19 +74,28 @@ const CategoricalBarChart = ({
 
 	if (!groupedData) return null
 	return (
-		<div style={{ position: 'relative', width: '100%' }}>
-			<ResponsiveContainer width="100%" height={height}>
+		<>
+			<ResponsiveContainer width="100%" height="100%">
 				<RechartsBarChart
-					width={500}
-					height={300}
 					data={groupedData}
 					syncId={syncId}
 					barGap={0}
+					onMouseLeave={() => setShowTooltip(false)}
+					onMouseDown={onMouseDown}
+					onMouseMove={(e: any) => {
+						// Not using mouseEnter because it was unreliable.
+						setShowTooltip(true)
+
+						if (typeof onMouseMove === 'function') {
+							onMouseMove(e)
+						}
+					}}
+					onMouseUp={onMouseUp}
 					// use a smaller, proportional gap when bars get numerous and small
 					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
 				>
 					<CartesianGrid
-						vertical={true}
+						vertical={false}
 						stroke="var(--color-gray-200)"
 					/>
 					<XAxis
@@ -105,21 +117,24 @@ const CategoricalBarChart = ({
 						dx={-12}
 						unit={yAxisLabel}
 					/>
-
 					<Tooltip
 						position={{ y: 0 }}
 						content={
-							<RechartTooltip
-								render={(payload: any[]) => (
-									<CustomTooltip
-										payload={payload}
-										yAxisLabel={yAxisLabel}
-										referenceLines={referenceLines}
-										precision={0}
-										units={xAxisUnits || ''}
-									/>
-								)}
-							/>
+							showTooltip ? (
+								<RechartTooltip
+									render={(payload: any[]) => (
+										<CustomTooltip
+											payload={payload}
+											yAxisLabel={yAxisLabel}
+											referenceLines={referenceLines}
+											precision={0}
+											units={xAxisUnits || ''}
+										/>
+									)}
+								/>
+							) : (
+								<></>
+							)
 						}
 					/>
 					{!hideLegend && (
@@ -181,7 +196,7 @@ const CategoricalBarChart = ({
 					)}
 				</RechartsBarChart>
 			</ResponsiveContainer>
-		</div>
+		</>
 	)
 }
 

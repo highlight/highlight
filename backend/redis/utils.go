@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/golang/snappy"
@@ -30,6 +31,10 @@ func UseRedis(projectId int, sessionSecureId string) bool {
 
 func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
+}
+
+func SessionInitializedKey(sessionSecureId string) string {
+	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
 func NewClient() *Client {
@@ -186,4 +191,29 @@ func (r *Client) AddEventPayload(sessionID int, score float64, payload string) e
 		return errors.Wrap(err, "error adding events payload in Redis")
 	}
 	return nil
+}
+
+func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
+	cmd := r.redisClient.Set(key, value, exp)
+	if cmd.Err() != nil {
+		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
+	}
+	return nil
+}
+
+func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
+	key := SessionInitializedKey(sessionSecureId)
+	val, err := r.redisClient.Get(key).Result()
+
+	// ignore the non-existing session keys
+	if err == redis.Nil {
+		return false, nil
+	} else if err != nil {
+		return false, errors.Wrap(err, "error getting flag from Redis")
+	}
+	return val == "1" || val == "true", nil
+}
+
+func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string, initialized bool) error {
+	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
 }

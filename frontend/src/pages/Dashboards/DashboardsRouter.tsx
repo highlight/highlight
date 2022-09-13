@@ -65,7 +65,7 @@ const DashboardsRouter = () => {
 			}
 			if (
 				!data?.dashboard_definitions?.some(
-					(d) => d?.name === 'Frontend Observability',
+					(d) => d?.name === 'Request Metrics',
 				)
 			) {
 				upsertDashboardMutation({
@@ -74,7 +74,7 @@ const DashboardsRouter = () => {
 						metrics: Object.values(
 							FRONTEND_OBSERVABILITY_CONFIGURATION,
 						),
-						name: 'Frontend Observability',
+						name: 'Request Metrics',
 						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
 					},
 				}).catch(H.consumeError)

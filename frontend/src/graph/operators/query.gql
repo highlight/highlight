@@ -357,6 +357,10 @@ query GetSessionCommentsForAdmin {
 	}
 }
 
+query isSessionPending($session_secure_id: String!) {
+	isSessionPending(session_secure_id: $session_secure_id)
+}
+
 query GetAccounts {
 	accounts {
 		id

@@ -69,7 +69,7 @@ const usePlayerConfiguration = () => {
 		false,
 	)
 	const [_showDetailedSessionView, setShowDetailedSessionView] =
-		useLocalStorage('highlightShowDetailedSessionView', false)
+		useLocalStorage('highlightShowDetailedSessionView', true)
 	const showDetailedSessionView = useMemo(
 		() => _showDetailedSessionView,
 		[_showDetailedSessionView],

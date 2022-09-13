@@ -5,7 +5,6 @@ export const inputContainer: string
 export const loadingWrapper: string
 export const loginForm: string
 export const loginFormWrapper: string
-export const loginPage: string
 export const loginStateSwitcher: string
 export const loginSubTitle: string
 export const loginTitle: string

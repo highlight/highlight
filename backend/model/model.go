@@ -48,6 +48,7 @@ var (
 const (
 	SUGGESTION_LIMIT_CONSTANT       = 8
 	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
+	InternalMetricCategory          = "__internal"
 )
 
 var AlertType = struct {

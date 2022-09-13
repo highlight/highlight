@@ -2,6 +2,7 @@
 	align-items: center;
 	column-gap: var(--size-xxSmall);
 	display: flex;
+	padding-right: 2rem;
 
 	span {
 		overflow: hidden;
@@ -14,7 +15,7 @@
 	column-gap: var(--size-xxSmall);
 	display: flex;
 	justify-content: center;
-	width: 100%;
+	width: fit-content;
 }
 
 .loading {
