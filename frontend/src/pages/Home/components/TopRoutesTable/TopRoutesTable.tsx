@@ -60,6 +60,9 @@ const TopRoutesTable = ({
 					})) || []
 			setTableData(transformedData)
 		},
+		onError: () => {
+			setTableData([])
+		},
 	})
 
 	useEffect(() => {
