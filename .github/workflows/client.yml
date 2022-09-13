@@ -15,7 +15,9 @@ jobs:
               with:
                   node-version: 16.14.2
                   cache: 'pnpm'
-            - name: Install main dependencies
+            - name: Install pnpm
+              run: npm install -g pnpm
+            - name: Install dependencies
               run: pnpm install
             - name: Build Bundle
               run: pnpm --filter client build

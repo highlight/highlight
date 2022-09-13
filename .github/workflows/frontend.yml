@@ -36,6 +36,8 @@ jobs:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
                   cache: 'pnpm'
+            - name: Install pnpm
+              run: npm install -g pnpm
             - name: Install dependencies
               run: pnpm install
             - name: copy frontend

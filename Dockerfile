@@ -22,6 +22,7 @@ ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./packages/frontend/package.json ./frontend/pnpm-lock.yaml ./
+RUN npm i -g pnpm
 RUN pnpm install
 COPY ./packages/frontend ./
 COPY ./.prettierrc ./
