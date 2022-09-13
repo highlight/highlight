@@ -63,7 +63,7 @@ const DashboardPage = ({
 	useEffect(() => {
 		const dashboard = dashboards.find((d) => {
 			if (dashboardName) return d?.name === dashboardName
-			if (id === 'web_vitals') return d?.name === 'Web Vitals'
+			if (id === 'web-vitals') return d?.name === 'Web Vitals'
 			return d?.id === id
 		})
 		if (dashboard) {

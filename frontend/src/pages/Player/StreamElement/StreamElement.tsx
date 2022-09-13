@@ -174,7 +174,7 @@ export const StreamElement = ({
 									{e.type === EventType.Custom &&
 										e.data.tag === 'Web Vitals' && (
 											<Link
-												to={`/${params.project_id}/dashboards/web_vitals`}
+												to={`/${params.project_id}/dashboards/web-vitals`}
 											>
 												View web vitals dashboard
 											</Link>
