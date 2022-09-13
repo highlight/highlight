@@ -196,13 +196,12 @@ func (h *handlers) SendEmail(ctx context.Context, event utils.QuerySessionsInput
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
 	m.SetFrom(from)
-	m.SetTemplateID(email.SendAdminInviteEmailTemplateID)
+	m.SetTemplateID(email.SessionsDeletedEmailTemplateID)
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
-	p.SetDynamicTemplateData("Admin_Invitor", "zane test")
-	p.SetDynamicTemplateData("Organization_Name", "zane org")
-	p.SetDynamicTemplateData("Invite_Link", "www.google.com")
+	p.SetDynamicTemplateData("First_Name", event.FirstName)
+	p.SetDynamicTemplateData("Session_Count", event.SessionCount)
 
 	m.AddPersonalizations(p)
 	if resp, sendGridErr := h.sendgridClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {

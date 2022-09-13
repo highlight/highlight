@@ -7,9 +7,11 @@ import (
 )
 
 type QuerySessionsInput struct {
-	ProjectId int    `json:"projectId"`
-	Query     string `json:"query"`
-	Email     string `json:"email"`
+	ProjectId    int    `json:"projectId"`
+	Query        string `json:"query"`
+	Email        string `json:"email"`
+	FirstName    string `json:"firstName"`
+	SessionCount int    `json:"sessionCount"`
 }
 
 type BatchIdResponse struct {
