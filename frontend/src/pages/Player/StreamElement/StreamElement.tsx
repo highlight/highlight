@@ -1,3 +1,4 @@
+import { ExternalLinkText } from '@components/ExternalLinkText'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { EventType } from '@highlight-run/rrweb'
 import SvgActivityIcon from '@icons/ActivityIcon'
@@ -176,7 +177,9 @@ export const StreamElement = ({
 											<Link
 												to={`/${params.project_id}/dashboards/web-vitals`}
 											>
-												View web vitals dashboard
+												<ExternalLinkText>
+													View web vitals dashboard
+												</ExternalLinkText>
 											</Link>
 										)}
 
