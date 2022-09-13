@@ -79,6 +79,7 @@ const ConfirmModal = ({
 								setShowModal(false)
 							}}
 							type="default"
+							className="justify-center"
 						>
 							{cancelText}
 						</Button>
@@ -89,6 +90,7 @@ const ConfirmModal = ({
 							loading={confirmState.loading}
 							disabled={confirmState.loading}
 							onClick={handleConfirmClick}
+							className="justify-center"
 						>
 							{confirmText}
 						</Button>
