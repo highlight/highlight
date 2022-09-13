@@ -15,10 +15,12 @@
 		"generate": "hygen",
 		"g": "hygen",
 		"format": "prettier --write --ignore-unknown . \"!./data\"",
-		"format-check": "prettier --check --ignore-unknown . \"!./data\""
+		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
+		"bump-versions": "pnpm -r --workspace-concurrency=1 exec bumpp --no-commit --no-tag --no-push"
 	},
 	"devDependencies": {
 		"@types/node": "^18.7.14",
+		"bumpp": "^8.2.1",
 		"chalk": "^5.0.1",
 		"husky": "^8.0.1",
 		"hygen": "^6.2.7",

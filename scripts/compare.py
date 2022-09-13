@@ -27,7 +27,7 @@ def main(argv):
     local = subprocess.check_output("node -p -e \"require('./package.json').version\"", shell=True, universal_newlines=True).replace('\r', '').replace('\n', '')
     remote = subprocess.check_output(f"npm show {services[service]} version", shell=True, universal_newlines=True).replace('\r', '').replace('\n', '')
     if local == remote:
-        print(f"Error: any changes to {service} require an updated package number, please run `pnpm version` to upgrade from: ", local)
+        print(f"Error: any changes to {service} require an updated package number, please run `pnpm bump-versions` to upgrade from: ", local)
         exit(1)
     exit(0)
 
