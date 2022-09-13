@@ -50,17 +50,15 @@ const TopRoutesTable = ({
 			},
 		},
 		onCompleted: (data) => {
-			if (data.network_histogram) {
-				const transformedData =
-					data?.network_histogram?.buckets
-						.slice()
-						.map((bucket, index) => ({
-							key: index,
-							route: bucket.category,
-							count: bucket.count,
-						})) || []
-				setTableData(transformedData)
-			}
+			const transformedData =
+				data?.network_histogram?.buckets
+					.slice()
+					.map((bucket, index) => ({
+						key: index,
+						route: bucket.category,
+						count: bucket.count,
+					})) || []
+			setTableData(transformedData)
 		},
 	})
 
