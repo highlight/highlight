@@ -61,9 +61,11 @@ const DashboardPage = ({
 	const metricConfig = locationState?.metricConfig
 
 	useEffect(() => {
-		const dashboard = dashboards.find((d) =>
-			dashboardName ? d?.name === dashboardName : d?.id === id,
-		)
+		const dashboard = dashboards.find((d) => {
+			if (dashboardName) return d?.name === dashboardName
+			if (id === 'web-vitals') return d?.name === 'Web Vitals'
+			return d?.id === id
+		})
 		if (dashboard) {
 			const name = dashboard.name || ''
 			setDashboard(dashboard)
