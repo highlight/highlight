@@ -60,6 +60,7 @@ export const LINE_COLORS = {
 	[MetricAggregator.P50]: 'var(--color-blue-400)',
 	[MetricAggregator.Avg]: 'var(--color-gray-400)',
 	[MetricAggregator.Count]: 'var(--color-green-500)',
+	[MetricAggregator.Sum]: 'var(--color-purple-700)',
 }
 
 export type DeleteMetricFn = (idx: number) => void
@@ -101,7 +102,7 @@ const DashboardCard = ({
 				interactable
 				className={styles.card}
 				title={
-					<div className={styles.cardHeader}>
+					<div className="relative">
 						<div className={styles.mainHeaderContent}>
 							<div className={styles.headerContainer}>
 								<span className={styles.header}>
@@ -191,9 +192,12 @@ const DashboardCard = ({
 												]}
 												onSelect={(mmId) => {
 													if (mmId === -1) {
-														history.push(
-															`/${project_id}/alerts/new/monitor?type=${metricConfig.name}`,
-														)
+														history.push({
+															pathname: `/${project_id}/alerts/new/monitor`,
+															state: {
+																metricConfig,
+															},
+														})
 													} else {
 														history.push(
 															`/${project_id}/alerts/monitor/${mmId}`,
@@ -249,28 +253,28 @@ const DashboardCard = ({
 							}}
 						/>
 						{updatingData && (
-							<LoadingBar height={2} width={'100%'} />
+							<div className="absolute inset-x-0 bottom-0">
+								<LoadingBar height={2} width={'100%'} />
+							</div>
 						)}
 					</div>
 				}
 			>
-				<div className={styles.chartWrapper}>
-					<ChartContainer
-						metricIdx={metricIdx}
-						metricConfig={metricConfig}
-						chartType={metricConfig.chart_type}
-						aggregator={metricConfig.aggregator}
-						maxGoodValue={metricConfig.max_good_value}
-						maxNeedsImprovementValue={
-							metricConfig.max_needs_improvement_value
-						}
-						poorValue={metricConfig.poor_value}
-						updateMetric={updateMetric}
-						showEditModal={showEditModal}
-						setShowEditModal={setShowEditModal}
-						setUpdatingData={setUpdatingData}
-					/>
-				</div>
+				<ChartContainer
+					metricIdx={metricIdx}
+					metricConfig={metricConfig}
+					chartType={metricConfig.chart_type}
+					aggregator={metricConfig.aggregator}
+					maxGoodValue={metricConfig.max_good_value}
+					maxNeedsImprovementValue={
+						metricConfig.max_needs_improvement_value
+					}
+					poorValue={metricConfig.poor_value}
+					updateMetric={updateMetric}
+					showEditModal={showEditModal}
+					setShowEditModal={setShowEditModal}
+					setUpdatingData={setUpdatingData}
+				/>
 			</DashboardInnerCard>
 		</>
 	)
@@ -355,6 +359,7 @@ const ChartContainer = React.memo(
 		setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
 		const NUM_BUCKETS = 60
+		const NUM_BUCKETS_TIMELINE = 30
 		const TICK_EVERY_BUCKETS = 10
 		const { project_id } = useParams<{ project_id: string }>()
 		const [chartInitialLoading, setChartInitialLoading] = useState(true)
@@ -373,7 +378,9 @@ const ChartContainer = React.memo(
 			format: string
 		}>({ ticks: [], format: '' })
 		const refetchInterval = useRef<number>()
-		const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS)
+		const resolutionMinutes = Math.ceil(
+			lookbackMinutes / NUM_BUCKETS_TIMELINE,
+		)
 		const [
 			loadTimeline,
 			{
@@ -511,7 +518,8 @@ const ChartContainer = React.memo(
 					if (
 						lastDate &&
 						newDate.diff(lastDate, 'minutes') <
-							(lookbackMinutes / NUM_BUCKETS) * TICK_EVERY_BUCKETS
+							(lookbackMinutes / NUM_BUCKETS_TIMELINE) *
+								TICK_EVERY_BUCKETS
 					) {
 						continue
 					}
@@ -564,9 +572,41 @@ const ChartContainer = React.memo(
 			]
 		}
 
+		const onMouseUp = () => {
+			if (Object.values(referenceArea).includes('')) {
+				return
+			}
+
+			const { start, end } = referenceArea
+
+			if (end > start) {
+				setTimeRange(start, end, true)
+			} else {
+				setTimeRange(end, start, true)
+			}
+
+			setReferenceArea({ start: '', end: '' })
+		}
+		const onMouseMove = (e?: any) => {
+			e?.activeLabel &&
+				referenceArea.start &&
+				setReferenceArea({
+					start: referenceArea.start,
+					end: e.activeLabel,
+				})
+		}
+
+		const onMouseDown = (e?: any) => {
+			e?.activeLabel &&
+				setReferenceArea({
+					start: e.activeLabel,
+					end: referenceArea.end,
+				})
+		}
+
 		return (
 			<div
-				className={classNames({
+				className={classNames('w-full h-full pt-6 pb-20 pl-3 pr-5', {
 					[styles.blurChart]:
 						timelineLoading ||
 						histogramLoading ||
@@ -592,7 +632,7 @@ const ChartContainer = React.memo(
 					</div>
 				) : chartType === DashboardChartType.Histogram ? (
 					<BarChartV2
-						height={275}
+						syncId="dashboardHistogramChart"
 						data={histogramData?.metrics_histogram?.buckets || []}
 						referenceLines={referenceLines}
 						barColorMapping={{
@@ -609,7 +649,6 @@ const ChartContainer = React.memo(
 					/>
 				) : chartType === DashboardChartType.Timeline ? (
 					<LineChart
-						height={275}
 						syncId="dashboardChart"
 						data={(timelineData?.metrics_timeline || []).map(
 							(x) => ({
@@ -637,41 +676,13 @@ const ChartContainer = React.memo(
 							x1: referenceArea.start,
 							x2: referenceArea.end,
 						}}
-						onMouseDown={(e?: any) => {
-							e?.activeLabel &&
-								setReferenceArea({
-									start: e.activeLabel,
-									end: referenceArea.end,
-								})
-						}}
-						onMouseMove={(e?: any) => {
-							e?.activeLabel &&
-								referenceArea.start &&
-								setReferenceArea({
-									start: referenceArea.start,
-									end: e.activeLabel,
-								})
-						}}
-						onMouseUp={() => {
-							if (Object.values(referenceArea).includes('')) {
-								return
-							}
-
-							const { start, end } = referenceArea
-
-							if (end > start) {
-								setTimeRange(start, end, true)
-							} else {
-								setTimeRange(end, start, true)
-							}
-
-							setReferenceArea({ start: '', end: '' })
-						}}
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
 					/>
 				) : chartType === DashboardChartType.TimelineBar ? (
 					<CategoricalBarChart
 						syncId="dashboardChart"
-						height={275}
 						stacked
 						data={(timelineData?.metrics_timeline || []).map(
 							(x) => ({
@@ -692,6 +703,13 @@ const ChartContainer = React.memo(
 							tickCount: timelineTicks.ticks.length,
 						}}
 						yAxisLabel={metricConfig.units || ''}
+						referenceAreaProps={{
+							x1: referenceArea.start,
+							x2: referenceArea.end,
+						}}
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
 					/>
 				) : null}
 			</div>

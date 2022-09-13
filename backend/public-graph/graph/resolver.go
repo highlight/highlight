@@ -1049,6 +1049,15 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
 	defer outerSpan.Finish()
 
+	defer func() {
+		err := r.Redis.SetIsPendingSession(ctx, input.SessionSecureID, false)
+		if err != nil {
+			log.Error(
+				e.Wrapf(err, "failed to clear `pending` flag for session %s", input.SessionSecureID),
+			)
+		}
+	}()
+
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
@@ -1153,6 +1162,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
+
+	if err := r.PushMetricsImpl(ctx, session.SecureID, []*model2.MetricInput{
+		{
+			SessionSecureID: session.SecureID,
+			Timestamp:       session.CreatedAt,
+			Name:            "sessions",
+			Value:           1,
+			Category:        pointy.String(model.InternalMetricCategory),
+		},
+	}); err != nil {
+		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
+	}
 
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
@@ -1819,19 +1840,18 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, sessionID int, projectID int, metrics []*customModels.MetricInput) error {
-	if sessionID == 0 || projectID == 0 {
-		if sessionSecureID == "" {
-			return e.New("PushMetricsImpl called without secureID")
-		}
-		session := &model.Session{}
-		if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-			log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-			return err
-		}
-		sessionID = session.ID
-		projectID = session.ProjectID
+func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, metrics []*customModels.MetricInput) error {
+	if sessionSecureID == "" {
+		return e.New("PushMetricsImpl called without secureID")
 	}
+	session := &model.Session{}
+	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+		log.Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
+		return err
+	}
+	sessionID := session.ID
+	projectID := session.ProjectID
+
 	metricsByGroup := make(map[string][]*customModels.MetricInput)
 	for _, m := range metrics {
 		group := ""
@@ -1921,69 +1941,13 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 	return errorFields
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureIds []string, errors []*customModels.BackendErrorObjectInput) {
-	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
-	querySessionSpan.SetTag("numberOfErrors", len(errors))
-	querySessionSpan.SetTag("numberOfSessions", len(sessionSecureIds))
-
-	// Query all sessions related to the current batch of error objects
-	sessions := []*model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Scan(&sessions).Error; err != nil {
-		retErr := e.Wrapf(err, "error reading from sessionSecureIds")
-		querySessionSpan.Finish(tracer.WithError(retErr))
-		log.Error(retErr)
-		return
-	}
-
-	querySessionSpan.Finish()
-
-	// Index sessions by secure_id
-	sessionLookup := make(map[string]*model.Session)
-	for _, session := range sessions {
-		sessionLookup[session.SecureID] = session
-	}
-
-	// Filter out empty errors
-	var filteredErrors []*customModels.BackendErrorObjectInput
-	for _, errorObject := range errors {
-		if errorObject.Event == "[{}]" {
-			var objString string
-			objBytes, err := json.Marshal(errorObject)
-			if err != nil {
-				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
-				objString = ""
-			} else {
-				objString = string(objBytes)
-			}
-			log.WithFields(log.Fields{
-				"project_id":        sessionLookup[errorObject.SessionSecureID],
-				"session_secure_id": errorObject.SessionSecureID,
-				"error_object":      objString,
-			}).Warn("caught empty error, continuing...")
-		} else {
-			filteredErrors = append(filteredErrors, errorObject)
-		}
-	}
-	errors = filteredErrors
-
-	if len(errors) == 0 {
-		return
-	}
-
-	// Count the number of errors for each project
-	errorsByProject := make(map[int]int64)
-	for _, err := range errors {
-		session := sessionLookup[err.SessionSecureID]
-		if session == nil {
-			continue
-		}
-		projectID := session.ProjectID
-		errorsByProject[projectID] += 1
-	}
-
+func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[int]int64, errorsBySession map[string]int64, errors int, errorType string) {
+	log.Warnf("updating errors count %+v %+v %d %s", errorsByProject, errorsBySession, errors, errorType)
 	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
-	dailyErrorCountSpan.SetTag("numberOfErrors", len(errors))
+	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
 	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
+	dailyErrorCountSpan.SetTag("numberOfSessions", len(errorsBySession))
+	defer dailyErrorCountSpan.Finish()
 
 	// For each project, increment daily error count by the current error count
 	n := time.Now()
@@ -1995,7 +1959,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ProjectID: projectId,
 			Date:      &currentDate,
 			Count:     count,
-			ErrorType: model.ErrorType.BACKEND,
+			ErrorType: errorType,
 		}
 		dailyErrorCounts = append(dailyErrorCounts, &errorCount)
 	}
@@ -2011,7 +1975,72 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		return
 	}
 
-	dailyErrorCountSpan.Finish()
+	for sessionSecureId, count := range errorsBySession {
+		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*model2.MetricInput{
+			{
+				SessionSecureID: sessionSecureId,
+				Timestamp:       n,
+				Name:            "errors",
+				Value:           float64(count),
+				Category:        pointy.String(model.InternalMetricCategory),
+			},
+		}); err != nil {
+			log.Errorf("failed to count errors metric for %s: %s", sessionSecureId, err)
+		}
+	}
+}
+
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errors []*customModels.BackendErrorObjectInput) {
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
+	querySessionSpan.SetTag("numberOfSessions", 1)
+
+	session := &model.Session{}
+	if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
+		retErr := e.New("ProcessBackendPayloadImpl failed to find session " + sessionSecureID)
+		querySessionSpan.Finish(tracer.WithError(retErr))
+		log.Error(retErr)
+		return
+	}
+
+	querySessionSpan.Finish()
+
+	// Filter out empty errors
+	var filteredErrors []*customModels.BackendErrorObjectInput
+	for _, errorObject := range errors {
+		if errorObject.Event == "[{}]" {
+			var objString string
+			objBytes, err := json.Marshal(errorObject)
+			if err != nil {
+				log.Error(e.Wrap(err, "error marshalling error object when filtering"))
+				objString = ""
+			} else {
+				objString = string(objBytes)
+			}
+			log.WithFields(log.Fields{
+				"project_id":        session.ProjectID,
+				"session_secure_id": errorObject.SessionSecureID,
+				"error_object":      objString,
+			}).Warn("caught empty error, continuing...")
+		} else {
+			filteredErrors = append(filteredErrors, errorObject)
+		}
+	}
+	errors = filteredErrors
+
+	if len(errors) == 0 {
+		return
+	}
+
+	// Count the number of errors for each project
+	errorsByProject := make(map[int]int64)
+	errorsBySession := make(map[string]int64)
+	for _, err := range errors {
+		errorsBySession[err.SessionSecureID] += 1
+		errorsByProject[session.ProjectID] += 1
+	}
+
+	r.updateErrorsCount(ctx, errorsByProject, errorsBySession, len(errors), model.ErrorType.BACKEND)
 
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
@@ -2029,29 +2058,24 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 		traceString := string(traceBytes)
 
-		sessionObj := sessionLookup[v.SessionSecureID]
-		if sessionObj == nil {
-			continue
-		}
-		projectID := sessionObj.ProjectID
-
+		projectID := session.ProjectID
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
-			SessionID:   sessionObj.ID,
-			Environment: sessionObj.Environment,
+			SessionID:   session.ID,
+			Environment: session.Environment,
 			Event:       v.Event,
 			Type:        model.ErrorType.BACKEND,
 			URL:         v.URL,
 			Source:      v.Source,
-			OS:          sessionObj.OSName,
-			Browser:     sessionObj.BrowserName,
+			OS:          session.OSName,
+			Browser:     session.BrowserName,
 			StackTrace:  &traceString,
 			Timestamp:   v.Timestamp,
 			Payload:     v.Payload,
 			RequestID:   &v.RequestID,
 		}
 
-		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(sessionObj, errorToInsert), projectID)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
 		if err != nil {
 			log.Error(e.Wrap(err, "Error updating error group"))
 			continue
@@ -2061,7 +2085,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			Group      *model.ErrorGroup
 			VisitedURL string
 			SessionObj *model.Session
-		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: session}
 	}
 
 	for _, data := range groups {
@@ -2071,7 +2095,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	putErrorsToDBSpan.Finish()
 
 	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("secure_id IN ?", sessionSecureIds).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
 		return
 	}
@@ -2236,6 +2260,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
 			for _, event := range parsedEvents.Events {
+				stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.injectStylesheets"), tracer.Tag("project_id", projectID))
 				if event.Type == parse.FullSnapshot {
 					hasFullSnapshot = true
 					// If we see a snapshot event, attempt to inject CORS stylesheets.
@@ -2246,7 +2272,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 					event.Data = d
 				}
+				stylesheetsSpan.Finish()
 
+				assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
 				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
 				// This gate will be removed in the future
 				if projectID == 1 {
@@ -2267,7 +2296,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						continue
 					}
 				}
+				assetsSpan.Finish()
 
+				incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
 				if event.Type == parse.IncrementalSnapshot {
 					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 					if err != nil {
@@ -2282,47 +2314,63 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
-
+				incrementalEventSpan.Finish()
 			}
+
+			remarshalSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+				tracer.ResourceName("go.parseEvents.remarshalEvents"), tracer.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
+			remarshalSpan.Finish()
 
 			if sessionObj.ProcessWithRedis {
+				redisSpan, redisCtx := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectID))
 				score := float64(payloadIdDeref)
 				// A little bit of a hack to encode
 				if isBeacon {
 					score += .5
 				}
 
-				// Gated for project_id = 1 for now
-				if hasFullSnapshot && projectID == 1 {
+				if hasFullSnapshot {
+					zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+						tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectID))
 					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
 					if err != nil {
 						return e.Wrap(err, "error retrieving previous event objects")
 					}
+					zRangeSpan.Finish()
 
 					// If there are prior events, push them to S3 and remove them from Redis
 					if len(zRange) != 0 {
+						pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectID))
 						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
 							return e.Wrap(err, "error pushing events to S3")
 						}
+						pushToS3Span.Finish()
 
 						values := []interface{}{}
 						for _, z := range zRange {
 							values = append(values, z.Member)
 						}
+
+						removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectID))
 						if err := r.Redis.RemoveValues(ctx, sessionID, values); err != nil {
 							return e.Wrap(err, "error removing previous values")
 						}
+						removeValuesSpan.Finish()
 					}
 				}
 
 				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
 					return e.Wrap(err, "error adding event payload")
 				}
+				redisSpan.Finish()
 
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
@@ -2417,23 +2465,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		errors = filteredErrors
 
 		// increment daily error table
-		if len(errors) > 0 {
-			n := time.Now()
-			currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-			dailyErrorCount := model.DailyErrorCount{
-				ProjectID: projectID,
-				Date:      &currentDate,
-				Count:     int64(len(errors)),
-				ErrorType: model.ErrorType.FRONTEND,
-			}
-
-			// Upsert error counts into daily_error_counts
-			if err := r.DB.Table(model.DAILY_ERROR_COUNTS_TBL).Clauses(clause.OnConflict{
-				OnConstraint: model.DAILY_ERROR_COUNTS_UNIQ,
-				DoUpdates:    clause.Assignments(map[string]interface{}{"count": gorm.Expr("daily_error_counts.count + excluded.count")}),
-			}).Create(&dailyErrorCount).Error; err != nil {
-				return e.Wrap(err, "error getting or creating daily error count")
-			}
+		numErrors := int64(len(errors))
+		if numErrors > 0 {
+			r.updateErrorsCount(ctx, map[int]int64{projectID: numErrors}, map[string]int64{sessionSecureID: numErrors}, len(errors), model.ErrorType.FRONTEND)
 		}
 
 		// put errors in db

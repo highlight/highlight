@@ -44,7 +44,6 @@ export interface Props {
 	domain?: AxisDomain
 	referenceLines?: Reference[]
 	showReferenceLineLabels?: boolean
-	height: number
 	xAxisDataKeyName?: string
 	xAxisTickFormatter?: (value: any, index: number) => string
 	xAxisProps?: XAxisProps
@@ -84,7 +83,6 @@ export function findDataDomain(data: any[], key?: string) {
 }
 
 const LineChart = ({
-	height,
 	referenceLines,
 	showReferenceLineLabels,
 	xAxisDataKeyName = 'date',
@@ -140,17 +138,9 @@ const LineChart = ({
 					orientation={'vertical'}
 				/>
 			)}
-			<ResponsiveContainer width="100%" height={height}>
+			<ResponsiveContainer width="100%" height="100%">
 				<RechartsLineChart
-					width={500}
-					height={300}
 					data={data}
-					margin={{
-						top: 42,
-						right: 4,
-						left: -18,
-						bottom: 0,
-					}}
 					syncId={syncId}
 					onMouseLeave={() => setShowTooltip(false)}
 					onMouseDown={onMouseDown}
@@ -187,7 +177,7 @@ const LineChart = ({
 						axisLine={{ stroke: gridColor }}
 						domain={domain}
 						type={'number'}
-						dx={2}
+						dx={-12}
 						unit={yAxisLabel}
 					/>
 

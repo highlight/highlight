@@ -11,7 +11,7 @@
 .histogramContainer {
 	margin-bottom: 26px;
 	position: relative;
-	z-index: 300;
+	z-index: 10;
 }
 
 .timeMarker {
@@ -20,7 +20,7 @@
 	position: absolute;
 	top: 10px;
 	width: 2px;
-	z-index: 200;
+	z-index: 8;
 }
 
 .innerBounds {

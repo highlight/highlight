@@ -3,9 +3,11 @@ import BarChart from '@components/BarChart/BarChart'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import Card from '@components/Card/Card'
 import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import { CircularSpinner } from '@components/Loading/Loading'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
+import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -21,7 +23,8 @@ import AlertSetupModal from '@pages/Alerts/AlertSetupModal/AlertSetupModal'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect, useState } from 'react'
+import { compact } from 'lodash'
+import React from 'react'
 import { Link, useHistory } from 'react-router-dom'
 
 import styles from './Alerts.module.scss'
@@ -252,53 +255,46 @@ const TABLE_COLUMNS = [
 	},
 ]
 
-const AlertsPage = () => {
-	const { project_id } = useParams<{ project_id: string }>()
+export default function AlertsPage() {
 	const { alertsPayload, loading } = useAlertsContext()
 
+	if (loading) {
+		return (
+			<div>
+				<div className={styles.subTitleContainer}>
+					<p>Manage the alerts for your project.</p>
+				</div>
+				<div className="flex justify-center p-8">
+					<CircularSpinner />
+				</div>
+			</div>
+		)
+	}
+
+	return <AlertsPageLoaded alertsPayload={alertsPayload} />
+}
+
+function AlertsPageLoaded({
+	alertsPayload,
+}: {
+	alertsPayload: GetAlertsPagePayloadQuery | undefined
+}) {
+	const { project_id } = useParams<{ project_id: string }>()
 	const history = useHistory()
-	const [maxNum, setMaxNum] = useState(5)
-	useEffect(() => {
-		if (!loading) {
-			let tempMax = 5
-			alertsPayload?.error_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.new_user_alerts?.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.session_feedback_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.track_properties_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.user_properties_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.new_session_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			alertsPayload?.rage_click_alerts.forEach((val) => {
-				if (!!val?.DailyFrequency) {
-					tempMax = Math.max(tempMax, ...val.DailyFrequency)
-				}
-			})
-			setMaxNum(tempMax)
-		}
-	}, [alertsPayload, loading])
+
+	const maxNum = (() => {
+		const values = [
+			alertsPayload?.error_alerts,
+			alertsPayload?.new_user_alerts,
+			alertsPayload?.session_feedback_alerts,
+			alertsPayload?.track_properties_alerts,
+			alertsPayload?.user_properties_alerts,
+			alertsPayload?.new_session_alerts,
+			alertsPayload?.rage_click_alerts,
+		].flatMap((alerts) => alerts?.flatMap((alert) => alert?.DailyFrequency))
+
+		return Math.max(...compact(values), 5)
+	})()
 
 	const alertsAsTableRows = [
 		...(alertsPayload?.error_alerts || [])
@@ -310,7 +306,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.new_user_alerts || [])
@@ -323,7 +318,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.session_feedback_alerts || [])
@@ -337,7 +331,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.track_properties_alerts || [])
@@ -351,7 +344,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.user_properties_alerts || [])
@@ -365,7 +357,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.new_session_alerts || [])
@@ -379,7 +370,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.rage_click_alerts || [])
@@ -393,7 +383,6 @@ const AlertsPage = () => {
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.metric_monitors || [])
@@ -407,7 +396,6 @@ const AlertsPage = () => {
 				key: metricMonitor?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],
-				loading,
 			}))
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 	]
@@ -428,7 +416,7 @@ const AlertsPage = () => {
 						</ButtonLink>
 					)}
 			</div>
-			{!loading && !alertsPayload?.is_integrated_with_slack ? (
+			{!alertsPayload?.is_integrated_with_slack ? (
 				<Alert
 					trackingId="AlertPageSlackBotIntegration"
 					message={
@@ -496,7 +484,6 @@ const AlertsPage = () => {
 				<Card noPadding style={{ width: 1200 }}>
 					<Table
 						columns={TABLE_COLUMNS}
-						loading={loading}
 						dataSource={alertsAsTableRows}
 						pagination={false}
 						showHeader={false}
@@ -534,5 +521,3 @@ const AlertsPage = () => {
 		</>
 	)
 }
-
-export default AlertsPage

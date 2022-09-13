@@ -554,3 +554,48 @@ export const changeSession = (
 	history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`)
 	message.success(successMessageText)
 }
+
+export const loadiFrameResources = (r: Replayer, project_id: string) => {
+	// Inject the Material font icons into the player if it's a Boardgent session.
+	// Context: https://linear.app/highlight/issue/HIG-1996/support-loadingsaving-resources-that-are-not-available-on-the-open-web
+	if (project_id === '669' && r.iframe.contentDocument) {
+		const cssLink = document.createElement('link')
+		cssLink.href =
+			'https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css'
+		cssLink.rel = 'stylesheet'
+		cssLink.type = 'text/css'
+		r.iframe.contentDocument.head.appendChild(cssLink)
+	}
+	// Inject FontAwesome for Gelt Finance sessions.
+	// Context: https://linear.app/highlight/issue/HIG-2232/fontawesome-library
+	if (project_id === '896' && r.iframe.contentDocument) {
+		const scriptLink = document.createElement('script')
+		scriptLink.src = 'https://kit.fontawesome.com/2fb433086f.js'
+		scriptLink.crossOrigin = 'anonymous'
+		r.iframe.contentDocument.head.appendChild(scriptLink)
+	}
+	// Add missing stylesheets for Mazumago
+	// Context: https://linear.app/highlight/issue/HIG-2441/mazumago-styling-issue
+	if (
+		(project_id === '1026' ||
+			project_id === '1028' ||
+			project_id === '1017') &&
+		r.iframe.contentDocument
+	) {
+		const cssRoboto = document.createElement('link')
+		cssRoboto.href =
+			'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display=swap'
+		cssRoboto.rel = 'stylesheet'
+		r.iframe.contentDocument.head.appendChild(cssRoboto)
+		const cssIcons = document.createElement('link')
+		cssIcons.href =
+			'https://fonts.googleapis.com/icon?family=Material+Icons'
+		cssIcons.rel = 'stylesheet'
+		r.iframe.contentDocument.head.appendChild(cssIcons)
+		const scriptLink = document.createElement('script')
+		scriptLink.src =
+			'https://unpkg.com/@mui/material@5.9.0/umd/material-ui.production.min.js'
+		scriptLink.crossOrigin = 'anonymous'
+		r.iframe.contentDocument.head.appendChild(scriptLink)
+	}
+}

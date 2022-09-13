@@ -174,7 +174,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			) AS e ON s.id = e.session_id
 		WHERE
 			s.excluded <> true 
-			AND s.has_errors = true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
@@ -3852,6 +3851,15 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 	}
 
 	return sessionComments, nil
+}
+
+// IsSessionPending is the resolver for the isSessionPending field.
+func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID string) (*bool, error) {
+	isPending, err := r.Redis.IsPendingSession(ctx, sessionSecureID)
+	if err != nil {
+		return pointy.Bool(false), e.Wrap(err, "error retrieving session")
+	}
+	return pointy.Bool(isPending), nil
 }
 
 // ErrorComments is the resolver for the error_comments field.

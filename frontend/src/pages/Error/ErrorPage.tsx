@@ -524,7 +524,7 @@ export const ErrorFrequencyGraph: React.FC<
 	)
 	const [totalErrors, setTotalErrors] = useState<number>(0)
 	const [dateRangeLength, setDateRangeLength] = useState<number>(
-		timeFilter[1].value,
+		timeFilter[2].value,
 	)
 
 	useEffect(() => {
@@ -564,7 +564,7 @@ export const ErrorFrequencyGraph: React.FC<
 				<h3>Error Frequency</h3>
 				<StandardDropdown
 					data={timeFilter}
-					defaultValue={timeFilter[1]}
+					defaultValue={timeFilter[2]}
 					onSelect={setDateRangeLength}
 					disabled={!errorGroup}
 				/>
