@@ -64,7 +64,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
                   cache: 'pnpm'
             - name: Install dependencies
-              run: pnpm --filter frontend --prefer-offline
+              run: pnpm --filter frontend install
             - name: Runs linting
               run: pnpm --filter frontend test
             - name: Build Bundle
