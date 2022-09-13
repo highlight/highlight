@@ -10,11 +10,11 @@
 		"gql:nowatch": "graphql-codegen --config codegen.yml",
 		"build": "vite build",
 		"test": "TZ=UTC vitest",
-		"lint": "yarn lint:es && stylelint \"**/*.scss\"",
+		"lint": "pnpm run lint:es && stylelint \"**/*.scss\"",
 		"lint:es": "eslint --fix \"src/**/*.{ts,tsx}\"",
 		"lint:css": "stylelint \"**/*.scss\" --fix",
 		"analyze": "source-map-explorer 'build/static/js/*.js'",
-		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es"
+		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && pnpm run lint:es"
 	},
 	"dependencies": {
 		"@ant-design/icons": "^4.7.0",
@@ -43,6 +43,7 @@
 		"highlight.run": "workspace:^4.4.1",
 		"intro.js": "^4.1.0",
 		"intro.js-react": "^0.6.0",
+		"lodash": "^4.17.21",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
 		"prop-types": "^15.5.7",
