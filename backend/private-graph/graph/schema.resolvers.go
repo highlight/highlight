@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
+
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -39,6 +39,7 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/samber/lo"
