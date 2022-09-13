@@ -50,6 +50,7 @@ const DashboardsRouter = () => {
 						metrics: Object.values(WEB_VITALS_CONFIGURATION),
 						name: 'Web Vitals',
 						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}
@@ -60,6 +61,7 @@ const DashboardsRouter = () => {
 						metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
 						name: 'Home',
 						layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}
@@ -76,6 +78,7 @@ const DashboardsRouter = () => {
 						),
 						name: 'Frontend Observability',
 						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}

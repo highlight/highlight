@@ -976,6 +976,7 @@ export type DashboardDefinition = {
 	metrics: Array<DashboardMetricConfig>
 	last_admin_to_edit_id?: Maybe<Scalars['Int']>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
 }
 
 export type MetricPreview = {
@@ -2079,6 +2080,7 @@ export type MutationUpsertDashboardArgs = {
 	name: Scalars['String']
 	metrics: Array<DashboardMetricConfigInput>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
 }
 
 export type MutationDeleteDashboardArgs = {

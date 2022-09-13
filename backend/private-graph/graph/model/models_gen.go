@@ -82,6 +82,7 @@ type DashboardDefinition struct {
 	Metrics           []*DashboardMetricConfig `json:"metrics"`
 	LastAdminToEditID *int                     `json:"last_admin_to_edit_id"`
 	Layout            *string                  `json:"layout"`
+	IsDefault         *bool                    `json:"is_default"`
 }
 
 type DashboardMetricConfig struct {

@@ -4224,6 +4224,7 @@ export const UpsertDashboardDocument = gql`
 		$name: String!
 		$metrics: [DashboardMetricConfigInput!]!
 		$layout: String
+		$is_default: Boolean
 	) {
 		upsertDashboard(
 			id: $id
@@ -4231,6 +4232,7 @@ export const UpsertDashboardDocument = gql`
 			name: $name
 			metrics: $metrics
 			layout: $layout
+			is_default: $is_default
 		)
 	}
 `
@@ -4257,6 +4259,7 @@ export type UpsertDashboardMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      metrics: // value for 'metrics'
  *      layout: // value for 'layout'
+ *      is_default: // value for 'is_default'
  *   },
  * });
  */
@@ -10066,6 +10069,7 @@ export const GetDashboardDefinitionsDocument = gql`
 			updated_at
 			project_id
 			name
+			is_default
 			metrics {
 				component_type
 				name

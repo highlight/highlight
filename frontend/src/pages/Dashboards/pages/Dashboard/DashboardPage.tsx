@@ -230,10 +230,9 @@ const DashboardPage = ({
 							>
 								Add
 							</Button>
-							<DeleteDashboardButton
-								dashboardId={dashboard.id}
-								projectId={dashboard.project_id}
-							/>
+							{dashboard.is_default ? null : (
+								<DeleteDashboardButton dashboard={dashboard} />
+							)}
 							<TimeRangePicker />
 						</div>
 					</div>
@@ -425,18 +424,20 @@ export const findDashboardMetric = (
 export default DashboardPage
 
 function DeleteDashboardButton({
-	dashboardId,
-	projectId,
+	dashboard,
 }: {
-	dashboardId: string
-	projectId: string
+	dashboard: {
+		id: string
+		name: string
+		project_id: string
+	}
 }) {
 	const history = useHistory()
 
 	const [mutate] = useDeleteDashboardMutation({
-		variables: { id: dashboardId },
+		variables: { id: dashboard.id },
 		onCompleted: () => {
-			history.push(`/${projectId}/dashboards`)
+			history.push(`/${dashboard.project_id}/dashboards`)
 		},
 		refetchQueries: [GetDashboardDefinitionsDocument],
 	})

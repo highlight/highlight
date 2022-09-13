@@ -1553,6 +1553,7 @@ query GetDashboardDefinitions($project_id: ID!) {
 		updated_at
 		project_id
 		name
+		is_default
 		metrics {
 			component_type
 			name

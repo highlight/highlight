@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -3065,7 +3066,7 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 }
 
 // UpsertDashboard is the resolver for the upsertDashboard field.
-func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return -1, err
@@ -3136,6 +3137,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	dashboard.Name = name
 	dashboard.LastAdminToEditID = &admin.ID
 	dashboard.Layout = layout
+	dashboard.IsDefault = isDefault
 	if err := r.DB.Save(&dashboard).Error; err != nil {
 		return dashboard.ID, err
 	}
@@ -3152,6 +3154,14 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id *int) (bool, 
 
 	if _, err := r.isAdminInProject(ctx, dashboard.ProjectID); err != nil {
 		return false, err
+	}
+
+	if dashboard.IsDefault != nil && *dashboard.IsDefault {
+		return false, errors.New("cannot delete default dashboard")
+	}
+
+	if result := r.DB.Where("dashboard_id = ?", id).Delete(&model.DashboardMetric{}); result.Error != nil {
+		return false, result.Error
 	}
 
 	if result := r.DB.Delete(&dashboard, id); result.Error != nil {
@@ -5611,6 +5621,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			Metrics:           metrics,
 			LastAdminToEditID: d.LastAdminToEditID,
 			Layout:            d.Layout,
+			IsDefault:         d.IsDefault,
 		})
 	}
 	return results, nil

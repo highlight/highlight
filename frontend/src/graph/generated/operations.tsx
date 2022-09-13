@@ -1523,6 +1523,7 @@ export type UpsertDashboardMutationVariables = Types.Exact<{
 		| Array<Types.DashboardMetricConfigInput>
 		| Types.DashboardMetricConfigInput
 	layout?: Types.Maybe<Types.Scalars['String']>
+	is_default?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type UpsertDashboardMutation = { __typename?: 'Mutation' } & Pick<
@@ -3867,6 +3868,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 				| 'updated_at'
 				| 'project_id'
 				| 'name'
+				| 'is_default'
 				| 'last_admin_to_edit_id'
 				| 'layout'
 			> & {
