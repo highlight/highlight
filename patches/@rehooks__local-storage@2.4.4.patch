@@ -1,0 +1,13 @@
+diff --git a/lib/local-storage-events.js b/lib/local-storage-events.js
+index 6ba0414237c7134f14e2737fa4b9f6bb97ba4a5c..1653fec22a419d23ffd6d5bf2ffff5f15c88a5d2 100644
+--- a/lib/local-storage-events.js
++++ b/lib/local-storage-events.js
+@@ -11,7 +11,7 @@ exports.LOCAL_STORAGE_CHANGE_EVENT_NAME = 'onLocalStorageChange';
+     if (!is_browser_1.isBrowser()) {
+         return;
+     }
+-    if (typeof global.window.CustomEvent === 'function') {
++    if (typeof CustomEvent === 'function') {
+         return;
+     }
+     function CustomEvent(typeArg, params) {

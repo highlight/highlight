@@ -5,19 +5,12 @@
 	"repository": "git@github.com:highlight-run/highlight.git",
 	"author": "Highlight",
 	"license": "MIT",
-	"dependencies": {
-		"concurrently": "^6.5.1"
-	},
 	"scripts": {
-		"prepare": "husky install",
-		"frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
-		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
+		"prepare": "only-allow pnpm && husky install",
+		"frontend:start": "echo \"run 'pnpm dev:frontend' instead, or run 'pnpm dev' to run all projects at once\"",
 		"dev": "run-p --print-label --race dev:*",
+		"dev:frontend": "pnpm -r --parallel --filter=!render run dev",
 		"dev:backend": "cd backend && make start",
-		"dev:frontend": "cd frontend && yarn dev",
-		"dev:client": "cd client && yarn dev",
-		"dev:client-gql": "cd client && yarn gql",
-		"dev:firstload": "cd firstload && yarn dev",
 		"dev:redis": "redis-server",
 		"generate": "hygen",
 		"g": "hygen",
@@ -30,7 +23,13 @@
 		"husky": "^8.0.1",
 		"hygen": "^6.2.7",
 		"npm-run-all": "^4.1.5",
+		"only-allow": "^1.1.1",
 		"prettier": "^2.7.1",
 		"pretty-quick": "^3.1.3"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"@rehooks/local-storage@2.4.4": "patches/@rehooks__local-storage@2.4.4.patch"
+		}
 	}
 }
