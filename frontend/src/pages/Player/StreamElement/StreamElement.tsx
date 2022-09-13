@@ -158,7 +158,7 @@ export const StreamElement = ({
 								</div>
 							) : (
 								<div className={styles.payloadContainer}>
-									<h2 className={styles.payloadTitle}>
+									<h2 className="mb-3 text-xs font-medium">
 										{getTimelineEventDisplayName(
 											details.title || '',
 										)}{' '}
@@ -171,17 +171,6 @@ export const StreamElement = ({
 											}
 										/>
 									</h2>
-
-									{e.type === EventType.Custom &&
-										e.data.tag === 'Web Vitals' && (
-											<Link
-												to={`/${params.project_id}/dashboards/web-vitals`}
-											>
-												<ExternalLinkText>
-													View web vitals dashboard
-												</ExternalLinkText>
-											</Link>
-										)}
 
 									{e.type === EventType.Custom &&
 									e.data.tag === 'Web Vitals' ? (
@@ -211,6 +200,18 @@ export const StreamElement = ({
 											searchQuery={searchQuery}
 										/>
 									)}
+
+									{e.type === EventType.Custom &&
+										e.data.tag === 'Web Vitals' && (
+											<Link
+												to={`/${params.project_id}/dashboards/web-vitals`}
+												className="mt-4 inline-block"
+											>
+												<ExternalLinkText>
+													View web vitals dashboard
+												</ExternalLinkText>
+											</Link>
+										)}
 								</div>
 							)}
 							{shouldShowTimestamp && (
