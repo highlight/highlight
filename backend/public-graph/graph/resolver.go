@@ -994,8 +994,8 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 }
 
 func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
-		tracer.ResourceName("go.sessions.getLocationFromIP"))
+	s, _ := tracer.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
+		tracer.ResourceName("getLocationFromIP"))
 	defer s.Finish()
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
@@ -1047,9 +1047,28 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
+func (r *Resolver) getExistingSession(projectID int, secureID string) (*model.Session, error) {
+	existingSessionObj := &model.Session{}
+	if err := r.DB.Order("secure_id").Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Limit(1).Find(&existingSessionObj).Error; err != nil {
+		log.Errorf("init session error, couldn't fetch session duplicate: %s", secureID)
+		return nil, e.Wrap(err, "init session error, couldn't fetch session duplicate")
+	}
+	if existingSessionObj.ID != 0 {
+		if projectID != existingSessionObj.ProjectID {
+			// ensure the fetched session is for this same project
+			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", secureID, existingSessionObj.ProjectID)
+			return nil, e.New("error creating session, fetched session for another project.")
+		}
+		// otherwise, it's a retry for a session that already exists. return the existing session.
+		return existingSessionObj, nil
+	}
+	return nil, nil
+}
+
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
 	initSpan, initCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
-		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
+		tracer.ResourceName("go.sessions.InitializeSessionImpl"),
+		tracer.Tag("duplicate", true))
 	defer initSpan.Finish()
 
 	defer func() {
@@ -1068,20 +1087,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
 
-	existingSessionObj := &model.Session{}
-	if err := r.DB.Order("secure_id").Model(&existingSessionObj).Where(&model.Session{SecureID: input.SessionSecureID}).Limit(1).Find(&existingSessionObj).Error; err != nil {
-		log.Errorf("init session error, couldn't fetch session duplicate: %s", input.SessionSecureID)
-		return nil, e.Wrap(err, "init session error, couldn't fetch session duplicate")
+	existingSession, err := r.getExistingSession(projectID, input.SessionSecureID)
+	if err != nil {
+		return nil, err
 	}
-	if existingSessionObj.ID != 0 {
-		initSpan.SetTag("duplicate", true)
-		if projectID != existingSessionObj.ProjectID {
-			// ensure the fetched session is for this same project
-			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", input.SessionSecureID, existingSessionObj.ProjectID)
-			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
-		}
-		// otherwise, it's a retry for a session that already exists. return the existing session.
-		return existingSessionObj, nil
+	if existingSession != nil {
+		return existingSession, nil
 	}
 	initSpan.SetTag("duplicate", false)
 
@@ -1165,8 +1176,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	session.WithinBillingQuota = &withinBillingQuota
 
 	if err := r.DB.Create(session).Error; err != nil {
-		log.Errorf("error creating session: %s", err)
-		return nil, e.Wrap(err, "error creating session")
+		if input.SessionSecureID == "" || !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			log.Errorf("error creating session: %s", err)
+			return nil, e.Wrap(err, "error creating session")
+		}
+		existingSession, err := r.getExistingSession(projectID, input.SessionSecureID)
+		if err != nil {
+			return nil, err
+		}
+		if existingSession != nil {
+			return existingSession, nil
+		}
+		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
 	}
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
