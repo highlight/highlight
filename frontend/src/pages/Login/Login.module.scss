@@ -6,11 +6,6 @@
 	width: 100vw;
 }
 
-.loginPage {
-	min-height: 462px;
-	width: 450px;
-}
-
 .loginTitle {
 	font-size: 23px;
 }
@@ -29,6 +24,9 @@
 	flex-direction: column;
 	padding: 30px;
 	transition: all 0.2s ease-in-out;
+	max-width: 420px;
+	height: fit-content;
+	margin: auto;
 }
 
 .loginForm {

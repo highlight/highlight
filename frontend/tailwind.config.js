@@ -27,6 +27,9 @@ module.exports = {
 				midnight: '#0D0225',
 				'pale-purple': '#645D74',
 			},
+			fontFamily: {
+				poppins: ['Poppins', 'sans-serif'],
+			},
 		},
 	},
 	plugins: [],
