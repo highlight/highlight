@@ -174,7 +174,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			) AS e ON s.id = e.session_id
 		WHERE
 			s.excluded <> true 
-			AND s.has_errors = true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
