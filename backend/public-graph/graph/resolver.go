@@ -1169,7 +1169,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			Timestamp:       session.CreatedAt,
 			Name:            "sessions",
 			Value:           1,
-			Category:        pointy.String("__internal"),
+			Category:        pointy.String(model.InternalMetricCategory),
 		},
 	}); err != nil {
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
@@ -1982,7 +1982,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 				Timestamp:       n,
 				Name:            "errors",
 				Value:           float64(count),
-				Category:        pointy.String("__internal"),
+				Category:        pointy.String(model.InternalMetricCategory),
 			},
 		}); err != nil {
 			log.Errorf("failed to count errors metric for %s: %s", sessionSecureId, err)
