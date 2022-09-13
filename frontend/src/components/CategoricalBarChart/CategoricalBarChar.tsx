@@ -24,7 +24,7 @@ import {
 
 import styles from './CategoricalBarChart.module.scss'
 
-type Props = Omit<LineChartProps, 'lineColorMapping'> & {
+type Props = Omit<LineChartProps, 'lineColorMapping' | 'height'> & {
 	xAxisLabel?: string
 	xAxisUnits?: string
 	barColorMapping: any
@@ -35,7 +35,6 @@ type Props = Omit<LineChartProps, 'lineColorMapping'> & {
 }
 
 const CategoricalBarChart = ({
-	height,
 	referenceLines,
 	showReferenceLineLabels,
 	xAxisDataKeyName = 'date',
@@ -75,11 +74,9 @@ const CategoricalBarChart = ({
 
 	if (!groupedData) return null
 	return (
-		<div style={{ position: 'relative', width: '100%' }}>
-			<ResponsiveContainer width="100%" height={height}>
+		<>
+			<ResponsiveContainer width="100%" height="100%">
 				<RechartsBarChart
-					width={500}
-					height={300}
 					data={groupedData}
 					syncId={syncId}
 					barGap={0}
@@ -98,7 +95,7 @@ const CategoricalBarChart = ({
 					barCategoryGap={groupedData.length > 30 ? '20%' : 4}
 				>
 					<CartesianGrid
-						vertical={true}
+						vertical={false}
 						stroke="var(--color-gray-200)"
 					/>
 					<XAxis
@@ -199,7 +196,7 @@ const CategoricalBarChart = ({
 					)}
 				</RechartsBarChart>
 			</ResponsiveContainer>
-		</div>
+		</>
 	)
 }
 
