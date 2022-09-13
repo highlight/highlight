@@ -192,9 +192,12 @@ const DashboardCard = ({
 												]}
 												onSelect={(mmId) => {
 													if (mmId === -1) {
-														history.push(
-															`/${project_id}/alerts/new/monitor?type=${metricConfig.name}`,
-														)
+														history.push({
+															pathname: `/${project_id}/alerts/new/monitor`,
+															state: {
+																metricConfig,
+															},
+														})
 													} else {
 														history.push(
 															`/${project_id}/alerts/monitor/${mmId}`,
