@@ -1185,6 +1185,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return nil, err
 		}
 		if existingSession != nil {
+			initSpan.SetTag("duplicate", true)
+			initSpan.SetTag("duplicateRace", true)
 			return existingSession, nil
 		}
 		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
