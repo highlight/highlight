@@ -993,7 +993,10 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	return nil
 }
 
-func GetLocationFromIP(ip string) (location *Location, err error) {
+func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err error) {
+	s, _ := tracer.StartSpanFromContext(ctx, "public-graph.GetLocationFromIP",
+		tracer.ResourceName("getLocationFromIP"))
+	defer s.Finish()
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
@@ -1044,13 +1047,34 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
+func (r *Resolver) getExistingSession(projectID int, secureID string) (*model.Session, error) {
+	existingSessionObj := &model.Session{}
+	if err := r.DB.Order("secure_id").Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Limit(1).Find(&existingSessionObj).Error; err != nil {
+		log.Errorf("init session error, couldn't fetch session duplicate: %s", secureID)
+		return nil, e.Wrap(err, "init session error, couldn't fetch session duplicate")
+	}
+	if existingSessionObj.ID != 0 {
+		if projectID != existingSessionObj.ProjectID {
+			// ensure the fetched session is for this same project
+			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", secureID, existingSessionObj.ProjectID)
+			return nil, e.New("error creating session, fetched session for another project.")
+		}
+		// otherwise, it's a retry for a session that already exists. return the existing session.
+		return existingSessionObj, nil
+	}
+	return nil, nil
+}
+
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
-		tracer.ResourceName("go.sessions.InitializeSessionImpl"))
-	defer outerSpan.Finish()
+	initSpan, initCtx := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl",
+		tracer.ResourceName("go.sessions.InitializeSessionImpl"),
+		tracer.Tag("duplicate", true))
+	defer initSpan.Finish()
 
 	defer func() {
-		err := r.Redis.SetIsPendingSession(ctx, input.SessionSecureID, false)
+		redisSpan, redisCtx := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setRedis"))
+		defer redisSpan.Finish()
+		err := r.Redis.SetIsPendingSession(redisCtx, input.SessionSecureID, false)
 		if err != nil {
 			log.Error(
 				e.Wrapf(err, "failed to clear `pending` flag for session %s", input.SessionSecureID),
@@ -1062,6 +1086,17 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err != nil {
 		log.Errorf("An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
 	}
+
+	existingSession, err := r.getExistingSession(projectID, input.SessionSecureID)
+	if err != nil {
+		return nil, err
+	}
+	if existingSession != nil {
+		return existingSession, nil
+	}
+	initSpan.SetTag("duplicate", false)
+
+	setupSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setup"))
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 		return nil, e.Wrap(err, "project doesn't exist")
@@ -1112,6 +1147,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ProcessWithRedis:               useRedis,
 	}
 
+	// determine if session is within billing quota
+	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+	setupSpan.Finish()
+
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
@@ -1121,15 +1160,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		State:     "",
 		Country:   "",
 	}
-	fetchedLocation, err := GetLocationFromIP(input.IP)
+	fetchedLocation, err := GetLocationFromIP(initCtx, input.IP)
 	if err != nil || fetchedLocation == nil {
 		log.Errorf("error getting user's location: %v", err)
 	} else {
 		location = fetchedLocation
 	}
-
-	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 
 	session.City = location.City
 	session.State = location.State
@@ -1144,26 +1180,22 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			log.Errorf("error creating session: %s", err)
 			return nil, e.Wrap(err, "error creating session")
 		}
-		sessionObj := &model.Session{}
-		if fetchSessionErr := r.DB.Where(&model.Session{SecureID: input.SessionSecureID}).First(&sessionObj).Error; fetchSessionErr != nil {
-			log.Errorf("error creating session, couldn't fetch session duplicate: %s", err)
-			return nil, e.Wrap(fetchSessionErr, "error creating session, couldn't fetch session duplicate")
+		existingSession, err := r.getExistingSession(projectID, input.SessionSecureID)
+		if err != nil {
+			return nil, err
 		}
-		if projectID != sessionObj.ProjectID {
-			// ensure the fetched session is for this same project
-			log.Errorf("error creating session for secure id %s, fetched a session for another project: %d", input.SessionSecureID, sessionObj.ProjectID)
-			return nil, e.Wrap(err, "error creating session, fetched session for another project.")
+		if existingSession != nil {
+			initSpan.SetTag("duplicate", true)
+			initSpan.SetTag("duplicateRace", true)
+			return existingSession, nil
 		}
-		// otherwise, it's a retry for a session that already exists. return the existing session.
-		outerSpan.SetTag("duplicate", true)
-		return sessionObj, nil
+		return nil, e.New("failed to find duplicate session: " + input.SessionSecureID)
 	}
-	outerSpan.SetTag("duplicate", false)
 
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
-	if err := r.PushMetricsImpl(ctx, session.SecureID, []*model2.MetricInput{
+	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*model2.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
 			Timestamp:       session.CreatedAt,
@@ -1175,6 +1207,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
 	}
 
+	osSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
 	if err := r.OpenSearch.IndexSynchronous(opensearch.IndexSessions, session.ID, session); err != nil {
 		return nil, e.Wrap(err, "error indexing new session in opensearch")
 	}
@@ -1189,9 +1222,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		"city":            session.City,
 		"country":         session.Country,
 	}
-	if err := r.AppendProperties(outerCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+	if err := r.AppendProperties(initCtx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.Error(e.Wrap(err, "error adding set of properties to db"))
 	}
+	osSpan.Finish()
 
 	if len(input.NetworkRecordingDomains) > 0 {
 		project.BackendDomains = input.NetworkRecordingDomains
@@ -1840,7 +1874,10 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(_ context.Context, sessionSecureID string, metrics []*customModels.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*customModels.MetricInput) error {
+	span, _ := tracer.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", tracer.ResourceName("go.push-metrics"))
+	defer span.Finish()
+
 	if sessionSecureID == "" {
 		return e.New("PushMetricsImpl called without secureID")
 	}
