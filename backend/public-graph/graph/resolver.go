@@ -2260,6 +2260,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			var lastUserInteractionTimestamp time.Time
 			hasFullSnapshot := false
 			for _, event := range parsedEvents.Events {
+				stylesheetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.injectStylesheets"), tracer.Tag("project_id", projectID))
 				if event.Type == parse.FullSnapshot {
 					hasFullSnapshot = true
 					// If we see a snapshot event, attempt to inject CORS stylesheets.
@@ -2270,7 +2272,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 					event.Data = d
 				}
+				stylesheetsSpan.Finish()
 
+				assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
 				// Gated for projectID == 1, replace any static resources with our own, hosted in S3
 				// This gate will be removed in the future
 				if projectID == 1 {
@@ -2291,7 +2296,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						continue
 					}
 				}
+				assetsSpan.Finish()
 
+				incrementalEventSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.incrementalEvent"), tracer.Tag("project_id", projectID))
 				if event.Type == parse.IncrementalSnapshot {
 					mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 					if err != nil {
@@ -2306,47 +2314,63 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 					lastUserInteractionTimestamp = event.Timestamp.Round(time.Millisecond)
 				}
-
+				incrementalEventSpan.Finish()
 			}
+
+			remarshalSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+				tracer.ResourceName("go.parseEvents.remarshalEvents"), tracer.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
 				return e.Wrap(err, "error marshaling events from schema interfaces")
 			}
+			remarshalSpan.Finish()
 
 			if sessionObj.ProcessWithRedis {
+				redisSpan, redisCtx := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
+					tracer.ResourceName("go.parseEvents.processWithRedis"), tracer.Tag("project_id", projectID))
 				score := float64(payloadIdDeref)
 				// A little bit of a hack to encode
 				if isBeacon {
 					score += .5
 				}
 
-				// Gated for project_id = 1 for now
 				if hasFullSnapshot {
+					zRangeSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+						tracer.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), tracer.Tag("project_id", projectID))
 					zRange, err := r.Redis.GetRawZRange(ctx, sessionID, payloadIdDeref)
 					if err != nil {
 						return e.Wrap(err, "error retrieving previous event objects")
 					}
+					zRangeSpan.Finish()
 
 					// If there are prior events, push them to S3 and remove them from Redis
 					if len(zRange) != 0 {
+						pushToS3Span, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.processWithRedis.pushToS3"), tracer.Tag("project_id", projectID))
 						if err := r.StorageClient.PushRawEventsToS3(ctx, sessionID, projectID, zRange); err != nil {
 							return e.Wrap(err, "error pushing events to S3")
 						}
+						pushToS3Span.Finish()
 
 						values := []interface{}{}
 						for _, z := range zRange {
 							values = append(values, z.Member)
 						}
+
+						removeValuesSpan, _ := tracer.StartSpanFromContext(redisCtx, "public-graph.pushPayload",
+							tracer.ResourceName("go.parseEvents.processWithRedis.removeValues"), tracer.Tag("project_id", projectID))
 						if err := r.Redis.RemoveValues(ctx, sessionID, values); err != nil {
 							return e.Wrap(err, "error removing previous values")
 						}
+						removeValuesSpan.Finish()
 					}
 				}
 
 				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
 					return e.Wrap(err, "error adding event payload")
 				}
+				redisSpan.Finish()
 
 			} else {
 				obj := &model.EventsObject{SessionID: sessionID, Events: string(b), IsBeacon: isBeacon}
