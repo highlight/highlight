@@ -1492,19 +1492,27 @@ const QueryBuilder = ({
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
-	const defaultTimeRangeRule: RuleProps = {
-		field: timeRangeField,
-		op: 'between_date',
-		val: {
-			kind: 'multi',
-			options: [
-				{
-					label: 'Last 30 days',
-					value: '30 days',
-				},
-			],
-		},
-	}
+	const defaultTimeRangeRule: RuleProps = useMemo(() => {
+		const period =
+			project_id === '0'
+				? {
+						label: 'Last 5 years',
+						value: '5 years',
+				  }
+				: {
+						label: 'Last 30 days',
+						value: '30 days',
+				  }
+
+		return {
+			field: timeRangeField,
+			op: 'between_date',
+			val: {
+				kind: 'multi',
+				options: [period],
+			},
+		}
+	}, [timeRangeField, project_id])
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
@@ -1798,7 +1806,7 @@ const QueryBuilder = ({
 						<TimeRangeFilter
 							rule={timeRangeRule}
 							onChangeValue={(val) =>
-								updateRule(timeRangeRule, { val: val })
+								updateRule(timeRangeRule, { val })
 							}
 						/>
 						{!readonly &&
