@@ -1942,7 +1942,6 @@ func extractErrorFields(sessionObj *model.Session, errorToProcess *model.ErrorOb
 }
 
 func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[int]int64, errorsBySession map[string]int64, errors int, errorType string) {
-	log.Warnf("updating errors count %+v %+v %d %s", errorsByProject, errorsBySession, errors, errorType)
 	dailyErrorCountSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.updateDailyErrorCounts"))
 	dailyErrorCountSpan.SetTag("numberOfErrors", errors)
 	dailyErrorCountSpan.SetTag("numberOfProjects", len(errorsByProject))
