@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -3157,7 +3156,7 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id *int) (bool, 
 	}
 
 	if dashboard.IsDefault != nil && *dashboard.IsDefault {
-		return false, errors.New("cannot delete default dashboard")
+		return false, e.New("cannot delete default dashboard")
 	}
 
 	if result := r.DB.Where("dashboard_id = ?", id).Delete(&model.DashboardMetric{}); result.Error != nil {
