@@ -356,6 +356,7 @@ const ChartContainer = React.memo(
 		setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 	}) => {
 		const NUM_BUCKETS = 60
+		const NUM_BUCKETS_TIMELINE = 30
 		const TICK_EVERY_BUCKETS = 10
 		const { project_id } = useParams<{ project_id: string }>()
 		const [chartInitialLoading, setChartInitialLoading] = useState(true)
@@ -374,7 +375,9 @@ const ChartContainer = React.memo(
 			format: string
 		}>({ ticks: [], format: '' })
 		const refetchInterval = useRef<number>()
-		const resolutionMinutes = Math.ceil(lookbackMinutes / NUM_BUCKETS)
+		const resolutionMinutes = Math.ceil(
+			lookbackMinutes / NUM_BUCKETS_TIMELINE,
+		)
 		const [
 			loadTimeline,
 			{
@@ -512,7 +515,8 @@ const ChartContainer = React.memo(
 					if (
 						lastDate &&
 						newDate.diff(lastDate, 'minutes') <
-							(lookbackMinutes / NUM_BUCKETS) * TICK_EVERY_BUCKETS
+							(lookbackMinutes / NUM_BUCKETS_TIMELINE) *
+								TICK_EVERY_BUCKETS
 					) {
 						continue
 					}
