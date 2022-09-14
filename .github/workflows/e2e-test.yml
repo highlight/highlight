@@ -28,6 +28,8 @@ jobs:
               run: cd frontend && yarn
             - name: Run App
               run: cd frontend && CI=false yarn dev
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
 
     test:
         runs-on: ubuntu-latest
