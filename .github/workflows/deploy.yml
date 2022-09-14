@@ -25,6 +25,91 @@ jobs:
                   make migrate
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    deploy-lambdas:
+        needs: migrate-database
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v1
+            - name: Build and zip
+              run: |
+                  cd backend/
+                  go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
+                  zip getSessionIdsByQuery.zip getSessionIdsByQuery
+                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
+                  zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
+                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
+                  zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
+                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
+                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
+                  go build ./lambda-functions/deleteSessions/sendEmail
+                  zip sendEmail.zip sendEmail
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+            - name: Update Lambda secrets
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+              run: |
+                  aws lambda update-function-configuration --function-name getSessionIdsByQuery \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                  aws lambda update-function-configuration --function-name sendEmail \
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+            - name: Deploy getSessionIdsByQuery
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: getSessionIdsByQuery
+                  zip_file: getSessionIdsByQuery.zip
+            - name: Deploy deleteSessionBatchFromPostgres
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: deleteSessionBatchFromPostgres
+                  zip_file: deleteSessionBatchFromPostgres.zip
+            - name: Deploy deleteSessionBatchFromOpenSearch
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: deleteSessionBatchFromOpenSearch
+                  zip_file: deleteSessionBatchFromOpenSearch.zip
+            - name: Deploy deleteSessionBatchFromS3
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: deleteSessionBatchFromS3
+                  zip_file: deleteSessionBatchFromS3.zip
+            - name: Deploy sendEmail
+              uses: appleboy/lambda-action@master
+              with:
+                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_region: us-east-2
+                  function_name: sendEmail
+                  zip_file: sendEmail.zip
     deploy_backend:
         needs: migrate-database
         runs-on: ubuntu-latest
