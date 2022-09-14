@@ -3145,7 +3145,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 }
 
 // DeleteDashboard is the resolver for the deleteDashboard field.
-func (r *mutationResolver) DeleteDashboard(ctx context.Context, id *int) (bool, error) {
+func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, error) {
 	var dashboard model.Dashboard
 	if result := r.DB.First(&dashboard, id); result.Error != nil {
 		return false, result.Error

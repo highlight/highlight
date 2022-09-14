@@ -454,7 +454,7 @@ type ComplexityRoot struct {
 		CreateWorkspace                  func(childComplexity int, name string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
-		DeleteDashboard                  func(childComplexity int, id *int) int
+		DeleteDashboard                  func(childComplexity int, id int) int
 		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
 		DeleteErrorSegment               func(childComplexity int, segmentID int) int
@@ -1008,7 +1008,7 @@ type MutationResolver interface {
 	RequestAccess(ctx context.Context, projectID int) (*bool, error)
 	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
-	DeleteDashboard(ctx context.Context, id *int) (bool, error)
+	DeleteDashboard(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -3167,7 +3167,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteDashboard(childComplexity, args["id"].(*int)), true
+		return e.complexity.Mutation.DeleteDashboard(childComplexity, args["id"].(int)), true
 
 	case "Mutation.deleteErrorAlert":
 		if e.complexity.Mutation.DeleteErrorAlert == nil {
@@ -7828,7 +7828,7 @@ type Mutation {
 		layout: String
 		is_default: Boolean
 	): ID!
-	deleteDashboard(id: ID): Boolean!
+	deleteDashboard(id: ID!): Boolean!
 }
 
 type Subscription {
@@ -9246,10 +9246,10 @@ func (ec *executionContext) field_Mutation_deleteAdminFromWorkspace_args(ctx con
 func (ec *executionContext) field_Mutation_deleteDashboard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -28366,7 +28366,7 @@ func (ec *executionContext) _Mutation_deleteDashboard(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteDashboard(rctx, fc.Args["id"].(*int))
+		return ec.resolvers.Mutation().DeleteDashboard(rctx, fc.Args["id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

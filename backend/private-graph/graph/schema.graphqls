@@ -1485,7 +1485,7 @@ type Mutation {
 		layout: String
 		is_default: Boolean
 	): ID!
-	deleteDashboard(id: ID): Boolean!
+	deleteDashboard(id: ID!): Boolean!
 }
 
 type Subscription {
