@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"hash/fnv"
 	"os"
 	"sort"
@@ -19,6 +17,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
