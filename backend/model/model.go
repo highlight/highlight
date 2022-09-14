@@ -1362,22 +1362,6 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
-	// Find dashboards where is_default is null,
-	// then set it to true if the name matches the name of a default database
-	// and false otherwise.
-	if err := DB.Exec(`
-		UPDATE dashboards
-		SET is_default = CASE
-			WHEN name = 'Home' THEN true
-			WHEN name = 'Web Vitals' THEN true
-			WHEN name = 'Frontend Observability' THEN true
-			ELSE false
-		END
-		WHERE is_default IS NULL;
-	`).Error; err != nil {
-		return false, e.Wrap(err, "Error setting default dashboard")
-	}
-
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
 		fallthrough
