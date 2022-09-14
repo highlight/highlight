@@ -192,6 +192,7 @@ const AuthenticationRoleRouter = () => {
 			data: adminWData,
 			called: wCalled,
 			refetch: wRefetch,
+			loading: wLoading,
 		},
 	] = useGetAdminRoleLazyQuery()
 	const [
@@ -201,6 +202,7 @@ const AuthenticationRoleRouter = () => {
 			data: adminPData,
 			called: pCalled,
 			refetch: pRefetch,
+			loading: pLoading,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
 	const [
@@ -210,6 +212,7 @@ const AuthenticationRoleRouter = () => {
 			data: adminSData,
 			called: sCalled,
 			refetch: sRefetch,
+			loading: sLoading,
 		},
 	] = useGetAdminLazyQuery()
 	let getAdminQuery:
@@ -228,7 +231,8 @@ const AuthenticationRoleRouter = () => {
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
 		called: boolean,
-		refetch: any
+		refetch: any,
+		loading: boolean
 	if (workspace_id) {
 		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
@@ -236,6 +240,7 @@ const AuthenticationRoleRouter = () => {
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
+		loading = wLoading
 	} else if (project_id) {
 		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
@@ -243,12 +248,14 @@ const AuthenticationRoleRouter = () => {
 		adminRole = adminPData?.admin_role_by_project?.role
 		called = pCalled
 		refetch = pRefetch
+		loading = pLoading
 	} else {
 		getAdminQuery = getAdminSimpleQuery
 		adminError = adminSError
 		adminData = adminSData?.admin
 		called = sCalled
 		refetch = sRefetch
+		loading = sLoading
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
@@ -316,7 +323,7 @@ const AuthenticationRoleRouter = () => {
 					? adminData ?? undefined
 					: undefined,
 				workspaceRole: adminRole || undefined,
-				isAuthLoading: isAuthLoading(authRole),
+				isAuthLoading: loading || isAuthLoading(authRole),
 				isLoggedIn: isLoggedIn(authRole),
 				isHighlightAdmin: isHighlightAdmin(authRole),
 			}}
