@@ -38,12 +38,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import {
-	BrowserRouter as Router,
-	Route,
-	Switch,
-	useRouteMatch,
-} from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import packageJson from '../package.json'
@@ -185,11 +180,8 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const workspaceId = useRouteMatch<{ workspaceId: string }>(
-		'/w/:workspaceId(d+)',
-	)?.params.workspaceId
-	const projectId = useRouteMatch<{ projectId: string }>('/:projectId(d+)')
-		?.params.projectId
+	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
