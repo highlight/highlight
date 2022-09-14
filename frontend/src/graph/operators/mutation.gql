@@ -1,1205 +1,1245 @@
 mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
-    markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
-        secure_id
-        viewed
-    }
+	markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
+		secure_id
+		viewed
+	}
 }
 
 mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-    markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-        secure_id
-        starred
-    }
+	markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
+		secure_id
+		starred
+	}
 }
 
 mutation CreateOrUpdateStripeSubscription(
-    $workspace_id: ID!
-    $plan_type: PlanType!
-    $interval: SubscriptionInterval!
+	$workspace_id: ID!
+	$plan_type: PlanType!
+	$interval: SubscriptionInterval!
 ) {
-    createOrUpdateStripeSubscription(
-        workspace_id: $workspace_id
-        plan_type: $plan_type
-        interval: $interval
-    )
+	createOrUpdateStripeSubscription(
+		workspace_id: $workspace_id
+		plan_type: $plan_type
+		interval: $interval
+	)
 }
 
 mutation UpdateBillingDetails($workspace_id: ID!) {
-    updateBillingDetails(workspace_id: $workspace_id)
+	updateBillingDetails(workspace_id: $workspace_id)
 }
 
 mutation updateErrorGroupState($secure_id: String!, $state: String!) {
-    updateErrorGroupState(secure_id: $secure_id, state: $state) {
-        secure_id
-        state
-    }
+	updateErrorGroupState(secure_id: $secure_id, state: $state) {
+		secure_id
+		state
+	}
 }
 
 mutation SendEmailSignup($email: String!) {
-    emailSignup(email: $email)
+	emailSignup(email: $email)
 }
 
 mutation AddAdminToWorkspace($workspace_id: ID!, $invite_id: String!) {
-    addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
+	addAdminToWorkspace(workspace_id: $workspace_id, invite_id: $invite_id)
 }
 
 mutation JoinWorkspace($workspace_id: ID!) {
-    joinWorkspace(workspace_id: $workspace_id)
+	joinWorkspace(workspace_id: $workspace_id)
 }
 
 mutation ChangeAdminRole(
-    $workspace_id: ID!
-    $admin_id: ID!
-    $new_role: String!
+	$workspace_id: ID!
+	$admin_id: ID!
+	$new_role: String!
 ) {
-    changeAdminRole(
-        workspace_id: $workspace_id
-        admin_id: $admin_id
-        new_role: $new_role
-    )
+	changeAdminRole(
+		workspace_id: $workspace_id
+		admin_id: $admin_id
+		new_role: $new_role
+	)
 }
 
 mutation DeleteAdminFromProject($project_id: ID!, $admin_id: ID!) {
-    deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
+	deleteAdminFromProject(project_id: $project_id, admin_id: $admin_id)
 }
 
 mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
-    deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
+	deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
 }
 
 mutation OpenSlackConversation(
-    $project_id: ID!
-    $code: String!
-    $redirect_path: String!
+	$project_id: ID!
+	$code: String!
+	$redirect_path: String!
 ) {
-    openSlackConversation(
-        project_id: $project_id
-        code: $code
-        redirect_path: $redirect_path
-    )
+	openSlackConversation(
+		project_id: $project_id
+		code: $code
+		redirect_path: $redirect_path
+	)
 }
 
 mutation AddIntegrationToProject(
-    $integration_type: IntegrationType
-    $project_id: ID!
-    $code: String!
+	$integration_type: IntegrationType
+	$project_id: ID!
+	$code: String!
 ) {
-    addIntegrationToProject(
-        integration_type: $integration_type
-        project_id: $project_id
-        code: $code
-    )
+	addIntegrationToProject(
+		integration_type: $integration_type
+		project_id: $project_id
+		code: $code
+	)
 }
 
 mutation RemoveIntegrationFromProject(
-    $integration_type: IntegrationType
-    $project_id: ID!
+	$integration_type: IntegrationType
+	$project_id: ID!
 ) {
-    removeIntegrationFromProject(
-        integration_type: $integration_type
-        project_id: $project_id
-    )
+	removeIntegrationFromProject(
+		integration_type: $integration_type
+		project_id: $project_id
+	)
 }
 
 mutation UpdateAllowedEmailOrigins(
-    $workspace_id: ID!
-    $allowed_auto_join_email_origins: String!
+	$workspace_id: ID!
+	$allowed_auto_join_email_origins: String!
 ) {
-    updateAllowedEmailOrigins(
-        workspace_id: $workspace_id
-        allowed_auto_join_email_origins: $allowed_auto_join_email_origins
-    )
+	updateAllowedEmailOrigins(
+		workspace_id: $workspace_id
+		allowed_auto_join_email_origins: $allowed_auto_join_email_origins
+	)
 }
 
 mutation CreateProject($name: String!, $workspace_id: ID!) {
-    createProject(name: $name, workspace_id: $workspace_id) {
-        id
-        name
-    }
+	createProject(name: $name, workspace_id: $workspace_id) {
+		id
+		name
+	}
 }
 
 mutation SubmitRegistrationForm(
-    $workspace_id: ID!
-    $team_size: String!
-    $role: String!
-    $use_case: String!
-    $heard_about: String!
-    $pun: String
+	$workspace_id: ID!
+	$team_size: String!
+	$role: String!
+	$use_case: String!
+	$heard_about: String!
+	$pun: String
 ) {
-    submitRegistrationForm(
-        workspace_id: $workspace_id
-        team_size: $team_size
-        role: $role
-        use_case: $use_case
-        heard_about: $heard_about
-        pun: $pun
-    )
+	submitRegistrationForm(
+		workspace_id: $workspace_id
+		team_size: $team_size
+		role: $role
+		use_case: $use_case
+		heard_about: $heard_about
+		pun: $pun
+	)
 }
 
 mutation CreateWorkspace($name: String!) {
-    createWorkspace(name: $name) {
-        id
-        name
-    }
+	createWorkspace(name: $name) {
+		id
+		name
+	}
 }
 
 mutation EditProject(
-    $id: ID!
-    $name: String
-    $billing_email: String
-    $excluded_users: StringArray
-    $rage_click_window_seconds: Int
-    $rage_click_radius_pixels: Int
-    $rage_click_count: Int
+	$id: ID!
+	$name: String
+	$billing_email: String
+	$excluded_users: StringArray
+	$error_json_paths: StringArray
+	$rage_click_window_seconds: Int
+	$rage_click_radius_pixels: Int
+	$rage_click_count: Int
+	$backend_domains: StringArray
 ) {
-    editProject(
-        id: $id
-        name: $name
-        billing_email: $billing_email
-        excluded_users: $excluded_users
-        rage_click_window_seconds: $rage_click_window_seconds
-        rage_click_radius_pixels: $rage_click_radius_pixels
-        rage_click_count: $rage_click_count
-    ) {
-        id
-        name
-        billing_email
-        excluded_users
-        rage_click_window_seconds
-        rage_click_radius_pixels
-        rage_click_count
-    }
+	editProject(
+		id: $id
+		name: $name
+		billing_email: $billing_email
+		excluded_users: $excluded_users
+		error_json_paths: $error_json_paths
+		rage_click_window_seconds: $rage_click_window_seconds
+		rage_click_radius_pixels: $rage_click_radius_pixels
+		rage_click_count: $rage_click_count
+		backend_domains: $backend_domains
+	) {
+		id
+		name
+		billing_email
+		excluded_users
+		error_json_paths
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+	}
 }
 
 mutation DeleteProject($id: ID!) {
-    deleteProject(id: $id)
+	deleteProject(id: $id)
 }
 
 mutation EditWorkspace($id: ID!, $name: String) {
-    editWorkspace(id: $id, name: $name) {
-        id
-        name
-    }
+	editWorkspace(id: $id, name: $name) {
+		id
+		name
+	}
 }
 
 mutation DeleteSegment($segment_id: ID!) {
-    deleteSegment(segment_id: $segment_id)
+	deleteSegment(segment_id: $segment_id)
 }
 
 mutation EditSegment($project_id: ID!, $id: ID!, $params: SearchParamsInput!) {
-    editSegment(project_id: $project_id, id: $id, params: $params)
+	editSegment(project_id: $project_id, id: $id, params: $params)
 }
 
 mutation CreateSegment(
-    $project_id: ID!
-    $name: String!
-    $params: SearchParamsInput!
+	$project_id: ID!
+	$name: String!
+	$params: SearchParamsInput!
 ) {
-    createSegment(project_id: $project_id, name: $name, params: $params) {
-        name
-        id
-        params {
-            user_properties {
-                name
-                value
-            }
-            excluded_properties {
-                name
-                value
-            }
-            date_range {
-                start_date
-                end_date
-            }
-            os
-            browser
-            visited_url
-            referrer
-            identified
-            hide_viewed
-            app_versions
-            environments
-            device_id
-            show_live_sessions
-        }
-    }
+	createSegment(project_id: $project_id, name: $name, params: $params) {
+		name
+		id
+		params {
+			user_properties {
+				name
+				value
+			}
+			excluded_properties {
+				name
+				value
+			}
+			date_range {
+				start_date
+				end_date
+			}
+			os
+			browser
+			visited_url
+			referrer
+			identified
+			hide_viewed
+			app_versions
+			environments
+			device_id
+			show_live_sessions
+		}
+	}
 }
 
 mutation CreateSessionComment(
-    $project_id: ID!
-    $session_secure_id: String!
-    $session_timestamp: Int!
-    $text: String!
-    $text_for_email: String!
-    $x_coordinate: Float!
-    $y_coordinate: Float!
-    $tagged_admins: [SanitizedAdminInput]!
-    $tagged_slack_users: [SanitizedSlackChannelInput]!
-    $session_url: String!
-    $time: Float!
-    $author_name: String!
-    $session_image: String
-    $tags: [SessionCommentTagInput]!
-    $integrations: [IntegrationType]!
-    $issue_title: String
-    $issue_team_id: String
-    $issue_description: String
+	$project_id: ID!
+	$session_secure_id: String!
+	$session_timestamp: Int!
+	$text: String!
+	$text_for_email: String!
+	$x_coordinate: Float!
+	$y_coordinate: Float!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
+	$session_url: String!
+	$time: Float!
+	$author_name: String!
+	$session_image: String
+	$tags: [SessionCommentTagInput]!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_team_id: String
+	$issue_description: String
+	$additional_context: String
 ) {
-    createSessionComment(
-        project_id: $project_id
-        session_secure_id: $session_secure_id
-        session_timestamp: $session_timestamp
-        text: $text
-        text_for_email: $text_for_email
-        x_coordinate: $x_coordinate
-        y_coordinate: $y_coordinate
-        tagged_admins: $tagged_admins
-        tagged_slack_users: $tagged_slack_users
-        session_url: $session_url
-        time: $time
-        author_name: $author_name
-        session_image: $session_image
-        tags: $tags
-        integrations: $integrations
-        issue_title: $issue_title
-        issue_team_id: $issue_team_id
-        issue_description: $issue_description
-    ) {
-        id
-        timestamp
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-        }
-        text
-        x_coordinate
-        y_coordinate
-        attachments {
-            id
-            integration_type
-            external_id
-            title
-        }
-    }
+	createSessionComment(
+		project_id: $project_id
+		session_secure_id: $session_secure_id
+		session_timestamp: $session_timestamp
+		text: $text
+		text_for_email: $text_for_email
+		x_coordinate: $x_coordinate
+		y_coordinate: $y_coordinate
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+		session_url: $session_url
+		time: $time
+		author_name: $author_name
+		session_image: $session_image
+		tags: $tags
+		integrations: $integrations
+		issue_title: $issue_title
+		issue_team_id: $issue_team_id
+		issue_description: $issue_description
+		additional_context: $additional_context
+	) {
+		id
+		timestamp
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		x_coordinate
+		y_coordinate
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
 }
 
 mutation CreateIssueForSessionComment(
-    $project_id: ID!
-    $session_comment_id: Int!
-    $text_for_attachment: String!
-    $session_url: String!
-    $time: Float!
-    $author_name: String!
-    $integrations: [IntegrationType]!
-    $issue_title: String
-    $issue_team_id: String
-    $issue_description: String
+	$project_id: ID!
+	$session_comment_id: Int!
+	$text_for_attachment: String!
+	$session_url: String!
+	$time: Float!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_team_id: String
+	$issue_description: String
 ) {
-    createIssueForSessionComment(
-        project_id: $project_id
-        session_url: $session_url
-        session_comment_id: $session_comment_id
-        author_name: $author_name
-        text_for_attachment: $text_for_attachment
-        time: $time
-        issue_title: $issue_title
-        issue_description: $issue_description
-        issue_team_id: $issue_team_id
-        integrations: $integrations
-    ) {
-        id
-        timestamp
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-        }
-        text
-        x_coordinate
-        y_coordinate
-        attachments {
-            id
-            integration_type
-            external_id
-            title
-        }
-    }
+	createIssueForSessionComment(
+		project_id: $project_id
+		session_url: $session_url
+		session_comment_id: $session_comment_id
+		author_name: $author_name
+		text_for_attachment: $text_for_attachment
+		time: $time
+		issue_title: $issue_title
+		issue_description: $issue_description
+		issue_team_id: $issue_team_id
+		integrations: $integrations
+	) {
+		id
+		timestamp
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		x_coordinate
+		y_coordinate
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
 }
 
 mutation DeleteSessionComment($id: ID!) {
-    deleteSessionComment(id: $id)
+	deleteSessionComment(id: $id)
 }
 
 mutation ReplyToSessionComment(
-    $comment_id: ID!
-    $text: String!
-    $text_for_email: String!
-    $sessionURL: String!
-    $tagged_admins: [SanitizedAdminInput]!
-    $tagged_slack_users: [SanitizedSlackChannelInput]!
+	$comment_id: ID!
+	$text: String!
+	$text_for_email: String!
+	$sessionURL: String!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
 ) {
-    replyToSessionComment(
-        comment_id: $comment_id
-        text: $text
-        text_for_email: $text_for_email
-        sessionURL: $sessionURL
-        tagged_admins: $tagged_admins
-        tagged_slack_users: $tagged_slack_users
-    ) {
-        id
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        text
-    }
+	replyToSessionComment(
+		comment_id: $comment_id
+		text: $text
+		text_for_email: $text_for_email
+		sessionURL: $sessionURL
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		text
+	}
 }
 
 mutation CreateErrorComment(
-    $project_id: ID!
-    $error_group_secure_id: String!
-    $text: String!
-    $text_for_email: String!
-    $tagged_admins: [SanitizedAdminInput]!
-    $tagged_slack_users: [SanitizedSlackChannelInput]!
-    $error_url: String!
-    $author_name: String!
-    $integrations: [IntegrationType]!
-    $issue_title: String
-    $issue_team_id: String
-    $issue_description: String
+	$project_id: ID!
+	$error_group_secure_id: String!
+	$text: String!
+	$text_for_email: String!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
+	$error_url: String!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_team_id: String
+	$issue_description: String
 ) {
-    createErrorComment(
-        project_id: $project_id
-        error_group_secure_id: $error_group_secure_id
-        text: $text
-        text_for_email: $text_for_email
-        tagged_admins: $tagged_admins
-        tagged_slack_users: $tagged_slack_users
-        error_url: $error_url
-        author_name: $author_name
-        integrations: $integrations
-        issue_title: $issue_title
-        issue_team_id: $issue_team_id
-        issue_description: $issue_description
-    ) {
-        id
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-        }
-        text
-    }
+	createErrorComment(
+		project_id: $project_id
+		error_group_secure_id: $error_group_secure_id
+		text: $text
+		text_for_email: $text_for_email
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+		error_url: $error_url
+		author_name: $author_name
+		integrations: $integrations
+		issue_title: $issue_title
+		issue_team_id: $issue_team_id
+		issue_description: $issue_description
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+	}
 }
 mutation CreateIssueForErrorComment(
-    $project_id: ID!
-    $error_comment_id: Int!
-    $text_for_attachment: String!
-    $error_url: String!
-    $author_name: String!
-    $integrations: [IntegrationType]!
-    $issue_title: String
-    $issue_team_id: String
-    $issue_description: String
+	$project_id: ID!
+	$error_comment_id: Int!
+	$text_for_attachment: String!
+	$error_url: String!
+	$author_name: String!
+	$integrations: [IntegrationType]!
+	$issue_title: String
+	$issue_team_id: String
+	$issue_description: String
 ) {
-    createIssueForErrorComment(
-        project_id: $project_id
-        error_url: $error_url
-        error_comment_id: $error_comment_id
-        author_name: $author_name
-        text_for_attachment: $text_for_attachment
-        issue_title: $issue_title
-        issue_team_id: $issue_team_id
-        issue_description: $issue_description
-        integrations: $integrations
-    ) {
-        id
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-        }
-        text
-        attachments {
-            id
-            integration_type
-            external_id
-            title
-        }
-    }
+	createIssueForErrorComment(
+		project_id: $project_id
+		error_url: $error_url
+		error_comment_id: $error_comment_id
+		author_name: $author_name
+		text_for_attachment: $text_for_attachment
+		issue_title: $issue_title
+		issue_team_id: $issue_team_id
+		issue_description: $issue_description
+		integrations: $integrations
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+		}
+		text
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
 }
 
 mutation DeleteErrorComment($id: ID!) {
-    deleteErrorComment(id: $id)
+	deleteErrorComment(id: $id)
 }
 
 mutation ReplyToErrorComment(
-    $comment_id: ID!
-    $text: String!
-    $text_for_email: String!
-    $errorURL: String!
-    $tagged_admins: [SanitizedAdminInput]!
-    $tagged_slack_users: [SanitizedSlackChannelInput]!
+	$comment_id: ID!
+	$text: String!
+	$text_for_email: String!
+	$errorURL: String!
+	$tagged_admins: [SanitizedAdminInput]!
+	$tagged_slack_users: [SanitizedSlackChannelInput]!
 ) {
-    replyToErrorComment(
-        comment_id: $comment_id
-        text: $text
-        text_for_email: $text_for_email
-        errorURL: $errorURL
-        tagged_admins: $tagged_admins
-        tagged_slack_users: $tagged_slack_users
-    ) {
-        id
-        created_at
-        updated_at
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        text
-    }
+	replyToErrorComment(
+		comment_id: $comment_id
+		text: $text
+		text_for_email: $text_for_email
+		errorURL: $errorURL
+		tagged_admins: $tagged_admins
+		tagged_slack_users: $tagged_slack_users
+	) {
+		id
+		created_at
+		updated_at
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		text
+	}
 }
 
 mutation DeleteErrorSegment($segment_id: ID!) {
-    deleteErrorSegment(segment_id: $segment_id)
+	deleteErrorSegment(segment_id: $segment_id)
 }
 
 mutation EditErrorSegment(
-    $project_id: ID!
-    $id: ID!
-    $params: ErrorSearchParamsInput!
+	$project_id: ID!
+	$id: ID!
+	$params: ErrorSearchParamsInput!
 ) {
-    editErrorSegment(project_id: $project_id, id: $id, params: $params)
+	editErrorSegment(project_id: $project_id, id: $id, params: $params)
 }
 
 mutation CreateErrorSegment(
-    $project_id: ID!
-    $name: String!
-    $params: ErrorSearchParamsInput!
+	$project_id: ID!
+	$name: String!
+	$params: ErrorSearchParamsInput!
 ) {
-    createErrorSegment(project_id: $project_id, name: $name, params: $params) {
-        name
-        id
-        params {
-            date_range {
-                start_date
-                end_date
-            }
-            os
-            browser
-            visited_url
-            state
-        }
-    }
+	createErrorSegment(project_id: $project_id, name: $name, params: $params) {
+		name
+		id
+		params {
+			date_range {
+				start_date
+				end_date
+			}
+			os
+			browser
+			visited_url
+			state
+		}
+	}
 }
 
 mutation CreateErrorAlert(
-    $project_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $regex_groups: [String]!
-    $frequency: Int!
+	$project_id: ID!
+	$name: String!
+	$count_threshold: Int!
+	$threshold_window: Int!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
+	$regex_groups: [String]!
+	$frequency: Int!
 ) {
-    createErrorAlert(
-        project_id: $project_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        regex_groups: $regex_groups
-        frequency: $frequency
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        RegexGroups
-        Frequency
-        disabled
-    }
+	createErrorAlert(
+		project_id: $project_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		regex_groups: $regex_groups
+		frequency: $frequency
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		RegexGroups
+		Frequency
+		disabled
+	}
 }
 
 mutation CreateMetricMonitor(
-    $project_id: ID!
-    $name: String!
-    $function: String!
-    $threshold: Float!
-    $metric_to_monitor: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
+	$project_id: ID!
+	$name: String!
+	$aggregator: MetricAggregator!
+	$threshold: Float!
+	$filters: [MetricTagFilterInput!]
+	$units: String
+	$periodMinutes: Int
+	$metric_to_monitor: String!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
 ) {
-    createMetricMonitor(
-        project_id: $project_id
-        threshold: $threshold
-        name: $name
-        function: $function
-        metric_to_monitor: $metric_to_monitor
-        slack_channels: $slack_channels
-        emails: $emails
-    ) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        function
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-    }
+	createMetricMonitor(
+		project_id: $project_id
+		threshold: $threshold
+		filters: $filters
+		units: $units
+		name: $name
+		aggregator: $aggregator
+		periodMinutes: $periodMinutes
+		metric_to_monitor: $metric_to_monitor
+		slack_channels: $slack_channels
+		emails: $emails
+	) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		period_minutes
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+		units
+	}
 }
 
 mutation UpdateMetricMonitor(
-    $metric_monitor_id: ID!
-    $project_id: ID!
-    $name: String!
-    $function: String!
-    $threshold: Float!
-    $metric_to_monitor: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $disabled: Boolean!
+	$metric_monitor_id: ID!
+	$project_id: ID!
+	$name: String
+	$aggregator: MetricAggregator
+	$threshold: Float
+	$filters: [MetricTagFilterInput!]
+	$units: String
+	$periodMinutes: Int
+	$metric_to_monitor: String
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$disabled: Boolean
 ) {
-    updateMetricMonitor(
-        metric_monitor_id: $metric_monitor_id
-        project_id: $project_id
-        threshold: $threshold
-        name: $name
-        function: $function
-        metric_to_monitor: $metric_to_monitor
-        slack_channels: $slack_channels
-        emails: $emails
-        disabled: $disabled
-    ) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        function
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-    }
+	updateMetricMonitor(
+		metric_monitor_id: $metric_monitor_id
+		project_id: $project_id
+		threshold: $threshold
+		filters: $filters
+		units: $units
+		name: $name
+		aggregator: $aggregator
+		periodMinutes: $periodMinutes
+		metric_to_monitor: $metric_to_monitor
+		slack_channels: $slack_channels
+		emails: $emails
+		disabled: $disabled
+	) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		period_minutes
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+		units
+	}
 }
 
 mutation DeleteMetricMonitor($metric_monitor_id: ID!, $project_id: ID!) {
-    deleteMetricMonitor(
-        metric_monitor_id: $metric_monitor_id
-        project_id: $project_id
-    ) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        function
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-    }
+	deleteMetricMonitor(
+		metric_monitor_id: $metric_monitor_id
+		project_id: $project_id
+	) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+	}
 }
 
 mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
-    updateAdminAboutYouDetails(adminDetails: $adminDetails)
+	updateAdminAboutYouDetails(adminDetails: $adminDetails)
 }
 
 mutation CreateRageClickAlert(
-    $project_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
+	$project_id: ID!
+	$name: String!
+	$count_threshold: Int!
+	$threshold_window: Int!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
 ) {
-    createRageClickAlert(
-        project_id: $project_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        disabled
-    }
+	createRageClickAlert(
+		project_id: $project_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation UpdateErrorAlert(
-    $project_id: ID!
-    $name: String!
-    $error_alert_id: ID!
-    $count_threshold: Int!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $regex_groups: [String]!
-    $frequency: Int!
-    $disabled: Boolean!
+	$project_id: ID!
+	$name: String
+	$error_alert_id: ID!
+	$count_threshold: Int
+	$threshold_window: Int
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$regex_groups: [String]
+	$frequency: Int
+	$disabled: Boolean
 ) {
-    updateErrorAlert(
-        project_id: $project_id
-        error_alert_id: $error_alert_id
-        name: $name
-        count_threshold: $count_threshold
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        regex_groups: $regex_groups
-        frequency: $frequency
-        disabled: $disabled
-    ) {
-        Name
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        RegexGroups
-        Frequency
-        disabled
-    }
+	updateErrorAlert(
+		project_id: $project_id
+		error_alert_id: $error_alert_id
+		name: $name
+		count_threshold: $count_threshold
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		regex_groups: $regex_groups
+		frequency: $frequency
+		disabled: $disabled
+	) {
+		Name
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		RegexGroups
+		Frequency
+		disabled
+	}
 }
 
 mutation DeleteErrorAlert($project_id: ID!, $error_alert_id: ID!) {
-    deleteErrorAlert(project_id: $project_id, error_alert_id: $error_alert_id) {
-        id
-    }
+	deleteErrorAlert(project_id: $project_id, error_alert_id: $error_alert_id) {
+		id
+	}
 }
 
 mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
-    deleteSessionAlert(
-        project_id: $project_id
-        session_alert_id: $session_alert_id
-    ) {
-        id
-    }
+	deleteSessionAlert(
+		project_id: $project_id
+		session_alert_id: $session_alert_id
+	) {
+		id
+	}
 }
 
 mutation CreateDefaultAlerts(
-    $project_id: ID!
-    $alert_types: [String!]!
-    $slack_channels: [SanitizedSlackChannelInput!]!
-    $emails: [String!]!
+	$project_id: ID!
+	$alert_types: [String!]!
+	$slack_channels: [SanitizedSlackChannelInput!]!
+	$emails: [String!]!
 ) {
-    createDefaultAlerts(
-        project_id: $project_id
-        alert_types: $alert_types
-        slack_channels: $slack_channels
-        emails: $emails
-    )
+	createDefaultAlerts(
+		project_id: $project_id
+		alert_types: $alert_types
+		slack_channels: $slack_channels
+		emails: $emails
+	)
 }
 mutation CreateSessionFeedbackAlert(
-    $project_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
+	$project_id: ID!
+	$name: String!
+	$count_threshold: Int!
+	$threshold_window: Int!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
 ) {
-    createSessionFeedbackAlert(
-        project_id: $project_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        disabled
-    }
+	createSessionFeedbackAlert(
+		project_id: $project_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation UpdateSessionFeedbackAlert(
-    $project_id: ID!
-    $session_feedback_alert_id: ID!
-    $count_threshold: Int!
-    $name: String!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $disabled: Boolean!
+	$project_id: ID!
+	$session_feedback_alert_id: ID!
+	$count_threshold: Int
+	$name: String
+	$threshold_window: Int
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$disabled: Boolean
 ) {
-    updateSessionFeedbackAlert(
-        project_id: $project_id
-        session_feedback_alert_id: $session_feedback_alert_id
-        count_threshold: $count_threshold
-        slack_channels: $slack_channels
-        emails: $emails
-        name: $name
-        environments: $environments
-        threshold_window: $threshold_window
-        disabled: $disabled
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        Name
-        LastAdminToEditID
-        disabled
-    }
+	updateSessionFeedbackAlert(
+		project_id: $project_id
+		session_feedback_alert_id: $session_feedback_alert_id
+		count_threshold: $count_threshold
+		slack_channels: $slack_channels
+		emails: $emails
+		name: $name
+		environments: $environments
+		threshold_window: $threshold_window
+		disabled: $disabled
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		Name
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation CreateNewUserAlert(
-    $project_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $threshold_window: Int!
+	$project_id: ID!
+	$name: String!
+	$count_threshold: Int!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
+	$threshold_window: Int!
 ) {
-    createNewUserAlert(
-        project_id: $project_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        disabled
-    }
+	createNewUserAlert(
+		project_id: $project_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation CreateNewSessionAlert(
-    $project_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $threshold_window: Int!
-    $exclude_rules: [String]!
+	$project_id: ID!
+	$name: String!
+	$count_threshold: Int!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
+	$threshold_window: Int!
+	$exclude_rules: [String]!
 ) {
-    createNewSessionAlert(
-        project_id: $project_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        exclude_rules: $exclude_rules
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        ExcludeRules
-        disabled
-    }
+	createNewSessionAlert(
+		project_id: $project_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		exclude_rules: $exclude_rules
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		ExcludeRules
+		disabled
+	}
 }
 
 mutation UpdateNewSessionAlert(
-    $project_id: ID!
-    $session_alert_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $threshold_window: Int!
-    $exclude_rules: [String]!
-    $disabled: Boolean!
+	$project_id: ID!
+	$session_alert_id: ID!
+	$name: String
+	$count_threshold: Int
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$threshold_window: Int
+	$exclude_rules: [String]
+	$disabled: Boolean
 ) {
-    updateNewSessionAlert(
-        project_id: $project_id
-        session_alert_id: $session_alert_id
-        name: $name
-        count_threshold: $count_threshold
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        exclude_rules: $exclude_rules
-        disabled: $disabled
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        ExcludeRules
-        disabled
-    }
+	updateNewSessionAlert(
+		project_id: $project_id
+		session_alert_id: $session_alert_id
+		name: $name
+		count_threshold: $count_threshold
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		exclude_rules: $exclude_rules
+		disabled: $disabled
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		ExcludeRules
+		disabled
+	}
 }
 
 mutation UpdateRageClickAlert(
-    $project_id: ID!
-    $rage_click_alert_id: ID!
-    $name: String!
-    $count_threshold: Int!
-    $threshold_window: Int!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $disabled: Boolean!
+	$project_id: ID!
+	$rage_click_alert_id: ID!
+	$name: String
+	$count_threshold: Int
+	$threshold_window: Int
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$disabled: Boolean
 ) {
-    updateRageClickAlert(
-        project_id: $project_id
-        rage_click_alert_id: $rage_click_alert_id
-        name: $name
-        count_threshold: $count_threshold
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        disabled: $disabled
-    ) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        disabled
-    }
+	updateRageClickAlert(
+		project_id: $project_id
+		rage_click_alert_id: $rage_click_alert_id
+		name: $name
+		count_threshold: $count_threshold
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		disabled: $disabled
+	) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		disabled
+	}
 }
 
 mutation UpdateNewUserAlert(
-    $project_id: ID!
-    $session_alert_id: ID!
-    $count_threshold: Int!
-    $name: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $threshold_window: Int!
-    $disabled: Boolean!
+	$project_id: ID!
+	$session_alert_id: ID!
+	$count_threshold: Int
+	$name: String
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$threshold_window: Int
+	$disabled: Boolean
 ) {
-    updateNewUserAlert(
-        project_id: $project_id
-        session_alert_id: $session_alert_id
-        count_threshold: $count_threshold
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        threshold_window: $threshold_window
-        disabled: $disabled
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        LastAdminToEditID
-        disabled
-    }
+	updateNewUserAlert(
+		project_id: $project_id
+		session_alert_id: $session_alert_id
+		count_threshold: $count_threshold
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		threshold_window: $threshold_window
+		disabled: $disabled
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation CreateTrackPropertiesAlert(
-    $project_id: ID!
-    $name: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $track_properties: [TrackPropertyInput]!
-    $threshold_window: Int!
+	$project_id: ID!
+	$name: String!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
+	$track_properties: [TrackPropertyInput]!
+	$threshold_window: Int!
 ) {
-    createTrackPropertiesAlert(
-        project_id: $project_id
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        track_properties: $track_properties
-        threshold_window: $threshold_window
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        TrackProperties {
-            id
-            name
-            value
-        }
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        disabled
-    }
+	createTrackPropertiesAlert(
+		project_id: $project_id
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		track_properties: $track_properties
+		threshold_window: $threshold_window
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		TrackProperties {
+			id
+			name
+			value
+		}
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		disabled
+	}
 }
 mutation UpdateTrackPropertiesAlert(
-    $project_id: ID!
-    $session_alert_id: ID!
-    $name: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $track_properties: [TrackPropertyInput]!
-    $threshold_window: Int!
-    $disabled: Boolean!
+	$project_id: ID!
+	$session_alert_id: ID!
+	$name: String
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$track_properties: [TrackPropertyInput]
+	$threshold_window: Int
+	$disabled: Boolean
 ) {
-    updateTrackPropertiesAlert(
-        project_id: $project_id
-        session_alert_id: $session_alert_id
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        name: $name
-        track_properties: $track_properties
-        threshold_window: $threshold_window
-        disabled: $disabled
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        TrackProperties {
-            id
-            name
-            value
-        }
-        ExcludedEnvironments
-        CountThreshold
-        LastAdminToEditID
-        Name
-        disabled
-    }
+	updateTrackPropertiesAlert(
+		project_id: $project_id
+		session_alert_id: $session_alert_id
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		name: $name
+		track_properties: $track_properties
+		threshold_window: $threshold_window
+		disabled: $disabled
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		TrackProperties {
+			id
+			name
+			value
+		}
+		ExcludedEnvironments
+		CountThreshold
+		LastAdminToEditID
+		Name
+		disabled
+	}
 }
 
 mutation CreateUserPropertiesAlert(
-    $project_id: ID!
-    $name: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $user_properties: [UserPropertyInput]!
-    $threshold_window: Int!
+	$project_id: ID!
+	$name: String!
+	$slack_channels: [SanitizedSlackChannelInput]!
+	$emails: [String]!
+	$environments: [String]!
+	$user_properties: [UserPropertyInput]!
+	$threshold_window: Int!
 ) {
-    createUserPropertiesAlert(
-        project_id: $project_id
-        name: $name
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        user_properties: $user_properties
-        threshold_window: $threshold_window
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        UserProperties {
-            id
-            name
-            value
-        }
-        Name
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        disabled
-    }
+	createUserPropertiesAlert(
+		project_id: $project_id
+		name: $name
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		user_properties: $user_properties
+		threshold_window: $threshold_window
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		UserProperties {
+			id
+			name
+			value
+		}
+		Name
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation UpdateUserPropertiesAlert(
-    $project_id: ID!
-    $session_alert_id: ID!
-    $name: String!
-    $slack_channels: [SanitizedSlackChannelInput]!
-    $emails: [String]!
-    $environments: [String]!
-    $user_properties: [UserPropertyInput]!
-    $threshold_window: Int!
-    $disabled: Boolean!
+	$project_id: ID!
+	$session_alert_id: ID!
+	$name: String
+	$slack_channels: [SanitizedSlackChannelInput]
+	$emails: [String]
+	$environments: [String]
+	$user_properties: [UserPropertyInput]
+	$threshold_window: Int
+	$disabled: Boolean
 ) {
-    updateUserPropertiesAlert(
-        project_id: $project_id
-        session_alert_id: $session_alert_id
-        slack_channels: $slack_channels
-        emails: $emails
-        environments: $environments
-        name: $name
-        user_properties: $user_properties
-        threshold_window: $threshold_window
-        disabled: $disabled
-    ) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        UserProperties {
-            id
-            name
-            value
-        }
-        ExcludedEnvironments
-        CountThreshold
-        Name
-        LastAdminToEditID
-        disabled
-    }
+	updateUserPropertiesAlert(
+		project_id: $project_id
+		session_alert_id: $session_alert_id
+		slack_channels: $slack_channels
+		emails: $emails
+		environments: $environments
+		name: $name
+		user_properties: $user_properties
+		threshold_window: $threshold_window
+		disabled: $disabled
+	) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		UserProperties {
+			id
+			name
+			value
+		}
+		ExcludedEnvironments
+		CountThreshold
+		Name
+		LastAdminToEditID
+		disabled
+	}
 }
 
 mutation UpdateSessionIsPublic(
-    $session_secure_id: String!
-    $is_public: Boolean!
+	$session_secure_id: String!
+	$is_public: Boolean!
 ) {
-    updateSessionIsPublic(
-        session_secure_id: $session_secure_id
-        is_public: $is_public
-    ) {
-        secure_id
-        is_public
-    }
+	updateSessionIsPublic(
+		session_secure_id: $session_secure_id
+		is_public: $is_public
+	) {
+		secure_id
+		is_public
+	}
 }
 
 mutation UpdateErrorGroupIsPublic(
-    $error_group_secure_id: String!
-    $is_public: Boolean!
+	$error_group_secure_id: String!
+	$is_public: Boolean!
 ) {
-    updateErrorGroupIsPublic(
-        error_group_secure_id: $error_group_secure_id
-        is_public: $is_public
-    ) {
-        secure_id
-        is_public
-    }
+	updateErrorGroupIsPublic(
+		error_group_secure_id: $error_group_secure_id
+		is_public: $is_public
+	) {
+		secure_id
+		is_public
+	}
 }
 
 mutation UpdateAllowMeterOverage(
-    $workspace_id: ID!
-    $allow_meter_overage: Boolean!
+	$workspace_id: ID!
+	$allow_meter_overage: Boolean!
 ) {
-    updateAllowMeterOverage(
-        workspace_id: $workspace_id
-        allow_meter_overage: $allow_meter_overage
-    ) {
-        id
-        allow_meter_overage
-    }
+	updateAllowMeterOverage(
+		workspace_id: $workspace_id
+		allow_meter_overage: $allow_meter_overage
+	) {
+		id
+		allow_meter_overage
+	}
 }
 
 mutation SyncSlackIntegration($project_id: ID!) {
-    syncSlackIntegration(project_id: $project_id) {
-        success
-        newChannelsAddedCount
-    }
+	syncSlackIntegration(project_id: $project_id) {
+		success
+		newChannelsAddedCount
+	}
 }
 
 mutation RequestAccess($project_id: ID!) {
-    requestAccess(project_id: $project_id)
+	requestAccess(project_id: $project_id)
 }
 
 mutation ModifyClearbitIntegration($workspace_id: ID!, $enabled: Boolean!) {
-    modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
+	modifyClearbitIntegration(workspace_id: $workspace_id, enabled: $enabled)
+}
+
+mutation UpsertDashboard(
+	$id: ID
+	$project_id: ID!
+	$name: String!
+	$metrics: [DashboardMetricConfigInput!]!
+	$layout: String
+) {
+	upsertDashboard(
+		id: $id
+		project_id: $project_id
+		name: $name
+		metrics: $metrics
+		layout: $layout
+	)
 }

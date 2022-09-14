@@ -1,106 +1,106 @@
 .buttonBase {
-    align-items: center;
-    color: var(--text-primary) !important;
-    display: flex;
-    height: auto;
-    padding-bottom: 8px;
-    padding-top: 8px;
+	align-items: center;
+	color: var(--text-primary) !important;
+	display: flex;
+	height: auto;
+	padding-bottom: 8px;
+	padding-top: 8px;
 
-    &:global(.ant-btn-primary) {
-        color: var(--color-white) !important;
-    }
+	&:global(.ant-btn-primary) {
+		color: var(--color-white) !important;
+	}
 
-    &[disabled] {
-        color: var(--text-primary-inverted) !important;
-    }
+	&[disabled] {
+		color: var(--text-primary-inverted) !important;
+	}
 
-    &:global(.ant-btn-block) {
-        justify-content: center;
-    }
+	&:global(.ant-btn-block) {
+		justify-content: center;
+	}
 
-    &.iconButton {
-        align-items: center;
-        border-radius: 50%;
-        color: var(--text-primary);
-        display: flex;
-        height: var(--size-xLarge);
-        justify-content: center;
-        padding: 0;
-        width: var(--size-xLarge);
+	&.iconButton {
+		align-items: center;
+		border-radius: 50%;
+		color: var(--text-primary);
+		display: flex;
+		height: var(--size-xLarge);
+		justify-content: center;
+		padding: 0;
+		width: var(--size-xLarge);
 
-        &:global(.ant-btn-sm) {
-            height: var(--size-small);
-            width: var(--size-small);
-        }
+		&:global(.ant-btn-sm) {
+			height: var(--size-small);
+			width: var(--size-small);
+		}
 
-        &:global(.ant-btn[disabled]) {
-            background: var(--color-gray-300) !important;
-            border-color: var(--color-gray-400) !important;
-            fill: var(--color-gray-500) !important;
-        }
+		&:global(.ant-btn[disabled]) {
+			background: var(--color-gray-300) !important;
+			border-color: var(--color-gray-400) !important;
+			fill: var(--color-gray-500) !important;
+		}
 
-        &:hover {
-            background-color: var(--color-gray-200);
-        }
+		&:hover {
+			background-color: var(--color-gray-200);
+		}
 
-        svg {
-            height: var(--size-icon);
-            width: var(--size-icon);
-        }
-    }
+		svg {
+			height: var(--size-icon);
+			width: var(--size-icon);
+		}
+	}
 
-    &.small {
-        svg {
-            height: var(--size-small);
-            width: var(--size-small);
-        }
-    }
+	&.small {
+		svg {
+			height: var(--size-small);
+			width: var(--size-small);
+		}
+	}
 
-    &:global(.ant-btn-ghost) {
-        border-color: var(--color-gray-300) !important;
-    }
+	&:global(.ant-btn-ghost) {
+		border-color: var(--color-gray-300) !important;
+	}
 
-    &:global(.ant-btn-text) {
-        &:hover {
-            background: var(--color-gray-200) !important;
-        }
-    }
+	&:global(.ant-btn-text) {
+		&:hover {
+			background: var(--color-gray-200) !important;
+		}
+	}
 
-    &:global(.ant-btn-default.ant-btn-dangerous) {
-        color: var(--color-red-400) !important;
-    }
+	&:global(.ant-btn-default.ant-btn-dangerous) {
+		color: var(--color-red-400) !important;
+	}
 }
 
 .small {
-    padding-bottom: var(--size-xxSmall);
-    padding-left: var(--size-small);
-    padding-right: var(--size-small);
-    padding-top: var(--size-xxSmall);
+	padding-bottom: var(--size-xxSmall);
+	padding-left: var(--size-small);
+	padding-right: var(--size-small);
+	padding-top: var(--size-xxSmall);
 }
 
 .link {
-    border: 0;
-    display: inline;
-    font-size: inherit;
-    line-height: inherit;
-    margin: 0;
-    padding: 0;
+	border: 0;
+	display: inline;
+	font-size: inherit;
+	line-height: inherit;
+	margin: 0;
+	padding: 0;
 }
 
 .pulse {
-    animation: pulse 2s infinite;
+	animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0.7);
-    }
+	0% {
+		box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0.7);
+	}
 
-    70% {
-        box-shadow: 0 0 0 10px rgba(var(--pulse-color), 0);
-    }
+	70% {
+		box-shadow: 0 0 0 10px rgba(var(--pulse-color), 0);
+	}
 
-    100% {
-        box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0);
-    }
+	100% {
+		box-shadow: 0 0 0 0 rgba(var(--pulse-color), 0);
+	}
 }

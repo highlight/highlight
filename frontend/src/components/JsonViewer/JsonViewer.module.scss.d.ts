@@ -1,2 +1,2 @@
-export const container: string;
-export const downloadButton: string;
+export const container: string
+export const downloadButton: string

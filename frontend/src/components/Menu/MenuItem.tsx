@@ -1,17 +1,23 @@
-import { Menu as AntDesignMenu, MenuItemProps } from 'antd';
-import React from 'react';
+import { Menu as AntDesignMenu, MenuItemProps } from 'antd'
+import classNames from 'classnames'
+import React from 'react'
 
-import styles from './MenuItem.module.scss';
+import styles from './MenuItem.module.scss'
 
-type Props = {} & Pick<MenuItemProps, 'onClick' | 'children'> &
-    Required<Pick<MenuItemProps, 'icon'>>;
+type Props = {} & Pick<
+	MenuItemProps,
+	'onClick' | 'children' | 'className' | 'icon'
+>
 
-const MenuItem = ({ children, ...props }: Props) => {
-    return (
-        <AntDesignMenu.Item {...props} className={styles.menuItem}>
-            {children}
-        </AntDesignMenu.Item>
-    );
-};
+const MenuItem = ({ children, className, ...props }: Props) => {
+	return (
+		<AntDesignMenu.Item
+			{...props}
+			className={classNames(styles.menuItem, className)}
+		>
+			{children}
+		</AntDesignMenu.Item>
+	)
+}
 
-export default MenuItem;
+export default MenuItem

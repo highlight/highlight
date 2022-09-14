@@ -1,1 +1,1 @@
-export const table: string;
+export const table: string

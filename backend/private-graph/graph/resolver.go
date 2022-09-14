@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -15,13 +16,20 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
+	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
@@ -36,12 +44,14 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
+	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -50,11 +60,22 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
+	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
 )
+
+var BytesConversion = map[string]int64{
+	"b":  1,
+	"kb": 1024,
+	"mb": 1024 * 1024,
+	"gb": 1024 * 1024 * 1024,
+	"tb": 1024 * 1024 * 1024 * 1024,
+	"pb": 1024 * 1024 * 1024 * 1024 * 1024,
+}
 
 type Resolver struct {
 	DB                     *gorm.DB
+	TDB                    timeseries.DB
 	MailClient             *sendgrid.Client
 	StripeClient           *client.API
 	StorageClient          *storage.StorageClient
@@ -65,15 +86,7 @@ type Resolver struct {
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
 	HubspotApi             HubspotApiInterface
-}
-
-// For a given session, an EventCursor is the address of an event in the list of events,
-// that can be used for incremental fetching.
-// The EventIndex must always be specified, with the EventObjectIndex optionally
-// specified for optimization purposes.
-type EventsCursor struct {
-	EventIndex       int
-	EventObjectIndex *int
+	Redis                  *redis.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -159,7 +172,8 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	email := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.Email))
 	// Allow access to engineering@highlight.run or any verified @highlight.run / @runhighlight.com email.
-	return uid == WhitelistedUID || strings.Contains(email, "@highlight.run") || strings.Contains(email, "@runhighlight.com")
+	_, isAdmin := lo.Find(HighlightAdminEmailDomains, func(domain string) bool { return strings.Contains(email, domain) })
+	return isAdmin || uid == WhitelistedUID
 }
 
 func (r *Resolver) isDemoProject(project_id int) bool {
@@ -178,6 +192,12 @@ func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
 	defer authSpan.Finish()
+	start := time.Now()
+	defer func() {
+		H.RecordMetric(
+			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
+		)
+	}()
 	var project *model.Project
 	var err error
 	if r.isDemoProject(project_id) {
@@ -196,6 +216,12 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
 	defer authSpan.Finish()
+	start := time.Now()
+	defer func() {
+		H.RecordMetric(
+			ctx, "resolver.internal.auth.isAdminInWorkspaceOrDemoWorkspace", time.Since(start).Seconds(),
+		)
+	}()
 	var workspace *model.Workspace
 	var err error
 	if r.isDemoWorkspace(workspace_id) {
@@ -217,6 +243,19 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
+}
+
+func (r *Resolver) GetAdminRole(adminID int, workspaceID int) (string, error) {
+	var workspaceAdmin model.WorkspaceAdmin
+	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).First(&workspaceAdmin).Error; err != nil {
+		return "", e.Wrap(err, "error querying workspace_admin")
+	}
+	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
+		log.Errorf("workspace_admin admin_id:%d,workspace_id:%d has invalid role", adminID, workspaceID)
+		return "", e.New("workspace_admin has invalid role")
+
+	}
+	return *workspaceAdmin.Role, nil
 }
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
@@ -252,7 +291,14 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 		return nil, e.New("405: This invite link has expired.")
 	}
 
-	if err := r.DB.Model(workspace).Association("Admins").Append(admin); err != nil {
+	if err := r.DB.Clauses(clause.OnConflict{
+		OnConstraint: "workspace_admins_pkey",
+		DoNothing:    true,
+	}).Create(&model.WorkspaceAdmin{
+		AdminID:     admin.ID,
+		WorkspaceID: workspace.ID,
+		Role:        inviteLink.InviteeRole,
+	}).Error; err != nil {
 		return nil, e.Wrap(err, "500: error adding admin to association")
 	}
 
@@ -329,6 +375,80 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 		}
 	}
 	return nil, e.New("admin doesn't exist in project")
+}
+
+func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+	endDate := time.Now().UTC()
+	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)
+	startDateFormatted := startDate.Format("2006-01-02")
+
+	aggQuery :=
+		fmt.Sprintf(`{"bool": {
+			"must": [
+				{
+					"terms": {
+					"routing.keyword" : [%s]
+				}},
+				{
+					"range": {
+					"timestamp": {
+						"gte": "%s"
+					}
+				}}
+			]
+		}}`,
+			strings.Join(lo.Map(errorGroups, func(e *model.ErrorGroup, i int) string { return strconv.Itoa(e.ID) }), ","),
+			startDateFormatted)
+	aggOptions := opensearch.SearchOptions{
+		MaxResults: pointy.Int(0),
+		Aggregation: &opensearch.TermsAggregation{
+			Field: "routing.keyword",
+			SubAggregation: &opensearch.DateHistogramAggregation{
+				Field:            "timestamp",
+				CalendarInterval: "day",
+				SortOrder:        "desc",
+				Format:           "yyyy-MM-dd",
+				TimeZone:         "UTC",
+			},
+		},
+	}
+
+	ignored := []struct{}{}
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, -1, aggQuery, aggOptions, &ignored)
+	if err != nil {
+		return err
+	}
+
+	errFreqs := map[int][]int64{}
+	for _, ar1 := range aggResults {
+		freqMap := map[string]int64{}
+		for _, ar2 := range ar1.SubAggregationResults {
+			freqMap[ar2.Key] = ar2.DocCount
+		}
+
+		freqs := []int64{}
+		for curDate := startDate; !curDate.After(endDate); curDate = curDate.AddDate(0, 0, 1) {
+			curDateFormatted := curDate.Format("2006-01-02")
+			freq, ok := freqMap[curDateFormatted]
+			if !ok {
+				freq = 0
+			}
+			freqs = append(freqs, freq)
+		}
+
+		errorGroupId, err := strconv.Atoi(ar1.Key)
+		if err != nil {
+			return err
+		}
+
+		errFreqs[errorGroupId] = freqs
+	}
+
+	for _, eg := range errorGroups {
+		eg.ErrorFrequency = errFreqs[eg.ID]
+	}
+
+	return nil
 }
 
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
@@ -606,7 +726,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	return nil
 }
 
-func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string) (blockSet slack.Blocks) {
+func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, action string, subjectScope string, additionalContext *string) (blockSet slack.Blocks) {
 	determiner := "a"
 	if subjectScope == "error" {
 		determiner = "an"
@@ -638,6 +758,15 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		),
 	)
 
+	if additionalContext != nil {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
+
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return
 }
@@ -647,7 +776,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 		return nil
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
 		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
@@ -667,7 +796,7 @@ func (r *Resolver) SendSlackThreadReply(workspace *model.Workspace, admin *model
 	return nil
 }
 
-func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int) error {
+func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, viewLink, commentText, action string, subjectScope string, base64Image *string, sessionCommentID *int, errorCommentID *int, additionalContext *string) error {
 	// this is needed for posting DMs
 	// if nil, user simply hasn't signed up for notifications, so return nil
 	if workspace.SlackAccessToken == nil {
@@ -675,7 +804,7 @@ func (r *Resolver) SendSlackAlertToUser(workspace *model.Workspace, admin *model
 	}
 	slackClient := slack.New(*workspace.SlackAccessToken)
 
-	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope)
+	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, additionalContext)
 
 	// Prepare to upload the screenshot to the user's Slack workspace.
 	// We do this instead of upload it to S3 or somewhere else to defer authorization checks to Slack.
@@ -929,13 +1058,18 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.
 	return ret, nil
 }
 
-func (r *Resolver) validateAdminRole(ctx context.Context) error {
+func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error {
+	if r.isWhitelistedAccount(ctx) {
+		return nil
+	}
+
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return e.Wrap(err, "error retrieving admin")
 	}
 
-	if admin.Role == nil || *admin.Role != model.AdminRole.ADMIN {
+	role, err := r.GetAdminRole(admin.ID, workspaceID)
+	if err != nil || role != model.AdminRole.ADMIN {
 		return e.New("admin does not have role=ADMIN")
 	}
 
@@ -998,6 +1132,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
+	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
 	var nextInvoiceDate *time.Time
@@ -1006,8 +1141,9 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
+				unlimitedMembers = productUnlimitedMembers
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1032,6 +1168,7 @@ func (r *Resolver) updateBillingDetails(stripeCustomerID string) error {
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(map[string]interface{}{
 			"PlanTier":           string(tier),
+			"UnlimitedMembers":   unlimitedMembers,
 			"BillingPeriodStart": billingPeriodStart,
 			"BillingPeriodEnd":   billingPeriodEnd,
 			"NextInvoiceDate":    nextInvoiceDate,
@@ -1239,6 +1376,126 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 			})()
 		}
 	}
+}
+
+const (
+	projectCookieName  = "project-token"
+	projectIdClaimName = "project_id"
+	expClaimName       = "exp"
+	projectIdUrlParam  = "project_id"
+	hashValUrlParam    = "hash_val"
+)
+
+func getProjectCookieName(projectId int) string {
+	return fmt.Sprintf("%s-%d", projectCookieName, projectId)
+}
+
+func getProjectIdFromToken(tokenString string) (int, error) {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return 0, e.Wrap(err, "invalid id token")
+	}
+
+	projectId, ok := claims[projectIdClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid project_id claim")
+	}
+
+	exp, ok := claims[expClaimName].(float64)
+	if !ok {
+		return 0, e.Wrap(err, "invalid exp claim")
+	}
+
+	// Check if the current time is after the expiration
+	if time.Now().After(time.Unix(int64(exp), 0)) {
+		return 0, e.Wrap(err, "token expired")
+	}
+
+	return int(projectId), nil
+}
+
+func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
+	projectIdStr := chi.URLParam(req, projectIdUrlParam)
+	projectId, err := strconv.Atoi(projectIdStr)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "invalid project_id", http.StatusBadRequest)
+		return
+	}
+
+	ctx := req.Context()
+	_, err = r.isAdminInProjectOrDemoProject(ctx, projectId)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	atClaims := jwt.MapClaims{}
+	atClaims[projectIdClaimName] = projectId
+	atClaims[expClaimName] = time.Now().Add(time.Hour).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+	token, err := at.SignedString([]byte(JwtAccessSecret))
+	if err != nil {
+		log.Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     getProjectCookieName(projectId),
+		Value:    token,
+		MaxAge:   int(time.Hour.Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+	})
+}
+
+func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
+	projectIdParam := chi.URLParam(req, projectIdUrlParam)
+	hashValParam := chi.URLParam(req, hashValUrlParam)
+
+	projectId, err := strconv.Atoi(projectIdParam)
+	if err != nil {
+		log.Error(e.Wrap(err, "error converting project_id param to string"))
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	projectCookie, err := req.Cookie(getProjectCookieName(projectId))
+	if err != nil {
+		log.Error(e.Wrap(err, "error accessing projectToken cookie"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	projectIdFromToken, err := getProjectIdFromToken(projectCookie.Value)
+	if err != nil {
+		log.Error(e.Wrap(err, "error getting project id from token claims"))
+		http.Error(w, "", http.StatusForbidden)
+		return
+	}
+
+	if projectIdFromToken != projectId {
+		log.Error(e.Wrap(err, "project id mismatch"))
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	url, err := r.StorageClient.GetAssetURL(projectIdParam, hashValParam)
+	if err != nil {
+		log.Error(e.Wrap(err, "failed to generate asset url"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Cache the redirected url for up to 14 minutes
+	w.Header().Set("Cache-Control", "max-age=840")
+	http.Redirect(w, req, url, http.StatusFound)
 }
 
 func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter, *http.Request) {
@@ -1595,7 +1852,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		  }
 		  success
 		}
-	  }	  
+	  }
 	`
 
 	type GraphQLVars struct {
@@ -1845,20 +2102,20 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 }
 
-func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment for slack bot"))
 		}
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -1902,7 +2159,7 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			})
 		}
 
-		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID)
+		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}
@@ -1926,7 +2183,19 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor EventsCursor) ([]interface{}, error, *EventsCursor) {
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+	if s.ProcessWithRedis {
+		isLive := cursor != model.EventsCursor{}
+		s3Events := map[int]string{}
+		if !isLive {
+			var err error
+			s3Events, err = r.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+			}
+		}
+		return r.Redis.GetEvents(ctx, s, cursor, s3Events)
+	}
 	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -1935,7 +2204,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 		if err != nil {
 			return nil, err, nil
 		}
-		return ret[cursor.EventIndex:], nil, &EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -1962,7 +2231,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor Event
 	if cursor.EventObjectIndex == nil {
 		events = allEvents[cursor.EventIndex:]
 	}
-	nextCursor := EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
+	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
 	return events, nil, &nextCursor
 }
@@ -2056,23 +2325,426 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 	return &existingChannels, newChannelsCount, nil
 }
 
-func GetAggregateSQLStatement(aggregateFunctionName string) string {
-	aggregateStatement := "AVG(value)"
+func (r *Resolver) AutoCreateMetricMonitor(ctx context.Context, metric *model.DashboardMetric) error {
+	// avoid creating invalid metric monitors
+	if metric.Name == "" {
+		return nil
+	}
 
-	switch aggregateFunctionName {
-	case "p50":
-		aggregateStatement = "percentile_cont(0.50) WITHIN GROUP (ORDER BY value)"
-	case "p75":
-		aggregateStatement = "percentile_cont(0.75) WITHIN GROUP (ORDER BY value)"
-	case "p90":
-		aggregateStatement = "percentile_cont(0.90) WITHIN GROUP (ORDER BY value)"
-	case "p99":
-		aggregateStatement = "percentile_cont(0.99) WITHIN GROUP (ORDER BY value)"
-	case "avg":
+	var projectID int
+	if err := r.DB.Raw(`
+		SELECT d.project_id
+		FROM dashboard_metrics dm
+				 INNER JOIN dashboards d on dm.dashboard_id = d.id
+		WHERE dm.id = ?
+	`, metric.ID).First(&projectID).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve metrics to create alert")
+	}
+
+	var monitors int64
+	if err := r.DB.Model(&model.MetricMonitor{}).Where(&model.MetricMonitor{
+		ProjectID:       projectID,
+		MetricToMonitor: metric.Name,
+	}).Count(&monitors).Error; err != nil {
+		return e.Wrap(err, "failed to count existing monitors")
+	}
+	if monitors > 0 {
+		return nil
+	}
+
+	var slackChannels []*modelInputs.SanitizedSlackChannel
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.webhook_channel_id, s.webhook_channel) * FROM (
+				SELECT json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel' #>>'{}'    as webhook_channel,
+					   json_array_elements(cast(mm.channels_to_notify AS json)) -> 'webhook_channel_id' #>>'{}' as webhook_channel_id
+				FROM metric_monitors mm
+				WHERE mm.project_id = ?
+				  and mm.channels_to_notify is not null
+			) s
+		`, projectID).Scan(&slackChannels).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve slack channels to create alert")
+	}
+	var channelsString *string
+	if len(slackChannels) > 0 {
+		channelsBytes, err := json.Marshal(slackChannels)
+		if err != nil {
+			return e.Wrap(err, "error parsing slack channels")
+		}
+		cs := string(channelsBytes)
+		channelsString = &cs
+	}
+
+	var emails []*string
+	if err := r.DB.Raw(`
+			SELECT DISTINCT ON (s.email) * FROM (
+				SELECT json_array_elements(cast(mm.emails_to_notify as json)) #>>'{}' as email
+				FROM metric_monitors mm
+				WHERE mm.project_id = ? and mm.emails_to_notify is not null
+			) s
+		`, projectID).Scan(&emails).Error; err != nil {
+		return e.Wrap(err, "failed to retrieve emails to create alert")
+	}
+	if len(emails) < 1 {
+		if err := r.DB.Raw(`
+			SELECT a.email
+			FROM project_admins pa
+			INNER JOIN admins a on pa.admin_id = a.id
+			WHERE pa.project_id = ?
+			GROUP BY pa.project_id, a.email
+		`, projectID).Scan(&emails).Error; err != nil {
+			return e.Wrap(err, "failed to retrieve emails to create alert")
+		}
+	}
+	var emailsString *string
+	if len(emails) > 0 {
+		var err error
+		emailsString, err = r.MarshalAlertEmails(emails)
+		if err != nil {
+			return e.Wrap(err, "failed to marshall emails for auto created metric monitor")
+		}
+	}
+
+	// calculate a reasonable threshold using p90
+	end := time.Now()
+	start := time.Now().Add(-24 * time.Hour)
+	// different than the metric monitor aggregator because we want to get a high value
+	// that won't trigger with the monitor aggregator of p50
+	agg := modelInputs.MetricAggregatorP95
+	points, err := GetMetricTimeline(ctx, r.TDB, projectID, metric.Name, modelInputs.DashboardParamsInput{
+		DateRange: &modelInputs.DateRangeInput{
+			StartDate: &start,
+			EndDate:   &end,
+		},
+		ResolutionMinutes: pointy.Int(60),
+		Units:             metric.Units,
+		Aggregator:        &agg,
+	})
+	if err != nil {
+		return e.Wrap(err, "failed to retrieve recent metric data for threshold calculation")
+	}
+	threshold := 1.
+	if len(points) > 0 {
+		threshold = points[len(points)-1].Value
+	}
+	caser := cases.Title(language.AmericanEnglish)
+	name := caser.String(strings.ToLower(metric.Name))
+	newMetricMonitor := &model.MetricMonitor{
+		ProjectID:        projectID,
+		Name:             fmt.Sprintf("%s Default Monitor", name),
+		Aggregator:       modelInputs.MetricAggregatorP50,
+		Threshold:        threshold,
+		MetricToMonitor:  metric.Name,
+		ChannelsToNotify: channelsString,
+		EmailsToNotify:   emailsString,
+		Disabled:         pointy.Bool(true),
+	}
+	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
+		return e.Wrap(err, "failed to auto create metric monitor")
+	}
+	return nil
+}
+
+func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins int) string {
+	fn := "mean"
+	quantile := 0.
+	// explicitly validate the aggregate func to ensure no query injection possible
+	switch aggregator {
+	case modelInputs.MetricAggregatorP50:
+		quantile = 0.5
+	case modelInputs.MetricAggregatorP75:
+		quantile = 0.75
+	case modelInputs.MetricAggregatorP90:
+		quantile = 0.9
+	case modelInputs.MetricAggregatorP95:
+		quantile = 0.95
+	case modelInputs.MetricAggregatorP99:
+		quantile = 0.99
+	case modelInputs.MetricAggregatorMax:
+		quantile = 1.0
+	case modelInputs.MetricAggregatorCount:
+		fn = "count"
+	case modelInputs.MetricAggregatorSum:
+		fn = "sum"
+	case modelInputs.MetricAggregatorAvg:
 	default:
-		log.Error("Received an unsupported aggregateFunctionName: ", aggregateFunctionName)
-		aggregateStatement = "AVG(value)"
+		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
+	}
+	aggregateStatement := fmt.Sprintf(`
+      query()
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: true)
+          |> yield(name: "avg")
+	`, resMins, fn)
+	if quantile > 0. {
+		aggregateStatement = fmt.Sprintf(`
+		  do(q:%f)
+			  |> yield(name: "p%d")
+		`, quantile, int(quantile*100))
 	}
 
 	return aggregateStatement
+}
+
+func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) float64 {
+	div := 1.0
+	if originalUnits == nil {
+		originalUnits = pointy.String("s")
+	}
+	if desiredUnits == nil {
+		return div
+	}
+	if *originalUnits == "b" {
+		bytes, ok := BytesConversion[*desiredUnits]
+		if !ok {
+			return div
+		}
+		return float64(bytes)
+	}
+	o, err := time.ParseDuration(fmt.Sprintf(`1%s`, *originalUnits))
+	if err != nil {
+		return div
+	}
+	d, err := time.ParseDuration(fmt.Sprintf(`1%s`, *desiredUnits))
+	if err != nil {
+		return div
+	}
+	return float64(d.Nanoseconds()) / float64(o.Nanoseconds())
+}
+
+// MetricOriginalUnits returns the input units for the metric or nil if unitless.
+func MetricOriginalUnits(metricName string) (originalUnits *string) {
+	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ms")
+	}
+	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ns")
+	}
+	if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("b")
+	}
+	return
+}
+
+// GetTagFilters returns the influxdb filter for a particular set of tag filters
+func GetTagFilters(filters []*modelInputs.MetricTagFilterInput) (result string) {
+	for _, f := range filters {
+		if f != nil {
+			var op, val string
+			if f.Op != "" {
+				switch f.Op {
+				case modelInputs.MetricTagFilterOpEquals:
+					op = "=="
+					val = fmt.Sprintf(`"%s"`, f.Value)
+				case modelInputs.MetricTagFilterOpContains:
+					op = "=~"
+					val = fmt.Sprintf("/.*%s.*/", f.Value)
+				default:
+					log.Errorf("received an unsupported tag operator: %+v", f.Op)
+				}
+			}
+			result += fmt.Sprintf(`|> filter(fn: (r) => r["%s"] %s %s)`, f.Tag, op, val) + "\n"
+		}
+	}
+	return
+}
+
+// GetTagGroups returns the influxdb group columns for a particular set of tag groups
+func GetTagGroups(groups []string) (result string) {
+	result += "["
+	for _, g := range groups {
+		result += fmt.Sprintf(`"%s",`, g)
+	}
+	result += "]"
+	return result
+}
+
+func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, metricName string, params modelInputs.DashboardParamsInput) (payload []*modelInputs.DashboardPayload, err error) {
+	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
+	tagFilters := GetTagFilters(params.Filters)
+	tagGroups := GetTagGroups(params.Groups)
+	resMins := 60
+	if params.ResolutionMinutes != nil && *params.ResolutionMinutes != 0 {
+		resMins = *params.ResolutionMinutes
+	}
+
+	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	query := fmt.Sprintf(`
+      query = () =>
+		from(bucket: "%[1]s")
+		  |> range(start: %[2]s, stop: %[3]s)
+		  |> filter(fn: (r) => r["_measurement"] == "%[4]s")
+		  |> filter(fn: (r) => r["_field"] == "%[5]s")
+		  %[6]s|> group(columns: %[8]s)
+      do = (q) =>
+        query()
+		  |> aggregateWindow(
+               every: %[7]dm,
+               fn: (column, tables=<-) => tables |> quantile(q:q, column: column),
+               createEmpty: true)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, metricName, tagFilters, resMins, tagGroups)
+	agg := modelInputs.MetricAggregatorAvg
+	if params.Aggregator != nil {
+		agg = *params.Aggregator
+	}
+	query += GetAggregateFluxStatement(agg, resMins)
+	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	timelineQuerySpan.SetTag("projectID", projectID)
+	timelineQuerySpan.SetTag("metricName", metricName)
+	timelineQuerySpan.SetTag("resMins", resMins)
+	results, err := tdb.Query(ctx, query)
+	timelineQuerySpan.Finish()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range results {
+		v := 0.
+		if r.Value != nil {
+			x, ok := r.Value.(float64)
+			if !ok {
+				v = float64(r.Value.(int64)) / div
+			} else {
+				v = x / div
+			}
+		}
+		if len(params.Groups) > 0 {
+			for _, g := range params.Groups {
+				gVal := r.Values[g]
+				if gVal == nil {
+					continue
+				}
+				payload = append(payload, &modelInputs.DashboardPayload{
+					Date:       r.Time.Format(time.RFC3339Nano),
+					Value:      v,
+					Aggregator: &agg,
+					Group:      pointy.String(gVal.(string)),
+				})
+			}
+		} else {
+			payload = append(payload, &modelInputs.DashboardPayload{
+				Date:       r.Time.Format(time.RFC3339Nano),
+				Value:      v,
+				Aggregator: &agg,
+			})
+		}
+	}
+	return
+}
+
+func FormatSessionsQuery(query string) string {
+	return fmt.Sprintf(`
+	{
+		"bool": {
+		   "must": [
+			  {
+				 "bool": {
+					"must_not": [
+					   {
+						  "term": {
+							 "Excluded": true
+						  }
+					   },
+					   {
+						  "term": {
+							 "within_billing_quota": false
+						  }
+					   },
+					   {
+						  "bool": {
+							 "must": [
+								{
+								   "term": {
+									  "processed": "true"
+								   }
+								},
+								{
+								   "bool": {
+									  "should": [
+										 {
+											"range": {
+											   "active_length": {
+												  "lt": 1000
+											   }
+											}
+										 },
+										 {
+											"range": {
+											   "length": {
+												  "lt": 1000
+											   }
+											}
+										 }
+									  ]
+								   }
+								}
+							 ]
+						  }
+					   }
+					]
+				 }
+			  },
+			  %s
+		   ]
+		}
+	 }`, query)
+}
+
+func GetDateHistogramAggregation(histogramOptions modelInputs.DateHistogramOptions, field string, subAggregation *opensearch.TermsAggregation) *opensearch.DateHistogramAggregation {
+	aggregation := opensearch.DateHistogramAggregation{
+		Field:            field,
+		CalendarInterval: histogramOptions.BucketSize.CalendarInterval.String(),
+		SortOrder:        "asc",
+		Format:           "epoch_millis",
+		TimeZone:         histogramOptions.TimeZone,
+		DateBounds: &opensearch.DateBounds{
+			Min: histogramOptions.Bounds.StartDate.UnixMilli(),
+			Max: histogramOptions.Bounds.EndDate.UnixMilli(),
+		},
+	}
+	if subAggregation != nil {
+		aggregation.SubAggregation = subAggregation
+	}
+	return &aggregation
+}
+
+func GetBucketTimesAndTotalCounts(aggs []opensearch.AggregationResult, histogramOptions modelInputs.DateHistogramOptions) ([]time.Time, []int64) {
+	bucketTimes, totalCounts := []time.Time{}, []int64{}
+	for _, date_bucket := range aggs {
+		unixMillis, err := strconv.ParseInt(date_bucket.Key, 0, 64)
+		if err != nil {
+			log.Errorf("Error parsing date bucket key for histogram: %s", err.Error())
+			break
+		}
+		bucketTimes = append(bucketTimes, time.UnixMilli(unixMillis))
+		totalCounts = append(totalCounts, date_bucket.DocCount)
+	}
+	if len(aggs) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+	return bucketTimes, totalCounts
+}
+
+func MergeHistogramBucketTimes(bucketTimes []time.Time, multiple int) []time.Time {
+	newBucketTimes := []time.Time{}
+	for i := 0; i < len(bucketTimes); i++ {
+		// The last time is the end time of the search query and should not be removed
+		if i%multiple == 0 || i == len(bucketTimes)-1 {
+			newBucketTimes = append(newBucketTimes, bucketTimes[i])
+		}
+	}
+	return newBucketTimes
+}
+
+func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
+	newBuckets := []int64{}
+	newBucketsIndex := -1
+	for i := 0; i < len(bucketCounts); i++ {
+		if i%multiple == 0 {
+			newBuckets = append(newBuckets, bucketCounts[i])
+			newBucketsIndex++
+		} else {
+			newBuckets[newBucketsIndex] += bucketCounts[i]
+		}
+	}
+	return newBuckets
 }

@@ -1,32 +1,32 @@
 .radioGroupWrapper {
-    display: flex;
-    font-family: var(--header-font-family);
-    margin: 0;
+	display: flex;
+	font-family: var(--header-font-family);
+	margin: 0;
 }
 
 .platformOption {
-    align-items: center;
-    border: 1px solid var(--color-gray-300);
-    cursor: pointer;
-    display: flex;
-    height: 30px;
-    justify-content: center;
-    transition: 0.2s;
-    width: 85px;
+	align-items: center;
+	border: 1px solid var(--color-gray-300);
+	cursor: pointer;
+	display: flex;
+	height: 30px;
+	justify-content: center;
+	transition: 0.2s;
+	width: 85px;
 }
 
 .platformOption:hover {
-    background-color: var(--color-gray-200);
+	background-color: var(--color-gray-200);
 }
 
 .platformOption:not(:last-child) {
-    border-right: 0;
+	border-right: 0;
 }
 
 .platformOption:first-child {
-    border-radius: 8px 0 0 8px;
+	border-radius: 8px 0 0 8px;
 }
 
 .platformOption:last-child {
-    border-radius: 0 8px 8px 0;
+	border-radius: 0 8px 8px 0;
 }

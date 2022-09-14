@@ -46,7 +46,9 @@ var (
 )
 
 const (
-	SUGGESTION_LIMIT_CONSTANT = 8
+	SUGGESTION_LIMIT_CONSTANT       = 8
+	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
+	InternalMetricCategory          = "__internal"
 )
 
 var AlertType = struct {
@@ -107,6 +109,7 @@ var ContextKeys = struct {
 	AcceptEncoding contextString
 	ZapierToken    contextString
 	ZapierProject  contextString
+	SessionId      contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -116,6 +119,7 @@ var ContextKeys = struct {
 	AcceptEncoding: "acceptEncoding",
 	ZapierToken:    "parsedToken",
 	ZapierProject:  "project",
+	SessionId:      "sessionId",
 }
 
 var Models = []interface{}{
@@ -148,15 +152,21 @@ var Models = []interface{}{
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
+	&WorkspaceAdmin{},
 	&WorkspaceInviteLink{},
 	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
 	&AlertEvent{},
 	&RegistrationData{},
+	&MetricGroup{},
 	&Metric{},
 	&MetricMonitor{},
 	&ErrorFingerprint{},
 	&EventChunk{},
+	&SavedAsset{},
+	&Dashboard{},
+	&DashboardMetric{},
+	&DashboardMetricFilter{},
 	&ResthookSubscription{},
 }
 
@@ -214,6 +224,7 @@ type Workspace struct {
 	StripeCustomerID            *string
 	StripePriceID               *string
 	PlanTier                    string `gorm:"default:Free"`
+	UnlimitedMembers            bool   `gorm:"default:false"`
 	BillingPeriodStart          *time.Time
 	BillingPeriodEnd            *time.Time
 	NextInvoiceDate             *time.Time
@@ -225,6 +236,20 @@ type Workspace struct {
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
+}
+
+type WorkspaceAdmin struct {
+	AdminID     int        `gorm:"primaryKey"`
+	WorkspaceID int        `gorm:"primaryKey"`
+	CreatedAt   time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt   time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt   *time.Time `json:"deleted_at" deep:"-"`
+	Role        *string    `json:"role" gorm:"default:ADMIN"`
+}
+
+type WorkspaceAdminRole struct {
+	Admin *Admin
+	Role  string
 }
 
 type WorkspaceInviteLink struct {
@@ -257,6 +282,10 @@ type Project struct {
 	WorkspaceID         int
 	FreeTier            bool           `gorm:"default:false"`
 	ExcludedUsers       pq.StringArray `json:"excluded_users" gorm:"type:text[]"`
+	ErrorJsonPaths      pq.StringArray `gorm:"type:text[]"`
+
+	// During metrics querying for network requests, only keep these relevant URLs
+	BackendDomains pq.StringArray `gorm:"type:text[]"`
 
 	// BackendSetup will be true if this is the session where HighlightBackend is run for the first time
 	BackendSetup *bool `json:"backend_setup"`
@@ -302,10 +331,41 @@ type RegistrationData struct {
 
 type Dashboard struct {
 	Model
-	ProjectID         int
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	LastAdminToEditID *int
 	Layout            *string
-	Name              *string
-	LastAdminToEditID int
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+}
+
+type DashboardMetric struct {
+	Model
+	DashboardID              int `gorm:"index;not null;"`
+	Name                     string
+	Description              string
+	ComponentType            *modelInputs.MetricViewComponentType
+	ChartType                *modelInputs.DashboardChartType
+	Aggregator               *modelInputs.MetricAggregator `gorm:"default:P50"`
+	MaxGoodValue             *float64
+	MaxNeedsImprovementValue *float64
+	PoorValue                *float64
+	Units                    *string
+	HelpArticle              *string
+	MinValue                 *float64
+	MinPercentile            *float64
+	MaxValue                 *float64
+	MaxPercentile            *float64
+	Filters                  []*DashboardMetricFilter `gorm:"foreignKey:MetricID"`
+	Groups                   pq.StringArray           `gorm:"type:text[]"`
+}
+
+type DashboardMetricFilter struct {
+	Model
+	MetricID        int
+	MetricMonitorID int
+	Tag             string
+	Op              modelInputs.MetricTagFilterOp `gorm:"default:equals"`
+	Value           string
 }
 
 type SlackChannel struct {
@@ -398,7 +458,6 @@ type Admin struct {
 	ErrorComments          []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 	Workspaces             []Workspace      `gorm:"many2many:workspace_admins;"`
 	SlackIMChannelID       *string
-	Role                   *string `json:"role" gorm:"default:ADMIN"`
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
@@ -413,6 +472,13 @@ type EmailSignup struct {
 	ApolloDataShortened string
 }
 
+type SessionsHistogram struct {
+	BucketTimes           []time.Time `json:"bucket_times"`
+	SessionsWithoutErrors []int64     `json:"sessions_without_errors"`
+	SessionsWithErrors    []int64     `json:"sessions_with_errors"`
+	TotalSessions         []int64     `json:"total_sessions"`
+}
+
 type SessionResults struct {
 	Sessions   []Session
 	TotalCount int64
@@ -421,16 +487,21 @@ type SessionResults struct {
 type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
-	SecureID    string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
-	Fingerprint int    `json:"fingerprint"`
+	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	// For associating unidentified sessions with a user after identification
+	ClientID string `json:"client_id" gorm:"index:idx_client_project,option:CONCURRENTLY;not null;default:''"`
+	// Whether a session has been identified.
+	Identified  bool `json:"identified" gorm:"default:false;not null"`
+	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	ProjectID      int    `json:"project_id" gorm:"index:idx_client_project,option:CONCURRENTLY"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
+	Country   string  `json:"country"`
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
@@ -480,6 +551,8 @@ type Session struct {
 	IsPublic *bool `json:"is_public" gorm:"default:false"`
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
+	// Number of pages visited during a session
+	PagesVisited int
 
 	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
 	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
@@ -501,7 +574,8 @@ type Session struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:session_admins_views;"`
 
-	Chunked *bool
+	Chunked          *bool
+	ProcessWithRedis bool
 }
 
 type EventChunk struct {
@@ -562,17 +636,18 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 type Field struct {
 	Model
 	// 'user_property', 'session_property'.
-	Type string
+	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.
-	Name string
+	Name string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email@email.com'
-	Value     string
-	ProjectID int       `json:"project_id"`
+	Value     string    `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
+	ProjectID int       `json:"project_id" gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	Sessions  []Session `gorm:"many2many:session_fields;"`
 }
 
 type ResourcesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Resources string
 	IsBeacon  bool `gorm:"default:false"`
@@ -619,9 +694,11 @@ type DailySessionCount struct {
 }
 
 const (
-	SESSIONS_TBL            = "sessions"
-	DAILY_ERROR_COUNTS_TBL  = "daily_error_counts"
-	DAILY_ERROR_COUNTS_UNIQ = "date_project_id_error_type_uniq"
+	SESSIONS_TBL                    = "sessions"
+	DAILY_ERROR_COUNTS_TBL          = "daily_error_counts"
+	DAILY_ERROR_COUNTS_UNIQ         = "date_project_id_error_type_uniq"
+	METRIC_GROUPS_NAME_SESSION_UNIQ = "metric_groups_name_session_uniq"
+	DASHBOARD_METRIC_FILTERS_UNIQ   = "dashboard_metric_filters_uniq"
 )
 
 type DailyErrorCount struct {
@@ -675,32 +752,42 @@ type Object interface {
 
 type MessagesObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Messages  string
 	IsBeacon  bool `gorm:"default:false"`
 }
 
 type Metric struct {
-	Model
-	SessionID int                    `gorm:"index;not null;"`
-	ProjectID int                    `gorm:"index;not null;"`
-	Type      modelInputs.MetricType `gorm:"index;not null;"`
-	Name      string                 `gorm:"index;not null;"`
-	Value     float64
-	RequestID *string // From X-Highlight-Request header
+	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	MetricGroupID int       `gorm:"index"`
+	Name          string    `gorm:"index;not null;"`
+	Value         float64   `gorm:"index"`
+	Category      string    `gorm:"index"`
+}
+
+type MetricGroup struct {
+	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string    // index with session_id
+	SessionID int       // index with Name
+	ProjectID int       `gorm:"index;not null;"`
+	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
 type MetricMonitor struct {
 	Model
 	ProjectID         int `gorm:"index;not null;"`
 	Name              string
-	Function          string
+	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
 	Threshold         float64
+	Units             *string // Threshold value is in these Units.
 	MetricToMonitor   string
-	ChannelsToNotify  *string `gorm:"channels_to_notify"`
-	EmailsToNotify    *string `gorm:"emails_to_notify"`
-	LastAdminToEditID int     `gorm:"last_admin_to_edit_id"`
-	Disabled          *bool   `gorm:"default:false"`
+	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
+	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
+	Disabled          *bool                    `gorm:"default:false"`
+	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
 }
 
 func (m *MessagesObject) Contents() string {
@@ -709,6 +796,7 @@ func (m *MessagesObject) Contents() string {
 
 type EventsObject struct {
 	Model
+	ID        int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
 	SessionID int
 	Events    string
 	IsBeacon  bool `gorm:"default:false"`
@@ -719,6 +807,11 @@ func (m *EventsObject) Contents() string {
 }
 
 const PARTITION_SESSION_ID = 30000000
+
+type ErrorsHistogram struct {
+	BucketTimes  []time.Time `json:"bucket_times"`
+	ErrorObjects []int64     `json:"error_objects"`
+}
 
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
@@ -782,7 +875,8 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool `gorm:"default:false"`
+	IsPublic         bool    `gorm:"default:false"`
+	ErrorFrequency   []int64 `gorm:"-"`
 }
 
 type ErrorField struct {
@@ -799,18 +893,20 @@ type FingerprintType string
 var Fingerprint = struct {
 	StackFrameCode     FingerprintType
 	StackFrameMetadata FingerprintType
+	JsonResult         FingerprintType
 }{
 	StackFrameCode:     "CODE",
 	StackFrameMetadata: "META",
+	JsonResult:         "JSON",
 }
 
 type ErrorFingerprint struct {
 	Model
-	ProjectID    int             `gorm:"index:idx_project_error_group_type_value_index"`
-	ErrorGroupId int             `gorm:"index:idx_project_error_group_type_value_index"`
-	Type         FingerprintType `gorm:"index:idx_project_error_group_type_value_index"`
-	Value        string          `gorm:"index:idx_project_error_group_type_value_index"`
-	Index        int             `gorm:"index:idx_project_error_group_type_value_index"`
+	ProjectID    int
+	ErrorGroupId int
+	Type         FingerprintType
+	Value        string
+	Index        int
 }
 
 type ExternalAttachment struct {
@@ -933,6 +1029,13 @@ type SessionPayload struct {
 	LastUserInteractionTime time.Time        `json:"last_user_interaction_time"`
 }
 
+type SavedAsset struct {
+	ProjectID   int    `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date;index:idx_project_id_hash_val"`
+	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
+	HashVal     string `gorm:"index:idx_project_id_hash_val"`
+}
+
 type AlertEvent struct {
 	Model
 	Type         string
@@ -1002,10 +1105,22 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 
-	log.Printf("running db migration ... \n")
-	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
-		return nil, e.Wrap(err, "Error installing pgcrypto")
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving underlying sql db")
 	}
+	sqlDB.SetMaxOpenConns(15)
+
+	log.Printf("Finished setting up DB. \n")
+	return DB, nil
+}
+
+func MigrateDB(DB *gorm.DB) (bool, error) {
+	log.Printf("Running DB migrations... \n")
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
+		return false, e.Wrap(err, "Error installing pgcrypto")
+	}
+
 	// Unguessable, cryptographically random url-safe ID for users to share links
 	if err := DB.Exec(`
 		CREATE OR REPLACE FUNCTION secure_id_generator(OUT result text) AS $$
@@ -1017,13 +1132,13 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		END;
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating secure_id_generator")
+		return false, e.Wrap(err, "Error creating secure_id_generator")
 	}
 
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
-		return nil, e.Wrap(err, "Error migrating db")
+		return false, e.Wrap(err, "Error migrating db")
 	}
 
 	// Add unique constraint to daily_error_counts
@@ -1040,7 +1155,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 				END;
 			END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
+		return false, e.Wrap(err, "Error adding unique constraint on daily_error_counts")
 	}
 
 	// Drop the null constraint on error_fingerprints.error_group_id
@@ -1057,7 +1172,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
+		return false, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
 	}
 
 	if err := DB.Exec(`
@@ -1069,7 +1184,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			AND processed = true
 			GROUP BY 1, 2;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+		return false, e.Wrap(err, "Error creating daily_session_counts_view")
 	}
 
 	if err := DB.Exec(`
@@ -1082,54 +1197,67 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
 	}
 
-	if err := DB.Exec(`
-		CREATE MATERIALIZED VIEW IF NOT EXISTS fields_in_use_view AS
-		SELECT DISTINCT f.type, f.name, f.project_id
-		FROM fields f
-		WHERE type IS NOT null
-		AND EXISTS (
-			SELECT 1
-			FROM session_fields sf
-			WHERE f.id = sf.field_id
-		);
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating daily_session_counts_view")
+	if err := DB.Exec(fmt.Sprintf(`
+		DO $$
+			BEGIN
+				BEGIN
+					IF NOT EXISTS
+						(SELECT constraint_name from information_schema.constraint_column_usage where table_name = 'metric_groups' and constraint_name = '%s')
+					THEN
+						ALTER TABLE metric_groups
+						ADD CONSTRAINT %s
+							UNIQUE (group_name, session_id);
+					END IF;
+				EXCEPTION
+					WHEN duplicate_table
+					THEN RAISE NOTICE 'metric_groups.%s already exists';
+				END;
+			END $$;
+	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
+		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
 	}
 
-	if err := DB.Exec(`
+	if err := DB.Exec(fmt.Sprintf(`
 		DO $$
 		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_fields_in_use_view_project_id_type_name')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_fields_in_use_view_project_id_type_name ON fields_in_use_view (project_id, type, name);
-			END IF;
+			BEGIN
+				DROP INDEX IF EXISTS idx_metric_tag_filter_metric_id_tag;
+				IF EXISTS
+					(SELECT constraint_name
+					 from information_schema.key_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = 'dashboard_metric_filters_chart_id')
+				THEN
+					ALTER TABLE dashboard_metric_filters
+						DROP CONSTRAINT dashboard_metric_filters_chart_id;
+				END IF;
+				IF NOT EXISTS
+					(SELECT constraint_name
+					 from information_schema.constraint_column_usage
+					 where table_name = 'dashboard_metric_filters'
+					   and constraint_name = '%s')
+				THEN
+					ALTER TABLE dashboard_metric_filters
+						ADD CONSTRAINT %s
+						UNIQUE (metric_id, metric_monitor_id, tag);
+				END IF;
+			EXCEPTION
+				WHEN duplicate_table
+					THEN RAISE NOTICE 'dashboard_metric_filters.%s already exists';
+			END;
 		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_fields_in_use_view_project_id_type_name")
+	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
+		return false, e.Wrap(err, "Error adding unique constraint on dashboard_metric_filters")
 	}
 
 	if err := DB.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS
-				(select * from pg_indexes where indexname = 'idx_metrics_name_project_session_type_request')
-			THEN
-				CREATE UNIQUE INDEX IF NOT EXISTS idx_metrics_name_project_session_type_request ON metrics (name, project_id, session_id, type, request_id);
-			END IF;
-		END $$;
-	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating idx_metrics_name_project_session_type_request")
-	}
-
-	if err := DB.Exec(`
-		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx 
+		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating error_fields_md5_idx")
+		return false, e.Wrap(err, "Error creating error_fields_md5_idx")
 	}
 
 	// If sessions_id_seq is not greater than 30000000, set it
@@ -1141,7 +1269,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 			ELSE 0
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
-		return nil, e.Wrap(err, "Error setting session id sequence to 30000000")
+		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
 	}
 
 	if err := DB.Exec(`
@@ -1149,44 +1277,98 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		(LIKE events_objects INCLUDING DEFAULTS INCLUDING IDENTITY)
 		PARTITION BY RANGE (session_id);
 	`).Error; err != nil {
-		return nil, e.Wrap(err, "Error creating events_objects_partitioned")
+		return false, e.Wrap(err, "Error creating events_objects_partitioned")
 	}
 
 	// if err := DB.Exec(`
 	// 	CREATE INDEX IF NOT EXISTS events_objects_partitioned_session_id
 	// 	ON events_objects_partitioned (session_id);
 	// `).Error; err != nil {
-	// 	return nil, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
+	// 	return false, e.Wrap(err, "Error creating events_objects_partitioned_session_id")
 	// }
 
 	var lastVal int
 	if err := DB.Raw("SELECT last_value FROM sessions_id_seq").Scan(&lastVal).Error; err != nil {
-		return nil, e.Wrap(err, "Error selecting max session id")
+		return false, e.Wrap(err, "Error selecting max session id")
 	}
 	partitionSize := 100000
 	start := lastVal / partitionSize * partitionSize
 
-	// Make sure partitions are created for the next 1m sessions
-	for i := 0; i < 10; i++ {
+	// Make sure partitions are created for the next 5m sessions
+	for i := 0; i < 50; i++ {
 		end := start + partitionSize
 		sql := fmt.Sprintf(`
-			CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d
-			PARTITION OF events_objects_partitioned
-			FOR VALUES FROM (%d) TO (%d);
-		`, start, start, end)
+			DO $$
+			BEGIN
+				IF
+					(SELECT pg_try_advisory_xact_lock(%d))
+				THEN
+					CREATE TABLE IF NOT EXISTS events_objects_partitioned_%d (
+						LIKE events_objects_partitioned INCLUDING DEFAULTS INCLUDING CONSTRAINTS
+					);
+					IF NOT EXISTS (
+						SELECT 1
+						FROM pg_inherits
+						JOIN pg_class parent            ON pg_inherits.inhparent = parent.oid
+						JOIN pg_class child             ON pg_inherits.inhrelid   = child.oid
+						WHERE parent.relname='events_objects_partitioned' and child.relname='events_objects_partitioned_%d')
+					THEN
+						ALTER TABLE events_objects_partitioned
+						ATTACH PARTITION events_objects_partitioned_%d
+						FOR VALUES FROM (%d) TO (%d);
+					END IF;
+				END IF;
+			END $$;
+		`, EVENTS_OBJECTS_ADVISORY_LOCK_ID, start, start, start, start, end)
 
 		if err := DB.Exec(sql).Error; err != nil {
-			return nil, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
+			return false, e.Wrapf(err, "Error creating partitioned events_objects for index %d", i)
 		}
 
 		start = end
 	}
 
-	sqlDB, err := DB.DB()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving underlying sql db")
+	// Create sequence for session_fields.id manually. This started as a join
+	// table with no primary key. We use our own sequence to prevent assigning a
+	// value to old records.
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.sequences WHERE sequence_name = 'session_fields_id_seq')
+				THEN
+					CREATE SEQUENCE IF NOT EXISTS session_fields_id_seq;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating session_fields_id_seq")
 	}
-	sqlDB.SetMaxOpenConns(15)
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF NOT EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ADD COLUMN IF NOT EXISTS id BIGINT DEFAULT NULL;
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating session_fields.id column")
+	}
+
+	if err := DB.Exec(`
+		DO $$
+			BEGIN
+				IF EXISTS
+					(SELECT * FROM information_schema.columns WHERE table_name = 'session_fields' AND column_default IS NULL AND column_name = 'id')
+				THEN
+					ALTER TABLE session_fields ALTER COLUMN id SET DEFAULT nextval('session_fields_id_seq');
+				END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error assigning default to session_fields.id")
+	}
 
 	switch os.Getenv("DEPLOYMENT_KEY") {
 	case "HIGHLIGHT_BEHAVE_HEALTH-i_fgQwbthAdqr9Aat_MzM7iU3!@fKr-_vopjXR@f":
@@ -1212,8 +1394,9 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		}
 	}
 
-	log.Printf("finished db migration. \n")
-	return DB, nil
+	log.Printf("Finished running DB migrations.\n")
+
+	return true, nil
 }
 
 // Implement JSONB interface
@@ -1403,7 +1586,7 @@ type Alert struct {
 	ProjectID            int
 	ExcludedEnvironments *string
 	CountThreshold       int
-	ThresholdWindow      *int
+	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
 	ChannelsToNotify     *string
 	EmailsToNotify       *string
 	Name                 *string
@@ -1643,6 +1826,15 @@ func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
 		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
 	}
 	return sanitizedExcludeRules, nil
+}
+
+// For a given session, an EventCursor is the address of an event in the list of events,
+// that can be used for incremental fetching.
+// The EventIndex must always be specified, with the EventObjectIndex optionally
+// specified for optimization purposes.
+type EventsCursor struct {
+	EventIndex       int
+	EventObjectIndex *int
 }
 
 type SendWelcomeSlackMessageInput struct {

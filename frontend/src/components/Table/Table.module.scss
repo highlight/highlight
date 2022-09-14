@@ -1,64 +1,64 @@
 .normalTableSizing {
-    --padding-x: var(--size-large);
-    --padding-y: var(--size-medium);
+	--padding-x: var(--size-large);
+	--padding-y: var(--size-medium);
 }
 
 .smallTableSizing {
-    --padding-x: var(--size-medium);
-    --padding-y: var(--size-small);
+	--padding-x: var(--size-medium);
+	--padding-y: var(--size-small);
 }
 
 .table {
-    :global(.ant-table-thead > tr > th) {
-        background: transparent !important;
-        border-bottom: 1px solid var(--color-gray-300) !important;
-        border-top: 1px solid var(--color-gray-300) !important;
-        color: var(--color-gray-800) !important;
-        font-weight: normal !important;
-        padding-bottom: var(--size-xSmall) !important;
-        padding-top: var(--size-xSmall) !important;
-    }
+	:global(.ant-table-thead > tr > th) {
+		background: transparent !important;
+		border-bottom: 1px solid var(--color-gray-300) !important;
+		border-top: 1px solid var(--color-gray-300) !important;
+		color: var(--color-gray-800) !important;
+		font-weight: normal !important;
+		padding-bottom: var(--size-xSmall) !important;
+		padding-top: var(--size-xSmall) !important;
+	}
 
-    :global(tr > .ant-table-cell) {
-        border-bottom: 1px solid var(--color-gray-300) !important;
-        padding-bottom: var(--padding-y) !important;
-        padding-top: var(--padding-y) !important;
-    }
+	:global(tr > .ant-table-cell) {
+		border-bottom: 1px solid var(--color-gray-300) !important;
+		padding-bottom: var(--padding-y) !important;
+		padding-top: var(--padding-y) !important;
+	}
 
-    :global(.ant-table-row:last-of-type > .ant-table-cell) {
-        border-bottom: 0 !important;
-    }
+	:global(.ant-table-row:last-of-type > .ant-table-cell) {
+		border-bottom: 0 !important;
+	}
 
-    :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-        background: none !important;
-        cursor: auto;
-    }
+	:global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+		background: none !important;
+		cursor: auto;
+	}
 
-    :global(.ant-table) {
-        background: var(--color-primary-background);
-        color: var(--text-primary) !important;
-    }
+	:global(.ant-table) {
+		background: var(--color-primary-background);
+		color: var(--text-primary) !important;
+	}
 
-    &.interactable {
-        :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-            background: var(--color-gray-100) !important;
-            cursor: pointer;
-        }
-    }
+	&.interactable {
+		:global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+			background: var(--color-gray-100) !important;
+			cursor: pointer;
+		}
+	}
 
-    :global(.ant-table-placeholder) {
-        :global(.ant-table-cell) {
-            border-bottom: 0 !important;
-        }
-    }
+	:global(.ant-table-placeholder) {
+		:global(.ant-table-cell) {
+			border-bottom: 0 !important;
+		}
+	}
 
-    &.rowHasPadding {
-        :global(tr > .ant-table-cell:first-of-type) {
-            padding-left: var(--padding-x) !important;
-        }
+	&.rowHasPadding {
+		:global(tr > .ant-table-cell:first-of-type) {
+			padding-left: var(--padding-x) !important;
+		}
 
-        :global(tr > .ant-table-cell:last-of-type) {
-            padding-right: var(--padding-x) !important;
-        }
-    }
+		:global(tr > .ant-table-cell:last-of-type) {
+			padding-right: var(--padding-x) !important;
+		}
+	}
 }

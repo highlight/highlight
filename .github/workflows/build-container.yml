@@ -1,40 +1,40 @@
 name: Publish Docker image
 on:
-  push:
-      branches:
-          - 'master'
+    push:
+        branches:
+            - 'master'
 jobs:
-   push_to_registry:
-    name: Push Docker image to Docker Hub
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '>=1.18.x'
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Set outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      - name: Push to Docker Hub
-        uses: docker/build-push-action@v2
-        with:
-          context: ./
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
-          build-args: |
-            REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
-          secrets: |
-            SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
-            SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
-            SLACK_CLIENT_SECRET=${{ secrets.SLACK_CLIENT_SECRET }}
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+    push_to_registry:
+        name: Push Docker image to Docker Hub
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                  go-version-file: 'backend/go.mod'
+            - name: Login to DockerHub
+              uses: docker/login-action@v1
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_TOKEN }}
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+            - name: Set outputs
+              id: vars
+              run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+            - name: Push to Docker Hub
+              uses: docker/build-push-action@v2
+              with:
+                  context: ./
+                  push: true
+                  tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
+                  build-args: |
+                      REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
+                  secrets: |
+                      SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+                      SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
+                      SLACK_CLIENT_SECRET=${{ secrets.SLACK_CLIENT_SECRET }}
+            - name: Image digest
+              run: echo ${{ steps.docker_build.outputs.digest }}

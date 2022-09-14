@@ -1,13 +1,13 @@
 @import 'src/static/shared.scss';
 
 .searchPanel {
-    --top-padding: 105px;
+	--top-padding: 105px;
 
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - var(--top-padding));
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - var(--top-padding));
 
-    &.bannerShown {
-        height: calc(100vh - var(--top-padding) - var(--banner-height));
-    }
+	&.bannerShown {
+		height: calc(100vh - var(--top-padding) - var(--banner-height));
+	}
 }

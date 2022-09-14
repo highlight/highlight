@@ -1,350 +1,365 @@
-import { Highlight, HighlightClassOptions } from '../../client/src/index';
-import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners';
-import packageJson from '../package.json';
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
+import { Highlight, HighlightClassOptions } from '../../client/src/index'
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
+import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
+import packageJson from '../package.json'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
-    AmplitudeAPI,
-    setupAmplitudeIntegration,
-} from './integrations/amplitude';
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel';
-import { initializeFetchListener } from './listeners/fetch';
+	AmplitudeAPI,
+	setupAmplitudeIntegration,
+} from './integrations/amplitude'
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
+import { initializeFetchListener } from './listeners/fetch'
 import {
-    Metadata,
-    HighlightOptions,
-    HighlightPublicInterface,
-    SessionDetails,
-} from './types/types';
-import HighlightSegmentMiddleware from './integrations/segment';
-import { GenerateSecureID } from '../../client/src/utils/secure-id';
+	Metadata,
+	HighlightOptions,
+	HighlightPublicInterface,
+	SessionDetails,
+} from './types/types'
+import HighlightSegmentMiddleware from './integrations/segment'
+import { GenerateSecureID } from '../../client/src/utils/secure-id'
+import configureElectronHighlight from './environments/electron'
 
-initializeFetchListener();
+initializeFetchListener()
 
 const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, msg);
-};
+	console.warn(`Highlight Warning: (${context}): `, msg)
+}
 
 interface HighlightWindow extends Window {
-    Highlight: new (
-        options: HighlightClassOptions,
-        firstLoadListeners: FirstLoadListeners
-    ) => Highlight;
-    H: HighlightPublicInterface;
-    mixpanel?: MixpanelAPI;
-    amplitude?: AmplitudeAPI;
-    Intercom?: any;
+	Highlight: new (
+		options: HighlightClassOptions,
+		firstLoadListeners: FirstLoadListeners,
+	) => Highlight
+	H: HighlightPublicInterface
+	mixpanel?: MixpanelAPI
+	amplitude?: AmplitudeAPI
+	Intercom?: any
 }
 
-declare var window: HighlightWindow;
+declare var window: HighlightWindow
 
-var script: HTMLScriptElement;
-var highlight_obj: Highlight;
-var first_load_listeners: FirstLoadListeners;
-var init_called = false;
+var script: HTMLScriptElement
+var highlight_obj: Highlight
+var first_load_listeners: FirstLoadListeners
+var init_called = false
 export const H: HighlightPublicInterface = {
-    options: undefined,
-    init: (projectID?: string | number, options?: HighlightOptions) => {
-        try {
-            H.options = options;
+	options: undefined,
+	init: (projectID?: string | number, options?: HighlightOptions) => {
+		try {
+			H.options = options
 
-            // Don't run init when called outside of the browser.
-            if (
-                typeof window === 'undefined' ||
-                typeof document === 'undefined'
-            ) {
-                return;
-            }
+			// Don't run init when called outside of the browser.
+			if (
+				typeof window === 'undefined' ||
+				typeof document === 'undefined'
+			) {
+				return
+			}
 
-            // Don't initialize if an projectID is not set.
-            if (!projectID) {
-                console.info(
-                    'Highlight is not initializing because projectID was passed undefined.'
-                );
-                return;
-            }
+			// Don't initialize if an projectID is not set.
+			if (!projectID) {
+				console.info(
+					'Highlight is not initializing because projectID was passed undefined.',
+				)
+				return
+			}
 
-            // `init` was already called, do not reinitialize
-            if (init_called) {
-                return;
-            }
-            init_called = true;
+			// `init` was already called, do not reinitialize
+			if (init_called) {
+				return
+			}
+			init_called = true
 
-            script = document.createElement('script');
-            var scriptSrc = options?.scriptUrl
-                ? options.scriptUrl
-                : 'https://static.highlight.run/index.js';
-            script.setAttribute(
-                'src',
-                scriptSrc + '?' + new Date().getMilliseconds()
-            );
-            script.setAttribute('type', 'text/javascript');
-            document.getElementsByTagName('head')[0].appendChild(script);
-            const client_options: HighlightClassOptions = {
-                organizationID: projectID,
-                debug: options?.debug,
-                backendUrl: options?.backendUrl,
-                tracingOrigins: options?.tracingOrigins,
-                disableNetworkRecording: options?.disableNetworkRecording,
-                networkRecording: options?.networkRecording,
-                disableConsoleRecording: options?.disableConsoleRecording,
-                consoleMethodsToRecord: options?.consoleMethodsToRecord,
-                enableSegmentIntegration: options?.enableSegmentIntegration,
-                enableStrictPrivacy: options?.enableStrictPrivacy || false,
-                enableCanvasRecording: options?.enableCanvasRecording,
-                firstloadVersion: packageJson['version'],
-                environment: options?.environment || 'production',
-                appVersion: options?.version,
-                sessionShortcut: options?.sessionShortcut,
-                feedbackWidget: options?.feedbackWidget,
-                sessionSecureID: GenerateSecureID(),
-            };
-            first_load_listeners = new FirstLoadListeners(client_options);
-            if (!options?.manualStart) {
-                // Start some of the listeners before client is loaded, then hand the
-                // listeners over for client to manage
-                first_load_listeners.startListening();
-            }
-            script.addEventListener('load', () => {
-                const startFunction = () => {
-                    highlight_obj = new window.Highlight(
-                        client_options,
-                        first_load_listeners
-                    );
-                    if (!options?.manualStart) {
-                        highlight_obj.initialize();
-                    }
-                };
+			script = document.createElement('script')
+			var scriptSrc = options?.scriptUrl
+				? options.scriptUrl
+				: 'https://static.highlight.run/index.js'
+			script.setAttribute(
+				'src',
+				scriptSrc + '?' + new Date().getMilliseconds(),
+			)
+			script.setAttribute('type', 'text/javascript')
+			document.getElementsByTagName('head')[0].appendChild(script)
 
-                if ('Highlight' in window) {
-                    startFunction();
-                } else {
-                    const interval = setInterval(() => {
-                        if ('Highlight' in window) {
-                            startFunction();
-                            clearInterval(interval);
-                        }
-                    }, 500);
-                }
-            });
+			let previousSession = getPreviousSessionData()
+			let sessionSecureID = GenerateSecureID()
+			if (previousSession?.sessionSecureID) {
+				sessionSecureID = previousSession.sessionSecureID
+			}
+			const client_options: HighlightClassOptions = {
+				organizationID: projectID,
+				debug: options?.debug,
+				backendUrl: options?.backendUrl,
+				tracingOrigins: options?.tracingOrigins,
+				disableNetworkRecording: options?.disableNetworkRecording,
+				networkRecording: options?.networkRecording,
+				disableConsoleRecording: options?.disableConsoleRecording,
+				consoleMethodsToRecord: options?.consoleMethodsToRecord,
+				enableSegmentIntegration: options?.enableSegmentIntegration,
+				enableStrictPrivacy: options?.enableStrictPrivacy || false,
+				enableCanvasRecording: options?.enableCanvasRecording,
+				enablePerformanceRecording: options?.enablePerformanceRecording,
+				samplingStrategy: options?.samplingStrategy,
+				inlineImages: options?.inlineImages || false,
+				inlineStylesheet: options?.inlineStylesheet || false,
+				firstloadVersion: packageJson['version'],
+				environment: options?.environment || 'production',
+				appVersion: options?.version,
+				sessionShortcut: options?.sessionShortcut,
+				feedbackWidget: options?.feedbackWidget,
+				sessionSecureID: sessionSecureID,
+			}
+			first_load_listeners = new FirstLoadListeners(client_options)
+			if (!options?.manualStart) {
+				// Start some of the listeners before client is loaded, then hand the
+				// listeners over for client to manage
+				first_load_listeners.startListening()
+			}
+			script.addEventListener('load', () => {
+				const startFunction = () => {
+					highlight_obj = new window.Highlight(
+						client_options,
+						first_load_listeners,
+					)
+					if (!options?.manualStart) {
+						highlight_obj.initialize()
+					}
+				}
 
-            if (options?.integrations?.mixpanel?.projectToken) {
-                setupMixpanelIntegration(options.integrations.mixpanel);
-            }
+				if ('Highlight' in window) {
+					startFunction()
+				} else {
+					const interval = setInterval(() => {
+						if ('Highlight' in window) {
+							startFunction()
+							clearInterval(interval)
+						}
+					}, 500)
+				}
+			})
 
-            if (options?.integrations?.amplitude?.apiKey) {
-                setupAmplitudeIntegration(options.integrations.amplitude);
-            }
-        } catch (e) {
-            HighlightWarning('init', e);
-        }
-    },
-    addSessionFeedback: ({
-        verbatim,
-        userName,
-        userEmail,
-        timestampOverride,
-    }) => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.addSessionFeedback({
-                    verbatim,
-                    timestamp: timestampOverride || new Date().toISOString(),
-                    user_email: userEmail,
-                    user_name: userName,
-                })
-            );
-        } catch (e) {
-            HighlightWarning('error', e);
-        }
-    },
-    toggleSessionFeedbackModal: () => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.toggleFeedbackWidgetVisibility()
-            );
-        } catch (e) {
-            HighlightWarning('error', e);
-        }
-    },
-    consumeError: (
-        error: Error,
-        message?: string,
-        payload?: { [key: string]: string }
-    ) => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.consumeCustomError(
-                    error,
-                    message,
-                    JSON.stringify(payload)
-                )
-            );
-        } catch (e) {
-            HighlightWarning('error', e);
-        }
-    },
-    error: (message: string, payload?: { [key: string]: string }) => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.pushCustomError(message, JSON.stringify(payload))
-            );
-        } catch (e) {
-            HighlightWarning('error', e);
-        }
-    },
-    track: (event: string, metadata: Metadata = {}) => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.addProperties({ ...metadata, event: event })
-            );
-            const highlightUrl = highlight_obj?.getCurrentSessionURL();
+			if (options?.integrations?.mixpanel?.projectToken) {
+				setupMixpanelIntegration(options.integrations.mixpanel)
+			}
 
-            if (window.mixpanel?.track) {
-                window.mixpanel.track(event, {
-                    ...metadata,
-                    highlightSessionURL: highlightUrl,
-                });
-            }
+			if (options?.integrations?.amplitude?.apiKey) {
+				setupAmplitudeIntegration(options.integrations.amplitude)
+			}
+		} catch (e) {
+			HighlightWarning('init', e)
+		}
+	},
+	addSessionFeedback: ({
+		verbatim,
+		userName,
+		userEmail,
+		timestampOverride,
+	}) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.addSessionFeedback({
+					verbatim,
+					timestamp: timestampOverride || new Date().toISOString(),
+					user_email: userEmail,
+					user_name: userName,
+				}),
+			)
+		} catch (e) {
+			HighlightWarning('error', e)
+		}
+	},
+	toggleSessionFeedbackModal: () => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.toggleFeedbackWidgetVisibility(),
+			)
+		} catch (e) {
+			HighlightWarning('error', e)
+		}
+	},
+	consumeError: (
+		error: Error,
+		message?: string,
+		payload?: { [key: string]: string },
+	) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.consumeCustomError(
+					error,
+					message,
+					JSON.stringify(payload),
+				),
+			)
+		} catch (e) {
+			HighlightWarning('error', e)
+		}
+	},
+	error: (message: string, payload?: { [key: string]: string }) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.pushCustomError(message, JSON.stringify(payload)),
+			)
+		} catch (e) {
+			HighlightWarning('error', e)
+		}
+	},
+	track: (event: string, metadata: Metadata = {}) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.addProperties({ ...metadata, event: event }),
+			)
+			const highlightUrl = highlight_obj?.getCurrentSessionURL()
 
-            if (
-                !!H.options?.integrations?.mixpanel?.projectToken &&
-                !window?.mixpanel?.track
-            ) {
-                console.warn(
-                    "Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser."
-                );
-            }
+			if (window.mixpanel?.track) {
+				window.mixpanel.track(event, {
+					...metadata,
+					highlightSessionURL: highlightUrl,
+				})
+			}
 
-            if (window.amplitude?.getInstance) {
-                window.amplitude.getInstance().logEvent(event, {
-                    ...metadata,
-                    highlightSessionURL: highlightUrl,
-                });
-            }
-            if (window.Intercom) {
-                window.Intercom('trackEvent', event, metadata);
-            }
-        } catch (e) {
-            HighlightWarning('track', e);
-        }
-    },
-    start: (options) => {
-        try {
-            if (highlight_obj?.state === 'Recording') {
-                if (!options?.silent) {
-                    console.warn(
-                        'You cannot called `start()` again. The session is already being recorded.'
-                    );
-                }
-                return;
-            } else {
-                first_load_listeners.startListening();
-                var interval = setInterval(function () {
-                    if (highlight_obj) {
-                        clearInterval(interval);
-                        highlight_obj.initialize();
-                    }
-                }, 200);
-            }
-        } catch (e) {
-            HighlightWarning('start', e);
-        }
-    },
-    stop: () => {
-        try {
-            H.onHighlightReady(() => highlight_obj.stopRecording(true));
-        } catch (e) {
-            HighlightWarning('stop', e);
-        }
-    },
-    identify: (identifier: string, metadata: Metadata = {}) => {
-        try {
-            H.onHighlightReady(() =>
-                highlight_obj.identify(identifier, metadata)
-            );
-        } catch (e) {
-            HighlightWarning('identify', e);
-        }
-        if (window.mixpanel?.identify) {
-            window.mixpanel.identify(identifier);
-        }
-        if (window.amplitude?.getInstance) {
-            window.amplitude.getInstance().setUserId(identifier);
+			if (
+				!!H.options?.integrations?.mixpanel?.projectToken &&
+				!window?.mixpanel?.track
+			) {
+				console.warn(
+					"Mixpanel not loaded, but Highlight is configured to use it. This is usually caused by Mixpanel being blocked by the user's browser.",
+				)
+			}
 
-            if (Object.keys(metadata).length > 0) {
-                const amplitudeUserProperties = Object.keys(metadata).reduce(
-                    (acc, key) => {
-                        acc.set(key, metadata[key]);
+			if (window.amplitude?.getInstance) {
+				window.amplitude.getInstance().logEvent(event, {
+					...metadata,
+					highlightSessionURL: highlightUrl,
+				})
+			}
+			if (window.Intercom) {
+				window.Intercom('trackEvent', event, metadata)
+			}
+		} catch (e) {
+			HighlightWarning('track', e)
+		}
+	},
+	start: (options) => {
+		try {
+			if (highlight_obj?.state === 'Recording') {
+				if (!options?.silent) {
+					console.warn(
+						'You cannot called `start()` again. The session is already being recorded.',
+					)
+				}
+				return
+			} else {
+				first_load_listeners.startListening()
+				var interval = setInterval(function () {
+					if (highlight_obj) {
+						clearInterval(interval)
+						highlight_obj.initialize()
+					}
+				}, 200)
+			}
+		} catch (e) {
+			HighlightWarning('start', e)
+		}
+	},
+	stop: () => {
+		try {
+			H.onHighlightReady(() => highlight_obj.stopRecording(true))
+		} catch (e) {
+			HighlightWarning('stop', e)
+		}
+	},
+	identify: (identifier: string, metadata: Metadata = {}) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.identify(identifier, metadata),
+			)
+		} catch (e) {
+			HighlightWarning('identify', e)
+		}
+		if (window.mixpanel?.identify) {
+			window.mixpanel.identify(identifier)
+		}
+		if (window.amplitude?.getInstance) {
+			window.amplitude.getInstance().setUserId(identifier)
 
-                        return acc;
-                    },
-                    new window.amplitude.Identify()
-                );
+			if (Object.keys(metadata).length > 0) {
+				const amplitudeUserProperties = Object.keys(metadata).reduce(
+					(acc, key) => {
+						acc.set(key, metadata[key])
 
-                window.amplitude
-                    .getInstance()
-                    .identify(amplitudeUserProperties);
-            }
-        }
-    },
-    getSessionURL: () => {
-        return new Promise<string>((resolve, reject) => {
-            H.onHighlightReady(() => {
-                const res = highlight_obj.getCurrentSessionURL();
-                if (res) {
-                    resolve(res);
-                } else {
-                    reject(new Error('Unable to get session URL'));
-                }
-            });
-        });
-    },
-    getSessionDetails: () => {
-        return new Promise<SessionDetails>((resolve, reject) => {
-            H.onHighlightReady(() => {
-                const baseUrl = highlight_obj.getCurrentSessionURL();
-                if (baseUrl) {
-                    const currentSessionTimestamp = highlight_obj.getCurrentSessionTimestamp();
-                    const now = new Date().getTime();
-                    const url = new URL(baseUrl);
-                    const urlWithTimestamp = new URL(baseUrl);
-                    urlWithTimestamp.searchParams.set(
-                        'ts',
-                        // The delta between when the session recording started and now.
-                        ((now - currentSessionTimestamp) / 1000).toString()
-                    );
+						return acc
+					},
+					new window.amplitude.Identify(),
+				)
 
-                    resolve({
-                        url: url.toString(),
-                        urlWithTimestamp: urlWithTimestamp.toString(),
-                    });
-                } else {
-                    reject(new Error('Could not get session URL'));
-                }
-            });
-        });
-    },
-    onHighlightReady: (func: () => void) => {
-        try {
-            if (highlight_obj && highlight_obj.ready) {
-                func();
-            } else {
-                var interval = setInterval(function () {
-                    if (highlight_obj && highlight_obj.ready) {
-                        clearInterval(interval);
-                        func();
-                    }
-                }, 200);
-            }
-        } catch (e) {
-            HighlightWarning('onHighlightReady', e);
-        }
-    },
-};
+				window.amplitude.getInstance().identify(amplitudeUserProperties)
+			}
+		}
+	},
+	getSessionURL: () => {
+		return new Promise<string>((resolve, reject) => {
+			H.onHighlightReady(() => {
+				const res = highlight_obj.getCurrentSessionURL()
+				if (res) {
+					resolve(res)
+				} else {
+					reject(new Error('Unable to get session URL'))
+				}
+			})
+		})
+	},
+	getSessionDetails: () => {
+		return new Promise<SessionDetails>((resolve, reject) => {
+			H.onHighlightReady(() => {
+				const baseUrl = highlight_obj.getCurrentSessionURL()
+				if (baseUrl) {
+					const currentSessionTimestamp =
+						highlight_obj.getCurrentSessionTimestamp()
+					const now = new Date().getTime()
+					const url = new URL(baseUrl)
+					const urlWithTimestamp = new URL(baseUrl)
+					urlWithTimestamp.searchParams.set(
+						'ts',
+						// The delta between when the session recording started and now.
+						((now - currentSessionTimestamp) / 1000).toString(),
+					)
+
+					resolve({
+						url: url.toString(),
+						urlWithTimestamp: urlWithTimestamp.toString(),
+					})
+				} else {
+					reject(new Error('Could not get session URL'))
+				}
+			})
+		})
+	},
+	onHighlightReady: (func: () => void) => {
+		try {
+			if (highlight_obj && highlight_obj.ready) {
+				func()
+			} else {
+				var interval = setInterval(function () {
+					if (highlight_obj && highlight_obj.ready) {
+						clearInterval(interval)
+						func()
+					}
+				}, 200)
+			}
+		} catch (e) {
+			HighlightWarning('onHighlightReady', e)
+		}
+	},
+}
 
 if (typeof window !== 'undefined') {
-    window.H = H;
+	window.H = H
 }
 
-listenToChromeExtensionMessage();
+listenToChromeExtensionMessage()
 
-export { HighlightSegmentMiddleware, HighlightOptions };
+export {
+	HighlightSegmentMiddleware,
+	HighlightOptions,
+	configureElectronHighlight,
+}

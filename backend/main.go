@@ -12,6 +12,9 @@ import (
 	"time"
 
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/timeseries"
+
 	"github.com/highlight-run/highlight/backend/lambda"
 
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
@@ -67,10 +70,15 @@ var (
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
 
-//  we inject this value at build time for on-prem
+// we inject this value at build time for on-prem
 var SENDGRID_API_KEY string
 
 var runtimeParsed util.Runtime
+
+const (
+	localhostCertPath = "localhostssl/server.crt"
+	localhostKeyPath  = "localhostssl/server.key"
+)
 
 func init() {
 	flag.Parse()
@@ -96,7 +104,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 		// From the highlight frontend, only the url is whitelisted.
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		// Is this an AWS Amplify environment?
-		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || (origin == "https://master.d25bj3loqvp3nx.amplifyapp.com")
+		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || origin == "https://master.d25bj3loqvp3nx.amplifyapp.com" || origin == "https://beta.d25bj3loqvp3nx.amplifyapp.com"
 
 		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
 			return true
@@ -156,9 +164,18 @@ func main() {
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.Fatalf("error setting up db: %v", err)
+		log.Fatalf("Error setting up DB: %v", err)
 	}
 
+	if util.IsDevEnv() {
+		_, err := model.MigrateDB(db)
+
+		if err != nil {
+			log.Fatalf("Error migrating DB: %v", err)
+		}
+	}
+
+	tdb := timeseries.New()
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
@@ -177,6 +194,8 @@ func main() {
 		log.Fatalf("error creating lambda client: %v", err)
 	}
 
+	redisClient := redis.NewClient()
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -185,6 +204,7 @@ func main() {
 	privateResolver := &private.Resolver{
 		ClearbitClient:         clearbit.NewClient(clearbit.WithAPIKey(os.Getenv("CLEARBIT_API_KEY"))),
 		DB:                     db,
+		TDB:                    tdb,
 		MailClient:             sendgrid.NewSendClient(sendgridKey),
 		StripeClient:           stripeClient,
 		StorageClient:          storage,
@@ -193,6 +213,7 @@ func main() {
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
+		Redis:                  redisClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -238,6 +259,9 @@ func main() {
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
+			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
+			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
+
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
 					Resolvers: privateResolver,
@@ -268,6 +292,7 @@ func main() {
 			})
 
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)))
 			privateServer.SetErrorPresenter(util.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(util.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -297,11 +322,13 @@ func main() {
 				publicgen.Config{
 					Resolvers: &public.Resolver{
 						DB:              db,
+						TDB:             tdb,
 						ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 						MailClient:      sendgrid.NewSendClient(sendgridKey),
 						StorageClient:   storage,
 						AlertWorkerPool: alertWorkerpool,
 						OpenSearch:      opensearchClient,
+						Redis:           redisClient,
 						RH:              &rh,
 					},
 				}))
@@ -316,7 +343,7 @@ func main() {
 
 	if util.IsDevOrTestEnv() {
 		log.Info("overwriting highlight-go graphql client address...")
-		H.SetGraphqlClientAddress("http://localhost:8082/public")
+		H.SetGraphqlClientAddress("https://localhost:8082/public")
 	}
 	H.Start()
 	defer H.Stop()
@@ -376,16 +403,23 @@ func main() {
 		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
 			DB:              db,
+			TDB:             tdb,
+			ProducerQueue:   kafka_queue.New(os.Getenv("KAFKA_TOPIC"), kafka_queue.Producer),
 			MailClient:      sendgrid.NewSendClient(sendgridKey),
 			StorageClient:   storage,
 			AlertWorkerPool: alertWorkerpool,
 			OpenSearch:      opensearchClient,
+			Redis:           redisClient,
 			RH:              &rh,
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, S3Client: storage}
 		if runtimeParsed == util.Worker {
 			if !util.IsDevOrTestEnv() {
-				err := profiler.Start(profiler.WithService("worker-service"), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
+				serviceName := "worker-service"
+				if handlerFlag != nil && *handlerFlag != "" {
+					serviceName = *handlerFlag
+				}
+				err := profiler.Start(profiler.WithService(serviceName), profiler.WithProfileTypes(profiler.HeapProfile, profiler.CPUProfile))
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -397,7 +431,11 @@ func main() {
 				go func() {
 					w.Start()
 				}()
-				log.Fatal(http.ListenAndServe(":"+port, r))
+				if util.IsDevEnv() {
+					log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+				} else {
+					log.Fatal(http.ListenAndServe(":"+port, r))
+				}
 			}
 		} else {
 			go func() {
@@ -405,10 +443,18 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker()
-			log.Fatal(http.ListenAndServe(":"+port, r))
+			if util.IsDevEnv() {
+				log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+			} else {
+				log.Fatal(http.ListenAndServe(":"+port, r))
+			}
 		}
 	} else {
-		log.Fatal(http.ListenAndServe(":"+port, r))
+		if util.IsDevEnv() {
+			log.Fatal(http.ListenAndServeTLS(":"+port, localhostCertPath, localhostKeyPath, r))
+		} else {
+			log.Fatal(http.ListenAndServe(":"+port, r))
+		}
 	}
 }
 

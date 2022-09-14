@@ -1,69 +1,113 @@
-import { Dropdown } from 'antd';
-import React, { useState } from 'react';
+import { Dropdown } from 'antd'
+import classNames from 'classnames'
+import React, { useEffect, useState } from 'react'
 
-import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
-import styles from './StandardDropdown.module.scss';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg'
+import styles from './StandardDropdown.module.scss'
 
 type Option = {
-    label: string;
-    value: number | string;
-};
+	label: string
+	value: number | string
+}
 
 export const StandardDropdown = ({
-    data,
-    onSelect,
-    defaultValue,
-    disabled,
-    className,
+	data,
+	onSelect,
+	display,
+	renderOption,
+	defaultValue,
+	value,
+	disabled,
+	gray,
+	placeholder,
+	className,
+	labelClassName,
 }: {
-    data: ReadonlyArray<Option>;
-    onSelect: React.Dispatch<React.SetStateAction<any>>;
-    defaultValue?: Option;
-    disabled?: boolean;
-    className?: string;
+	data: ReadonlyArray<Option>
+	onSelect: React.Dispatch<React.SetStateAction<any>>
+	display?: React.ReactNode
+	renderOption?: (o: Option) => React.ReactNode | undefined
+	defaultValue?: Option
+	value?: Option
+	disabled?: boolean
+	gray?: boolean
+	placeholder?: string
+	className?: string
+	labelClassName?: string
 }) => {
-    const [visible, setVisible] = useState(false);
-    const [selection, setSelection] = useState(defaultValue || data[0]);
-    const menu = (
-        <div className={styles.dropdownMenu}>
-            <div className={styles.dropdownInner}>
-                {data?.map((o) => (
-                    <div
-                        className={styles.labelItem}
-                        key={o?.label}
-                        onClick={() => {
-                            onSelect(o.value);
-                            setSelection(o);
-                            setVisible(false);
-                        }}
-                    >
-                        <div className={styles.labelText}>{o?.label}</div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-    return (
-        <Dropdown
-            placement={'bottomLeft'}
-            overlay={menu}
-            onVisibleChange={(v) => setVisible(v)}
-            trigger={['click']}
-            disabled={disabled}
-            className={className}
-        >
-            <div
-                className={styles.dropdownHandler}
-                onClick={(e) => e.preventDefault()}
-            >
-                <div className={styles.labelNameText}>{selection.label}</div>
-                <DownIcon
-                    className={styles.icon}
-                    style={{
-                        transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',
-                    }}
-                />
-            </div>
-        </Dropdown>
-    );
-};
+	const [visible, setVisible] = useState(false)
+	const [selection, setSelection] = useState(defaultValue)
+
+	useEffect(() => {
+		if (value !== undefined) {
+			setSelection(value)
+		}
+	}, [value])
+
+	const menu = (
+		<div className={styles.dropdownMenu}>
+			<div className={styles.dropdownInner}>
+				{data?.map((o) => (
+					<div
+						className={styles.labelItem}
+						key={o?.label}
+						onClick={() => {
+							onSelect(o.value)
+							setSelection(o)
+							setVisible(false)
+						}}
+					>
+						<div className={styles.labelText}>
+							{renderOption && renderOption(o)
+								? renderOption(o)
+								: o?.label}
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	)
+	return (
+		<Dropdown
+			placement={'bottomLeft'}
+			overlay={menu}
+			onVisibleChange={(v) => setVisible(v)}
+			trigger={['click']}
+			disabled={disabled}
+			className={className}
+			overlayClassName={styles.overlay}
+		>
+			<div
+				className={classNames(styles.dropdownHandler, {
+					[styles.dropdownGray]: gray,
+				})}
+				onClick={(e) => e.preventDefault()}
+			>
+				{display ? (
+					display
+				) : (
+					<div
+						className={classNames(
+							styles.labelNameText,
+							labelClassName,
+						)}
+					>
+						{selection ? (
+							selection?.label
+						) : placeholder ? (
+							<span className={styles.placeholder}>
+								{placeholder}
+							</span>
+						) : null}
+					</div>
+				)}
+				<DownIcon
+					className={styles.icon}
+					style={{
+						transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',
+					}}
+				/>
+			</div>
+		</Dropdown>
+	)
+}

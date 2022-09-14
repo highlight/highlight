@@ -1,9 +1,9 @@
 {
-  "name": "performance",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "dependencies": {
-    "playwright": "^1.17.1"
-  }
+	"name": "performance",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"dependencies": {
+		"playwright": "^1.22.2"
+	}
 }

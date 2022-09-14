@@ -2,13 +2,14 @@ package kafka_queue
 
 import (
 	"fmt"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/segmentio/kafka-go"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/segmentio/kafka-go"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -41,7 +42,6 @@ func BenchmarkQueue_Submit(b *testing.B) {
 				err := writer.Submit(&Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
-						SessionID: -1,
 						Events: model.ReplayEventsInput{
 							Events: []*model.ReplayEventInput{{
 								Type:      0,
@@ -56,6 +56,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 						IsBeacon:           nil,
 						HasSessionUnloaded: nil,
 						HighlightLogs:      nil,
+						PayloadID:          nil,
 					},
 				}, fmt.Sprintf("test-%d", w))
 				if err != nil {
@@ -74,8 +75,8 @@ func BenchmarkQueue_Submit(b *testing.B) {
 					continue
 				} else if msg.Type != PushPayload {
 					b.Errorf("expected to consume dummy payload of PushPayload")
-				} else if msg.PushPayload.SessionID != -1 {
-					b.Errorf("expected to consume dummy session -1")
+				} else if msg.PushPayload.SessionSecureID != "" {
+					b.Errorf("expected to consume dummy session")
 				}
 			}
 			recWg.Done()

@@ -19,8 +19,6 @@ jobs:
               run: cd firstload && yarn install
             - name: Install other dependencies
               run: cd client && yarn install
-            - name: Runs linting
-              run: cd firstload && yarn lint
             # - name: Run tests
             #   run: cd firstload && yarn test
             - name: Build Bundle
@@ -28,7 +26,7 @@ jobs:
             - name: Confirm new version
               run: cd firstload && python3 ../scripts/compare.py -s firstload
             - name: Publish
-              if: github.ref == 'refs/heads/master'
+              if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
               run: cd firstload && yarn publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

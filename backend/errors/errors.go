@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -23,6 +24,7 @@ const ERROR_CONTEXT_LINES = 5
 const ERROR_CONTEXT_MAX_LENGTH = 1000
 const ERROR_STACK_MAX_FRAME_COUNT = 15
 const ERROR_STACK_MAX_FIELD_SIZE = 1000
+const SOURCE_MAP_MAX_FILE_SIZE = 128e6
 
 type fetcher interface {
 	fetchFile(string) ([]byte, error)
@@ -108,7 +110,7 @@ func EnhanceStackTrace(input []*publicModel.StackFrameInput, projectId int, vers
 		}
 		mappedStackFrame, err := processStackFrame(projectId, version, *stackFrame, storageClient)
 		if err != nil {
-			if !util.IsDevOrTestEnv() {
+			if util.IsDevOrTestEnv() {
 				log.Error(err)
 			}
 			mappedStackFrame = &privateModel.ErrorTrace{
@@ -148,6 +150,11 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	if len(stackTraceFilePath) > 0 && stackTraceFilePath[0:1] == "/" {
 		stackTraceFilePath = stackTraceFilePath[1:]
 	}
+	// remove a query string in the url, eg main.js?foo=bar -> main.js
+	queryStringIndex := strings.Index(stackTraceFileURL, "?")
+	if queryStringIndex != -1 {
+		stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
+	}
 
 	// try to get file from s3
 	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
@@ -164,17 +171,17 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	if len(minifiedFileBytes) > 40e6 {
-		err := e.Errorf("minified source file over 40mb: %v, size: %v", stackTraceFileURL, len(minifiedFileBytes))
+	if len(minifiedFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, len(minifiedFileBytes))
 		return nil, err
 	}
 
-	sourceMapFileName := string(regexp.MustCompile(`//# sourceMappingURL=(.*)`).Find(minifiedFileBytes))
+	sourceMapFileName := string(regexp.MustCompile(`(?m)^//# sourceMappingURL=(.*)$`).Find(minifiedFileBytes))
 	if len(sourceMapFileName) < 1 {
-		err := e.Errorf("file does not contain source map url: %v", stackTraceFileURL)
-		return nil, err
+		sourceMapFileName = fmt.Sprintf("%s.map", path.Base(stackTraceFileURL))
+	} else {
+		sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 	}
-	sourceMapFileName = strings.Replace(sourceMapFileName, "//# sourceMappingURL=", "", 1)
 
 	// construct sourcemap url from searched file
 	sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
@@ -203,13 +210,19 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
 			return nil, err
 		}
+		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
+		if err != nil || smap == nil {
+			// what we expected to be a source map is not. don't store it in s3
+			err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
+			return nil, err
+		}
 		_, err = storageClient.PushSourceMapFileToS3(projectId, version, sourceMapFilePath, sourceMapFileBytes)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
 		}
 	}
-	if len(sourceMapFileBytes) > 40e6 {
-		err := e.Errorf("source map file over 40mb: %v, size: %v", sourceMapFilePath, len(sourceMapFileBytes))
+	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), sourceMapFilePath, len(sourceMapFileBytes))
 		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)

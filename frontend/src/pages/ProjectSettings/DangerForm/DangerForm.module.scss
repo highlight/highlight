@@ -1,0 +1,19 @@
+.dangerRow {
+	align-items: center;
+	display: grid;
+	grid-template-columns: 1fr 120px;
+	margin-top: 5px;
+}
+
+.deleteButton {
+	background-color: var(--color-red-400);
+	margin-left: 15px;
+	padding-left: 30px;
+	padding-right: 30px;
+	width: max-content;
+}
+
+.dangerSubTitle {
+	margin-bottom: 10px;
+	margin-top: 10px;
+}

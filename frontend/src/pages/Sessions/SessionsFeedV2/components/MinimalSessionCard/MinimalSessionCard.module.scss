@@ -1,261 +1,284 @@
 @import 'src/static/shared.scss';
 
 .avatarWrapper {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    position: relative;
+	align-items: center;
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	position: relative;
 }
 
 .readMarkerContainer {
-    align-items: center;
-    display: flex;
-    margin-left: 6px;
-    position: relative;
-    width: 8px;
+	align-items: center;
+	display: flex;
+	margin-left: 6px;
+	position: relative;
+	width: 8px;
 }
 
 .topText {
-    color: var(--color-gray-500);
-    font-size: 12px;
-    margin: 0 !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	color: var(--color-gray-500);
+	font-size: 12px;
+	margin: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .middleText {
-    color: var(--text-primary);
-    font-size: 14px;
-    margin: 0 !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	color: var(--text-primary);
+	font-size: 14px;
+	margin: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .bottomText {
-    color: var(--text-primary);
-    font-size: 12px;
-    margin: 0 !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	color: var(--text-primary);
+	font-size: 12px;
+	margin: 0 !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .sessionTextSection {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 
-    &.detailed {
-        max-width: 250px;
-    }
+	&.detailed {
+		max-width: 250px;
+	}
 
-    &.errorVersion {
-        max-width: 185px;
-    }
+	&.errorVersion {
+		max-width: 185px;
+	}
 }
 
 .detailedSection {
-    display: grid;
-    gap: var(--size-xxSmall);
-    grid-template-columns: 1fr 1fr;
-    max-width: unset;
-    padding-top: var(--size-xSmall);
+	display: grid;
+	gap: var(--size-xxSmall);
+	grid-template-columns: 1fr 1fr;
+	max-width: unset;
+	padding-top: var(--size-xSmall);
 
-    &.withLongDatetimeFormat {
-        grid-template-columns: 1.7fr 1fr;
-    }
+	&.withLongDatetimeFormat {
+		grid-template-columns: 1.7fr 1fr;
+	}
+}
+
+.identifier {
+	align-items: center;
+	display: flex;
+}
+
+.backfilledIcon {
+	align-items: center;
+	background-color: var(--color-gray-600);
+	border-radius: 2.5px; // matches cardAnnotation
+	color: var(--color-white);
+	display: flex;
+	font-size: 18px;
+	height: var(--size-medium);
+	justify-content: center;
+	margin-left: var(--size-xSmall);
+	width: var(--size-medium);
+
+	svg {
+		height: var(--size-small);
+		width: var(--size-small);
+	}
 }
 
 .tagWrapper {
-    display: flex;
-    flex-flow: row wrap;
-    height: 28px;
-    overflow: hidden;
+	display: flex;
+	flex-flow: row wrap;
+	height: 28px;
+	overflow: hidden;
 }
 
 .sessionCardWrapper {
-    position: relative;
+	position: relative;
 
-    &:hover {
-        .sessionCardAction {
-            display: flex;
-        }
-    }
+	&:hover {
+		.sessionCardAction {
+			display: flex;
+		}
+	}
 }
 
 .sessionCardAction {
-    align-items: center;
-    background-color: var(--color-primary-background);
-    border: 0;
-    border-radius: var(--border-radius);
-    bottom: 0;
-    display: none;
-    height: 30px;
-    margin: auto;
-    padding: 0 6px;
-    position: absolute;
-    right: 8px;
-    top: 0;
-    width: 30px;
+	align-items: center;
+	background-color: var(--color-primary-background);
+	border: 0;
+	border-radius: var(--border-radius);
+	bottom: 0;
+	display: none;
+	height: 30px;
+	margin: auto;
+	padding: 0 6px;
+	position: absolute;
+	right: 8px;
+	top: 0;
+	width: 30px;
 
-    &:hover {
-        background-color: var(--color-gray-300);
-        cursor: pointer;
+	&:hover {
+		background-color: var(--color-gray-300);
+		cursor: pointer;
 
-        .actionIcon {
-            color: var(--text-primary);
-            fill: var(--text-primary);
-            stroke: var(--text-primary);
-        }
-    }
+		.actionIcon {
+			color: var(--text-primary);
+			fill: var(--text-primary);
+			stroke: var(--text-primary);
+		}
+	}
 }
 
 .actionIcon {
-    color: var(--color-gray-500);
-    fill: var(--color-gray-500);
-    stroke: var(--color-gray-500);
+	color: var(--color-gray-500);
+	fill: var(--color-gray-500);
+	stroke: var(--color-gray-500);
 }
 
 .starredIconWrapper {
-    bottom: 0;
-    display: flex;
-    height: 30px;
-    left: 8px;
-    margin: auto;
-    padding: 6px;
-    position: absolute;
-    top: 0;
-    width: 30px;
-    z-index: 5;
+	bottom: 0;
+	display: flex;
+	height: 30px;
+	left: 8px;
+	margin: auto;
+	padding: 6px;
+	position: absolute;
+	top: 0;
+	width: 30px;
+	z-index: 5;
 
-    &:hover {
-        cursor: pointer;
+	&:hover {
+		cursor: pointer;
 
-        .actionIcon {
-            color: var(--text-primary);
-            fill: var(--text-primary);
-            stroke: var(--text-primary);
-        }
-    }
+		.actionIcon {
+			color: var(--text-primary);
+			fill: var(--text-primary);
+			stroke: var(--text-primary);
+		}
+	}
 }
 
 .starredIcon {
-    color: var(--color-yellow-200);
-    fill: var(--color-yellow-200);
-    stroke: var(--color-yellow-200);
+	color: var(--color-yellow-200);
+	fill: var(--color-yellow-200);
+	stroke: var(--color-yellow-200);
 }
 
 .sessionCard {
-    @include rounded-border;
-    cursor: pointer;
-    font-weight: 400;
-    margin-bottom: var(--size-small);
-    position: relative;
-    transition: box-shadow 0.1s ease-in;
+	@include rounded-border;
+	cursor: pointer;
+	font-weight: 400;
+	margin-bottom: var(--size-small);
+	position: relative;
+	transition: box-shadow 0.1s ease-in;
 
-    &:not(:first-of-type) {
-        margin-top: 14px;
-    }
+	&:not(:first-of-type) {
+		margin-top: 14px;
+	}
 
-    &::before {
-        background-color: var(--color-purple);
-        border-bottom-left-radius: var(--size-xSmall);
-        border-top-left-radius: var(--size-xSmall);
-        content: '';
-        height: 100%;
-        left: 0;
-        opacity: 0;
-        position: absolute;
-        top: 0;
-        transition: opacity 0.1s ease-in;
-        width: 8px;
-        z-index: 99;
-    }
+	&::before {
+		background-color: var(--color-purple);
+		border-bottom-left-radius: var(--size-xSmall);
+		border-top-left-radius: var(--size-xSmall);
+		content: '';
+		height: 100%;
+		left: 0;
+		opacity: 0;
+		position: absolute;
+		top: 0;
+		transition: opacity 0.1s ease-in;
+		width: 8px;
+		z-index: 99;
+	}
 
-    &.selected {
-        border: 1px solid var(--color-purple);
-        box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
-        &::before {
-            opacity: 1;
-        }
-    }
+	&.selected {
+		border: 1px solid var(--color-purple);
+		box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+		&::before {
+			opacity: 1;
+		}
+	}
 
-    &:hover:not(.linkDisabled) {
-        border: 1px solid var(--color-purple);
-        box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
-    }
+	&:hover:not(.linkDisabled) {
+		border: 1px solid var(--color-purple);
+		box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+	}
 
-    &.linkDisabled {
-        cursor: not-allowed;
-    }
+	&.linkDisabled {
+		cursor: not-allowed;
+	}
 
-    .activityGraphContainer {
-        border-top: 1px solid var(--color-gray-300);
-        width: 100%;
-    }
+	.activityGraphContainer {
+		border-top: 1px solid var(--color-gray-300);
+		width: 100%;
+	}
 }
 
 .sessionCardContentWrapper {
-    align-items: center;
-    column-gap: var(--size-medium);
-    display: grid;
-    grid-template-columns: 26px 1fr 0.5fr;
-    padding: var(--size-medium);
-    width: 100%;
+	align-items: center;
+	column-gap: var(--size-medium);
+	display: grid;
+	grid-template-columns: 26px 1fr 0.5fr;
+	padding: var(--size-medium);
+	width: 100%;
 
-    &.detailed {
-        grid-template-columns: 26px 1fr 0.25fr;
-    }
+	&.detailed {
+		grid-template-columns: 26px 1fr 0.25fr;
+	}
 
-    &.errorVersion {
-        grid-template-columns: 26px 1fr;
-    }
+	&.errorVersion {
+		grid-template-columns: 26px 1fr;
+	}
 }
 
 .sessionTextSectionWrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .cardAnnotationContainer {
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: flex-end;
+	column-gap: var(--size-medium);
+	display: flex;
+	justify-content: flex-end;
 
-    &.detailed {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        row-gap: var(--size-medium);
-    }
+	&.detailed {
+		flex-wrap: wrap;
+		justify-content: flex-start;
+		row-gap: var(--size-medium);
+	}
 
-    > div {
-        height: 16px;
-        width: 16px;
-    }
+	> div {
+		height: 16px;
+		width: 16px;
+	}
 }
 
 .cardAnnotation {
-    align-items: center;
-    background: var(--primary-color);
-    border-radius: 2.5px;
-    color: var(--color-white);
-    display: flex;
-    height: var(--size-medium);
-    justify-content: center;
-    width: var(--size-medium);
+	align-items: center;
+	background: var(--primary-color);
+	border-radius: 2.5px;
+	color: var(--color-white);
+	display: flex;
+	height: var(--size-medium);
+	justify-content: center;
+	width: var(--size-medium);
 
-    svg {
-        height: var(--size-xSmall);
-        width: var(--size-xSmall);
-    }
+	svg {
+		height: var(--size-xSmall);
+		width: var(--size-xSmall);
+	}
 }
 
 .separator {
-    margin-left: 1ch;
-    margin-right: 1ch;
+	margin-left: 1ch;
+	margin-right: 1ch;
 }

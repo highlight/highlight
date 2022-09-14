@@ -4,19 +4,26 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"encoding/gob"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"io"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
+	"github.com/google/uuid"
+	"github.com/openlyinc/pointy"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/andybalholm/brotli"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -25,7 +32,9 @@ import (
 
 var (
 	S3SessionsPayloadBucketName = os.Getenv("AWS_S3_BUCKET_NAME")
+	S3SessionsStagingBucketName = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketName       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME")
+	S3ResourcesBucketName       = os.Getenv("AWS_S3_RESOURCES_BUCKET")
 	CloudfrontDomain            = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
 	CloudfrontPublicKeyID       = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
 	CloudfrontPrivateKey        = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
@@ -45,6 +54,7 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
+	RawEvents                  PayloadType = "raw-events"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
@@ -59,8 +69,10 @@ func GetChunkedPayloadType(offset int) PayloadType {
 }
 
 type StorageClient struct {
-	S3Client  *s3.Client
-	URLSigner *sign.URLSigner
+	S3Client        *s3.Client
+	S3ClientEast2   *s3.Client
+	S3PresignClient *s3.PresignClient
+	URLSigner       *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -73,9 +85,22 @@ func NewStorageClient() (*StorageClient, error) {
 		o.UsePathStyle = true
 	})
 
+	// Create a separate s3 client for us-east-2
+	// Eventually, the us-west-2 s3 client should be deprecated
+	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
+	if err != nil {
+		return nil, errors.Wrap(err, "error loading default from config")
+	}
+	// Create Amazon S3 API client using path style addressing.
+	clientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
+
 	return &StorageClient{
-		S3Client:  client,
-		URLSigner: getURLSigner(),
+		S3Client:        client,
+		S3ClientEast2:   clientEast2,
+		S3PresignClient: s3.NewPresignClient(clientEast2),
+		URLSigner:       getURLSigner(),
 	}, nil
 }
 
@@ -131,6 +156,94 @@ func (s *StorageClient) PushCompressedFileToS3(ctx context.Context, sessionId, p
 		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, bucket, payloadType, options)
+}
+
+func (s *StorageClient) PushRawEventsToS3(ctx context.Context, sessionId, projectId int, events []redis.Z) error {
+	buf := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buf)
+	if err := encoder.Encode(events); err != nil {
+		return errors.Wrap(err, "error encoding gob")
+	}
+
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	key := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents+"-"+PayloadType(uuid.New().String()))
+
+	options := s3.PutObjectInput{
+		Bucket: &S3SessionsStagingBucketName,
+		Key:    &key,
+		Body:   bytes.NewReader(buf.Bytes()),
+	}
+	_, err := s.S3ClientEast2.PutObject(ctx, &options)
+	if err != nil {
+		return errors.Wrap(err, "error uploading raw events to S3")
+	}
+
+	return nil
+}
+
+func (s *StorageClient) GetRawEventsFromS3(ctx context.Context, sessionId, projectId int) (map[int]string, error) {
+	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
+	prefix := "raw-events/" + *s.bucketKey(sessionId, projectId, RawEvents)
+
+	options := s3.ListObjectsV2Input{
+		Bucket: &S3SessionsStagingBucketName,
+		Prefix: &prefix,
+	}
+
+	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &options)
+	if err != nil {
+		return nil, errors.Wrap(err, "error listing objects in S3")
+	}
+
+	var g errgroup.Group
+	results := make([][]redis.Z, len(output.Contents))
+	for idx, object := range output.Contents {
+		idx := idx
+		object := object
+		g.Go(func() error {
+			var result []redis.Z
+			output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{
+				Bucket: &S3SessionsStagingBucketName,
+				Key:    object.Key,
+			})
+			if err != nil {
+				return errors.Wrap(err, "error retrieving object from S3")
+			}
+
+			buf := new(bytes.Buffer)
+			_, err = buf.ReadFrom(output.Body)
+			if err != nil {
+				return errors.Wrap(err, "error reading from s3 buffer")
+			}
+
+			decoder := gob.NewDecoder(buf)
+			if err := decoder.Decode(&result); err != nil {
+				return errors.Wrap(err, "error decoding gob")
+			}
+
+			results[idx] = result
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, errors.Wrap(err, "error in task retrieving object from S3")
+	}
+
+	eventRows := map[int]string{}
+	for _, zRange := range results {
+		for _, z := range zRange {
+			intScore := int(z.Score)
+			// Beacon events have decimals, skip them
+			if z.Score != float64(intScore) {
+				continue
+			}
+
+			eventRows[intScore] = z.Member.(string)
+		}
+	}
+
+	return eventRows, nil
 }
 
 func (s *StorageClient) PushFileToS3(ctx context.Context, sessionId, projectId int, file *os.File, bucket string, payloadType PayloadType) (*int64, error) {
@@ -420,4 +533,67 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	}
 
 	return &signedURL, nil
+}
+
+func (s *StorageClient) UploadAsset(uuid string, contentType string, reader io.Reader) error {
+	_, err := s.S3ClientEast2.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: pointy.String(S3ResourcesBucketName),
+		Key:    pointy.String(uuid),
+		Body:   reader,
+		Metadata: map[string]string{
+			"Content-Type": contentType,
+		},
+	}, s3.WithAPIOptions(
+		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
+	))
+	if err != nil {
+		return errors.Wrap(err, "error calling PutObject")
+	}
+	return nil
+}
+
+func (s *StorageClient) GetAssetURL(projectId string, hashVal string) (string, error) {
+	input := s3.GetObjectInput{
+		Bucket: &S3ResourcesBucketName,
+		Key:    pointy.String(projectId + "/" + hashVal),
+	}
+
+	resp, err := s.S3PresignClient.PresignGetObject(context.TODO(), &input)
+	if err != nil {
+		return "", errors.Wrap(err, "error signing s3 asset URL")
+	}
+
+	return resp.URL, nil
+}
+
+func (s *StorageClient) GetSourcemapFilesFromS3(projectId int, version *string) ([]s3Types.Object, error) {
+	if version == nil || len(*version) == 0 {
+		// If no version is specified we put files in an "unversioned" directory.
+		version = pointy.String("unversioned")
+	}
+
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket: pointy.String(S3SourceMapBucketName),
+		Prefix: pointy.String(fmt.Sprintf("%d/%s/", projectId, *version)),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemaps from s3")
+	}
+
+	return output.Contents, nil
+}
+
+func (s *StorageClient) GetSourcemapVersionsFromS3(projectId int) ([]s3Types.CommonPrefix, error) {
+	output, err := s.S3Client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
+		Bucket:    pointy.String(S3SourceMapBucketName),
+		Prefix:    pointy.String(fmt.Sprintf("%d/", projectId)),
+		Delimiter: pointy.String("/"),
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
+	}
+
+	return output.CommonPrefixes, nil
 }

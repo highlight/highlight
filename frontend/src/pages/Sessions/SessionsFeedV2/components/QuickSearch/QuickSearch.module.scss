@@ -1,125 +1,88 @@
 .select {
-    width: 100%;
+	width: 100%;
 
-    &.menuIsOpen {
-        z-index: 9999999;
-    }
+	&.menuIsOpen {
+		z-index: 9999999;
+	}
 
-    > div:first-of-type {
-        background-color: var(--color-gray-200);
-    }
-}
-
-.searchIcon {
-    color: var(--color-gray-600);
-    height: var(--size-medium);
-    margin-left: var(--size-small);
-    width: var(--size-medium);
-}
-
-.loadingIcon {
-    color: var(--color-gray-600);
-}
-
-.loadingIconContainer {
-    --size: var(--size-medium);
-    height: var(--size) !important;
-    margin-left: var(--size-small);
-    top: 3px !important;
-    width: var(--size) !important;
-
-    :global(.ant-spin),
-    :global(svg),
-    .loadingIcon {
-        height: var(--size);
-        width: var(--size);
-    }
+	> div:first-of-type {
+		background-color: var(--color-gray-200);
+	}
 }
 
 .typeIcon {
-    align-self: center;
-    color: var(--color-gray-600);
-    flex-shrink: 0;
-    height: var(--size-medium);
-    margin-right: 6px;
-    width: var(--size-medium);
+	align-self: center;
+	color: var(--color-gray-600);
+	flex-shrink: 0;
+	height: var(--size-medium);
+	margin-right: 6px;
+	width: var(--size-medium);
 }
 
 .optionLabelContainer {
-    align-items: center;
-    display: flex;
-    overflow: hidden;
+	align-items: center;
+	display: flex;
+	overflow: hidden;
 }
 
 .quickSearchSelect {
-    margin-bottom: var(--size-medium);
-    width: 100%;
+	margin-bottom: var(--size-medium);
+	width: 100%;
 
-    &:last-of-type {
-        margin-bottom: 0;
-    }
+	&:last-of-type {
+		margin-bottom: 0;
+	}
 }
 
 .groupHeading {
-    align-items: center;
-    column-gap: var(--size-xxSmall);
-    display: flex;
+	align-items: center;
+	column-gap: var(--size-xxSmall);
+	display: flex;
 }
 
 .optionLabelType {
-    background: var(--color-gray-300);
-    border-radius: 3px;
-    margin-right: 6px;
-    padding-left: 4px;
-    padding-right: 4px;
-    white-space: nowrap;
-    width: fit-content;
+	background: var(--color-gray-300);
+	border-radius: 3px;
+	margin-right: 6px;
+	padding-left: 4px;
+	padding-right: 4px;
+	white-space: nowrap;
+	width: fit-content;
 }
 
 .optionLabelName {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .hideSearchIcon {
-    opacity: 0;
+	opacity: 0;
 }
 
 .backdrop {
-    background: rgba(0, 0, 0, 0.5);
-    left: calc(-1 * var(--sidebar-width));
-    min-height: 200vh;
-    opacity: 0;
-    pointer-events: none;
-    position: fixed;
-    top: calc(-1 * var(--banner-height));
-    transition: opacity 0.2s ease-in;
-    width: 150vw;
-    z-index: 9999;
+	background: rgba(0, 0, 0, 0.5);
+	left: calc(-1 * var(--sidebar-width));
+	min-height: 200vh;
+	opacity: 0;
+	pointer-events: none;
+	position: fixed;
+	top: calc(-1 * var(--banner-height));
+	transition: opacity 0.2s ease-in;
+	width: 150vw;
+	z-index: 9999;
 
-    &.visible {
-        opacity: 1;
-    }
-}
-
-.dropdownIndicator {
-    left: 0;
-    position: absolute;
-    top: var(--size-xSmall);
-    z-index: 999999999999;
-
-    &.spinner {
-        top: 6px;
-    }
+	&.visible {
+		opacity: 1;
+	}
 }
 
 .container {
-    position: relative;
-    width: 100%;
+	position: relative;
+	width: 100%;
 }
 
 .dropdownPlaceholder {
-    height: 20px;
-    width: 20px;
+	height: 20px;
+	width: 20px;
 }

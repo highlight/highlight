@@ -1,29 +1,34 @@
-import classNames from 'classnames';
-import React from 'react';
+import classNames from 'classnames'
+import React from 'react'
 
-import styles from './Dot.module.scss';
+import styles from './Dot.module.scss'
 
 export enum CustomDotColor {
-    RED,
+	RED,
 }
 
 interface Props {
-    pulse?: boolean;
-    className?: string;
-    color?: CustomDotColor;
+	pulse?: boolean
+	className?: string
+	color?: CustomDotColor
 }
 
-const Dot: React.FC<Props> = ({ pulse, className, color, children }) => {
-    return (
-        <div
-            className={classNames(styles.dot, className, {
-                [styles.pulse]: pulse,
-                [styles.dotRed]: color === CustomDotColor.RED,
-            })}
-        >
-            {children}
-        </div>
-    );
-};
+const Dot: React.FC<React.PropsWithChildren<Props>> = ({
+	pulse,
+	className,
+	color,
+	children,
+}) => {
+	return (
+		<div
+			className={classNames(styles.dot, className, {
+				[styles.pulse]: pulse,
+				[styles.dotRed]: color === CustomDotColor.RED,
+			})}
+		>
+			{children}
+		</div>
+	)
+}
 
-export default Dot;
+export default Dot

@@ -1,123 +1,177 @@
 .scrubberBackground {
-    align-items: center;
-    background-color: var(--color-primary-background);
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--border-radius);
-    display: flex;
-    height: 40px;
-    justify-content: center;
-    margin-bottom: var(--size-small);
-    padding-left: var(--size-medium);
-    padding-right: var(--size-medium);
-    position: relative;
-    width: 100%;
+	align-items: center;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	height: 40px;
+	justify-content: center;
+	margin-bottom: var(--size-small);
+	padding-left: var(--size-medium);
+	padding-right: var(--size-medium);
+	position: relative;
+	width: 100%;
 }
 
 .innerBounds {
-    position: relative;
-    width: 100%;
+	position: relative;
+	width: 100%;
+}
+
+.mask {
+	background-color: var(--color-primary-background);
+	height: 100%;
+	position: absolute;
+}
+
+.activityGraphWrapper {
+	position: relative;
+}
+
+.zoomer {
+	height: 100%;
+	position: absolute;
+	top: -6px;
+	width: 100%;
 }
 
 .zoomArea {
-    background: var(--color-scrubber-zoom-region);
-    border-radius: 5px;
-    height: 16px;
-    position: relative;
-    top: 6px;
-    width: 100%;
-    z-index: 2;
+	background: var(--color-scrubber-zoom-region);
+	border: 2px solid var(--color-scrubber-zoom-region-border);
+	border-radius: 5px;
+	height: 32px;
+	position: relative;
+	width: 100%;
+	z-index: 2;
 }
 
 .zoomAreaCanReset {
-    cursor: pointer;
+	cursor: pointer;
 }
 
-.handleContainer {
-    position: absolute;
-    z-index: 200;
+.zoomAreaMask {
+	background-color: var(--color-primary-background);
+	height: 32px;
+	position: absolute;
+	z-index: 2;
+}
+
+.scrubHandleContainer {
+	position: absolute;
+	z-index: 200;
 }
 
 .scrubHandle {
-    align-items: center;
-    background: var(--color-scrubber-scrub-handle);
-    border-radius: var(--border-radius);
-    cursor: move;
-    display: flex;
-    height: fit-content;
-    justify-content: center;
-    padding: 0 var(--size-xSmall);
-    position: absolute;
-    transform: translateX(-28px);
-    user-select: none;
-    width: 56px;
-    z-index: 200;
+	align-items: center;
+	background: var(--color-scrubber-scrub-handle);
+	border-radius: var(--border-radius);
+	cursor: ew-resize;
+	display: flex;
+	height: fit-content;
+	justify-content: center;
+	padding: 0 var(--size-xSmall);
+	position: absolute;
+	top: -26px;
+	transform: translateX(-28px);
+	user-select: none;
+	width: 56px;
+	z-index: 200;
 }
 
 .timeMarker {
-    background: var(--color-scrubber-scrub-handle);
-    height: 44px;
-    position: absolute;
-    top: 20px;
-    width: 2px;
-    z-index: 200;
+	background: var(--color-scrubber-scrub-handle);
+	height: 44px;
+	position: absolute;
+	top: 20px;
+	width: 2px;
+	z-index: 200;
 }
 
 .timeText {
-    color: var(--color-primary-background);
+	color: var(--color-primary-background);
 }
 
 .tickWrapper {
-    cursor: pointer;
-    display: inline-flex;
-    height: 22px;
-    justify-content: space-between;
-    position: absolute;
-    top: -14px;
-    width: 100%;
+	cursor: pointer;
+	display: inline-flex;
+	height: 22px;
+	justify-content: space-between;
+	position: absolute;
+	top: -14px;
+	width: 100%;
 }
 
 .tick {
-    position: relative;
+	position: relative;
 }
 
 .zoomControlsWrapper {
-    display: inline-flex;
-    justify-content: flex-end;
-    position: absolute;
-    top: -24px;
-    width: 100%;
+	display: inline-flex;
+	justify-content: flex-end;
+	position: absolute;
+	top: -24px;
+	width: 100%;
 }
 
 .zoomAreaHandle {
-    background: var(--color-scrubber-zoom-region);
-    cursor: ew-resize;
-    height: 16px;
-    position: absolute;
-    width: 16px;
-    z-index: 150;
+	cursor: ew-resize;
+	display: flex;
+	flex-direction: column;
+	height: 32px;
+	justify-content: center;
+	position: absolute;
+	width: 16px;
+	z-index: 7;
 }
 
 .handleLeft {
-    border-radius: 5px 0 0 5px;
+	border-radius: 5px 0 0 5px;
 }
 
 .handleRight {
-    border-radius: 0 5px 5px 0;
-    position: absolute;
+	border-radius: 0 5px 5px 0;
+	position: absolute;
+	transform: translateX(-16px);
+}
+
+.handleContainer {
+	position: absolute;
+	z-index: 7;
+}
+
+.inactivePopover {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+}
+
+.inactivePopoverDescription {
+	color: var(--color-gray-400);
+	font-size: 10px;
+}
+
+.inactivePopoverTime {
+	font-size: 10px;
 }
 
 .inactiveArea {
-    background: var(--color-scrubber-inactive-region);
-    border-radius: 0 0 5px 5px;
-    height: 100%;
-    position: absolute;
+	background: var(--color-scrubber-inactive-region);
+	// border-radius: 5px;
+	height: 32px;
+	position: absolute;
+	top: -34px;
+	transition-duration: 300ms;
+
+	&:hover {
+		transform: scale(1.1);
+	}
 }
 
 .inactiveContainer {
-    height: 6px;
-    padding-left: var(--size-medium);
-    padding-right: var(--size-medium);
-    position: absolute;
-    top: 28px;
-    width: 100%;
+	height: 6px;
+	padding-left: var(--size-medium);
+	padding-right: var(--size-medium);
+	position: absolute;
+	top: 28px;
+	width: 100%;
 }

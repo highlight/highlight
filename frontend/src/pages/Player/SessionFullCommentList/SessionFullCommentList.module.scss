@@ -1,16 +1,16 @@
 .timestamp {
-    color: var(--color-gray-500);
-    margin: 0 !important;
-    margin-left: auto !important;
+	color: var(--color-gray-500);
+	margin: 0 !important;
+	margin-left: auto !important;
 }
 
 .footer {
-    align-items: center;
-    display: flex;
+	align-items: center;
+	display: flex;
 }
 
 .email {
-    max-width: 229px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+	max-width: 229px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }

@@ -1,1411 +1,1615 @@
 fragment SessionPayloadFragment on SessionPayload {
-    events
-    errors {
-        id
-        error_group_secure_id
-        event
-        type
-        url
-        source
-        stack_trace
-        structured_stack_trace {
-            fileName
-            lineNumber
-            functionName
-            columnNumber
-        }
-        timestamp
-        payload
-        request_id
-    }
-    rage_clicks {
-        start_timestamp
-        end_timestamp
-        total_clicks
-    }
-    session_comments {
-        id
-        timestamp
-        session_id
-        session_secure_id
-        created_at
-        updated_at
-        project_id
-        text
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        attachments {
-            integration_type
-            external_id
-            title
-        }
-        x_coordinate
-        y_coordinate
-        type
-        metadata
-    }
-    last_user_interaction_time
+	events
+	errors {
+		id
+		error_group_secure_id
+		event
+		type
+		url
+		source
+		stack_trace
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+		}
+		timestamp
+		payload
+		request_id
+	}
+	rage_clicks {
+		start_timestamp
+		end_timestamp
+		total_clicks
+	}
+	session_comments {
+		id
+		timestamp
+		session_id
+		session_secure_id
+		created_at
+		updated_at
+		project_id
+		text
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		attachments {
+			integration_type
+			external_id
+			title
+		}
+		x_coordinate
+		y_coordinate
+		type
+		metadata
+	}
+	last_user_interaction_time
 }
 
-query GetMetricsDashboard(
-    $project_id: ID!
-    $metric_name: String!
-    $params: DashboardParamsInput!
+query GetMetricsTimeline(
+	$project_id: ID!
+	$metric_name: String!
+	$params: DashboardParamsInput!
 ) {
-    metrics_dashboard(
-        project_id: $project_id
-        metric_name: $metric_name
-        params: $params
-    ) {
-        date
-        avg
-        p50
-        p75
-        p90
-        p99
-    }
+	metrics_timeline(
+		project_id: $project_id
+		metric_name: $metric_name
+		params: $params
+	) {
+		date
+		value
+		aggregator
+		group
+	}
 }
 
-query GetMetricPreview(
-    $project_id: ID!
-    $type: MetricType!
-    $name: String!
-    $aggregateFunction: String!
+query GetMetricsHistogram(
+	$project_id: ID!
+	$metric_name: String!
+	$params: HistogramParamsInput!
 ) {
-    metric_preview(
-        project_id: $project_id
-        type: $type
-        name: $name
-        aggregateFunction: $aggregateFunction
-    ) {
-        value
-        date
-    }
+	metrics_histogram(
+		project_id: $project_id
+		metric_name: $metric_name
+		params: $params
+	) {
+		buckets {
+			bucket
+			range_start
+			range_end
+			count
+		}
+		min
+		max
+	}
+}
+
+query GetNetworkHistogram(
+	$project_id: ID!
+	$params: NetworkHistogramParamsInput!
+) {
+	network_histogram(project_id: $project_id, params: $params) {
+		buckets {
+			category
+			count
+		}
+	}
 }
 
 query GetSessionPayload($session_secure_id: String!, $skip_events: Boolean!) {
-    events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
-    errors(session_secure_id: $session_secure_id) {
-        id
-        error_group_secure_id
-        event
-        type
-        url
-        source
-        stack_trace
-        structured_stack_trace {
-            fileName
-            lineNumber
-            functionName
-            columnNumber
-        }
-        timestamp
-        payload
-        request_id
-    }
-    rage_clicks(session_secure_id: $session_secure_id) {
-        start_timestamp
-        end_timestamp
-        total_clicks
-    }
-    session_comments(session_secure_id: $session_secure_id) {
-        id
-        timestamp
-        session_id
-        session_secure_id
-        created_at
-        updated_at
-        project_id
-        text
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        x_coordinate
-        y_coordinate
-        type
-        metadata
-        tags
-        attachments {
-            id
-            integration_type
-            external_id
-            title
-        }
-    }
+	events(session_secure_id: $session_secure_id) @skip(if: $skip_events)
+	errors(session_secure_id: $session_secure_id) {
+		id
+		error_group_secure_id
+		event
+		type
+		url
+		source
+		stack_trace
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+		}
+		timestamp
+		payload
+		request_id
+	}
+	rage_clicks(session_secure_id: $session_secure_id) {
+		start_timestamp
+		end_timestamp
+		total_clicks
+	}
+	session_comments(session_secure_id: $session_secure_id) {
+		id
+		timestamp
+		session_id
+		session_secure_id
+		created_at
+		updated_at
+		project_id
+		text
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		x_coordinate
+		y_coordinate
+		type
+		metadata
+		tags
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+	}
 }
 
 query GetCommentTagsForProject($project_id: ID!) {
-    session_comment_tags_for_project(project_id: $project_id) {
-        id
-        name
-    }
+	session_comment_tags_for_project(project_id: $project_id) {
+		id
+		name
+	}
 }
 
 query GetEventChunkURL($secure_id: String!, $index: Int!) {
-    event_chunk_url(secure_id: $secure_id, index: $index)
+	event_chunk_url(secure_id: $secure_id, index: $index)
 }
 
 query GetEventChunks($secure_id: String!) {
-    event_chunks(secure_id: $secure_id) {
-        session_id
-        chunk_index
-        timestamp
-    }
+	event_chunks(secure_id: $secure_id) {
+		session_id
+		chunk_index
+		timestamp
+	}
 }
 
 query GetSession($secure_id: String!) {
-    session(secure_id: $secure_id) {
-        secure_id
-        os_name
-        os_version
-        browser_name
-        browser_version
-        environment
-        app_version
-        city
-        state
-        postal
-        fingerprint
-        created_at
-        language
-        user_object
-        user_properties
-        identifier
-        starred
-        enable_strict_privacy
-        enable_recording_network_contents
-        field_group
-        fields {
-            name
-            value
-            type
-        }
-        object_storage_enabled
-        payload_size
-        processed
-        excluded
-        has_rage_clicks
-        has_errors
-        within_billing_quota
-        client_version
-        client_config
-        is_public
-        event_counts
-        direct_download_url
-        resources_url
-        messages_url
-        deviceMemory
-        last_user_interaction_time
-        length
-        active_length
-        chunked
-    }
+	session(secure_id: $secure_id) {
+		secure_id
+		os_name
+		os_version
+		browser_name
+		browser_version
+		environment
+		app_version
+		city
+		state
+		country
+		postal
+		fingerprint
+		created_at
+		language
+		user_object
+		user_properties
+		identifier
+		identified
+		client_id
+		starred
+		enable_strict_privacy
+		enable_recording_network_contents
+		field_group
+		fields {
+			name
+			value
+			type
+		}
+		object_storage_enabled
+		payload_size
+		processed
+		excluded
+		has_rage_clicks
+		has_errors
+		within_billing_quota
+		client_version
+		firstload_version
+		client_config
+		is_public
+		event_counts
+		direct_download_url
+		resources_url
+		messages_url
+		deviceMemory
+		last_user_interaction_time
+		length
+		active_length
+		chunked
+	}
 }
 
 query GetWorkspaceAdminsByProjectId($project_id: ID!) {
-    admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
-        role
-    }
+	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		admin {
+			id
+			name
+			email
+			photo_url
+		}
+		role
+	}
 }
 
 query GetWorkspaceAdmins($workspace_id: ID!) {
-    admins: workspace_admins(workspace_id: $workspace_id) {
-        id
-        name
-        email
-        photo_url
-        role
-    }
-    workspace(id: $workspace_id) {
-        id
-        name
-        secret
-        allowed_auto_join_email_origins
-    }
-    workspace_invite_links(workspace_id: $workspace_id) {
-        id
-        invitee_email
-        invitee_role
-        expiration_date
-        secret
-    }
+	admins: workspace_admins(workspace_id: $workspace_id) {
+		admin {
+			id
+			name
+			email
+			photo_url
+		}
+		role
+	}
+	workspace(id: $workspace_id) {
+		id
+		name
+		secret
+		allowed_auto_join_email_origins
+	}
+	workspace_invite_links(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		expiration_date
+		secret
+	}
 }
 
 query GetSessionComments($session_secure_id: String!) {
-    session_comments(session_secure_id: $session_secure_id) {
-        id
-        timestamp
-        session_id
-        session_secure_id
-        created_at
-        updated_at
-        project_id
-        text
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        x_coordinate
-        y_coordinate
-        type
-        metadata
-        tags
-        attachments {
-            id
-            integration_type
-            external_id
-            title
-        }
-        replies {
-            id
-            created_at
-            updated_at
-            author {
-                id
-                name
-                email
-                photo_url
-            }
-            text
-        }
-    }
+	session_comments(session_secure_id: $session_secure_id) {
+		id
+		timestamp
+		session_id
+		session_secure_id
+		created_at
+		updated_at
+		project_id
+		text
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		x_coordinate
+		y_coordinate
+		type
+		metadata
+		tags
+		attachments {
+			id
+			integration_type
+			external_id
+			title
+		}
+		replies {
+			id
+			created_at
+			updated_at
+			author {
+				id
+				name
+				email
+				photo_url
+			}
+			text
+		}
+	}
 }
 
 query GetNotifications($project_id: ID!) {
-    session_comments_for_project(project_id: $project_id) {
-        id
-        timestamp
-        updated_at
-        session_id
-        session_secure_id
-        text
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        type
-        metadata
-        tags
-    }
-    error_comments_for_project(project_id: $project_id) {
-        id
-        updated_at
-        project_id
-        text
-        error_id
-        error_secure_id
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-    }
+	session_comments_for_project(project_id: $project_id) {
+		id
+		timestamp
+		updated_at
+		session_id
+		session_secure_id
+		text
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		type
+		metadata
+		tags
+	}
+	error_comments_for_project(project_id: $project_id) {
+		id
+		updated_at
+		project_id
+		text
+		error_id
+		error_secure_id
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+	}
 }
 
 query GetSessionCommentsForAdmin {
-    session_comments_for_admin {
-        id
-        timestamp
-        created_at
-        project_id
-        updated_at
-        text
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-    }
+	session_comments_for_admin {
+		id
+		timestamp
+		created_at
+		project_id
+		updated_at
+		text
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+}
+
+query isSessionPending($session_secure_id: String!) {
+	isSessionPending(session_secure_id: $session_secure_id)
 }
 
 query GetAccounts {
-    accounts {
-        id
-        name
-        session_count_cur
-        session_count_prev
-        session_count_prev_prev
-        session_limit
-        paid_prev
-        paid_prev_prev
-        email
-        subscription_start
-        plan_tier
-        stripe_customer_id
-        member_count
-        member_limit
-    }
+	accounts {
+		id
+		name
+		session_count_cur
+		view_count_cur
+		session_count_prev
+		view_count_prev
+		session_count_prev_prev
+		session_limit
+		paid_prev
+		paid_prev_prev
+		email
+		subscription_start
+		plan_tier
+		stripe_customer_id
+		member_count
+		member_limit
+	}
 }
 
 query GetAccountDetails($workspace_id: ID!) {
-    account_details(workspace_id: $workspace_id) {
-        id
-        name
-        session_count_per_month {
-            name
-            count
-        }
-        session_count_per_day {
-            name
-            count
-        }
-        stripe_customer_id
-    }
+	account_details(workspace_id: $workspace_id) {
+		id
+		name
+		session_count_per_month {
+			name
+			count
+		}
+		session_count_per_day {
+			name
+			count
+		}
+		stripe_customer_id
+		members {
+			id
+			name
+			email
+			last_active
+		}
+	}
 }
 
 query GetErrorComments($error_group_secure_id: String!) {
-    error_comments(error_group_secure_id: $error_group_secure_id) {
-        id
-        created_at
-        updated_at
-        text
-        project_id
-        author {
-            id
-            name
-            email
-            photo_url
-        }
-        attachments {
-            integration_type
-            external_id
-            title
-        }
-        replies {
-            id
-            created_at
-            updated_at
-            author {
-                id
-                name
-                email
-                photo_url
-            }
-            text
-        }
-    }
+	error_comments(error_group_secure_id: $error_group_secure_id) {
+		id
+		created_at
+		updated_at
+		text
+		project_id
+		author {
+			id
+			name
+			email
+			photo_url
+		}
+		attachments {
+			integration_type
+			external_id
+			title
+		}
+		replies {
+			id
+			created_at
+			updated_at
+			author {
+				id
+				name
+				email
+				photo_url
+			}
+			text
+		}
+	}
 }
 
 query GetEnhancedUserDetails($session_secure_id: String!) {
-    enhanced_user_details(session_secure_id: $session_secure_id) {
-        id
-        name
-        bio
-        avatar
-        email
-        socials {
-            type
-            link
-        }
-    }
+	enhanced_user_details(session_secure_id: $session_secure_id) {
+		id
+		name
+		bio
+		avatar
+		email
+		socials {
+			type
+			link
+		}
+	}
 }
 
 query GetOnboardingSteps($project_id: ID!, $admin_id: ID!) {
-    workspace: workspace_for_project(project_id: $project_id) {
-        id
-        slack_channels
-    }
-    admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-    }
-    isIntegrated(project_id: $project_id)
-    adminHasCreatedComment(admin_id: $admin_id)
-    projectHasViewedASession(project_id: $project_id) {
-        secure_id
-    }
-    admin {
-        slack_im_channel_id
-    }
+	workspace: workspace_for_project(project_id: $project_id) {
+		id
+		slack_channels
+	}
+	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		admin {
+			id
+		}
+	}
+	isIntegrated(project_id: $project_id)
+	adminHasCreatedComment(admin_id: $admin_id)
+	projectHasViewedASession(project_id: $project_id) {
+		secure_id
+	}
+	admin {
+		slack_im_channel_id
+	}
 }
 
 mutation SendAdminWorkspaceInvite(
-    $workspace_id: ID!
-    $email: String!
-    $base_url: String!
-    $role: String!
+	$workspace_id: ID!
+	$email: String!
+	$base_url: String!
+	$role: String!
 ) {
-    sendAdminWorkspaceInvite(
-        workspace_id: $workspace_id
-        email: $email
-        base_url: $base_url
-        role: $role
-    )
+	sendAdminWorkspaceInvite(
+		workspace_id: $workspace_id
+		email: $email
+		base_url: $base_url
+		role: $role
+	)
 }
 
 query GetSessionIntervals($session_secure_id: String!) {
-    session_intervals(session_secure_id: $session_secure_id) {
-        start_time
-        end_time
-        active
-        duration
-    }
+	session_intervals(session_secure_id: $session_secure_id) {
+		start_time
+		end_time
+		active
+		duration
+	}
 }
 
 query GetTimelineIndicatorEvents($session_secure_id: String!) {
-    timeline_indicator_events(session_secure_id: $session_secure_id) {
-        timestamp
-        data
-        type
-        sid
-    }
+	timeline_indicator_events(session_secure_id: $session_secure_id) {
+		timestamp
+		data
+		type
+		sid
+	}
 }
 
 query GetFieldTypes($project_id: ID!) {
-    field_types(project_id: $project_id) {
-        type
-        name
-    }
+	field_types(project_id: $project_id) {
+		type
+		name
+	}
 }
 
 query GetFieldsOpensearch(
-    $project_id: ID!
-    $count: Int!
-    $field_type: String!
-    $field_name: String!
-    $query: String!
+	$project_id: ID!
+	$count: Int!
+	$field_type: String!
+	$field_name: String!
+	$query: String!
 ) {
-    fields_opensearch(
-        project_id: $project_id
-        count: $count
-        field_type: $field_type
-        field_name: $field_name
-        query: $query
-    )
+	fields_opensearch(
+		project_id: $project_id
+		count: $count
+		field_type: $field_type
+		field_name: $field_name
+		query: $query
+	)
 }
 
 query GetQuickFieldsOpensearch(
-    $project_id: ID!
-    $count: Int!
-    $query: String!
+	$project_id: ID!
+	$count: Int!
+	$query: String!
 ) {
-    quickFields_opensearch(
-        project_id: $project_id
-        count: $count
-        query: $query
-    ) {
-        type
-        name
-        value
-    }
+	quickFields_opensearch(
+		project_id: $project_id
+		count: $count
+		query: $query
+	) {
+		type
+		name
+		value
+	}
 }
 
 query GetErrorFieldsOpensearch(
-    $project_id: ID!
-    $count: Int!
-    $field_type: String!
-    $field_name: String!
-    $query: String!
+	$project_id: ID!
+	$count: Int!
+	$field_type: String!
+	$field_name: String!
+	$query: String!
 ) {
-    error_fields_opensearch(
-        project_id: $project_id
-        count: $count
-        field_type: $field_type
-        field_name: $field_name
-        query: $query
-    )
+	error_fields_opensearch(
+		project_id: $project_id
+		count: $count
+		field_type: $field_type
+		field_name: $field_name
+		query: $query
+	)
 }
 
 query GetSessionsOpenSearch(
-    $project_id: ID!
-    $count: Int!
-    $query: String!
-    $sort_desc: Boolean!
-    $page: Int
+	$project_id: ID!
+	$count: Int!
+	$query: String!
+	$sort_desc: Boolean!
+	$page: Int
 ) {
-    sessions_opensearch(
-        project_id: $project_id
-        count: $count
-        query: $query
-        sort_desc: $sort_desc
-        page: $page
-    ) {
-        sessions {
-            id
-            secure_id
-            fingerprint
-            identifier
-            os_name
-            os_version
-            browser_name
-            browser_version
-            city
-            state
-            postal
-            created_at
-            language
-            length
-            active_length
-            enable_recording_network_contents
-            viewed
-            starred
-            processed
-            has_rage_clicks
-            has_errors
-            fields {
-                name
-                value
-                type
-                id
-            }
-            first_time
-            user_properties
-            event_counts
-            last_user_interaction_time
-        }
-        totalCount
-    }
+	sessions_opensearch(
+		project_id: $project_id
+		count: $count
+		query: $query
+		sort_desc: $sort_desc
+		page: $page
+	) {
+		sessions {
+			id
+			secure_id
+			client_id
+			fingerprint
+			identifier
+			identified
+			os_name
+			os_version
+			browser_name
+			browser_version
+			city
+			state
+			country
+			postal
+			created_at
+			language
+			length
+			active_length
+			enable_recording_network_contents
+			viewed
+			starred
+			processed
+			has_rage_clicks
+			has_errors
+			fields {
+				name
+				value
+				type
+				id
+			}
+			first_time
+			user_properties
+			event_counts
+			last_user_interaction_time
+		}
+		totalCount
+	}
+}
+
+query GetSessionsHistogram(
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
+) {
+	sessions_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		sessions_without_errors
+		sessions_with_errors
+		total_sessions
+	}
 }
 
 query GetErrorGroupsOpenSearch(
-    $project_id: ID!
-    $count: Int!
-    $query: String!
-    $page: Int
+	$project_id: ID!
+	$count: Int!
+	$query: String!
+	$page: Int
 ) {
-    error_groups_opensearch(
-        project_id: $project_id
-        count: $count
-        query: $query
-        page: $page
-    ) {
-        error_groups {
-            created_at
-            id
-            secure_id
-            type
-            event
-            state
-            state
-            environments
-            stack_trace
-            structured_stack_trace {
-                fileName
-                lineNumber
-                functionName
-                columnNumber
-            }
-            metadata_log {
-                error_id
-                session_secure_id
-                timestamp
-            }
-            error_frequency
-        }
-        totalCount
-    }
+	error_groups_opensearch(
+		project_id: $project_id
+		count: $count
+		query: $query
+		page: $page
+	) {
+		error_groups {
+			created_at
+			id
+			secure_id
+			type
+			event
+			state
+			state
+			environments
+			stack_trace
+			structured_stack_trace {
+				fileName
+				lineNumber
+				functionName
+				columnNumber
+			}
+			error_frequency
+		}
+		totalCount
+	}
+}
+
+query GetErrorsHistogram(
+	$project_id: ID!
+	$query: String!
+	$histogram_options: DateHistogramOptions!
+) {
+	errors_histogram(
+		project_id: $project_id
+		query: $query
+		histogram_options: $histogram_options
+	) {
+		bucket_times
+		error_objects
+	}
 }
 
 query GetProjects {
-    projects {
-        id
-        name
-        workspace_id
-    }
+	projects {
+		id
+		name
+		workspace_id
+	}
 }
 
 query GetWorkspace($id: ID!) {
-    workspace(id: $id) {
-        id
-        name
-        secret
-        plan_tier
-        clearbit_enabled
-        projects {
-            id
-            name
-        }
-    }
+	workspace(id: $id) {
+		id
+		name
+		secret
+		plan_tier
+		unlimited_members
+		clearbit_enabled
+		projects {
+			id
+			name
+		}
+	}
 }
 
 query GetWorkspaces {
-    workspaces {
-        id
-        name
-    }
-    joinable_workspaces {
-        id
-        name
-    }
+	workspaces {
+		id
+		name
+	}
+	joinable_workspaces {
+		id
+		name
+		projects {
+			id
+		}
+	}
 }
 
 query GetWorkspacesCount {
-    workspaces_count
+	workspaces_count
 }
 
 query GetProjectsAndWorkspaces {
-    projects {
-        id
-        name
-    }
-    workspaces {
-        id
-        name
-    }
+	projects {
+		id
+		name
+	}
+	workspaces {
+		id
+		name
+	}
 }
 
 query GetProjectOrWorkspace(
-    $project_id: ID!
-    $workspace_id: ID!
-    $is_workspace: Boolean!
+	$project_id: ID!
+	$workspace_id: ID!
+	$is_workspace: Boolean!
 ) {
-    project(id: $project_id) @skip(if: $is_workspace) {
-        id
-        name
-        billing_email
-    }
-    workspace(id: $workspace_id) @include(if: $is_workspace) {
-        id
-        name
-    }
+	project(id: $project_id) @skip(if: $is_workspace) {
+		id
+		name
+		billing_email
+	}
+	workspace(id: $workspace_id) @include(if: $is_workspace) {
+		id
+		name
+	}
 }
 
 query GetProjectDropdownOptions($project_id: ID!) {
-    project(id: $project_id) {
-        id
-        name
-        verbose_id
-        billing_email
-        secret
-        workspace_id
-    }
-    workspace: workspace_for_project(project_id: $project_id) {
-        id
-        name
-        projects {
-            id
-            name
-        }
-    }
-    workspaces {
-        id
-        name
-    }
-    joinable_workspaces {
-        id
-        name
-    }
+	project(id: $project_id) {
+		id
+		name
+		verbose_id
+		billing_email
+		secret
+		workspace_id
+	}
+	workspace: workspace_for_project(project_id: $project_id) {
+		id
+		name
+		projects {
+			id
+			name
+		}
+	}
+	workspaces {
+		id
+		name
+	}
+	joinable_workspaces {
+		id
+		name
+		projects {
+			id
+		}
+	}
 }
 
 query GetWorkspaceDropdownOptions($workspace_id: ID!) {
-    workspace(id: $workspace_id) {
-        id
-        name
-        projects {
-            id
-            name
-        }
-    }
-    workspaces {
-        id
-        name
-    }
-    joinable_workspaces {
-        id
-        name
-    }
+	workspace(id: $workspace_id) {
+		id
+		name
+		projects {
+			id
+			name
+		}
+	}
+	workspaces {
+		id
+		name
+	}
+	joinable_workspaces {
+		id
+		name
+		projects {
+			id
+		}
+	}
 }
 
 query GetAdmin {
-    admin {
-        id
-        uid
-        name
-        email
-        phone
-        photo_url
-        slack_im_channel_id
-        role
-        email_verified
-        user_defined_role
-        about_you_details_filled
-    }
+	admin {
+		id
+		uid
+		name
+		email
+		phone
+		photo_url
+		slack_im_channel_id
+		email_verified
+		user_defined_role
+		about_you_details_filled
+	}
+}
+
+query GetAdminRole($workspace_id: ID!) {
+	admin_role(workspace_id: $workspace_id) {
+		admin {
+			id
+			uid
+			name
+			email
+			phone
+			photo_url
+			slack_im_channel_id
+			email_verified
+			user_defined_role
+			about_you_details_filled
+		}
+		role
+	}
+}
+
+query GetAdminRoleByProject($project_id: ID!) {
+	admin_role_by_project(project_id: $project_id) {
+		admin {
+			id
+			uid
+			name
+			email
+			phone
+			photo_url
+			slack_im_channel_id
+			email_verified
+			user_defined_role
+			about_you_details_filled
+		}
+		role
+	}
 }
 
 query GetAdminAboutYou {
-    admin {
-        id
-        name
-        user_defined_role
-        referral
-    }
+	admin {
+		id
+		name
+		user_defined_role
+		referral
+	}
 }
 
 query GetProject($id: ID!) {
-    project(id: $id) {
-        id
-        name
-        verbose_id
-        billing_email
-        excluded_users
-        rage_click_window_seconds
-        rage_click_radius_pixels
-        rage_click_count
-    }
-    workspace: workspace_for_project(project_id: $id) {
-        id
-        slack_webhook_channel
-    }
+	project(id: $id) {
+		id
+		name
+		verbose_id
+		billing_email
+		excluded_users
+		error_json_paths
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+		secret
+	}
+	workspace: workspace_for_project(project_id: $id) {
+		id
+		slack_webhook_channel
+	}
 }
 
 query GetBillingDetailsForProject($project_id: ID!) {
-    billingDetailsForProject(project_id: $project_id) {
-        plan {
-            type
-            quota
-            interval
-            membersLimit
-        }
-        meter
-        membersMeter
-        sessionsOutOfQuota
-    }
-    workspace_for_project(project_id: $project_id) {
-        id
-        trial_end_date
-        billing_period_end
-        next_invoice_date
-        allow_meter_overage
-        eligible_for_trial_extension
-        trial_extension_enabled
-    }
+	billingDetailsForProject(project_id: $project_id) {
+		plan {
+			type
+			quota
+			interval
+			membersLimit
+		}
+		meter
+		membersMeter
+		sessionsOutOfQuota
+	}
+	workspace_for_project(project_id: $project_id) {
+		id
+		trial_end_date
+		billing_period_end
+		next_invoice_date
+		allow_meter_overage
+		eligible_for_trial_extension
+		trial_extension_enabled
+	}
 }
 
 query GetBillingDetails($workspace_id: ID!) {
-    billingDetails(workspace_id: $workspace_id) {
-        plan {
-            type
-            quota
-            interval
-            membersLimit
-        }
-        meter
-        membersMeter
-    }
-    workspace(id: $workspace_id) {
-        id
-        trial_end_date
-        billing_period_end
-        next_invoice_date
-        allow_meter_overage
-        eligible_for_trial_extension
-    }
+	billingDetails(workspace_id: $workspace_id) {
+		plan {
+			type
+			quota
+			interval
+			membersLimit
+		}
+		meter
+		membersMeter
+	}
+	workspace(id: $workspace_id) {
+		id
+		trial_end_date
+		billing_period_end
+		next_invoice_date
+		allow_meter_overage
+		eligible_for_trial_extension
+	}
 }
 
 query GetSubscriptionDetails($workspace_id: ID!) {
-    subscription_details(workspace_id: $workspace_id) {
-        baseAmount
-        discountAmount
-        discountPercent
-        lastInvoice {
-            amountDue
-            amountPaid
-            attemptCount
-            date
-            url
-            status
-        }
-    }
+	subscription_details(workspace_id: $workspace_id) {
+		baseAmount
+		discountAmount
+		discountPercent
+		lastInvoice {
+			amountDue
+			amountPaid
+			attemptCount
+			date
+			url
+			status
+		}
+	}
 }
 
 query GetErrorGroup($secure_id: String!) {
-    error_group(secure_id: $secure_id) {
-        created_at
-        id
-        secure_id
-        type
-        project_id
-        event
-        state
-        structured_stack_trace {
-            fileName
-            lineNumber
-            functionName
-            columnNumber
-            lineContent
-            linesBefore
-            linesAfter
-            error
-        }
-        mapped_stack_trace
-        stack_trace
-        metadata_log {
-            error_id
-            session_secure_id
-            environment
-            timestamp
-            os
-            browser
-            visited_url
-            fingerprint
-            identifier
-            user_properties
-            request_id
-        }
-        fields {
-            name
-            value
-        }
-        error_frequency
-        is_public
-    }
+	error_group(secure_id: $secure_id) {
+		created_at
+		id
+		secure_id
+		type
+		project_id
+		event
+		state
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+			lineContent
+			linesBefore
+			linesAfter
+			error
+		}
+		mapped_stack_trace
+		stack_trace
+		fields {
+			name
+			value
+		}
+		error_frequency
+		is_public
+	}
+}
+
+query GetRecentErrors($secure_id: String!) {
+	error_group(secure_id: $secure_id) {
+		secure_id
+		metadata_log {
+			error_id
+			session_secure_id
+			environment
+			timestamp
+			os
+			browser
+			visited_url
+			fingerprint
+			identifier
+			user_properties
+			request_id
+			payload
+		}
+	}
 }
 
 query GetMessages($session_secure_id: String!) {
-    messages(session_secure_id: $session_secure_id)
+	messages(session_secure_id: $session_secure_id)
 }
 
 query GetResources($session_secure_id: String!) {
-    resources(session_secure_id: $session_secure_id)
+	resources(session_secure_id: $session_secure_id)
 }
 
 query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
-    field_suggestion(project_id: $project_id, name: $name, query: $query) {
-        name
-        value
-    }
+	field_suggestion(project_id: $project_id, name: $name, query: $query) {
+		name
+		value
+	}
 }
 
 query GetEnvironments($project_id: ID!) {
-    environment_suggestion(project_id: $project_id) {
-        name
-        value
-    }
+	environment_suggestion(project_id: $project_id) {
+		name
+		value
+	}
 }
 
 query GetAppVersions($project_id: ID!) {
-    app_version_suggestion(project_id: $project_id)
+	app_version_suggestion(project_id: $project_id)
 }
 
 query GetProjectSuggestion($query: String!) {
-    projectSuggestion(query: $query) {
-        id
-        name
-        workspace_id
-    }
-    workspaceSuggestion(query: $query) {
-        id
-        name
-    }
+	projectSuggestion(query: $query) {
+		id
+		name
+		workspace_id
+	}
+	workspaceSuggestion(query: $query) {
+		id
+		name
+	}
 }
 
 query GetErrorFieldSuggestion(
-    $project_id: ID!
-    $name: String!
-    $query: String!
+	$project_id: ID!
+	$name: String!
+	$query: String!
 ) {
-    error_field_suggestion(
-        project_id: $project_id
-        name: $name
-        query: $query
-    ) {
-        name
-        value
-    }
+	error_field_suggestion(
+		project_id: $project_id
+		name: $name
+		query: $query
+	) {
+		name
+		value
+	}
 }
 
 query GetErrorSearchSuggestions($project_id: ID!, $query: String!) {
-    visitedUrls: error_field_suggestion(
-        project_id: $project_id
-        name: "visited_url"
-        query: $query
-    ) {
-        name
-        value
-    }
-    fields: error_field_suggestion(
-        project_id: $project_id
-        name: "event"
-        query: $query
-    ) {
-        name
-        value
-    }
+	visitedUrls: error_field_suggestion(
+		project_id: $project_id
+		name: "visited_url"
+		query: $query
+	) {
+		name
+		value
+	}
+	fields: error_field_suggestion(
+		project_id: $project_id
+		name: "event"
+		query: $query
+	) {
+		name
+		value
+	}
 }
 
 query GetSessionSearchResults($project_id: ID!, $query: String!) {
-    trackProperties: property_suggestion(
-        project_id: $project_id
-        query: $query
-        type: "track"
-    ) {
-        id
-        name
-        value
-    }
-    userProperties: property_suggestion(
-        project_id: $project_id
-        query: $query
-        type: "user"
-    ) {
-        id
-        name
-        value
-    }
-    visitedUrls: field_suggestion(
-        project_id: $project_id
-        name: "visited-url"
-        query: $query
-    ) {
-        id
-        name
-        value
-    }
-    referrers: field_suggestion(
-        project_id: $project_id
-        name: "referrer"
-        query: $query
-    ) {
-        id
-        name
-        value
-    }
+	trackProperties: property_suggestion(
+		project_id: $project_id
+		query: $query
+		type: "track"
+	) {
+		id
+		name
+		value
+	}
+	userProperties: property_suggestion(
+		project_id: $project_id
+		query: $query
+		type: "user"
+	) {
+		id
+		name
+		value
+	}
+	visitedUrls: field_suggestion(
+		project_id: $project_id
+		name: "visited-url"
+		query: $query
+	) {
+		id
+		name
+		value
+	}
+	referrers: field_suggestion(
+		project_id: $project_id
+		name: "referrer"
+		query: $query
+	) {
+		id
+		name
+		value
+	}
 }
 
 query GetTrackSuggestion($project_id: ID!, $query: String!) {
-    property_suggestion(project_id: $project_id, query: $query, type: "track") {
-        id
-        name
-        value
-    }
+	property_suggestion(project_id: $project_id, query: $query, type: "track") {
+		id
+		name
+		value
+	}
 }
 
 query GetUserSuggestion($project_id: ID!, $query: String!) {
-    property_suggestion(project_id: $project_id, query: $query, type: "user") {
-        id
-        name
-        value
-    }
+	property_suggestion(project_id: $project_id, query: $query, type: "user") {
+		id
+		name
+		value
+	}
 }
 
 query GetSegments($project_id: ID!) {
-    segments(project_id: $project_id) {
-        id
-        name
-        params {
-            user_properties {
-                name
-                value
-            }
-            excluded_properties {
-                name
-                value
-            }
-            track_properties {
-                name
-                value
-            }
-            date_range {
-                start_date
-                end_date
-            }
-            length_range {
-                min
-                max
-            }
-            os
-            browser
-            visited_url
-            referrer
-            identified
-            hide_viewed
-            first_time
-            app_versions
-            environments
-            device_id
-            show_live_sessions
-            query
-        }
-    }
+	segments(project_id: $project_id) {
+		id
+		name
+		params {
+			user_properties {
+				name
+				value
+			}
+			excluded_properties {
+				name
+				value
+			}
+			track_properties {
+				name
+				value
+			}
+			date_range {
+				start_date
+				end_date
+			}
+			length_range {
+				min
+				max
+			}
+			os
+			browser
+			visited_url
+			referrer
+			identified
+			hide_viewed
+			first_time
+			app_versions
+			environments
+			device_id
+			show_live_sessions
+			query
+		}
+	}
 }
 
 query GetErrorSegments($project_id: ID!) {
-    error_segments(project_id: $project_id) {
-        id
-        name
-        params {
-            date_range {
-                start_date
-                end_date
-            }
-            os
-            browser
-            visited_url
-            state
-            event
-            query
-        }
-    }
+	error_segments(project_id: $project_id) {
+		id
+		name
+		params {
+			date_range {
+				start_date
+				end_date
+			}
+			os
+			browser
+			visited_url
+			state
+			event
+			query
+		}
+	}
 }
 
 query IsIntegrated($project_id: ID!) {
-    isIntegrated(project_id: $project_id)
+	isIntegrated(project_id: $project_id)
 }
 
 query IsBackendIntegrated($project_id: ID!) {
-    isBackendIntegrated(project_id: $project_id)
+	isBackendIntegrated(project_id: $project_id)
 }
 
 query GetKeyPerformanceIndicators($project_id: ID!, $lookBackPeriod: Int!) {
-    unprocessedSessionsCount(project_id: $project_id)
-    liveUsersCount(project_id: $project_id)
-    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-        count
-    }
-    averageSessionLength(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
-        length
-    }
-    userFingerprintCount(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
-        count
-    }
+	unprocessedSessionsCount(project_id: $project_id)
+	liveUsersCount(project_id: $project_id)
+	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+		count
+	}
+	averageSessionLength(
+		project_id: $project_id
+		lookBackPeriod: $lookBackPeriod
+	) {
+		length
+	}
+	userFingerprintCount(
+		project_id: $project_id
+		lookBackPeriod: $lookBackPeriod
+	) {
+		count
+	}
 }
 
 query GetReferrersCount($project_id: ID!, $lookBackPeriod: Int!) {
-    referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-        host
-        count
-        percent
-    }
+	referrers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+		host
+		count
+		percent
+	}
 }
 
 query GetNewUsersCount($project_id: ID!, $lookBackPeriod: Int!) {
-    newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-        count
-    }
+	newUsersCount(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+		count
+	}
 }
 
 query GetAverageSessionLength($project_id: ID!, $lookBackPeriod: Int!) {
-    averageSessionLength(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
-        length
-    }
+	averageSessionLength(
+		project_id: $project_id
+		lookBackPeriod: $lookBackPeriod
+	) {
+		length
+	}
 }
 
 query GetTopUsers($project_id: ID!, $lookBackPeriod: Int!) {
-    topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-        identifier
-        total_active_time
-        active_time_percentage
-        id
-        user_properties
-    }
+	topUsers(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
+		identifier
+		total_active_time
+		active_time_percentage
+		id
+		user_properties
+	}
 }
 
 query GetDailySessionsCount($project_id: ID!, $date_range: DateRangeInput!) {
-    dailySessionsCount(project_id: $project_id, date_range: $date_range) {
-        date
-        count
-    }
+	dailySessionsCount(project_id: $project_id, date_range: $date_range) {
+		date
+		count
+	}
 }
 
 query GetDailyErrorsCount($project_id: ID!, $date_range: DateRangeInput!) {
-    dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
-        date
-        count
-    }
+	dailyErrorsCount(project_id: $project_id, date_range: $date_range) {
+		date
+		count
+	}
 }
 
 query GetRageClicksForProject($project_id: ID!, $lookBackPeriod: Int!) {
-    rageClicksForProject(
-        project_id: $project_id
-        lookBackPeriod: $lookBackPeriod
-    ) {
-        identifier
-        session_secure_id
-        total_clicks
-        user_properties
-    }
+	rageClicksForProject(
+		project_id: $project_id
+		lookBackPeriod: $lookBackPeriod
+	) {
+		identifier
+		session_secure_id
+		total_clicks
+		user_properties
+	}
 }
 
 query GetDailyErrorFrequency(
-    $project_id: ID!
-    $error_group_secure_id: String!
-    $date_offset: Int!
+	$project_id: ID!
+	$error_group_secure_id: String!
+	$date_offset: Int!
 ) {
-    dailyErrorFrequency(
-        project_id: $project_id
-        error_group_secure_id: $error_group_secure_id
-        date_offset: $date_offset
-    )
+	dailyErrorFrequency(
+		project_id: $project_id
+		error_group_secure_id: $error_group_secure_id
+		date_offset: $date_offset
+	)
 }
 
 query GetErrorDistribution(
-    $project_id: ID!
-    $error_group_secure_id: String!
-    $property: String!
+	$project_id: ID!
+	$error_group_secure_id: String!
+	$property: String!
 ) {
-    errorDistribution(
-        project_id: $project_id
-        error_group_secure_id: $error_group_secure_id
-        property: $property
-    ) {
-        name
-        value
-    }
+	errorDistribution(
+		project_id: $project_id
+		error_group_secure_id: $error_group_secure_id
+		property: $property
+	) {
+		name
+		value
+	}
 }
 
 query GetSlackChannelSuggestion($project_id: ID!) {
-    slack_channel_suggestion(project_id: $project_id) {
-        webhook_channel
-        webhook_channel_id
-    }
+	slack_channel_suggestion(project_id: $project_id) {
+		webhook_channel
+		webhook_channel_id
+	}
 }
 
 query GetWorkspaceIsIntegratedWithSlack($project_id: ID!) {
-    is_integrated_with_slack: is_integrated_with(
-        integration_type: Slack
-        project_id: $project_id
-    )
+	is_integrated_with_slack: is_integrated_with(
+		integration_type: Slack
+		project_id: $project_id
+	)
 }
 
 query GetWorkspaceIsIntegratedWithLinear($project_id: ID!) {
-    is_integrated_with_linear: is_integrated_with(
-        integration_type: Linear
-        project_id: $project_id
-    )
-    linear_teams(project_id: $project_id) {
-        team_id
-        name
-        key
-    }
+	is_integrated_with_linear: is_integrated_with(
+		integration_type: Linear
+		project_id: $project_id
+	)
+	linear_teams(project_id: $project_id) {
+		team_id
+		name
+		key
+	}
 }
 
 query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
-    is_integrated_with_linear: is_integrated_with(
-        integration_type: Zapier
-        project_id: $project_id
-    )
+	is_integrated_with_linear: is_integrated_with(
+		integration_type: Zapier
+		project_id: $project_id
+	)
 }
 
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
-    generate_zapier_access_token(project_id: $project_id)
+	generate_zapier_access_token(project_id: $project_id)
 }
 
 query GetIdentifierSuggestions($project_id: ID!, $query: String!) {
-    identifier_suggestion(project_id: $project_id, query: $query)
+	identifier_suggestion(project_id: $project_id, query: $query)
 }
 
 query GetAlertsPagePayload($project_id: ID!) {
-    is_integrated_with_slack: is_integrated_with(
-        integration_type: Slack
-        project_id: $project_id
-    )
-    slack_channel_suggestion(project_id: $project_id) {
-        webhook_channel
-        webhook_channel_id
-    }
-    admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
-    }
-    environment_suggestion(project_id: $project_id) {
-        name
-        value
-    }
-    error_alerts(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        updated_at
-        CountThreshold
-        LastAdminToEditID
-        ThresholdWindow
-        RegexGroups
-        Frequency
-        id
-        Type
-        Name
-        DailyFrequency
-        disabled
-    }
-    session_feedback_alerts(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        updated_at
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        LastAdminToEditID
-        id
-        Name
-        Type
-        DailyFrequency
-        disabled
-    }
-    new_session_alerts(project_id: $project_id) {
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        updated_at
-        LastAdminToEditID
-        Name
-        id
-        Type
-        ExcludeRules
-        DailyFrequency
-        disabled
-    }
-    rage_click_alerts(project_id: $project_id) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        ThresholdWindow
-        updated_at
-        LastAdminToEditID
-        Name
-        Type
-        DailyFrequency
-        disabled
-    }
-    new_user_alerts(project_id: $project_id) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        ExcludedEnvironments
-        CountThreshold
-        updated_at
-        LastAdminToEditID
-        Name
-        Type
-        DailyFrequency
-        disabled
-    }
-    track_properties_alerts(project_id: $project_id) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        TrackProperties {
-            id
-            name
-            value
-        }
-        ExcludedEnvironments
-        updated_at
-        LastAdminToEditID
-        CountThreshold
-        Name
-        Type
-        DailyFrequency
-        disabled
-    }
-    user_properties_alerts(project_id: $project_id) {
-        id
-        ChannelsToNotify {
-            webhook_channel
-            webhook_channel_id
-        }
-        EmailsToNotify
-        UserProperties {
-            id
-            name
-            value
-        }
-        ExcludedEnvironments
-        updated_at
-        LastAdminToEditID
-        CountThreshold
-        Name
-        Type
-        DailyFrequency
-        disabled
-    }
-    metric_monitors(project_id: $project_id) {
-        id
-        updated_at
-        name
-        channels_to_notify {
-            webhook_channel
-            webhook_channel_id
-        }
-        emails_to_notify
-        function
-        metric_to_monitor
-        last_admin_to_edit_id
-        threshold
-        disabled
-    }
+	is_integrated_with_slack: is_integrated_with(
+		integration_type: Slack
+		project_id: $project_id
+	)
+	slack_channel_suggestion(project_id: $project_id) {
+		webhook_channel
+		webhook_channel_id
+	}
+	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		admin {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+	environment_suggestion(project_id: $project_id) {
+		name
+		value
+	}
+	error_alerts(project_id: $project_id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		updated_at
+		CountThreshold
+		LastAdminToEditID
+		ThresholdWindow
+		RegexGroups
+		Frequency
+		id
+		Type
+		Name
+		DailyFrequency
+		disabled
+	}
+	session_feedback_alerts(project_id: $project_id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		updated_at
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		LastAdminToEditID
+		id
+		Name
+		Type
+		DailyFrequency
+		disabled
+	}
+	new_session_alerts(project_id: $project_id) {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		updated_at
+		LastAdminToEditID
+		Name
+		id
+		Type
+		ExcludeRules
+		DailyFrequency
+		disabled
+	}
+	rage_click_alerts(project_id: $project_id) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		ThresholdWindow
+		updated_at
+		LastAdminToEditID
+		Name
+		Type
+		DailyFrequency
+		disabled
+	}
+	new_user_alerts(project_id: $project_id) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		ExcludedEnvironments
+		CountThreshold
+		updated_at
+		LastAdminToEditID
+		Name
+		Type
+		DailyFrequency
+		disabled
+	}
+	track_properties_alerts(project_id: $project_id) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		TrackProperties {
+			id
+			name
+			value
+		}
+		ExcludedEnvironments
+		updated_at
+		LastAdminToEditID
+		CountThreshold
+		Name
+		Type
+		DailyFrequency
+		disabled
+	}
+	user_properties_alerts(project_id: $project_id) {
+		id
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		EmailsToNotify
+		UserProperties {
+			id
+			name
+			value
+		}
+		ExcludedEnvironments
+		updated_at
+		LastAdminToEditID
+		CountThreshold
+		Name
+		Type
+		DailyFrequency
+		disabled
+	}
+	metric_monitors(project_id: $project_id) {
+		id
+		updated_at
+		name
+		channels_to_notify {
+			webhook_channel
+			webhook_channel_id
+		}
+		emails_to_notify
+		aggregator
+		period_minutes
+		metric_to_monitor
+		last_admin_to_edit_id
+		threshold
+		filters {
+			tag
+			op
+			value
+		}
+		units
+		disabled
+	}
+}
+
+query GetMetricMonitors($project_id: ID!, $metric_name: String!) {
+	metric_monitors(project_id: $project_id, metric_name: $metric_name) {
+		id
+		updated_at
+		name
+		metric_to_monitor
+	}
 }
 
 query GetCommentMentionSuggestions($project_id: ID!) {
-    admins: workspace_admins_by_project_id(project_id: $project_id) {
-        id
-        name
-        email
-        photo_url
-    }
-    slack_members(project_id: $project_id) {
-        webhook_channel
-        webhook_channel_id
-    }
+	admins: workspace_admins_by_project_id(project_id: $project_id) {
+		admin {
+			id
+			name
+			email
+			photo_url
+		}
+	}
+	slack_members(project_id: $project_id) {
+		webhook_channel
+		webhook_channel_id
+	}
 }
 
 query GetCustomerPortalURL($workspace_id: ID!) {
-    customer_portal_url(workspace_id: $workspace_id)
+	customer_portal_url(workspace_id: $workspace_id)
 }
 
 subscription OnSessionPayloadAppended(
-    $session_secure_id: String!
-    $initial_events_count: Int!
+	$session_secure_id: String!
+	$initial_events_count: Int!
 ) {
-    session_payload_appended(
-        session_secure_id: $session_secure_id
-        initial_events_count: $initial_events_count
-    ) {
-        ...SessionPayloadFragment
-    }
+	session_payload_appended(
+		session_secure_id: $session_secure_id
+		initial_events_count: $initial_events_count
+	) {
+		...SessionPayloadFragment
+	}
 }
 
 query GetWebVitals($session_secure_id: String!) {
-    web_vitals(session_secure_id: $session_secure_id) {
-        name
-        value
-    }
+	web_vitals(session_secure_id: $session_secure_id) {
+		name
+		value
+	}
+}
+
+query GetDashboardDefinitions($project_id: ID!) {
+	dashboard_definitions(project_id: $project_id) {
+		id
+		updated_at
+		project_id
+		name
+		metrics {
+			component_type
+			name
+			description
+			max_good_value
+			max_needs_improvement_value
+			poor_value
+			units
+			help_article
+			chart_type
+			aggregator
+			min_value
+			min_percentile
+			max_value
+			max_percentile
+			filters {
+				value
+				op
+				tag
+			}
+			groups
+		}
+		last_admin_to_edit_id
+		layout
+	}
+}
+
+query GetSuggestedMetrics($project_id: ID!, $prefix: String!) {
+	suggested_metrics(project_id: $project_id, prefix: $prefix)
+}
+
+query GetMetricTags($project_id: ID!, $metric_name: String!) {
+	metric_tags(project_id: $project_id, metric_name: $metric_name)
+}
+
+query GetMetricTagValues(
+	$project_id: ID!
+	$metric_name: String!
+	$tag_name: String!
+) {
+	metric_tag_values(
+		project_id: $project_id
+		metric_name: $metric_name
+		tag_name: $tag_name
+	)
+}
+
+query GetSourcemapFiles($project_id: ID!, $version: String) {
+	sourcemap_files(project_id: $project_id, version: $version) {
+		key
+	}
+}
+
+query GetSourcemapVersions($project_id: ID!) {
+	sourcemap_versions(project_id: $project_id)
 }

@@ -13,10 +13,13 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/leonelquinteros/hubspot"
 
 	"gorm.io/gorm"
 
@@ -62,7 +65,6 @@ type Worker struct {
 	Resolver       *mgraph.Resolver
 	PublicResolver *pubgraph.Resolver
 	S3Client       *storage.StorageClient
-	KafkaQueue     *kafkaqueue.Queue
 }
 
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
@@ -151,7 +153,7 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 	return nil
 }
 
-func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
 	var eventRows *sql.Rows
 	var err error
 	var numberOfRows int64 = 0
@@ -198,6 +200,58 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	manager.Events.Length = numberOfRows
+
+	return nil
+}
+
+func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	var numberOfRows int64 = 0
+	eventsWriter := manager.Events.Writer()
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+
+	s3Events, err := w.Resolver.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
+	if err != nil {
+		return errors.Wrap(err, "error retrieving events objects from S3")
+	}
+
+	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
+	if err != nil {
+		return errors.Wrap(err, "error retrieving events objects from Redis")
+	}
+
+	for _, eventObject := range eventsObjects {
+		if err := eventsWriter.Write(&eventObject); err != nil {
+			return errors.Wrap(err, "error writing event row")
+		}
+		if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
+			return errors.Wrap(err, "error writing compressed event row")
+		}
+		numberOfRows += 1
+		if writeChunks {
+			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+				return errors.Wrap(err, "error writing event chunk")
+			}
+		}
+	}
+
+	manager.Events.Length = numberOfRows
+
+	return nil
+}
+
+func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.PayloadManager, s *model.Session) error {
+	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true"
+
+	if s.ProcessWithRedis {
+		if err := w.fetchEventsRedis(ctx, manager, s); err != nil {
+			return errors.Wrap(err, "error fetching events from Redis")
+		}
+	} else {
+		if err := w.fetchEventsSql(ctx, manager, s); err != nil {
+			return errors.Wrap(err, "error fetching events from SQL")
+		}
+	}
+
 	if err := manager.EventsCompressed.Close(); err != nil {
 		return errors.Wrap(err, "error closing compressed events writer")
 	}
@@ -208,7 +262,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 	fileToS3 := manager.GetFile(payload.EventsChunked)
 	if writeChunks && fileToS3 != nil {
-		_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkIndex))
+		_, err := w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, fileToS3, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(manager.ChunkIndex))
 		if err != nil {
 			return errors.Wrap(err, "error pushing event chunk file to s3")
 		}
@@ -220,7 +274,7 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		return errors.Wrap(err, "error retrieving resources objects")
 	}
 	resourceWriter := manager.Resources.Writer()
-	numberOfRows = 0
+	var numberOfRows int64 = 0
 	for resourcesRows.Next() {
 		resourcesObject := model.ResourcesObject{}
 		err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
@@ -269,104 +323,143 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	return nil
 }
 
-func (w *Worker) processPublicWorkerMessage(task *kafkaqueue.Message) {
-	ctx := context.Background()
+func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
+	s, _ := tracer.StartSpanFromContext(ctx, "getSessionID", tracer.ResourceName("worker.getSessionID"))
+	s.SetTag("secure_id", sessionSecureID)
+	defer s.Finish()
+	if sessionSecureID == "" {
+		return 0, e.New("getSessionID called with no secure id")
+	}
+	session := &model.Session{}
+	w.Resolver.DB.Order("secure_id").Select("id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session)
+	if session.ID == 0 {
+		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
+	}
+	id = session.ID
+	return
+}
+
+func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessPayload(
+		if err := w.PublicResolver.ProcessPayload(
 			ctx,
-			task.PushPayload.SessionID,
+			task.PushPayload.SessionSecureID,
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-			task.PushPayload.HighlightLogs)
+			task.PushPayload.HighlightLogs,
+			task.PushPayload.PayloadID); err != nil {
+			log.Error(errors.Wrap(err, "failed to process ProcessPayload task"))
+			return err
+		}
 	case kafkaqueue.InitializeSession:
 		if task.InitializeSession == nil {
 			break
 		}
-		_, err := w.PublicResolver.InitializeSessionImplementation(
-			task.InitializeSession.SessionID,
-			task.InitializeSession.IP)
+		s, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
+		tags := []string{fmt.Sprintf("success:%t", err == nil)}
+		if s != nil {
+			tags = append(tags, fmt.Sprintf("secure_id:%q", s.SecureID), fmt.Sprintf("project_id:%d", s.ProjectID))
+		}
+		hlog.Incr("worker.initializeSession.count", tags, 1)
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to process InitializeSession task"))
+			return err
 		}
 	case kafkaqueue.IdentifySession:
 		if task.IdentifySession == nil {
 			break
 		}
-		err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject)
-		if err != nil {
+		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
 			log.Error(errors.Wrap(err, "failed to process IdentifySession task"))
+			return err
 		}
 	case kafkaqueue.AddTrackProperties:
 		if task.AddTrackProperties == nil {
 			break
 		}
-		err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionID, task.AddTrackProperties.PropertiesObject)
+		sessionID, err := w.getSessionID(ctx, task.AddTrackProperties.SessionSecureID)
 		if err != nil {
+			return err
+		}
+		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+			return err
 		}
 	case kafkaqueue.AddSessionProperties:
 		if task.AddSessionProperties == nil {
 			break
 		}
-		err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionID, task.AddSessionProperties.PropertiesObject)
+		sessionID, err := w.getSessionID(ctx, task.AddSessionProperties.SessionSecureID)
 		if err != nil {
+			return err
+		}
+		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
 			log.Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+			return err
 		}
 	case kafkaqueue.PushBackendPayload:
 		if task.PushBackendPayload == nil {
 			break
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, []string{task.PushBackendPayload.SessionSecureID}, task.PushBackendPayload.Errors)
+		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.Errors)
 	case kafkaqueue.PushMetrics:
 		if task.PushMetrics == nil {
 			break
 		}
-		w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionID, task.PushMetrics.ProjectID, task.PushMetrics.Metrics)
+		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SecureID, task.PushMetrics.Metrics); err != nil {
+			log.Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			return err
+		}
+	case kafkaqueue.MarkBackendSetup:
+		if task.MarkBackendSetup == nil {
+			break
+		}
+		if err := w.PublicResolver.MarkBackendSetupImpl(task.MarkBackendSetup.SecureID, task.MarkBackendSetup.ProjectID); err != nil {
+			log.Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+			return err
+		}
+	case kafkaqueue.AddSessionFeedback:
+		if task.AddSessionFeedback == nil {
+			break
+		}
+		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
+			log.Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
+			return err
+		}
 	default:
 		log.Errorf("Unknown task type %+v", task.Type)
 	}
+	return nil
 }
 
 func (w *Worker) PublicWorker() {
-	if w.KafkaQueue == nil {
-		w.KafkaQueue = kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer)
-	}
-
-	parallelWorkers := 16
-	workerPrefetch := 16
-	// receive messages and submit them to worker pool for processing
-	messages := make(chan *kafkaqueue.Message, parallelWorkers*workerPrefetch)
+	const parallelWorkers = 16
+	// creates N parallel kafka message consumers that process messages.
+	// each consumer is considered part of the same consumer group and gets
+	// allocated a slice of all partitions. this ensures that a particular subset of partitions
+	// is processed serially, so messages in that slice are processed in order.
+	wg := sync.WaitGroup{}
+	wg.Add(parallelWorkers)
 	for i := 0; i < parallelWorkers; i++ {
-		go func() {
-			for {
-				func() {
-					defer util.Recover()
-					task := <-messages
-					s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"), tracer.Tag("taskType", task.Type))
-					defer s.Finish()
-					w.processPublicWorkerMessage(task)
-					w.KafkaQueue.Commit(task.KafkaMessage)
-					hlog.Incr("worker.kafka.processed.total", nil, 1)
-				}()
+		go func(workerId int) {
+			k := KafkaWorker{
+				KafkaQueue:   kafkaqueue.New(os.Getenv("KAFKA_TOPIC"), kafkaqueue.Consumer),
+				Worker:       w,
+				WorkerThread: workerId,
 			}
-		}()
+			k.ProcessMessages()
+			wg.Done()
+		}(i)
 	}
-	for {
-		task := w.KafkaQueue.Receive()
-		if task == nil {
-			log.Errorf("worker retrieved empty message from kafka")
-			continue
-		}
-		messages <- task
-	}
+	wg.Wait()
 }
 
 // Delete data for any sessions created > 4 hours ago
@@ -460,7 +553,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Delete any event chunks which were previously written for this session
 	if err := w.Resolver.DB.Exec(`
-		DELETE 
+		DELETE
 		FROM event_chunks
 		WHERE session_id = ?
 	`, s.ID).Error; err != nil {
@@ -491,7 +584,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	//Delete the session if there's no events.
 	if payloadManager.Events.Length == 0 && s.Length <= 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("deleting session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
+			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
 		s.Excluded = &model.T
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
@@ -580,6 +673,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	if err := w.Resolver.DB.Where("session_secure_id = ?", s.SecureID).Delete(&model.SessionInterval{}).Error; err != nil {
 		log.Error(e.Wrap(err, "error deleting outdated session intervals"))
+	}
+
+	if len(userInteractionEvents) == 0 {
+		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
+		return w.excludeSession(ctx, s)
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
@@ -705,7 +803,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 2. A web crawler visited the page and produced no events
 	if accumulator.ActiveDuration == 0 {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("deleting session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
+			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
 		return w.excludeSession(ctx, s)
 	}
 
@@ -713,6 +811,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
 		return w.excludeSession(ctx, s)
 	}
+
+	visitFields := []model.Field{}
+	if err := w.Resolver.DB.Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
+		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
+	}
+
+	pagesVisited := len(visitFields)
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -724,6 +829,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			EventCounts:         &eventCountsString,
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
+			PagesVisited:        pagesVisited,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -735,8 +841,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
 		"EventCounts":     eventCountsString,
 		"has_rage_clicks": hasRageClicks,
+		"pages_visited":   pagesVisited,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	sessionProperties := map[string]string{
+		"landing_page": visitFields[0].Value,
+		"exit_page":    visitFields[len(visitFields)-1].Value,
+	}
+	if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+		log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 	}
 
 	// Update session count on dailydb
@@ -850,7 +965,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 func (w *Worker) Start() {
 	ctx := context.Background()
 	payloadLookbackPeriod := 60 // a session must be stale for at least this long to be processed
-	lockPeriod := 10            // time in minutes
+	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
 		payloadLookbackPeriod = 16
@@ -859,14 +974,18 @@ func (w *Worker) Start() {
 
 	go reportProcessSessionCount(w.Resolver.DB, payloadLookbackPeriod, lockPeriod)
 	maxWorkerCount := 10
-	processSessionLimit := 1000
+	processSessionLimit := 500
+	wp := workerpool.New(maxWorkerCount)
+	wp.SetPanicHandler(util.Recover)
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		sessionLimitJitter := rand.Intn(250)
+		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
 		if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+			transactionCtx, cancel := context.WithTimeout(ctx, 20*time.Minute)
 			defer cancel()
 
 			errs := make(chan error, 1)
@@ -877,19 +996,24 @@ func (w *Worker) Start() {
 							UPDATE sessions
 							SET lock=NOW()
 							WHERE id in (
-								SELECT id
-								FROM sessions
-								WHERE (processed = ?)
-									AND (COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-									AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-									AND (COALESCE(retry_count, 0) < ?)
-								LIMIT ?
+								SELECT ID FROM (
+									SELECT id
+									FROM sessions
+									WHERE (processed = false) 
+										AND (excluded = false)
+										AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+										AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+										AND (retry_count < ?)
+									LIMIT ?
+									FOR UPDATE SKIP LOCKED
+								) s
+								ORDER BY id
 								FOR UPDATE SKIP LOCKED
 							)
 							RETURNING *
 						)
 						SELECT * FROM t;
-					`, false, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, processSessionLimit). // why do we get payload_updated_at IS NULL?
+					`, payloadLookbackPeriod, lockPeriod, MAX_RETRIES, limit). // why do we get payload_updated_at IS NULL?
 					Find(&sessions).Error; err != nil {
 					errs <- err
 					return
@@ -930,9 +1054,6 @@ func (w *Worker) Start() {
 			log.Infof("sessions that will be processed: %v", sessionIds)
 		}
 
-		wp := workerpool.New(maxWorkerCount)
-		wp.SetPanicHandler(util.Recover)
-		// process 80 sessions at a time.
 		for _, session := range sessions {
 			session := session
 			ctx := ctx
@@ -941,7 +1062,7 @@ func (w *Worker) Start() {
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded *bool
-					if nextCount >= MAX_RETRIES {
+					if nextCount >= MAX_RETRIES || strings.Contains(err.Error(), "The payload has an IncrementalSnapshot before the first FullSnapshot") {
 						excluded = &model.T
 					}
 
@@ -966,7 +1087,11 @@ func (w *Worker) Start() {
 				span.Finish()
 			})
 		}
-		wp.StopWait()
+
+		// While the waiting queue is saturated, sleep. Else, continue reading sessions to be processed.
+		for wp.WaitingQueueSize() >= processSessionLimit {
+			time.Sleep(1 * time.Second)
+		}
 	}
 }
 
@@ -980,6 +1105,24 @@ func (w *Worker) UpdateOpenSearchIndex() {
 	w.IndexErrorGroups(true)
 	w.IndexErrorObjects(true)
 	w.IndexSessions(true)
+
+	// Close the indexer channel and flush remaining items
+	if err := w.Resolver.OpenSearch.Close(); err != nil {
+		log.Fatalf("OPENSEARCH_ERROR unexpected error while closing OpenSearch client: %+v", err)
+	}
+
+	// Report the indexer statistics
+	stats := w.Resolver.OpenSearch.BulkIndexer.Stats()
+	if stats.NumFailed > 0 {
+		log.Errorf("Indexed [%d] documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+	} else {
+		log.Infof("Successfully indexed [%d] documents", stats.NumFlushed)
+	}
+}
+
+func (w *Worker) InitializeOpenSearchSessions() {
+	w.InitIndexMappings()
+	w.IndexSessions(false)
 
 	// Close the indexer channel and flush remaining items
 	if err := w.Resolver.OpenSearch.Close(); err != nil {
@@ -1018,7 +1161,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.MailClient, w.Resolver.RH)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) RefreshMaterializedViews() {
@@ -1041,18 +1184,40 @@ func (w *Worker) RefreshMaterializedViews() {
 		log.Fatal(e.Wrap(err, "Error refreshing daily_session_counts_view"))
 	}
 
-	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {
-		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", REFRESH_MATERIALIZED_VIEW_TIMEOUT)).Error
-		if err != nil {
-			return err
-		}
+	type AggregateSessionCount struct {
+		WorkspaceID int   `json:"workspace_id"`
+		Count       int64 `json:"count"`
+	}
+	counts := []AggregateSessionCount{}
 
-		return tx.Exec(`
-			REFRESH MATERIALIZED VIEW CONCURRENTLY fields_in_use_view;
-		`).Error
+	if err := w.Resolver.DB.Raw(`
+		SELECT p.workspace_id, sum(d.count) as count
+		FROM daily_session_counts_view d
+		INNER JOIN projects p
+		ON d.project_id = p.id
+		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
+		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+	}
 
-	}); err != nil {
-		log.Fatal(e.Wrap(err, "Error refreshing fields_in_use_view"))
+	var g errgroup.Group
+	for _, c := range counts {
+		c := c
+		g.Go(func() error {
+			if !util.IsDevOrTestEnv() {
+				if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
+					Name:     "highlight_session_count",
+					Property: "highlight_session_count",
+					Value:    c.Count,
+				}}); err != nil {
+					return e.Wrap(err, "error updating highlight session count in hubspot")
+				}
+			}
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -1117,6 +1282,8 @@ func (w *Worker) GetHandler(handlerFlag string) func() {
 		return w.ReportStripeUsage
 	case "init-opensearch":
 		return w.InitializeOpenSearchIndex
+	case "init-opensearch-sessions":
+		return w.InitializeOpenSearchSessions
 	case "update-opensearch":
 		return w.UpdateOpenSearchIndex
 	case "metric-monitors":
@@ -1362,17 +1529,16 @@ func processEventChunk(a EventProcessingAccumulator, eventsChunk model.EventsObj
 func reportProcessSessionCount(db *gorm.DB, lookbackPeriod, lockPeriod int) {
 	defer util.Recover()
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Minute)
 		var count int64
 		if err := db.Raw(`
 			SELECT COUNT(*)
 			FROM sessions
-			WHERE
-				(COALESCE(payload_updated_at, to_timestamp(0)) < NOW() - (? * INTERVAL '1 SECOND'))
-				AND (COALESCE(lock, to_timestamp(0)) < NOW() - (? * INTERVAL '1 MINUTE'))
-				AND (COALESCE(retry_count, 0) < ?)
-				AND NOT processed
-				AND NOT excluded;
+			WHERE (processed = false) 
+				AND (excluded = false)
+				AND (payload_updated_at < NOW() - (? * INTERVAL '1 SECOND'))
+				AND (lock is null OR lock < NOW() - (? * INTERVAL '1 MINUTE'))
+				AND (retry_count < ?)
 			`, lookbackPeriod, lockPeriod, MAX_RETRIES).Scan(&count).Error; err != nil {
 			log.Error(e.Wrap(err, "error getting count of sessions to process"))
 			continue

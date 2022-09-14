@@ -1,23 +1,29 @@
 .buttonBody {
-    column-gap: 30px;
-    display: grid;
-    gap: 0 0;
-    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
-    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
-    height: 100%;
-    padding-left: 100px;
-    padding-top: 100px;
-    width: 100%;
+	column-gap: 30px;
+	display: grid;
+	gap: 0 0;
+	grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
+	grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
+	height: 100%;
+	padding-left: 100px;
+	padding-top: 100px;
+	width: 100%;
 }
 
 .hitTargets {
-    column-gap: 30px;
-    height: 100%;
-    padding-left: 100px;
-    padding-top: 200px;
-    width: 100%;
+	column-gap: 30px;
+	height: 100%;
+	padding-left: 100px;
+	padding-top: 200px;
+	width: 100%;
 
-    section {
-        margin-bottom: var(--size-xxLarge);
-    }
+	section {
+		margin-bottom: var(--size-xxLarge);
+	}
+}
+
+.container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
 }

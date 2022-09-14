@@ -6,1247 +6,1490 @@ scalar Int64
 scalar StringArray
 
 type Field {
-    id: ID!
-    name: String!
-    value: String!
-    type: String
+	id: ID!
+	name: String!
+	value: String!
+	type: String
 }
 
 type Session {
-    id: ID!
-    secure_id: String!
-    fingerprint: Int
-    os_name: String!
-    os_version: String!
-    browser_name: String!
-    browser_version: String!
-    city: String!
-    state: String!
-    postal: String!
-    environment: String
-    app_version: String
-    client_version: String
-    client_config: String
-    language: String!
-    identifier: String!
-    created_at: Timestamp
-    length: Int
-    active_length: Int
-    user_object: Any
-    user_properties: String
-    fields: [Field]
-    viewed: Boolean
-    starred: Boolean
-    processed: Boolean
-    excluded: Boolean
-    has_rage_clicks: Boolean
-    has_errors: Boolean
-    first_time: Boolean
-    field_group: String
-    enable_strict_privacy: Boolean
-    enable_recording_network_contents: Boolean
-    object_storage_enabled: Boolean
-    payload_size: Int64
-    within_billing_quota: Boolean
-    is_public: Boolean
-    event_counts: String
-    direct_download_url: String
-    resources_url: String
-    messages_url: String
-    deviceMemory: Int
-    last_user_interaction_time: Timestamp!
-    chunked: Boolean
+	id: ID!
+	secure_id: String!
+	client_id: String!
+	fingerprint: Int
+	os_name: String!
+	os_version: String!
+	browser_name: String!
+	browser_version: String!
+	city: String!
+	state: String!
+	country: String!
+	postal: String!
+	environment: String
+	app_version: String
+	client_version: String
+	firstload_version: String
+	client_config: String
+	language: String!
+	identifier: String!
+	identified: Boolean!
+	created_at: Timestamp
+	length: Int
+	active_length: Int
+	user_object: Any
+	user_properties: String
+	fields: [Field]
+	viewed: Boolean
+	starred: Boolean
+	processed: Boolean
+	excluded: Boolean
+	has_rage_clicks: Boolean
+	has_errors: Boolean
+	first_time: Boolean
+	field_group: String
+	enable_strict_privacy: Boolean
+	enable_recording_network_contents: Boolean
+	object_storage_enabled: Boolean
+	payload_size: Int64
+	within_billing_quota: Boolean
+	is_public: Boolean
+	event_counts: String
+	direct_download_url: String
+	resources_url: String
+	messages_url: String
+	deviceMemory: Int
+	last_user_interaction_time: Timestamp!
+	chunked: Boolean
 }
 
 type SessionInterval {
-    session_secure_id: String!
-    start_time: Timestamp!
-    end_time: Timestamp!
-    duration: Int!
-    active: Boolean!
+	session_secure_id: String!
+	start_time: Timestamp!
+	end_time: Timestamp!
+	duration: Int!
+	active: Boolean!
 }
 
 type TimelineIndicatorEvent {
-    session_secure_id: String!
-    timestamp: Float!
-    sid: Float!
-    data: Any
-    type: Int!
+	session_secure_id: String!
+	timestamp: Float!
+	sid: Float!
+	data: Any
+	type: Int!
 }
 
 type RageClickEvent {
-    id: ID!
-    project_id: ID!
-    session_secure_id: String!
-    start_timestamp: Timestamp!
-    end_timestamp: Timestamp!
-    total_clicks: Int!
+	id: ID!
+	project_id: ID!
+	session_secure_id: String!
+	start_timestamp: Timestamp!
+	end_timestamp: Timestamp!
+	total_clicks: Int!
 }
 
 type RageClickEventForProject {
-    identifier: String!
-    session_secure_id: String!
-    total_clicks: Int!
-    user_properties: String!
+	identifier: String!
+	session_secure_id: String!
+	total_clicks: Int!
+	user_properties: String!
 }
 
 type BillingDetails {
-    plan: Plan!
-    meter: Int64!
-    membersMeter: Int64!
-    sessionsOutOfQuota: Int64!
+	plan: Plan!
+	meter: Int64!
+	membersMeter: Int64!
+	sessionsOutOfQuota: Int64!
 }
 
 type Invoice {
-    amountDue: Int64
-    amountPaid: Int64
-    attemptCount: Int64
-    date: Timestamp
-    url: String
-    status: String
+	amountDue: Int64
+	amountPaid: Int64
+	attemptCount: Int64
+	date: Timestamp
+	url: String
+	status: String
 }
 
 type SubscriptionDetails {
-    baseAmount: Int64!
-    discountPercent: Float!
-    discountAmount: Int64!
-    lastInvoice: Invoice
+	baseAmount: Int64!
+	discountPercent: Float!
+	discountAmount: Int64!
+	lastInvoice: Invoice
 }
 
 type Plan {
-    type: PlanType!
-    interval: SubscriptionInterval!
-    quota: Int!
-    membersLimit: Int!
+	type: PlanType!
+	interval: SubscriptionInterval!
+	quota: Int!
+	membersLimit: Int
 }
 
 enum PlanType {
-    Free
-    Basic
-    Startup
-    Enterprise
+	Free
+	Basic
+	Startup
+	Enterprise
 }
 
 enum SubscriptionInterval {
-    Monthly
-    Annual
+	Monthly
+	Annual
+}
+
+enum OpenSearchCalendarInterval {
+	minute
+	hour
+	day
+	week
+	month
+	quarter
+	year
 }
 
 type EnhancedUserDetailsResult {
-    id: ID
-    name: String
-    avatar: String
-    bio: String
-    socials: [SocialLink]
-    email: String
+	id: ID
+	name: String
+	avatar: String
+	bio: String
+	socials: [SocialLink]
+	email: String
 }
 
 type LinearTeam {
-    team_id: String!
-    name: String!
-    key: String!
+	team_id: String!
+	name: String!
+	key: String!
 }
 
 type SocialLink {
-    type: SocialType!
-    link: String
+	type: SocialType!
+	link: String
 }
 
 enum SocialType {
-    Github
-    LinkedIn
-    Twitter
-    Facebook
-    Site
+	Github
+	LinkedIn
+	Twitter
+	Facebook
+	Site
 }
 
 enum IntegrationType {
-    Slack
-    Linear
-    Zapier
+	Slack
+	Linear
+	Zapier
 }
 
 enum ErrorState {
-    OPEN
-    RESOLVED
-    IGNORED
-}
-
-enum MetricType {
-    WebVital
-    Device
-    Backend
+	OPEN
+	RESOLVED
+	IGNORED
 }
 
 enum AdminRole {
-    ADMIN
-    MEMBER
+	ADMIN
+	MEMBER
 }
 
 enum SessionCommentType {
-    Admin
-    FEEDBACK
+	Admin
+	FEEDBACK
 }
 
 type Project {
-    id: ID!
-    verbose_id: String!
-    name: String!
-    billing_email: String
-    secret: String
-    workspace_id: ID!
-    excluded_users: StringArray
-    rage_click_window_seconds: Int
-    rage_click_radius_pixels: Int
-    rage_click_count: Int
+	id: ID!
+	verbose_id: String!
+	name: String!
+	billing_email: String
+	secret: String
+	workspace_id: ID!
+	excluded_users: StringArray
+	error_json_paths: StringArray
+	rage_click_window_seconds: Int
+	rage_click_radius_pixels: Int
+	rage_click_count: Int
+	backend_domains: StringArray
 }
 
 type Account {
-    id: ID!
-    name: String!
-    session_count_cur: Int!
-    session_count_prev: Int!
-    session_count_prev_prev: Int!
-    session_limit: Int!
-    paid_prev: Int!
-    paid_prev_prev: Int!
-    email: String!
-    subscription_start: Timestamp
-    plan_tier: String!
-    stripe_customer_id: String!
-    member_count: Int!
-    member_limit: Int!
+	id: ID!
+	name: String!
+	session_count_cur: Int!
+	view_count_cur: Int!
+	session_count_prev: Int!
+	view_count_prev: Int!
+	session_count_prev_prev: Int!
+	session_limit: Int!
+	paid_prev: Int!
+	paid_prev_prev: Int!
+	email: String!
+	subscription_start: Timestamp
+	plan_tier: String!
+	unlimited_members: Boolean!
+	stripe_customer_id: String!
+	member_count: Int!
+	member_limit: Int
+}
+
+type AccountDetailsMember {
+	id: ID!
+	name: String!
+	email: String!
+	last_active: Timestamp
 }
 
 type AccountDetails {
-    id: ID!
-    name: String!
-    session_count_per_month: [NamedCount]
-    session_count_per_day: [NamedCount]
-    stripe_customer_id: String!
+	id: ID!
+	name: String!
+	session_count_per_month: [NamedCount]
+	session_count_per_day: [NamedCount]
+	stripe_customer_id: String!
+	members: [AccountDetailsMember!]!
 }
 
 type NamedCount {
-    name: String!
-    count: Int!
+	name: String!
+	count: Int!
 }
 
 type Workspace {
-    id: ID!
-    name: String!
-    slack_webhook_channel: String
-    slack_channels: String
-    secret: String
-    projects: [Project]!
-    plan_tier: String!
-    trial_end_date: Timestamp
-    billing_period_end: Timestamp
-    next_invoice_date: Timestamp
-    allow_meter_overage: Boolean!
-    allowed_auto_join_email_origins: String
-    eligible_for_trial_extension: Boolean!
-    trial_extension_enabled: Boolean!
-    clearbit_enabled: Boolean!
+	id: ID!
+	name: String!
+	slack_webhook_channel: String
+	slack_channels: String
+	secret: String
+	projects: [Project]!
+	plan_tier: String!
+	unlimited_members: Boolean!
+	trial_end_date: Timestamp
+	billing_period_end: Timestamp
+	next_invoice_date: Timestamp
+	allow_meter_overage: Boolean!
+	allowed_auto_join_email_origins: String
+	eligible_for_trial_extension: Boolean!
+	trial_extension_enabled: Boolean!
+	clearbit_enabled: Boolean!
 }
 
 type Segment {
-    id: ID!
-    name: String!
-    params: SearchParams!
-    project_id: ID!
+	id: ID!
+	name: String!
+	params: SearchParams!
+	project_id: ID!
 }
 
 type ErrorSegment {
-    id: ID!
-    name: String!
-    params: ErrorSearchParams!
-    project_id: ID!
+	id: ID!
+	name: String!
+	params: ErrorSearchParams!
+	project_id: ID!
 }
 
 type ErrorObject {
-    id: ID!
-    project_id: Int!
-    session_id: Int!
-    error_group_id: Int!
-    error_group_secure_id: String!
-    event: [String]!
-    type: String!
-    url: String!
-    source: String
-    lineNumber: Int
-    columnNumber: Int
-    stack_trace: String!
-    structured_stack_trace: [ErrorTrace]!
-    timestamp: Timestamp
-    payload: String
-    request_id: String
+	id: ID!
+	project_id: Int!
+	session_id: Int!
+	error_group_id: Int!
+	error_group_secure_id: String!
+	event: [String]!
+	type: String!
+	url: String!
+	source: String
+	lineNumber: Int
+	columnNumber: Int
+	stack_trace: String!
+	structured_stack_trace: [ErrorTrace]!
+	timestamp: Timestamp
+	payload: String
+	request_id: String
 }
 
 type ErrorField {
-    project_id: Int
-    name: String!
-    value: String!
+	project_id: Int
+	name: String!
+	value: String!
 }
 
 type ErrorGroup {
-    created_at: Timestamp!
-    id: ID!
-    secure_id: String!
-    project_id: Int!
-    type: String!
-    event: [String]!
-    structured_stack_trace: [ErrorTrace]!
-    metadata_log: [ErrorMetadata]!
-    mapped_stack_trace: String
-    stack_trace: String
-    fields: [ErrorField]
-    state: ErrorState!
-    environments: String
-    error_frequency: [Int64]!
-    is_public: Boolean!
+	created_at: Timestamp!
+	id: ID!
+	secure_id: String!
+	project_id: Int!
+	type: String!
+	event: [String]!
+	structured_stack_trace: [ErrorTrace]!
+	metadata_log: [ErrorMetadata]!
+	mapped_stack_trace: String
+	stack_trace: String
+	fields: [ErrorField]
+	state: ErrorState!
+	environments: String
+	error_frequency: [Int64]!
+	is_public: Boolean!
 }
 
 type ErrorMetadata {
-    error_id: Int!
-    session_id: Int!
-    session_secure_id: String!
-    environment: String
-    timestamp: Timestamp
-    os: String
-    browser: String
-    visited_url: String
-    fingerprint: String!
-    identifier: String
-    user_properties: String
-    request_id: String
+	error_id: Int!
+	session_id: Int!
+	session_secure_id: String!
+	environment: String
+	timestamp: Timestamp
+	os: String
+	browser: String
+	visited_url: String
+	fingerprint: String!
+	identifier: String
+	user_properties: String
+	request_id: String
+	payload: String
 }
 
 type ErrorTrace {
-    fileName: String
-    lineNumber: Int
-    functionName: String
-    columnNumber: Int
-    error: String
-    lineContent: String
-    linesBefore: String
-    linesAfter: String
+	fileName: String
+	lineNumber: Int
+	functionName: String
+	columnNumber: Int
+	error: String
+	lineContent: String
+	linesBefore: String
+	linesAfter: String
+}
+
+type S3File {
+	key: String
 }
 
 type ReferrerTablePayload {
-    host: String!
-    count: Int!
-    percent: Float!
+	host: String!
+	count: Int!
+	percent: Float!
 }
 
 type TopUsersPayload {
-    id: ID!
-    identifier: String!
-    total_active_time: Int!
-    active_time_percentage: Float!
-    user_properties: String!
+	id: ID!
+	identifier: String!
+	total_active_time: Int!
+	active_time_percentage: Float!
+	user_properties: String!
 }
 
 type NewUsersCount {
-    count: Int64!
+	count: Int64!
 }
 
 type AverageSessionLength {
-    length: Float!
+	length: Float!
 }
 
 type UserFingerprintCount {
-    count: Int64!
+	count: Int64!
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-    user_properties: [UserPropertyInput]
-    excluded_properties: [UserPropertyInput]
-    track_properties: [UserPropertyInput]
-    excluded_track_properties: [UserPropertyInput]
-    environments: [String]
-    app_versions: [String]
-    date_range: DateRangeInput
-    length_range: LengthRangeInput
-    os: String
-    browser: String
-    device_id: String
-    visited_url: String
-    referrer: String
-    identified: Boolean
-    hide_viewed: Boolean
-    first_time: Boolean
-    show_live_sessions: Boolean
-    query: String
+	user_properties: [UserPropertyInput]
+	excluded_properties: [UserPropertyInput]
+	track_properties: [UserPropertyInput]
+	excluded_track_properties: [UserPropertyInput]
+	environments: [String]
+	app_versions: [String]
+	date_range: DateRangeInput
+	length_range: LengthRangeInput
+	os: String
+	browser: String
+	device_id: String
+	visited_url: String
+	referrer: String
+	identified: Boolean
+	hide_viewed: Boolean
+	first_time: Boolean
+	show_live_sessions: Boolean
+	query: String
 }
 
 input DashboardParamsInput {
-    date_range: DateRangeInput
-    resolution_minutes: Int
-    timezone: String
+	date_range: DateRangeInput
+	resolution_minutes: Int
+	timezone: String
+	units: String
+	aggregator: MetricAggregator
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
+}
+
+input HistogramParamsInput {
+	date_range: DateRangeInput
+	buckets: Int
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	units: String
+	filters: [MetricTagFilterInput!]
+}
+
+enum MetricTagFilterOp {
+	equals
+	contains
+}
+
+type MetricTagFilter {
+	tag: String!
+	op: MetricTagFilterOp!
+	value: String!
+}
+
+input MetricTagFilterInput {
+	tag: String!
+	op: MetricTagFilterOp!
+	value: String!
+}
+
+input DateHistogramBucketSize {
+	calendar_interval: OpenSearchCalendarInterval!
+	multiple: Int!
+}
+
+input DateHistogramOptions {
+	bucket_size: DateHistogramBucketSize!
+	time_zone: String!
+	bounds: DateRangeInput!
+}
+
+enum NetworkRequestAttribute {
+	method
+	initiator_type
+	url
+	body_size
+	response_size
+	status
+	latency
+	request_id
+	graphql_operation
+}
+
+input NetworkHistogramParamsInput {
+	lookback_days: Int
+	attribute: NetworkRequestAttribute
 }
 
 type SearchParams {
-    user_properties: [UserProperty]
-    excluded_properties: [UserProperty]
-    track_properties: [UserProperty]
-    excluded_track_properties: [UserProperty]
-    environments: [String]
-    app_versions: [String]
-    date_range: DateRange
-    length_range: LengthRange
-    os: String
-    browser: String
-    visited_url: String
-    device_id: String
-    referrer: String
-    identified: Boolean
-    hide_viewed: Boolean
-    first_time: Boolean
-    show_live_sessions: Boolean
-    query: String
+	user_properties: [UserProperty]
+	excluded_properties: [UserProperty]
+	track_properties: [UserProperty]
+	excluded_track_properties: [UserProperty]
+	environments: [String]
+	app_versions: [String]
+	date_range: DateRange
+	length_range: LengthRange
+	os: String
+	browser: String
+	visited_url: String
+	device_id: String
+	referrer: String
+	identified: Boolean
+	hide_viewed: Boolean
+	first_time: Boolean
+	show_live_sessions: Boolean
+	query: String
 }
 
 input AdminAboutYouDetails {
-    first_name: String!
-    last_name: String!
-    user_defined_role: String!
-    user_defined_persona: String!
-    referral: String!
-    phone: String
+	first_name: String!
+	last_name: String!
+	user_defined_role: String!
+	user_defined_persona: String!
+	referral: String!
+	phone: String
 }
 
 input ErrorSearchParamsInput {
-    date_range: DateRangeInput
-    os: String
-    browser: String
-    visited_url: String
-    state: ErrorState
-    event: String
-    type: String
-    query: String
+	date_range: DateRangeInput
+	os: String
+	browser: String
+	visited_url: String
+	state: ErrorState
+	event: String
+	type: String
+	query: String
 }
 
 type ErrorSearchParams {
-    date_range: DateRange
-    os: String
-    browser: String
-    visited_url: String
-    state: ErrorState
-    event: String
-    query: String
+	date_range: DateRange
+	os: String
+	browser: String
+	visited_url: String
+	state: ErrorState
+	event: String
+	query: String
 }
 
 type DateRange {
-    start_date: Timestamp
-    end_date: Timestamp
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 input DateRangeInput {
-    start_date: Timestamp
-    end_date: Timestamp
+	start_date: Timestamp
+	end_date: Timestamp
 }
 
 type LengthRange {
-    min: Float
-    max: Float
+	min: Float
+	max: Float
 }
 
 input LengthRangeInput {
-    min: Float
-    max: Float
+	min: Float
+	max: Float
 }
 
 type UserProperty {
-    id: ID!
-    name: String!
-    value: String!
+	id: ID!
+	name: String!
+	value: String!
 }
 
 input UserPropertyInput {
-    id: ID
-    name: String!
-    value: String!
+	id: ID
+	name: String!
+	value: String!
 }
 
 type User {
-    id: ID!
+	id: ID!
 }
 
 type Admin {
-    id: ID!
-    name: String!
-    uid: String!
-    email: String!
-    phone: String
-    photo_url: String
-    role: String!
-    slack_im_channel_id: String
-    email_verified: Boolean
-    referral: String
-    user_defined_role: String
-    about_you_details_filled: Boolean
-    user_defined_persona: String
+	id: ID!
+	name: String!
+	uid: String!
+	email: String!
+	phone: String
+	photo_url: String
+	slack_im_channel_id: String
+	email_verified: Boolean
+	referral: String
+	user_defined_role: String
+	about_you_details_filled: Boolean
+	user_defined_persona: String
+}
+
+type WorkspaceAdminRole {
+	admin: Admin!
+	role: String!
 }
 
 # A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
 type SanitizedAdmin {
-    id: ID!
-    name: String
-    email: String!
-    photo_url: String
+	id: ID!
+	name: String
+	email: String!
+	photo_url: String
 }
 
 input SanitizedAdminInput {
-    id: ID!
-    name: String
-    email: String!
+	id: ID!
+	name: String
+	email: String!
+}
+
+type SessionsHistogram {
+	bucket_times: [Timestamp!]!
+	sessions_without_errors: [Int64!]!
+	sessions_with_errors: [Int64!]!
+	total_sessions: [Int64!]!
+}
+
+type ErrorsHistogram {
+	bucket_times: [Timestamp!]!
+	error_objects: [Int64!]!
 }
 
 type SessionResults {
-    sessions: [Session!]!
-    totalCount: Int64!
+	sessions: [Session!]!
+	totalCount: Int64!
 }
 
 type ErrorResults {
-    error_groups: [ErrorGroup!]!
-    totalCount: Int64!
+	error_groups: [ErrorGroup!]!
+	totalCount: Int64!
 }
 
 # 2 way connector type between highlight objects and external integration objects
 # should be used to update information from/to platforms
 type ExternalAttachment {
-    id: ID!
-    integration_type: IntegrationType!
+	id: ID!
+	integration_type: IntegrationType!
 
-    external_id: String!
-    title: String
+	external_id: String!
+	title: String
 
-    # associations to highlight objects
-    session_comment_id: Int
-    error_comment_id: Int
+	# associations to highlight objects
+	session_comment_id: Int
+	error_comment_id: Int
 }
 
 type SessionComment {
-    id: ID!
-    project_id: ID!
-    timestamp: Int
-    created_at: Timestamp!
-    updated_at: Timestamp!
-    session_id: Int!
-    session_secure_id: String!
-    author: SanitizedAdmin
-    text: String!
-    x_coordinate: Float
-    y_coordinate: Float
-    type: SessionCommentType!
-    metadata: Any
-    tags: [String]!
-    attachments: [ExternalAttachment]!
-    replies: [CommentReply]!
+	id: ID!
+	project_id: ID!
+	timestamp: Int
+	created_at: Timestamp!
+	updated_at: Timestamp!
+	session_id: Int!
+	session_secure_id: String!
+	author: SanitizedAdmin
+	text: String!
+	x_coordinate: Float
+	y_coordinate: Float
+	type: SessionCommentType!
+	metadata: Any
+	tags: [String]!
+	attachments: [ExternalAttachment]!
+	replies: [CommentReply]!
 }
 
 type SlackSyncResponse {
-    success: Boolean!
-    newChannelsAddedCount: Int!
+	success: Boolean!
+	newChannelsAddedCount: Int!
 }
 
 type SessionCommentTag {
-    id: ID!
-    name: String!
+	id: ID!
+	name: String!
 }
 
 input SessionCommentTagInput {
-    id: ID
-    name: String!
+	id: ID
+	name: String!
 }
 
 type ErrorComment {
-    id: ID!
-    project_id: ID!
-    created_at: Timestamp!
-    error_id: Int!
-    error_secure_id: String!
-    updated_at: Timestamp!
-    author: SanitizedAdmin!
-    text: String!
-    attachments: [ExternalAttachment]!
-    replies: [CommentReply]!
+	id: ID!
+	project_id: ID!
+	created_at: Timestamp!
+	error_id: Int!
+	error_secure_id: String!
+	updated_at: Timestamp!
+	author: SanitizedAdmin!
+	text: String!
+	attachments: [ExternalAttachment]!
+	replies: [CommentReply]!
 }
 
 type CommentReply {
-    id: ID!
-    created_at: Timestamp!
-    updated_at: Timestamp!
+	id: ID!
+	created_at: Timestamp!
+	updated_at: Timestamp!
 
-    author: SanitizedAdmin!
-    text: String!
+	author: SanitizedAdmin!
+	text: String!
 }
 
 enum SessionLifecycle {
-    All
-    Live
-    Completed
+	All
+	Live
+	Completed
 }
 
 type DailySessionCount {
-    project_id: ID!
-    date: Timestamp!
-    count: Int64!
+	project_id: ID!
+	date: Timestamp!
+	count: Int64!
 }
 
 type DailyErrorCount {
-    project_id: ID!
-    date: Timestamp!
-    count: Int64!
+	project_id: ID!
+	date: Timestamp!
+	count: Int64!
 }
 
 type ErrorDistributionItem {
-    name: String!
-    value: Int64!
+	name: String!
+	value: Int64!
 }
 
 type Dashboard {
-    id: ID!
-    project_id: ID!
-    layout: String!
-    name: String!
-    last_admin_to_edit_id: ID!
+	id: ID!
+	project_id: ID!
+	layout: String!
+	name: String!
+	last_admin_to_edit_id: ID!
 }
 
 type SanitizedSlackChannel {
-    webhook_channel: String
-    webhook_channel_id: String
+	webhook_channel: String
+	webhook_channel_id: String
 }
 
 input SanitizedSlackChannelInput {
-    webhook_channel_name: String
-    webhook_channel_id: String
+	webhook_channel_name: String
+	webhook_channel_id: String
 }
 
 type ErrorAlert {
-    id: ID!
-    updated_at: Timestamp!
-    Name: String
-    ChannelsToNotify: [SanitizedSlackChannel]!
-    EmailsToNotify: [String]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int!
-    ThresholdWindow: Int
-    LastAdminToEditID: ID
-    Type: String!
-    RegexGroups: [String]!
-    Frequency: Int!
-    DailyFrequency: [Int64]!
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	Name: String
+	ChannelsToNotify: [SanitizedSlackChannel]!
+	EmailsToNotify: [String]!
+	ExcludedEnvironments: [String]!
+	CountThreshold: Int!
+	ThresholdWindow: Int
+	LastAdminToEditID: ID
+	Type: String!
+	RegexGroups: [String]!
+	Frequency: Int!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
 }
 
 type TrackProperty {
-    id: ID!
-    name: String!
-    value: String!
+	id: ID!
+	name: String!
+	value: String!
 }
 
 input TrackPropertyInput {
-    id: ID
-    name: String!
-    value: String!
+	id: ID
+	name: String!
+	value: String!
 }
 
 type SessionAlert {
-    id: ID!
-    updated_at: Timestamp!
-    Name: String
-    ChannelsToNotify: [SanitizedSlackChannel]!
-    EmailsToNotify: [String]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int!
-    TrackProperties: [TrackProperty]!
-    UserProperties: [UserProperty]!
-    ThresholdWindow: Int!
-    LastAdminToEditID: ID
-    Type: String!
-    ExcludeRules: [String]!
-    DailyFrequency: [Int64]!
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	Name: String
+	ChannelsToNotify: [SanitizedSlackChannel]!
+	EmailsToNotify: [String]!
+	ExcludedEnvironments: [String]!
+	CountThreshold: Int!
+	TrackProperties: [TrackProperty]!
+	UserProperties: [UserProperty]!
+	ThresholdWindow: Int
+	LastAdminToEditID: ID
+	Type: String!
+	ExcludeRules: [String]!
+	DailyFrequency: [Int64]!
+	disabled: Boolean!
 }
 
 type WorkspaceInviteLink {
-    id: ID!
-    invitee_email: String
-    invitee_role: String!
-    expiration_date: Timestamp!
-    secret: String!
+	id: ID!
+	invitee_email: String
+	invitee_role: String!
+	expiration_date: Timestamp!
+	secret: String!
 }
 
 type SessionPayload {
-    events: [Any]!
-    errors: [ErrorObject]!
-    rage_clicks: [RageClickEvent!]!
-    session_comments: [SessionComment]!
-    last_user_interaction_time: Timestamp!
+	events: [Any]!
+	errors: [ErrorObject]!
+	rage_clicks: [RageClickEvent!]!
+	session_comments: [SessionComment]!
+	last_user_interaction_time: Timestamp!
 }
 
 type Metric {
-    type: String!
-    name: String!
-    value: Float!
+	name: String!
+	value: Float!
 }
 
 type DashboardPayload {
-    date: String!
-    avg: Float!
-    p50: Float!
-    p75: Float!
-    p90: Float!
-    p99: Float!
+	date: String!
+	value: Float!
+	aggregator: MetricAggregator
+	group: String
+}
+
+type HistogramBucket {
+	bucket: Float!
+	range_start: Float!
+	range_end: Float!
+	count: Int!
+}
+
+type HistogramPayload {
+	buckets: [HistogramBucket!]!
+	min: Float!
+	max: Float!
+}
+
+type CategoryHistogramBucket {
+	category: String!
+	count: Int!
+}
+
+type CategoryHistogramPayload {
+	buckets: [CategoryHistogramBucket!]!
+}
+
+enum DashboardChartType {
+	Timeline
+	TimelineBar
+	Histogram
+}
+
+enum MetricAggregator {
+	Avg
+	P50
+	P75
+	P90
+	P95
+	P99
+	Max
+	Count
+	Sum
+}
+
+input DashboardMetricConfigInput {
+	name: String!
+	description: String!
+	component_type: MetricViewComponentType
+	max_good_value: Float
+	max_needs_improvement_value: Float
+	poor_value: Float
+	units: String
+	help_article: String
+	chart_type: DashboardChartType
+	aggregator: MetricAggregator
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	filters: [MetricTagFilterInput!]
+	groups: [String!]
+}
+
+enum MetricViewComponentType {
+	KeyPerformanceGauge
+	SessionCountChart
+	ErrorCountChart
+	ReferrersTable
+	ActiveUsersTable
+	RageClicksTable
+	TopRoutesTable
+}
+
+type DashboardMetricConfig {
+	name: String!
+	description: String!
+	component_type: MetricViewComponentType
+	max_good_value: Float
+	max_needs_improvement_value: Float
+	poor_value: Float
+	units: String
+	help_article: String
+	chart_type: DashboardChartType
+	aggregator: MetricAggregator
+	min_value: Float
+	min_percentile: Float
+	max_value: Float
+	max_percentile: Float
+	filters: [MetricTagFilter!]
+	groups: [String!]
+}
+
+type DashboardDefinition {
+	id: ID!
+	updated_at: Timestamp!
+	project_id: ID!
+	name: String!
+	metrics: [DashboardMetricConfig!]!
+	last_admin_to_edit_id: Int
+	layout: String
 }
 
 type MetricPreview {
-    date: Timestamp!
-    value: Float!
+	date: Timestamp!
+	value: Float!
 }
 
 type MetricMonitor {
-    id: ID!
-    updated_at: Timestamp!
-    name: String!
-    channels_to_notify: [SanitizedSlackChannel]!
-    emails_to_notify: [String]!
-    function: String!
-    metric_to_monitor: String!
-    last_admin_to_edit_id: ID!
-    threshold: Float!
-    disabled: Boolean!
+	id: ID!
+	updated_at: Timestamp!
+	name: String!
+	channels_to_notify: [SanitizedSlackChannel]!
+	emails_to_notify: [String]!
+	aggregator: MetricAggregator!
+	period_minutes: Int
+	metric_to_monitor: String!
+	last_admin_to_edit_id: ID!
+	threshold: Float!
+	units: String
+	disabled: Boolean!
+	filters: [MetricTagFilter!]
 }
 
 type EventChunk {
-    session_id: Int!
-    chunk_index: Int!
-    timestamp: Int64!
+	session_id: Int!
+	chunk_index: Int!
+	timestamp: Int64!
 }
 
 scalar Upload
 
 type Query {
-    accounts: [Account]
-    account_details(workspace_id: ID!): AccountDetails!
-    session(secure_id: String!): Session
-    events(session_secure_id: String!): [Any]
-    session_intervals(session_secure_id: String!): [SessionInterval!]!
-    timeline_indicator_events(
-        session_secure_id: String!
-    ): [TimelineIndicatorEvent!]!
-    rage_clicks(session_secure_id: String!): [RageClickEvent!]!
-    rageClicksForProject(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): [RageClickEventForProject!]!
-    error_groups_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-        page: Int
-    ): ErrorResults!
-    error_group(secure_id: String!): ErrorGroup
-    messages(session_secure_id: String!): [Any]
-    enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
-    errors(session_secure_id: String!): [ErrorObject]
-    resources(session_secure_id: String!): [Any]
-    web_vitals(session_secure_id: String!): [Metric!]!
-    session_comments(session_secure_id: String!): [SessionComment]!
-    session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
-    session_comments_for_admin: [SessionComment]!
-    session_comments_for_project(project_id: ID!): [SessionComment]!
-    error_comments(error_group_secure_id: String!): [ErrorComment]!
-    error_comments_for_admin: [ErrorComment]!
-    error_comments_for_project(project_id: ID!): [ErrorComment]!
-    workspace_admins(workspace_id: ID!): [Admin]!
-    workspace_admins_by_project_id(project_id: ID!): [Admin]!
-    isIntegrated(project_id: ID!): Boolean
-    isBackendIntegrated(project_id: ID!): Boolean
-    unprocessedSessionsCount(project_id: ID!): Int64
-    liveUsersCount(project_id: ID!): Int64
-    adminHasCreatedComment(admin_id: ID!): Boolean
-    projectHasViewedASession(project_id: ID!): Session
-    dailySessionsCount(
-        project_id: ID!
-        date_range: DateRangeInput!
-    ): [DailySessionCount]!
-    dailyErrorsCount(
-        project_id: ID!
-        date_range: DateRangeInput!
-    ): [DailyErrorCount]!
-    dailyErrorFrequency(
-        project_id: ID!
-        error_group_secure_id: String!
-        date_offset: Int!
-    ): [Int64]!
-    errorDistribution(
-        project_id: ID!
-        error_group_secure_id: String!
-        property: String!
-    ): [ErrorDistributionItem]!
-    referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
-    newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
-    topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
-    averageSessionLength(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): AverageSessionLength
-    userFingerprintCount(
-        project_id: ID!
-        lookBackPeriod: Int!
-    ): UserFingerprintCount
-    sessions_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-        sort_desc: Boolean!
-        page: Int
-    ): SessionResults!
-    field_types(project_id: ID!): [Field!]!
-    fields_opensearch(
-        project_id: ID!
-        count: Int!
-        field_type: String!
-        field_name: String!
-        query: String!
-    ): [String!]!
-    error_fields_opensearch(
-        project_id: ID!
-        count: Int!
-        field_type: String!
-        field_name: String!
-        query: String!
-    ): [String!]!
-    quickFields_opensearch(
-        project_id: ID!
-        count: Int!
-        query: String!
-    ): [Field]!
-    billingDetailsForProject(project_id: ID!): BillingDetails
-    billingDetails(workspace_id: ID!): BillingDetails!
-    # gets all the projects of a user
-    field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
-    property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
-    error_field_suggestion(
-        project_id: ID!
-        name: String!
-        query: String!
-    ): [ErrorField]
-    projects: [Project]
-    workspaces: [Workspace]
-    workspaces_count: Int64!
-    joinable_workspaces: [Workspace]
-    error_alerts(project_id: ID!): [ErrorAlert]!
-    session_feedback_alerts(project_id: ID!): [SessionAlert]!
-    new_user_alerts(project_id: ID!): [SessionAlert]
-    track_properties_alerts(project_id: ID!): [SessionAlert]!
-    user_properties_alerts(project_id: ID!): [SessionAlert]!
-    new_session_alerts(project_id: ID!): [SessionAlert]!
-    rage_click_alerts(project_id: ID!): [SessionAlert]!
-    projectSuggestion(query: String!): [Project]!
-    workspaceSuggestion(query: String!): [Workspace]!
-    environment_suggestion(project_id: ID!): [Field]
-    app_version_suggestion(project_id: ID!): [String]!
-    identifier_suggestion(project_id: ID!, query: String!): [String!]!
-    slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
-    slack_members(project_id: ID!): [SanitizedSlackChannel]!
-    generate_zapier_access_token(project_id: ID!): String!
-    is_integrated_with(
-        integration_type: IntegrationType!
-        project_id: ID!
-    ): Boolean!
-    linear_teams(project_id: ID!): [LinearTeam!]
-    project(id: ID!): Project
-    workspace(id: ID!): Workspace
-    workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
-    workspace_for_project(project_id: ID!): Workspace
-    admin: Admin
-    segments(project_id: ID!): [Segment]
-    error_segments(project_id: ID!): [ErrorSegment]
-    api_key_to_org_id(api_key: String!): ID
-    customer_portal_url(workspace_id: ID!): String!
-    subscription_details(workspace_id: ID!): SubscriptionDetails!
-    metrics_dashboard(
-        project_id: ID!
-        metric_name: String!
-        params: DashboardParamsInput!
-    ): [DashboardPayload]!
-    metric_preview(
-        project_id: ID!
-        type: MetricType!
-        name: String!
-        aggregateFunction: String!
-    ): [MetricPreview]!
-    metric_monitors(project_id: ID!): [MetricMonitor]!
-    event_chunk_url(secure_id: String!, index: Int!): String!
-    event_chunks(secure_id: String!): [EventChunk!]!
+	accounts: [Account]
+	account_details(workspace_id: ID!): AccountDetails!
+	session(secure_id: String!): Session
+	events(session_secure_id: String!): [Any]
+	session_intervals(session_secure_id: String!): [SessionInterval!]!
+	timeline_indicator_events(
+		session_secure_id: String!
+	): [TimelineIndicatorEvent!]!
+	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
+	rageClicksForProject(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): [RageClickEventForProject!]!
+	error_groups_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+		page: Int
+	): ErrorResults!
+	errors_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
+	error_group(secure_id: String!): ErrorGroup
+	messages(session_secure_id: String!): [Any]
+	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
+	errors(session_secure_id: String!): [ErrorObject]
+	resources(session_secure_id: String!): [Any]
+	web_vitals(session_secure_id: String!): [Metric!]!
+	session_comments(session_secure_id: String!): [SessionComment]!
+	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
+	session_comments_for_admin: [SessionComment]!
+	session_comments_for_project(project_id: ID!): [SessionComment]!
+	isSessionPending(session_secure_id: String!): Boolean
+	error_comments(error_group_secure_id: String!): [ErrorComment]!
+	error_comments_for_admin: [ErrorComment]!
+	error_comments_for_project(project_id: ID!): [ErrorComment]!
+	workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
+	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
+	isIntegrated(project_id: ID!): Boolean
+	isBackendIntegrated(project_id: ID!): Boolean
+	unprocessedSessionsCount(project_id: ID!): Int64
+	liveUsersCount(project_id: ID!): Int64
+	adminHasCreatedComment(admin_id: ID!): Boolean
+	projectHasViewedASession(project_id: ID!): Session
+	dailySessionsCount(
+		project_id: ID!
+		date_range: DateRangeInput!
+	): [DailySessionCount]!
+	dailyErrorsCount(
+		project_id: ID!
+		date_range: DateRangeInput!
+	): [DailyErrorCount]!
+	dailyErrorFrequency(
+		project_id: ID!
+		error_group_secure_id: String!
+		date_offset: Int!
+	): [Int64!]!
+	errorDistribution(
+		project_id: ID!
+		error_group_secure_id: String!
+		property: String!
+	): [ErrorDistributionItem]!
+	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
+	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
+	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	averageSessionLength(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): AverageSessionLength
+	userFingerprintCount(
+		project_id: ID!
+		lookBackPeriod: Int!
+	): UserFingerprintCount
+	sessions_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
+	sessions_histogram(
+		project_id: ID!
+		query: String!
+		histogram_options: DateHistogramOptions!
+	): SessionsHistogram!
+	field_types(project_id: ID!): [Field!]!
+	fields_opensearch(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+	): [String!]!
+	error_fields_opensearch(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+	): [String!]!
+	quickFields_opensearch(
+		project_id: ID!
+		count: Int!
+		query: String!
+	): [Field]!
+	billingDetailsForProject(project_id: ID!): BillingDetails
+	billingDetails(workspace_id: ID!): BillingDetails!
+	# gets all the projects of a user
+	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
+	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
+	error_field_suggestion(
+		project_id: ID!
+		name: String!
+		query: String!
+	): [ErrorField]
+	projects: [Project]
+	workspaces: [Workspace]
+	workspaces_count: Int64!
+	joinable_workspaces: [Workspace]
+	error_alerts(project_id: ID!): [ErrorAlert]!
+	session_feedback_alerts(project_id: ID!): [SessionAlert]!
+	new_user_alerts(project_id: ID!): [SessionAlert]
+	track_properties_alerts(project_id: ID!): [SessionAlert]!
+	user_properties_alerts(project_id: ID!): [SessionAlert]!
+	new_session_alerts(project_id: ID!): [SessionAlert]!
+	rage_click_alerts(project_id: ID!): [SessionAlert]!
+	projectSuggestion(query: String!): [Project]!
+	workspaceSuggestion(query: String!): [Workspace]!
+	environment_suggestion(project_id: ID!): [Field]
+	app_version_suggestion(project_id: ID!): [String]!
+	identifier_suggestion(project_id: ID!, query: String!): [String!]!
+	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	slack_members(project_id: ID!): [SanitizedSlackChannel]!
+	generate_zapier_access_token(project_id: ID!): String!
+	is_integrated_with(
+		integration_type: IntegrationType!
+		project_id: ID!
+	): Boolean!
+	linear_teams(project_id: ID!): [LinearTeam!]
+	project(id: ID!): Project
+	workspace(id: ID!): Workspace
+	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspace_for_project(project_id: ID!): Workspace
+	admin: Admin
+	admin_role(workspace_id: ID!): WorkspaceAdminRole
+	admin_role_by_project(project_id: ID!): WorkspaceAdminRole
+	segments(project_id: ID!): [Segment]
+	error_segments(project_id: ID!): [ErrorSegment]
+	api_key_to_org_id(api_key: String!): ID
+	customer_portal_url(workspace_id: ID!): String!
+	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
+	suggested_metrics(project_id: ID!, prefix: String!): [String!]!
+	metric_tags(project_id: ID!, metric_name: String!): [String!]!
+	metric_tag_values(
+		project_id: ID!
+		metric_name: String!
+		tag_name: String!
+	): [String!]!
+	metrics_timeline(
+		project_id: ID!
+		metric_name: String!
+		params: DashboardParamsInput!
+	): [DashboardPayload]!
+	metrics_histogram(
+		project_id: ID!
+		metric_name: String!
+		params: HistogramParamsInput!
+	): HistogramPayload
+	network_histogram(
+		project_id: ID!
+		params: NetworkHistogramParamsInput!
+	): CategoryHistogramPayload
+	metric_monitors(project_id: ID!, metric_name: String): [MetricMonitor]!
+	event_chunk_url(secure_id: String!, index: Int!): String!
+	event_chunks(secure_id: String!): [EventChunk!]!
+	sourcemap_files(project_id: ID!, version: String): [S3File!]!
+	sourcemap_versions(project_id: ID!): [String!]!
 }
 
 type Mutation {
-    updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
-    createProject(name: String!, workspace_id: ID!): Project
-    createWorkspace(name: String!): Workspace
-    editProject(
-        id: ID!
-        name: String
-        billing_email: String
-        excluded_users: StringArray
-        rage_click_window_seconds: Int
-        rage_click_radius_pixels: Int
-        rage_click_count: Int
-    ): Project
-    editWorkspace(id: ID!, name: String): Workspace
-    markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-    markSessionAsStarred(secure_id: String!, starred: Boolean): Session
-    updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
-    deleteProject(id: ID!): Boolean
-    sendAdminProjectInvite(
-        project_id: ID!
-        email: String!
-        base_url: String!
-    ): String
-    sendAdminWorkspaceInvite(
-        workspace_id: ID!
-        email: String!
-        base_url: String!
-        role: String!
-    ): String
-    addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
-    joinWorkspace(workspace_id: ID!): ID
-    updateAllowedEmailOrigins(
-        workspace_id: ID!
-        allowed_auto_join_email_origins: String!
-    ): ID
-    changeAdminRole(
-        workspace_id: ID!
-        admin_id: ID!
-        new_role: String!
-    ): Boolean!
-    deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
-    deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
-    createSegment(
-        project_id: ID!
-        name: String!
-        params: SearchParamsInput!
-    ): Segment
-    emailSignup(email: String!): String!
-    editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
-    deleteSegment(segment_id: ID!): Boolean
-    createErrorSegment(
-        project_id: ID!
-        name: String!
-        params: ErrorSearchParamsInput!
-    ): ErrorSegment
-    editErrorSegment(
-        id: ID!
-        project_id: ID!
-        params: ErrorSearchParamsInput!
-    ): Boolean
-    deleteErrorSegment(segment_id: ID!): Boolean
-    # If this endpoint returns a checkout_id, we initiate a stripe checkout.
-    # Otherwise, we simply update the subscription.
-    createOrUpdateStripeSubscription(
-        workspace_id: ID!
-        plan_type: PlanType!
-        interval: SubscriptionInterval!
-    ): String
-    updateBillingDetails(workspace_id: ID!): Boolean
-    createSessionComment(
-        project_id: ID!
-        session_secure_id: String!
-        session_timestamp: Int!
-        text: String!
-        text_for_email: String!
-        x_coordinate: Float!
-        y_coordinate: Float!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        session_url: String!
-        time: Float!
-        author_name: String!
-        session_image: String
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-        tags: [SessionCommentTagInput]!
-    ): SessionComment
-    createIssueForSessionComment(
-        project_id: ID!
-        session_url: String!
-        session_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        time: Float!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): SessionComment
-    deleteSessionComment(id: ID!): Boolean
-    replyToSessionComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        sessionURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    createErrorComment(
-        project_id: ID!
-        error_group_secure_id: String!
-        text: String!
-        text_for_email: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-        error_url: String!
-        author_name: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    createIssueForErrorComment(
-        project_id: ID!
-        error_url: String!
-        error_comment_id: Int!
-        author_name: String!
-        text_for_attachment: String!
-        issue_title: String
-        issue_description: String
-        issue_team_id: String
-        integrations: [IntegrationType]!
-    ): ErrorComment
-    deleteErrorComment(id: ID!): Boolean
-    replyToErrorComment(
-        comment_id: ID!
-        text: String!
-        text_for_email: String!
-        errorURL: String!
-        tagged_admins: [SanitizedAdminInput]!
-        tagged_slack_users: [SanitizedSlackChannelInput]!
-    ): CommentReply
-    openSlackConversation(
-        project_id: ID!
-        code: String!
-        redirect_path: String!
-    ): Boolean
-    addIntegrationToProject(
-        integration_type: IntegrationType
-        project_id: ID!
-        code: String!
-    ): Boolean!
-    removeIntegrationFromProject(
-        integration_type: IntegrationType
-        project_id: ID!
-    ): Boolean!
-    syncSlackIntegration(project_id: ID!): SlackSyncResponse!
-    createDefaultAlerts(
-        project_id: ID!
-        alert_types: [String!]!
-        slack_channels: [SanitizedSlackChannelInput!]!
-        emails: [String]!
-    ): Boolean
-    createRageClickAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-    ): SessionAlert
-    createMetricMonitor(
-        project_id: ID!
-        name: String!
-        function: String!
-        threshold: Float!
-        metric_to_monitor: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-    ): MetricMonitor
-    updateMetricMonitor(
-        metric_monitor_id: ID!
-        project_id: ID!
-        name: String!
-        function: String!
-        threshold: Float!
-        metric_to_monitor: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        disabled: Boolean!
-    ): MetricMonitor
-    createErrorAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        regex_groups: [String]!
-        frequency: Int!
-    ): ErrorAlert
-    updateErrorAlert(
-        project_id: ID!
-        name: String!
-        error_alert_id: ID!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        regex_groups: [String]!
-        frequency: Int!
-        disabled: Boolean!
-    ): ErrorAlert
-    deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
-    deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
-    updateSessionFeedbackAlert(
-        project_id: ID!
-        session_feedback_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
-    ): SessionAlert
-    createSessionFeedbackAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-    ): SessionAlert
-    updateRageClickAlert(
-        project_id: ID!
-        rage_click_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
-    ): SessionAlert
-    updateNewUserAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        threshold_window: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        disabled: Boolean!
-    ): SessionAlert
-    createNewUserAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-    ): SessionAlert
-    updateTrackPropertiesAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        track_properties: [TrackPropertyInput]!
-        threshold_window: Int!
-        disabled: Boolean!
-    ): SessionAlert
-    createTrackPropertiesAlert(
-        project_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        track_properties: [TrackPropertyInput]!
-        threshold_window: Int!
-    ): SessionAlert
-    createUserPropertiesAlert(
-        project_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        user_properties: [UserPropertyInput]!
-        threshold_window: Int!
-    ): SessionAlert
-    deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-    updateUserPropertiesAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        user_properties: [UserPropertyInput]!
-        threshold_window: Int!
-        disabled: Boolean!
-    ): SessionAlert
-    updateNewSessionAlert(
-        project_id: ID!
-        session_alert_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-        exclude_rules: [String]!
-        disabled: Boolean!
-    ): SessionAlert
-    createNewSessionAlert(
-        project_id: ID!
-        name: String!
-        count_threshold: Int!
-        slack_channels: [SanitizedSlackChannelInput]!
-        emails: [String]!
-        environments: [String]!
-        threshold_window: Int!
-        exclude_rules: [String]!
-    ): SessionAlert
-    updateSessionIsPublic(
-        session_secure_id: String!
-        is_public: Boolean!
-    ): Session
-    updateErrorGroupIsPublic(
-        error_group_secure_id: String!
-        is_public: Boolean!
-    ): ErrorGroup
-    updateAllowMeterOverage(
-        workspace_id: ID!
-        allow_meter_overage: Boolean!
-    ): Workspace
-    submitRegistrationForm(
-        workspace_id: ID!
-        team_size: String!
-        role: String!
-        use_case: String!
-        heard_about: String!
-        pun: String
-    ): Boolean
-    requestAccess(project_id: ID!): Boolean
-    modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
+	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
+	createProject(name: String!, workspace_id: ID!): Project
+	createWorkspace(name: String!): Workspace
+	editProject(
+		id: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+	): Project
+	editWorkspace(id: ID!, name: String): Workspace
+	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
+	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
+	updateErrorGroupState(secure_id: String!, state: String!): ErrorGroup
+	deleteProject(id: ID!): Boolean
+	sendAdminProjectInvite(
+		project_id: ID!
+		email: String!
+		base_url: String!
+	): String
+	sendAdminWorkspaceInvite(
+		workspace_id: ID!
+		email: String!
+		base_url: String!
+		role: String!
+	): String
+	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	joinWorkspace(workspace_id: ID!): ID
+	updateAllowedEmailOrigins(
+		workspace_id: ID!
+		allowed_auto_join_email_origins: String!
+	): ID
+	changeAdminRole(
+		workspace_id: ID!
+		admin_id: ID!
+		new_role: String!
+	): Boolean!
+	deleteAdminFromProject(project_id: ID!, admin_id: ID!): ID
+	deleteAdminFromWorkspace(workspace_id: ID!, admin_id: ID!): ID
+	createSegment(
+		project_id: ID!
+		name: String!
+		params: SearchParamsInput!
+	): Segment
+	emailSignup(email: String!): String!
+	editSegment(id: ID!, project_id: ID!, params: SearchParamsInput!): Boolean
+	deleteSegment(segment_id: ID!): Boolean
+	createErrorSegment(
+		project_id: ID!
+		name: String!
+		params: ErrorSearchParamsInput!
+	): ErrorSegment
+	editErrorSegment(
+		id: ID!
+		project_id: ID!
+		params: ErrorSearchParamsInput!
+	): Boolean
+	deleteErrorSegment(segment_id: ID!): Boolean
+	# If this endpoint returns a checkout_id, we initiate a stripe checkout.
+	# Otherwise, we simply update the subscription.
+	createOrUpdateStripeSubscription(
+		workspace_id: ID!
+		plan_type: PlanType!
+		interval: SubscriptionInterval!
+	): String
+	updateBillingDetails(workspace_id: ID!): Boolean
+	createSessionComment(
+		project_id: ID!
+		session_secure_id: String!
+		session_timestamp: Int!
+		text: String!
+		text_for_email: String!
+		x_coordinate: Float!
+		y_coordinate: Float!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		session_url: String!
+		time: Float!
+		author_name: String!
+		session_image: String
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+		tags: [SessionCommentTagInput]!
+		additional_context: String
+	): SessionComment
+	createIssueForSessionComment(
+		project_id: ID!
+		session_url: String!
+		session_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		time: Float!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): SessionComment
+	deleteSessionComment(id: ID!): Boolean
+	replyToSessionComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		sessionURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	createErrorComment(
+		project_id: ID!
+		error_group_secure_id: String!
+		text: String!
+		text_for_email: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+		error_url: String!
+		author_name: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	createIssueForErrorComment(
+		project_id: ID!
+		error_url: String!
+		error_comment_id: Int!
+		author_name: String!
+		text_for_attachment: String!
+		issue_title: String
+		issue_description: String
+		issue_team_id: String
+		integrations: [IntegrationType]!
+	): ErrorComment
+	deleteErrorComment(id: ID!): Boolean
+	replyToErrorComment(
+		comment_id: ID!
+		text: String!
+		text_for_email: String!
+		errorURL: String!
+		tagged_admins: [SanitizedAdminInput]!
+		tagged_slack_users: [SanitizedSlackChannelInput]!
+	): CommentReply
+	openSlackConversation(
+		project_id: ID!
+		code: String!
+		redirect_path: String!
+	): Boolean
+	addIntegrationToProject(
+		integration_type: IntegrationType
+		project_id: ID!
+		code: String!
+	): Boolean!
+	removeIntegrationFromProject(
+		integration_type: IntegrationType
+		project_id: ID!
+	): Boolean!
+	syncSlackIntegration(project_id: ID!): SlackSyncResponse!
+	createDefaultAlerts(
+		project_id: ID!
+		alert_types: [String!]!
+		slack_channels: [SanitizedSlackChannelInput!]!
+		emails: [String]!
+	): Boolean
+	createRageClickAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+	): SessionAlert
+	createMetricMonitor(
+		project_id: ID!
+		name: String!
+		aggregator: MetricAggregator!
+		periodMinutes: Int
+		threshold: Float!
+		units: String
+		metric_to_monitor: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		filters: [MetricTagFilterInput!]
+	): MetricMonitor
+	updateMetricMonitor(
+		metric_monitor_id: ID!
+		project_id: ID!
+		name: String
+		aggregator: MetricAggregator
+		periodMinutes: Int
+		threshold: Float
+		units: String
+		metric_to_monitor: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		disabled: Boolean
+		filters: [MetricTagFilterInput!]
+	): MetricMonitor
+	createErrorAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		regex_groups: [String]!
+		frequency: Int!
+	): ErrorAlert
+	updateErrorAlert(
+		project_id: ID!
+		name: String
+		error_alert_id: ID!
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		regex_groups: [String]
+		frequency: Int
+		disabled: Boolean
+	): ErrorAlert
+	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
+	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
+	updateSessionFeedbackAlert(
+		project_id: ID!
+		session_feedback_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	createSessionFeedbackAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		threshold_window: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+	): SessionAlert
+	updateRageClickAlert(
+		project_id: ID!
+		rage_click_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	updateNewUserAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		count_threshold: Int
+		threshold_window: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		disabled: Boolean
+	): SessionAlert
+	createNewUserAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		threshold_window: Int!
+	): SessionAlert
+	updateTrackPropertiesAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		track_properties: [TrackPropertyInput]
+		threshold_window: Int
+		disabled: Boolean
+	): SessionAlert
+	createTrackPropertiesAlert(
+		project_id: ID!
+		name: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		track_properties: [TrackPropertyInput]!
+		threshold_window: Int!
+	): SessionAlert
+	createUserPropertiesAlert(
+		project_id: ID!
+		name: String!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		user_properties: [UserPropertyInput]!
+		threshold_window: Int!
+	): SessionAlert
+	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
+	updateUserPropertiesAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		user_properties: [UserPropertyInput]
+		threshold_window: Int
+		disabled: Boolean
+	): SessionAlert
+	updateNewSessionAlert(
+		project_id: ID!
+		session_alert_id: ID!
+		name: String
+		count_threshold: Int
+		slack_channels: [SanitizedSlackChannelInput]
+		emails: [String]
+		environments: [String]
+		threshold_window: Int
+		exclude_rules: [String]
+		disabled: Boolean
+	): SessionAlert
+	createNewSessionAlert(
+		project_id: ID!
+		name: String!
+		count_threshold: Int!
+		slack_channels: [SanitizedSlackChannelInput]!
+		emails: [String]!
+		environments: [String]!
+		threshold_window: Int!
+		exclude_rules: [String]!
+	): SessionAlert
+	updateSessionIsPublic(
+		session_secure_id: String!
+		is_public: Boolean!
+	): Session
+	updateErrorGroupIsPublic(
+		error_group_secure_id: String!
+		is_public: Boolean!
+	): ErrorGroup
+	updateAllowMeterOverage(
+		workspace_id: ID!
+		allow_meter_overage: Boolean!
+	): Workspace
+	submitRegistrationForm(
+		workspace_id: ID!
+		team_size: String!
+		role: String!
+		use_case: String!
+		heard_about: String!
+		pun: String
+	): Boolean
+	requestAccess(project_id: ID!): Boolean
+	modifyClearbitIntegration(workspace_id: ID!, enabled: Boolean!): Boolean
+	upsertDashboard(
+		id: ID
+		project_id: ID!
+		name: String!
+		metrics: [DashboardMetricConfigInput!]!
+		layout: String
+	): ID!
 }
 
 type Subscription {
-    session_payload_appended(
-        session_secure_id: String!
-        initial_events_count: Int!
-    ): SessionPayload
+	session_payload_appended(
+		session_secure_id: String!
+		initial_events_count: Int!
+	): SessionPayload
 }

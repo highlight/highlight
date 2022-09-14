@@ -3,9 +3,6 @@
 package model
 
 import (
-	"fmt"
-	"io"
-	"strconv"
 	"time"
 )
 
@@ -21,11 +18,6 @@ type BackendErrorObjectInput struct {
 	Payload         *string   `json:"payload"`
 }
 
-type DeviceMetricInput struct {
-	Name  string  `json:"name"`
-	Value float64 `json:"value"`
-}
-
 type ErrorObjectInput struct {
 	Event        string             `json:"event"`
 	Type         string             `json:"type"`
@@ -38,14 +30,20 @@ type ErrorObjectInput struct {
 	Payload      *string            `json:"payload"`
 }
 
+type InitializeSessionResponse struct {
+	SecureID  string `json:"secure_id"`
+	ProjectID int    `json:"project_id"`
+}
+
 type MetricInput struct {
-	SessionSecureID string     `json:"session_secure_id"`
-	Name            string     `json:"name"`
-	Value           float64    `json:"value"`
-	Type            MetricType `json:"type"`
-	URL             string     `json:"url"`
-	Timestamp       time.Time  `json:"timestamp"`
-	RequestID       *string    `json:"request_id"`
+	SessionSecureID string      `json:"session_secure_id"`
+	Group           *string     `json:"group"`
+	Name            string      `json:"name"`
+	Value           float64     `json:"value"`
+	Category        *string     `json:"category"`
+	Timestamp       time.Time   `json:"timestamp"`
+	Type            interface{} `json:"type"`
+	URL             *string     `json:"url"`
 }
 
 type ReplayEventInput struct {
@@ -68,52 +66,4 @@ type StackFrameInput struct {
 	IsEval       *bool         `json:"isEval"`
 	IsNative     *bool         `json:"isNative"`
 	Source       *string       `json:"source"`
-}
-
-type WebVitalMetricInput struct {
-	Name  string  `json:"name"`
-	Value float64 `json:"value"`
-}
-
-type MetricType string
-
-const (
-	MetricTypeWebVital MetricType = "WebVital"
-	MetricTypeDevice   MetricType = "Device"
-	MetricTypeBackend  MetricType = "Backend"
-)
-
-var AllMetricType = []MetricType{
-	MetricTypeWebVital,
-	MetricTypeDevice,
-	MetricTypeBackend,
-}
-
-func (e MetricType) IsValid() bool {
-	switch e {
-	case MetricTypeWebVital, MetricTypeDevice, MetricTypeBackend:
-		return true
-	}
-	return false
-}
-
-func (e MetricType) String() string {
-	return string(e)
-}
-
-func (e *MetricType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = MetricType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid MetricType", str)
-	}
-	return nil
-}
-
-func (e MetricType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }

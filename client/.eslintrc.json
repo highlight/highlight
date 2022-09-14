@@ -1,12 +1,18 @@
 {
-    "extends": ["eslint:recommended"],
-    "env": {
-        "es6": true,
-        "browser": true,
-        "node": true
-    },
-    "parser": "babel-eslint",
-    "rules": {
-        "strict": 2
-    }
+	"extends": ["eslint:recommended"],
+	"env": {
+		"es6": true,
+		"browser": true,
+		"node": true
+	},
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"sourceType": "module",
+		"allowImportExportEverywhere": true
+	},
+	"rules": {
+		"strict": 2,
+		"no-empty": "off",
+		"no-unused-vars": "off"
+	}
 }

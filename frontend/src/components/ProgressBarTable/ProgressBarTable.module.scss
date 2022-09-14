@@ -1,46 +1,46 @@
 .table {
-    margin-bottom: -24px;
-    margin-left: -24px;
-    margin-right: -24px;
-    max-width: initial !important;
+	margin-bottom: -24px;
+	margin-left: -24px;
+	margin-right: -24px;
+	max-width: initial !important;
 
-    :global(.ant-table) {
-        background: var(--color-primary-background) !important;
-        color: var(--text-primary) !important;
-    }
+	:global(.ant-table) {
+		background: var(--color-primary-background) !important;
+		color: var(--text-primary) !important;
+	}
 
-    :global(.ant-table-cell) {
-        border-bottom: 1px solid var(--color-gray-300) !important;
-        padding: 12px 0 !important;
-    }
+	:global(.ant-table-cell) {
+		border-bottom: 1px solid var(--color-gray-300) !important;
+		padding: 12px 0 !important;
+	}
 
-    :global(.ant-table-cell:first-of-type) {
-        padding-left: var(--size-large) !important;
-    }
+	:global(.ant-table-cell:first-of-type) {
+		padding-left: var(--size-large) !important;
+	}
 
-    :global(.ant-table-cell:last-of-type) {
-        padding-right: var(--size-large) !important;
-    }
+	:global(.ant-table-cell:last-of-type) {
+		padding-right: var(--size-large) !important;
+	}
 
-    :global(.ant-table-row:last-of-type) {
-        :global(.ant-table-cell) {
-            border-bottom: 0 !important;
-        }
-    }
+	:global(.ant-table-row:last-of-type) {
+		:global(.ant-table-cell) {
+			border-bottom: 0 !important;
+		}
+	}
 
-    :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-        background: var(--color-gray-300) !important;
-    }
+	:global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+		background: var(--color-gray-300) !important;
+	}
 
-    :global(.ant-table-tbody > tr.ant-table-placeholder:hover > td) {
-        background: transparent !important;
-    }
+	:global(.ant-table-tbody > tr.ant-table-placeholder:hover > td) {
+		background: transparent !important;
+	}
 
-    :global(.ant-table-empty) {
-        margin-top: var(--size-xxLarge);
+	:global(.ant-table-empty) {
+		margin-top: var(--size-xxLarge);
 
-        :global(.ant-table-cell) {
-            border-bottom: 0 !important;
-        }
-    }
+		:global(.ant-table-cell) {
+			border-bottom: 0 !important;
+		}
+	}
 }

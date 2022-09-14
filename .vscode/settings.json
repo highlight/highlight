@@ -10,9 +10,7 @@
 	"go.useLanguageServer": true,
 	"go.autocompleteUnimportedPackages": true,
 	"go.lintTool": "golangci-lint",
-	"go.lintFlags": [
-		"--fast"
-	],
+	"go.lintFlags": ["--fast"],
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"[go]": {
 		"editor.defaultFormatter": "golang.go"
@@ -29,12 +27,7 @@
 	"less.validate": false,
 	"scss.validate": false,
 	"stylelint.enable": true,
-	"stylelint.validate": [
-		"css",
-		"less",
-		"postcss",
-		"scss"
-	],
+	"stylelint.validate": ["css", "less", "postcss", "scss"],
 	"[graphql]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
@@ -44,9 +37,7 @@
 			"strings": true
 		},
 		"editor.suggest.insertMode": "replace",
-		"gitlens.codeLens.scopes": [
-			"document"
-		],
+		"gitlens.codeLens.scopes": ["document"]
 	},
 	"[less]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -79,11 +70,11 @@
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
-	"cSpell.words": [
-		"Blocklist",
-		"interactable"
-	],
+	"cSpell.words": ["Blocklist", "interactable"],
 	"[yaml]": {
-		"editor.defaultFormatter": "redhat.vscode-yaml"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"[sql]": {
+		"editor.defaultFormatter": "mtxr.sqltools"
+	}
 }

@@ -1,360 +1,342 @@
-import Button from '@components/Button/Button/Button';
-import Tooltip from '@components/Tooltip/Tooltip';
-import SvgDragIcon from '@icons/DragIcon';
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration';
-import { useReplayerContext } from '@pages/Player/ReplayerContext';
-import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext';
-import { playerTimeToSessionAbsoluteTime } from '@util/session/utils';
-import { MillisToMinutesAndSeconds } from '@util/time';
-import classNames from 'classnames';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Draggable from 'react-draggable';
-import { NumberParam, useQueryParam } from 'use-query-params';
+import Button from '@components/Button/Button/Button'
+import SvgDragIcon from '@icons/DragIcon'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useToolbarItemsContext } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph'
+import { MillisToMinutesAndSeconds } from '@util/time'
+import classNames from 'classnames'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import Draggable from 'react-draggable'
+import { NumberParam, useQueryParam } from 'use-query-params'
 
-import styles from './Scrubber.module.scss';
+import styles from './Scrubber.module.scss'
 
-const TICK_COUNT = 5;
+interface Props {
+	chartData: any[]
+	getSliderPercent: (time: number) => number
+}
 
-const Scrubber = ({}: {}) => {
-    const {
-        zoomAreaLeft,
-        setZoomAreaLeft,
-        zoomAreaRight,
-        setZoomAreaRight,
-    } = useToolbarItemsContext();
-    const {
-        time,
-        setTime,
-        sessionMetadata,
-        sessionIntervals,
-        setIsLoadingEvents,
-    } = useReplayerContext();
-    const { showPlayerAbsoluteTime } = usePlayerConfiguration();
-    const draggableRef = useRef(null);
-    const leftRef = useRef(null);
-    const rightRef = useRef(null);
-    const sliderWrapperRef = useRef<HTMLDivElement>(null);
-    const wrapperWidth =
-        (sliderWrapperRef.current?.getBoundingClientRect().width ?? 1) - 12;
-    const [dragTime, setDragTime] = useState(0);
-    const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft);
-    const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight);
-    const [zoomAreaLeftUrlParam, setZoomAreaLeftUrlParam] = useQueryParam(
-        'zoomStart',
-        NumberParam
-    );
-    const [zoomAreaRightUrlParam, setZoomAreaRightUrlParam] = useQueryParam(
-        'zoomEnd',
-        NumberParam
-    );
-    const [isDragging, setIsDragging] = useState(false);
-    const [zoomHistory, setZoomHistory] = useState<[number, number][]>([]);
+const ActivityGraphMemoized = React.memo(ActivityGraph)
 
-    const getSliderPercent = useCallback(
-        (time: number) => {
-            let sliderPercent = 0;
-            for (const interval of sessionIntervals) {
-                if (time < interval.endTime && time >= interval.startTime) {
-                    const segmentPercent =
-                        (time - interval.startTime) /
-                        (interval.endTime - interval.startTime);
-                    sliderPercent =
-                        segmentPercent *
-                            (interval.endPercent - interval.startPercent) +
-                        interval.startPercent;
-                    return sliderPercent;
-                }
-            }
-            return sliderPercent;
-        },
-        [sessionIntervals]
-    );
+const Scrubber = ({ chartData, getSliderPercent }: Props) => {
+	const { zoomAreaLeft, setZoomAreaLeft, zoomAreaRight, setZoomAreaRight } =
+		useToolbarItemsContext()
+	const { time, setTime, sessionIntervals } = useReplayerContext()
+	const draggableRef = useRef(null)
+	const leftRef = useRef(null)
+	const rightRef = useRef(null)
+	const sliderWrapperRef = useRef<HTMLDivElement>(null)
+	const wrapperWidth =
+		sliderWrapperRef.current?.getBoundingClientRect().width ?? 1
+	const [dragTime, setDragTime] = useState(0)
+	const [dragAreaLeft, setDragAreaLeft] = useState(zoomAreaLeft)
+	const [dragAreaRight, setDragAreaRight] = useState(zoomAreaRight)
+	const [zoomAreaLeftUrlParam, setZoomAreaLeftUrlParam] = useQueryParam(
+		'zoomStart',
+		NumberParam,
+	)
+	const [zoomAreaRightUrlParam, setZoomAreaRightUrlParam] = useQueryParam(
+		'zoomEnd',
+		NumberParam,
+	)
+	const [isDragging, setIsDragging] = useState(false)
+	const [zoomHistory, setZoomHistory] = useState<[number, number][]>([])
+	const [eventCounts, setEventCounts] = useState<any[]>([])
 
-    const getSliderTime = useCallback(
-        (sliderPercent: number) => {
-            let newTime = 0;
-            for (const interval of sessionIntervals) {
-                if (
-                    interval.endPercent === 1 ||
-                    (sliderPercent < interval.endPercent &&
-                        sliderPercent >= interval.startPercent)
-                ) {
-                    const segmentPercent =
-                        (sliderPercent - interval.startPercent) /
-                        (interval.endPercent - interval.startPercent);
-                    newTime =
-                        segmentPercent * interval.duration + interval.startTime;
-                    return newTime;
-                }
-            }
-            return newTime;
-        },
-        [sessionIntervals]
-    );
+	useEffect(() => {
+		if (chartData) {
+			setEventCounts(chartData.map((d) => ({ value: d.count })))
+		}
+	}, [chartData])
 
-    useEffect(() => {
-        if (!isDragging) {
-            setDragTime(time);
-        }
-    }, [time, isDragging]);
+	const getSliderTime = useCallback(
+		(sliderPercent: number) => {
+			let newTime = 0
+			for (const interval of sessionIntervals) {
+				if (
+					interval.endPercent === 1 ||
+					(sliderPercent < interval.endPercent &&
+						sliderPercent >= interval.startPercent)
+				) {
+					const segmentPercent =
+						(sliderPercent - interval.startPercent) /
+						(interval.endPercent - interval.startPercent)
+					newTime =
+						segmentPercent * interval.duration + interval.startTime
+					return newTime
+				}
+			}
+			return newTime
+		},
+		[sessionIntervals],
+	)
 
-    useEffect(() => {
-        setDragAreaLeft(zoomAreaLeft);
-    }, [zoomAreaLeft]);
+	useEffect(() => {
+		if (!isDragging) {
+			setDragTime(time)
+		}
+	}, [time, isDragging])
 
-    useEffect(() => {
-        setDragAreaRight(zoomAreaRight);
-    }, [zoomAreaRight]);
+	useEffect(() => {
+		setDragAreaLeft(zoomAreaLeft)
+	}, [zoomAreaLeft])
 
-    useEffect(() => {
-        setZoomHistory((cur) => [...cur, [zoomAreaLeft, zoomAreaRight]]);
-    }, [zoomAreaLeft, zoomAreaRight]);
+	useEffect(() => {
+		setDragAreaRight(zoomAreaRight)
+	}, [zoomAreaRight])
 
-    useEffect(() => {
-        setZoomAreaLeftUrlParam(zoomAreaLeft, 'replaceIn');
-        setZoomAreaRightUrlParam(zoomAreaRight, 'replaceIn');
-    }, [
-        setZoomAreaLeftUrlParam,
-        setZoomAreaRightUrlParam,
-        zoomAreaLeft,
-        zoomAreaRight,
-    ]);
+	useEffect(() => {
+		setZoomHistory((cur) => [...cur, [zoomAreaLeft, zoomAreaRight]])
+	}, [zoomAreaLeft, zoomAreaRight])
 
-    // Run this effect once on mount
-    useEffect(() => {
-        if (
-            zoomAreaLeftUrlParam !== null &&
-            zoomAreaLeftUrlParam !== undefined
-        ) {
-            setZoomAreaLeft(zoomAreaLeftUrlParam);
-        }
-        if (
-            zoomAreaRightUrlParam !== null &&
-            zoomAreaRightUrlParam !== undefined
-        ) {
-            setZoomAreaRight(zoomAreaRightUrlParam);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+	useEffect(() => {
+		setZoomAreaLeftUrlParam(zoomAreaLeft, 'replaceIn')
+		setZoomAreaRightUrlParam(zoomAreaRight, 'replaceIn')
+	}, [
+		setZoomAreaLeftUrlParam,
+		setZoomAreaRightUrlParam,
+		zoomAreaLeft,
+		zoomAreaRight,
+	])
 
-    const zoomBack = useCallback(() => {
-        if (zoomHistory.length <= 1) {
-            return;
-        }
+	// Run this effect once on mount
+	useEffect(() => {
+		if (
+			zoomAreaLeftUrlParam !== null &&
+			zoomAreaLeftUrlParam !== undefined
+		) {
+			setZoomAreaLeft(zoomAreaLeftUrlParam)
+		}
+		if (
+			zoomAreaRightUrlParam !== null &&
+			zoomAreaRightUrlParam !== undefined
+		) {
+			setZoomAreaRight(zoomAreaRightUrlParam)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
-        const withoutLast = zoomHistory.slice(0, -2);
-        const newLast = zoomHistory[zoomHistory.length - 2];
+	const zoomBack = useCallback(() => {
+		if (zoomHistory.length <= 1) {
+			return
+		}
 
-        setZoomHistory(withoutLast);
-        setZoomAreaLeft(newLast[0]);
-        setZoomAreaRight(newLast[1]);
-    }, [setZoomAreaLeft, setZoomAreaRight, zoomHistory]);
+		const withoutLast = zoomHistory.slice(0, -2)
+		const newLast = zoomHistory[zoomHistory.length - 2]
 
-    const zoomReset = useCallback(() => {
-        if (zoomHistory.length <= 1) {
-            return;
-        }
+		setZoomHistory(withoutLast)
+		setZoomAreaLeft(newLast[0])
+		setZoomAreaRight(newLast[1])
+	}, [setZoomAreaLeft, setZoomAreaRight, zoomHistory])
 
-        setZoomHistory([]);
-        setZoomAreaLeft(0);
-        setZoomAreaRight(100);
-    }, [setZoomAreaLeft, setZoomAreaRight, zoomHistory.length]);
+	const zoomReset = useCallback(() => {
+		if (zoomHistory.length <= 1) {
+			return
+		}
 
-    const isZoomed = zoomAreaLeft > 0 || zoomAreaRight < 100;
-    const curTime = showPlayerAbsoluteTime
-        ? playerTimeToSessionAbsoluteTime({
-              sessionStartTime: sessionMetadata.startTime,
-              relativeTime: dragTime,
-          }).toString()
-        : MillisToMinutesAndSeconds(dragTime);
+		setZoomHistory([])
+		setZoomAreaLeft(0)
+		setZoomAreaRight(100)
+	}, [setZoomAreaLeft, setZoomAreaRight, zoomHistory.length])
 
-    const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth;
-    const dragRightPixels = (dragAreaRight / 100) * wrapperWidth;
+	const isZoomed = zoomAreaLeft > 0 || zoomAreaRight < 100
+	const curTime = MillisToMinutesAndSeconds(dragTime)
 
-    return (
-        <div className={styles.scrubberBackground}>
-            {isZoomed && (
-                <div className={styles.zoomControlsWrapper}>
-                    <Button
-                        size="small"
-                        onClick={zoomBack}
-                        trackingId="PlayerZoomBack"
-                        type="text"
-                        style={{ padding: 0, marginLeft: 8 }}
-                    >
-                        Back
-                    </Button>
-                    <Button
-                        size="small"
-                        onClick={zoomReset}
-                        trackingId="PlayerZoomReset"
-                        type="text"
-                        style={{ padding: 0, marginLeft: 8 }}
-                    >
-                        Reset
-                    </Button>
-                </div>
-            )}
-            <div className={styles.innerBounds} ref={sliderWrapperRef}>
-                <div
-                    className={styles.tickWrapper}
-                    onClick={(e) => {
-                        const target = e.target as HTMLDivElement;
-                        const rect = target.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const sliderPercent = x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setTime(newTime);
-                    }}
-                >
-                    {[...Array(TICK_COUNT).keys()].map((i) => {
-                        const sliderPercent = i / (TICK_COUNT - 1);
-                        const newTime = getSliderTime(sliderPercent);
-                        return (
-                            <span className={styles.tick} key={i}>
-                                {MillisToMinutesAndSeconds(newTime)}
-                            </span>
-                        );
-                    })}
-                </div>
-                <Draggable
-                    nodeRef={draggableRef}
-                    axis="x"
-                    bounds={{ left: 0, right: wrapperWidth }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setTime(newTime);
-                        setIsDragging(false);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        const newTime = getSliderTime(sliderPercent);
-                        setIsLoadingEvents(true);
-                        setDragTime(newTime);
-                    }}
-                    onStart={() => {
-                        setIsDragging(true);
-                    }}
-                    position={{
-                        x: Math.max(
-                            getSliderPercent(dragTime) * wrapperWidth,
-                            0
-                        ),
-                        y: -36,
-                    }}
-                >
-                    <div className={styles.handleContainer} ref={draggableRef}>
-                        <div className={styles.scrubHandle}>
-                            <div className={styles.timeText}>{curTime}</div>
-                            <div className={styles.timeMarker}></div>
-                        </div>
-                    </div>
-                </Draggable>
-                <Draggable
-                    nodeRef={leftRef}
-                    axis="x"
-                    bounds={{
-                        left: 0,
-                        right: dragRightPixels,
-                    }}
-                    position={{
-                        x: dragLeftPixels,
-                        y: 6,
-                    }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setZoomAreaLeft(sliderPercent * 100);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setDragAreaLeft(sliderPercent * 100);
-                    }}
-                >
-                    <div
-                        className={classNames(
-                            styles.zoomAreaHandle,
-                            styles.handleLeft
-                        )}
-                        ref={leftRef}
-                    >
-                        <SvgDragIcon
-                            style={{
-                                color: 'var(--color-scrubber-zoom-handle)',
-                                transform: 'translateY(-1px)',
-                            }}
-                        />
-                    </div>
-                </Draggable>
-                <Draggable
-                    nodeRef={rightRef}
-                    axis="x"
-                    bounds={{
-                        left: dragLeftPixels,
-                        right: wrapperWidth,
-                    }}
-                    position={{
-                        x: dragRightPixels,
-                        y: 6,
-                    }}
-                    onStop={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setZoomAreaRight(sliderPercent * 100);
-                    }}
-                    onDrag={(e, data) => {
-                        const sliderPercent = data.x / wrapperWidth;
-                        setDragAreaRight(sliderPercent * 100);
-                    }}
-                >
-                    <div
-                        className={classNames(
-                            styles.zoomAreaHandle,
-                            styles.handleRight
-                        )}
-                        ref={rightRef}
-                    >
-                        <SvgDragIcon
-                            style={{
-                                color: 'var(--color-scrubber-zoom-handle)',
-                                transform: 'translateY(-1px)',
-                            }}
-                        />
-                    </div>
-                </Draggable>
-                <div
-                    className={classNames(styles.zoomArea, {
-                        [styles.zoomAreaCanReset]: false,
-                    })}
-                    style={{
-                        left: `${dragAreaLeft}%`,
-                        width: `${dragAreaRight - dragAreaLeft}%`,
-                    }}
-                ></div>
-                <div className={styles.inactiveContainer}>
-                    {sessionIntervals.map((i) => {
-                        if (i.active) {
-                            return null;
-                        }
+	const dragLeftPixels = (dragAreaLeft / 100) * wrapperWidth
+	const dragRightPixels = (dragAreaRight / 100) * wrapperWidth
 
-                        return (
-                            <Tooltip key={i.startPercent} title={'Inactive'}>
-                                <div
-                                    className={styles.inactiveArea}
-                                    style={{
-                                        left: `${i.startPercent * 100}%`,
-                                        width: `${
-                                            (i.endPercent - i.startPercent) *
-                                            100
-                                        }%`,
-                                    }}
-                                ></div>
-                            </Tooltip>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
-    );
-};
+	return (
+		<div className={styles.scrubberBackground}>
+			{isZoomed && (
+				<div className={styles.zoomControlsWrapper}>
+					<Button
+						size="small"
+						onClick={zoomBack}
+						trackingId="PlayerZoomBack"
+						type="text"
+						style={{ padding: 0, marginLeft: 8 }}
+					>
+						Back
+					</Button>
+					<Button
+						size="small"
+						onClick={zoomReset}
+						trackingId="PlayerZoomReset"
+						type="text"
+						style={{ padding: 0, marginLeft: 8 }}
+					>
+						Reset
+					</Button>
+				</div>
+			)}
+			<div className={styles.innerBounds} ref={sliderWrapperRef}>
+				<div
+					className={styles.activityGraphWrapper}
+					style={{
+						left: `${zoomAreaLeft}%`,
+						width: `${zoomAreaRight - zoomAreaLeft}%`,
+					}}
+				>
+					<ActivityGraphMemoized
+						data={eventCounts}
+						height={20}
+					></ActivityGraphMemoized>
+				</div>
+				<Draggable
+					nodeRef={draggableRef}
+					axis="x"
+					bounds={{ left: 0, right: wrapperWidth }}
+					onStop={(e, data) => {
+						const sliderPercent = data.x / wrapperWidth
+						const newTime = getSliderTime(sliderPercent)
+						setTime(newTime)
+						setIsDragging(false)
+					}}
+					onDrag={(e, data) => {
+						const sliderPercent = data.x / wrapperWidth
+						const newTime = getSliderTime(sliderPercent)
+						setDragTime(newTime)
+					}}
+					onStart={() => {
+						setIsDragging(true)
+					}}
+					position={{
+						x: Math.max(
+							getSliderPercent(dragTime) * wrapperWidth,
+							0,
+						),
+						y: -28,
+					}}
+				>
+					<div
+						className={styles.scrubHandleContainer}
+						ref={draggableRef}
+					>
+						<div className={styles.scrubHandle}>
+							<div className={styles.timeText}>{curTime}</div>
+							<div className={styles.timeMarker}></div>
+						</div>
+					</div>
+				</Draggable>
+				<div className={styles.zoomer}>
+					<Draggable
+						nodeRef={leftRef}
+						axis="x"
+						bounds={{
+							left: 0,
+							right: dragRightPixels,
+						}}
+						position={{
+							x: dragLeftPixels,
+							y: 0,
+						}}
+						onStop={(e, data) => {
+							const sliderPercent = data.x / wrapperWidth
+							setZoomAreaLeft(sliderPercent * 100)
+						}}
+						onDrag={(e, data) => {
+							const sliderPercent = data.x / wrapperWidth
+							setDragAreaLeft(sliderPercent * 100)
+						}}
+					>
+						<div className={styles.handleContainer} ref={leftRef}>
+							<div
+								className={classNames(
+									styles.zoomAreaHandle,
+									styles.handleLeft,
+								)}
+							>
+								<SvgDragIcon
+									style={{
+										color: 'var(--color-scrubber-zoom-handle)',
+									}}
+								/>
+							</div>
+						</div>
+					</Draggable>
+					<Draggable
+						nodeRef={rightRef}
+						axis="x"
+						bounds={{
+							left: dragLeftPixels,
+							right: wrapperWidth,
+						}}
+						position={{
+							x: dragRightPixels,
+							y: 0,
+						}}
+						onStop={(e, data) => {
+							const sliderPercent = data.x / wrapperWidth
+							setZoomAreaRight(sliderPercent * 100)
+						}}
+						onDrag={(e, data) => {
+							const sliderPercent = data.x / wrapperWidth
+							setDragAreaRight(sliderPercent * 100)
+						}}
+					>
+						<div className={styles.handleContainer} ref={rightRef}>
+							<div
+								className={classNames(
+									styles.zoomAreaHandle,
+									styles.handleRight,
+								)}
+							>
+								<SvgDragIcon
+									style={{
+										color: 'var(--color-scrubber-zoom-handle)',
+										transform: 'translateX(-2px)',
+									}}
+								/>
+							</div>
+						</div>
+					</Draggable>
+					<div
+						className={styles.zoomAreaMask}
+						style={{
+							left: `0`,
+							width: `${dragAreaLeft}%`,
+						}}
+					></div>
+					<div
+						className={styles.zoomAreaMask}
+						style={{
+							left: `${dragAreaRight}%`,
+							width: `${100 - dragAreaRight}%`,
+						}}
+					></div>
+					<div
+						className={classNames(styles.zoomArea, {
+							[styles.zoomAreaCanReset]: false,
+						})}
+						style={{
+							left: `${dragAreaLeft}%`,
+							width: `${dragAreaRight - dragAreaLeft}%`,
+						}}
+					></div>
+				</div>
+				<div className={styles.inactiveContainer}>
+					{sessionIntervals.map((i) => {
+						if (i.active) {
+							return null
+						}
 
-export default Scrubber;
+						return (
+							<div
+								key={i.startPercent}
+								className={styles.inactiveArea}
+								style={{
+									left: `${i.startPercent * 100}%`,
+									width: `${
+										(i.endPercent - i.startPercent) * 100
+									}%`,
+								}}
+							></div>
+						)
+					})}
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default Scrubber

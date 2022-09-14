@@ -11,6 +11,12 @@ generates:
         documents: 'src/**/**.gql'
         plugins:
             - typescript
+        config:
+            scalars:
+                Any: any
+                Timestamp: string
+                Int64: number
+                StringArray: string[]
 
     # Create operations based on queries
     src/graph/generated/operations.tsx:
@@ -22,8 +28,8 @@ generates:
             - typescript-operations
             - named-operations-object
         config:
-          # named-operations-object config
-          useConsts: true
+            # named-operations-object config
+            useConsts: true
 
     src/graph/generated/hooks.tsx:
         documents: 'src/**/**.gql'

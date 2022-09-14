@@ -66,14 +66,125 @@ type Client struct {
 	isInitialized bool
 }
 
+type Aggregation interface {
+	GetAggsString() string
+}
+
+type TermsAggregation struct {
+	Field          string
+	Missing        *string // Optional: The value to use when the field is missing.
+	SubAggregation Aggregation
+	Include        *string
+	Size           *int
+}
+
+func (t *TermsAggregation) GetAggsString() string {
+	subAggString := ""
+	if t.SubAggregation != nil {
+		subAggString = t.SubAggregation.GetAggsString()
+	}
+
+	includePart := ""
+	if t.Include != nil {
+		includePart = fmt.Sprintf(`, "include": "%s"`, *t.Include)
+	}
+
+	sizePart := ""
+	if t.Size != nil {
+		sizePart = fmt.Sprintf(`, "size": %d`, *t.Size)
+	}
+
+	missing := ""
+	if t.Missing != nil {
+		missing = fmt.Sprintf(`, "missing": "%s"`, *t.Missing)
+	}
+	return fmt.Sprintf(`
+		"aggregate": {
+			"terms": {
+				"field": "%s"
+				%s
+				%s
+				%s
+			},
+			"aggs": {
+				%s
+			}
+		}
+	`, t.Field, includePart, sizePart, missing, subAggString)
+}
+
+type DateBounds struct {
+	Min int64
+	Max int64
+}
+
+type DateHistogramAggregation struct {
+	Field            string
+	CalendarInterval string
+	SortOrder        string
+	Format           string
+	TimeZone         string
+	DateBounds       *DateBounds
+	SubAggregation   Aggregation
+}
+
+func (d *DateHistogramAggregation) GetAggsString() string {
+	subAggString := ""
+	if d.SubAggregation != nil {
+		subAggString = d.SubAggregation.GetAggsString()
+	}
+	boundsString := ""
+	if d.DateBounds != nil {
+		boundsString = fmt.Sprintf(
+			`, "extended_bounds": {"min": %d, "max": %d}, "hard_bounds": {"min": %d, "max": %d}, "min_doc_count": 0`,
+			d.DateBounds.Min,
+			d.DateBounds.Max,
+			d.DateBounds.Min,
+			d.DateBounds.Max)
+	}
+	return fmt.Sprintf(`
+		"aggregate": {
+			"date_histogram": {
+				"field": "%s",
+				"calendar_interval": "%s",
+				"order": {
+					"_key": "%s"
+				},
+				"format": "%s",
+				"time_zone": "%s"
+				%s
+			},
+			"aggs": {
+				%s
+			}
+		}
+	`, d.Field, d.CalendarInterval, d.SortOrder, d.Format, d.TimeZone, boundsString, subAggString)
+}
+
+type AggregationResult struct {
+	Key                   string
+	DocCount              int64
+	SubAggregationResults []AggregationResult
+}
+
+type aggregateBucket struct {
+	Key         interface{} `json:"key"`
+	KeyAsString string      `json:"key_as_string"`
+	DocCount    int64       `json:"doc_count"`
+	Aggregate   struct {
+		Buckets []aggregateBucket `json:"buckets"`
+	} `json:"aggregate"`
+}
+
 type SearchOptions struct {
-	MaxResults     *int
-	ResultsFrom    *int
-	SortField      *string
-	SortOrder      *string
-	ReturnCount    *bool
-	ExcludeFields  []string
-	AggregateField *string
+	MaxResults        *int
+	ResultsFrom       *int
+	SortField         *string
+	SortOrder         *string
+	ReturnCount       *bool
+	ProjectIDOnParent *bool
+	ExcludeFields     []string
+	Aggregation       Aggregation
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -294,12 +405,45 @@ func (c *Client) IndexSynchronous(index Index, id int, obj interface{}) error {
 	return nil
 }
 
-func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, aggregateResults map[string]int, err error) {
+func getAggregationResults(buckets []aggregateBucket) []AggregationResult {
+	results := []AggregationResult{}
+	for _, bucket := range buckets {
+		// If key_as_string is defined, use that, else default to key.
+		key := bucket.KeyAsString
+		if key == "" {
+			key = bucket.Key.(string)
+		}
+
+		result := AggregationResult{
+			Key:      key,
+			DocCount: bucket.DocCount,
+		}
+
+		if bucket.Aggregate.Buckets != nil {
+			result.SubAggregationResults = getAggregationResults(bucket.Aggregate.Buckets)
+		}
+
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, aggregateResults []AggregationResult, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
 		return 0, nil, e.Wrap(err, "query is not valid JSON")
 	}
 
-	q := fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+	q := query
+	if projectID != -1 {
+		if options.ProjectIDOnParent != nil && *options.ProjectIDOnParent {
+			q = fmt.Sprintf(
+				`{"bool":{"must":[{"has_parent": {"parent_type": "parent","query": {"term":{"project_id":"%d"}}}}, %s]}}`,
+				projectID, query)
+		} else {
+			q = fmt.Sprintf(`{"bool":{"must":[{"term":{"project_id":"%d"}}, %s]}}`, projectID, query)
+		}
+	}
 
 	sort := ""
 	if options.SortField != nil {
@@ -335,13 +479,13 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	}
 
 	aggs := ""
-	if options.AggregateField != nil {
-		aggs = fmt.Sprintf(`, "aggs" : {"aggregate" : {"terms" : {"field" : "%s"}}}`, *options.AggregateField)
+	if options.Aggregation != nil {
+		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
 	}
 
-	content := strings.NewReader(
-		fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
-			excludesStr, count, from, q, sort, trackTotalHits, aggs))
+	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+		excludesStr, count, from, q, sort, trackTotalHits, aggs)
+	content := strings.NewReader(contentStr)
 
 	searchIndexes := []string{}
 	for _, index := range indexes {
@@ -398,25 +542,20 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	var aggregate struct {
 		Aggregations struct {
 			Aggregate struct {
-				Buckets []struct {
-					Key      string `json:"key"`
-					DocCount int    `json:"doc_count"`
-				} `json:"buckets"`
+				Buckets []aggregateBucket `json:"buckets"`
 			} `json:"aggregate"`
 		} `json:"aggregations"`
 	}
 
-	aggregates := map[string]int{}
-	if options.AggregateField != nil {
+	var aggregationResults []AggregationResult
+	if options.Aggregation != nil {
 		if err := json.Unmarshal(res, &aggregate); err != nil {
 			return 0, nil, e.Wrap(err, "failed to unmarshal aggregations")
 		}
-		for _, agg := range aggregate.Aggregations.Aggregate.Buckets {
-			aggregates[agg.Key] = agg.DocCount
-		}
+		aggregationResults = getAggregationResults(aggregate.Aggregations.Aggregate.Buckets)
 	}
 
-	return response.Hits.Total.Value, aggregates, nil
+	return response.Hits.Total.Value, aggregationResults, nil
 }
 
 func (c *Client) PutMapping(index Index, bodyStr string) error {
@@ -498,10 +637,11 @@ type OpenSearchError struct {
 }
 
 type OpenSearchErrorObject struct {
-	Url       string    `json:"visited_url"`
-	Os        string    `json:"os_name"`
-	Browser   string    `json:"browser"`
-	Timestamp time.Time `json:"timestamp"`
+	Url         string    `json:"visited_url"`
+	Os          string    `json:"os_name"`
+	Browser     string    `json:"browser"`
+	Timestamp   time.Time `json:"timestamp"`
+	Environment string    `json:"environment"`
 }
 
 func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {

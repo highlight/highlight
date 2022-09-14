@@ -1,10 +1,21 @@
-.button {
-    color: var(--color-purple);
-    max-width: calc(100% - 1.2em - 2 * var(--size-xxSmall));
-    padding: 0;
+.identifierContainer {
+	align-items: center;
+	display: flex;
+	gap: var(--size-xxSmall);
+	max-width: calc(100% - 1.2em - var(--size-medium));
+}
 
-    > span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+.identifier {
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.identifierActionButton {
+	height: 1.2em !important;
+	width: 1.2em !important;
+	svg {
+		color: var(--color-gray-500);
+		height: 1em !important;
+	}
 }

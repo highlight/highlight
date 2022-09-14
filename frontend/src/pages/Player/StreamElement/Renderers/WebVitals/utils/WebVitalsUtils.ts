@@ -1,54 +1,107 @@
-import { MetricConfig } from '@pages/Dashboards/Metrics';
+import {
+	DashboardChartType,
+	DashboardMetricConfig,
+	MetricAggregator,
+} from '@graph/schemas'
 
 export enum WebVitalName {
-    CLS = 'Cumulative Layout Shift',
-    FCP = 'First Contentful Paint',
-    FID = 'First Input Delay',
-    LCP = 'Largest Contentful Paint',
-    TTFB = 'Time to First Byte',
+	CLS = 'Cumulative Layout Shift',
+	FCP = 'First Contentful Paint',
+	FID = 'First Input Delay',
+	LCP = 'Largest Contentful Paint',
+	TTFB = 'Time to First Byte',
 }
 
 export const WEB_VITALS_CONFIGURATION: {
-    [key in string]: MetricConfig;
+	[key in string]: DashboardMetricConfig
 } = {
-    CLS: {
-        maxGoodValue: 0.1,
-        name: WebVitalName.CLS,
-        maxNeedsImprovementValue: 0.25,
-        poorValue: 0,
-        units: 'LS',
-        helpArticle: 'https://web.dev/cls',
-    },
-    FID: {
-        maxGoodValue: 100,
-        name: WebVitalName.FID,
-        maxNeedsImprovementValue: 300,
-        poorValue: 0,
-        units: 'ms',
-        helpArticle: 'https://web.dev/fid',
-    },
-    LCP: {
-        maxGoodValue: 2500,
-        name: WebVitalName.LCP,
-        maxNeedsImprovementValue: 4000,
-        poorValue: 0,
-        units: 'ms',
-        helpArticle: 'https://web.dev/lcp',
-    },
-    FCP: {
-        maxGoodValue: 1800,
-        name: WebVitalName.FCP,
-        maxNeedsImprovementValue: 3000,
-        poorValue: 0,
-        units: 'ms',
-        helpArticle: 'https://web.dev/fcp',
-    },
-    TTFB: {
-        maxGoodValue: 500,
-        name: WebVitalName.TTFB,
-        maxNeedsImprovementValue: 3000,
-        poorValue: 0,
-        units: 'ms',
-        helpArticle: 'https://web.dev/ttfb',
-    },
-};
+	CLS: {
+		max_good_value: 0.1,
+		name: 'CLS',
+		description: WebVitalName.CLS,
+		max_needs_improvement_value: 0.25,
+		poor_value: 0,
+		units: 'LS',
+		help_article: 'https://web.dev/cls',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+	FID: {
+		max_good_value: 100,
+		name: 'FID',
+		description: WebVitalName.FID,
+		max_needs_improvement_value: 300,
+		poor_value: 0,
+		units: 'ms',
+		help_article: 'https://web.dev/fid',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+	LCP: {
+		max_good_value: 2500,
+		name: 'LCP',
+		description: WebVitalName.LCP,
+		max_needs_improvement_value: 4000,
+		poor_value: 0,
+		units: 'ms',
+		help_article: 'https://web.dev/lcp',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+	FCP: {
+		max_good_value: 1800,
+		name: 'FCP',
+		description: WebVitalName.FCP,
+		max_needs_improvement_value: 3000,
+		poor_value: 0,
+		units: 'ms',
+		help_article: 'https://web.dev/fcp',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+	TTFB: {
+		max_good_value: 500,
+		name: 'TTFB',
+		description: WebVitalName.TTFB,
+		max_needs_improvement_value: 3000,
+		poor_value: 0,
+		units: 'ms',
+		help_article: 'https://web.dev/ttfb',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P50,
+	},
+}
+
+export const FRONTEND_OBSERVABILITY_CONFIGURATION: {
+	[key in string]: DashboardMetricConfig
+} = {
+	latency: {
+		max_good_value: 1,
+		name: 'latency',
+		description: 'Network Request Latency',
+		max_needs_improvement_value: 2.5,
+		poor_value: 0,
+		units: 'ms',
+		chart_type: DashboardChartType.Timeline,
+		aggregator: MetricAggregator.P90,
+	},
+	requestSize: {
+		name: 'body_size',
+		description: 'Network Request Size',
+		units: 'kb',
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.P50,
+	},
+	responseSize: {
+		name: 'response_size',
+		description: 'Network Response Size',
+		units: 'kb',
+		chart_type: DashboardChartType.TimelineBar,
+		aggregator: MetricAggregator.P50,
+	},
+	statusCode: {
+		name: 'status',
+		description: 'HTTP Status Code',
+		chart_type: DashboardChartType.Histogram,
+	},
+}

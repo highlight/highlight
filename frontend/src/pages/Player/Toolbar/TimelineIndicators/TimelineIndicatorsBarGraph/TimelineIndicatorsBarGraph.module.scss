@@ -1,13 +1,40 @@
 .eventTitle {
-    margin-top: var(--size-small);
+	margin-top: var(--size-small);
 }
 
 .eventContent {
-    max-height: 50px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+	max-height: 50px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .histogramContainer {
-    margin-bottom: 26px;
+	margin-bottom: 26px;
+	position: relative;
+	z-index: 10;
+}
+
+.timeMarker {
+	background: var(--color-scrubber-scrub-handle);
+	height: 44px;
+	position: absolute;
+	top: 10px;
+	width: 2px;
+	z-index: 8;
+}
+
+.innerBounds {
+	height: 100%;
+	padding-left: var(--size-medium);
+	padding-right: var(--size-medium);
+	position: absolute;
+	width: 100%;
+}
+
+.histogramSkeleton {
+	margin-bottom: 26px;
+}
+
+.scrubberSkeleton {
+	margin-bottom: 12px;
 }

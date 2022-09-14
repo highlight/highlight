@@ -5,6 +5,10 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
@@ -12,17 +16,16 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"strings"
-	"time"
 )
 
 // KafkaOperationTimeout If an ECS task is being replaced, there's a 30 second window to do cleanup work. A shorter timeout means we shouldn't be killed mid-operation.
 const KafkaOperationTimeout = 25 * time.Second
 
 const (
-	prefetchSizeBytes = 1 * 1000 * 1000   // 1 MB
-	messageSizeBytes  = 500 * 1000 * 1000 // 500 MB
+	taskRetries           = 5
+	prefetchQueueCapacity = 64
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
+	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
 var (
@@ -39,8 +42,8 @@ var (
 type Mode int
 
 const (
-	Producer Mode = iota
-	Consumer Mode = iota
+	Producer Mode = 1 << iota
+	Consumer Mode = 1 << iota
 )
 
 type Queue struct {
@@ -66,55 +69,60 @@ func New(topic string, mode Mode) *Queue {
 		log.Fatal(errors.Wrap(err, "failed to authenticate with kafka"))
 	}
 
+	client := &kafka.Client{
+		Addr: kafka.TCP(brokers...),
+		Transport: &kafka.Transport{
+			SASL: mechanism,
+			TLS:  tlsConfig,
+		},
+	}
 	groupID := "group-default"
 	if util.IsDevOrTestEnv() {
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
-
-		client := &kafka.Client{
-			Addr: kafka.TCP(brokers...),
-			Transport: &kafka.Transport{
-				SASL: mechanism,
-				TLS:  tlsConfig,
-			},
-		}
 		_, err = client.CreateTopics(context.Background(), &kafka.CreateTopicsRequest{
 			Topics: []kafka.TopicConfig{{
 				Topic:             topic,
-				NumPartitions:     64,
-				ReplicationFactor: 3,
+				NumPartitions:     8,
+				ReplicationFactor: 2,
 			}},
 		})
 		if err != nil {
 			log.Error(errors.Wrap(err, "failed to create dev topic"))
 		}
-		res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
-			Addr: kafka.TCP(brokers...),
-			Resources: []kafka.AlterConfigRequestResource{
-				{
-					ResourceType: kafka.ResourceTypeTopic,
-					ResourceName: topic,
-					Configs: []kafka.AlterConfigRequestConfig{
-						{
-							Name:  "delete.retention.ms",
-							Value: "604800000",
-						},
+	}
+
+	res, err := client.AlterConfigs(context.Background(), &kafka.AlterConfigsRequest{
+		Addr: kafka.TCP(brokers...),
+		Resources: []kafka.AlterConfigRequestResource{
+			{
+				ResourceType: kafka.ResourceTypeTopic,
+				ResourceName: topic,
+				Configs: []kafka.AlterConfigRequestConfig{
+					{
+						Name:  "cleanup.policy",
+						Value: "delete",
 					},
 				},
 			},
-		})
-		e := res.Errors[kafka.AlterConfigsResponseResource{
+		},
+	})
+	if err != nil {
+		log.Error(errors.Wrap(err, "failed to update topic retention"))
+	} else {
+		err = res.Errors[kafka.AlterConfigsResponseResource{
 			Type: int8(kafka.ResourceTypeTopic),
 			Name: topic,
 		}]
-		if err != nil || e != nil {
-			log.Error(errors.Wrapf(err, "failed to update topic retention %s", e))
+		if err != nil {
+			log.Error(errors.Wrap(err, "topic retention failed server-side"))
 		}
 	}
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID}
-	if mode == Producer {
+	if mode&1 == 1 {
+		log.Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr: kafka.TCP(brokers...),
 			Transport: &kafka.Transport{
@@ -125,7 +133,7 @@ func New(topic string, mode Mode) *Queue {
 			},
 			Topic:        pool.Topic,
 			Balancer:     &kafka.Hash{},
-			RequiredAcks: kafka.RequireOne,
+			RequiredAcks: kafka.RequireAll,
 			Compression:  kafka.Zstd,
 			// synchronous mode so that we can ensure messages are sent before we return
 			Async: false,
@@ -138,7 +146,9 @@ func New(topic string, mode Mode) *Queue {
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
-	} else if mode == Consumer {
+	}
+	if (mode>>1)&1 == 1 {
+		log.Debugf("initializing kafka consumer for %s", topic)
 		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
 			Brokers: brokers,
 			Dialer: &kafka.Dialer{
@@ -154,7 +164,7 @@ func New(topic string, mode Mode) *Queue {
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
-			QueueCapacity:     512,
+			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
@@ -189,6 +199,7 @@ func (p *Queue) Stop() {
 
 func (p *Queue) Submit(msg *Message, partitionKey string) error {
 	start := time.Now()
+	msg.MaxRetries = taskRetries
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to serialize message"))
@@ -203,7 +214,7 @@ func (p *Queue) Submit(msg *Message, partitionKey string) error {
 		},
 	)
 	if err != nil {
-		log.Errorf("failed to send message, size %d, err %s", size.Of(msgBytes), err.Error())
+		log.Errorf("failed to send message, size %d, key %s, type %d, err %s", size.Of(msgBytes), partitionKey, msg.Type, err.Error())
 		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
@@ -217,15 +228,17 @@ func (p *Queue) Receive() (msg *Message) {
 	defer cancel()
 	m, err := p.kafkaC.ReadMessage(ctx)
 	if err != nil {
-		log.Error(errors.Wrap(err, "failed to receive message"))
+		if err.Error() != "context deadline exceeded" {
+			log.Error(errors.Wrap(err, "failed to receive message"))
+		}
 		return nil
 	}
 	msg, err = p.deserializeMessage(m.Value)
-	msg.KafkaMessage = &m
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to deserialize message"))
 		return nil
 	}
+	msg.KafkaMessage = &m
 	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
 	hlog.Histogram("worker.kafka.receiveSec", time.Since(start).Seconds(), nil, 1)
 	return

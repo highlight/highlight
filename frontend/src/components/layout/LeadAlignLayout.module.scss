@@ -1,17 +1,17 @@
 .leadAlignLayout {
-    height: min-content;
-    margin: 120px 80px 20px;
-    max-width: 650px;
-    padding-bottom: var(--size-xxLarge);
-    width: 100%;
+	height: min-content;
+	margin: 120px 80px 20px;
+	max-width: 650px;
+	padding-bottom: var(--size-xxLarge);
+	width: 100%;
 
-    &.fullWidth {
-        max-width: 100%;
-    }
+	&.fullWidth {
+		max-width: 100%;
+	}
 
-    .subTitle {
-        color: var(--color-gray-500);
-        font-size: 18px;
-        margin-bottom: var(--size-xLarge) !important;
-    }
+	.subTitle {
+		color: var(--color-gray-500);
+		font-size: 18px;
+		margin-bottom: var(--size-xLarge) !important;
+	}
 }

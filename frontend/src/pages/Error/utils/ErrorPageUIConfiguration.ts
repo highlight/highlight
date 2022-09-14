@@ -1,18 +1,18 @@
-import useLocalStorage from '@rehooks/local-storage';
+import useLocalStorage from '@rehooks/local-storage'
 
 /**
  * Gets configuration for the Error Page.
  */
 const useErrorPageConfiguration = () => {
-    const [showLeftPanel, setShowLeftPanel] = useLocalStorage<boolean>(
-        'highlightErrorPageShowLeftPanel',
-        false
-    );
+	const [showLeftPanel, setShowLeftPanel] = useLocalStorage<boolean>(
+		'highlightErrorPageShowLeftPanel',
+		false,
+	)
 
-    return {
-        showLeftPanel,
-        setShowLeftPanel,
-    };
-};
+	return {
+		showLeftPanel,
+		setShowLeftPanel,
+	}
+}
 
-export default useErrorPageConfiguration;
+export default useErrorPageConfiguration
