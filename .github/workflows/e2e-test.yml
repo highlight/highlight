@@ -31,13 +31,7 @@ jobs:
         runs-on: ubuntu-latest
         needs: frontend
         steps:
-            - name: Cypress install
-              uses: cypress-io/github-action@v4.x.x # use the explicit version number
-              with:
-                  # Disable running of tests within install job
-                  runTests: false
-                  build: yarn build
-            - name: Cypress run
+            - name: Cypress install and run
               uses: cypress-io/github-action@v4
             - name: Save videos
               uses: actions/upload-artifact@v2
