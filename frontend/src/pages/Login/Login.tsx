@@ -579,53 +579,47 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 							Verify via SMS
 						</h2>
 						<p className="text-xl tracking-wider text-white">
-							{verificationId
-								? 'Enter the code we sent to your phone.'
-								: 'Sending verification code to your phone.'}
+							Enter the code we sent to your phone.
 						</p>
 					</div>
 					<div className="w-full rounded-md bg-white px-8 py-6">
-						{verificationId && (
-							<form onSubmit={handleSubmit}>
-								<Space direction="vertical" size="medium">
-									{error && (
-										<Alert
-											shouldAlwaysShow
-											closable={false}
-											trackingId="2faVerifyError"
-											type="error"
-											description={error}
-										/>
-									)}
+						<form onSubmit={handleSubmit}>
+							<Space direction="vertical" size="medium">
+								{error && (
+									<Alert
+										shouldAlwaysShow
+										closable={false}
+										trackingId="2faVerifyError"
+										type="error"
+										description={error}
+									/>
+								)}
 
-									<div className={styles.inputContainer}>
-										<Input
-											placeholder="Verification code"
-											name="verification_code"
-											value={verificationCode}
-											onChange={(e) => {
-												setVerificationCode(
-													e.target.value,
-												)
-											}}
-											autoFocus
-											required
-											autoComplete="off"
-										/>
-									</div>
+								<div className={styles.inputContainer}>
+									<Input
+										placeholder="Verification code"
+										name="verification_code"
+										value={verificationCode}
+										onChange={(e) => {
+											setVerificationCode(e.target.value)
+										}}
+										autoFocus
+										required
+										autoComplete="off"
+									/>
+								</div>
 
-									<Button
-										className={commonStyles.submitButton}
-										type="primary"
-										htmlType="submit"
-										loading={loading}
-										trackingId="setup2fa"
-									>
-										Submit
-									</Button>
-								</Space>
-							</form>
-						)}
+								<Button
+									className={commonStyles.submitButton}
+									type="primary"
+									htmlType="submit"
+									loading={loading}
+									trackingId="setup2fa"
+								>
+									Submit
+								</Button>
+							</Space>
+						</form>
 					</div>
 				</section>
 
