@@ -260,6 +260,7 @@ const AuthenticationRoleRouter = () => {
 
 	const { setLoadingState } = useAppLoadingContext()
 
+	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	useEffect(() => {
@@ -272,6 +273,8 @@ const AuthenticationRoleRouter = () => {
 		}
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			(user) => {
+				setUser(user)
+
 				if (user) {
 					if (!called) {
 						getAdminQuery({
@@ -298,7 +301,9 @@ const AuthenticationRoleRouter = () => {
 	}, [getAdminQuery, adminData, called, refetch, workspaceId, projectId])
 
 	useEffect(() => {
-		if (adminData) {
+		// Check user exists here as well because adminData isn't cleared correctly
+		// when a user logs out.
+		if (adminData && user) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
 					adminData?.email.includes(d),
@@ -312,7 +317,7 @@ const AuthenticationRoleRouter = () => {
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
-	}, [adminError, adminData])
+	}, [adminError, adminData, user])
 
 	useEffect(() => {
 		if (authRole === AuthRole.UNAUTHENTICATED) {

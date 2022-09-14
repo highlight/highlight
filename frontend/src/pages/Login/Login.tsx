@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import Alert from '@components/Alert/Alert'
 import Input from '@components/Input/Input'
+import Space from '@components/Space/Space'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,8 +13,15 @@ import { AppRouter } from '@routers/AppRouter/AppRouter'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
 import classNames from 'classnames'
+import firebase from 'firebase'
 import { H } from 'highlight.run'
-import { useEffect, useState } from 'react'
+import React, {
+	FormEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -101,6 +110,8 @@ enum LoginFormState {
 	MissingUserDetails,
 	// The user has finished onboarding and can continue to the page in the url
 	FinishedOnboarding,
+	// The user has MFA configured and needs to enter a code
+	EnterMultiFactorCode,
 }
 
 export default function LoginForm() {
@@ -108,6 +119,8 @@ export default function LoginForm() {
 	const [formState, setFormState] = useState<LoginFormState>(
 		signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn,
 	)
+	const [resolver, setResolver] =
+		useState<firebase.auth.MultiFactorResolver>()
 	const [, setSignUpReferral] = useLocalStorage('HighlightSignUpReferral', '')
 	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
 	const [firebaseError, setFirebaseError] = useState('')
@@ -125,8 +138,13 @@ export default function LoginForm() {
 		if (formState === LoginFormState.SignIn) {
 			auth.signInWithEmailAndPassword(email, password)
 				.then(() => {})
-				.catch((error) => {
-					setError(error.toString())
+				.catch((error: firebase.auth.MultiFactorError) => {
+					if (error.code == 'auth/multi-factor-auth-required') {
+						setResolver(error.resolver)
+						setFormState(LoginFormState.EnterMultiFactorCode)
+					} else {
+						setError(error.toString())
+					}
 				})
 				.finally(() => setIsLoadingFirebase(false))
 		} else if (formState === LoginFormState.ResetPassword) {
@@ -193,6 +211,11 @@ export default function LoginForm() {
 			} else {
 				setFormState(LoginFormState.FinishedOnboarding)
 			}
+		} else if (
+			!isLoggedIn &&
+			formState === LoginFormState.FinishedOnboarding
+		) {
+			setFormState(LoginFormState.SignIn)
 		}
 	}, [admin, admin?.email_verified, formState, isLoggedIn])
 
@@ -234,11 +257,15 @@ export default function LoginForm() {
 		return 'Welcome to Highlight.'
 	}
 
+	if (formState === LoginFormState.EnterMultiFactorCode) {
+		return <VerifyPhone resolver={resolver} />
+	}
+
 	return (
 		<Landing>
 			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
 				<section className="flex w-full max-w-md flex-col items-center gap-6">
-					<div className="flex flex-col items-center gap-2 text-center font-poppins font-semibold">
+					<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
 						<h2 className="text-4xl tracking-wide text-white">
 							{getLoginTitleText()}
 						</h2>
@@ -396,10 +423,28 @@ export default function LoginForm() {
 										styles.googleButton,
 									)}
 									onClick={() => {
-										auth.signInWithRedirect(
+										auth.signInWithPopup(
 											googleProvider,
-										).catch((e) =>
-											setFirebaseError(JSON.stringify(e)),
+										).catch(
+											(
+												error: firebase.auth.MultiFactorError,
+											) => {
+												if (
+													error.code ===
+													'auth/multi-factor-auth-required'
+												) {
+													setResolver(error.resolver)
+													setFormState(
+														LoginFormState.EnterMultiFactorCode,
+													)
+												} else {
+													setFirebaseError(
+														JSON.stringify(
+															error.message,
+														),
+													)
+												}
+											},
 										)
 									}}
 									loading={isLoadingFirebase}
@@ -448,9 +493,146 @@ export default function LoginForm() {
 	)
 }
 
+interface VerifyPhoneProps {
+	resolver?: firebase.auth.MultiFactorResolver
+}
+
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
+	const [loading, setLoading] = useState<boolean>(false)
+	const [error, setError] = useState<string | null>()
+	const [verificationId, setVerificationId] = useState<string>('')
+	const [verificationCode, setVerificationCode] = useState<string>('')
+	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
+	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
+
+	useEffect(() => {
+		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
+			'recaptcha',
+			{
+				size: 'invisible',
+			},
+		)
+	}, [])
+
+	useEffect(() => {
+		const sendAuthCode = async () => {
+			// Should never not be set but the check is necessary for types.
+			if (!recaptchaVerifier.current || !resolver) {
+				return
+			}
+
+			const vId = await phoneAuthProvider.verifyPhoneNumber(
+				{
+					multiFactorHint: resolver.hints[0],
+					session: resolver.session,
+				},
+				recaptchaVerifier.current,
+			)
+
+			setVerificationId(vId)
+		}
+
+		sendAuthCode()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const handleSubmit = useCallback(
+		async (e?: FormEvent<HTMLFormElement>) => {
+			if (!resolver) {
+				return
+			}
+
+			e?.preventDefault()
+			setLoading(true)
+			setError(null)
+
+			try {
+				const cred = firebase.auth.PhoneAuthProvider.credential(
+					verificationId,
+					verificationCode,
+				)
+				const multiFactorAssertion =
+					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
+
+				await resolver.resolveSignIn(multiFactorAssertion)
+			} catch (error: any) {
+				setError(error.message)
+			} finally {
+				setLoading(false)
+			}
+		},
+		[resolver, verificationCode, verificationId],
+	)
+
+	useEffect(() => {
+		if (verificationCode.length >= 6) {
+			handleSubmit()
+		}
+	}, [handleSubmit, verificationCode])
+
+	return (
+		<Landing>
+			<div className={styles.loginPage}>
+				<div className={styles.loginFormWrapper}>
+					<div className={styles.loginTitleWrapper}>
+						<h2 className={styles.loginTitle}>Verify via SMS</h2>
+						<p className={styles.loginSubTitle}>
+							{verificationId
+								? 'Enter the code we sent to your phone.'
+								: 'Sending verification code to your phone.'}
+						</p>
+					</div>
+
+					{verificationId && (
+						<form onSubmit={handleSubmit}>
+							<Space direction="vertical" size="medium">
+								{error && (
+									<Alert
+										shouldAlwaysShow
+										closable={false}
+										trackingId="2faVerifyError"
+										type="error"
+										description={error}
+									/>
+								)}
+
+								<div className={styles.inputContainer}>
+									<Input
+										placeholder="Verification code"
+										name="verification_code"
+										value={verificationCode}
+										onChange={(e) => {
+											setVerificationCode(e.target.value)
+										}}
+										autoFocus
+										required
+										autoComplete="off"
+									/>
+								</div>
+
+								<Button
+									className={commonStyles.submitButton}
+									type="primary"
+									htmlType="submit"
+									loading={loading}
+									trackingId="setup2fa"
+								>
+									Submit
+								</Button>
+							</Space>
+						</form>
+					)}
+				</div>
+
+				<div id="recaptcha"></div>
+			</div>
+		</Landing>
+	)
+}
+
 function Testimonial() {
 	return (
-		<div className="flex flex-col gap-8 font-poppins tracking-wide text-white">
+		<div className="font-poppins flex flex-col gap-8 tracking-wide text-white">
 			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size
