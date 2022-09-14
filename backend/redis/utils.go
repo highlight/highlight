@@ -75,6 +75,13 @@ func NewClient() *Client {
 			MaxRetries:   5,
 			MinIdleConns: 16,
 			PoolSize:     256,
+			OnConnect: func(*redis.Conn) error {
+				hlog.Incr("redis.new-conn", nil, 1)
+				return nil
+			},
+			OnNewNode: func(*redis.Client) {
+				hlog.Incr("redis.new-node", nil, 1)
+			},
 		})
 		go func() {
 			for {
