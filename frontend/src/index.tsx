@@ -315,7 +315,6 @@ const AuthenticationRoleRouter = () => {
 		}
 	}, [authRole, setLoadingState])
 
-	console.log('vadim', { adminData, authRole, adminRole })
 	return (
 		<AuthContextProvider
 			value={{

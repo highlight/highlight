@@ -30,12 +30,6 @@ export const useAuthorization = (): AuthorizationInterface => {
 
 	const checkRoleAccess = React.useCallback(
 		({ allowedRoles }: { allowedRoles: AdminRole[] }) => {
-			console.log('vadim checkRoleAccess', {
-				admin,
-				workspaceRole,
-				isAuthLoading,
-				allowedRoles,
-			})
 			if (isAuthLoading) {
 				return false
 			}
