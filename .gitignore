@@ -28,3 +28,7 @@ backend/dump.rdb
 .vscode/*.log
 
 dump.rdb
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/
