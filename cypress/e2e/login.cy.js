@@ -1,6 +1,18 @@
 describe('login spec', () => {
-	it('passes', () => {
+	it('allows you to log in', () => {
+		// Assign aliases to GraphQL requests based on operation name.
+		cy.intercept('POST', '/public', (req) => {
+			req.alias = req.body.operationName
+		})
+
 		cy.visit('https://localhost:3000')
+
+		// Ensure client requests are made
+		// cy.wait('@initializeSession')
+		// 	.its('request.body')
+		// 	.should('include', 'something')
+		// cy.wait('@addSessionProperties')
+		// cy.wait('@PushPayload')
 
 		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
 

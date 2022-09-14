@@ -1,0 +1,48 @@
+name: E2E Test
+on:
+    push:
+        branches:
+            - '**'
+            - '!master'
+        paths:
+            - 'frontend/**'
+            - 'client/**'
+            - 'firstload/**'
+            - '.github/workflows/e2e-test.yml'
+jobs:
+    # TODO: Investigate creating custom dockerfile for testing. Could reuse main
+    # Dockerfile and add cy:run command.
+    frontend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 16.14.2
+                  registry-url: https://registry.npmjs.org
+            - name: Install main dependencies
+              run: cd frontend && yarn
+            - name: Run App
+              run: cd frontend && CI=false yarn dev
+
+    test:
+        needs: frontend
+        steps:
+            - name: Cypress install
+              uses: cypress-io/github-action@v4.x.x # use the explicit version number
+              with:
+                  # Disable running of tests within install job
+                  runTests: false
+                  build: yarn build
+            - name: Cypress run
+              uses: cypress-io/github-action@v4
+              with:
+                  start: cd frontend && yarn dev
+                  wait-on: http://localhost:3000
+            - name: Save videos
+              uses: actions/upload-artifact@v2
+              with:
+                  name: cypress-videos
+                  path: cypress/videos
