@@ -295,6 +295,8 @@ const AuthenticationRoleRouter = () => {
 		return () => {
 			unsubscribeFirebase()
 		}
+		// we want to run this on url changes to recalculate the workspace_id and project_id
+		// eslint-disable-next-line
 	}, [getAdminQuery, adminData, called, refetch, window.location.pathname])
 
 	useEffect(() => {
