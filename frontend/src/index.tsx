@@ -289,7 +289,7 @@ const AuthenticationRoleRouter = () => {
 	}, [getAdminQuery, adminData, called, refetch, workspace_id, project_id])
 
 	useEffect(() => {
-		if (!loading && adminData) {
+		if (adminData) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
 					adminData?.email.includes(d),
@@ -303,7 +303,7 @@ const AuthenticationRoleRouter = () => {
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
-	}, [adminError, adminData, loading])
+	}, [adminError, adminData])
 
 	useEffect(() => {
 		if (authRole === AuthRole.UNAUTHENTICATED) {
@@ -315,7 +315,6 @@ const AuthenticationRoleRouter = () => {
 		}
 	}, [authRole, setLoadingState])
 
-	console.log('vadim', { adminData, authRole, adminRole })
 	return (
 		<AuthContextProvider
 			value={{
