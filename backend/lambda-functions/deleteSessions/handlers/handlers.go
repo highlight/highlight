@@ -15,6 +15,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -76,8 +77,10 @@ func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event u
 	}
 
 	for _, sessionId := range sessionIds {
-		if err := h.opensearchClient.Delete(opensearch.IndexSessions, sessionId); err != nil {
-			return nil, errors.Wrap(err, "error creating bulk delete request")
+		if !event.DryRun {
+			if err := h.opensearchClient.Delete(opensearch.IndexSessions, sessionId); err != nil {
+				return nil, errors.Wrap(err, "error creating bulk delete request")
+			}
 		}
 	}
 
@@ -92,18 +95,20 @@ func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event uti
 		return nil, errors.Wrap(err, "error getting session ids to delete")
 	}
 
-	if err := h.db.Raw(`
-		DELETE FROM session_fields
-		WHERE session_id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting session fields")
-	}
+	if !event.DryRun {
+		if err := h.db.Raw(`
+			DELETE FROM session_fields
+			WHERE session_id in (?)
+		`, sessionIds).Error; err != nil {
+			return nil, errors.Wrap(err, "error deleting session fields")
+		}
 
-	if err := h.db.Raw(`
-		DELETE FROM sessions
-		WHERE id in (?)
-	`, sessionIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error deleting sessions")
+		if err := h.db.Raw(`
+			DELETE FROM sessions
+			WHERE id in (?)
+		`, sessionIds).Error; err != nil {
+			return nil, errors.Wrap(err, "error deleting sessions")
+		}
 	}
 
 	return &event, nil
@@ -116,7 +121,12 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 	}
 
 	for _, sessionId := range sessionIds {
-		prefix := fmt.Sprintf("%d/%d/", event.ProjectId, sessionId)
+		devStr := ""
+		if util.IsDevOrTestEnv() {
+			devStr = "dev/"
+		}
+
+		prefix := fmt.Sprintf("%s%d/%d/", devStr, event.ProjectId, sessionId)
 		options := s3.ListObjectsV2Input{
 			Bucket: &storage.S3SessionsPayloadBucketName,
 			Prefix: &prefix,
@@ -131,9 +141,11 @@ func (h *handlers) DeleteSessionBatchFromS3(ctx context.Context, event utils.Bat
 				Bucket: &storage.S3SessionsPayloadBucketName,
 				Key:    object.Key,
 			}
-			_, err := h.s3Client.DeleteObject(ctx, &options)
-			if err != nil {
-				return nil, errors.Wrap(err, "error listing objects in S3")
+			if !event.DryRun {
+				_, err := h.s3Client.DeleteObject(ctx, &options)
+				if err != nil {
+					return nil, errors.Wrap(err, "error deleting objects from S3")
+				}
 			}
 		}
 	}
@@ -184,7 +196,11 @@ func (h *handlers) GetSessionIdsByQuery(ctx context.Context, event utils.QuerySe
 		}
 
 		responses = append(responses, utils.BatchIdResponse{
-			ProjectId: event.ProjectId, TaskId: taskId, BatchId: batchId})
+			ProjectId: event.ProjectId,
+			TaskId:    taskId,
+			BatchId:   batchId,
+			DryRun:    event.DryRun,
+		})
 	}
 
 	return responses, nil

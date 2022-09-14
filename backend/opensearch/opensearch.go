@@ -538,7 +538,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
 	}
 
-	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}, %s, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}%s, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
 		excludesStr, includesStr, searchAfterStr, count, from, q, sort, trackTotalHits, aggs)
 	content := strings.NewReader(contentStr)
 
