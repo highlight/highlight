@@ -26,14 +26,13 @@ import {
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
 } from '@graph/hooks'
-import { Admin, Exact } from '@graph/schemas'
+import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useParams } from '@util/react-router/useParams'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
@@ -181,10 +180,10 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const { workspace_id, project_id } = useParams<{
-		workspace_id: string
-		project_id: string
-	}>()
+	const workspace_id = /^\/w\/(\d+)\/.*$/
+		.exec(window.location.pathname)
+		?.pop()
+	const project_id = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -215,12 +214,22 @@ const AuthenticationRoleRouter = () => {
 	let getAdminQuery:
 			| ((
 					workspace_id:
-						| QueryLazyOptions<Exact<{ workspace_id: string }>>
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
 						| undefined,
 			  ) => void)
 			| ((
 					project_id:
-						| QueryLazyOptions<Exact<{ project_id: string }>>
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
 						| undefined,
 			  ) => void)
 			| (() => void),
@@ -256,12 +265,19 @@ const AuthenticationRoleRouter = () => {
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	useEffect(() => {
+		const variables: Partial<{ workspace_id: string; project_id: string }> =
+			{}
+		if (workspace_id) {
+			variables.workspace_id = workspace_id
+		} else if (project_id) {
+			variables.project_id = project_id
+		}
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			(user) => {
 				if (user) {
 					if (!called) {
 						getAdminQuery({
-							variables: { workspace_id, project_id },
+							variables,
 						})
 					} else {
 						refetch!()
@@ -279,7 +295,7 @@ const AuthenticationRoleRouter = () => {
 		return () => {
 			unsubscribeFirebase()
 		}
-	}, [getAdminQuery, adminData, called, refetch, workspace_id, project_id])
+	}, [getAdminQuery, adminData, called, refetch, window.location.pathname])
 
 	useEffect(() => {
 		if (adminData) {
