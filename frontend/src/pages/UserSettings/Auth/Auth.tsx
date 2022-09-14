@@ -233,6 +233,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 					`***-***-${phoneNumber.slice(-4)}`,
 				)
 
+				message.success('Successfully enrolled in two-factor auth.')
 				onSuccess()
 			} catch (e: any) {
 				setError(e.message)
