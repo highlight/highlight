@@ -38,7 +38,12 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import {
+	BrowserRouter as Router,
+	Route,
+	Switch,
+	useRouteMatch,
+} from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import packageJson from '../package.json'
@@ -180,10 +185,11 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const workspace_id = /^\/w\/(\d+)\/.*$/
-		.exec(window.location.pathname)
-		?.pop()
-	const project_id = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const workspaceId = useRouteMatch<{ workspaceId: string }>(
+		'/w/:workspaceId(d+)',
+	)?.params.workspaceId
+	const projectId = useRouteMatch<{ projectId: string }>('/:projectId(d+)')
+		?.params.projectId
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -238,14 +244,14 @@ const AuthenticationRoleRouter = () => {
 		adminRole: string | undefined,
 		called: boolean,
 		refetch: any
-	if (workspace_id) {
+	if (workspaceId) {
 		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
-	} else if (project_id) {
+	} else if (projectId) {
 		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
@@ -267,10 +273,10 @@ const AuthenticationRoleRouter = () => {
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
 			{}
-		if (workspace_id) {
-			variables.workspace_id = workspace_id
-		} else if (project_id) {
-			variables.project_id = project_id
+		if (workspaceId) {
+			variables.workspace_id = workspaceId
+		} else if (projectId) {
+			variables.project_id = projectId
 		}
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			(user) => {
@@ -297,7 +303,7 @@ const AuthenticationRoleRouter = () => {
 		}
 		// we want to run this on url changes to recalculate the workspace_id and project_id
 		// eslint-disable-next-line
-	}, [getAdminQuery, adminData, called, refetch, window.location.pathname])
+	}, [getAdminQuery, adminData, called, refetch, workspaceId, projectId])
 
 	useEffect(() => {
 		if (adminData) {
