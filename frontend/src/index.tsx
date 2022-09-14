@@ -282,6 +282,22 @@ const AuthenticationRoleRouter = () => {
 	}, [getAdminQuery, adminData, called, refetch, workspace_id, project_id])
 
 	useEffect(() => {
+		console.log('vadim', {
+			getAdminQuery,
+			called,
+			workspace_id,
+			project_id,
+		})
+		// ensure that if the router workspace_id or project_id change, we update the admin data
+		// to get the granular admin role (in the context of the workspace or project)
+		if (!called) {
+			getAdminQuery({
+				variables: { workspace_id, project_id },
+			})
+		}
+	}, [getAdminQuery, called, workspace_id, project_id])
+
+	useEffect(() => {
 		if (adminData) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
