@@ -28,6 +28,7 @@ jobs:
               run: cd frontend && CI=false yarn dev
 
     test:
+        runs-on: ubuntu-latest
         needs: frontend
         steps:
             - name: Cypress install
@@ -38,9 +39,6 @@ jobs:
                   build: yarn build
             - name: Cypress run
               uses: cypress-io/github-action@v4
-              with:
-                  start: cd frontend && yarn dev
-                  wait-on: http://localhost:3000
             - name: Save videos
               uses: actions/upload-artifact@v2
               with:
