@@ -572,57 +572,62 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 
 	return (
 		<Landing>
-			<div className={styles.loginPage}>
-				<div className={styles.loginFormWrapper}>
-					<div className={styles.loginTitleWrapper}>
-						<h2 className={styles.loginTitle}>Verify via SMS</h2>
-						<p className={styles.loginSubTitle}>
+			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
+				<section className="flex w-full max-w-md flex-col items-center gap-6">
+					<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
+						<h2 className="text-4xl tracking-wide text-white">
+							Verify via SMS
+						</h2>
+						<p className="text-xl tracking-wider text-white">
 							{verificationId
 								? 'Enter the code we sent to your phone.'
 								: 'Sending verification code to your phone.'}
 						</p>
 					</div>
+					<div className="w-full rounded-md bg-white px-8 py-6">
+						{verificationId && (
+							<form onSubmit={handleSubmit}>
+								<Space direction="vertical" size="medium">
+									{error && (
+										<Alert
+											shouldAlwaysShow
+											closable={false}
+											trackingId="2faVerifyError"
+											type="error"
+											description={error}
+										/>
+									)}
 
-					{verificationId && (
-						<form onSubmit={handleSubmit}>
-							<Space direction="vertical" size="medium">
-								{error && (
-									<Alert
-										shouldAlwaysShow
-										closable={false}
-										trackingId="2faVerifyError"
-										type="error"
-										description={error}
-									/>
-								)}
+									<div className={styles.inputContainer}>
+										<Input
+											placeholder="Verification code"
+											name="verification_code"
+											value={verificationCode}
+											onChange={(e) => {
+												setVerificationCode(
+													e.target.value,
+												)
+											}}
+											autoFocus
+											required
+											autoComplete="off"
+										/>
+									</div>
 
-								<div className={styles.inputContainer}>
-									<Input
-										placeholder="Verification code"
-										name="verification_code"
-										value={verificationCode}
-										onChange={(e) => {
-											setVerificationCode(e.target.value)
-										}}
-										autoFocus
-										required
-										autoComplete="off"
-									/>
-								</div>
-
-								<Button
-									className={commonStyles.submitButton}
-									type="primary"
-									htmlType="submit"
-									loading={loading}
-									trackingId="setup2fa"
-								>
-									Submit
-								</Button>
-							</Space>
-						</form>
-					)}
-				</div>
+									<Button
+										className={commonStyles.submitButton}
+										type="primary"
+										htmlType="submit"
+										loading={loading}
+										trackingId="setup2fa"
+									>
+										Submit
+									</Button>
+								</Space>
+							</form>
+						)}
+					</div>
+				</section>
 
 				<div id="recaptcha"></div>
 			</div>
