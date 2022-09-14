@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/hlog"
-	"github.com/highlight-run/highlight/backend/util"
 	"os"
 	"sort"
 	"strconv"
@@ -13,7 +11,9 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/snappy"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 )
