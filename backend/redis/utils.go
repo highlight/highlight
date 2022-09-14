@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/snappy"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
@@ -46,11 +47,27 @@ func NewClient() *Client {
 			}),
 		}
 	} else {
+		c := redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs:    []string{redisEventsStagingEndpoint},
+			Password: "",
+		})
+		go func() {
+			for {
+				stats := c.PoolStats()
+				if stats == nil {
+					return
+				}
+				hlog.Histogram("redis.hits", float64(stats.Hits), nil, 1)
+				hlog.Histogram("redis.misses", float64(stats.Misses), nil, 1)
+				hlog.Histogram("redis.idle-conns", float64(stats.IdleConns), nil, 1)
+				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
+				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
+				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+				time.Sleep(time.Second)
+			}
+		}()
 		return &Client{
-			redisClient: redis.NewClusterClient(&redis.ClusterOptions{
-				Addrs:    []string{redisEventsStagingEndpoint},
-				Password: "",
-			}),
+			redisClient: c,
 		}
 	}
 
