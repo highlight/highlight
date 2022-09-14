@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"hash/fnv"
 	"os"
 	"sort"
 	"strconv"
@@ -24,10 +27,18 @@ type Client struct {
 
 var (
 	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
+	redisProjectIds            = []int{1, 1074} // Enabled for Highlight and Solitaired
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
-	return true
+	sidHash := fnv.New32a()
+	defer sidHash.Reset()
+	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {
+		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
+	}
+
+	// Enable redis for 10% of other traffic
+	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%10 == 0
 }
 
 func EventsKey(sessionId int) string {
