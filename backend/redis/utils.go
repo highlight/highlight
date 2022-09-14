@@ -42,14 +42,28 @@ func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
 		return &Client{
 			redisClient: redis.NewClient(&redis.Options{
-				Addr:     redisEventsStagingEndpoint,
-				Password: "",
+				Addr:         redisEventsStagingEndpoint,
+				Password:     "",
+				ReadTimeout:  5 * time.Second,
+				WriteTimeout: 5 * time.Second,
+				MaxConnAge:   5 * time.Minute,
+				IdleTimeout:  5 * time.Minute,
+				MaxRetries:   5,
+				MinIdleConns: 16,
+				PoolSize:     256,
 			}),
 		}
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:    []string{redisEventsStagingEndpoint},
-			Password: "",
+			Addrs:        []string{redisEventsStagingEndpoint},
+			Password:     "",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+			MaxConnAge:   5 * time.Minute,
+			IdleTimeout:  5 * time.Minute,
+			MaxRetries:   5,
+			MinIdleConns: 16,
+			PoolSize:     256,
 		})
 		go func() {
 			for {
