@@ -8,9 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight-run/highlight/backend/zapier"
-
 	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
