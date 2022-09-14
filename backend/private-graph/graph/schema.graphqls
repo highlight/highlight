@@ -899,6 +899,7 @@ type DashboardDefinition {
 	metrics: [DashboardMetricConfig!]!
 	last_admin_to_edit_id: Int
 	layout: String
+	is_default: Boolean
 }
 
 type MetricPreview {
@@ -1484,7 +1485,9 @@ type Mutation {
 		name: String!
 		metrics: [DashboardMetricConfigInput!]!
 		layout: String
+		is_default: Boolean
 	): ID!
+	deleteDashboard(id: ID!): Boolean!
 }
 
 type Subscription {

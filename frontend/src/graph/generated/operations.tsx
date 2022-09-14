@@ -1523,11 +1523,21 @@ export type UpsertDashboardMutationVariables = Types.Exact<{
 		| Array<Types.DashboardMetricConfigInput>
 		| Types.DashboardMetricConfigInput
 	layout?: Types.Maybe<Types.Scalars['String']>
+	is_default?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type UpsertDashboardMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'upsertDashboard'
+>
+
+export type DeleteDashboardMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+}>
+
+export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteDashboard'
 >
 
 export type SessionPayloadFragmentFragment = {
@@ -3867,6 +3877,7 @@ export type GetDashboardDefinitionsQuery = { __typename?: 'Query' } & {
 				| 'updated_at'
 				| 'project_id'
 				| 'name'
+				| 'is_default'
 				| 'last_admin_to_edit_id'
 				| 'layout'
 			> & {
@@ -4118,6 +4129,7 @@ export const namedOperations = {
 		RequestAccess: 'RequestAccess' as const,
 		ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
 		UpsertDashboard: 'UpsertDashboard' as const,
+		DeleteDashboard: 'DeleteDashboard' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
