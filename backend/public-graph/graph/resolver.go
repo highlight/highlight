@@ -61,7 +61,7 @@ type Resolver struct {
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
 	Redis           *redis.Client
-	RH                    *resthooks.Resthook
+	RH              *resthooks.Resthook
 }
 
 type Location struct {
