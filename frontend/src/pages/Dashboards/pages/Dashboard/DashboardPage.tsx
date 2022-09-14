@@ -67,7 +67,6 @@ const DashboardPage = ({
 			return d?.id === id
 		})
 		if (dashboard) {
-			const name = dashboard.name || ''
 			setDashboard(dashboard)
 			setNewMetrics(dashboard.metrics)
 			if (dashboard.layout?.length) {
