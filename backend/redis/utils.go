@@ -66,7 +66,7 @@ func NewClient() *Client {
 		}
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:        []string{"localhost:30001"},
+			Addrs:        []string{redisEventsStagingEndpoint},
 			Password:     "",
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
