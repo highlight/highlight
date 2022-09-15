@@ -71,6 +71,7 @@ jobs:
                   wait-on: https://localhost:3000
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+                  NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
             - name: Save videos
               uses: actions/upload-artifact@v2
               with:
