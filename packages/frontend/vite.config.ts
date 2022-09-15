@@ -26,13 +26,8 @@ export default defineConfig({
 					libName: 'antd',
 					style: (name) => `antd/es/${name}/style/index.js`,
 				},
-				// TODO: enable this later to reduce bundle size
-				// {
-				// 	libName: 'lodash',
-				// 	libDirectory: '',
-				// 	camel2DashComponentName: false,
-				// },
 			],
+			// lodash breaks when trying to optimize
 			exclude: ['lodash'],
 		}),
 	],
