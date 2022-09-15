@@ -59,7 +59,7 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
             - name: Install frontend dependencies
-              run: yarn frontend:install
+              run: yarn && cd frontend && yarn && cd ../client && yarn
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
