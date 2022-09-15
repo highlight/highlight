@@ -14,6 +14,27 @@ jobs:
     # Dockerfile and add cy:run command.
     test:
         runs-on: ubuntu-latest
+        services:
+            postgres:
+                image: postgres
+                env:
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_USER: postgres
+                    POSTGRES_DB: postgres
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+        env:
+            PSQL_HOST: 'localhost'
+            PSQL_PORT: '5432'
+            PSQL_USER: 'postgres'
+            PSQL_DB: 'postgres'
+            PSQL_PASSWORD: 'postgres'
+            ENVIRONMENT: 'test'
         steps:
             - name: Checkout
               uses: actions/checkout@v3
@@ -22,10 +43,14 @@ jobs:
               with:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                  go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
-            - name: Install main dependencies
-              run: cd frontend && yarn
+            - name: Install frontend dependencies
+              run: yarn frontend:install
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
