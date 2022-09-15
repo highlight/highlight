@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"prepare": "husky install",
-		"frontend:install": "concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
+		"frontend:install": "yarn && concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race dev:*",
 		"dev:backend": "cd backend && make start",
@@ -23,6 +23,8 @@
 		"g": "yarn generate",
 		"format": "prettier --write --ignore-unknown . \"!./data\"",
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
+		"ci:build": "cd frontend && doppler run -- yarn build",
+		"ci:start": "npx http-server ./frontend/build -p 3000",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome"
 	},
