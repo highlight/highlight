@@ -74,6 +74,7 @@ jobs:
                   NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
             - name: Save videos
               uses: actions/upload-artifact@v2
+              if: always()
               with:
                   name: cypress-videos
                   path: cypress/videos
