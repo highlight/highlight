@@ -4224,6 +4224,7 @@ export const UpsertDashboardDocument = gql`
 		$name: String!
 		$metrics: [DashboardMetricConfigInput!]!
 		$layout: String
+		$is_default: Boolean
 	) {
 		upsertDashboard(
 			id: $id
@@ -4231,6 +4232,7 @@ export const UpsertDashboardDocument = gql`
 			name: $name
 			metrics: $metrics
 			layout: $layout
+			is_default: $is_default
 		)
 	}
 `
@@ -4257,6 +4259,7 @@ export type UpsertDashboardMutationFn = Apollo.MutationFunction<
  *      name: // value for 'name'
  *      metrics: // value for 'metrics'
  *      layout: // value for 'layout'
+ *      is_default: // value for 'is_default'
  *   },
  * });
  */
@@ -4279,6 +4282,53 @@ export type UpsertDashboardMutationResult =
 export type UpsertDashboardMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpsertDashboardMutation,
 	Types.UpsertDashboardMutationVariables
+>
+export const DeleteDashboardDocument = gql`
+	mutation DeleteDashboard($id: ID!) {
+		deleteDashboard(id: $id)
+	}
+`
+export type DeleteDashboardMutationFn = Apollo.MutationFunction<
+	Types.DeleteDashboardMutation,
+	Types.DeleteDashboardMutationVariables
+>
+
+/**
+ * __useDeleteDashboardMutation__
+ *
+ * To run a mutation, you first call `useDeleteDashboardMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteDashboardMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteDashboardMutation, { data, loading, error }] = useDeleteDashboardMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteDashboardMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteDashboardMutation,
+		Types.DeleteDashboardMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteDashboardMutation,
+		Types.DeleteDashboardMutationVariables
+	>(DeleteDashboardDocument, baseOptions)
+}
+export type DeleteDashboardMutationHookResult = ReturnType<
+	typeof useDeleteDashboardMutation
+>
+export type DeleteDashboardMutationResult =
+	Apollo.MutationResult<Types.DeleteDashboardMutation>
+export type DeleteDashboardMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteDashboardMutation,
+	Types.DeleteDashboardMutationVariables
 >
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
@@ -10073,6 +10123,7 @@ export const GetDashboardDefinitionsDocument = gql`
 			updated_at
 			project_id
 			name
+			is_default
 			metrics {
 				component_type
 				name

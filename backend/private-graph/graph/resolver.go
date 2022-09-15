@@ -2461,13 +2461,15 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 		quantile = 1.0
 	case modelInputs.MetricAggregatorCount:
 		fn = "count"
+	case modelInputs.MetricAggregatorSum:
+		fn = "sum"
 	case modelInputs.MetricAggregatorAvg:
 	default:
 		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
 	}
 	aggregateStatement := fmt.Sprintf(`
       query()
-		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: false)
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: true)
           |> yield(name: "avg")
 	`, resMins, fn)
 	if quantile > 0. {

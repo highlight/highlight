@@ -48,6 +48,7 @@ var (
 const (
 	SUGGESTION_LIMIT_CONSTANT       = 8
 	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
+	InternalMetricCategory          = "__internal"
 )
 
 var AlertType = struct {
@@ -326,7 +327,8 @@ type Dashboard struct {
 	Name              string
 	LastAdminToEditID *int
 	Layout            *string
-	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID;"`
+	IsDefault         *bool
 }
 
 type DashboardMetric struct {

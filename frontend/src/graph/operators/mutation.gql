@@ -1234,6 +1234,7 @@ mutation UpsertDashboard(
 	$name: String!
 	$metrics: [DashboardMetricConfigInput!]!
 	$layout: String
+	$is_default: Boolean
 ) {
 	upsertDashboard(
 		id: $id
@@ -1241,5 +1242,10 @@ mutation UpsertDashboard(
 		name: $name
 		metrics: $metrics
 		layout: $layout
+		is_default: $is_default
 	)
+}
+
+mutation DeleteDashboard($id: ID!) {
+	deleteDashboard(id: $id)
 }

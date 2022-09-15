@@ -16,9 +16,9 @@ export type Scalars = {
 	Int: number
 	Float: number
 	Any: any
-	Timestamp: any
-	Int64: any
-	StringArray: any
+	Timestamp: string
+	Int64: number
+	StringArray: string[]
 	Upload: any
 }
 
@@ -916,6 +916,7 @@ export enum MetricAggregator {
 	P99 = 'P99',
 	Max = 'Max',
 	Count = 'Count',
+	Sum = 'Sum',
 }
 
 export type DashboardMetricConfigInput = {
@@ -976,6 +977,7 @@ export type DashboardDefinition = {
 	metrics: Array<DashboardMetricConfig>
 	last_admin_to_edit_id?: Maybe<Scalars['Int']>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
 }
 
 export type MetricPreview = {
@@ -1585,6 +1587,7 @@ export type Mutation = {
 	requestAccess?: Maybe<Scalars['Boolean']>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	upsertDashboard: Scalars['ID']
+	deleteDashboard: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -2083,6 +2086,11 @@ export type MutationUpsertDashboardArgs = {
 	name: Scalars['String']
 	metrics: Array<DashboardMetricConfigInput>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
+}
+
+export type MutationDeleteDashboardArgs = {
+	id?: Maybe<Scalars['ID']>
 }
 
 export type Subscription = {

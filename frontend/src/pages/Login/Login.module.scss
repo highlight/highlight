@@ -6,11 +6,6 @@
 	width: 100vw;
 }
 
-.loginPage {
-	min-height: 462px;
-	width: 450px;
-}
-
 .loginTitle {
 	font-size: 23px;
 }
@@ -19,16 +14,6 @@
 	color: var(--color-gray-500) !important;
 	font-size: 14px;
 	margin-bottom: 20px !important;
-}
-
-.loginFormWrapper {
-	background-color: var(--color-primary-background);
-	border: 1px solid var(--color-gray-300);
-	border-radius: 8px;
-	display: flex;
-	flex-direction: column;
-	padding: 30px;
-	transition: all 0.2s ease-in-out;
 }
 
 .loginForm {

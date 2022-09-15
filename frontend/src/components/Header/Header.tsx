@@ -42,7 +42,7 @@ export const Header = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { isLoggedIn } = useAuthContext()
-
+	const { currentWorkspace } = useApplicationContext()
 	const { showBanner } = useGlobalContext()
 	const isWorkspaceLevel = workspace_id !== undefined
 
@@ -99,7 +99,9 @@ export const Header = () => {
 								<FeedbackButton />
 							)}
 						</div>
-						{isLoggedIn && <UserDropdown />}
+						{isLoggedIn && (
+							<UserDropdown workspaceId={currentWorkspace?.id} />
+						)}
 					</div>
 				</div>
 			</div>
@@ -167,12 +169,12 @@ const BillingBanner = () => {
 	}
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// If date is Aug 4 in PST timezone, show Product Hunt banner
-		const isAug4 = moment().isBetween(
-			'2022-08-04T07:00:00Z',
-			'2022-08-05T07:00:00Z',
+		// If date is Sep 13 in PST timezone, show Product Hunt banner
+		const isSep13 = moment().isBetween(
+			'2022-09-13T07:00:00Z',
+			'2022-09-14T07:00:00Z',
 		)
-		if (isAug4) {
+		if (isSep13) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -326,7 +328,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/highlight-6"
+				href="https://www.producthunt.com/posts/frontend-monitoring-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"os"
 	"sort"
 	"strconv"
@@ -11,10 +12,13 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/golang/snappy"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -23,10 +27,18 @@ type Client struct {
 
 var (
 	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
+	redisProjectIds            = []int{1, 1074} // Enabled for Highlight and Solitaired
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
-	return true
+	sidHash := fnv.New32a()
+	defer sidHash.Reset()
+	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {
+		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
+	}
+
+	// Enable redis for 10% of other traffic
+	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%10 == 0
 }
 
 func EventsKey(sessionId int) string {
@@ -41,16 +53,53 @@ func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
 		return &Client{
 			redisClient: redis.NewClient(&redis.Options{
-				Addr:     redisEventsStagingEndpoint,
-				Password: "",
+				Addr:         redisEventsStagingEndpoint,
+				Password:     "",
+				ReadTimeout:  5 * time.Second,
+				WriteTimeout: 5 * time.Second,
+				MaxConnAge:   5 * time.Minute,
+				IdleTimeout:  5 * time.Minute,
+				MaxRetries:   5,
+				MinIdleConns: 16,
+				PoolSize:     256,
 			}),
 		}
 	} else {
+		c := redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs:        []string{redisEventsStagingEndpoint},
+			Password:     "",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+			MaxConnAge:   5 * time.Minute,
+			IdleTimeout:  5 * time.Minute,
+			MaxRetries:   5,
+			MinIdleConns: 16,
+			PoolSize:     256,
+			OnConnect: func(*redis.Conn) error {
+				hlog.Incr("redis.new-conn", nil, 1)
+				return nil
+			},
+			OnNewNode: func(*redis.Client) {
+				hlog.Incr("redis.new-node", nil, 1)
+			},
+		})
+		go func() {
+			for {
+				stats := c.PoolStats()
+				if stats == nil {
+					return
+				}
+				hlog.Histogram("redis.hits", float64(stats.Hits), nil, 1)
+				hlog.Histogram("redis.misses", float64(stats.Misses), nil, 1)
+				hlog.Histogram("redis.idle-conns", float64(stats.IdleConns), nil, 1)
+				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
+				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
+				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+				time.Sleep(time.Second)
+			}
+		}()
 		return &Client{
-			redisClient: redis.NewClusterClient(&redis.ClusterOptions{
-				Addrs:    []string{redisEventsStagingEndpoint},
-				Password: "",
-			}),
+			redisClient: c,
 		}
 	}
 
@@ -201,16 +250,17 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 	return nil
 }
 
-func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
+func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
+	key := SessionInitializedKey(sessionSecureId)
 	val, err := r.redisClient.Get(key).Result()
-	if err != nil {
+
+	// ignore the non-existing session keys
+	if err == redis.Nil {
+		return false, nil
+	} else if err != nil {
 		return false, errors.Wrap(err, "error getting flag from Redis")
 	}
 	return val == "1" || val == "true", nil
-}
-
-func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
-	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }
 
 func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string, initialized bool) error {

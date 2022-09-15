@@ -29,7 +29,7 @@ const ReferrersTable = ({
 }: {
 	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-	const [tableData, setTableData] = useState<any[]>([])
+	const [tableData, setTableData] = useState<any[]>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -69,6 +69,10 @@ const ReferrersTable = ({
 	useEffect(() => {
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
+
+	if (tableData === undefined) {
+		return null
+	}
 
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>

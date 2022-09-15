@@ -69,6 +69,7 @@ const EMPTY_SESSION_METADATA = {
 	totalTime: 0,
 }
 const CHUNKING_DISABLED_PROJECTS: string[] = []
+const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 
 export enum SessionViewability {
 	VIEWABLE,
@@ -646,6 +647,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			UNSAFE_replayCanvas: true,
 			liveMode: isLiveMode,
 			useVirtualDom: false,
+			pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(project_id),
 		})
 
 		const onlyScriptEvents = getBrowserExtensionScriptURLs(newEvents)
