@@ -36,12 +36,14 @@ jobs:
                     --health-timeout 5s
                     --health-retries 5
         env:
-            PSQL_HOST: 'localhost'
-            PSQL_PORT: '5432'
-            PSQL_USER: 'postgres'
-            PSQL_DB: 'postgres'
-            PSQL_PASSWORD: 'postgres'
-            ENVIRONMENT: 'test'
+            PSQL_HOST: localhost
+            PSQL_PORT: 5432
+            PSQL_USER: postgres
+            PSQL_DB: postgres
+            PSQL_PASSWORD: postgres
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+            ENVIRONMENT: test
         steps:
             - name: Checkout
               uses: actions/checkout@v3
