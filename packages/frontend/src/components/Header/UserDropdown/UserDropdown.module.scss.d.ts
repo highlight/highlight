@@ -6,6 +6,7 @@ export const dropdownInner: string
 export const dropdownLogout: string
 export const dropdownLogoutText: string
 export const dropdownMenu: string
+export const dropdownMyAccount: string
 export const dropdownName: string
 export const logoutIcon: string
 export const userCopy: string

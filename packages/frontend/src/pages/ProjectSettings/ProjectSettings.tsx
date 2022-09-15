@@ -23,7 +23,6 @@ const ProjectSettings = () => {
 
 			<LeadAlignLayout>
 				<h2>Project Settings</h2>
-
 				<Route
 					path={`${match.path}/:tab?`}
 					render={({ history, match: tabsMatch }) => {

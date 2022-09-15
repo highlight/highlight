@@ -327,7 +327,8 @@ type Dashboard struct {
 	Name              string
 	LastAdminToEditID *int
 	Layout            *string
-	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID;"`
+	IsDefault         *bool
 }
 
 type DashboardMetric struct {

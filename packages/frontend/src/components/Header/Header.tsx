@@ -42,7 +42,7 @@ export const Header = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { isLoggedIn } = useAuthContext()
-
+	const { currentWorkspace } = useApplicationContext()
 	const { showBanner } = useGlobalContext()
 	const isWorkspaceLevel = workspace_id !== undefined
 
@@ -99,7 +99,9 @@ export const Header = () => {
 								<FeedbackButton />
 							)}
 						</div>
-						{isLoggedIn && <UserDropdown />}
+						{isLoggedIn && (
+							<UserDropdown workspaceId={currentWorkspace?.id} />
+						)}
 					</div>
 				</div>
 			</div>

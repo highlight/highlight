@@ -2,13 +2,19 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
+import { useAsyncFn } from 'react-use'
 
 import Button, { GenericHighlightButtonProps } from '../Button/Button/Button'
-import styles from './ConfirmModal.module.scss'
+
+export type ConfirmHandlerActions = {
+	close: () => void
+}
 
 interface Props {
 	onCancelHandler?: () => void
-	onConfirmHandler: () => void
+	onConfirmHandler: (
+		actions: ConfirmHandlerActions,
+	) => void | Promise<unknown>
 	trackingId: string
 	buttonProps: GenericHighlightButtonProps
 	cancelText?: string
@@ -31,6 +37,15 @@ const ConfirmModal = ({
 }: Props) => {
 	const [showModal, setShowModal] = useState(false)
 
+	const [confirmState, handleConfirmClick] = useAsyncFn(async () => {
+		try {
+			await onConfirmHandler({ close: () => setShowModal(false) })
+		} catch (error) {
+			H.consumeError(error as Error)
+			throw error // allow the UI to display the error
+		}
+	})
+
 	return (
 		<>
 			<Modal
@@ -46,9 +61,15 @@ const ConfirmModal = ({
 			>
 				<ModalBody>
 					{description && (
-						<p className={styles.description}>{description}</p>
+						<p className="text-gray-500">{description}</p>
 					)}
-					<div className={styles.actionsContainer}>
+					{confirmState.error && (
+						<p className="m-0 text-red-600">
+							{confirmState.error.message ||
+								'Something went wrong, try again.'}
+						</p>
+					)}
+					<div className="mt-4 grid auto-cols-fr grid-flow-col gap-6">
 						<Button
 							trackingId="ConfirmModalCancelButton"
 							onClick={() => {
@@ -58,16 +79,18 @@ const ConfirmModal = ({
 								setShowModal(false)
 							}}
 							type="default"
-							className={styles.button}
+							className="justify-center"
 						>
 							{cancelText}
 						</Button>
 						<Button
 							trackingId="ConfirmModalConfirmButton"
-							onClick={onConfirmHandler}
 							danger
 							type="primary"
-							className={styles.button}
+							loading={confirmState.loading}
+							disabled={confirmState.loading}
+							onClick={handleConfirmClick}
+							className="justify-center"
 						>
 							{confirmText}
 						</Button>

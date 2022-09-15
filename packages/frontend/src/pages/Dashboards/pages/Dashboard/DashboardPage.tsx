@@ -3,8 +3,13 @@ import 'react-resizable/css/styles.css'
 
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import {
+	GetDashboardDefinitionsDocument,
+	useDeleteDashboardMutation,
+} from '@graph/hooks'
 import {
 	Admin,
 	DashboardDefinition,
@@ -13,6 +18,7 @@ import {
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
+import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { DashboardComponentCard } from '@pages/Dashboards/components/DashboardCard/DashboardComponentCard/DashboardComponentCard'
@@ -67,7 +73,6 @@ const DashboardPage = ({
 			return d?.id === id
 		})
 		if (dashboard) {
-			const name = dashboard.name || ''
 			setDashboard(dashboard)
 			setNewMetrics(dashboard.metrics)
 			if (dashboard.layout?.length) {
@@ -218,15 +223,17 @@ const DashboardPage = ({
 										return nm
 									})
 								}}
+								icon={
+									<PlusIcon
+										style={{ marginRight: '0.5rem' }}
+									/>
+								}
 							>
 								Add
-								<PlusIcon
-									style={{
-										marginLeft: '1em',
-										marginBottom: '0.1em',
-									}}
-								/>
 							</Button>
+							{dashboard.is_default ? null : (
+								<DeleteDashboardButton dashboard={dashboard} />
+							)}
 							<TimeRangePicker />
 						</div>
 					</div>
@@ -416,3 +423,42 @@ export const findDashboardMetric = (
 }
 
 export default DashboardPage
+
+function DeleteDashboardButton({
+	dashboard,
+}: {
+	dashboard: {
+		id: string
+		name: string
+		project_id: string
+	}
+}) {
+	const history = useHistory()
+
+	const [mutate] = useDeleteDashboardMutation({
+		variables: { id: dashboard.id },
+		onCompleted: () => {
+			history.push(`/${dashboard.project_id}/dashboards`)
+		},
+		refetchQueries: [GetDashboardDefinitionsDocument],
+	})
+
+	return (
+		<ConfirmModal
+			trackingId="DeleteDashboardModal"
+			buttonText="Delete dashboard"
+			buttonProps={{
+				trackingId: 'DeleteDashboard',
+				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
+				danger: true,
+			}}
+			modalTitleText="Are you sure you want to delete this dashboard?"
+			confirmText="Delete dashboard"
+			cancelText="Never mind"
+			onConfirmHandler={async (actions) => {
+				await mutate()
+				actions.close()
+			}}
+		/>
+	)
+}
