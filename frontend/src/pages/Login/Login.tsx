@@ -17,6 +17,7 @@ import firebase from 'firebase'
 import { H } from 'highlight.run'
 import React, {
 	FormEvent,
+	ReactNode,
 	useCallback,
 	useEffect,
 	useRef,
@@ -243,10 +244,6 @@ export default function LoginForm() {
 		return <AuthAdminRouter />
 	}
 
-	const heroBugClass = classNames(
-		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
-	)
-
 	function getLoginTitleText() {
 		if (formState === LoginFormState.ResetPassword) {
 			return 'Reset your password'
@@ -257,238 +254,184 @@ export default function LoginForm() {
 		return 'Welcome to Highlight.'
 	}
 
+	const getLoginDescriptionText = () => {
+		if (formState === LoginFormState.SignUp) {
+			return "It's time to squash some bugs."
+		}
+	}
+
 	if (formState === LoginFormState.EnterMultiFactorCode) {
 		return <VerifyPhone resolver={resolver} />
 	}
 
 	return (
 		<Landing>
-			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
-				<section className="flex w-full max-w-md flex-col items-center gap-6">
-					<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
-						<h2 className="text-4xl tracking-wide text-white">
-							{getLoginTitleText()}
-						</h2>
-						{formState === LoginFormState.SignUp && (
-							<p className="text-xl tracking-wider text-white">
-								It's time to squash some bugs.
-							</p>
-						)}
-					</div>
-					<div className="w-full rounded-md bg-white px-8 py-6">
-						<form onSubmit={onSubmit} className={styles.loginForm}>
-							<div className={styles.loginTitleWrapper}>
-								<p className={styles.loginSubTitle}>
-									{formState === LoginFormState.SignIn ? (
-										<>
-											New here?{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignUp,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												Create an account.
-											</span>
-										</>
-									) : formState ===
-									  LoginFormState.ResetPassword ? (
-										<>
-											Want to{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignIn,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												sign in
-											</span>{' '}
-											again?
-										</>
-									) : (
-										<>
-											Already have an account?{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignIn,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												Sign in.
-											</span>
-										</>
-									)}
-								</p>
-							</div>
-							<div className={styles.inputContainer}>
-								<Input
-									placeholder={'Email'}
-									name="email"
-									type={'email'}
-									value={email}
-									onChange={(e) => {
-										setEmail(e.target.value)
-									}}
-									autoFocus
-									required
-								/>
-								{formState !== LoginFormState.ResetPassword && (
-									<Input
-										placeholder={'Password'}
-										type="password"
-										name="password"
-										value={password}
-										onChange={(e) => {
-											setPassword(e.target.value)
+			<AuthPageLayout
+				title={getLoginTitleText()}
+				description={getLoginDescriptionText()}
+				showTestimonial={formState === LoginFormState.SignUp}
+			>
+				<form onSubmit={onSubmit} className={styles.loginForm}>
+					<div className={styles.loginTitleWrapper}>
+						<p className={styles.loginSubTitle}>
+							{formState === LoginFormState.SignIn ? (
+								<>
+									New here?{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignUp)
 										}}
-										required
-									/>
-								)}
-								{formState === LoginFormState.SignUp && (
-									<>
-										<Input
-											placeholder={'Confirm Password'}
-											type="password"
-											name="confirm-password"
-											required
-											value={passwordConfirmation}
-											onChange={(e) => {
-												setPasswordConfirmation(
-													e.target.value,
-												)
-											}}
-										/>
-									</>
-								)}
-							</div>
-							{error && (
-								<div className={commonStyles.errorMessage}>
-									{error}
-								</div>
-							)}
-							{formState !== LoginFormState.ResetPassword && (
-								<span
-									onClick={() => {
-										changeState(
-											LoginFormState.ResetPassword,
-										)
-									}}
-									className={classNames(
-										styles.loginStateSwitcher,
-										styles.resetPasswordText,
-									)}
-								>
-									Forgot your password?
-								</span>
-							)}
-							<Button
-								trackingId="LoginSignInUp"
-								className={commonStyles.submitButton}
-								type="primary"
-								htmlType="submit"
-								loading={isLoadingFirebase}
-							>
-								{formState === LoginFormState.SignIn
-									? 'Sign In'
-									: formState === LoginFormState.SignUp
-									? 'Sign Up'
-									: 'Reset Password'}
-							</Button>
-						</form>
-						{formState !== LoginFormState.ResetPassword && (
-							<>
-								<p className={styles.otherSigninText}>
-									or sign{' '}
-									{formState === LoginFormState.SignIn
-										? 'in'
-										: 'up'}{' '}
-									with
-								</p>
-								<Button
-									trackingId="LoginWithGoogle"
-									className={classNames(
-										commonStyles.secondaryButton,
-										styles.googleButton,
-									)}
-									onClick={() => {
-										auth.signInWithPopup(
-											googleProvider,
-										).catch(
-											(
-												error: firebase.auth.MultiFactorError,
-											) => {
-												if (
-													error.code ===
-													'auth/multi-factor-auth-required'
-												) {
-													setResolver(error.resolver)
-													setFormState(
-														LoginFormState.EnterMultiFactorCode,
-													)
-												} else {
-													setFirebaseError(
-														JSON.stringify(
-															error.message,
-														),
-													)
-												}
-											},
-										)
-									}}
-									loading={isLoadingFirebase}
-								>
-									<GoogleLogo
-										className={styles.googleLogoStyle}
-									/>
-									<span className={styles.googleText}>
-										Google Sign{' '}
-										{formState === LoginFormState.SignIn
-											? 'In'
-											: 'Up'}
+										className={styles.loginStateSwitcher}
+									>
+										Create an account.
 									</span>
-								</Button>
-								<div className={commonStyles.errorMessage}>
-									{firebaseError}
-								</div>
+								</>
+							) : formState === LoginFormState.ResetPassword ? (
+								<>
+									Want to{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignIn)
+										}}
+										className={styles.loginStateSwitcher}
+									>
+										sign in
+									</span>{' '}
+									again?
+								</>
+							) : (
+								<>
+									Already have an account?{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignIn)
+										}}
+										className={styles.loginStateSwitcher}
+									>
+										Sign in.
+									</span>
+								</>
+							)}
+						</p>
+					</div>
+					<div className={styles.inputContainer}>
+						<Input
+							placeholder={'Email'}
+							name="email"
+							type={'email'}
+							value={email}
+							onChange={(e) => {
+								setEmail(e.target.value)
+							}}
+							autoFocus
+							required
+						/>
+						{formState !== LoginFormState.ResetPassword && (
+							<Input
+								placeholder={'Password'}
+								type="password"
+								name="password"
+								value={password}
+								onChange={(e) => {
+									setPassword(e.target.value)
+								}}
+								required
+							/>
+						)}
+						{formState === LoginFormState.SignUp && (
+							<>
+								<Input
+									placeholder={'Confirm Password'}
+									type="password"
+									name="confirm-password"
+									required
+									value={passwordConfirmation}
+									onChange={(e) => {
+										setPasswordConfirmation(e.target.value)
+									}}
+								/>
 							</>
 						)}
 					</div>
-				</section>
-
-				{formState === LoginFormState.SignUp && (
-					<>
-						<img
-							src={heroBugLeft}
-							className={classNames(heroBugClass, '-left-56')}
-							style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
-						/>
-
-						<img
-							src={heroBugRight}
+					{error && (
+						<div className={commonStyles.errorMessage}>{error}</div>
+					)}
+					{formState !== LoginFormState.ResetPassword && (
+						<span
+							onClick={() => {
+								changeState(LoginFormState.ResetPassword)
+							}}
 							className={classNames(
-								heroBugClass,
-								'-right-56 -top-28',
+								styles.loginStateSwitcher,
+								styles.resetPasswordText,
 							)}
-						/>
-
-						<div className="hidden min-w-0 flex-1 xl:block">
-							<Testimonial />
+						>
+							Forgot your password?
+						</span>
+					)}
+					<Button
+						block
+						trackingId="LoginSignInUp"
+						className="mt-2"
+						type="primary"
+						htmlType="submit"
+						loading={isLoadingFirebase}
+					>
+						{formState === LoginFormState.SignIn
+							? 'Sign In'
+							: formState === LoginFormState.SignUp
+							? 'Sign Up'
+							: 'Reset Password'}
+					</Button>
+				</form>
+				{formState !== LoginFormState.ResetPassword && (
+					<>
+						<p className={styles.otherSigninText}>
+							or sign{' '}
+							{formState === LoginFormState.SignIn ? 'in' : 'up'}{' '}
+							with
+						</p>
+						<Button
+							trackingId="LoginWithGoogle"
+							className={classNames(
+								commonStyles.secondaryButton,
+								styles.googleButton,
+							)}
+							onClick={() => {
+								auth.signInWithPopup(googleProvider).catch(
+									(error: firebase.auth.MultiFactorError) => {
+										if (
+											error.code ===
+											'auth/multi-factor-auth-required'
+										) {
+											setResolver(error.resolver)
+											setFormState(
+												LoginFormState.EnterMultiFactorCode,
+											)
+										} else {
+											setFirebaseError(
+												JSON.stringify(error.message),
+											)
+										}
+									},
+								)
+							}}
+							loading={isLoadingFirebase}
+						>
+							<GoogleLogo className={styles.googleLogoStyle} />
+							<span className={styles.googleText}>
+								Google Sign{' '}
+								{formState === LoginFormState.SignIn
+									? 'In'
+									: 'Up'}
+							</span>
+						</Button>
+						<div className={commonStyles.errorMessage}>
+							{firebaseError}
 						</div>
 					</>
 				)}
-			</div>
+			</AuthPageLayout>
 		</Landing>
 	)
 }
@@ -572,60 +515,111 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 
 	return (
 		<Landing>
-			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
-				<section className="flex w-full max-w-md flex-col items-center gap-6">
-					<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
-						<h2 className="text-4xl tracking-wide text-white">
-							Verify via SMS
-						</h2>
-						<p className="text-xl tracking-wider text-white">
-							Enter the code we sent to your phone.
-						</p>
-					</div>
-					<div className="w-full rounded-md bg-white px-8 py-6">
-						<form onSubmit={handleSubmit}>
-							<Space direction="vertical" size="medium">
-								{error && (
-									<Alert
-										shouldAlwaysShow
-										closable={false}
-										trackingId="2faVerifyError"
-										type="error"
-										description={error}
-									/>
-								)}
+			<AuthPageLayout
+				title="Verify via SMS"
+				description="Enter the code we sent to your phone."
+				showTestimonial={false}
+			>
+				<form onSubmit={handleSubmit}>
+					<Space direction="vertical" size="medium">
+						{error && (
+							<Alert
+								shouldAlwaysShow
+								closable={false}
+								trackingId="2faVerifyError"
+								type="error"
+								description={error}
+							/>
+						)}
 
-								<div className={styles.inputContainer}>
-									<Input
-										placeholder="Verification code"
-										name="verification_code"
-										value={verificationCode}
-										onChange={(e) => {
-											setVerificationCode(e.target.value)
-										}}
-										autoFocus
-										required
-										autoComplete="off"
-									/>
-								</div>
+						<div className={styles.inputContainer}>
+							<Input
+								placeholder="Verification code"
+								name="verification_code"
+								value={verificationCode}
+								onChange={(e) => {
+									setVerificationCode(e.target.value)
+								}}
+								autoFocus
+								required
+								autoComplete="off"
+							/>
+						</div>
 
-								<Button
-									className={commonStyles.submitButton}
-									type="primary"
-									htmlType="submit"
-									loading={loading}
-									trackingId="setup2fa"
-								>
-									Submit
-								</Button>
-							</Space>
-						</form>
-					</div>
-				</section>
-
-				<div id="recaptcha"></div>
-			</div>
+						<Button
+							block
+							type="primary"
+							htmlType="submit"
+							loading={loading}
+							trackingId="setup2fa"
+						>
+							Submit
+						</Button>
+					</Space>
+					<div id="recaptcha"></div>
+				</form>
+			</AuthPageLayout>
 		</Landing>
+	)
+}
+
+function AuthPageLayout({
+	title,
+	showTestimonial = false,
+	children,
+	description,
+}: {
+	title: string
+	showTestimonial: boolean
+	children: ReactNode
+	description?: string
+}) {
+	const heroBugClass = classNames(
+		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
+	)
+
+	return (
+		<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
+			<section className="flex w-full max-w-md flex-col items-center gap-6">
+				<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
+					<h2 className="text-4xl tracking-wide text-white">
+						{title}
+					</h2>
+
+					{!!description && (
+						<p className="text-xl tracking-wider text-white">
+							{description}
+						</p>
+					)}
+				</div>
+
+				<div className="w-full rounded-md bg-white px-8 py-6">
+					{children}
+				</div>
+			</section>
+
+			{showTestimonial && (
+				<>
+					<img
+						src={heroBugLeft}
+						className={classNames(heroBugClass, '-left-56')}
+						style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
+					/>
+
+					<img
+						src={heroBugRight}
+						className={classNames(
+							heroBugClass,
+							'-right-56 -top-28',
+						)}
+					/>
+
+					<div className="hidden min-w-0 flex-1 xl:block">
+						<Testimonial />
+					</div>
+				</>
+			)}
+		</div>
 	)
 }
 
