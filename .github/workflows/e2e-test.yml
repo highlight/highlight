@@ -54,8 +54,7 @@ jobs:
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
-                  build: yarn ci:build
-                  start: yarn ci:start
+                  command: yarn ci:test:e2e
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
             - name: Save videos

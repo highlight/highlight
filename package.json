@@ -23,7 +23,7 @@
 		"g": "yarn generate",
 		"format": "prettier --write --ignore-unknown . \"!./data\"",
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
-		"ci:test:e2e": "start-server-and-test dev https://localhost:3000 cy:run",
+		"ci:test:e2e": "start-server-and-test dev https-get://localhost:3000 cy:run",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome"
 	},
