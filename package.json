@@ -11,7 +11,7 @@
 	"scripts": {
 		"prepare": "husky install",
 		"frontend:clean": "concurrently 'rm -rf node_modules && rm yarn.lock' 'cd frontend && rm -rf node_modules && rm yarn.lock' 'cd client && rm -rf node_modules && rm yarn.lock' 'cd firstload && rm -rf node_modules && rm yarn.lock'",
-		"frontend:install": "yarn && concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
+		"frontend:install": "yarn && concurrently 'cd frontend && yarn --network-concurrency 1' 'cd client && yarn --network-concurrency 1' 'cd firstload && yarn --network-concurrency 1'",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race dev:*",
 		"dev:backend": "cd backend && make start",
