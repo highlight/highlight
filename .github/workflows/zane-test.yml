@@ -36,15 +36,15 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@master
               with:
