@@ -33,6 +33,7 @@ export default defineConfig({
 				// 	camel2DashComponentName: false,
 				// },
 			],
+			exclude: ['lodash'],
 		}),
 	],
 	envPrefix: ['REACT_APP_', 'VITE_'],
