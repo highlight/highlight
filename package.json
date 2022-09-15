@@ -10,6 +10,7 @@
 	},
 	"scripts": {
 		"prepare": "husky install",
+		"frontend:clean": "concurrently 'rm -rf node_modules' 'rm -rf frontend/node_modules' 'rm -rf client/node_modules' 'rm -rf firstload/node_modules'",
 		"frontend:install": "yarn && concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race dev:*",
