@@ -1,10 +1,5 @@
 name: Zane test Lambda deployment
-on:
-    push:
-        branches:
-            - '!master'
-        paths:
-            - '.github/workflows/zane-test.yml'
+on: 'push'
 jobs:
     deploy-lambdas:
         runs-on: ubuntu-latest
