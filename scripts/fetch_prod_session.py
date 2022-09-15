@@ -4,6 +4,7 @@ import os
 import subprocess
 
 import boto3
+import brotli
 
 """
 Fetch Session:
@@ -23,6 +24,7 @@ Prerequisites:
 DROP_SESSION_KEYS = {'user_id', 'details', 'status'}
 DROP_ERROR_GROUP_KEYS = {'metadata_log', 'resolved'}
 DROP_ERROR_OBJECT_KEYS = {'line_no', 'column_no', 'error_type'}
+SESSIONS_FULL_FILE = 'session-contents'
 
 
 def format_sql_value(value: any) -> str:
@@ -37,7 +39,7 @@ def format_sql_value(value: any) -> str:
     return f"'{value}'"
 
 
-def process(bucket, secure_id, copy_errors=False):
+def process(bucket, secure_id, copy_errors=False, store=False):
     s3 = boto3.Session().resource('s3')
     b = s3.Bucket(bucket)
     sourcemaps_bucket_name = 'source-maps-test'
@@ -59,11 +61,20 @@ def process(bucket, secure_id, copy_errors=False):
     print("Copying session files from prod S3 to dev/1...")
     prefix = f'{session["project_id"]}/{session["id"]}'
     for file in b.objects.filter(Prefix=prefix).all():
-        new_obj = b.Object(f'dev/1/{new_session["id"]}/{file.key.split("/")[-1]}')
+        file_name = file.key.split("/")[-1]
+        new_obj = b.Object(f'dev/1/{new_session["id"]}/{file_name}')
         new_obj.copy({
             'Bucket': bucket,
             'Key': file.key
         })
+        if store and file_name.startswith(SESSIONS_FULL_FILE):
+            decompressed_file = f'{file_name}-decompressed'
+            print(f"Storing decompressed file {decompressed_file}")
+            new_obj.download_file(file_name)
+            with open(file_name, 'rb') as f:
+                decompressed = brotli.decompress(f.read())
+            with open(decompressed_file, 'wb') as f:
+                f.write(decompressed)
 
     if not copy_errors:
         print("Finished copying session without errors. Run with `-e` to copy error groups/objects and sourcemaps.")
@@ -106,6 +117,7 @@ def process(bucket, secure_id, copy_errors=False):
 
     print('Finished copying session and associated errors.')
 
+
 def run_sql(sql='select 1;', prod=False, insert=False):
     if not insert:
         sql = f"SELECT ROW_TO_JSON(t) FROM (" + sql + f") t"
@@ -125,9 +137,10 @@ def run_sql(sql='select 1;', prod=False, insert=False):
 
 def main():
     parser = argparse.ArgumentParser(description='Description of your program')
+    parser.add_argument('secure_id', help='the session secure id')
     parser.add_argument('-b', '--bucket', help='the s3 bucket to process', default='highlight-session-s3-test')
     parser.add_argument('-e', '--copy-errors', help='copy the error groups and objects of the session', default=False, action='store_true')
-    parser.add_argument('secure_id', help='the session secure id')
+    parser.add_argument('-s', '--store', help='store the sessions file locally', default=False, action='store_true')
     process(**vars(parser.parse_args()))
 
 
