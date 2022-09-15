@@ -77,7 +77,6 @@ importers:
       '@rollup/plugin-node-resolve': 13.3.0_rollup@2.79.0
       '@rollup/plugin-replace': 4.0.0_rollup@2.79.0
       '@rollup/plugin-typescript': 8.5.0_tznp6w7csbjledp5nresoxoky4
-      '@types/node': 16.11.58
       error-stack-parser: 2.0.6
       esbuild: 0.14.54
       graphql: 16.6.0
@@ -100,6 +99,7 @@ importers:
       '@graphql-codegen/typescript-operations': 2.5.3_graphql@16.6.0
       '@types/jest': 26.0.24
       '@types/json-stringify-safe': 5.0.0
+      '@types/node': 16.11.58
       '@typescript-eslint/eslint-plugin': 5.37.0_22c5fnooleyfkzrkkgdmel5kmi
       '@typescript-eslint/parser': 5.37.0_irgkl5vooow2ydyo6aokmferha
       eslint: 8.23.1
@@ -7326,6 +7326,7 @@ packages:
 
   /@types/node/16.11.58:
     resolution: {integrity: sha512-uMVxJ111wpHzkx/vshZFb6Qni3BOMnlWLq7q9jrwej7Yw/KvjsEbpxCCxw+hLKxexFMc8YmpG8J9tnEe/rKsIg==}
+    dev: true
 
   /@types/node/17.0.23:
     resolution: {integrity: sha512-UxDxWn7dl97rKVeVS61vErvw086aCYhDLyvRQZ5Rk65rZKepaFdm53GeqXaKBuOhED4e9uWq34IC3TdSdJJ2Gw==}
