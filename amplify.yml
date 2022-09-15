@@ -6,11 +6,11 @@ applications:
               preBuild:
                   # https://github.com/aws-amplify/amplify-cli/issues/6382#issuecomment-1145087901
                   commands:
-                      - npx pnpm -r --filter=frontend-ts... run build
+                      - npx pnpm install
               build:
                   commands:
                       - (curl -Ls https://cli.doppler.com/install.sh || wget -qO- https://cli.doppler.com/install.sh) | sh
-                      - doppler run -- npx pnpm run build
+                      - doppler run -- npx pnpm -r --filter=frontend-ts... run build
           artifacts:
               baseDirectory: build
               files:
