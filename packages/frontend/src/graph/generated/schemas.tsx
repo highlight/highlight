@@ -162,6 +162,7 @@ export type DashboardDefinition = {
 	metrics: Array<DashboardMetricConfig>
 	last_admin_to_edit_id?: Maybe<Scalars['Int']>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
 }
 
 export type DashboardMetricConfig = {
@@ -515,73 +516,6 @@ export enum MetricAggregator {
 	Max = 'Max',
 	Count = 'Count',
 	Sum = 'Sum',
-}
-
-export type DashboardMetricConfigInput = {
-	name: Scalars['String']
-	description: Scalars['String']
-	component_type?: Maybe<MetricViewComponentType>
-	max_good_value?: Maybe<Scalars['Float']>
-	max_needs_improvement_value?: Maybe<Scalars['Float']>
-	poor_value?: Maybe<Scalars['Float']>
-	units?: Maybe<Scalars['String']>
-	help_article?: Maybe<Scalars['String']>
-	chart_type?: Maybe<DashboardChartType>
-	aggregator?: Maybe<MetricAggregator>
-	min_value?: Maybe<Scalars['Float']>
-	min_percentile?: Maybe<Scalars['Float']>
-	max_value?: Maybe<Scalars['Float']>
-	max_percentile?: Maybe<Scalars['Float']>
-	filters?: Maybe<Array<MetricTagFilterInput>>
-	groups?: Maybe<Array<Scalars['String']>>
-}
-
-export enum MetricViewComponentType {
-	KeyPerformanceGauge = 'KeyPerformanceGauge',
-	SessionCountChart = 'SessionCountChart',
-	ErrorCountChart = 'ErrorCountChart',
-	ReferrersTable = 'ReferrersTable',
-	ActiveUsersTable = 'ActiveUsersTable',
-	RageClicksTable = 'RageClicksTable',
-	TopRoutesTable = 'TopRoutesTable',
-}
-
-export type DashboardMetricConfig = {
-	__typename?: 'DashboardMetricConfig'
-	name: Scalars['String']
-	description: Scalars['String']
-	component_type?: Maybe<MetricViewComponentType>
-	max_good_value?: Maybe<Scalars['Float']>
-	max_needs_improvement_value?: Maybe<Scalars['Float']>
-	poor_value?: Maybe<Scalars['Float']>
-	units?: Maybe<Scalars['String']>
-	help_article?: Maybe<Scalars['String']>
-	chart_type?: Maybe<DashboardChartType>
-	aggregator?: Maybe<MetricAggregator>
-	min_value?: Maybe<Scalars['Float']>
-	min_percentile?: Maybe<Scalars['Float']>
-	max_value?: Maybe<Scalars['Float']>
-	max_percentile?: Maybe<Scalars['Float']>
-	filters?: Maybe<Array<MetricTagFilter>>
-	groups?: Maybe<Array<Scalars['String']>>
-}
-
-export type DashboardDefinition = {
-	__typename?: 'DashboardDefinition'
-	id: Scalars['ID']
-	updated_at: Scalars['Timestamp']
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	metrics: Array<DashboardMetricConfig>
-	last_admin_to_edit_id?: Maybe<Scalars['Int']>
-	layout?: Maybe<Scalars['String']>
-	is_default?: Maybe<Scalars['Boolean']>
-}
-
-export type MetricPreview = {
-	__typename?: 'MetricPreview'
-	date: Scalars['Timestamp']
-	value: Scalars['Float']
 }
 
 export type MetricMonitor = {
@@ -1205,7 +1139,7 @@ export type MutationUpsertDashboardArgs = {
 }
 
 export type MutationDeleteDashboardArgs = {
-	id?: Maybe<Scalars['ID']>
+	id: Scalars['ID']
 }
 
 export type NamedCount = {

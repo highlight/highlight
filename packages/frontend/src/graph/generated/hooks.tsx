@@ -4380,10 +4380,11 @@ export function useDeleteDashboardMutation(
 		Types.DeleteDashboardMutationVariables
 	>,
 ) {
+	const options = { ...defaultOptions, ...baseOptions }
 	return Apollo.useMutation<
 		Types.DeleteDashboardMutation,
 		Types.DeleteDashboardMutationVariables
-	>(DeleteDashboardDocument, baseOptions)
+	>(DeleteDashboardDocument, options)
 }
 export type DeleteDashboardMutationHookResult = ReturnType<
 	typeof useDeleteDashboardMutation
