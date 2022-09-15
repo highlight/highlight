@@ -58,6 +58,8 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
+            - name: Clean frontend dependencies
+              run: yarn frontend:clean
             - name: Install frontend dependencies
               run: yarn frontend:install
             - name: Cypress install and run
