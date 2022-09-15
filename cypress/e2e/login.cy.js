@@ -5,7 +5,7 @@ describe('login spec', () => {
 			req.alias = req.body.operationName
 		})
 
-		cy.visit('https://localhost:3000')
+		cy.visit('http://localhost:3000')
 
 		// Ensure client requests are made
 		// cy.wait('@initializeSession')
