@@ -29,7 +29,8 @@ jobs:
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
-                  start: cd frontend && CI=false yarn dev
+                  build: cd frontend && doppler run -- yarn build
+                  start: npx http-server ./frontend/build -p 3000
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
             - name: Save videos
