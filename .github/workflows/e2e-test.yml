@@ -60,6 +60,8 @@ jobs:
               uses: dopplerhq/cli-action@v1
             - name: Install frontend dependencies
               run: yarn && cd frontend && yarn && cd ../client && yarn
+            - name: Install Air
+              run: go install github.com/cosmtrek/air@latest
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
