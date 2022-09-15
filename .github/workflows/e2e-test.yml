@@ -63,7 +63,7 @@ jobs:
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
-                  start: yarn dev
+                  start: yarn ci:start
                   wait-on: https://localhost:3000
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
