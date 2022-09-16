@@ -8,12 +8,11 @@ describe('login spec', () => {
 		cy.visit('https://localhost:3000')
 
 		// Ensure client requests are made
-		// cy.wait('@initializeSession')
-		// 	.its('request.body')
-		// 	.should('include', 'something')
-		// cy.wait('@addSessionProperties')
-		// cy.wait('@PushPayload')
+		cy.wait('@initializeSession')
+		cy.wait('@addSessionProperties')
+		cy.wait('@PushPayload')
 
+		// Fill out login form
 		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
 
 		cy.get('[name="password"]')

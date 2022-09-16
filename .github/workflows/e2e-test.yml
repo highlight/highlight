@@ -70,7 +70,7 @@ jobs:
                   start: yarn ci:start
                   wait-on: https://localhost:3000
               env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
             - name: Save videos
               uses: actions/upload-artifact@v2
