@@ -61,15 +61,15 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | {Variables: .}')"
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@master
               with:
@@ -77,7 +77,7 @@ jobs:
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws_region: us-east-2
                   function_name: getSessionIdsByQuery
-                  zip_file: getSessionIdsByQuery.zip
+                  zip_file: backend/getSessionIdsByQuery.zip
             - name: Deploy deleteSessionBatchFromPostgres
               uses: appleboy/lambda-action@master
               with:
@@ -85,7 +85,7 @@ jobs:
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws_region: us-east-2
                   function_name: deleteSessionBatchFromPostgres
-                  zip_file: deleteSessionBatchFromPostgres.zip
+                  zip_file: backend/deleteSessionBatchFromPostgres.zip
             - name: Deploy deleteSessionBatchFromOpenSearch
               uses: appleboy/lambda-action@master
               with:
@@ -93,7 +93,7 @@ jobs:
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws_region: us-east-2
                   function_name: deleteSessionBatchFromOpenSearch
-                  zip_file: deleteSessionBatchFromOpenSearch.zip
+                  zip_file: backend/deleteSessionBatchFromOpenSearch.zip
             - name: Deploy deleteSessionBatchFromS3
               uses: appleboy/lambda-action@master
               with:
@@ -101,7 +101,7 @@ jobs:
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws_region: us-east-2
                   function_name: deleteSessionBatchFromS3
-                  zip_file: deleteSessionBatchFromS3.zip
+                  zip_file: backend/deleteSessionBatchFromS3.zip
             - name: Deploy sendEmail
               uses: appleboy/lambda-action@master
               with:
@@ -109,7 +109,7 @@ jobs:
                   aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws_region: us-east-2
                   function_name: sendEmail
-                  zip_file: sendEmail.zip
+                  zip_file: backend/sendEmail.zip
     deploy_backend:
         needs: migrate-database
         runs-on: ubuntu-latest
