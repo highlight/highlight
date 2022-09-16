@@ -52,6 +52,7 @@ jobs:
               with:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
+                  cache: yarn
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
