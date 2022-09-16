@@ -2403,7 +2403,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 				}
 
-				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
+				if err := r.Redis.AddEventPayload(ctx, sessionID, score, string(b)); err != nil {
 					return e.Wrap(err, "error adding event payload")
 				}
 				redisSpan.Finish()
