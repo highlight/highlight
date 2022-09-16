@@ -10,25 +10,22 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
-            - uses: pnpm/action-setup@v2
-              with:
-                  version: 7.11.0
             - name: Setup Node.js
               uses: actions/setup-node@v3
               with:
                   node-version: 16.14.0
                   registry-url: https://registry.npmjs.org
-                  cache: 'pnpm'
+                  cache: 'yarn'
             - name: Install dependencies
-              run: pnpm install
+              run: yarn
             # - name: Run tests
-            #   run: pnpm --filter highlight-next test
+            #   run: yarn workspaces foreach highlight-next test
             - name: Build Bundle
-              run: pnpm --filter highlight-next run build
+              run: yarn workspaces foreach highlight-next run build
             - name: Confirm new version
               run: cd packages/highlight-next && python3 ../../scripts/compare.py -s highlight-next
             - name: Publish
               if: github.ref == 'refs/heads/master'
-              run: pnpm --filter highlight-next publish --access public
+              run: yarn workspaces foreach highlight-next publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

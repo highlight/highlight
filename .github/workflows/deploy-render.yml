@@ -23,10 +23,10 @@ jobs:
               with:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
-                  cache: 'pnpm'
+                  cache: 'yarn'
             - name: Install dependencies
-              run: pnpm --filter render install --prod
+              run: yarn workspaces foreach render install --prod
             - name: Build
-              run: pnpm --filter render build
+              run: yarn workspaces foreach render build
             - name: Push lambda
-              run: pnpm run publish
+              run: yarn publish

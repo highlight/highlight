@@ -3,7 +3,7 @@ schema: '../../backend/public-graph/graph/schema.graphqls'
 overwrite: true
 hooks:
     afterAllFileWrite:
-        - prettier --write
+        - yarn prettier --write
 generates:
     # Get schemas from server
     src/graph/generated/schemas.ts:

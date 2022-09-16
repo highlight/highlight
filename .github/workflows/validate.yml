@@ -5,14 +5,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
-            - uses: pnpm/action-setup@v2
-              with:
-                  version: 7.11.0
             - uses: actions/setup-node@v3
               with:
                   node-version: 16
-                  cache: 'pnpm'
+                  cache: 'yarn'
             - name: Install dependencies
-              run: pnpm i
-            - name: Check formatting (if this fails, run `pnpm format`)
-              run: pnpm run format-check || echo "Found some unformatted files! Run 'pnpm format' to fix them."
+              run: yarn
+            - name: Check formatting (if this fails, run `yarn format`)
+              run: yarn run format-check || echo "Found some unformatted files! Run 'yarn format' to fix them."

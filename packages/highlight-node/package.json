@@ -9,16 +9,15 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "pnpm run gql && run-p build:cjs build:esm",
+		"build": "yarn run gql && run-p build:cjs build:esm",
 		"build:cjs": "tsc -p tsconfig.cjs.json",
 		"build:dev": "run-s build",
-		"build:es5": "pnpm build:cjs # *** backwards compatibility - remove in v7 ***",
+		"build:es5": "yarn build:cjs # *** backwards compatibility - remove in v7 ***",
 		"build:esm": "tsc -p tsconfig.esm.json",
 		"gql": "graphql-codegen --config codegen.yml"
 	},
 	"dependencies": {
 		"error-stack-parser": "^2.0.6",
-		"graphql": "15",
 		"graphql-request": "^3.7.0",
 		"graphql-tag": "^2.12.6",
 		"highlight.run": "^2.9.0",

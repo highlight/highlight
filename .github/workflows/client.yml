@@ -10,17 +10,14 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
-            - uses: pnpm/action-setup@v2
-              with:
-                  version: 7.11.0
             - name: Setup Node.js
               uses: actions/setup-node@v3
               with:
                   node-version: 16.14.2
-                  cache: 'pnpm'
+                  cache: 'yarn'
             - name: Install dependencies
-              run: pnpm install
+              run: yarn
             - name: Build Bundle
-              run: pnpm --filter client build
+              run: yarn workspaces foreach client build
             - name: Run Test
-              run: pnpm --filter client test
+              run: yarn workspaces foreach client test

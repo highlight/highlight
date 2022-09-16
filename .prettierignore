@@ -2,4 +2,3 @@ node_modules
 build
 dist
 backend/errors/test-files
-pnpm-lock.yaml
