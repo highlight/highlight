@@ -41,6 +41,7 @@ jobs:
             PSQL_USER: postgres
             PSQL_DB: postgres
             PSQL_PASSWORD: postgres
+            PGPASSWORD: postgres
             REDIS_HOST: redis
             REDIS_PORT: 6379
             ENVIRONMENT: test
@@ -69,6 +70,14 @@ jobs:
               run: yarn && cd frontend && yarn && cd ../client && yarn
             - name: Install Air
               run: go install github.com/cosmtrek/air@latest
+            - name: Migrate database
+              run: |
+                  cd backend/
+                  make migrate
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_DEV_TOKEN }}
+            - name: Seed Database
+              run: psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
