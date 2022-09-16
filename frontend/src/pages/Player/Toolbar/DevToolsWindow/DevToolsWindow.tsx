@@ -48,7 +48,8 @@ export const DevToolsWindow = React.memo(
 		return (
 			<ResizePanel
 				defaultHeight={500}
-				heightPersistenceKey="devToolsPanelHeight"
+				minHeight={200}
+				heightPersistenceKey="highlight-devToolsPanelHeight"
 			>
 				{({ panelRef, handleRef }) => (
 					<div className={styles.devToolsWrapper} ref={panelRef}>
@@ -85,6 +86,7 @@ export const DevToolsWindow = React.memo(
 function ResizePanel({
 	children,
 	defaultHeight,
+	minHeight,
 	heightPersistenceKey,
 }: {
 	children: (props: {
@@ -92,6 +94,7 @@ function ResizePanel({
 		handleRef: (element: HTMLElement | null) => void
 	}) => React.ReactNode
 	defaultHeight?: number
+	minHeight?: number
 	heightPersistenceKey?: string
 }) {
 	const [panel, setPanel] = React.useState<HTMLElement | null>()
@@ -133,7 +136,10 @@ function ResizePanel({
 		(event) => {
 			if (dragging && panel) {
 				const panelRect = panel.getBoundingClientRect()
-				const newHeight = panelRect.height - event.movementY
+				const newHeight = Math.max(
+					minHeight || 0,
+					panelRect.height - event.movementY,
+				)
 
 				panel.style.height = `${newHeight}px`
 				if (heightPersistenceKey) {
