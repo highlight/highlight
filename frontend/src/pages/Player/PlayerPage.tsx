@@ -56,9 +56,10 @@ import styles from './PlayerPage.module.scss'
 
 interface Props {
 	integrated: boolean
+	minimal?: boolean
 }
 
-const Player = ({ integrated }: Props) => {
+const Player = ({ integrated, minimal }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const { session_secure_id } = useParams<{
@@ -85,10 +86,15 @@ const Player = ({ integrated }: Props) => {
 		session,
 		isLoadingEvents,
 		currentUrl,
+		play,
+		pause,
 	} = player
 	const resources = useResources(session)
 	const {
+		setAutoPlayVideo,
+		setShowDevTools,
 		setShowLeftPanel,
+		setShowRightPanel,
 		showLeftPanel: showLeftPanelPreference,
 		showRightPanel,
 	} = usePlayerConfiguration()
@@ -122,6 +128,47 @@ const Player = ({ integrated }: Props) => {
 			setShowLeftPanel(true)
 		}
 	}, [session_secure_id, setShowLeftPanel])
+
+	useEffect(() => {
+		if (minimal) {
+			setAutoPlayVideo(true)
+			setShowLeftPanel(false)
+			setShowRightPanel(false)
+			setShowDevTools(false)
+		}
+	}, [
+		setAutoPlayVideo,
+		setShowLeftPanel,
+		setShowRightPanel,
+		setShowDevTools,
+		minimal,
+	])
+
+	/*useEffect(() => {
+		if (window.electron?.ipcRenderer) {
+			window.electron.ipcRenderer.sendMessage('player-event', {
+				time,
+			})
+		}
+	}, [time])*/
+
+	useEffect(() => {
+		if (window.electron?.ipcRenderer) {
+			window.electron.ipcRenderer.on(
+				'main-event',
+				({ play: p, time }: { play: boolean; time: number }) => {
+					console.log('MAIN EVENT', { p, time })
+					if (p) {
+						console.log('PLAY')
+						play()
+					} else {
+						console.log('PAUSE')
+						pause()
+					}
+				},
+			)
+		}
+	}, [])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const resizePlayer = (replayer: Replayer): boolean => {
@@ -348,7 +395,7 @@ const Player = ({ integrated }: Props) => {
 							<div className={styles.playerContainer}>
 								<div className={styles.rrwebPlayerSection}>
 									<div className={styles.playerCenterColumn}>
-										{!isPlayerFullscreen && (
+										{!isPlayerFullscreen && !minimal && (
 											<SessionLevelBar />
 										)}
 										<div
@@ -449,7 +496,7 @@ const Player = ({ integrated }: Props) => {
 										<ResourcesContextProvider
 											value={resources}
 										>
-											<Toolbar />
+											{!minimal && <Toolbar />}
 										</ResourcesContextProvider>
 									</div>
 

@@ -427,6 +427,15 @@ export const Toolbar = React.memo(() => {
 						disabled={disableControls}
 						onClick={() => {
 							H.track('Player Play/Pause Button')
+							if (window.electron?.ipcRenderer) {
+								window.electron.ipcRenderer.sendMessage(
+									'main-event',
+									{
+										play: isPaused,
+										time,
+									},
+								)
+							}
 							if (disablePlayButton) {
 								pause(time)
 								const newTime = 0
