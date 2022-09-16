@@ -56,6 +56,9 @@ jobs:
               uses: actions/setup-go@v3
               with:
                   go-version-file: 'backend/go.mod'
+                  cache: true
+                  cache-dependency-path: backend/go.mod
+              run: cd backend && go get
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
             - name: Install frontend dependencies
