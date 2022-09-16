@@ -5,8 +5,8 @@ import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
+import { Menu } from '@components/Menu'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
-import { offset, useFloating } from '@floating-ui/react-dom'
 import {
 	GetDashboardDefinitionsDocument,
 	useDeleteDashboardMutation,
@@ -17,7 +17,6 @@ import {
 	DashboardMetricConfig,
 	Maybe,
 } from '@graph/schemas'
-import { Menu as HeadlessMenu, Portal, Transition } from '@headlessui/react'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
 import SettingsIcon from '@icons/SettingsIcon'
@@ -292,16 +291,9 @@ function DashboardMenu({
 		is_default?: boolean | null
 	}
 }) {
-	const { x, y, reference, floating, strategy } = useFloating({
-		middleware: [offset(12)],
-	})
-
 	const items = [
 		dashboard.is_default ? null : (
-			<HeadlessMenu.Item
-				as={DeleteDashboardButton}
-				dashboard={dashboard}
-			/>
+			<Menu.Item as={DeleteDashboardButton} dashboard={dashboard} />
 		),
 	]
 		.filter(Boolean)
@@ -315,41 +307,18 @@ function DashboardMenu({
 	if (!items.length) return null
 
 	return (
-		<HeadlessMenu>
-			<HeadlessMenu.Button
-				as={Button}
-				type="ghost"
-				trackingId="dashboardMenu"
-				title="Dashboard settings"
-				ref={reference}
-			>
-				<SettingsIcon />
-			</HeadlessMenu.Button>
-			<Portal>
-				<div
-					ref={floating}
-					style={{
-						position: strategy,
-						top: y ?? 0,
-						left: x ?? 0,
-					}}
+		<Menu
+			button={
+				<Button
+					type="ghost"
+					trackingId="dashboardMenu"
+					title="Dashboard settings"
 				>
-					<Transition
-						appear
-						enter="transition ease-out duration-100 origin-top"
-						enterFrom="transform opacity-0 scale-90"
-						enterTo="transform opacity-100 scale-100"
-						leave="transition ease-in duration-75 origin-top"
-						leaveTo="transform opacity-0 scale-90"
-						leaveFrom="transform opacity-100 scale-100"
-					>
-						<HeadlessMenu.Items className="divide-y divide-solid divide-neutral-200 rounded-md border border-solid border-neutral-200 bg-white shadow-lg dark:bg-slate-800">
-							{items}
-						</HeadlessMenu.Items>
-					</Transition>
-				</div>
-			</Portal>
-		</HeadlessMenu>
+					<SettingsIcon />
+				</Button>
+			}
+			items={items}
+		/>
 	)
 }
 
