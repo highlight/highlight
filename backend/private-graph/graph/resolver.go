@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -86,6 +87,7 @@ type Resolver struct {
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
+	StepFunctions          *stepfunctions.Client
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

@@ -381,6 +381,10 @@ export const SessionFeed = React.memo(() => {
 								/>
 								<SessionFeedConfiguration
 									configuration={sessionFeedConfiguration}
+									sessionCount={sessionResults.totalCount}
+									sessionQuery={
+										backendSearchQuery?.searchQuery || ''
+									}
 								/>
 							</div>
 						</div>

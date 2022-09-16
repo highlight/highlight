@@ -1540,6 +1540,17 @@ export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteDashboard'
 >
 
+export type DeleteSessionsMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	sessionCount: Types.Scalars['Int']
+}>
+
+export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteSessions'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4130,6 +4141,7 @@ export const namedOperations = {
 		ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
+		DeleteSessions: 'DeleteSessions' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -4330,6 +4330,63 @@ export type DeleteDashboardMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteDashboardMutation,
 	Types.DeleteDashboardMutationVariables
 >
+export const DeleteSessionsDocument = gql`
+	mutation DeleteSessions(
+		$project_id: ID!
+		$query: String!
+		$sessionCount: Int!
+	) {
+		deleteSessions(
+			project_id: $project_id
+			query: $query
+			sessionCount: $sessionCount
+		)
+	}
+`
+export type DeleteSessionsMutationFn = Apollo.MutationFunction<
+	Types.DeleteSessionsMutation,
+	Types.DeleteSessionsMutationVariables
+>
+
+/**
+ * __useDeleteSessionsMutation__
+ *
+ * To run a mutation, you first call `useDeleteSessionsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSessionsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSessionsMutation, { data, loading, error }] = useDeleteSessionsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      sessionCount: // value for 'sessionCount'
+ *   },
+ * });
+ */
+export function useDeleteSessionsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteSessionsMutation,
+		Types.DeleteSessionsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteSessionsMutation,
+		Types.DeleteSessionsMutationVariables
+	>(DeleteSessionsDocument, baseOptions)
+}
+export type DeleteSessionsMutationHookResult = ReturnType<
+	typeof useDeleteSessionsMutation
+>
+export type DeleteSessionsMutationResult =
+	Apollo.MutationResult<Types.DeleteSessionsMutation>
+export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteSessionsMutation,
+	Types.DeleteSessionsMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -195,6 +196,7 @@ func main() {
 	}
 
 	redisClient := redis.NewClient()
+	sfnClient := stepfunctions.NewClient()
 
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
@@ -214,6 +216,7 @@ func main() {
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 		Redis:                  redisClient,
+		StepFunctions:          sfnClient,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
