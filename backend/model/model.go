@@ -49,6 +49,7 @@ const (
 	SUGGESTION_LIMIT_CONSTANT       = 8
 	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
 	InternalMetricCategory          = "__internal"
+	AWS_REGION_US_EAST_2            = "us-east-2"
 )
 
 var AlertType = struct {

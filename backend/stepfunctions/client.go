@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -27,7 +28,7 @@ func NewClient() *Client {
 		return nil
 	}
 
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("us-east-2"))
+	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil
 	}
@@ -35,7 +36,7 @@ func NewClient() *Client {
 	return &Client{
 		client: sfn.New(sfn.Options{
 			Credentials: cfg.Credentials,
-			Region:      "us-east-2",
+			Region:      model.AWS_REGION_US_EAST_2,
 		}),
 	}
 }
