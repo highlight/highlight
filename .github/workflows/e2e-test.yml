@@ -68,7 +68,7 @@ jobs:
               uses: cypress-io/github-action@v4
               with:
                   start: yarn ci:start
-                  wait-on: https://localhost:3000
+                  wait-on: https://localhost:8082/public
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
