@@ -62,8 +62,8 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
             - name: Install frontend dependencies
-              # Custom install command here instead of frontend:install because
-              # of this issue: https://github.com/yarnpkg/yarn/issues/6312
+              # Custom install command here instead of frontend:install.
+              # Learn more: https://github.com/yarnpkg/yarn/issues/6312
               run: yarn && cd frontend && yarn && cd ../client && yarn
             - name: Install Air
               run: go install github.com/cosmtrek/air@latest
