@@ -1,7 +1,7 @@
 import { Button as AntDesignButton, ButtonProps } from 'antd'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
-import React from 'react'
+import React, { ForwardedRef, forwardRef } from 'react'
 
 import styles from './Button.module.scss'
 
@@ -17,34 +17,42 @@ export type GenericHighlightButtonProps = ButtonProps & {
 	pulse?: boolean
 }
 
-const Button = ({
-	children,
-	trackingId,
-	iconButton,
-	small = false,
-	trackProperties,
-	...props
-}: React.PropsWithChildren<GenericHighlightButtonProps>) => {
-	return (
-		<AntDesignButton
-			{...props}
-			onClick={(e) => {
-				if (props.onClick) {
-					props.onClick(e)
+const Button = forwardRef(
+	(
+		{
+			children,
+			trackingId,
+			iconButton,
+			small = false,
+			trackProperties,
+			...props
+		}: React.PropsWithChildren<GenericHighlightButtonProps>,
+		ref: ForwardedRef<HTMLButtonElement>,
+	) => {
+		return (
+			<AntDesignButton
+				{...props}
+				ref={ref}
+				onClick={(e) => {
+					if (props.onClick) {
+						props.onClick(e)
+					}
+					H.track(`Button-${trackingId}`, trackProperties)
+				}}
+				className={classNames(props.className, styles.buttonBase, {
+					[styles.iconButton]: iconButton,
+					[styles.small]: small,
+					[styles.link]: props.type === 'link',
+					[styles.pulse]: props.pulse,
+				})}
+				target={
+					props.type === 'text' && props.href ? '_blank' : undefined
 				}
-				H.track(`Button-${trackingId}`, trackProperties)
-			}}
-			className={classNames(props.className, styles.buttonBase, {
-				[styles.iconButton]: iconButton,
-				[styles.small]: small,
-				[styles.link]: props.type === 'link',
-				[styles.pulse]: props.pulse,
-			})}
-			target={props.type === 'text' && props.href ? '_blank' : undefined}
-		>
-			{children}
-		</AntDesignButton>
-	)
-}
+			>
+				{children}
+			</AntDesignButton>
+		)
+	},
+)
 
 export default Button
