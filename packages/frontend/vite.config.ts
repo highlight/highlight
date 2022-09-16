@@ -3,6 +3,7 @@
 import react from '@vitejs/plugin-react'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'url'
+import { PluginOption } from 'vite'
 import vitePluginImp from 'vite-plugin-imp'
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -30,6 +31,7 @@ export default defineConfig({
 			// lodash breaks when trying to optimize
 			exclude: ['lodash'],
 		}),
+		firebaseConfigPlugin(),
 	],
 	envPrefix: ['REACT_APP_', 'VITE_'],
 	server: {
@@ -63,3 +65,16 @@ export default defineConfig({
 		},
 	},
 })
+
+function firebaseConfigPlugin(): PluginOption {
+	if (process.env.INLINE_FIREBASE_CONFIG !== 'true') return
+	return {
+		name: 'firebase-config',
+		transformIndexHtml(html) {
+			return html.replace(
+				'{{.FirebaseConfigString}}',
+				process.env.REACT_APP_FIREBASE_CONFIG_OBJECT!,
+			)
+		},
+	}
+}

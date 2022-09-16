@@ -13,6 +13,7 @@
 		"lint": "pnpm run lint:es && stylelint \"**/*.scss\"",
 		"lint:es": "eslint --fix \"src/**/*.{ts,tsx}\"",
 		"lint:css": "stylelint \"**/*.scss\" --fix",
+		"preview": "INLINE_FIREBASE_CONFIG=true vite build && vite preview",
 		"analyze": "source-map-explorer 'build/static/js/*.js'",
 		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && pnpm run lint:es"
 	},
