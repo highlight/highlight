@@ -167,6 +167,7 @@ var Models = []interface{}{
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
+	&DeleteSessionsTask{},
 }
 
 func init() {
@@ -1838,6 +1839,12 @@ type SendWelcomeSlackMessageInput struct {
 	Project              *Project
 	AlertID              *int
 	IncludeEditLink      bool
+}
+
+type DeleteSessionsTask struct {
+	TaskID    string `gorm:"index:idx_task_id_batch_id"`
+	BatchID   string `gorm:"index:idx_task_id_batch_id"`
+	SessionID int
 }
 
 func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {
