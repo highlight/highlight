@@ -30,6 +30,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/sessions/:session_secure_id?" exact>
 					<Player integrated={integrated} />
 				</Route>
+				<Route path="/:project_id/player/:session_secure_id?" exact>
+					<Player integrated={integrated} minimal />
+				</Route>
 				<Route path="/:project_id/errors/:error_secure_id?" exact>
 					<ErrorPage integrated={integrated} />
 				</Route>
