@@ -64,20 +64,20 @@ jobs:
               run: cd backend && go get
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
+            - name: Migrate database
+              run: |
+                  cd backend/
+                  make migrate
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
+            - name: Seed Database
+              run: psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
             - name: Install frontend dependencies
               # Custom install command here instead of frontend:install because
               # of this issue: https://github.com/yarnpkg/yarn/issues/6312
               run: yarn && cd frontend && yarn && cd ../client && yarn
             - name: Install Air
               run: go install github.com/cosmtrek/air@latest
-            - name: Migrate database
-              run: |
-                  cd backend/
-                  make migrate
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_DEV_TOKEN }}
-            - name: Seed Database
-              run: psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
