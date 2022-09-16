@@ -9,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 )
 
+// Meant for local invocation for testing the lambda handler stack
 func main() {
 	if !util.IsDevOrTestEnv() {
 		return
