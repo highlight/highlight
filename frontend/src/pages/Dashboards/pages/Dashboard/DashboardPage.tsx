@@ -6,6 +6,7 @@ import Button from '@components/Button/Button/Button'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import { offset, useFloating } from '@floating-ui/react-dom'
 import {
 	GetDashboardDefinitionsDocument,
 	useDeleteDashboardMutation,
@@ -16,8 +17,10 @@ import {
 	DashboardMetricConfig,
 	Maybe,
 } from '@graph/schemas'
+import { Menu as HeadlessMenu, Portal, Transition } from '@headlessui/react'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
+import SettingsIcon from '@icons/SettingsIcon'
 import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
@@ -32,7 +35,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { useHistory, useLocation } from 'react-router-dom'
 
@@ -232,7 +235,7 @@ const DashboardPage = ({
 								Add
 							</Button>
 							{dashboard.is_default ? null : (
-								<DeleteDashboardButton dashboard={dashboard} />
+								<DashboardMenu dashboard={dashboard} />
 							)}
 							<TimeRangePicker />
 						</div>
@@ -275,6 +278,78 @@ const DashboardPage = ({
 				containerStyles={containerStyles}
 			/>
 		</LeadAlignLayout>
+	)
+}
+export default DashboardPage
+
+function DashboardMenu({
+	dashboard,
+}: {
+	dashboard: {
+		id: string
+		name: string
+		project_id: string
+		is_default?: boolean | null
+	}
+}) {
+	const { x, y, reference, floating, strategy } = useFloating({
+		middleware: [offset(12)],
+	})
+
+	const items = [
+		dashboard.is_default ? null : (
+			<HeadlessMenu.Item
+				as={DeleteDashboardButton}
+				dashboard={dashboard}
+			/>
+		),
+	]
+		.filter(Boolean)
+		.map((item, i) => (
+			// antd's styling requires this border reset
+			<div key={i} className="border-x-0">
+				{item}
+			</div>
+		))
+
+	if (!items.length) return null
+
+	return (
+		<HeadlessMenu>
+			<HeadlessMenu.Button
+				as={Button}
+				type="ghost"
+				trackingId="dashboardMenu"
+				title="Dashboard settings"
+				ref={reference}
+			>
+				<SettingsIcon />
+			</HeadlessMenu.Button>
+			<Portal>
+				<div
+					ref={floating}
+					style={{
+						position: strategy,
+						top: y ?? 0,
+						left: x ?? 0,
+					}}
+				>
+					<Transition
+						appear
+						enter="transition ease-out duration-100 origin-top"
+						enterFrom="transform opacity-0 scale-90"
+						enterTo="transform opacity-100 scale-100"
+						leave="transition ease-in duration-75 origin-top"
+						leaveTo="transform opacity-0 scale-90"
+						leaveFrom="transform opacity-100 scale-100"
+					>
+						<HeadlessMenu.Items className="divide-y divide-solid divide-neutral-200 rounded-md border border-solid border-neutral-200 bg-white shadow-lg dark:bg-slate-800">
+							{items}
+						</HeadlessMenu.Items>
+					</Transition>
+				</div>
+			</Portal>
+		</HeadlessMenu>
 	)
 }
 
@@ -422,8 +497,6 @@ export const findDashboardMetric = (
 	})
 }
 
-export default DashboardPage
-
 function DeleteDashboardButton({
 	dashboard,
 }: {
@@ -451,6 +524,8 @@ function DeleteDashboardButton({
 				trackingId: 'DeleteDashboard',
 				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
 				danger: true,
+				className:
+					'border-transparent hover:bg-neutral-100 focus-visible:bg-neutral-100 focus:outline-none',
 			}}
 			modalTitleText="Are you sure you want to delete this dashboard?"
 			confirmText="Delete dashboard"
