@@ -18,6 +18,6 @@ jobs:
             - name: Install dependencies
               run: yarn
             - name: Build Bundle
-              run: yarn workspaces foreach client build
+              run: yarn workspaces foreach client run build
             - name: Run Test
               run: yarn workspaces foreach client test
