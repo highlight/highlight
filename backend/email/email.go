@@ -18,6 +18,8 @@ var (
 	SendGridRequestAccessEmailTemplateID  = "d-f059960009ba4a9fb5640e98db517eef"
 	SessionsDeletedEmailTemplateID        = "d-d9e10ce22c774fc9850dd0b36ccde339"
 	SendGridOutboundEmail                 = "gm@runhighlight.com"
+	SessionCommentMentionsAsmId           = 20950
+	ErrorCommentMentionsAsmId             = 20994
 )
 
 func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {

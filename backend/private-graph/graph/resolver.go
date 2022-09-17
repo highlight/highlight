@@ -692,7 +692,17 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 	}
 }
 
-func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
+func (r *Resolver) SendEmailAlert(
+	tos []*mail.Email,
+	ccs []*mail.Email,
+	authorName string,
+	viewLink string,
+	muteLink string,
+	textForEmail string,
+	templateID string,
+	sessionImage *string,
+	asmGroupId *int,
+) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
@@ -704,6 +714,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	p.SetDynamicTemplateData("Author_Name", authorName)
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)
+	p.SetDynamicTemplateData("Mute_Thread", muteLink)
 
 	if sessionImage != nil && *sessionImage != "" {
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
@@ -716,6 +727,12 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	}
 
 	m.AddPersonalizations(p)
+
+	if asmGroupId != nil {
+		asm := mail.NewASM()
+		asm.SetGroupID(*asmGroupId)
+		m.SetASM(asm)
+	}
 
 	response, err := r.MailClient.Send(m)
 	if err != nil {
@@ -2045,7 +2062,21 @@ func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminIn
 	return
 }
 
-func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, threadIDs []int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendFollowedCommentNotification(
+	ctx context.Context,
+	admin *model.Admin,
+	followers []*model.CommentFollower,
+	workspace *model.Workspace,
+	projectID int,
+	threadIDs []int,
+	textForEmail string,
+	viewLink string,
+	muteLink string,
+	sessionImage *string,
+	action string,
+	subjectScope string,
+	asmGroupId *int,
+) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	if admin.Email != nil {
@@ -2053,10 +2084,14 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 
 	for _, f := range followers {
-		// don't notify if the follower email is the reply author
-		if f.AdminId == admin.ID {
+		if f.HasMuted {
+			// remove the author's cc if they have unsubscribed from the thread
+			if f.AdminId == admin.ID {
+				ccs = nil
+			}
 			continue
 		}
+
 		// don't notify if the follower slack user is the reply author
 		found := false
 		for _, namePart := range strings.Split(*admin.Name, " ") {
@@ -2104,7 +2139,17 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, ccs, *admin.Name, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+			err := r.SendEmailAlert(
+				tos,
+				ccs,
+				*admin.Name,
+				viewLink,
+				muteLink,
+				textForEmail,
+				Email.SendGridSessionCommentEmailTemplateID,
+				sessionImage,
+				asmGroupId,
+			)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 			}
@@ -2125,7 +2170,24 @@ func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *mo
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
+func (r *Resolver) sendCommentPrimaryNotification(
+	ctx context.Context,
+	admin *model.Admin,
+	authorName string,
+	taggedAdmins []*modelInputs.SanitizedAdminInput,
+	workspace *model.Workspace,
+	projectID int,
+	sessionCommentID *int,
+	errorCommentID *int,
+	textForEmail string,
+	viewLink string,
+	muteLink string,
+	sessionImage *string,
+	action string,
+	subjectScope string,
+	additionalContext *string,
+	asmGroupId *int,
+) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
@@ -2161,7 +2223,17 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
 
-		err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		err := r.SendEmailAlert(
+			tos,
+			ccs,
+			authorName,
+			viewLink,
+			muteLink,
+			textForEmail,
+			Email.SendGridSessionCommentEmailTemplateID,
+			sessionImage,
+			asmGroupId,
+		)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}

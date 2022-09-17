@@ -976,6 +976,7 @@ type CommentFollower struct {
 	AdminId          int
 	SlackChannelName string
 	SlackChannelID   string
+	HasMuted         bool
 }
 
 type CommentSlackThread struct {
