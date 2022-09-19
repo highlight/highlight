@@ -368,7 +368,6 @@ export class Highlight {
 		this.hasSessionUnloaded = false
 		this.hasPushedData = false
 
-		window.Intercom.asdf()
 		if (window.Intercom) {
 			window.Intercom('onShow', () => {
 				window.Intercom('update', {
