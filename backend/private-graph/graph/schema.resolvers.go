@@ -26,7 +26,9 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -1833,6 +1835,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddSlackToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.AddFrontToProject(project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1862,6 +1868,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
 		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.RemoveFrontFromProject(project); err != nil {
 			return false, err
 		}
 	} else {
@@ -3349,6 +3359,56 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 		return false, result.Error
 	}
 
+	return true, nil
+}
+
+// DeleteSessions is the resolver for the deleteSessions field.
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error) {
+	if util.IsDevOrTestEnv() {
+		return false, nil
+	}
+
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	email := ""
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	firstName := ""
+	if admin.FirstName != nil {
+		firstName = *admin.FirstName
+	}
+
+	role, err := r.GetAdminRole(admin.ID, project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if role != model.AdminRole.ADMIN {
+		return false, e.New("Must be admin role to delete sessions")
+	}
+
+	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+		ProjectId:    projectID,
+		Email:        email,
+		FirstName:    firstName,
+		Query:        query,
+		SessionCount: sessionCount,
+		DryRun:       util.IsDevOrTestEnv(),
+	})
+
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
@@ -5365,6 +5425,22 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeFront {
+		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
+			return false, nil
+		}
+		oauth, err := front.RefreshOAuth(&front.OAuthToken{
+			AccessToken:  *project.FrontAccessToken,
+			RefreshToken: *project.FrontRefreshToken,
+			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
+		})
+		if err != nil {
+			return false, e.Wrap(err, "failed to refresh oauth")
+		}
+		if err := r.saveFrontOAuth(project, oauth); err != nil {
+			return false, e.Wrap(err, "failed to save oauth")
+		}
+		return project.FrontAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

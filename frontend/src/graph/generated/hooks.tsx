@@ -4427,6 +4427,63 @@ export type DeleteDashboardMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteDashboardMutation,
 	Types.DeleteDashboardMutationVariables
 >
+export const DeleteSessionsDocument = gql`
+	mutation DeleteSessions(
+		$project_id: ID!
+		$query: String!
+		$sessionCount: Int!
+	) {
+		deleteSessions(
+			project_id: $project_id
+			query: $query
+			sessionCount: $sessionCount
+		)
+	}
+`
+export type DeleteSessionsMutationFn = Apollo.MutationFunction<
+	Types.DeleteSessionsMutation,
+	Types.DeleteSessionsMutationVariables
+>
+
+/**
+ * __useDeleteSessionsMutation__
+ *
+ * To run a mutation, you first call `useDeleteSessionsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSessionsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSessionsMutation, { data, loading, error }] = useDeleteSessionsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      sessionCount: // value for 'sessionCount'
+ *   },
+ * });
+ */
+export function useDeleteSessionsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteSessionsMutation,
+		Types.DeleteSessionsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteSessionsMutation,
+		Types.DeleteSessionsMutationVariables
+	>(DeleteSessionsDocument, baseOptions)
+}
+export type DeleteSessionsMutationHookResult = ReturnType<
+	typeof useDeleteSessionsMutation
+>
+export type DeleteSessionsMutationResult =
+	Apollo.MutationResult<Types.DeleteSessionsMutation>
+export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
+	Types.DeleteSessionsMutation,
+	Types.DeleteSessionsMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -9595,6 +9652,63 @@ export type GetWorkspaceIsIntegratedWithZapierLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithZapierQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithZapierQuery,
 	Types.GetWorkspaceIsIntegratedWithZapierQueryVariables
+>
+export const GetWorkspaceIsIntegratedWithFrontDocument = gql`
+	query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
+		is_integrated_with_front: is_integrated_with(
+			integration_type: Front
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithFrontQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithFrontQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithFrontQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithFrontQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithFrontQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithFrontQuery,
+		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithFrontQuery,
+		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
+	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithFrontLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithFrontQuery,
+		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithFrontQuery,
+		Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
+	>(GetWorkspaceIsIntegratedWithFrontDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithFrontQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithFrontQuery
+>
+export type GetWorkspaceIsIntegratedWithFrontLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithFrontLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithFrontQuery,
+	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
 >
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
