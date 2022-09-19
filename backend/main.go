@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"html/template"
 	"io"
 	"net/http"
@@ -198,6 +199,11 @@ func main() {
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()
 
+	oauthSrv, err := oauth.CreateServer(db)
+	if err != nil {
+		log.Fatalf("error creating oauth client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
@@ -217,6 +223,7 @@ func main() {
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
+		OAuthServer:            oauthSrv,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -245,6 +252,10 @@ func main() {
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
 		}
+
+		r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
+		r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
+		r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db)
