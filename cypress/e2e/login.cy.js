@@ -7,10 +7,12 @@ describe('login spec', () => {
 	})
 
 	it('allows you to log in', () => {
-		cy.visit('https://127.0.0.1:3000')
+		cy.visit('/')
 
-		// Wait for UI to render
-		cy.get('[name="email"]').should('be.visible')
+		// Fill out login form
+		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
+		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
+		cy.get('button[type="submit"]').click()
 
 		// Ensure client requests are made
 		cy.wait('@pushMetrics')
@@ -23,10 +25,5 @@ describe('login spec', () => {
 			.its('request.body.variables.properties_object')
 			.should('have.property', 'visited-url')
 		cy.wait('@PushPayload')
-
-		// Fill out login form
-		cy.get('[name="email"]').type('swag@highlight.run')
-		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
-		cy.get('button[type="submit"]').click()
 	})
 })
