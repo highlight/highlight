@@ -2,8 +2,8 @@ package oauth
 
 import (
 	"encoding/json"
-	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
+	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
@@ -65,11 +65,10 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 		}
 	}
 	manager.MapClientStorage(clientStore)
+	manager.MapAccessGenerate(generates.NewAccessGenerate())
 
 	srv := server.NewDefaultServer(manager)
 	srv.SetAllowGetAccessRequest(true)
-	srv.SetAllowedGrantType(oauth2.AuthorizationCode)
-	srv.SetAllowedResponseType(oauth2.Code)
 	srv.SetClientInfoHandler(server.ClientBasicHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
@@ -96,6 +95,7 @@ func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 }
+
 func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) {
 	err := s.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
