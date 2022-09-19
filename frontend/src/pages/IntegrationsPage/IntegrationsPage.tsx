@@ -36,21 +36,12 @@ const IntegrationsPage = () => {
 	const { isFrontIntegratedWithProject, loading: loadingFront } =
 		useFrontIntegration()
 
-	const loading = useMemo(
-		() =>
-			loadingLinear ||
-			loadingSlack ||
-			loadingZapier ||
-			loadingClearbit ||
-			loadingFront,
-		[
-			loadingLinear,
-			loadingSlack,
-			loadingZapier,
-			loadingClearbit,
-			loadingFront,
-		],
-	)
+	const loading =
+		loadingLinear ||
+		loadingSlack ||
+		loadingZapier ||
+		loadingClearbit ||
+		loadingFront
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
