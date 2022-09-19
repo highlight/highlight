@@ -6549,6 +6549,7 @@ enum IntegrationType {
 	Slack
 	Linear
 	Zapier
+	Front
 }
 
 enum ErrorState {

@@ -270,14 +270,17 @@ type WorkspaceAccessRequest struct {
 
 type Project struct {
 	Model
-	Name              *string
-	StripeCustomerID  *string
-	StripePriceID     *string
-	ZapierAccessToken *string
-	BillingEmail      *string
-	Secret            *string    `json:"-"`
-	Admins            []Admin    `gorm:"many2many:project_admins;"`
-	TrialEndDate      *time.Time `json:"trial_end_date"`
+	Name                *string
+	StripeCustomerID    *string
+	StripePriceID       *string
+	ZapierAccessToken   *string
+	FrontAccessToken    *string
+	FrontRefreshToken   *string
+	FrontTokenExpiresAt *time.Time
+	BillingEmail        *string
+	Secret              *string    `json:"-"`
+	Admins              []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate        *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int

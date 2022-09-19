@@ -25,6 +25,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
@@ -1651,6 +1652,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddSlackToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.AddFrontToProject(project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1680,6 +1685,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
 		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.RemoveFrontFromProject(project); err != nil {
 			return false, err
 		}
 	} else {
@@ -5233,6 +5242,22 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeFront {
+		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
+			return false, nil
+		}
+		oauth, err := front.RefreshOAuth(&front.OAuthToken{
+			AccessToken:  *project.FrontAccessToken,
+			RefreshToken: *project.FrontRefreshToken,
+			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
+		})
+		if err != nil {
+			return false, e.Wrap(err, "failed to refresh oauth")
+		}
+		if err := r.saveFrontOAuth(project, oauth); err != nil {
+			return false, e.Wrap(err, "failed to save oauth")
+		}
+		return project.FrontAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")
