@@ -1234,12 +1234,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
-	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
 		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
-	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
 	for _, f := range newFollowers {
 		f.SessionCommentID = sessionComment.ID
 	}
@@ -1547,12 +1547,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		}
 	}
 
-	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
 		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
-	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
 	for _, f := range newFollowers {
 		f.ErrorCommentID = errorComment.ID
 	}

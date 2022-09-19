@@ -13,7 +13,6 @@ import (
 var (
 	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-af96adc0bfee455a8eff291f2bc621b0"
-	SendGridErrorCommentEmailTemplateId   = "d-ed54f145e31f4acf9afe68dea89e36a7"
 	SendGridAlertEmailTemplateID          = "d-efd755d329db413082dbdf1188b6846e"
 	SendGridRequestAccessEmailTemplateID  = "d-f059960009ba4a9fb5640e98db517eef"
 	SessionsDeletedEmailTemplateID        = "d-d9e10ce22c774fc9850dd0b36ccde339"

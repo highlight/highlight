@@ -698,6 +698,7 @@ func (r *Resolver) SendEmailAlert(
 	authorName string,
 	viewLink string,
 	muteLink string,
+	subjectScope string,
 	textForEmail string,
 	templateID string,
 	sessionImage *string,
@@ -715,6 +716,7 @@ func (r *Resolver) SendEmailAlert(
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)
 	p.SetDynamicTemplateData("Mute_Thread", muteLink)
+	p.SetDynamicTemplateData("Subject_Scope", subjectScope)
 
 	if sessionImage != nil && *sessionImage != "" {
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
@@ -2145,6 +2147,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 				*admin.Name,
 				viewLink,
 				muteLink,
+				subjectScope,
 				textForEmail,
 				Email.SendGridSessionCommentEmailTemplateID,
 				sessionImage,
@@ -2229,6 +2232,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 			authorName,
 			viewLink,
 			muteLink,
+			subjectScope,
 			textForEmail,
 			Email.SendGridSessionCommentEmailTemplateID,
 			sessionImage,
