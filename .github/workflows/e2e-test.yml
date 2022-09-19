@@ -90,7 +90,6 @@ jobs:
                   wait-on-timeout: 120
             - name: Save videos
               uses: actions/upload-artifact@v2
-              if: always()
               with:
                   name: cypress-videos
                   path: cypress/videos
