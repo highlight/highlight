@@ -148,12 +148,6 @@ export const NewCommentForm = ({
 		return `Issue with this Highlight session`
 	}, [session, errorTitle])
 
-	const sessionUrl = `${
-		window.location.port !== ''
-			? 'https://app.highlight.run'
-			: window.location.origin
-	}${window.location.pathname}`
-
 	const onCreateErrorComment = async () => {
 		H.track('Create Error Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
@@ -238,7 +232,7 @@ export const NewCommentForm = ({
 					text_for_email: commentTextForEmail.trim(),
 					x_coordinate: commentPosition?.x || 0,
 					y_coordinate: commentPosition?.y || 0,
-					session_url: sessionUrl,
+					session_url: `${window.location.origin}${window.location.pathname}`,
 					tagged_admins: mentionedAdmins,
 					tagged_slack_users: mentionedSlackUsers,
 					time: commentTime / 1000,

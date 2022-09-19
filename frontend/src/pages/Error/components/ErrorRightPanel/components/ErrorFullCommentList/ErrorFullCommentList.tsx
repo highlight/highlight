@@ -19,8 +19,8 @@ const ErrorFullCommentList = ({
 }) => {
 	const { error_secure_id } = useParams<{
 		error_secure_id: string
-		project_id: string
 	}>()
+
 	const { data: errorCommentsData, loading } = useGetErrorCommentsQuery({
 		variables: {
 			error_group_secure_id: error_secure_id,
