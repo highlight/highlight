@@ -469,7 +469,6 @@ export class Highlight {
 
 	async initialize(): Promise<undefined> {
 		if (
-			navigator?.webdriver ||
 			navigator?.userAgent?.includes('Googlebot') ||
 			navigator?.userAgent?.includes('AdsBot')
 		) {
