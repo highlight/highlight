@@ -193,8 +193,9 @@ const BillingBanner = () => {
 		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 	const canExtend = data?.workspace_for_project?.eligible_for_trial_extension
-	const hasSessionsOutOfQuota =
-		data?.billingDetailsForProject?.sessionsOutOfQuota > 0
+	const hasExceededSessionsForMonth =
+		data?.billingDetailsForProject?.meter >
+		data?.billingDetailsForProject?.plan.quota
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
@@ -245,7 +246,7 @@ const BillingBanner = () => {
 	return (
 		<div
 			className={classNames(styles.trialWrapper, {
-				[styles.error]: hasSessionsOutOfQuota,
+				[styles.error]: hasExceededSessionsForMonth,
 			})}
 		>
 			<div className={classNames(styles.trialTimeText)}>
