@@ -36,9 +36,20 @@
 	border-radius: 8px;
 	box-shadow: var(--box-shadow);
 	color: var(--text-primary);
-	margin-right: 30px;
 	margin-top: -10px;
 	overflow: hidden;
+}
+
+.dropdownMyAccount {
+	align-items: center;
+	display: flex;
+	padding: var(--size-xSmall) var(--size-medium);
+	transition: 0.2s;
+	width: 100%;
+
+	&:hover {
+		background-color: var(--color-purple-200);
+	}
 }
 
 .dropdownLogout {
@@ -46,13 +57,13 @@
 	color: var(--color-red-400);
 	cursor: pointer;
 	display: flex;
-	padding: 14px;
+	padding: var(--size-xSmall) var(--size-medium);
 	transition: 0.2s;
 	width: 100%;
-}
 
-.dropdownLogout:hover {
-	background-color: var(--color-red-200);
+	&:hover {
+		background-color: var(--color-red-200);
+	}
 }
 
 .dropdownLogoutText {

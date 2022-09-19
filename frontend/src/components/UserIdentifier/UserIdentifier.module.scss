@@ -2,12 +2,11 @@
 	align-items: center;
 	display: flex;
 	gap: var(--size-xxSmall);
-	width: 100%;
+	max-width: calc(100% - 1.2em - var(--size-medium));
 }
 
 .identifier {
 	font-weight: 500;
-	max-width: calc(100% - 1.2em - 2 * var(--size-xxSmall));
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

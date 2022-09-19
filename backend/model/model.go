@@ -48,6 +48,7 @@ var (
 const (
 	SUGGESTION_LIMIT_CONSTANT       = 8
 	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
+	InternalMetricCategory          = "__internal"
 )
 
 var AlertType = struct {
@@ -166,6 +167,7 @@ var Models = []interface{}{
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
+	&DeleteSessionsTask{},
 }
 
 func init() {
@@ -329,7 +331,8 @@ type Dashboard struct {
 	Name              string
 	LastAdminToEditID *int
 	Layout            *string
-	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID;"`
+	IsDefault         *bool
 }
 
 type DashboardMetric struct {
@@ -1839,6 +1842,12 @@ type SendWelcomeSlackMessageInput struct {
 	Project              *Project
 	AlertID              *int
 	IncludeEditLink      bool
+}
+
+type DeleteSessionsTask struct {
+	TaskID    string `gorm:"index:idx_task_id_batch_id"`
+	BatchID   string `gorm:"index:idx_task_id_batch_id"`
+	SessionID int
 }
 
 func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {

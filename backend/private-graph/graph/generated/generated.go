@@ -162,6 +162,7 @@ type ComplexityRoot struct {
 
 	DashboardDefinition struct {
 		ID                func(childComplexity int) int
+		IsDefault         func(childComplexity int) int
 		LastAdminToEditID func(childComplexity int) int
 		Layout            func(childComplexity int) int
 		Metrics           func(childComplexity int) int
@@ -453,6 +454,7 @@ type ComplexityRoot struct {
 		CreateWorkspace                  func(childComplexity int, name string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
+		DeleteDashboard                  func(childComplexity int, id int) int
 		DeleteErrorAlert                 func(childComplexity int, projectID int, errorAlertID int) int
 		DeleteErrorComment               func(childComplexity int, id int) int
 		DeleteErrorSegment               func(childComplexity int, segmentID int) int
@@ -494,7 +496,7 @@ type ComplexityRoot struct {
 		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
 		UpdateTrackPropertiesAlert       func(childComplexity int, projectID int, sessionAlertID int, name *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow *int, disabled *bool) int
 		UpdateUserPropertiesAlert        func(childComplexity int, projectID int, sessionAlertID int, name *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, userProperties []*model.UserPropertyInput, thresholdWindow *int, disabled *bool) int
-		UpsertDashboard                  func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string) int
+		UpsertDashboard                  func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) int
 	}
 
 	NamedCount struct {
@@ -570,6 +572,7 @@ type ComplexityRoot struct {
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
 		IsIntegratedWith             func(childComplexity int, integrationType model.IntegrationType, projectID int) int
+		IsSessionPending             func(childComplexity int, sessionSecureID string) int
 		JoinableWorkspaces           func(childComplexity int) int
 		LinearTeams                  func(childComplexity int, projectID int) int
 		LiveUsersCount               func(childComplexity int, projectID int) int
@@ -1005,7 +1008,8 @@ type MutationResolver interface {
 	SubmitRegistrationForm(ctx context.Context, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) (*bool, error)
 	RequestAccess(ctx context.Context, projectID int) (*bool, error)
 	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
-	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string) (int, error)
+	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
+	DeleteDashboard(ctx context.Context, id int) (bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -1028,6 +1032,7 @@ type QueryResolver interface {
 	SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model1.SessionCommentTag, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	SessionCommentsForProject(ctx context.Context, projectID int) ([]*model1.SessionComment, error)
+	IsSessionPending(ctx context.Context, sessionSecureID string) (*bool, error)
 	ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model1.ErrorComment, error)
 	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
@@ -1603,6 +1608,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DashboardDefinition.ID(childComplexity), true
+
+	case "DashboardDefinition.is_default":
+		if e.complexity.DashboardDefinition.IsDefault == nil {
+			break
+		}
+
+		return e.complexity.DashboardDefinition.IsDefault(childComplexity), true
 
 	case "DashboardDefinition.last_admin_to_edit_id":
 		if e.complexity.DashboardDefinition.LastAdminToEditID == nil {
@@ -3147,6 +3159,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteAdminFromWorkspace(childComplexity, args["workspace_id"].(int), args["admin_id"].(int)), true
 
+	case "Mutation.deleteDashboard":
+		if e.complexity.Mutation.DeleteDashboard == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteDashboard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteDashboard(childComplexity, args["id"].(int)), true
+
 	case "Mutation.deleteErrorAlert":
 		if e.complexity.Mutation.DeleteErrorAlert == nil {
 			break
@@ -3649,7 +3673,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpsertDashboard(childComplexity, args["id"].(*int), args["project_id"].(int), args["name"].(string), args["metrics"].([]*model.DashboardMetricConfigInput), args["layout"].(*string)), true
+		return e.complexity.Mutation.UpsertDashboard(childComplexity, args["id"].(*int), args["project_id"].(int), args["name"].(string), args["metrics"].([]*model.DashboardMetricConfigInput), args["layout"].(*string), args["is_default"].(*bool)), true
 
 	case "NamedCount.count":
 		if e.complexity.NamedCount.Count == nil {
@@ -4260,6 +4284,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.IsIntegratedWith(childComplexity, args["integration_type"].(model.IntegrationType), args["project_id"].(int)), true
+
+	case "Query.isSessionPending":
+		if e.complexity.Query.IsSessionPending == nil {
+			break
+		}
+
+		args, err := ec.field_Query_isSessionPending_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IsSessionPending(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Query.joinable_workspaces":
 		if e.complexity.Query.JoinableWorkspaces == nil {
@@ -7162,6 +7198,7 @@ enum MetricAggregator {
 	P99
 	Max
 	Count
+	Sum
 }
 
 input DashboardMetricConfigInput {
@@ -7220,6 +7257,7 @@ type DashboardDefinition {
 	metrics: [DashboardMetricConfig!]!
 	last_admin_to_edit_id: Int
 	layout: String
+	is_default: Boolean
 }
 
 type MetricPreview {
@@ -7286,6 +7324,7 @@ type Query {
 	session_comment_tags_for_project(project_id: ID!): [SessionCommentTag!]!
 	session_comments_for_admin: [SessionComment]!
 	session_comments_for_project(project_id: ID!): [SessionComment]!
+	isSessionPending(session_secure_id: String!): Boolean
 	error_comments(error_group_secure_id: String!): [ErrorComment]!
 	error_comments_for_admin: [ErrorComment]!
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
@@ -7804,7 +7843,9 @@ type Mutation {
 		name: String!
 		metrics: [DashboardMetricConfigInput!]!
 		layout: String
+		is_default: Boolean
 	): ID!
+	deleteDashboard(id: ID!): Boolean!
 }
 
 type Subscription {
@@ -9216,6 +9257,21 @@ func (ec *executionContext) field_Mutation_deleteAdminFromWorkspace_args(ctx con
 		}
 	}
 	args["admin_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteDashboard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -10935,6 +10991,15 @@ func (ec *executionContext) field_Mutation_upsertDashboard_args(ctx context.Cont
 		}
 	}
 	args["layout"] = arg4
+	var arg5 *bool
+	if tmp, ok := rawArgs["is_default"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_default"))
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["is_default"] = arg5
 	return args, nil
 }
 
@@ -11739,6 +11804,21 @@ func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, r
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_isSessionPending_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -15924,6 +16004,47 @@ func (ec *executionContext) fieldContext_DashboardDefinition_layout(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DashboardDefinition_is_default(ctx context.Context, field graphql.CollectedField, obj *model.DashboardDefinition) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DashboardDefinition_is_default(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsDefault, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DashboardDefinition_is_default(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DashboardDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -28222,7 +28343,7 @@ func (ec *executionContext) _Mutation_upsertDashboard(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpsertDashboard(rctx, fc.Args["id"].(*int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["metrics"].([]*model.DashboardMetricConfigInput), fc.Args["layout"].(*string))
+		return ec.resolvers.Mutation().UpsertDashboard(rctx, fc.Args["id"].(*int), fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["metrics"].([]*model.DashboardMetricConfigInput), fc.Args["layout"].(*string), fc.Args["is_default"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28257,6 +28378,61 @@ func (ec *executionContext) fieldContext_Mutation_upsertDashboard(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_upsertDashboard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteDashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteDashboard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteDashboard(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteDashboard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteDashboard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -30520,6 +30696,58 @@ func (ec *executionContext) fieldContext_Query_session_comments_for_project(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_session_comments_for_project_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_isSessionPending(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_isSessionPending(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IsSessionPending(rctx, fc.Args["session_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_isSessionPending(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_isSessionPending_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -34838,6 +35066,8 @@ func (ec *executionContext) fieldContext_Query_dashboard_definitions(ctx context
 				return ec.fieldContext_DashboardDefinition_last_admin_to_edit_id(ctx, field)
 			case "layout":
 				return ec.fieldContext_DashboardDefinition_layout(ctx, field)
+			case "is_default":
+				return ec.fieldContext_DashboardDefinition_is_default(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DashboardDefinition", field.Name)
 		},
@@ -47685,6 +47915,10 @@ func (ec *executionContext) _DashboardDefinition(ctx context.Context, sel ast.Se
 
 			out.Values[i] = ec._DashboardDefinition_layout(ctx, field, obj)
 
+		case "is_default":
+
+			out.Values[i] = ec._DashboardDefinition_is_default(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -49929,6 +50163,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "deleteDashboard":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteDashboard(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -50575,6 +50818,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "isSessionPending":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_isSessionPending(ctx, field)
 				return res
 			}
 

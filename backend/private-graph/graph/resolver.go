@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/front"
-	"gorm.io/gorm/clause"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -17,10 +15,13 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm/clause"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
@@ -705,7 +706,7 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)
 
-	if sessionImage != nil {
+	if sessionImage != nil && *sessionImage != "" {
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
 		a := mail.NewAttachment()
 		a.SetContent(*sessionImage)
@@ -717,9 +718,13 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 
 	m.AddPersonalizations(p)
 
-	_, err := r.MailClient.Send(m)
+	response, err := r.MailClient.Send(m)
 	if err != nil {
 		return e.Wrap(err, "error sending sendgrid email for comments mentions")
+	}
+
+	if response.StatusCode == 400 {
+		return e.Wrap(errors.New(response.Body), "bad request")
 	}
 
 	return nil
@@ -2096,7 +2101,14 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				log.Error(err, "Error finding follower admin object")
 				continue
 			}
-			tos = append(tos, &mail.Email{Name: *admin.Name, Address: *a.Email})
+			if a.Email != nil {
+				if a.Name != nil {
+					tos = append(tos, &mail.Email{Name: *a.Name, Address: *a.Email})
+				} else {
+					tos = append(tos, &mail.Email{Address: *a.Email})
+				}
+
+			}
 		}
 	}
 
@@ -2146,11 +2158,29 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 	var adminIds []int
 
 	if admin.Email != nil {
-		ccs = append(ccs, &mail.Email{Address: *admin.Email})
+		if admin.Name != nil {
+			ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
+		} else {
+			ccs = append(ccs, &mail.Email{Address: *admin.Email})
+
+		}
 	}
-	for _, admin := range taggedAdmins {
-		tos = append(tos, &mail.Email{Address: admin.Email})
-		adminIds = append(adminIds, admin.ID)
+
+	for _, taggedAdmin := range taggedAdmins {
+		adminIds = append(adminIds, taggedAdmin.ID)
+
+		if admin.Email != nil && taggedAdmin.Email == *admin.Email {
+			if len(taggedAdmins) == 1 {
+				ccs = nil
+			} else {
+				continue
+			}
+		}
+		if taggedAdmin.Name != nil {
+			tos = append(tos, &mail.Email{Name: *taggedAdmin.Name, Address: taggedAdmin.Email})
+		} else {
+			tos = append(tos, &mail.Email{Address: taggedAdmin.Email})
+		}
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
@@ -2488,13 +2518,15 @@ func GetAggregateFluxStatement(aggregator modelInputs.MetricAggregator, resMins 
 		quantile = 1.0
 	case modelInputs.MetricAggregatorCount:
 		fn = "count"
+	case modelInputs.MetricAggregatorSum:
+		fn = "sum"
 	case modelInputs.MetricAggregatorAvg:
 	default:
 		log.Errorf("Received an unsupported aggregateFunctionName: %+v", aggregator)
 	}
 	aggregateStatement := fmt.Sprintf(`
       query()
-		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: false)
+		  |> aggregateWindow(every: %dm, fn: %s, createEmpty: true)
           |> yield(name: "avg")
 	`, resMins, fn)
 	if quantile > 0. {

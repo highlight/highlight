@@ -18,6 +18,19 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 		description: 'Errors',
 		component_type: MetricViewComponentType.ErrorCountChart,
 	},
+	// TODO(vkorolik) eventually switch to influx data
+	// Sessions: {
+	// 	name: 'sessions',
+	// 	description: 'Sessions',
+	// 	chart_type: DashboardChartType.TimelineBar,
+	// 	aggregator: MetricAggregator.Sum,
+	// },
+	// Errors: {
+	// 	name: 'errors',
+	// 	description: 'Errors',
+	// 	chart_type: DashboardChartType.TimelineBar,
+	// 	aggregator: MetricAggregator.Sum,
+	// },
 	TopReferrers: {
 		name: 'TopReferrers',
 		description: 'Top Referrers',
@@ -48,14 +61,15 @@ const DEFAULT_SINGLE_LAYOUT = {
 	x: 0,
 	y: 0,
 	i: '0',
-	minW: 1,
-	minH: 1,
+	minW: 2,
+	minH: 2,
 	static: false,
 }
 export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
 	lg: [
 		{
 			...DEFAULT_SINGLE_LAYOUT,
+			minW: 6,
 			w: 6,
 			h: 2,
 			x: 0,

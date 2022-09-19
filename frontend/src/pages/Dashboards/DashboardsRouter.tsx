@@ -50,6 +50,7 @@ const DashboardsRouter = () => {
 						metrics: Object.values(WEB_VITALS_CONFIGURATION),
 						name: 'Web Vitals',
 						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}
@@ -60,12 +61,13 @@ const DashboardsRouter = () => {
 						metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
 						name: 'Home',
 						layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}
 			if (
 				!data?.dashboard_definitions?.some(
-					(d) => d?.name === 'Frontend Observability',
+					(d) => d?.name === 'Request Metrics',
 				)
 			) {
 				upsertDashboardMutation({
@@ -74,8 +76,9 @@ const DashboardsRouter = () => {
 						metrics: Object.values(
 							FRONTEND_OBSERVABILITY_CONFIGURATION,
 						),
-						name: 'Frontend Observability',
+						name: 'Request Metrics',
 						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+						is_default: true,
 					},
 				}).catch(H.consumeError)
 			}

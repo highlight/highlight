@@ -110,10 +110,6 @@
 	padding: 0 10px 16px 16px;
 }
 
-.chartWrapper {
-	padding: 10px;
-}
-
 .createNewAlertRow {
 	align-items: center;
 	display: flex;
@@ -170,9 +166,4 @@
 
 .blurChart {
 	filter: blur(2px);
-}
-
-.fixedSize {
-	min-height: 180px;
-	min-width: 600px;
 }

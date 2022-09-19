@@ -11,7 +11,7 @@ import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
 import moment from 'moment'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
@@ -22,6 +22,13 @@ const TopRoutesTable = ({
 }: {
 	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
+	const [tableData, setTableData] = useState<
+		{
+			key: number
+			route: string
+			count: number
+		}[]
+	>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -42,27 +49,37 @@ const TopRoutesTable = ({
 				attribute: NetworkRequestAttribute.Url,
 			},
 		},
+		onCompleted: (data) => {
+			const transformedData =
+				data?.network_histogram?.buckets
+					.slice()
+					.map((bucket, index) => ({
+						key: index,
+						route: bucket.category,
+						count: bucket.count,
+					})) || []
+			setTableData(transformedData)
+		},
+		onError: () => {
+			setTableData([])
+		},
 	})
 
 	useEffect(() => {
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
 
+	if (tableData === undefined) {
+		return null
+	}
+
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
-					loading={loading}
+					loading={false}
 					columns={Columns}
-					data={
-						data?.network_histogram?.buckets
-							.slice()
-							.map((bucket, index) => ({
-								key: index,
-								route: bucket.category,
-								count: bucket.count,
-							})) || []
-					}
+					data={tableData}
 					onClickHandler={() => {}}
 					noDataMessage={
 						!data?.network_histogram?.buckets.length && (
@@ -72,7 +89,18 @@ const TopRoutesTable = ({
 									to={`/${project_id}/settings/recording#network`}
 								>
 									configured your backend domains?
-								</Link>
+								</Link>{' '}
+								You can also call <code>H.init()</code> in your
+								app{' '}
+								<a
+									href="https://docs.highlight.run/api/networkrecordingoptions#JTvBw"
+									target="_blank"
+									rel="noreferrer"
+								>
+									with additional{' '}
+									<code>networkRecording</code> options
+								</a>{' '}
+								to configure this.
 							</>
 						)
 					}

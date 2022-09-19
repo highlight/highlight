@@ -1,6 +1,6 @@
-import '@highlight-run/react/dist/highlight.css'
-import '@highlight-run/rrweb/dist/rrweb.min.css'
 import 'antd/dist/antd.css'
+import '@highlight-run/rrweb/dist/rrweb.min.css'
+import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
@@ -26,14 +26,13 @@ import {
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
 } from '@graph/hooks'
-import { Admin, Exact } from '@graph/schemas'
+import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useParams } from '@util/react-router/useParams'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
@@ -181,10 +180,8 @@ const App = () => {
 }
 
 const AuthenticationRoleRouter = () => {
-	const { workspace_id, project_id } = useParams<{
-		workspace_id: string
-		project_id: string
-	}>()
+	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -215,12 +212,22 @@ const AuthenticationRoleRouter = () => {
 	let getAdminQuery:
 			| ((
 					workspace_id:
-						| QueryLazyOptions<Exact<{ workspace_id: string }>>
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
 						| undefined,
 			  ) => void)
 			| ((
 					project_id:
-						| QueryLazyOptions<Exact<{ project_id: string }>>
+						| QueryLazyOptions<
+								Partial<{
+									workspace_id: string
+									project_id: string
+								}>
+						  >
 						| undefined,
 			  ) => void)
 			| (() => void),
@@ -229,14 +236,14 @@ const AuthenticationRoleRouter = () => {
 		adminRole: string | undefined,
 		called: boolean,
 		refetch: any
-	if (workspace_id) {
+	if (workspaceId) {
 		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
 		refetch = wRefetch
-	} else if (project_id) {
+	} else if (projectId) {
 		getAdminQuery = getAdminProjectRoleQuery
 		adminError = adminPError
 		adminData = adminPData?.admin_role_by_project?.admin
@@ -253,15 +260,25 @@ const AuthenticationRoleRouter = () => {
 
 	const { setLoadingState } = useAppLoadingContext()
 
+	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	useEffect(() => {
+		const variables: Partial<{ workspace_id: string; project_id: string }> =
+			{}
+		if (workspaceId) {
+			variables.workspace_id = workspaceId
+		} else if (projectId) {
+			variables.project_id = projectId
+		}
 		const unsubscribeFirebase = auth.onAuthStateChanged(
 			(user) => {
+				setUser(user)
+
 				if (user) {
 					if (!called) {
 						getAdminQuery({
-							variables: { workspace_id, project_id },
+							variables,
 						})
 					} else {
 						refetch!()
@@ -279,10 +296,14 @@ const AuthenticationRoleRouter = () => {
 		return () => {
 			unsubscribeFirebase()
 		}
-	}, [getAdminQuery, adminData, called, refetch, workspace_id, project_id])
+		// we want to run this on url changes to recalculate the workspace_id and project_id
+		// eslint-disable-next-line
+	}, [getAdminQuery, adminData, called, refetch, workspaceId, projectId])
 
 	useEffect(() => {
-		if (adminData) {
+		// Check user exists here as well because adminData isn't cleared correctly
+		// when a user logs out.
+		if (adminData && user) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
 					adminData?.email.includes(d),
@@ -296,7 +317,7 @@ const AuthenticationRoleRouter = () => {
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
-	}, [adminError, adminData])
+	}, [adminError, adminData, user])
 
 	useEffect(() => {
 		if (authRole === AuthRole.UNAUTHENTICATED) {

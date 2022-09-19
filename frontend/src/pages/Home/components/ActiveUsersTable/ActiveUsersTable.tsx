@@ -35,7 +35,7 @@ const ActiveUsersTable = ({
 	filterSearchTerm: string
 	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-	const [tableData, setTableData] = useState<any[]>([])
+	const [tableData, setTableData] = useState<any[]>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -84,19 +84,24 @@ const ActiveUsersTable = ({
 			return tableData
 		}
 
-		return tableData.filter((row) => {
+		return tableData?.filter((row) => {
 			return row.identifier.includes(filterSearchTerm)
 		})
 	}, [filterSearchTerm, tableData])
+
+	if (filteredTableData === undefined) {
+		return null
+	}
 
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
-					loading={loading}
+					loading={false}
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
+						history.push(`/${projectIdRemapped}/sessions`)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
@@ -114,7 +119,6 @@ const ActiveUsersTable = ({
 						message.success(
 							`Showing sessions for ${record.identifier}`,
 						)
-						history.push(`/${projectIdRemapped}/sessions`)
 					}}
 					noDataMessage={
 						filteredTableData.length === 0 &&

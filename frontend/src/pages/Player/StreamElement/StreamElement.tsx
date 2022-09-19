@@ -1,3 +1,4 @@
+import { ExternalLinkText } from '@components/ExternalLinkText'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { EventType } from '@highlight-run/rrweb'
 import SvgActivityIcon from '@icons/ActivityIcon'
@@ -13,6 +14,7 @@ import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { FaBug, FaRegStopCircle } from 'react-icons/fa'
+import { Link, useParams } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import GoToButton from '../../../components/Button/GoToButton'
@@ -65,6 +67,7 @@ export const StreamElement = ({
 	const timeSinceStart = e?.timestamp - start
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveEvent } = usePlayerUIContext()
+	const params = useParams<{ project_id: string }>()
 
 	const showExpandedView = searchQuery.length > 0 || showDetails || selected
 	const shouldShowTimestamp =
@@ -155,7 +158,7 @@ export const StreamElement = ({
 								</div>
 							) : (
 								<div className={styles.payloadContainer}>
-									<h2 className={styles.payloadTitle}>
+									<h2 className="mb-3 text-xs font-medium">
 										{getTimelineEventDisplayName(
 											details.title || '',
 										)}{' '}
@@ -197,6 +200,18 @@ export const StreamElement = ({
 											searchQuery={searchQuery}
 										/>
 									)}
+
+									{e.type === EventType.Custom &&
+										e.data.tag === 'Web Vitals' && (
+											<Link
+												to={`/${params.project_id}/dashboards/web-vitals`}
+												className="mt-4 inline-block"
+											>
+												<ExternalLinkText>
+													View web vitals dashboard
+												</ExternalLinkText>
+											</Link>
+										)}
 								</div>
 							)}
 							{shouldShowTimestamp && (

@@ -3,15 +3,22 @@ import 'react-resizable/css/styles.css'
 
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import {
+	GetDashboardDefinitionsDocument,
+	useDeleteDashboardMutation,
+} from '@graph/hooks'
 import {
 	Admin,
 	DashboardDefinition,
 	DashboardMetricConfig,
+	Maybe,
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
+import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { DashboardComponentCard } from '@pages/Dashboards/components/DashboardCard/DashboardComponentCard/DashboardComponentCard'
@@ -25,13 +32,17 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
+
+type RouteState = Maybe<{
+	metricConfig?: DashboardMetricConfig
+}>
 
 const DashboardPage = ({
 	dashboardName,
@@ -42,7 +53,8 @@ const DashboardPage = ({
 	header?: React.ReactNode
 	containerStyles?: React.CSSProperties
 }) => {
-	const history = useHistory<{ dashboardName: string }>()
+	const history = useHistory<RouteState>()
+	const { state: locationState } = useLocation<RouteState>()
 	const { id } = useParams<{ id: string }>()
 	const { timeRange } = useDataTimeRange()
 	const { dashboards, allAdmins, updateDashboard } = useDashboardsContext()
@@ -51,13 +63,16 @@ const DashboardPage = ({
 	const [layout, setLayout] = useState<Layouts>({ lg: [] })
 	const [persistedLayout, setPersistedLayout] = useState<Layouts>({ lg: [] })
 	const [dashboard, setDashboard] = useState<DashboardDefinition>()
+	const metricAutoAdded = useRef<boolean>(false)
+	const metricConfig = locationState?.metricConfig
 
 	useEffect(() => {
-		const dashboard = dashboards.find((d) =>
-			dashboardName ? d?.name === dashboardName : d?.id === id,
-		)
+		const dashboard = dashboards.find((d) => {
+			if (dashboardName) return d?.name === dashboardName
+			if (id === 'web-vitals') return d?.name === 'Web Vitals'
+			return d?.id === id
+		})
 		if (dashboard) {
-			const name = dashboard.name || ''
 			setDashboard(dashboard)
 			setNewMetrics(dashboard.metrics)
 			if (dashboard.layout?.length) {
@@ -65,11 +80,45 @@ const DashboardPage = ({
 				setLayout(parsedLayout)
 				setPersistedLayout(parsedLayout)
 			}
-			history.replace({ state: { dashboardName: name } })
 		}
-	}, [dashboardName, dashboards, history, id])
+	}, [dashboardName, dashboards, id])
+
+	useEffect(() => {
+		setNewDashboardCardIdx(undefined)
+	}, [dashboard])
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
+
+	// Logic for adding a new metric based on the addToDashboard URL param.
+	useEffect(() => {
+		if (!dashboard || !metricConfig || metricAutoAdded.current) {
+			return
+		}
+
+		metricAutoAdded.current = true
+
+		// Change to check both name and filters, if GraphQL request.
+		const canAddMetric = !findDashboardMetric(dashboard, metricConfig)
+
+		if (canAddMetric && metricConfig) {
+			pushNewMetricConfig([
+				...dashboard.metrics,
+				{
+					...getDefaultMetricConfig(metricConfig.name),
+					...metricConfig,
+				},
+			])
+
+			message.success(
+				`${metricConfig.description} added successfully.`,
+				3000,
+			)
+
+			history.replace({ state: {} })
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dashboard])
 
 	const pushNewMetricConfig = (
 		nm: DashboardMetricConfig[],
@@ -120,8 +169,9 @@ const DashboardPage = ({
 							<Breadcrumb
 								getBreadcrumbName={(url) =>
 									getDashboardsBreadcrumbNames(
-										history.location.state,
-									)(url)
+										dashboard.name,
+										url,
+									)
 								}
 								linkRenderAs="h2"
 							/>
@@ -173,15 +223,17 @@ const DashboardPage = ({
 										return nm
 									})
 								}}
+								icon={
+									<PlusIcon
+										style={{ marginRight: '0.5rem' }}
+									/>
+								}
 							>
 								Add
-								<PlusIcon
-									style={{
-										marginLeft: '1em',
-										marginBottom: '0.1em',
-									}}
-								/>
 							</Button>
+							{dashboard.is_default ? null : (
+								<DeleteDashboardButton dashboard={dashboard} />
+							)}
 							<TimeRangePicker />
 						</div>
 					</div>
@@ -343,14 +395,70 @@ export const DashboardGrid = ({
 	)
 }
 
-const getDashboardsBreadcrumbNames = (suffixes: { [key: string]: string }) => {
-	return (url: string) => {
-		if (url.endsWith('/dashboards')) {
-			return 'Dashboards'
+const getDashboardsBreadcrumbNames = (dashboardName: string, url: string) => {
+	if (url.endsWith('/dashboards')) {
+		return 'Dashboards'
+	}
+
+	return dashboardName
+}
+
+export const findDashboardMetric = (
+	dashboard: Maybe<DashboardDefinition>,
+	metricConfig: DashboardMetricConfig,
+) => {
+	return dashboard?.metrics.find((metric) => {
+		let isMatch = metric.name === metricConfig.name
+
+		if (isMatch && metricConfig.filters) {
+			isMatch = metricConfig.filters?.every((f) =>
+				metric.filters?.some(
+					(fi) => fi.tag === f.tag && fi.value === f.value,
+				),
+			)
 		}
 
-		return `${suffixes?.dashboardName}`
-	}
+		return isMatch ? metric : false
+	})
 }
 
 export default DashboardPage
+
+function DeleteDashboardButton({
+	dashboard,
+}: {
+	dashboard: {
+		id: string
+		name: string
+		project_id: string
+	}
+}) {
+	const history = useHistory()
+
+	const [mutate] = useDeleteDashboardMutation({
+		variables: { id: dashboard.id },
+		onCompleted: () => {
+			history.push(`/${dashboard.project_id}/dashboards`)
+		},
+		refetchQueries: [GetDashboardDefinitionsDocument],
+	})
+
+	return (
+		<ConfirmModal
+			trackingId="DeleteDashboardModal"
+			buttonText="Delete dashboard"
+			buttonProps={{
+				trackingId: 'DeleteDashboard',
+				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
+				danger: true,
+			}}
+			modalTitleText="Are you sure you want to delete this dashboard?"
+			confirmText="Delete dashboard"
+			cancelText="Never mind"
+			onConfirmHandler={async (actions) => {
+				await mutate()
+				actions.close()
+			}}
+		/>
+	)
+}

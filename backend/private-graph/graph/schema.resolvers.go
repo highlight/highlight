@@ -175,7 +175,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			) AS e ON s.id = e.session_id
 		WHERE
 			s.excluded <> true 
-			AND s.has_errors = true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
@@ -3074,7 +3073,7 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 }
 
 // UpsertDashboard is the resolver for the upsertDashboard field.
-func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return -1, err
@@ -3145,11 +3144,38 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	dashboard.Name = name
 	dashboard.LastAdminToEditID = &admin.ID
 	dashboard.Layout = layout
+	dashboard.IsDefault = isDefault
 	if err := r.DB.Save(&dashboard).Error; err != nil {
 		return dashboard.ID, err
 	}
 
 	return dashboard.ID, nil
+}
+
+// DeleteDashboard is the resolver for the deleteDashboard field.
+func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, error) {
+	var dashboard model.Dashboard
+	if result := r.DB.First(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	if _, err := r.isAdminInProject(ctx, dashboard.ProjectID); err != nil {
+		return false, err
+	}
+
+	if dashboard.IsDefault != nil && *dashboard.IsDefault {
+		return false, e.New("cannot delete default dashboard")
+	}
+
+	if result := r.DB.Where("dashboard_id = ?", id).Delete(&model.DashboardMetric{}); result.Error != nil {
+		return false, result.Error
+	}
+
+	if result := r.DB.Delete(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	return true, nil
 }
 
 // Accounts is the resolver for the accounts field.
@@ -3861,6 +3887,15 @@ func (r *queryResolver) SessionCommentsForProject(ctx context.Context, projectID
 	}
 
 	return sessionComments, nil
+}
+
+// IsSessionPending is the resolver for the isSessionPending field.
+func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID string) (*bool, error) {
+	isPending, err := r.Redis.IsPendingSession(ctx, sessionSecureID)
+	if err != nil {
+		return pointy.Bool(false), e.Wrap(err, "error retrieving session")
+	}
+	return pointy.Bool(isPending), nil
 }
 
 // ErrorComments is the resolver for the error_comments field.
@@ -5618,6 +5653,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			Metrics:           metrics,
 			LastAdminToEditID: d.LastAdminToEditID,
 			Layout:            d.Layout,
+			IsDefault:         d.IsDefault,
 		})
 	}
 	return results, nil

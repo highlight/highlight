@@ -29,7 +29,7 @@ const ReferrersTable = ({
 }: {
 	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
-	const [tableData, setTableData] = useState<any[]>([])
+	const [tableData, setTableData] = useState<any[]>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -70,14 +70,19 @@ const ReferrersTable = ({
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
 
+	if (tableData === undefined) {
+		return null
+	}
+
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
 					columns={Columns}
 					data={tableData}
-					loading={loading}
+					loading={false}
 					onClickHandler={(record) => {
+						history.push(`/${projectIdRemapped}/sessions`)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
@@ -87,7 +92,6 @@ const ReferrersTable = ({
 						message.success(
 							`Showing sessions that were referred by ${record.host}`,
 						)
-						history.push(`/${projectIdRemapped}/sessions`)
 					}}
 					noDataTitle="No referrer data yet 😔"
 					noDataMessage="Doesn't look like your app has been referred to yet."
@@ -119,7 +123,7 @@ const Columns: ColumnsType<any> = [
 				<ProgressBarTableRowGroup alignment="ending">
 					<ProgressBarTablePercentage percent={percent} />
 					<ProgressBarTablePill
-						displayValue={`${record.count} refers`}
+						displayValue={`${record.count}`}
 						icon={<SvgReferrer />}
 					/>
 				</ProgressBarTableRowGroup>

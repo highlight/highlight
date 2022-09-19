@@ -14,6 +14,7 @@ import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
+import { validateEmail } from '@util/string'
 import { message } from 'antd'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -40,7 +41,7 @@ const RageClicksForProjectTable = ({
 			totalClicks: number
 			userProperties: string
 		}[]
-	>([])
+	>()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -83,7 +84,7 @@ const RageClicksForProjectTable = ({
 			return tableData
 		}
 
-		return tableData.filter((row) => {
+		return tableData?.filter((row) => {
 			return row.identifier.includes(filterSearchTerm)
 		})
 	}, [filterSearchTerm, tableData])
@@ -92,24 +93,37 @@ const RageClicksForProjectTable = ({
 		setUpdatingData(loading)
 	}, [setUpdatingData, loading])
 
+	if (filteredTableData === undefined) {
+		return null
+	}
+
 	return (
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DashboardInnerTable>
 				<ProgressBarTable
-					loading={loading}
+					loading={false}
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
+						history.push(
+							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
+						)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({
 							...EmptySessionsSearchParams,
+							user_properties: [
+								{
+									id: record.id,
+									name: validateEmail(record.identifier)
+										? 'email'
+										: 'identifier',
+									value: record.identifier,
+								},
+							],
 						})
 						message.success(
 							`Showing most recent session for ${record.identifier} with rage clicks.`,
-						)
-						history.push(
-							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
 						)
 					}}
 					noDataMessage={
