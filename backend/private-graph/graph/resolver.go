@@ -21,6 +21,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
@@ -1571,6 +1572,24 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+func (r *Resolver) AddFrontToProject(project *model.Project, code string) error {
+	oauth, err := front.OAuth(code, nil)
+	if err != nil {
+		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
+	}
+
+	return r.saveFrontOAuth(project, oauth)
+}
+
+func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
+	exp := time.Unix(oauth.ExpiresAt, 0)
+	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
+		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
+		return e.Wrap(err, "error updating front access token on project")
+	}
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -1656,6 +1675,14 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
+	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil

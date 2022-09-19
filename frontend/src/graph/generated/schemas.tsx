@@ -208,6 +208,7 @@ export enum IntegrationType {
 	Slack = 'Slack',
 	Linear = 'Linear',
 	Zapier = 'Zapier',
+	Front = 'Front',
 }
 
 export enum ErrorState {
@@ -2090,7 +2091,7 @@ export type MutationUpsertDashboardArgs = {
 }
 
 export type MutationDeleteDashboardArgs = {
-	id?: Maybe<Scalars['ID']>
+	id: Scalars['ID']
 }
 
 export type Subscription = {

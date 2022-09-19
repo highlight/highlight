@@ -3499,6 +3499,14 @@ export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithFrontQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_front: Types.Query['is_integrated_with'] }
+
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4049,6 +4057,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
+		GetWorkspaceIsIntegratedWithFront:
+			'GetWorkspaceIsIntegratedWithFront' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
