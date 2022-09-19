@@ -78,10 +78,11 @@ jobs:
               run: yarn && cd frontend && yarn && cd ../client && yarn
             - name: Install Air
               run: go install github.com/cosmtrek/air@latest
+            - name: Start app
+              run: yarn ci:start
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
-                  start: yarn ci:start
                   wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js'
                   wait-on-timeout: 120
               env:
