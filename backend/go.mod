@@ -23,7 +23,7 @@ require (
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/go-oauth2/oauth2/v4 v4.5.1
+	github.com/go-oauth2/oauth2/v4 v4.4.2
 	github.com/go-oauth2/redis/v4 v4.1.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
@@ -60,7 +60,7 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.31.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.36.2
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
@@ -87,12 +87,12 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tdewolff/test v1.0.7 // indirect
 	github.com/tidwall/btree v1.1.0 // indirect
-	github.com/tidwall/buntdb v1.2.0 // indirect
-	github.com/tidwall/gjson v1.12.1 // indirect
-	github.com/tidwall/grect v0.1.4 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/buntdb v1.1.5 // indirect
+	github.com/tidwall/gjson v1.6.6 // indirect
+	github.com/tidwall/grect v0.0.0-20161006141115-ba9a043346eb // indirect
+	github.com/tidwall/match v1.0.3 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tidwall/rtred v0.1.2 // indirect
+	github.com/tidwall/rtree v0.0.0-20201027154624-32188eeb08a8 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
