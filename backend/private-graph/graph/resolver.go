@@ -2084,7 +2084,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 	}
 
 	for _, f := range followers {
-		if f.HasMuted {
+		if f.HasMuted != nil && *f.HasMuted {
 			// remove the author's cc if they have unsubscribed from the thread
 			if f.AdminId == admin.ID {
 				ccs = nil

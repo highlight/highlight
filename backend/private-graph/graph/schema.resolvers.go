@@ -1310,6 +1310,34 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
+// MuteSessionCommentThread is the resolver for the muteSessionCommentThread field.
+func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
+	var sessionComment model.SessionComment
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comment")
+	}
+
+	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not session owner")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	var commentFollower model.CommentFollower
+	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
+		&model.CommentFollower{
+			HasMuted: hasMuted,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
+}
+
 // ReplyToSessionComment is the resolver for the replyToSessionComment field.
 func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
@@ -1419,21 +1447,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 }
 
 // CreateErrorComment is the resolver for the createErrorComment field.
-func (r *mutationResolver) CreateErrorComment(
-	ctx context.Context,
-	projectID int,
-	errorGroupSecureID string,
-	text string,
-	textForEmail string,
-	taggedAdmins []*modelInputs.SanitizedAdminInput,
-	taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput,
-	errorURL string,
-	authorName string,
-	issueTitle *string,
-	issueDescription *string,
-	issueTeamID *string,
-	integrations []*modelInputs.IntegrationType,
-) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
 
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
@@ -1475,8 +1489,8 @@ func (r *mutationResolver) CreateErrorComment(
 	}
 	createErrorCommentSpan.Finish()
 
-	viewLink := fmt.Sprintf("%v", errorURL)
-	muteLink := fmt.Sprintf("%v?muted=1", errorURL)
+	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
 		r.sendCommentPrimaryNotification(
@@ -1549,6 +1563,33 @@ func (r *mutationResolver) CreateErrorComment(
 	}
 
 	return errorComment, nil
+}
+
+// MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
+func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
+	var errorGroupSecureID string
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).Scan(&errorGroupSecureID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments")
+	}
+	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	var commentFollower model.CommentFollower
+	if err := r.DB.Where(&model.CommentFollower{ErrorCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
+		&model.CommentFollower{
+			HasMuted: hasMuted,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
 }
 
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.

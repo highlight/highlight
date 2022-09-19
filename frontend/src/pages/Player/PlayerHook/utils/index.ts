@@ -353,7 +353,7 @@ export const addErrorsToSessionIntervals = (
 ): ParsedSessionInterval[] => {
 	const errorsWithTimestamps = errors
 		.filter((error) => !!error.timestamp)
-		.sort((a, b) => b.timestamp - a.timestamp)
+		.sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
 
 	const groupedErrors = assignEventToSessionIntervalRelative(
 		sessionIntervals,
@@ -389,8 +389,8 @@ const assignEventToSessionIntervalRelative = (
 	) {
 		const event = events[eventIndex]
 		const relativeTimestamp = relativeTime
-			? event.timestamp
-			: new Date(event.timestamp).getTime() - sessionStartTime
+			? Number(event.timestamp) || 0
+			: new Date(event.timestamp!).getTime() - sessionStartTime
 		if (relativeTimestamp < currentSessionInterval.startTime) {
 			eventIndex++
 		} else if (
@@ -481,8 +481,8 @@ const assignEventToSessionInterval = (
 
 	events.forEach((event) => {
 		const relativeTimestamp = relativeTime
-			? event.timestamp
-			: new Date(event.timestamp).getTime() - sessionStartTime
+			? Number(event.timestamp) || 0
+			: new Date(event.timestamp!).getTime() - sessionStartTime
 
 		response.push({
 			...event,

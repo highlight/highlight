@@ -1551,8 +1551,10 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
+	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
 	replyToSessionComment?: Maybe<CommentReply>
 	createErrorComment?: Maybe<ErrorComment>
+	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	replyToErrorComment?: Maybe<CommentReply>
@@ -1767,6 +1769,11 @@ export type MutationDeleteSessionCommentArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationMuteSessionCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
+}
+
 export type MutationReplyToSessionCommentArgs = {
 	comment_id: Scalars['ID']
 	text: Scalars['String']
@@ -1789,6 +1796,11 @@ export type MutationCreateErrorCommentArgs = {
 	issue_description?: Maybe<Scalars['String']>
 	issue_team_id?: Maybe<Scalars['String']>
 	integrations: Array<Maybe<IntegrationType>>
+}
+
+export type MutationMuteErrorCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -2090,7 +2102,7 @@ export type MutationUpsertDashboardArgs = {
 }
 
 export type MutationDeleteDashboardArgs = {
-	id?: Maybe<Scalars['ID']>
+	id: Scalars['ID']
 }
 
 export type Subscription = {
