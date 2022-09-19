@@ -2178,7 +2178,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 				muteLink,
 				subjectScope,
 				textForEmail,
-				Email.SendGridSessionCommentEmailTemplateID,
+				Email.SendGridCommentEmailTemplateID,
 				sessionImage,
 				asmGroupId,
 			)
@@ -2263,7 +2263,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 			muteLink,
 			subjectScope,
 			textForEmail,
-			Email.SendGridSessionCommentEmailTemplateID,
+			Email.SendGridCommentEmailTemplateID,
 			sessionImage,
 			asmGroupId,
 		)

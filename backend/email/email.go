@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
-	SendGridSessionCommentEmailTemplateID = "d-af96adc0bfee455a8eff291f2bc621b0"
-	SendGridAlertEmailTemplateID          = "d-efd755d329db413082dbdf1188b6846e"
-	SendGridRequestAccessEmailTemplateID  = "d-f059960009ba4a9fb5640e98db517eef"
-	SessionsDeletedEmailTemplateID        = "d-d9e10ce22c774fc9850dd0b36ccde339"
-	SendGridOutboundEmail                 = "gm@runhighlight.com"
-	SessionCommentMentionsAsmId           = 20950
-	ErrorCommentMentionsAsmId             = 20994
+	SendAdminInviteEmailTemplateID       = "d-bca4f9a932ef418a923cbd2d90d2790b"
+	SendGridCommentEmailTemplateID       = "d-af96adc0bfee455a8eff291f2bc621b0"
+	SendGridAlertEmailTemplateID         = "d-efd755d329db413082dbdf1188b6846e"
+	SendGridRequestAccessEmailTemplateID = "d-f059960009ba4a9fb5640e98db517eef"
+	SessionsDeletedEmailTemplateID       = "d-d9e10ce22c774fc9850dd0b36ccde339"
+	SendGridOutboundEmail                = "gm@runhighlight.com"
+	SessionCommentMentionsAsmId          = 20950
+	ErrorCommentMentionsAsmId            = 20994
 )
 
 func SendAlertEmail(MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
