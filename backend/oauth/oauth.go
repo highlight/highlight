@@ -111,7 +111,7 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"expires_in": int64(token.GetAccessCreateAt().Add(token.GetAccessExpiresIn()).Sub(time.Now()).Seconds()),
+		"expires_in": int64(time.Until(token.GetAccessCreateAt().Add(token.GetAccessExpiresIn())).Seconds()),
 		"client_id":  token.GetClientID(),
 		"user_id":    token.GetUserID(),
 		"validated":  true,
