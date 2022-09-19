@@ -13,6 +13,7 @@ export enum POLICY_NAMES {
 	RolesUpdate,
 	IntegrationsUpdate,
 	Dashboards,
+	DeleteSessions,
 }
 const AUTHORIZATION_POLICIES = {
 	[POLICY_NAMES.BillingUpdate]: onlyAllowAdminRole,
@@ -20,6 +21,7 @@ const AUTHORIZATION_POLICIES = {
 	[POLICY_NAMES.RolesUpdate]: onlyAllowAdminRole,
 	[POLICY_NAMES.IntegrationsUpdate]: onlyAllowAdminRole,
 	[POLICY_NAMES.Dashboards]: onlyAllowHighlightStaff,
+	[POLICY_NAMES.DeleteSessions]: onlyAllowAdminRole,
 } as const
 
 export default AUTHORIZATION_POLICIES

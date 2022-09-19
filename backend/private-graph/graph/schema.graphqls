@@ -1489,6 +1489,11 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
+	deleteSessions(
+		project_id: ID!
+		query: String!
+		sessionCount: Int!
+	): Boolean!
 }
 
 type Subscription {

@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/apolloio"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -3175,6 +3176,56 @@ func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, e
 		return false, result.Error
 	}
 
+	return true, nil
+}
+
+// DeleteSessions is the resolver for the deleteSessions field.
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error) {
+	if util.IsDevOrTestEnv() {
+		return false, nil
+	}
+
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	email := ""
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	firstName := ""
+	if admin.FirstName != nil {
+		firstName = *admin.FirstName
+	}
+
+	role, err := r.GetAdminRole(admin.ID, project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if role != model.AdminRole.ADMIN {
+		return false, e.New("Must be admin role to delete sessions")
+	}
+
+	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+		ProjectId:    projectID,
+		Email:        email,
+		FirstName:    firstName,
+		Query:        query,
+		SessionCount: sessionCount,
+		DryRun:       util.IsDevOrTestEnv(),
+	})
+
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 

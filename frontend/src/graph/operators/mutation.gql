@@ -1249,3 +1249,15 @@ mutation UpsertDashboard(
 mutation DeleteDashboard($id: ID!) {
 	deleteDashboard(id: $id)
 }
+
+mutation DeleteSessions(
+	$project_id: ID!
+	$query: String!
+	$sessionCount: Int!
+) {
+	deleteSessions(
+		project_id: $project_id
+		query: $query
+		sessionCount: $sessionCount
+	)
+}

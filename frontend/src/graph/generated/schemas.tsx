@@ -1589,6 +1589,7 @@ export type Mutation = {
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	upsertDashboard: Scalars['ID']
 	deleteDashboard: Scalars['Boolean']
+	deleteSessions: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -2092,6 +2093,12 @@ export type MutationUpsertDashboardArgs = {
 
 export type MutationDeleteDashboardArgs = {
 	id: Scalars['ID']
+}
+
+export type MutationDeleteSessionsArgs = {
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	sessionCount: Scalars['Int']
 }
 
 export type Subscription = {
