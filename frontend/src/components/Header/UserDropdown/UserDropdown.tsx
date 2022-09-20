@@ -66,6 +66,9 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 									console.log(e)
 								}
 								await client.clearStore()
+								window.localStorage.removeItem(
+									'highlight-oauth',
+								)
 							}}
 						>
 							<span className={styles.dropdownLogoutText}>

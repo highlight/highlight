@@ -22,6 +22,7 @@ import (
 
 type Server struct {
 	srv *server.Server
+	db  *gorm.DB
 }
 
 func getTokenStore() *oredis.TokenStore {
@@ -69,7 +70,6 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 
 	srv := server.NewDefaultServer(manager)
 	srv.SetAllowGetAccessRequest(true)
-	srv.SetClientInfoHandler(server.ClientBasicHandler)
 
 	srv.SetInternalErrorHandler(func(err error) (re *errors.Response) {
 		log.Errorf("Internal Error: %s", err.Error())
@@ -84,9 +84,33 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 		return "oauth-client", nil
 	})
 
-	return &Server{
+	s := &Server{
 		srv: srv,
-	}, nil
+		db:  db,
+	}
+	srv.SetClientInfoHandler(s.ClientInfoHandler)
+	return s, nil
+}
+func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret string, err error) {
+	if id, secret, err := server.ClientBasicHandler(r); err == nil {
+		return id, secret, nil
+	}
+	// single-page auth flow, per https://www.oauth.com/oauth2-servers/single-page-apps/
+	id := r.URL.Query().Get("client_id")
+	if id == "" {
+		return "", "", errors.ErrInvalidClient
+	}
+
+	client := &model.OAuthClientStore{}
+	if err := s.db.Model(&client).Where(&model.OAuthClientStore{ID: id}).First(&client).Error; err != nil {
+		return "", "", errors.ErrInvalidClient
+	}
+
+	if client.ID == "" || client.Secret == "" {
+		return "", "", errors.ErrInvalidClient
+	}
+
+	return client.ID, client.Secret, nil
 }
 
 func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) {
