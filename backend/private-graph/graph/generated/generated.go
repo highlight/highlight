@@ -617,6 +617,7 @@ type ComplexityRoot struct {
 		SubscriptionDetails          func(childComplexity int, workspaceID int) int
 		SuggestedMetrics             func(childComplexity int, projectID int, prefix string) int
 		TimelineIndicatorEvents      func(childComplexity int, sessionSecureID string) int
+		TopSegments                  func(childComplexity int, projectID int, lookBackPeriod int) int
 		TopUsers                     func(childComplexity int, projectID int, lookBackPeriod int) int
 		TrackPropertiesAlerts        func(childComplexity int, projectID int) int
 		UnprocessedSessionsCount     func(childComplexity int, projectID int) int
@@ -848,6 +849,12 @@ type ComplexityRoot struct {
 		Type            func(childComplexity int) int
 	}
 
+	TopSegmentsPayload struct {
+		ID           func(childComplexity int) int
+		Identifier   func(childComplexity int) int
+		SessionCount func(childComplexity int) int
+	}
+
 	TopUsersPayload struct {
 		ActiveTimePercentage func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -1057,6 +1064,7 @@ type QueryResolver interface {
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
+	TopSegments(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopSegmentsPayload, error)
 	AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model1.SessionResults, error)
@@ -4816,6 +4824,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.TimelineIndicatorEvents(childComplexity, args["session_secure_id"].(string)), true
 
+	case "Query.topSegments":
+		if e.complexity.Query.TopSegments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_topSegments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TopSegments(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+
 	case "Query.topUsers":
 		if e.complexity.Query.TopUsers == nil {
 			break
@@ -6043,6 +6063,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimelineIndicatorEvent.Type(childComplexity), true
 
+	case "TopSegmentsPayload.id":
+		if e.complexity.TopSegmentsPayload.ID == nil {
+			break
+		}
+
+		return e.complexity.TopSegmentsPayload.ID(childComplexity), true
+
+	case "TopSegmentsPayload.identifier":
+		if e.complexity.TopSegmentsPayload.Identifier == nil {
+			break
+		}
+
+		return e.complexity.TopSegmentsPayload.Identifier(childComplexity), true
+
+	case "TopSegmentsPayload.session_count":
+		if e.complexity.TopSegmentsPayload.SessionCount == nil {
+			break
+		}
+
+		return e.complexity.TopSegmentsPayload.SessionCount(childComplexity), true
+
 	case "TopUsersPayload.active_time_percentage":
 		if e.complexity.TopUsersPayload.ActiveTimePercentage == nil {
 			break
@@ -6773,6 +6814,12 @@ type TopUsersPayload {
 	user_properties: String!
 }
 
+type TopSegmentsPayload {
+	id: ID!
+	identifier: String!
+	session_count: Int!
+}
+
 type NewUsersCount {
 	count: Int64!
 }
@@ -7270,6 +7317,7 @@ enum MetricViewComponentType {
 	ActiveUsersTable
 	RageClicksTable
 	TopRoutesTable
+	TopSegmentsTable
 }
 
 type DashboardMetricConfig {
@@ -7399,6 +7447,7 @@ type Query {
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
 	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	topSegments(project_id: ID!, lookBackPeriod: Int!): [TopSegmentsPayload]!
 	averageSessionLength(
 		project_id: ID!
 		lookBackPeriod: Int!
@@ -12759,6 +12808,30 @@ func (ec *executionContext) field_Query_timeline_indicator_events_args(ctx conte
 		}
 	}
 	args["session_secure_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_topSegments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
 	return args, nil
 }
 
@@ -32221,6 +32294,69 @@ func (ec *executionContext) fieldContext_Query_topUsers(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_topSegments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_topSegments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TopSegments(rctx, fc.Args["project_id"].(int), fc.Args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TopSegmentsPayload)
+	fc.Result = res
+	return ec.marshalNTopSegmentsPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopSegmentsPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_topSegments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_TopSegmentsPayload_id(ctx, field)
+			case "identifier":
+				return ec.fieldContext_TopSegmentsPayload_identifier(ctx, field)
+			case "session_count":
+				return ec.fieldContext_TopSegmentsPayload_session_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TopSegmentsPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_topSegments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_averageSessionLength(ctx, field)
 	if err != nil {
@@ -43031,6 +43167,138 @@ func (ec *executionContext) fieldContext_TimelineIndicatorEvent_type(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _TopSegmentsPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopSegmentsPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TopSegmentsPayload_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TopSegmentsPayload_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TopSegmentsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TopSegmentsPayload_identifier(ctx context.Context, field graphql.CollectedField, obj *model.TopSegmentsPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TopSegmentsPayload_identifier(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Identifier, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TopSegmentsPayload_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TopSegmentsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TopSegmentsPayload_session_count(ctx context.Context, field graphql.CollectedField, obj *model.TopSegmentsPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TopSegmentsPayload_session_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TopSegmentsPayload_session_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TopSegmentsPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TopUsersPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TopUsersPayload_id(ctx, field)
 	if err != nil {
@@ -51551,6 +51819,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "topSegments":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_topSegments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "averageSessionLength":
 			field := field
 
@@ -54357,6 +54648,48 @@ func (ec *executionContext) _TimelineIndicatorEvent(ctx context.Context, sel ast
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var topSegmentsPayloadImplementors = []string{"TopSegmentsPayload"}
+
+func (ec *executionContext) _TopSegmentsPayload(ctx context.Context, sel ast.SelectionSet, obj *model.TopSegmentsPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, topSegmentsPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TopSegmentsPayload")
+		case "id":
+
+			out.Values[i] = ec._TopSegmentsPayload_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "identifier":
+
+			out.Values[i] = ec._TopSegmentsPayload_identifier(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_count":
+
+			out.Values[i] = ec._TopSegmentsPayload_session_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -57605,6 +57938,44 @@ func (ec *executionContext) marshalNTimestamp2ᚖtimeᚐTime(ctx context.Context
 	return res
 }
 
+func (ec *executionContext) marshalNTopSegmentsPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopSegmentsPayload(ctx context.Context, sel ast.SelectionSet, v []*model.TopSegmentsPayload) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTopSegmentsPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopSegmentsPayload(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalNTopUsersPayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopUsersPayload(ctx context.Context, sel ast.SelectionSet, v []*model.TopUsersPayload) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -59442,6 +59813,13 @@ func (ec *executionContext) marshalOTimestamp2ᚖtimeᚐTime(ctx context.Context
 	}
 	res := model1.MarshalTimestamp(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTopSegmentsPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopSegmentsPayload(ctx context.Context, sel ast.SelectionSet, v *model.TopSegmentsPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TopSegmentsPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOTopUsersPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTopUsersPayload(ctx context.Context, sel ast.SelectionSet, v *model.TopUsersPayload) graphql.Marshaler {

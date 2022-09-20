@@ -420,6 +420,13 @@ export type TopUsersPayload = {
 	user_properties: Scalars['String']
 }
 
+export type TopSegmentsPayload = {
+	__typename?: 'TopSegmentsPayload'
+	id: Scalars['ID']
+	identifier: Scalars['String']
+	session_count: Scalars['Int']
+}
+
 export type NewUsersCount = {
 	__typename?: 'NewUsersCount'
 	count: Scalars['Int64']
@@ -947,6 +954,7 @@ export enum MetricViewComponentType {
 	ActiveUsersTable = 'ActiveUsersTable',
 	RageClicksTable = 'RageClicksTable',
 	TopRoutesTable = 'TopRoutesTable',
+	TopSegmentsTable = 'TopSegmentsTable',
 }
 
 export type DashboardMetricConfig = {
@@ -1052,6 +1060,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	newUsersCount?: Maybe<NewUsersCount>
 	topUsers: Array<Maybe<TopUsersPayload>>
+	topSegments: Array<TopSegmentsPayload>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	sessions_opensearch: SessionResults
@@ -1267,6 +1276,11 @@ export type QueryNewUsersCountArgs = {
 }
 
 export type QueryTopUsersArgs = {
+	project_id: Scalars['ID']
+	lookBackPeriod: Scalars['Int']
+}
+
+export type QueryTopSegmentsArgs = {
 	project_id: Scalars['ID']
 	lookBackPeriod: Scalars['Int']
 }

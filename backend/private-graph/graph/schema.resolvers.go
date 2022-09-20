@@ -4545,6 +4545,12 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 	return topUsersPayload, nil
 }
 
+// TopSegments is the resolver for the topSegments field.
+func (r *queryResolver) TopSegments(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopSegmentsPayload, error) {
+	var topSegmentsPayload = []*modelInputs.TopSegmentsPayload{}
+	return topSegmentsPayload, nil
+}
+
 // AverageSessionLength is the resolver for the averageSessionLength field.
 func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {

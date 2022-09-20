@@ -374,6 +374,12 @@ type TopUsersPayload {
 	user_properties: String!
 }
 
+type TopSegmentsPayload {
+	id: ID!
+	identifier: String!
+	session_count: Int!
+}
+
 type NewUsersCount {
 	count: Int64!
 }
@@ -871,6 +877,7 @@ enum MetricViewComponentType {
 	ActiveUsersTable
 	RageClicksTable
 	TopRoutesTable
+	TopSegmentsTable
 }
 
 type DashboardMetricConfig {
@@ -1000,6 +1007,7 @@ type Query {
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
 	topUsers(project_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+	topSegments(project_id: ID!, lookBackPeriod: Int!): [TopSegmentsPayload]!
 	averageSessionLength(
 		project_id: ID!
 		lookBackPeriod: Int!

@@ -16,6 +16,7 @@ import KeyPerformanceIndicators from '@pages/Home/components/KeyPerformanceIndic
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable'
 import ReferrersTable from '@pages/Home/components/ReferrersTable/ReferrersTable'
 import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable'
+import TopSegmentsTable from '@pages/Home/components/TopSegmentsTable/TopSegmentsTable'
 import {
 	ErrorCountGraph,
 	SessionCountGraph,
@@ -49,6 +50,7 @@ export const PrebuiltComponentMap: {
 		hasSearch: true,
 	},
 	[MetricViewComponentType.TopRoutesTable]: { fc: TopRoutesTable },
+	[MetricViewComponentType.TopSegmentsTable]: { fc: TopSegmentsTable },
 }
 
 export const DashboardComponentCard = ({

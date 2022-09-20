@@ -373,6 +373,12 @@ type SubscriptionDetails struct {
 	LastInvoice     *Invoice `json:"lastInvoice"`
 }
 
+type TopSegmentsPayload struct {
+	ID           int    `json:"id"`
+	Identifier   string `json:"identifier"`
+	SessionCount int    `json:"session_count"`
+}
+
 type TopUsersPayload struct {
 	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`
@@ -638,6 +644,7 @@ const (
 	MetricViewComponentTypeActiveUsersTable    MetricViewComponentType = "ActiveUsersTable"
 	MetricViewComponentTypeRageClicksTable     MetricViewComponentType = "RageClicksTable"
 	MetricViewComponentTypeTopRoutesTable      MetricViewComponentType = "TopRoutesTable"
+	MetricViewComponentTypeTopSegmentsTable    MetricViewComponentType = "TopSegmentsTable"
 )
 
 var AllMetricViewComponentType = []MetricViewComponentType{
@@ -648,11 +655,12 @@ var AllMetricViewComponentType = []MetricViewComponentType{
 	MetricViewComponentTypeActiveUsersTable,
 	MetricViewComponentTypeRageClicksTable,
 	MetricViewComponentTypeTopRoutesTable,
+	MetricViewComponentTypeTopSegmentsTable,
 }
 
 func (e MetricViewComponentType) IsValid() bool {
 	switch e {
-	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable:
+	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable, MetricViewComponentTypeTopSegmentsTable:
 		return true
 	}
 	return false

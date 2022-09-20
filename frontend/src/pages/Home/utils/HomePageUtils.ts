@@ -51,6 +51,11 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 		description: 'Top Routes',
 		component_type: MetricViewComponentType.TopRoutesTable,
 	},
+	TopSegments: {
+		name: 'TopSegments',
+		description: 'Top Segments',
+		component_type: MetricViewComponentType.TopSegmentsTable,
+	},
 }
 
 const LAYOUT_ROW_WIDTH = 12
