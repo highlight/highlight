@@ -12,6 +12,10 @@ mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
 	}
 }
 
+mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
+	muteSessionCommentThread(id: $id, has_muted: $has_muted)
+}
+
 mutation CreateOrUpdateStripeSubscription(
 	$workspace_id: ID!
 	$plan_type: PlanType!
@@ -453,6 +457,10 @@ mutation CreateIssueForErrorComment(
 
 mutation DeleteErrorComment($id: ID!) {
 	deleteErrorComment(id: $id)
+}
+
+mutation MuteErrorCommentThread($id: ID!, $has_muted: Boolean) {
+	muteErrorCommentThread(id: $id, has_muted: $has_muted)
 }
 
 mutation ReplyToErrorComment(

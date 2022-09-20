@@ -1220,6 +1220,7 @@ type Mutation {
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
+	muteSessionCommentThread(id: ID!, has_muted: Boolean): Boolean
 	replyToSessionComment(
 		comment_id: ID!
 		text: String!
@@ -1242,6 +1243,7 @@ type Mutation {
 		issue_team_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
 		project_id: ID!
 		error_url: String!

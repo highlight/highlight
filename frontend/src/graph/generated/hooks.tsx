@@ -158,6 +158,55 @@ export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
 	Types.MarkSessionAsStarredMutation,
 	Types.MarkSessionAsStarredMutationVariables
 >
+export const MuteSessionCommentThreadDocument = gql`
+	mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
+		muteSessionCommentThread(id: $id, has_muted: $has_muted)
+	}
+`
+export type MuteSessionCommentThreadMutationFn = Apollo.MutationFunction<
+	Types.MuteSessionCommentThreadMutation,
+	Types.MuteSessionCommentThreadMutationVariables
+>
+
+/**
+ * __useMuteSessionCommentThreadMutation__
+ *
+ * To run a mutation, you first call `useMuteSessionCommentThreadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMuteSessionCommentThreadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [muteSessionCommentThreadMutation, { data, loading, error }] = useMuteSessionCommentThreadMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      has_muted: // value for 'has_muted'
+ *   },
+ * });
+ */
+export function useMuteSessionCommentThreadMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.MuteSessionCommentThreadMutation,
+		Types.MuteSessionCommentThreadMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.MuteSessionCommentThreadMutation,
+		Types.MuteSessionCommentThreadMutationVariables
+	>(MuteSessionCommentThreadDocument, baseOptions)
+}
+export type MuteSessionCommentThreadMutationHookResult = ReturnType<
+	typeof useMuteSessionCommentThreadMutation
+>
+export type MuteSessionCommentThreadMutationResult =
+	Apollo.MutationResult<Types.MuteSessionCommentThreadMutation>
+export type MuteSessionCommentThreadMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.MuteSessionCommentThreadMutation,
+		Types.MuteSessionCommentThreadMutationVariables
+	>
 export const CreateOrUpdateStripeSubscriptionDocument = gql`
 	mutation CreateOrUpdateStripeSubscription(
 		$workspace_id: ID!
@@ -1946,6 +1995,54 @@ export type DeleteErrorCommentMutationResult =
 export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteErrorCommentMutation,
 	Types.DeleteErrorCommentMutationVariables
+>
+export const MuteErrorCommentThreadDocument = gql`
+	mutation MuteErrorCommentThread($id: ID!, $has_muted: Boolean) {
+		muteErrorCommentThread(id: $id, has_muted: $has_muted)
+	}
+`
+export type MuteErrorCommentThreadMutationFn = Apollo.MutationFunction<
+	Types.MuteErrorCommentThreadMutation,
+	Types.MuteErrorCommentThreadMutationVariables
+>
+
+/**
+ * __useMuteErrorCommentThreadMutation__
+ *
+ * To run a mutation, you first call `useMuteErrorCommentThreadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMuteErrorCommentThreadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [muteErrorCommentThreadMutation, { data, loading, error }] = useMuteErrorCommentThreadMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      has_muted: // value for 'has_muted'
+ *   },
+ * });
+ */
+export function useMuteErrorCommentThreadMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.MuteErrorCommentThreadMutation,
+		Types.MuteErrorCommentThreadMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.MuteErrorCommentThreadMutation,
+		Types.MuteErrorCommentThreadMutationVariables
+	>(MuteErrorCommentThreadDocument, baseOptions)
+}
+export type MuteErrorCommentThreadMutationHookResult = ReturnType<
+	typeof useMuteErrorCommentThreadMutation
+>
+export type MuteErrorCommentThreadMutationResult =
+	Apollo.MutationResult<Types.MuteErrorCommentThreadMutation>
+export type MuteErrorCommentThreadMutationOptions = Apollo.BaseMutationOptions<
+	Types.MuteErrorCommentThreadMutation,
+	Types.MuteErrorCommentThreadMutationVariables
 >
 export const ReplyToErrorCommentDocument = gql`
 	mutation ReplyToErrorComment(

@@ -8,6 +8,7 @@ import {
 	useGetDailyErrorFrequencyQuery,
 	useGetErrorGroupQuery,
 	useGetRecentErrorsQuery,
+	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
@@ -125,11 +126,30 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		page: NumberParam,
 	})
 
+	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
-		const commentId = new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		)
+		const urlParams = new URLSearchParams(location.search)
+
+		const commentId = urlParams.get(PlayerSearchParameters.commentId)
 		setDeepLinkedCommentId(commentId)
+
+		const hasMuted = urlParams.get(PlayerSearchParameters.muted) === '1'
+		if (commentId && hasMuted) {
+			muteErrorCommentThread({
+				variables: {
+					id: commentId,
+					has_muted: hasMuted,
+				},
+			}).then(() => {
+				const searchParams = new URLSearchParams(location.search)
+				searchParams.delete(PlayerSearchParameters.muted)
+				history.replace(
+					`${history.location.pathname}?${searchParams.toString()}`,
+				)
+
+				message.success('Muted notifications for this comment thread.')
+			})
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
 
