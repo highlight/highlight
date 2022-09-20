@@ -204,7 +204,7 @@ func main() {
 		log.Fatalf("error creating oauth client: %v", err)
 	}
 
-	private.SetupAuthClient()
+	private.SetupAuthClient(oauthSrv)
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -253,9 +253,12 @@ func main() {
 			privateEndpoint = "/"
 		}
 
-		r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
-		r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
-		r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
+		r.Route("/oauth", func(r chi.Router) {
+			r.Use(private.PrivateMiddleware)
+			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
+			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
+			r.HandleFunc("/validate", oauthSrv.HandleValidate)
+		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db)

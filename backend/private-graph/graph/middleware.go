@@ -16,16 +16,18 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/oauth"
 	e "github.com/pkg/errors"
 )
 
 var (
-	AuthClient *auth.Client
+	AuthClient  *auth.Client
+	OAuthServer *oauth.Server
 )
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io", "@runhighlight.com"}
 
-func SetupAuthClient() {
+func SetupAuthClient(oauthServer *oauth.Server) {
 	secret := os.Getenv("FIREBASE_SECRET")
 	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
 		"https://www.googleapis.com/auth/firebase",
@@ -42,6 +44,7 @@ func SetupAuthClient() {
 	if AuthClient, err = app.Auth(context.Background()); err != nil {
 		log.Fatalf("error creating firebase client: %v", err)
 	}
+	OAuthServer = oauthServer
 }
 
 func updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
@@ -70,10 +73,22 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("token")
-		ctx, err := updateContextWithAuthenticatedUser(r.Context(), token)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		var err error
+		ctx := r.Context()
+		if token := r.Header.Get("token"); token != "" {
+			ctx, err = updateContextWithAuthenticatedUser(ctx, token)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else if oauthToken := r.Header.Get("authorization"); oauthToken != "" {
+			ctx, err = OAuthServer.AuthContext(ctx, r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+		} else {
+			http.Error(w, "no authentication specified", http.StatusUnauthorized)
 			return
 		}
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))

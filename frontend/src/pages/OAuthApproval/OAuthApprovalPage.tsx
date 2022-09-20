@@ -1,16 +1,18 @@
-import { CardForm, CardFormActionsContainer } from '@components/Card/Card'
-import React, { useEffect } from 'react'
-import { Helmet } from 'react-helmet'
-import Button from '../../components/Button/Button/Button'
+import { CardFormActionsContainer } from '@components/Card/Card'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { StringParam, useQueryParams } from 'use-query-params'
+import useLocalStorage from '@rehooks/local-storage'
+import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
-import { GenerateSecureRandomString } from '@util/random'
-import useLocalStorage from '@rehooks/local-storage'
+import Firebase from 'firebase'
+import React, { useEffect } from 'react'
+import { Helmet } from 'react-helmet'
+import { StringParam, useQueryParams } from 'use-query-params'
+
+import Button from '../../components/Button/Button/Button'
 
 interface OAuthToken {
 	access_token: string
@@ -18,8 +20,8 @@ interface OAuthToken {
 	refresh_token: string
 	token_type: string
 }
-// TODO(vkorolik) dynamic...
-const OAuthBackend = `https://localhost:8082`
+
+const OAuthBackend = `https://pri.highlight.run`
 const OAuthApprovalPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [oauthParams] = useQueryParams({
@@ -33,12 +35,15 @@ const OAuthApprovalPage = () => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
 
-	const onSubmit = async (e: { preventDefault: () => void }) => {
+	const onLogin = async (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		const user = Firebase.auth().currentUser
+		const userToken = (await user?.getIdToken()) || ''
 		const state = GenerateSecureRandomString(32)
 		const redirectUri = `${GetBaseURL()}/oauth/authorize`
 		const auth = await fetch(
 			`${OAuthBackend}/oauth/authorize?response_type=code&redirect_uri=${redirectUri}&client_id=${oauthParams.client_id}&state=${state}`,
+			{ headers: { token: userToken } },
 		)
 		const { code, state: returnedState } = new Proxy(
 			new URLSearchParams(new URL(auth.url).search),
@@ -59,6 +64,7 @@ const OAuthApprovalPage = () => {
 
 		const token = await fetch(
 			`${OAuthBackend}/oauth/token?grant_type=authorization_code&redirect_uri=${redirectUri}&client_id=${oauthParams.client_id}&code=${code}`,
+			{ method: 'POST', headers: { token: userToken } },
 		)
 		if (!token.ok) {
 			return message.error(`Something went wrong. Please try again.`)
@@ -66,7 +72,7 @@ const OAuthApprovalPage = () => {
 		const data = (await token.json()) as OAuthToken
 		setLocalStorageOAuth(data)
 
-		await message.success(`Successfully authenticated!`)
+		await message.success(`Successfully authorized!`)
 		if (oauthParams.redirect_uri) {
 			window.location.href = oauthParams.redirect_uri
 		}
@@ -77,15 +83,15 @@ const OAuthApprovalPage = () => {
 			<Helmet>
 				<title>New OAuth Integration</title>
 			</Helmet>
-			<div className={'bg-white border border-gray-300 max-w-lg p-8'}>
+			<div className={'max-w-lg border border-gray-300 bg-white p-8'}>
 				<h2
-					className={'text-2xl mb-3'}
+					className={'mb-3 text-2xl'}
 				>{`Do you want to add ${oauthParams.client_id} to your account?`}</h2>
-				<p className={'text-gray-500 text-base mb-6'}>
+				<p className={'mb-6 text-base text-gray-500'}>
 					Make sure you trust this app with access to your Highlight
 					data.
 				</p>
-				<CardForm onSubmit={onSubmit} className="gap-5">
+				<div className="gap-5">
 					{localStorageOAuth?.access_token ? (
 						<div className={'text-center'}>
 							You're already logged in!
@@ -95,24 +101,33 @@ const OAuthApprovalPage = () => {
 							<Button
 								trackingId={`OAuthApprove`}
 								type="primary"
-								className="flex mx-0"
+								className="mx-0 flex"
 								block
-								htmlType="submit"
+								onClick={onLogin}
 							>
 								Approve
 							</Button>
-							{/*TODO(vkorolik) what to do on reject?*/}
 							<Button
 								trackingId={`OAuthReject`}
-								className="flex mx-0"
+								className="mx-0 flex"
 								block
 								danger
+								onClick={() => {
+									message
+										.warning(`Rejecting authorization!`)
+										.then(() => {
+											if (oauthParams.redirect_uri) {
+												window.location.href =
+													oauthParams.redirect_uri
+											}
+										})
+								}}
 							>
 								Reject
 							</Button>
 						</CardFormActionsContainer>
 					)}
-				</CardForm>
+				</div>
 			</div>
 		</>
 	)

@@ -1,7 +1,9 @@
 package oauth
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -17,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -80,17 +83,23 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 		log.Errorf("Response Error: %s", re.Error.Error())
 	})
 
-	srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-		return "oauth-client", nil
-	})
-
 	s := &Server{
 		srv: srv,
 		db:  db,
 	}
 	srv.SetClientInfoHandler(s.ClientInfoHandler)
+	srv.SetUserAuthorizationHandler(s.UserAuthorizationHandler)
 	return s, nil
 }
+func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request) (userID string, err error) {
+	uid := fmt.Sprintf("%v", r.Context().Value(model.ContextKeys.UID))
+	admin := &model.Admin{UID: &uid}
+	if err := s.db.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+		return "", errors.ErrUnauthorizedClient
+	}
+	return fmt.Sprintf("%s:%s", *admin.UID, *admin.Email), nil
+}
+
 func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret string, err error) {
 	if id, secret, err := server.ClientBasicHandler(r); err == nil {
 		return id, secret, nil
@@ -143,4 +152,15 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 	je := json.NewEncoder(w)
 	je.SetIndent("", "  ")
 	_ = je.Encode(data)
+}
+
+func (s *Server) AuthContext(ctx context.Context, r *http.Request) (context.Context, error) {
+	token, err := s.srv.ValidationBearerToken(r)
+	if err != nil {
+		return nil, errors.ErrUnauthorizedClient
+	}
+	parts := strings.Split(token.GetUserID(), ":")
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
+	return ctx, nil
 }
