@@ -9110,7 +9110,8 @@ export type GetTopUsersQueryResult = Apollo.QueryResult<
 export const GetTopSegmentsDocument = gql`
 	query GetTopSegments($project_id: ID!, $lookBackPeriod: Int!) {
 		topSegments(project_id: $project_id, lookBackPeriod: $lookBackPeriod) {
-			identifier
+			id
+			name
 			session_count
 		}
 	}

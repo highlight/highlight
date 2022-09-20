@@ -375,7 +375,7 @@ type SubscriptionDetails struct {
 
 type TopSegmentsPayload struct {
 	ID           int    `json:"id"`
-	Identifier   string `json:"identifier"`
+	Name         string `json:"name"`
 	SessionCount int    `json:"session_count"`
 }
 

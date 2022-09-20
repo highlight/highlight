@@ -5,18 +5,19 @@ import {
 import {
 	ProgressBarTablePill,
 	ProgressBarTableRowGroup,
-	ProgressBarTableUserAvatar,
 } from '@components/ProgressBarTable/components/ProgressBarTableColumns'
 import { useGetTopSegmentsQuery } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -28,6 +29,8 @@ const TopSegmentsTable = ({
 	setUpdatingData: React.Dispatch<React.SetStateAction<boolean>>
 }) => {
 	const [tableData, setTableData] = useState<any[]>()
+	const { setSegmentName, setSelectedSegment } = useSearchContext()
+
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -37,6 +40,7 @@ const TopSegmentsTable = ({
 			: project_id
 
 	const { timeRange } = useDataTimeRange()
+	const history = useHistory()
 
 	const { loading, data } = useGetTopSegmentsQuery({
 		variables: {
@@ -48,8 +52,8 @@ const TopSegmentsTable = ({
 		onCompleted: (data) => {
 			if (data.topSegments) {
 				const transformedData = data.topSegments.map((segment) => ({
-					key: segment?.identifier,
-					identifier: segment?.identifier,
+					id: segment?.id,
+					name: segment?.name,
 					sessionCount: segment?.session_count,
 				}))
 
@@ -76,7 +80,14 @@ const TopSegmentsTable = ({
 					loading={false}
 					columns={Columns}
 					data={tableData}
-					onClickHandler={() => {}}
+					onClickHandler={(segment) => {
+						history.push(`/${projectIdRemapped}/sessions`)
+						setSegmentName(segment.name)
+						setSelectedSegment({
+							id: segment.id,
+							value: segment.name,
+						})
+					}}
 					noDataMessage={
 						!data?.topSegments?.length && (
 							<>
@@ -111,18 +122,14 @@ export default TopSegmentsTable
 
 const Columns: ColumnsType<any> = [
 	{
-		title: 'Session',
-		dataIndex: 'identifier',
-		key: 'identifier',
-		render: (user, record) => {
+		title: 'Segment',
+		dataIndex: 'name',
+		key: 'name',
+		render: (name) => {
 			return (
 				<div className={styles.hostContainer}>
 					<ProgressBarTableRowGroup>
-						<ProgressBarTableUserAvatar
-							identifier={user}
-							userProperties={record.userProperties}
-						/>
-						<span>{user}</span>
+						<span>{name}</span>
 					</ProgressBarTableRowGroup>
 				</div>
 			)
@@ -130,8 +137,8 @@ const Columns: ColumnsType<any> = [
 	},
 	{
 		title: 'Session Counts',
-		dataIndex: 'sessionCounts',
-		key: 'sessionCounts',
+		dataIndex: 'sessionCount',
+		key: 'sessionCount',
 		align: 'right',
 		render: (count) => (
 			<ProgressBarTableRowGroup alignment="ending">

@@ -30,7 +30,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4547,7 +4547,24 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 
 // TopSegments is the resolver for the topSegments field.
 func (r *queryResolver) TopSegments(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopSegmentsPayload, error) {
+	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
+		return nil, e.Wrap(err, "admin not found in project")
+	}
+	// list of maps, where each map represents a field query.
+	segments := []*model.Segment{}
+	if err := r.DB.Model(model.Segment{}).Where("project_id = ?", projectID).Find(&segments).Error; err != nil {
+		log.Errorf("error querying segments from project: %v", err)
+	}
+
 	var topSegmentsPayload = []*modelInputs.TopSegmentsPayload{}
+	for _, segment := range segments {
+		topSegmentsPayload = append(topSegmentsPayload, &modelInputs.TopSegmentsPayload{
+			ID:           segment.ID,
+			Name:         *segment.Name,
+			SessionCount: 0,
+		})
+	}
+
 	return topSegmentsPayload, nil
 }
 

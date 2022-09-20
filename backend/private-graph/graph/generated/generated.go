@@ -851,7 +851,7 @@ type ComplexityRoot struct {
 
 	TopSegmentsPayload struct {
 		ID           func(childComplexity int) int
-		Identifier   func(childComplexity int) int
+		Name         func(childComplexity int) int
 		SessionCount func(childComplexity int) int
 	}
 
@@ -6070,12 +6070,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TopSegmentsPayload.ID(childComplexity), true
 
-	case "TopSegmentsPayload.identifier":
-		if e.complexity.TopSegmentsPayload.Identifier == nil {
+	case "TopSegmentsPayload.name":
+		if e.complexity.TopSegmentsPayload.Name == nil {
 			break
 		}
 
-		return e.complexity.TopSegmentsPayload.Identifier(childComplexity), true
+		return e.complexity.TopSegmentsPayload.Name(childComplexity), true
 
 	case "TopSegmentsPayload.session_count":
 		if e.complexity.TopSegmentsPayload.SessionCount == nil {
@@ -6816,7 +6816,7 @@ type TopUsersPayload {
 
 type TopSegmentsPayload {
 	id: ID!
-	identifier: String!
+	name: String!
 	session_count: Int!
 }
 
@@ -32335,8 +32335,8 @@ func (ec *executionContext) fieldContext_Query_topSegments(ctx context.Context, 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_TopSegmentsPayload_id(ctx, field)
-			case "identifier":
-				return ec.fieldContext_TopSegmentsPayload_identifier(ctx, field)
+			case "name":
+				return ec.fieldContext_TopSegmentsPayload_name(ctx, field)
 			case "session_count":
 				return ec.fieldContext_TopSegmentsPayload_session_count(ctx, field)
 			}
@@ -43211,8 +43211,8 @@ func (ec *executionContext) fieldContext_TopSegmentsPayload_id(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _TopSegmentsPayload_identifier(ctx context.Context, field graphql.CollectedField, obj *model.TopSegmentsPayload) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_TopSegmentsPayload_identifier(ctx, field)
+func (ec *executionContext) _TopSegmentsPayload_name(ctx context.Context, field graphql.CollectedField, obj *model.TopSegmentsPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TopSegmentsPayload_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -43225,7 +43225,7 @@ func (ec *executionContext) _TopSegmentsPayload_identifier(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Identifier, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -43242,7 +43242,7 @@ func (ec *executionContext) _TopSegmentsPayload_identifier(ctx context.Context, 
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_TopSegmentsPayload_identifier(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_TopSegmentsPayload_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TopSegmentsPayload",
 		Field:      field,
@@ -54677,9 +54677,9 @@ func (ec *executionContext) _TopSegmentsPayload(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "identifier":
+		case "name":
 
-			out.Values[i] = ec._TopSegmentsPayload_identifier(ctx, field, obj)
+			out.Values[i] = ec._TopSegmentsPayload_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

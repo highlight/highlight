@@ -423,7 +423,7 @@ export type TopUsersPayload = {
 export type TopSegmentsPayload = {
 	__typename?: 'TopSegmentsPayload'
 	id: Scalars['ID']
-	identifier: Scalars['String']
+	name: Scalars['String']
 	session_count: Scalars['Int']
 }
 
@@ -1060,7 +1060,7 @@ export type Query = {
 	referrers: Array<Maybe<ReferrerTablePayload>>
 	newUsersCount?: Maybe<NewUsersCount>
 	topUsers: Array<Maybe<TopUsersPayload>>
-	topSegments: Array<TopSegmentsPayload>
+	topSegments: Array<Maybe<TopSegmentsPayload>>
 	averageSessionLength?: Maybe<AverageSessionLength>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
 	sessions_opensearch: SessionResults

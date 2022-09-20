@@ -3412,7 +3412,7 @@ export type GetTopSegmentsQuery = { __typename?: 'Query' } & {
 		Types.Maybe<
 			{ __typename?: 'TopSegmentsPayload' } & Pick<
 				Types.TopSegmentsPayload,
-				'identifier' | 'session_count'
+				'id' | 'name' | 'session_count'
 			>
 		>
 	>

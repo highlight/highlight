@@ -376,7 +376,7 @@ type TopUsersPayload {
 
 type TopSegmentsPayload {
 	id: ID!
-	identifier: String!
+	name: String!
 	session_count: Int!
 }
 
