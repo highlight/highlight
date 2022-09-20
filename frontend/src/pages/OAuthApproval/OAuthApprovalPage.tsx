@@ -1,4 +1,3 @@
-import { CardFormActionsContainer } from '@components/Card/Card'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -21,14 +20,17 @@ interface OAuthToken {
 	token_type: string
 }
 
-const OAuthBackend = `https://pri.highlight.run`
+const OAuthBackend =
+	window.location.host.indexOf('300') === -1
+		? `https://pri.highlight.run`
+		: `https://localhost:8082`
 const OAuthApprovalPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [oauthParams] = useQueryParams({
 		client_id: StringParam,
 		redirect_uri: StringParam,
 	})
-	const [localStorageOAuth, setLocalStorageOAuth] =
+	const [localStorageOAuth, setLocalStorageOAuth, clearLocalStorageOAuth] =
 		useLocalStorage<OAuthToken>(`highlight-oauth`)
 
 	useEffect(() => {
@@ -48,8 +50,24 @@ const OAuthApprovalPage = () => {
 		}
 	}, [localStorageOAuth])
 
-	const onLogin = async (e: { preventDefault: () => void }) => {
-		e.preventDefault()
+	useEffect(() => {
+		if (localStorageOAuth?.access_token) {
+			validate(localStorageOAuth.access_token).then((valid) => {
+				if (!valid) {
+					clearLocalStorageOAuth()
+				}
+			})
+		}
+	}, [clearLocalStorageOAuth, localStorageOAuth])
+
+	const validate = async (accessToken: string) => {
+		const auth = await fetch(`${OAuthBackend}/oauth/validate`, {
+			headers: { Authorization: `Bearer ${accessToken}` },
+		})
+		return auth.ok
+	}
+
+	const onLogin = async () => {
 		const user = Firebase.auth().currentUser
 		const userToken = (await user?.getIdToken()) || ''
 		const state = GenerateSecureRandomString(32)
@@ -104,13 +122,13 @@ const OAuthApprovalPage = () => {
 					Make sure you trust this app with access to your Highlight
 					data.
 				</p>
-				<div className="gap-5">
+				<div>
 					{localStorageOAuth?.access_token ? (
 						<div className={'text-center'}>
 							You're already logged in!
 						</div>
 					) : (
-						<CardFormActionsContainer>
+						<div className={'flex gap-5'}>
 							<Button
 								trackingId={`OAuthApprove`}
 								type="primary"
@@ -138,7 +156,7 @@ const OAuthApprovalPage = () => {
 							>
 								Reject
 							</Button>
-						</CardFormActionsContainer>
+						</div>
 					)}
 				</div>
 			</div>
