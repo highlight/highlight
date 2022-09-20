@@ -39,15 +39,10 @@ const OAuthApprovalPage = () => {
 
 	useEffect(() => {
 		if (!localStorageOAuth?.access_token) return
-		// send the oauth token to a potential iframe parent for transferring it to another domain
-		const iframe = document.getElementById('highlight-receiver')
-		if (iframe) {
-			const receiver = (iframe as HTMLIFrameElement).contentWindow
-			receiver!.postMessage(
-				'highlight-oauth',
-				JSON.stringify(localStorageOAuth),
-			)
-		}
+		const value = JSON.stringify(localStorageOAuth)
+		const expDate = new Date()
+		expDate.setDate(expDate.getDate() + 1)
+		document.cookie = `highlight-oauth=${value};expires=${expDate};domain=.highlight.run;path=/`
 	}, [localStorageOAuth])
 
 	useEffect(() => {

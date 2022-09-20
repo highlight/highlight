@@ -49,10 +49,18 @@ export function useHighlightContext() {
 }
 
 export function getOAuthToken() {
-	const d = window.localStorage.getItem('highlight-oauth')
+	const name = 'highlight-oauth'
+	const d = window.localStorage.getItem(name)
 	if (d) {
 		return JSON.parse(d) as OAuthToken
 	}
+
+	const value = `; ${document.cookie}`
+	const parts = value.split(`; ${name}=`)
+	if (parts.length === 2) {
+		return JSON.parse(parts.pop()?.split(';').shift() || '') as OAuthToken
+	}
+
 	return undefined
 }
 
@@ -79,21 +87,6 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 		}
 	}, [OAuthData])
 
-	window.addEventListener('message', function (e: MessageEvent) {
-		if (
-			e.origin !== 'https://app.highlight.run' &&
-			e.origin !== 'https://localhost:3000'
-		) {
-			return
-		}
-		try {
-			const d = JSON.parse(e.data)
-			if (d?.access_token) {
-				setOAuthData(d)
-			}
-		} catch (e) {}
-	})
-
 	return (
 		<HighlightContext.Provider
 			value={{
@@ -104,17 +97,7 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 				admin,
 			}}
 		>
-			<>
-				{children}
-				<iframe
-					id="highlight-receiver"
-					src={`${HIGHLIGHT_URI}/oauth/authorize`}
-					width={100}
-					height={100}
-					hidden
-					title={'highlight'}
-				/>
-			</>
+			<>{children}</>
 		</HighlightContext.Provider>
 	)
 }
