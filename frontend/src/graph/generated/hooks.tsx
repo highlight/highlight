@@ -10590,7 +10590,6 @@ export function useGetSourcemapVersionsLazyQuery(
 		Types.GetSourcemapVersionsQueryVariables
 	>(GetSourcemapVersionsDocument, baseOptions)
 }
-
 export type GetSourcemapVersionsQueryHookResult = ReturnType<
 	typeof useGetSourcemapVersionsQuery
 >
@@ -10638,7 +10637,6 @@ export function useGetOAuthClientMetadataQuery(
 		Types.GetOAuthClientMetadataQueryVariables
 	>(GetOAuthClientMetadataDocument, baseOptions)
 }
-
 export function useGetOAuthClientMetadataLazyQuery(
 	baseOptions?: Apollo.LazyQueryHookOptions<
 		Types.GetOAuthClientMetadataQuery,
@@ -10650,7 +10648,6 @@ export function useGetOAuthClientMetadataLazyQuery(
 		Types.GetOAuthClientMetadataQueryVariables
 	>(GetOAuthClientMetadataDocument, baseOptions)
 }
-
 export type GetOAuthClientMetadataQueryHookResult = ReturnType<
 	typeof useGetOAuthClientMetadataQuery
 >

@@ -9,7 +9,20 @@ const OAuth = () => {
 	}
 	return (
 		<div className={'flex flex-col'}>
-			<div className={'flex flex-row justify-end items-center p-3'}>
+			<div
+				className={
+					'flex flex-row justify-end items-center px-10 py-3 h-8'
+				}
+			>
+				{admin?.admin?.photo_url && (
+					<div className={'flex justify-end p-3'}>
+						<img
+							className={'rounded-lg w-8 h-8'}
+							src={admin?.admin?.photo_url}
+							alt={`${admin.admin.name}'s profile`}
+						/>
+					</div>
+				)}
 				{admin ? (
 					<Button
 						onClick={() => {
@@ -26,15 +39,6 @@ const OAuth = () => {
 					>
 						Login
 					</Button>
-				)}
-				{admin?.admin?.photo_url && (
-					<div className={'flex justify-end p-3'}>
-						<img
-							className={'rounded-lg w-8 h-8'}
-							src={admin?.admin?.photo_url}
-							alt={`${admin.admin.name}'s profile`}
-						/>
-					</div>
 				)}
 			</div>
 		</div>
