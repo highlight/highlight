@@ -26,8 +26,10 @@ import (
 const CookieName = "highlightOAuth"
 
 type Server struct {
-	srv *server.Server
-	db  *gorm.DB
+	srv          *server.Server
+	db           *gorm.DB
+	tokenManager *manage.Manager
+	clientStore  *store.ClientStore
 }
 
 type Token struct {
@@ -93,8 +95,10 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 	})
 
 	s := &Server{
-		srv: srv,
-		db:  db,
+		tokenManager: manager,
+		clientStore:  clientStore,
+		srv:          srv,
+		db:           db,
 	}
 	srv.SetClientInfoHandler(s.ClientInfoHandler)
 	srv.SetUserAuthorizationHandler(s.UserAuthorizationHandler)
@@ -130,6 +134,24 @@ func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret stri
 	}
 
 	return client.ID, client.Secret, nil
+}
+
+func (s *Server) HandleRevoke(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	token, err := s.srv.ValidationBearerToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = s.tokenManager.RemoveAccessToken(ctx, token.GetAccess())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	err = s.tokenManager.RemoveRefreshToken(ctx, token.GetRefresh())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) {

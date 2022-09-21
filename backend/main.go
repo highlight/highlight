@@ -258,6 +258,7 @@ func main() {
 			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
 			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
 			r.HandleFunc("/validate", oauthSrv.HandleValidate)
+			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
 		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
