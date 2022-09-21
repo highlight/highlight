@@ -38,7 +38,7 @@ def process(bucket, secure_id, copy_errors=False):
 
     # Get session from prod
     session = run_sql(f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'", prod=True)[0]
-    print(session)
+    print(f'Copying session {session["id"]} to your local DB...')
 
     # Prepare values for insert into dev DB
     new_session = session.copy()
@@ -49,10 +49,7 @@ def process(bucket, secure_id, copy_errors=False):
     # Insert into dev DB
     run_sql(f'INSERT INTO public.sessions ({keys}) VALUES ({values}) ON CONFLICT DO NOTHING', insert=True)
 
-    if not copy_errors:
-        return
-
-    # Copy files from S3 to dev/1 (local Highlight project)
+    print("Copying session files from prod S3 to dev/1...")
     prefix = f'{session["project_id"]}/{session["id"]}'
     for file in b.objects.filter(Prefix=prefix).all():
         new_obj = b.Object(f'dev/1/{new_session["id"]}/{file.key.split("/")[-1]}')
@@ -60,6 +57,12 @@ def process(bucket, secure_id, copy_errors=False):
             'Bucket': bucket,
             'Key': file.key
         })
+
+    if not copy_errors:
+        print("Finished copying session without errors. Run with `-e` to copy error groups/objects and sourcemaps.")
+        return
+
+    print("Copying error groups & objects to your local DB...")
 
     # Get error objects associated with session
     error_objects = run_sql(f"SELECT * FROM error_objects WHERE session_id = '{session['id']}'", prod=True)
@@ -79,19 +82,20 @@ def process(bucket, secure_id, copy_errors=False):
 
     # Insert error objects
     for error_object in error_objects:
-        error_object_keys = ", ".join(k for k in error_object.keys() if k not in DROP_ERROR_OBJECT_KEYS)
-        error_object_values = ", ".join(format_sql_value(error_object[k]) for k in error_object if k not in DROP_ERROR_OBJECT_KEYS)
+        new_error_object = error_group.copy()
+        new_error_object['project_id'] = 1
+        error_object_keys = ", ".join(k for k in new_error_object.keys() if k not in DROP_ERROR_OBJECT_KEYS)
+        error_object_values = ", ".join(format_sql_value(new_error_object[k]) for k in new_error_object if k not in DROP_ERROR_OBJECT_KEYS)
         run_sql(f'INSERT INTO public.error_objects ({error_object_keys}) VALUES ({error_object_values}) ON CONFLICT DO NOTHING', insert=True)
 
-    # Copy sourcemap files to local Highlight project (/1)
+    print("Copying JS and sourcemap files from prod S3 to dev/1...")
     sourcemaps_prefix = f'{session["project_id"]}'
     for file in sourcemaps_bucket.objects.filter(Prefix=sourcemaps_prefix).all():
-        if file.key.endswith('.map'):
-            new_obj = sourcemaps_bucket.Object(f'1/{file.key.split("/", 1)[-1]}')
-            new_obj.copy({
-                'Bucket': sourcemaps_bucket_name,
-                'Key': file.key
-            })
+        new_obj = sourcemaps_bucket.Object(f'dev/1/{file.key.split("/", 1)[-1]}')
+        new_obj.copy({
+            'Bucket': sourcemaps_bucket_name,
+            'Key': file.key
+        })
 
 
 def run_sql(sql='select 1;', prod=False, insert=False):
