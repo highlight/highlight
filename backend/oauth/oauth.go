@@ -20,7 +20,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
-	"time"
 )
 
 const CookieName = "highlightOAuth"
@@ -28,6 +27,13 @@ const CookieName = "highlightOAuth"
 type Server struct {
 	srv *server.Server
 	db  *gorm.DB
+}
+
+type Token struct {
+	AccessToken  string
+	ExpiresIn    int64
+	Scope        string
+	RefreshToken string
 }
 
 func getTokenStore() *oredis.TokenStore {
@@ -145,15 +151,10 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	cookieData, err := json.Marshal(&struct {
-		AccessToken  string
-		ExpiresIn    time.Duration
-		Scope        string
-		RefreshToken string
-	}{
+	expirySeconds := token.GetAccessExpiresIn().Seconds()
+	cookieData, err := json.Marshal(&Token{
 		AccessToken:  token.GetAccess(),
-		ExpiresIn:    token.GetAccessExpiresIn(),
+		ExpiresIn:    int64(expirySeconds),
 		Scope:        token.GetScope(),
 		RefreshToken: token.GetRefresh(),
 	})
@@ -161,23 +162,25 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	domain := "highlight.run"
+	domain := ".highlight.run"
 	if util.IsDevEnv() {
-		domain = "localhost"
+		domain = ".highlight.localhost"
 	}
 	cookie := http.Cookie{
-		Name:     CookieName,
-		Value:    string(cookieData),
-		MaxAge:   int(time.Now().Add(token.GetAccessExpiresIn()).Unix()),
-		Domain:   domain,
-		Path:     "/",
-		Secure:   true,
+		Name:   CookieName,
+		Value:  string(cookieData),
+		MaxAge: int(expirySeconds),
+		Domain: domain,
+		Path:   "/",
+		Secure: true,
+		// need js access to refresh
+		HttpOnly: false,
 		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)
 
 	data := map[string]interface{}{
-		"expires_in": int64(time.Until(token.GetAccessCreateAt().Add(token.GetAccessExpiresIn())).Seconds()),
+		"expires_in": int64(expirySeconds),
 		"client_id":  token.GetClientID(),
 		"user_id":    token.GetUserID(),
 		"validated":  true,

@@ -1,6 +1,7 @@
 import {
 	createContext,
 	PropsWithChildren,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
@@ -8,6 +9,7 @@ import {
 import { gql } from '@apollo/client'
 import { useGetAdminQuery } from '../graph/generated/hooks'
 import { GetAdminQuery } from '../graph/generated/operations'
+import { HighlightPrivateGraph } from '../util/graph'
 
 const HIGHLIGHT_CLIENT_ID = 'aa101e42-169c-46f8-bed7-8d1f992d3cf0'
 
@@ -49,11 +51,6 @@ export function useHighlightContext() {
 
 export function getOAuthToken() {
 	const name = 'highlightOAuth'
-	const d = window.localStorage.getItem(name)
-	if (d) {
-		return JSON.parse(d) as OAuthToken
-	}
-
 	const value = `; ${document.cookie}`
 	const parts = value.split(`; ${name}=`)
 	if (parts.length === 2) {
@@ -66,24 +63,47 @@ export function getOAuthToken() {
 export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 	const [OAuthData, setOAuthData] = useState<OAuthToken>()
 	const { loading, data: admin } = useGetAdminQuery({})
+
 	const externalAuth = async () => {
 		window.open(
 			`${HIGHLIGHT_URI}/oauth/authorize?client_id=${HIGHLIGHT_CLIENT_ID}`,
 		)
 	}
 
+	const validate = useCallback(async () => {
+		const auth = await fetch(`${HighlightPrivateGraph}/oauth/validate`, {
+			credentials: 'include',
+			headers: {
+				Authorization: `Bearer ${OAuthData?.access_token}`,
+			},
+		})
+		return auth.ok
+	}, [OAuthData])
+
+	const refresh = async () => {
+		if (!OAuthData?.access_token || !OAuthData.refresh_token) return
+		const data = new FormData()
+		data.append('refresh_token', OAuthData.refresh_token)
+		const auth = await fetch(
+			`${HighlightPrivateGraph}/oauth/token?grant_type=refresh_token`,
+			{
+				credentials: 'include',
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${OAuthData.access_token}`,
+				},
+			},
+		)
+		return auth.ok
+	}
+
+	useEffect(() => {
+		validate().then((valid) => console.log('vadim', 'valid', valid))
+	}, [validate])
+
 	useEffect(() => {
 		setOAuthData(getOAuthToken())
 	}, [])
-
-	useEffect(() => {
-		if (OAuthData?.access_token) {
-			window.localStorage.setItem(
-				'highlight-oauth',
-				JSON.stringify(OAuthData),
-			)
-		}
-	}, [OAuthData])
 
 	return (
 		<HighlightContext.Provider

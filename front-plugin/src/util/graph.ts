@@ -2,12 +2,12 @@ import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { getOAuthToken } from '../providers/highlightContext'
 
-const uri =
-	window.location.host.indexOf('300') === -1
+export const HighlightPrivateGraph =
+	window.location.host.indexOf('local') === -1
 		? 'https://pri.highlight.run'
 		: 'https://localhost:8082/private'
 const highlightGraph = createHttpLink({
-	uri,
+	uri: HighlightPrivateGraph,
 	credentials: 'include',
 })
 
