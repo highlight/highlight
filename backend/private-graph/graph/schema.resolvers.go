@@ -6059,6 +6059,19 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 	return appVersions, nil
 }
 
+// OauthClientMetadata is the resolver for the oauth_client_metadata field.
+func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string) (*modelInputs.OAuthClient, error) {
+	client := &model.OAuthClientStore{ID: clientID}
+	if err := r.DB.Model(&client).Select("id", "created_at", "app_name").Where(&client).First(&client).Error; err != nil {
+		return nil, e.Wrap(err, "error querying oauth client")
+	}
+	return &modelInputs.OAuthClient{
+		ID:        client.ID,
+		CreatedAt: client.CreatedAt,
+		AppName:   client.AppName,
+	}, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

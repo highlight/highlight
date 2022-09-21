@@ -1048,7 +1048,6 @@ type OAuthClientStore struct {
 	CreatedAt time.Time      `json:"created_at" deep:"-"`
 	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
 	Domains   pq.StringArray `gorm:"not null;type:text[]"`
-	UserID    string
 	AppName   string
 }
 

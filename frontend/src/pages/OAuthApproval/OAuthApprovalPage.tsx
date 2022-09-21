@@ -2,6 +2,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { useGetOAuthClientMetadataQuery } from '@graph/hooks'
 import { GenerateSecureRandomString } from '@util/random'
 import { message } from 'antd'
 import Firebase from 'firebase'
@@ -33,10 +34,18 @@ const OAuthApprovalPage = () => {
 		redirect_uri: StringParam,
 	})
 	const [localStorageOAuth, setLocalStorageOAuth] = useState<OAuthToken>()
+	const { loading, called, data } = useGetOAuthClientMetadataQuery({
+		variables: {
+			client_id: oauthParams.client_id || '',
+		},
+		skip: !oauthParams.client_id,
+	})
 
 	useEffect(() => {
-		setLoadingState(AppLoadingState.LOADED)
-	}, [setLoadingState])
+		if (!loading && called) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [setLoadingState, loading, called])
 
 	const validate = async (accessToken: string) => {
 		const auth = await fetch(`${OAuthBackend}/oauth/validate`, {
@@ -94,15 +103,19 @@ const OAuthApprovalPage = () => {
 		}
 	}
 
+	if (loading) {
+		return null
+	}
 	return (
 		<>
 			<Helmet>
 				<title>New OAuth Integration</title>
 			</Helmet>
 			<div className={'max-w-lg border border-gray-300 bg-white p-8'}>
-				<h2
-					className={'mb-3 text-2xl'}
-				>{`Do you want to add ${oauthParams.client_id} to your account?`}</h2>
+				<h2 className={'mb-3 text-2xl'}>{`Do you want to add ${
+					data?.oauth_client_metadata?.app_name ||
+					oauthParams.client_id
+				} to your account?`}</h2>
 				<p className={'mb-6 text-base text-gray-500'}>
 					Make sure you trust this app with access to your Highlight
 					data.
@@ -130,7 +143,9 @@ const OAuthApprovalPage = () => {
 								danger
 								onClick={() => {
 									message
-										.warning(`Rejecting authorization!`)
+										.warning(
+											`Rejecting authorization! Please close this window.`,
+										)
 										.then(() => {
 											if (oauthParams.redirect_uri) {
 												window.location.href =

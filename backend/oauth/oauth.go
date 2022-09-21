@@ -72,7 +72,6 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 				ID:     client.ID,
 				Secret: client.Secret,
 				Domain: uri,
-				UserID: client.UserID,
 			})
 			if err != nil {
 				return nil, e.Wrapf(err, "failed to set oauth client store entry %s", client.ID)
