@@ -1,7 +1,8 @@
 import * as Types from './operations'
 
-import { gql } from '@apollo/client'
 import * as Apollo from '@apollo/client'
+import { gql } from '@apollo/client'
+
 const defaultOptions = {} as const
 
 export const GetAdminDocument = gql`
@@ -10,6 +11,7 @@ export const GetAdminDocument = gql`
 			id
 			name
 			email
+			photo_url
 		}
 	}
 `

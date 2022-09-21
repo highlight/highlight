@@ -10,7 +10,6 @@ import { gql } from '@apollo/client'
 import { useGetAdminLazyQuery } from '../graph/generated/hooks'
 import { GetAdminQuery } from '../graph/generated/operations'
 import { client, HighlightPrivate } from '../util/graph'
-import OAuth from '../components/OAuth'
 
 const HIGHLIGHT_CLIENT_ID = 'aa101e42-169c-46f8-bed7-8d1f992d3cf0'
 
@@ -42,6 +41,7 @@ gql`
 			id
 			name
 			email
+			photo_url
 		}
 	}
 `
