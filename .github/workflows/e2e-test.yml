@@ -33,6 +33,9 @@ jobs:
                     --health-interval 10s
                     --health-timeout 5s
                     --health-retries 5
+                env:
+                    REDIS_HOST: redis
+                    REDIS_PORT: 6379
         env:
             PSQL_HOST: localhost
             PSQL_PORT: 5432
@@ -40,8 +43,6 @@ jobs:
             PSQL_DB: postgres
             PSQL_PASSWORD: postgres
             PGPASSWORD: postgres
-            REDIS_HOST: redis
-            REDIS_PORT: 6379
             ENVIRONMENT: test
         steps:
             - name: Checkout
@@ -78,6 +79,7 @@ jobs:
               # Custom install command here instead of frontend:install because
               # of this issue: https://github.com/yarnpkg/yarn/issues/6312
               run: yarn && cd frontend && yarn && cd ../client && yarn
+            # TODO: Consider doing a build and then run instead of using Air
             - name: Install Air
               run: go install github.com/cosmtrek/air@latest
             - name: Cypress install and run
