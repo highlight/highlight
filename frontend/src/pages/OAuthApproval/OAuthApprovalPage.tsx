@@ -3,7 +3,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { GenerateSecureRandomString } from '@util/random'
-import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import Firebase from 'firebase'
 import React, { useEffect, useState } from 'react'
@@ -22,7 +21,11 @@ interface OAuthToken {
 const OAuthBackend =
 	window.location.host.indexOf('local') === -1
 		? `https://pri.highlight.run`
-		: `https://localhost:8082`
+		: `https://pri.highlight.localhost`
+const HighlightFrontend =
+	window.location.host.indexOf('local') === -1
+		? `https://app.highlight.run`
+		: `https://app.highlight.localhost`
 const OAuthApprovalPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [oauthParams] = useQueryParams({
@@ -47,7 +50,7 @@ const OAuthApprovalPage = () => {
 		const user = Firebase.auth().currentUser
 		const userToken = (await user?.getIdToken()) || ''
 		const state = GenerateSecureRandomString(32)
-		const redirectUri = `${GetBaseURL()}/oauth/authorize`
+		const redirectUri = `${HighlightFrontend}/oauth/authorize`
 		const auth = await fetch(
 			`${OAuthBackend}/oauth/authorize?response_type=code&redirect_uri=${redirectUri}&client_id=${oauthParams.client_id}&state=${state}`,
 			{ headers: { token: userToken } },

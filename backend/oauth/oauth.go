@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/go-oauth2/oauth2/v4/errors"
@@ -168,7 +169,7 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 	}
 	cookie := http.Cookie{
 		Name:   CookieName,
-		Value:  string(cookieData),
+		Value:  base64.StdEncoding.EncodeToString(cookieData),
 		MaxAge: int(expirySeconds),
 		Domain: domain,
 		Path:   "/",

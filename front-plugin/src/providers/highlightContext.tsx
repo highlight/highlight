@@ -4,12 +4,11 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
-	useState,
 } from 'react'
 import { gql } from '@apollo/client'
-import { useGetAdminQuery } from '../graph/generated/hooks'
+import { useGetAdminLazyQuery } from '../graph/generated/hooks'
 import { GetAdminQuery } from '../graph/generated/operations'
-import { HighlightPrivateGraph } from '../util/graph'
+import { HighlightPrivate } from '../util/graph'
 
 const HIGHLIGHT_CLIENT_ID = 'aa101e42-169c-46f8-bed7-8d1f992d3cf0'
 
@@ -19,10 +18,10 @@ const HIGHLIGHT_URI =
 		: 'https://app.highlight.localhost'
 
 interface OAuthToken {
-	access_token: string
-	expires_in: number
-	refresh_token: string
-	token_type: string
+	AccessToken: string
+	ExpiresIn: number
+	RefreshToken: string
+	Scope: string
 }
 
 interface HighlightContextData {
@@ -34,7 +33,7 @@ interface HighlightContextData {
 }
 
 gql`
-	query GetAdmin($year: Int!) {
+	query GetAdmin {
 		admin {
 			id
 			name
@@ -54,15 +53,15 @@ export function getOAuthToken() {
 	const value = `; ${document.cookie}`
 	const parts = value.split(`; ${name}=`)
 	if (parts.length === 2) {
-		return JSON.parse(parts.pop()?.split(';').shift() || '') as OAuthToken
+		const rawValue = parts.pop()?.split(';').shift() || ''
+		return JSON.parse(window.atob(rawValue)) as OAuthToken
 	}
-
 	return undefined
 }
 
 export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
-	const [OAuthData, setOAuthData] = useState<OAuthToken>()
-	const { loading, data: admin } = useGetAdminQuery({})
+	const [query, { loading, data: admin }] = useGetAdminLazyQuery({})
+	const OAuthData = getOAuthToken()
 
 	const externalAuth = async () => {
 		window.open(
@@ -71,26 +70,26 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 	}
 
 	const validate = useCallback(async () => {
-		const auth = await fetch(`${HighlightPrivateGraph}/oauth/validate`, {
+		const auth = await fetch(`${HighlightPrivate}/oauth/validate`, {
 			credentials: 'include',
 			headers: {
-				Authorization: `Bearer ${OAuthData?.access_token}`,
+				Authorization: `Bearer ${OAuthData?.AccessToken}`,
 			},
 		})
 		return auth.ok
 	}, [OAuthData])
 
 	const refresh = async () => {
-		if (!OAuthData?.access_token || !OAuthData.refresh_token) return
+		if (!OAuthData?.AccessToken || !OAuthData.RefreshToken) return
 		const data = new FormData()
-		data.append('refresh_token', OAuthData.refresh_token)
+		data.append('refresh_token', OAuthData.RefreshToken)
 		const auth = await fetch(
-			`${HighlightPrivateGraph}/oauth/token?grant_type=refresh_token`,
+			`${HighlightPrivate}/oauth/token?grant_type=refresh_token`,
 			{
 				credentials: 'include',
 				method: 'POST',
 				headers: {
-					Authorization: `Bearer ${OAuthData.access_token}`,
+					Authorization: `Bearer ${OAuthData.AccessToken}`,
 				},
 			},
 		)
@@ -98,18 +97,14 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 	}
 
 	useEffect(() => {
-		validate().then((valid) => console.log('vadim', 'valid', valid))
-	}, [validate])
-
-	useEffect(() => {
-		setOAuthData(getOAuthToken())
+		validate().then((valid) => (valid ? query() : null))
 	}, [])
 
 	return (
 		<HighlightContext.Provider
 			value={{
 				externalAuth,
-				authValid: !!OAuthData?.access_token,
+				authValid: !!OAuthData?.AccessToken,
 				token: OAuthData,
 				loading,
 				admin,

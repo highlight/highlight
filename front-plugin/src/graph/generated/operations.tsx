@@ -2114,9 +2114,7 @@ export type WorkspaceInviteLink = {
 	secret: Scalars['String']
 }
 
-export type GetAdminQueryVariables = Types.Exact<{
-	year: Types.Scalars['Int']
-}>
+export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetAdminQuery = {
 	__typename?: 'Query'

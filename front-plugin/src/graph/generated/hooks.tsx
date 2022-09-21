@@ -5,7 +5,7 @@ import * as Apollo from '@apollo/client'
 const defaultOptions = {} as const
 
 export const GetAdminDocument = gql`
-	query GetAdmin($year: Int!) {
+	query GetAdmin {
 		admin {
 			id
 			name
@@ -26,12 +26,11 @@ export const GetAdminDocument = gql`
  * @example
  * const { data, loading, error } = useGetAdminQuery({
  *   variables: {
- *      year: // value for 'year'
  *   },
  * });
  */
 export function useGetAdminQuery(
-	baseOptions: Apollo.QueryHookOptions<
+	baseOptions?: Apollo.QueryHookOptions<
 		Types.GetAdminQuery,
 		Types.GetAdminQueryVariables
 	>,
