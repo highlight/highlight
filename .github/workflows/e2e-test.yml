@@ -4,14 +4,12 @@ on:
         branches:
             - '**'
             - '!master'
-        # paths:
-        #     - 'frontend/**'
-        #     - 'client/**'
-        #     - 'firstload/**'
-        #     - '.github/workflows/e2e-test.yml'
+        paths:
+            - 'frontend/**'
+            - 'client/**'
+            - 'firstload/**'
+            - '.github/workflows/e2e-test.yml'
 jobs:
-    # TODO: Investigate creating custom dockerfile for testing. Could reuse main
-    # Dockerfile and add cy:run command.
     test:
         runs-on: ubuntu-latest
         services:
@@ -86,7 +84,7 @@ jobs:
               uses: cypress-io/github-action@v4
               with:
                   start: yarn ci:start
-                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js'
+                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost/8082/health'
                   wait-on-timeout: 120
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
