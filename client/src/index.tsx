@@ -324,7 +324,7 @@ export class Highlight {
 			canvasQuality: 'low',
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
-			...options.samplingStrategy,
+			...(options.samplingStrategy || {}),
 		}
 		this._backendUrl =
 			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
