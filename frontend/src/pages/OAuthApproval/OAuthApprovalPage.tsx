@@ -2,12 +2,11 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import useLocalStorage from '@rehooks/local-storage'
 import { GenerateSecureRandomString } from '@util/random'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import Firebase from 'firebase'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -21,7 +20,7 @@ interface OAuthToken {
 }
 
 const OAuthBackend =
-	window.location.host.indexOf('300') === -1
+	window.location.host.indexOf('local') === -1
 		? `https://pri.highlight.run`
 		: `https://localhost:8082`
 const OAuthApprovalPage = () => {
@@ -30,34 +29,16 @@ const OAuthApprovalPage = () => {
 		client_id: StringParam,
 		redirect_uri: StringParam,
 	})
-	const [localStorageOAuth, setLocalStorageOAuth, clearLocalStorageOAuth] =
-		useLocalStorage<OAuthToken>(`highlight-oauth`)
+	const [localStorageOAuth, setLocalStorageOAuth] = useState<OAuthToken>()
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
 
-	useEffect(() => {
-		if (!localStorageOAuth?.access_token) return
-		const value = JSON.stringify(localStorageOAuth)
-		const expDate = new Date()
-		expDate.setDate(expDate.getDate() + 1)
-		document.cookie = `highlight-oauth=${value};expires=${expDate};domain=.highlight.run;path=/`
-	}, [localStorageOAuth])
-
-	useEffect(() => {
-		if (localStorageOAuth?.access_token) {
-			validate(localStorageOAuth.access_token).then((valid) => {
-				if (!valid) {
-					clearLocalStorageOAuth()
-				}
-			})
-		}
-	}, [clearLocalStorageOAuth, localStorageOAuth])
-
 	const validate = async (accessToken: string) => {
 		const auth = await fetch(`${OAuthBackend}/oauth/validate`, {
 			headers: { Authorization: `Bearer ${accessToken}` },
+			credentials: 'include',
 		})
 		return auth.ok
 	}
@@ -98,6 +79,12 @@ const OAuthApprovalPage = () => {
 		const data = (await token.json()) as OAuthToken
 		setLocalStorageOAuth(data)
 
+		if (!(await validate(data.access_token))) {
+			return message.error(
+				`Validation failed after completing authorization flow! Please try again.`,
+			)
+		}
+
 		await message.success(`Successfully authorized!`)
 		if (oauthParams.redirect_uri) {
 			window.location.href = oauthParams.redirect_uri
@@ -120,7 +107,7 @@ const OAuthApprovalPage = () => {
 				<div>
 					{localStorageOAuth?.access_token ? (
 						<div className={'text-center'}>
-							You're already logged in!
+							You're logged in! You can now close this tab.
 						</div>
 					) : (
 						<div className={'flex gap-5'}>

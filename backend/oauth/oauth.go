@@ -23,6 +23,8 @@ import (
 	"time"
 )
 
+const CookieName = "highlightOAuth"
+
 type Server struct {
 	srv *server.Server
 	db  *gorm.DB
@@ -91,6 +93,7 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 	srv.SetUserAuthorizationHandler(s.UserAuthorizationHandler)
 	return s, nil
 }
+
 func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request) (userID string, err error) {
 	uid := fmt.Sprintf("%v", r.Context().Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
@@ -142,6 +145,36 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	cookieData, err := json.Marshal(&struct {
+		AccessToken  string
+		ExpiresIn    time.Duration
+		Scope        string
+		RefreshToken string
+	}{
+		AccessToken:  token.GetAccess(),
+		ExpiresIn:    token.GetAccessExpiresIn(),
+		Scope:        token.GetScope(),
+		RefreshToken: token.GetRefresh(),
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	domain := "highlight.run"
+	if util.IsDevEnv() {
+		domain = "localhost"
+	}
+	cookie := http.Cookie{
+		Name:     CookieName,
+		Value:    string(cookieData),
+		MaxAge:   int(time.Now().Add(token.GetAccessExpiresIn()).Unix()),
+		Domain:   domain,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(w, &cookie)
 
 	data := map[string]interface{}{
 		"expires_in": int64(time.Until(token.GetAccessCreateAt().Add(token.GetAccessExpiresIn())).Seconds()),

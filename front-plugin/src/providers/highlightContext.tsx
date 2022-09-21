@@ -12,10 +12,9 @@ import { GetAdminQuery } from '../graph/generated/operations'
 const HIGHLIGHT_CLIENT_ID = 'aa101e42-169c-46f8-bed7-8d1f992d3cf0'
 
 const HIGHLIGHT_URI =
-	window.location.host.indexOf('300') === -1
+	window.location.host.indexOf('local') === -1
 		? 'https://app.highlight.run'
-		: 'https://localhost:3000'
-const REDIRECT_URI = window.location.protocol + '//' + window.location.host
+		: 'https://app.highlight.localhost'
 
 interface OAuthToken {
 	access_token: string
@@ -49,7 +48,7 @@ export function useHighlightContext() {
 }
 
 export function getOAuthToken() {
-	const name = 'highlight-oauth'
+	const name = 'highlightOAuth'
 	const d = window.localStorage.getItem(name)
 	if (d) {
 		return JSON.parse(d) as OAuthToken
@@ -67,10 +66,9 @@ export function getOAuthToken() {
 export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 	const [OAuthData, setOAuthData] = useState<OAuthToken>()
 	const { loading, data: admin } = useGetAdminQuery({})
-	console.log({ loading, admin })
 	const externalAuth = async () => {
 		window.open(
-			`${HIGHLIGHT_URI}/oauth/authorize?client_id=${HIGHLIGHT_CLIENT_ID}&redirect_uri=${REDIRECT_URI}`,
+			`${HIGHLIGHT_URI}/oauth/authorize?client_id=${HIGHLIGHT_CLIENT_ID}`,
 		)
 	}
 
@@ -97,7 +95,7 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 				admin,
 			}}
 		>
-			<>{children}</>
+			{children}
 		</HighlightContext.Provider>
 	)
 }
