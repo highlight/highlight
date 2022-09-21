@@ -319,11 +319,12 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		this.inlineImages = options.inlineImages || false
 		this.inlineStylesheet = options.inlineStylesheet || false
-		this.samplingStrategy = options.samplingStrategy || {
+		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
 			canvasFactor: 0.5,
-			canvasMaxSnapshotDimension: 960,
+			canvasMaxSnapshotDimension: 360,
+			...(options.samplingStrategy || {}),
 		}
 		this._backendUrl =
 			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
