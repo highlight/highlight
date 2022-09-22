@@ -12,6 +12,16 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
+        env:
+            ENVIRONMENT: test
+            PGPASSWORD: postgres
+            PSQL_HOST: localhost
+            PSQL_PORT: 5432
+            PSQL_USER: postgres
+            PSQL_DB: postgres
+            PSQL_PASSWORD: postgres
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
         services:
             postgres:
                 image: postgres
@@ -33,17 +43,6 @@ jobs:
                     --health-interval 10s
                     --health-timeout 5s
                     --health-retries 5
-                env:
-                    REDIS_HOST: redis
-                    REDIS_PORT: 6379
-        env:
-            PSQL_HOST: localhost
-            PSQL_PORT: 5432
-            PSQL_USER: postgres
-            PSQL_DB: postgres
-            PSQL_PASSWORD: postgres
-            PGPASSWORD: postgres
-            ENVIRONMENT: test
         steps:
             - name: Checkout
               uses: actions/checkout@v3
@@ -73,7 +72,7 @@ jobs:
                   make migrate
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-            - name: Seed Database
+            - name: Seed database
               run: psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
             - name: Install frontend dependencies
               # Custom install command here instead of frontend:install because
