@@ -136,6 +136,9 @@ func CreateServer(db *gorm.DB) (*Server, error) {
 	return s, nil
 }
 
+// UserAuthorizationHandler provides the user ID for further `model.Admin` resolution based on
+// the firebase session. This method is used during the OAuth token creation to associate
+// a token with the firebase user.
 func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request) (userID string, err error) {
 	uid := fmt.Sprintf("%v", r.Context().Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
@@ -145,6 +148,9 @@ func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request
 	return fmt.Sprintf("%s:%s", *admin.UID, *admin.Email), nil
 }
 
+// ClientInfoHandler provides the clientID and clientSecret based on the request. The data
+// either exists in the `Authorization` header or in a query parameter for SPAs where the
+// secret must be retrieved from our database.
 func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret string, err error) {
 	if clientID, clientSecret, err = server.ClientBasicHandler(r); err == nil {
 		return
@@ -159,14 +165,13 @@ func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret stri
 	return
 }
 
+// HandleRevoke will revoke the oauth token for header or cookie authentication.
 func (s *Server) HandleRevoke(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
-	token, err := s.srv.ValidationBearerToken(r)
+	ctx, token, _, err := s.Validate(context.Background(), r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-
 	err = s.tokenManager.RemoveAccessToken(ctx, token.GetAccess())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -178,6 +183,7 @@ func (s *Server) HandleRevoke(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleTokenRequest will process a request for oauth /token command per the RFC spec.
 func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) {
 	err := s.srv.HandleTokenRequest(w, r)
 	if err != nil {
@@ -185,6 +191,7 @@ func (s *Server) HandleTokenRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleAuthorizeRequest will process a request for oauth /authorize command per the RFC spec.
 func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) {
 	err := s.srv.HandleAuthorizeRequest(w, r)
 	if err != nil {
@@ -192,15 +199,20 @@ func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
+// Validate ensures the request is authenticated and configures the context to contain
+// necessary authorization context variables. the function returns the auth token cookie,
+// refreshed if applicable.
+func (s *Server) Validate(ctx context.Context, r *http.Request) (context.Context, oauth2.TokenInfo, *http.Cookie, error) {
 	var token oauth2.TokenInfo
 	if cookie, err := r.Cookie(CookieName); err == nil {
-		token, err = s.getTokenFromCookie(context.TODO(), cookie)
-	} else {
-		token, err = s.srv.ValidationBearerToken(r)
+		ctx, token, err = s.authCookieContext(ctx, cookie, r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			return ctx, nil, nil, err
+		}
+	} else {
+		ctx, token, err = s.authContext(ctx, r)
+		if err != nil {
+			return ctx, nil, nil, err
 		}
 	}
 	expirySeconds := token.GetAccessExpiresIn().Seconds()
@@ -211,8 +223,7 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: token.GetRefresh(),
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return ctx, nil, nil, err
 	}
 	domain := ".highlight.run"
 	if util.IsDevEnv() {
@@ -228,40 +239,32 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
 	}
-	http.SetCookie(w, &cookie)
-
-	data := map[string]interface{}{
-		"expires_in": int64(expirySeconds),
-		"client_id":  token.GetClientID(),
-		"user_id":    token.GetUserID(),
-		"validated":  true,
-	}
-	je := json.NewEncoder(w)
-	je.SetIndent("", "  ")
-	_ = je.Encode(data)
+	return ctx, token, &cookie, nil
 }
 
-func (s *Server) AuthContext(ctx context.Context, r *http.Request) (context.Context, error) {
+// AuthContext sets the context to the login session of the bearer Authorization token provided
+func (s *Server) authContext(ctx context.Context, r *http.Request) (context.Context, oauth2.TokenInfo, error) {
 	token, err := s.srv.ValidationBearerToken(r)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	parts := strings.Split(token.GetUserID(), ":")
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
-	return ctx, nil
+	return ctx, token, nil
 }
 
-func (s *Server) AuthCookieContext(ctx context.Context, tokenCookie *http.Cookie, r *http.Request) (context.Context, error) {
+// AuthCookieContext configures the context based on the login session of the oauth token provided.
+func (s *Server) authCookieContext(ctx context.Context, tokenCookie *http.Cookie, r *http.Request) (context.Context, oauth2.TokenInfo, error) {
 	tokenInfo, err := s.getTokenFromCookie(ctx, tokenCookie)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if tokenInfo.GetAccessExpiresIn() < CookieRefreshThreshold {
 		clientID := tokenInfo.GetClientID()
 		clientSecret, err := s.getClientSecret(clientID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		tgr := &oauth2.TokenGenerateRequest{
 			ClientID:     clientID,
@@ -269,12 +272,12 @@ func (s *Server) AuthCookieContext(ctx context.Context, tokenCookie *http.Cookie
 			Request:      r,
 		}
 		if _, err := s.tokenManager.RefreshAccessToken(ctx, tgr); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	parts := strings.Split(tokenInfo.GetUserID(), ":")
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
-	return ctx, nil
+	return ctx, tokenInfo, nil
 }

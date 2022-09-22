@@ -81,21 +81,14 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-		} else if oauthToken := r.Header.Get("authorization"); oauthToken != "" {
-			ctx, err = OAuthServer.AuthContext(ctx, r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
-		} else if oauthCookie, err := r.Cookie(oauth.CookieName); err == nil {
-			ctx, err = OAuthServer.AuthCookieContext(ctx, oauthCookie, r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusUnauthorized)
-				return
-			}
 		} else {
-			http.Error(w, "no authentication specified", http.StatusUnauthorized)
-			return
+			var cookie *http.Cookie
+			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+			http.SetCookie(w, cookie)
 		}
 		ctx = context.WithValue(ctx, model.ContextKeys.AcceptEncoding, r.Header.Get("Accept-Encoding"))
 		r = r.WithContext(ctx)

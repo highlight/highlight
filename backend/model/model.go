@@ -1142,6 +1142,7 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error creating secure_id_generator")
 	}
 
+	// allows using postgres native UUID functions
 	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
