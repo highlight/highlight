@@ -64,22 +64,17 @@ jobs:
                   go-version-file: 'backend/go.mod'
                   cache: true
                   cache-dependency-path: backend/go.mod
-            - name: Install Go dependencies
-              run: cd backend && go get
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
-            - name: Migrate database
+            - name: Migrate and seed database
               run: |
-                  cd backend/
+                  cd backend
                   make migrate
+                  psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-            - name: Seed database
-              run: psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
-            - name: Install frontend dependencies
-              # Custom install command here instead of frontend:install because
-              # of this issue: https://github.com/yarnpkg/yarn/issues/6312
-              run: yarn --prefer-offline && cd frontend && yarn --prefer-offline && cd ../client && yarn --prefer-offline
+            - name: Install dependencies
+              run: yarn ci:install
             - name: Build backend
               run: yarn ci:build
             - name: Cypress install and run
@@ -87,7 +82,6 @@ jobs:
               with:
                   start: yarn ci:start
                   wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost:8082/health'
-                  wait-on-timeout: 120
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
