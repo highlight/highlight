@@ -70,7 +70,7 @@ jobs:
               run: |
                   cd backend/
                   make migrate
-                  psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
+                  psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Install dependencies
