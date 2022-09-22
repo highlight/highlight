@@ -233,6 +233,12 @@ export const Toolbar = React.memo(() => {
 			const sliderPercent = data.x / wrapperWidth
 			const newTime = getSliderTime(sliderPercent)
 			setTime(newTime)
+			if (window.electron?.ipcRenderer) {
+				window.electron.ipcRenderer.sendMessage('controller', {
+					play: !isPaused,
+					time: newTime,
+				})
+			}
 
 			// TODO: Add Math.abs to enable both forward and backward scrolling
 			// Only forward is supported due as going backwards creates a time heavy operation
@@ -345,7 +351,17 @@ export const Toolbar = React.memo(() => {
 												leftSidebarWidth) /
 											wrapperWidth
 										timerStart('timelineChangeTime')
-										setTime(getSliderTime(ratio))
+										const sliderTime = getSliderTime(ratio)
+										setTime(sliderTime)
+										if (window.electron?.ipcRenderer) {
+											window.electron.ipcRenderer.sendMessage(
+												'controller',
+												{
+													play: !isPaused,
+													time: sliderTime,
+												},
+											)
+										}
 									}}
 								>
 									<div className={styles.sliderRail}></div>
@@ -429,7 +445,7 @@ export const Toolbar = React.memo(() => {
 							H.track('Player Play/Pause Button')
 							if (window.electron?.ipcRenderer) {
 								window.electron.ipcRenderer.sendMessage(
-									'main-event',
+									'controller',
 									{
 										play: isPaused,
 										time,

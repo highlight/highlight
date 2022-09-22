@@ -46,7 +46,14 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -131,42 +138,37 @@ const Player = ({ integrated, minimal }: Props) => {
 
 	useEffect(() => {
 		if (minimal) {
-			setAutoPlayVideo(true)
 			setShowLeftPanel(false)
 			setShowRightPanel(false)
 			setShowDevTools(false)
 		}
-	}, [
-		setAutoPlayVideo,
-		setShowLeftPanel,
-		setShowRightPanel,
-		setShowDevTools,
-		minimal,
-	])
+	}, [setShowLeftPanel, setShowRightPanel, setShowDevTools, minimal])
 
-	/*useEffect(() => {
-		if (window.electron?.ipcRenderer) {
-			window.electron.ipcRenderer.sendMessage('player-event', {
-				time,
-			})
-		}
-	}, [time])*/
+	const controllerHandler = useCallback(
+		({ play: p, time }: { play: boolean; time: number }) => {
+			if (p) {
+				play(time)
+			} else {
+				pause(time)
+			}
+		},
+		[play, pause],
+	)
 
 	useEffect(() => {
 		if (window.electron?.ipcRenderer) {
-			window.electron.ipcRenderer.on(
-				'main-event',
-				({ play: p, time }: { play: boolean; time: number }) => {
-					console.log('MAIN EVENT', { p, time })
-					if (p) {
-						console.log('PLAY')
-						play()
-					} else {
-						console.log('PAUSE')
-						pause()
-					}
-				},
+			return window.electron.ipcRenderer.on(
+				'controller',
+				controllerHandler,
 			)
+		}
+	}, [controllerHandler])
+
+	useEffect(() => {
+		if (window.electron?.ipcRenderer) {
+			window.electron.ipcRenderer.sendMessage('player', {
+				time,
+			})
 		}
 	}, [])
 
@@ -473,9 +475,10 @@ const Player = ({ integrated, minimal }: Props) => {
 											)}
 											<div
 												style={{
-													visibility: isPlayerReady
-														? 'visible'
-														: 'hidden',
+													visibility:
+														minimal && isPlayerReady
+															? 'visible'
+															: 'hidden',
 												}}
 												className={classNames(
 													styles.rrwebPlayerDiv,

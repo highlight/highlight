@@ -9,11 +9,10 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
 
 class AppUpdater {
   constructor() {
@@ -26,20 +25,15 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 let replayerWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
-ipcMain.on('player-event', async (event, arg) => {
+ipcMain.on('player', async (event, arg) => {
   console.log('player', arg);
-  event.sender.send('player-reply', { ack: true });
-  mainWindow?.webContents.send('player-event', arg);
+  event.sender.send('controller-reply', { ack: true });
+  mainWindow?.webContents.send('player', arg);
 });
-ipcMain.on('main-event', async (event, arg) => {
+ipcMain.on('controller', async (event, arg) => {
   console.log('main', arg);
-  event.sender.send('main-reply', { ack: true });
-  replayerWindow?.webContents.send('main-event', arg);
+  event.sender.send('controller-reply', { ack: true });
+  replayerWindow?.webContents.send('controller', arg);
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -98,8 +92,8 @@ const createWindow = async () => {
     frame: false,
     autoHideMenuBar: true,
     alwaysOnTop: true,
-    width: 800,
-    height: 500,
+    width: 1400,
+    height: 650,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       sandbox: false,
@@ -115,18 +109,18 @@ const createWindow = async () => {
       const playerBounds = replayerWindow.getBounds();
       const mainBounds = mainWindow.getBounds();
       replayerWindow.setPosition(
-        mainBounds.x + mainBounds.width - playerBounds.width,
-        mainBounds.y
+        mainBounds.x + mainBounds.width - playerBounds.width - 200,
+        mainBounds.y + 160
       );
     }
   };
   setTimeout(handleReplayResize, 100);
 
   mainWindow.loadURL(
-    'https://localhost:3000/1/sessions/BxBQcNpxiZD3CO9kYThQ1FiXzfnL'
+    'https://localhost:3000/1/sessions/deG6f2WjNdGeahHKd4IxmPy7HyRm'
   );
   replayerWindow.loadURL(
-    'https://localhost:3000/1/player/BxBQcNpxiZD3CO9kYThQ1FiXzfnL'
+    'https://localhost:3000/1/player/deG6f2WjNdGeahHKd4IxmPy7HyRm'
   );
   // replayerWindow.loadURL(resolveHtmlPath('index.html'));
   replayerWindow.once('ready-to-show', () => {
