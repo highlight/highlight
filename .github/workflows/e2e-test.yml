@@ -79,9 +79,8 @@ jobs:
               # Custom install command here instead of frontend:install because
               # of this issue: https://github.com/yarnpkg/yarn/issues/6312
               run: yarn && cd frontend && yarn && cd ../client && yarn
-            # TODO: Consider doing a build and then run instead of using Air
-            - name: Install Air
-              run: go install github.com/cosmtrek/air@latest
+            - name: Build backend
+              run: yarn ci:build
             - name: Cypress install and run
               uses: cypress-io/github-action@v4
               with:
