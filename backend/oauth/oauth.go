@@ -217,7 +217,6 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 	je := json.NewEncoder(w)
 	je.SetIndent("", "  ")
 	_ = je.Encode(data)
-	return
 }
 
 // Validate ensures the request is authenticated and configures the context to contain
