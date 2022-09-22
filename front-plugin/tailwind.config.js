@@ -1,1 +1,0 @@
-../frontend/tailwind.config.js
