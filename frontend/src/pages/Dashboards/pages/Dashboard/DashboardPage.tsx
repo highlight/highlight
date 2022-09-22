@@ -381,12 +381,7 @@ export const DashboardGrid = ({
 								editModalShown={index === newDashboardCardIdx}
 							/>
 						) : (
-							<DashboardComponentCard
-								metricIdx={index}
-								metricConfig={metric}
-								updateMetric={updateMetric}
-								deleteMetric={deleteMetric}
-							/>
+							<DashboardComponentCard metricConfig={metric} />
 						)}
 					</div>
 				))}
