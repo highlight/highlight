@@ -271,7 +271,7 @@ func (s *Server) authCookieContext(ctx context.Context, tokenCookie *http.Cookie
 			ClientSecret: clientSecret,
 			Request:      r,
 		}
-		if _, err := s.tokenManager.RefreshAccessToken(ctx, tgr); err != nil {
+		if tokenInfo, err = s.tokenManager.RefreshAccessToken(ctx, tgr); err != nil {
 			return nil, nil, err
 		}
 	}
