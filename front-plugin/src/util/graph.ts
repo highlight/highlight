@@ -1,6 +1,4 @@
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client'
-import { setContext } from '@apollo/client/link/context'
-import { getOAuthToken } from '../providers/highlightContext'
 
 export const HighlightPrivate =
 	window.location.host.indexOf('local') === -1
@@ -15,20 +13,8 @@ const highlightGraph = createHttpLink({
 	credentials: 'include',
 })
 
-const authLink = setContext((_, { headers }) => {
-	const oauth = getOAuthToken()
-	if (oauth?.AccessToken)
-		return {
-			headers: {
-				...headers,
-				Authorization: `Bearer ${oauth?.AccessToken}`,
-			},
-		}
-	return headers
-})
-
 export const client = new ApolloClient({
-	link: authLink.concat(highlightGraph),
+	link: highlightGraph,
 	cache: new InMemoryCache(),
 	assumeImmutableResults: true,
 	connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev',

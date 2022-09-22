@@ -52,18 +52,8 @@ export function useHighlightContext() {
 	return useContext(HighlightContext)
 }
 
-export function getOAuthToken() {
-	const name = 'highlightOAuth'
-	const value = `; ${document.cookie}`
-	const parts = value.split(`; ${name}=`)
-	if (parts.length === 2) {
-		const rawValue = parts.pop()?.split(';').shift() || ''
-		return JSON.parse(window.atob(rawValue)) as OAuthToken
-	}
-	return undefined
-}
-
 export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
+	// authentication is based on the highlightOAuth cookie set by our oauth backend responsees
 	const [valid, setValid] = useState<boolean>(false)
 	const [OAuthToken, setOAuthToken] = useState<OAuthToken>()
 	const [admin, setAdmin] = useState<GetAdminQuery>()
@@ -78,12 +68,8 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 	}
 
 	const logout = async () => {
-		const token = getOAuthToken()
 		const auth = await fetch(`${HighlightPrivate}/oauth/revoke`, {
 			credentials: 'include',
-			headers: {
-				Authorization: `Bearer ${token?.AccessToken}`,
-			},
 		})
 		if (auth.ok) {
 			pollLogin()
@@ -95,39 +81,12 @@ export const HighlightContextProvider = ({ children }: PropsWithChildren) => {
 		return auth.ok
 	}
 
-	const refresh = useCallback(async () => {
-		const token = getOAuthToken()
-		if (!token?.AccessToken || !token.RefreshToken) return
-		const data = new FormData()
-		data.append('refresh_token', token.RefreshToken)
-		const auth = await fetch(
-			`${HighlightPrivate}/oauth/token?grant_type=refresh_token`,
-			{
-				credentials: 'include',
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token.AccessToken}`,
-				},
-			},
-		)
-		return auth.ok
-	}, [])
-
 	const validate = useCallback(async () => {
-		let token = getOAuthToken()
-		if (token?.ExpiresIn && token.ExpiresIn <= 15 * 60) {
-			await refresh()
-		}
-		token = getOAuthToken()
 		const auth = await fetch(`${HighlightPrivate}/oauth/validate`, {
 			credentials: 'include',
-			headers: {
-				Authorization: `Bearer ${token?.AccessToken}`,
-			},
 		})
-		if (auth.ok) setOAuthToken(token)
 		return auth.ok
-	}, [refresh])
+	}, [])
 
 	const validatePoll = useCallback(async (): Promise<
 		NodeJS.Timeout | undefined

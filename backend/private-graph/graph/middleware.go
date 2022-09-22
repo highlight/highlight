@@ -87,6 +87,12 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
+		} else if oauthCookie, err := r.Cookie(oauth.CookieName); err == nil {
+			ctx, err = OAuthServer.AuthCookieContext(ctx, oauthCookie, r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
 		} else {
 			http.Error(w, "no authentication specified", http.StatusUnauthorized)
 			return

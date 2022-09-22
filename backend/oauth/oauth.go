@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -21,9 +22,11 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const CookieName = "highlightOAuth"
+const CookieRefreshThreshold = 15 * time.Minute
 
 type Server struct {
 	srv          *server.Server
@@ -51,6 +54,35 @@ func getTokenStore() *oredis.TokenStore {
 	return oredis.NewRedisClusterStore(&redis.ClusterOptions{
 		Addrs: []string{hredis.ServerAddr},
 	})
+}
+
+func (s *Server) getClientSecret(clientID string) (clientSecret string, err error) {
+	client := &model.OAuthClientStore{}
+	if err := s.db.Model(&client).Where(&model.OAuthClientStore{ID: clientID}).First(&client).Error; err != nil {
+		return "", errors.ErrInvalidClient
+	}
+
+	if client.ID == "" || client.Secret == "" {
+		return "", errors.ErrInvalidClient
+	}
+
+	return client.Secret, nil
+}
+
+func (s *Server) getTokenFromCookie(ctx context.Context, cookie *http.Cookie) (oauth2.TokenInfo, error) {
+	data, err := base64.StdEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		return nil, err
+	}
+	var token Token
+	if err := json.Unmarshal(data, &token); err != nil {
+		return nil, err
+	}
+	tokenInfo, err := s.tokenManager.LoadAccessToken(ctx, token.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	return tokenInfo, nil
 }
 
 func CreateServer(db *gorm.DB) (*Server, error) {
@@ -114,25 +146,17 @@ func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request
 }
 
 func (s *Server) ClientInfoHandler(r *http.Request) (clientID, clientSecret string, err error) {
-	if id, secret, err := server.ClientBasicHandler(r); err == nil {
-		return id, secret, nil
+	if clientID, clientSecret, err = server.ClientBasicHandler(r); err == nil {
+		return
 	}
 	// single-page auth flow, per https://www.oauth.com/oauth2-servers/single-page-apps/
-	id := r.URL.Query().Get("client_id")
-	if id == "" {
+	clientID = r.URL.Query().Get("client_id")
+	if clientID == "" {
 		return "", "", errors.ErrInvalidClient
 	}
 
-	client := &model.OAuthClientStore{}
-	if err := s.db.Model(&client).Where(&model.OAuthClientStore{ID: id}).First(&client).Error; err != nil {
-		return "", "", errors.ErrInvalidClient
-	}
-
-	if client.ID == "" || client.Secret == "" {
-		return "", "", errors.ErrInvalidClient
-	}
-
-	return client.ID, client.Secret, nil
+	clientSecret, err = s.getClientSecret(clientID)
+	return
 }
 
 func (s *Server) HandleRevoke(w http.ResponseWriter, r *http.Request) {
@@ -146,6 +170,7 @@ func (s *Server) HandleRevoke(w http.ResponseWriter, r *http.Request) {
 	err = s.tokenManager.RemoveAccessToken(ctx, token.GetAccess())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	err = s.tokenManager.RemoveRefreshToken(ctx, token.GetRefresh())
 	if err != nil {
@@ -168,10 +193,15 @@ func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
-	token, err := s.srv.ValidationBearerToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	var token oauth2.TokenInfo
+	if cookie, err := r.Cookie(CookieName); err == nil {
+		token, err = s.getTokenFromCookie(context.TODO(), cookie)
+	} else {
+		token, err = s.srv.ValidationBearerToken(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 	expirySeconds := token.GetAccessExpiresIn().Seconds()
 	cookieData, err := json.Marshal(&Token{
@@ -189,14 +219,13 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 		domain = ".highlight.localhost"
 	}
 	cookie := http.Cookie{
-		Name:   CookieName,
-		Value:  base64.StdEncoding.EncodeToString(cookieData),
-		MaxAge: int(expirySeconds),
-		Domain: domain,
-		Path:   "/",
-		Secure: true,
-		// need js access to refresh
-		HttpOnly: false,
+		Name:     CookieName,
+		Value:    base64.StdEncoding.EncodeToString(cookieData),
+		MaxAge:   int(expirySeconds),
+		Domain:   domain,
+		Path:     "/",
+		Secure:   true,
+		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)
@@ -215,9 +244,36 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 func (s *Server) AuthContext(ctx context.Context, r *http.Request) (context.Context, error) {
 	token, err := s.srv.ValidationBearerToken(r)
 	if err != nil {
-		return nil, errors.ErrUnauthorizedClient
+		return nil, err
 	}
 	parts := strings.Split(token.GetUserID(), ":")
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
+	return ctx, nil
+}
+
+func (s *Server) AuthCookieContext(ctx context.Context, tokenCookie *http.Cookie, r *http.Request) (context.Context, error) {
+	tokenInfo, err := s.getTokenFromCookie(ctx, tokenCookie)
+	if err != nil {
+		return nil, err
+	}
+	if tokenInfo.GetAccessExpiresIn() < CookieRefreshThreshold {
+		clientID := tokenInfo.GetClientID()
+		clientSecret, err := s.getClientSecret(clientID)
+		if err != nil {
+			return nil, err
+		}
+		tgr := &oauth2.TokenGenerateRequest{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			Request:      r,
+		}
+		if _, err := s.tokenManager.RefreshAccessToken(ctx, tgr); err != nil {
+			return nil, err
+		}
+	}
+
+	parts := strings.Split(tokenInfo.GetUserID(), ":")
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, parts[0])
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, parts[1])
 	return ctx, nil
