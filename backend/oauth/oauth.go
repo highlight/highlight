@@ -199,6 +199,27 @@ func (s *Server) HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// HandleValidate will ensure the request authorization is valid and return oauth session metadata.
+func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
+	_, token, cookie, err := s.Validate(context.Background(), r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	http.SetCookie(w, cookie)
+
+	data := map[string]interface{}{
+		"expires_in": int64(token.GetAccessExpiresIn().Seconds()),
+		"client_id":  token.GetClientID(),
+		"user_id":    token.GetUserID(),
+		"validated":  true,
+	}
+	je := json.NewEncoder(w)
+	je.SetIndent("", "  ")
+	_ = je.Encode(data)
+	return
+}
+
 // Validate ensures the request is authenticated and configures the context to contain
 // necessary authorization context variables. the function returns the auth token cookie,
 // refreshed if applicable.
