@@ -11,7 +11,7 @@
 	"scripts": {
 		"prepare": "husky install",
 		"frontend:clean": "concurrently 'rm -rf node_modules' 'cd frontend && rm -rf node_modules' 'cd client && rm -rf node_modules' 'cd firstload && rm -rf node_modules'",
-		"frontend:install": "yarn && concurrently 'cd frontend && yarn --network-concurrency 1' 'cd client && yarn --network-concurrency 1' 'cd firstload && yarn --network-concurrency 1'",
+		"frontend:install": "yarn && concurrently 'cd frontend && yarn' 'cd client && yarn' 'cd firstload && yarn'",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race dev:*",
 		"dev:backend": "cd backend && make start",
@@ -26,7 +26,7 @@
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "cd backend && go build",
-		"ci:install": "run-p --print-label --race ci:install:go ci:install:yarn",
+		"ci:install": "npx -y concurrently -n 'go,npm' 'yarn ci:install:go' 'yarn ci:install:yarn'",
 		"ci:install:go": "cd backend && go build",
 		"ci:install:yarn": "yarn --prefer-offline && cd frontend && yarn --prefer-offline && cd ../client && yarn --prefer-offline",
 		"ci:start": "run-p --print-label --race dev:frontend dev:client ci:backend",
