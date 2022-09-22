@@ -77,7 +77,7 @@ jobs:
               run: yarn ci:install
             - name: Build backend
               run: yarn ci:build
-            - name: Cypress install and run
+            - name: Run Cypress tests
               uses: cypress-io/github-action@v4
               with:
                   start: yarn ci:start
