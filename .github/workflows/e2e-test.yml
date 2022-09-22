@@ -79,7 +79,7 @@ jobs:
             - name: Install frontend dependencies
               # Custom install command here instead of frontend:install because
               # of this issue: https://github.com/yarnpkg/yarn/issues/6312
-              run: yarn && cd frontend && yarn && cd ../client && yarn
+              run: yarn --prefer-offline && cd frontend && yarn --prefer-offline && cd ../client && yarn --prefer-offline
             - name: Build backend
               run: yarn ci:build
             - name: Cypress install and run
