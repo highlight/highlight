@@ -68,7 +68,7 @@ jobs:
               uses: dopplerhq/cli-action@v1
             - name: Migrate and seed database
               run: |
-                  cd backend
+                  cd backend/
                   make migrate
                   psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ./scripts/migrations/init.sql
               env:
