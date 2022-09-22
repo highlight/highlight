@@ -86,7 +86,7 @@ jobs:
               uses: cypress-io/github-action@v4
               with:
                   start: yarn ci:start
-                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost/8082/health'
+                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js'
                   wait-on-timeout: 120
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
