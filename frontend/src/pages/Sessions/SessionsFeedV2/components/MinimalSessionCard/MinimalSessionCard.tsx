@@ -18,10 +18,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
-import { Avatar } from '../../../../../components/Avatar/Avatar'
-import { Maybe, Session } from '../../../../../graph/generated/schemas'
+import { Avatar } from '@components/Avatar/Avatar'
+import { Maybe, Session } from '@graph/schemas'
 import SvgEyeOffIcon from '../../../../../static/EyeOffIcon'
-import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time'
+import { MillisToMinutesAndSecondsVerbose } from '@util/time'
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker'
 import styles from './MinimalSessionCard.module.scss'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
@@ -41,6 +41,7 @@ interface Props {
 		SessionFeedConfigurationContext,
 		'countFormat' | 'datetimeFormat'
 	>
+	target?: string
 }
 
 const MinimalSessionCard = React.memo(
@@ -55,6 +56,7 @@ const MinimalSessionCard = React.memo(
 		showDetailedSessionView:
 			showDetailedSessionViewPlayerConfiguration = false,
 		configuration,
+		target,
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { project_id, segment_id, session_secure_id } = useParams<{
@@ -383,6 +385,7 @@ const MinimalSessionCard = React.memo(
 					innerContent
 				) : (
 					<Link
+						target={target}
 						to={`/${projectIdRemapped}/sessions/${
 							session?.secure_id
 						}${urlParams || ''}`}
