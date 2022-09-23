@@ -16,13 +16,7 @@ import {
 import Card from '@components/Card/Card'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import SvgShareIcon from '@icons/ShareIcon'
-
-function getProjectID() {
-	const params = new Proxy(new URLSearchParams(window.location.search), {
-		get: (searchParams, prop) => searchParams.get(prop.toString()),
-	}) as { project?: number }
-	return params.project || 1
-}
+import { GetBaseURL } from '@util/window'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
@@ -48,8 +42,8 @@ function HighlightSessions() {
 		start?: moment.Moment
 		end?: moment.Moment
 	}>({
-		start: undefined,
-		end: undefined,
+		start: backendSearchQuery?.startDate,
+		end: backendSearchQuery?.endDate,
 	})
 
 	const email =
@@ -62,6 +56,13 @@ function HighlightSessions() {
 			  email ||
 			  'recipient'
 			: email || 'recipient'
+
+	useEffect(() => {
+		setDateRange({
+			start: backendSearchQuery?.startDate,
+			end: backendSearchQuery?.endDate,
+		})
+	}, [backendSearchQuery?.startDate, backendSearchQuery?.endDate])
 
 	useEffect(() => {
 		if (frontContext?.type === 'singleConversation') {
@@ -104,13 +105,12 @@ function HighlightSessions() {
 		}
 	}, [called])
 
-	const projectId = getProjectID()
 	const qs = encodeURI(
 		`?query=and` +
-			`||user_email,contains,${email}` +
+			(email ? `||user_email,contains,${email}` : '') +
 			`||custom_created_at,between_date,${dateRange.start?.format()}_${dateRange.end?.format()}`,
 	)
-	const url = `https://app.highlight.run/${projectId}/sessions${qs}`
+	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
 	return (
 		<div className={'w-full flex flex-row justify-center p-2'}>
@@ -150,7 +150,7 @@ function HighlightSessions() {
 					}}
 					trackingId={'ClickHighlightSessions'}
 					trackProperties={{
-						projectId: projectId.toString(),
+						projectId: project_id.toString(),
 						email,
 						url,
 					}}

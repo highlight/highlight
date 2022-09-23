@@ -17,14 +17,13 @@ import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
-
 import { Avatar } from '@components/Avatar/Avatar'
 import { Maybe, Session } from '@graph/schemas'
-import SvgEyeOffIcon from '../../../../../static/EyeOffIcon'
 import { MillisToMinutesAndSecondsVerbose } from '@util/time'
-import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker'
+import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import styles from './MinimalSessionCard.module.scss'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
+import SvgEyeOffIcon from '@icons/EyeOffIcon'
 
 interface Props {
 	session: Maybe<Session>
