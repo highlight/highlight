@@ -137,7 +137,7 @@ function HighlightSessions() {
 						<Card className={'px-4 py-0 m-0'}>
 							<EmptyCardPlaceholder
 								compact
-								message={`No sessions matched for the given email. Please try adjusting the date range.`}
+								message={`No sessions matched the given filters. Please try adjusting the date range.`}
 								title={'No sessions found 😢'}
 							/>
 						</Card>
