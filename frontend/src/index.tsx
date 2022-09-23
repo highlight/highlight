@@ -33,6 +33,7 @@ import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorization
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
+import { ClickToComponent } from 'click-to-react-component'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
@@ -395,6 +396,7 @@ get in contact with us!
 ReactDOM.render(
 	<React.StrictMode>
 		<App />
+		<ClickToComponent />
 	</React.StrictMode>,
 	document.getElementById('root'),
 )
