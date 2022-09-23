@@ -42,6 +42,11 @@ export default defineConfig({
 			key: join(__dirname, '../backend/localhostssl/server.key'),
 			cert: join(__dirname, '../backend/localhostssl/server.crt'),
 		},
+		// ensure hmr works when proxying frontend
+		strictPort: true,
+		hmr: {
+			clientPort: 3000,
+		},
 	},
 	build: {
 		outDir: 'build',

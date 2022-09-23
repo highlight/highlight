@@ -2,16 +2,22 @@ import React from 'react'
 
 import { ReactComponent as EmptyState } from '../../../../static/empty-state.svg'
 import styles from './EmptyCardPlaceholder.module.scss'
+import classNames from 'classnames'
 
 interface Props {
 	title?: string
 	message?: string | React.ReactNode
+	compact?: boolean
 }
 
-const EmptyCardPlaceholder = ({ message, title }: Props) => {
+const EmptyCardPlaceholder = ({ message, title, compact }: Props) => {
 	return (
 		<div className={styles.emptyCardPlaceholder}>
-			<div className={styles.graphicContainer}>
+			<div
+				className={classNames(styles.graphicContainer, {
+					[styles.compact]: compact,
+				})}
+			>
 				<EmptyState
 					height={30}
 					width={220}
