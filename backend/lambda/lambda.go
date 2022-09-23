@@ -3,11 +3,14 @@ package lambda
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/highlight-run/highlight/backend/model"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/pkg/errors"
@@ -31,7 +34,7 @@ type Client struct {
 
 func NewLambdaClient() (*Client, error) {
 	ctx := context.TODO()
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-2"))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading default from config")
 	}

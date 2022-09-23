@@ -1,4 +1,5 @@
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
+import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
@@ -59,11 +60,22 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
 }
 
+export const FRONT_INTEGRATION: Integration = {
+	key: 'front',
+	name: 'Front',
+	configurationPath: 'front',
+	onlyShowForHighlightAdmin: true,
+	description: 'Enhance your customer interaction experience.',
+	icon: '/images/integrations/front.png',
+	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
+	FRONT_INTEGRATION,
 ]
 
 export default INTEGRATIONS

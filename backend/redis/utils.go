@@ -4,21 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"os"
 	"sort"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -27,18 +24,10 @@ type Client struct {
 
 var (
 	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
-	redisProjectIds            = []int{1, 1074} // Enabled for Highlight and Solitaired
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
-	sidHash := fnv.New32a()
-	defer sidHash.Reset()
-	if _, err := sidHash.Write([]byte(sessionSecureId)); err != nil {
-		log.Error(errors.Wrap(err, "failed to hash secure id to int"))
-	}
-
-	// Enable redis for 10% of other traffic
-	return lo.Contains(redisProjectIds, projectId) || sidHash.Sum32()%10 == 0
+	return true
 }
 
 func EventsKey(sessionId int) string {
@@ -75,12 +64,9 @@ func NewClient() *Client {
 			MaxRetries:   5,
 			MinIdleConns: 16,
 			PoolSize:     256,
-			OnConnect: func(*redis.Conn) error {
+			OnConnect: func(context.Context, *redis.Conn) error {
 				hlog.Incr("redis.new-conn", nil, 1)
 				return nil
-			},
-			OnNewNode: func(*redis.Client) {
-				hlog.Incr("redis.new-node", nil, 1)
 			},
 		})
 		go func() {
@@ -102,11 +88,10 @@ func NewClient() *Client {
 			redisClient: c,
 		}
 	}
-
 }
 
 func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
-	cmd := r.redisClient.ZRem(EventsKey(sessionId), valuesToRemove...)
+	cmd := r.redisClient.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error removing values from Redis")
 	}
@@ -116,7 +101,7 @@ func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove
 func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId int) ([]redis.Z, error) {
 	maxScore := "(" + strconv.FormatInt(int64(nextPayloadId), 10)
 
-	vals, err := r.redisClient.ZRangeByScoreWithScores(EventsKey(sessionId), redis.ZRangeBy{
+	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, EventsKey(sessionId), &redis.ZRangeBy{
 		Min: "-inf",
 		Max: maxScore,
 	}).Result()
@@ -136,7 +121,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		eventObjectIndex = "(" + strconv.FormatInt(int64(*cursor.EventObjectIndex), 10)
 	}
 
-	vals, err := r.redisClient.ZRangeByScoreWithScores(EventsKey(s.ID), redis.ZRangeBy{
+	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, EventsKey(s.ID), &redis.ZRangeBy{
 		Min: eventObjectIndex,
 		Max: "+inf",
 	}).Result()
@@ -213,7 +198,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) AddEventPayload(sessionID int, score float64, payload string) error {
+func (r *Client) AddEventPayload(ctx context.Context, sessionID int, score float64, payload string) error {
 	encoded := string(snappy.Encode(nil, []byte(payload)))
 
 	// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
@@ -234,7 +219,7 @@ func (r *Client) AddEventPayload(sessionID int, score float64, payload string) e
 
 	keys := []string{EventsKey(sessionID)}
 	values := []interface{}{score, encoded}
-	cmd := zAddAndExpire.Run(r.redisClient, keys, values...)
+	cmd := zAddAndExpire.Run(ctx, r.redisClient, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
 		return errors.Wrap(err, "error adding events payload in Redis")
@@ -243,7 +228,7 @@ func (r *Client) AddEventPayload(sessionID int, score float64, payload string) e
 }
 
 func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
-	cmd := r.redisClient.Set(key, value, exp)
+	cmd := r.redisClient.Set(ctx, key, value, exp)
 	if cmd.Err() != nil {
 		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
 	}
@@ -252,7 +237,7 @@ func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.D
 
 func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
 	key := SessionInitializedKey(sessionSecureId)
-	val, err := r.redisClient.Get(key).Result()
+	val, err := r.redisClient.Get(ctx, key).Result()
 
 	// ignore the non-existing session keys
 	if err == redis.Nil {

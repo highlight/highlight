@@ -5,16 +5,17 @@ function SvgHighlightLogoWithNoBackground(
 ) {
 	return (
 		<svg
-			width="1em"
-			height="1em"
-			viewBox="0 0 183 183"
-			fill="none"
+			width="40"
+			height="40"
+			viewBox="0 0 40 40"
 			xmlns="http://www.w3.org/2000/svg"
 			{...props}
 		>
 			<path
-				d="M68.345 51.286l-10.023.032a7.231 7.231 0 00-7.208 7.254l.205 65.373a7.232 7.232 0 007.253 7.209l36.357-.114-26.584-79.754zM114.487 130.978L86.575 51.229l37.121-.116a7.23 7.23 0 017.253 7.208l.205 65.374a7.231 7.231 0 01-7.208 7.254l-9.459.029z"
-				fill="#fff"
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M15 13C13.8954 13 13 13.8954 13 15V25C13 26.1046 13.8954 27 15 27H21L16 13H15ZM19 13L24 27H25C26.1046 27 27 26.1046 27 25V15C27 13.8954 26.1046 13 25 13H19Z"
+				fill="white"
 			/>
 		</svg>
 	)

@@ -25,6 +25,15 @@ export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type MuteSessionCommentThreadMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	has_muted?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type MuteSessionCommentThreadMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'muteSessionCommentThread'>
+
 export type CreateOrUpdateStripeSubscriptionMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	plan_type: Types.PlanType
@@ -533,6 +542,16 @@ export type DeleteErrorCommentMutationVariables = Types.Exact<{
 export type DeleteErrorCommentMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'deleteErrorComment'
+>
+
+export type MuteErrorCommentThreadMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	has_muted?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type MuteErrorCommentThreadMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'muteErrorCommentThread'
 >
 
 export type ReplyToErrorCommentMutationVariables = Types.Exact<{
@@ -1538,6 +1557,17 @@ export type DeleteDashboardMutationVariables = Types.Exact<{
 export type DeleteDashboardMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'deleteDashboard'
+>
+
+export type DeleteSessionsMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query: Types.Scalars['String']
+	sessionCount: Types.Scalars['Int']
+}>
+
+export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'deleteSessions'
 >
 
 export type SessionPayloadFragmentFragment = {
@@ -3499,6 +3529,14 @@ export type GetWorkspaceIsIntegratedWithZapierQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_linear: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithFrontQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithFrontQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_front: Types.Query['is_integrated_with'] }
+
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4049,6 +4087,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithLinear' as const,
 		GetWorkspaceIsIntegratedWithZapier:
 			'GetWorkspaceIsIntegratedWithZapier' as const,
+		GetWorkspaceIsIntegratedWithFront:
+			'GetWorkspaceIsIntegratedWithFront' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
@@ -4067,6 +4107,7 @@ export const namedOperations = {
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
 		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
+		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,
 		UpdateBillingDetails: 'UpdateBillingDetails' as const,
@@ -4097,6 +4138,7 @@ export const namedOperations = {
 		CreateErrorComment: 'CreateErrorComment' as const,
 		CreateIssueForErrorComment: 'CreateIssueForErrorComment' as const,
 		DeleteErrorComment: 'DeleteErrorComment' as const,
+		MuteErrorCommentThread: 'MuteErrorCommentThread' as const,
 		ReplyToErrorComment: 'ReplyToErrorComment' as const,
 		DeleteErrorSegment: 'DeleteErrorSegment' as const,
 		EditErrorSegment: 'EditErrorSegment' as const,
@@ -4130,6 +4172,7 @@ export const namedOperations = {
 		ModifyClearbitIntegration: 'ModifyClearbitIntegration' as const,
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
+		DeleteSessions: 'DeleteSessions' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -62,11 +62,8 @@
 	}
 
 	.logoBackground {
-		background: linear-gradient(
-			180deg,
-			var(--logo-gradient-start-color) 0%,
-			var(--logo-gradient-end-color) 100%
-		);
+		background: var(--logo-background-color);
+		border: 2px solid var(--logo-border-color);
 		border-radius: 50%;
 		grid-column-start: 1;
 		grid-row-start: 1;

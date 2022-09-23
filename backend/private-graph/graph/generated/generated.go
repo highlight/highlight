@@ -463,6 +463,7 @@ type ComplexityRoot struct {
 		DeleteSegment                    func(childComplexity int, segmentID int) int
 		DeleteSessionAlert               func(childComplexity int, projectID int, sessionAlertID int) int
 		DeleteSessionComment             func(childComplexity int, id int) int
+		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput) int
@@ -472,6 +473,8 @@ type ComplexityRoot struct {
 		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
+		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
+		MuteSessionCommentThread         func(childComplexity int, id int, hasMuted *bool) int
 		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
@@ -973,8 +976,10 @@ type MutationResolver interface {
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
+	MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
 	CreateErrorComment(ctx context.Context, projectID int, errorGroupSecureID string, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, errorURL string, authorName string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
+	MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error)
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
@@ -1010,6 +1015,7 @@ type MutationResolver interface {
 	ModifyClearbitIntegration(ctx context.Context, workspaceID int, enabled bool) (*bool, error)
 	UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error)
 	DeleteDashboard(ctx context.Context, id int) (bool, error)
+	DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -3267,6 +3273,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteSessionComment(childComplexity, args["id"].(int)), true
 
+	case "Mutation.deleteSessions":
+		if e.complexity.Mutation.DeleteSessions == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSessions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSessions(childComplexity, args["project_id"].(int), args["query"].(string), args["sessionCount"].(int)), true
+
 	case "Mutation.editErrorSegment":
 		if e.complexity.Mutation.EditErrorSegment == nil {
 			break
@@ -3374,6 +3392,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ModifyClearbitIntegration(childComplexity, args["workspace_id"].(int), args["enabled"].(bool)), true
+
+	case "Mutation.muteErrorCommentThread":
+		if e.complexity.Mutation.MuteErrorCommentThread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_muteErrorCommentThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MuteErrorCommentThread(childComplexity, args["id"].(int), args["has_muted"].(*bool)), true
+
+	case "Mutation.muteSessionCommentThread":
+		if e.complexity.Mutation.MuteSessionCommentThread == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_muteSessionCommentThread_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MuteSessionCommentThread(childComplexity, args["id"].(int), args["has_muted"].(*bool)), true
 
 	case "Mutation.openSlackConversation":
 		if e.complexity.Mutation.OpenSlackConversation == nil {
@@ -6535,6 +6577,7 @@ enum IntegrationType {
 	Slack
 	Linear
 	Zapier
+	Front
 }
 
 enum ErrorState {
@@ -7576,6 +7619,7 @@ type Mutation {
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
+	muteSessionCommentThread(id: ID!, has_muted: Boolean): Boolean
 	replyToSessionComment(
 		comment_id: ID!
 		text: String!
@@ -7598,6 +7642,7 @@ type Mutation {
 		issue_team_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
 		project_id: ID!
 		error_url: String!
@@ -7845,6 +7890,11 @@ type Mutation {
 		is_default: Boolean
 	): ID!
 	deleteDashboard(id: ID!): Boolean!
+	deleteSessions(
+		project_id: ID!
+		query: String!
+		sessionCount: Int!
+	): Boolean!
 }
 
 type Subscription {
@@ -9421,6 +9471,39 @@ func (ec *executionContext) field_Mutation_deleteSessionComment_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteSessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["sessionCount"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionCount"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionCount"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9697,6 +9780,54 @@ func (ec *executionContext) field_Mutation_modifyClearbitIntegration_args(ctx co
 		}
 	}
 	args["enabled"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_muteErrorCommentThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["has_muted"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_muted"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["has_muted"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_muteSessionCommentThread_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["has_muted"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_muted"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["has_muted"] = arg1
 	return args, nil
 }
 
@@ -25673,6 +25804,58 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionComment(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_muteSessionCommentThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_muteSessionCommentThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MuteSessionCommentThread(rctx, fc.Args["id"].(int), fc.Args["has_muted"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_muteSessionCommentThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_muteSessionCommentThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_replyToSessionComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_replyToSessionComment(ctx, field)
 	if err != nil {
@@ -25805,6 +25988,58 @@ func (ec *executionContext) fieldContext_Mutation_createErrorComment(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createErrorComment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_muteErrorCommentThread(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_muteErrorCommentThread(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MuteErrorCommentThread(rctx, fc.Args["id"].(int), fc.Args["has_muted"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_muteErrorCommentThread(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_muteErrorCommentThread_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -28432,6 +28667,61 @@ func (ec *executionContext) fieldContext_Mutation_deleteDashboard(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteDashboard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteSessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteSessions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSessions(rctx, fc.Args["project_id"].(int), fc.Args["query"].(string), fc.Args["sessionCount"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteSessions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteSessions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -49934,6 +50224,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_deleteSessionComment(ctx, field)
 			})
 
+		case "muteSessionCommentThread":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_muteSessionCommentThread(ctx, field)
+			})
+
 		case "replyToSessionComment":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -49944,6 +50240,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createErrorComment(ctx, field)
+			})
+
+		case "muteErrorCommentThread":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_muteErrorCommentThread(ctx, field)
 			})
 
 		case "createIssueForErrorComment":
@@ -50166,6 +50468,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteDashboard(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteSessions":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteSessions(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

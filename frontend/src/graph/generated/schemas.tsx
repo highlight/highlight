@@ -208,6 +208,7 @@ export enum IntegrationType {
 	Slack = 'Slack',
 	Linear = 'Linear',
 	Zapier = 'Zapier',
+	Front = 'Front',
 }
 
 export enum ErrorState {
@@ -1551,8 +1552,10 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
+	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
 	replyToSessionComment?: Maybe<CommentReply>
 	createErrorComment?: Maybe<ErrorComment>
+	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	replyToErrorComment?: Maybe<CommentReply>
@@ -1588,6 +1591,7 @@ export type Mutation = {
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	upsertDashboard: Scalars['ID']
 	deleteDashboard: Scalars['Boolean']
+	deleteSessions: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1767,6 +1771,11 @@ export type MutationDeleteSessionCommentArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationMuteSessionCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
+}
+
 export type MutationReplyToSessionCommentArgs = {
 	comment_id: Scalars['ID']
 	text: Scalars['String']
@@ -1789,6 +1798,11 @@ export type MutationCreateErrorCommentArgs = {
 	issue_description?: Maybe<Scalars['String']>
 	issue_team_id?: Maybe<Scalars['String']>
 	integrations: Array<Maybe<IntegrationType>>
+}
+
+export type MutationMuteErrorCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -2091,6 +2105,12 @@ export type MutationUpsertDashboardArgs = {
 
 export type MutationDeleteDashboardArgs = {
 	id: Scalars['ID']
+}
+
+export type MutationDeleteSessionsArgs = {
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	sessionCount: Scalars['Int']
 }
 
 export type Subscription = {
