@@ -6,7 +6,14 @@ import subprocess
 import boto3
 
 """
-Usage:
+Fetch Session:
+    python3 scripts/fetch_prod_session.py SESSION_SECURE_ID
+
+Fetch Session + Errors:
+    python3 scripts/fetch_prod_session.py SESSION_SECURE_ID -e
+
+Prerequisites:
+    brew install python
     virtualenv -p python3.8 ~/venvs/highlight
     source ~/venvs/highlight/bin/activate
     pip install -r scripts/requirements.txt
