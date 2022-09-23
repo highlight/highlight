@@ -23,3 +23,4 @@ export const resize: string
 export const rightControllerSection: string
 export const rightControllerText: string
 export const section: string
+export const settingsDropdownMenu: string

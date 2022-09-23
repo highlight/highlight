@@ -5,7 +5,6 @@ import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
-import { Menu } from '@components/Menu'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import {
 	GetDashboardDefinitionsDocument,
@@ -19,7 +18,6 @@ import {
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
-import SettingsIcon from '@icons/SettingsIcon'
 import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
@@ -32,10 +30,11 @@ import {
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Dropdown, Menu, message } from 'antd'
 import classNames from 'classnames'
 import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
+import { VscEllipsis } from 'react-icons/vsc'
 import { useHistory, useLocation } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
@@ -233,10 +232,10 @@ const DashboardPage = ({
 							>
 								Add
 							</Button>
+							<TimeRangePicker />
 							{dashboard.is_default ? null : (
 								<DashboardMenu dashboard={dashboard} />
 							)}
-							<TimeRangePicker />
 						</div>
 					</div>
 				</div>
@@ -281,44 +280,27 @@ const DashboardPage = ({
 }
 export default DashboardPage
 
-function DashboardMenu({
-	dashboard,
-}: {
-	dashboard: {
-		id: string
-		name: string
-		project_id: string
-		is_default?: boolean | null
+function DashboardMenu({ dashboard }: { dashboard: DashboardDefinition }) {
+	if (dashboard.is_default) {
+		return null
 	}
-}) {
-	const items = [
-		dashboard.is_default ? null : (
-			<Menu.Item as={DeleteDashboardButton} dashboard={dashboard} />
-		),
-	]
-		.filter(Boolean)
-		.map((item, i) => (
-			// antd's styling requires this border reset
-			<div key={i} className="border-x-0">
-				{item}
-			</div>
-		))
-
-	if (!items.length) return null
 
 	return (
-		<Menu
-			button={
-				<Button
-					type="ghost"
-					trackingId="dashboardMenu"
-					title="Dashboard settings"
-				>
-					<SettingsIcon />
-				</Button>
+		<Dropdown
+			trigger={['click']}
+			placement="bottomRight"
+			overlay={
+				<Menu inlineIndent={0} className={styles.settingsDropdownMenu}>
+					<Menu.Item>
+						<DeleteDashboardButton dashboard={dashboard} />
+					</Menu.Item>
+				</Menu>
 			}
-			items={items}
-		/>
+		>
+			<Button trackingId="dashboardPageSettings" type="ghost">
+				<VscEllipsis />
+			</Button>
+		</Dropdown>
 	)
 }
 
@@ -477,6 +459,7 @@ function DeleteDashboardButton({
 		onCompleted: () => {
 			history.push(`/${dashboard.project_id}/dashboards`)
 		},
+		// TODO: Look up what this does.
 		refetchQueries: [GetDashboardDefinitionsDocument],
 	})
 
