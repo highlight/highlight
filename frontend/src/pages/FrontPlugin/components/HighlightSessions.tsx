@@ -8,6 +8,11 @@ import { useParams } from '@util/react-router/useParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import moment from 'moment/moment'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
 
 function getProjectID() {
 	const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -17,12 +22,13 @@ function getProjectID() {
 }
 
 function HighlightSessions() {
+	const { setLoadingState } = useAppLoadingContext()
 	const { backendSearchQuery, setSearchParams } = useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { data } = useGetSessionsOpenSearchQuery({
+	const { data, called } = useGetSessionsOpenSearchQuery({
 		variables: {
 			project_id,
 			count: 100,
@@ -30,17 +36,19 @@ function HighlightSessions() {
 			query: getUnprocessedSessionsQuery(
 				backendSearchQuery?.searchQuery || '',
 			),
-			sort_desc: false,
+			sort_desc: true,
 		},
 		skip: !backendSearchQuery,
 		fetchPolicy: 'network-only',
 	})
-	const [dateRange, setDateRange] = useState<{ start?: Date; end?: Date }>({
+	const [dateRange, setDateRange] = useState<{
+		start?: moment.Moment
+		end?: moment.Moment
+	}>({
 		start: undefined,
 		end: undefined,
 	})
 
-	const user = frontContext?.teammate?.name || 'there'
 	const email =
 		frontContext?.type === 'singleConversation'
 			? frontContext?.conversation?.recipient?.handle || ''
@@ -57,53 +65,62 @@ function HighlightSessions() {
 			frontContext.listMessages().then((response) => {
 				if (response.results.length > 0) {
 					const latestMessageIndex = response.results.length - 1
-					const start = new Date(response.results[0].date)
+					const start = moment(response.results[0].date)
 					// offset by 7 days
-					start.setDate(start.getDate() - 7)
-					const end = new Date(
+					start.add(-7, 'days')
+					const end = moment(
 						response.results[latestMessageIndex].date,
 					)
+					const query = JSON.stringify({
+						isAnd: true,
+						rules: [
+							['user_email', 'contains', email],
+							[
+								'custom_created_at',
+								'between_date',
+								`${start.format()}_${end.format()}`,
+							],
+						],
+					})
 					setDateRange({
 						start,
 						end,
 					})
 					setSearchParams({
 						...EmptySessionsSearchParams,
-						query: JSON.stringify({
-							isAnd: true,
-							rules: [
-								['user_email', 'contains', email],
-								[
-									'custom_created_at',
-									'between_date',
-									`${start}_${end}`,
-								],
-							],
-						}),
+						query,
 					})
 				}
 			})
 		}
 	}, [frontContext])
 
+	useEffect(() => {
+		if (called) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [called])
+
 	const projectId = getProjectID()
-	const url = encodeURI(
-		`https://app.highlight.run/${projectId}/sessions?query=and` +
+	const qs = encodeURI(
+		`?query=and` +
 			`||user_email,contains,${email}` +
-			`||custom_created_at,between_date,${dateRange.start}_${dateRange.end}`,
+			`||custom_created_at,between_date,${dateRange.start?.format()}_${dateRange.end?.format()}`,
 	)
+	const url = `https://app.highlight.run/${projectId}/sessions${qs}`
+
 	return (
 		<div className={'w-full flex flex-row justify-center p-2'}>
 			<div className={'w-full flex flex-col gap-2'}>
-				<h2>Hello {user}!</h2>
 				<SessionsQueryBuilder />
 				<div className={'w-full flex flex-col'}>
 					{data?.sessions_opensearch.sessions.map((s) => (
 						<MinimalSessionCard
+							compact
 							session={s}
 							key={s.secure_id}
 							selected={false}
-							urlParams={`?page=1`}
+							urlParams={qs}
 							autoPlaySessions={false}
 							showDetailedSessionView={true}
 							target={'_blank'}
@@ -115,6 +132,7 @@ function HighlightSessions() {
 					))}
 				</div>
 				<Button
+					className={'inline'}
 					onClick={() => {
 						window.open(url, '_blank')
 					}}
@@ -125,7 +143,7 @@ function HighlightSessions() {
 						url,
 					}}
 				>
-					All Sessions for {recipient}
+					More Sessions for {recipient}
 				</Button>
 			</div>
 		</div>

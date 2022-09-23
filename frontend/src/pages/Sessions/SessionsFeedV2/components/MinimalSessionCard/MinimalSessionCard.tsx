@@ -42,6 +42,7 @@ interface Props {
 		'countFormat' | 'datetimeFormat'
 	>
 	target?: string
+	compact?: boolean
 }
 
 const MinimalSessionCard = React.memo(
@@ -57,6 +58,7 @@ const MinimalSessionCard = React.memo(
 			showDetailedSessionViewPlayerConfiguration = false,
 		configuration,
 		target,
+		compact,
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { project_id, segment_id, session_secure_id } = useParams<{
@@ -121,15 +123,18 @@ const MinimalSessionCard = React.memo(
 					className={classNames(styles.sessionCardContentWrapper, {
 						[styles.detailed]: showDetailedSessionView,
 						[styles.errorVersion]: errorVersion,
+						[styles.compact]: compact,
 					})}
 				>
-					<div className={styles.avatarWrapper}>
-						<Avatar
-							seed={getDisplayName(session)}
-							style={{ height: 25, width: 25 }}
-							customImage={customAvatarImage}
-						/>
-					</div>
+					{!compact && (
+						<div className={styles.avatarWrapper}>
+							<Avatar
+								seed={getDisplayName(session)}
+								style={{ height: 25, width: 25 }}
+								customImage={customAvatarImage}
+							/>
+						</div>
+					)}
 					<div className={styles.sessionTextSectionWrapper}>
 						<div
 							className={classNames(styles.sessionTextSection, {
