@@ -13,6 +13,9 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import Card from '@components/Card/Card'
+import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
+import SvgShareIcon from '@icons/ShareIcon'
 
 function getProjectID() {
 	const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -130,9 +133,17 @@ function HighlightSessions() {
 							}}
 						/>
 					))}
+					{data?.sessions_opensearch.sessions.length === 0 && (
+						<Card className={'px-4 py-3 m-0'}>
+							<EmptyCardPlaceholder
+								message={`No sessions matched for the given email. Please try adjusting the date range.`}
+								title={'No sessions found 😢'}
+							/>
+						</Card>
+					)}
 				</div>
 				<Button
-					className={'inline'}
+					className={'w-full flex justify-center gap-2 align-middle'}
 					onClick={() => {
 						window.open(url, '_blank')
 					}}
@@ -143,7 +154,8 @@ function HighlightSessions() {
 						url,
 					}}
 				>
-					More Sessions for {recipient}
+					<span>Custom Search for {recipient}</span>
+					<SvgShareIcon />
 				</Button>
 			</div>
 		</div>
