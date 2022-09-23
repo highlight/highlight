@@ -25,12 +25,11 @@
 		"firebase": "^8.10.1",
 		"framer-motion": "^4.1.17",
 		"graphql": "^15.5.0",
-		"highlight.run": "^4.4.1",
+		"highlight.run": "workspace:*",
 		"intro.js": "^4.1.0",
 		"intro.js-react": "^0.6.0",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
-		"patch-package": "^6.4.7",
 		"postinstall-postinstall": "^2.1.0",
 		"prop-types": "^15.5.7",
 		"query-string": "6.14.1",
@@ -81,8 +80,7 @@
 		"xss": "^1.0.14"
 	},
 	"scripts": {
-		"prepare": "patch-package",
-		"dev": "doppler run -- run-p --print-label --race dev:*",
+		"dev": "doppler run -- run-p --print-label --race 'dev:*'",
 		"dev:vite": "vite",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
@@ -168,7 +166,6 @@
 		"vitest": "^0.22.1"
 	},
 	"resolutions": {
-		"**/postcss-custom-properties": "^12.1.7",
 		"react-error-overlay": "6.0.9"
 	}
 }

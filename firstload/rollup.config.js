@@ -21,12 +21,6 @@ const input = {
 	index: './src/index.tsx',
 	electron: './src/environments/electron.ts',
 }
-const output = {
-	file: pkg.main,
-	format: 'umd',
-	name: 'highlightLib',
-	sourcemap: sourceMap,
-}
 const basePlugins = [
 	consts({
 		publicGraphURI: process.env.PUBLIC_GRAPH_URI,
@@ -55,7 +49,11 @@ const rollupBuilds = []
 if (development) {
 	rollupBuilds.push({
 		input: './src/index.tsx',
-		output,
+		output: {
+			file: pkg.main,
+			format: 'esm',
+			sourcemap: sourceMap,
+		},
 		plugins: [
 			...basePlugins,
 			filesize(),
@@ -69,7 +67,12 @@ if (development) {
 	for (const x of [
 		{
 			input: input.index,
-			output,
+			output: {
+				file: pkg.main,
+				format: 'umd',
+				name: 'highlightLib',
+				sourcemap: sourceMap,
+			},
 		},
 		{
 			input: {
