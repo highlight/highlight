@@ -6,6 +6,7 @@ import { ProgressBarTableRowGroup } from '@components/ProgressBarTable/component
 import { useGetSegmentsQuery } from '@graph/hooks'
 import { DashboardInnerTable } from '@pages/Home/components/DashboardInnerTable/DashboardInnerTable'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { STARRED_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import { useParams } from '@util/react-router/useParams'
 import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
@@ -34,18 +35,22 @@ const SegmentsTable = ({
 
 	const history = useHistory()
 
-	const { loading, data } = useGetSegmentsQuery({
+	const { loading } = useGetSegmentsQuery({
 		variables: {
 			project_id: projectIdRemapped,
 		},
 		onCompleted: (data) => {
 			if (data.segments) {
-				const transformedData = data.segments.map((segment) => ({
+				const starredSegment = {
+					id: STARRED_SEGMENT_ID,
+					name: 'Starred',
+				}
+				const userDefinedSegments = data.segments.map((segment) => ({
 					id: segment?.id,
 					name: segment?.name,
 				}))
 
-				setTableData(transformedData)
+				setTableData([starredSegment, ...userDefinedSegments])
 			}
 		},
 		onError: () => {
@@ -77,29 +82,13 @@ const SegmentsTable = ({
 						})
 					}}
 					noDataMessage={
-						!data?.segments?.length && (
-							<>
-								Have you{' '}
-								<Link
-									to={`/${project_id}/settings/recording#network`}
-								>
-									configured your backend domains?
-								</Link>{' '}
-								You can also call <code>H.init()</code> in your
-								app{' '}
-								<a
-									href="https://docs.highlight.run/api/networkrecordingoptions#JTvBw"
-									target="_blank"
-									rel="noreferrer"
-								>
-									with additional{' '}
-									<code>networkRecording</code> options
-								</a>{' '}
-								to configure this.
-							</>
-						)
+						<>
+							Create a new segment inside{' '}
+							<Link to={`/${project_id}/sessions`}>sessions</Link>
+							.
+						</>
 					}
-					noDataTitle={'No segment data yet 😔'}
+					noDataTitle={'No segments 😔'}
 				/>
 			</DashboardInnerTable>
 		</div>
