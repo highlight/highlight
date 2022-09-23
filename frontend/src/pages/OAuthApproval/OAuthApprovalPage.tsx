@@ -1,3 +1,4 @@
+import { ErrorState } from '@components/ErrorState/ErrorState'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -105,6 +106,12 @@ const OAuthApprovalPage = () => {
 
 	if (loading) {
 		return null
+	} else if (called && !data?.oauth_client_metadata?.id) {
+		return (
+			<div className={'absolute flex h-full w-full top-0 left-0'}>
+				<ErrorState message="We don't recognize this OAuth client." />
+			</div>
+		)
 	}
 	return (
 		<>
