@@ -89,7 +89,7 @@ def process(bucket, secure_id, copy_errors=False):
 
     # Insert error objects
     for error_object in error_objects:
-        new_error_object = error_group.copy()
+        new_error_object = error_object.copy()
         new_error_object['project_id'] = 1
         error_object_keys = ", ".join(k for k in new_error_object.keys() if k not in DROP_ERROR_OBJECT_KEYS)
         error_object_values = ", ".join(format_sql_value(new_error_object[k]) for k in new_error_object if k not in DROP_ERROR_OBJECT_KEYS)
