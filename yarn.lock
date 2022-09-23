@@ -2393,6 +2393,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@frontapp/plugin-sdk@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@frontapp/plugin-sdk@npm:1.1.2"
+  dependencies:
+    "@frontapp/ui-bridge": ^2.0.0-beta6
+    cuid: ^2.1.8
+    rxjs: ^6.5.4
+  checksum: b0ca848a5e66bd36bf2a09a7809f8ab622b211a2554e936ed285fbd9d9b18a4d2955e9fd9685598efc3b0716f644e75d6e32dcc03ed752f37b43f11a0a152995
+  languageName: node
+  linkType: hard
+
+"@frontapp/ui-bridge@npm:^2.0.0-beta6":
+  version: 2.0.0-beta6
+  resolution: "@frontapp/ui-bridge@npm:2.0.0-beta6"
+  dependencies:
+    io-ts: ^2.1.0
+    rxjs: ^6.5.3
+  checksum: 90193f57041fd83fdc677e54ea6d217d83e9df3f6b4a2cf857edcb6d1787c4741ba46fca023be12aef033c4939ba82c523da6f583c857051a7fdbe82e33629d1
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.0.1, @gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -3665,6 +3686,7 @@ __metadata:
     "@babel/core": ^7.19.0
     "@datadog/browser-logs": ^4.13.0
     "@fontsource/poppins": ^4.5.9
+    "@frontapp/plugin-sdk": ^1.1.2
     "@graphql-codegen/cli": ^1.20.1
     "@graphql-codegen/import-types-preset": ^1.18.1
     "@graphql-codegen/named-operations-object": ^2.1.0
@@ -8891,6 +8913,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cuid@npm:^2.1.8":
+  version: 2.1.8
+  resolution: "cuid@npm:2.1.8"
+  checksum: 12b85b3f5150a6f0b9e4f345c8d98299d74647419151751fa1132f6702fe2b5388ceceb1c9b49bad7cab1b3ac033c7cedea8ffc034930f90005b8a4345025288
+  languageName: node
+  linkType: hard
+
 "d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3":
   version: 3.2.0
   resolution: "d3-array@npm:3.2.0"
@@ -12846,6 +12875,15 @@ __metadata:
   dependencies:
     loose-envify: ^1.0.0
   checksum: cc3182d793aad82a8d1f0af697b462939cb46066ec48bbf1707c150ad5fad6406137e91a262022c269702e01621f35ef60269f6c0d7fd178487959809acdfb14
+  languageName: node
+  linkType: hard
+
+"io-ts@npm:^2.1.0":
+  version: 2.2.18
+  resolution: "io-ts@npm:2.2.18"
+  peerDependencies:
+    fp-ts: ^2.5.0
+  checksum: 8b5a22b0ccc0dd24a2520d9dc27095e144b86426c7cc5ce7a406d1f9cbbde2aa450632e6f3fb435817b6b56ecebea434b049feb2c6752fce0b810787295bf15f
   languageName: node
   linkType: hard
 
@@ -20098,7 +20136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.6.3":
+"rxjs@npm:^6.5.3, rxjs@npm:^6.5.4, rxjs@npm:^6.6.3":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
