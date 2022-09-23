@@ -84,6 +84,9 @@ def process(bucket, secure_id, copy_errors=False, store=False):
 
     # Get error objects associated with session
     error_objects = run_sql(f"SELECT * FROM error_objects WHERE session_id = '{session['id']}'", prod=True)
+    if not error_objects:
+        print(f"No errors found for session {session['id']}. Skipping copying errors...")
+        return
 
     # Get error groups for error objects
     error_group_ids = map(lambda x: str(x['error_group_id']), error_objects)
