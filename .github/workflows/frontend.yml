@@ -86,4 +86,6 @@ jobs:
             - name: Build Bundle
               run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false SOURCEMAP=true yarn build
             - name: Upload Sourcemaps
-              run: cd frontend && npx --yes @highlight-run/sourcemap-uploader upload --apiKey bvh0kh353uhqk4sfv0lg --path ./build
+              run: cd frontend && npx --yes @highlight-run/sourcemap-uploader upload --apiKey "${API_KEY}" --path ./build
+              env:
+                  API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
