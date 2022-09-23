@@ -73,7 +73,7 @@ jobs:
                   psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-            - name: Install dependencies
+            - name: Install Go and NPM dependencies
               run: yarn ci:install
             - name: Build backend
               run: yarn ci:build
