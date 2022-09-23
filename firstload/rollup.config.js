@@ -1,6 +1,5 @@
 // rollup.config.js
 
-import dev from 'rollup-plugin-dev'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
@@ -54,14 +53,7 @@ if (development) {
 			format: 'esm',
 			sourcemap: sourceMap,
 		},
-		plugins: [
-			...basePlugins,
-			filesize(),
-			dev({
-				host: 'localhost',
-				port: 9000,
-			}),
-		],
+		plugins: [...basePlugins, filesize()],
 	})
 } else {
 	for (const x of [
