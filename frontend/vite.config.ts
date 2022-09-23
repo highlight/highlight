@@ -13,7 +13,7 @@ const __dirname = dirname(__filename)
 
 export default defineConfig({
 	define: {
-		global: 'window',
+		global: !!process.env.TEST ? 'global' : 'window',
 	},
 	plugins: [
 		react({
