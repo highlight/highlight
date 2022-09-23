@@ -134,8 +134,9 @@ function HighlightSessions() {
 						/>
 					))}
 					{data?.sessions_opensearch.sessions.length === 0 && (
-						<Card className={'px-4 py-3 m-0'}>
+						<Card className={'px-4 py-0 m-0'}>
 							<EmptyCardPlaceholder
+								compact
 								message={`No sessions matched for the given email. Please try adjusting the date range.`}
 								title={'No sessions found 😢'}
 							/>
