@@ -83,6 +83,8 @@ jobs:
               run: cd frontend && yarn
             - name: Runs linting
               run: cd frontend && yarn test
+            - name: Build firstload (highlight.run)
+              run: cd firstload && yarn build
             - name: Build Bundle
               run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false SOURCEMAP=true yarn build
             - name: Upload Sourcemaps
