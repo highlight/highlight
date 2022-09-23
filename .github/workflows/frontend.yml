@@ -46,7 +46,7 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-yarn-
             - name: Install main dependencies
-              run: cd frontend && yarn --prefer-offline
+              run: cd frontend && yarn
             - name: copy frontend
               run: |
                   mkdir tmp
@@ -80,7 +80,7 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-yarn-
             - name: Install main dependencies
-              run: cd frontend && yarn --prefer-offline
+              run: cd frontend && yarn
             - name: Runs linting
               run: cd frontend && yarn test
             - name: Build Bundle
