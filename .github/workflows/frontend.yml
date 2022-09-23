@@ -85,4 +85,6 @@ jobs:
             - name: Runs linting
               run: cd frontend && yarn test
             - name: Build Bundle
-              run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false yarn build
+              run: export NODE_OPTIONS='--max-old-space-size=7168' && cd frontend && CI=false SOURCEMAP=true yarn build
+            - name: Upload Sourcemaps
+              run: cd frontend && npx --yes @highlight-run/sourcemap-uploader upload --apiKey bvh0kh353uhqk4sfv0lg' --path ./build

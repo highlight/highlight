@@ -45,7 +45,7 @@ export default defineConfig({
 	},
 	build: {
 		outDir: 'build',
-		sourcemap: false,
+		sourcemap: !!process.env.SOURCEMAP,
 	},
 	test: {
 		globals: true,
