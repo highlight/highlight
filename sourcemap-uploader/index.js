@@ -120,7 +120,7 @@ async function getAllSourceMapFiles(paths) {
 
       return new Promise((resolve) => {
         glob(
-          "**/*.map",
+          "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
           async (err, files) => {
             for (const file of files) {
