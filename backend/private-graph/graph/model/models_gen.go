@@ -638,6 +638,7 @@ const (
 	MetricViewComponentTypeActiveUsersTable    MetricViewComponentType = "ActiveUsersTable"
 	MetricViewComponentTypeRageClicksTable     MetricViewComponentType = "RageClicksTable"
 	MetricViewComponentTypeTopRoutesTable      MetricViewComponentType = "TopRoutesTable"
+	MetricViewComponentTypeSegmentsTable       MetricViewComponentType = "SegmentsTable"
 )
 
 var AllMetricViewComponentType = []MetricViewComponentType{
@@ -648,11 +649,12 @@ var AllMetricViewComponentType = []MetricViewComponentType{
 	MetricViewComponentTypeActiveUsersTable,
 	MetricViewComponentTypeRageClicksTable,
 	MetricViewComponentTypeTopRoutesTable,
+	MetricViewComponentTypeSegmentsTable,
 }
 
 func (e MetricViewComponentType) IsValid() bool {
 	switch e {
-	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable:
+	case MetricViewComponentTypeKeyPerformanceGauge, MetricViewComponentTypeSessionCountChart, MetricViewComponentTypeErrorCountChart, MetricViewComponentTypeReferrersTable, MetricViewComponentTypeActiveUsersTable, MetricViewComponentTypeRageClicksTable, MetricViewComponentTypeTopRoutesTable, MetricViewComponentTypeSegmentsTable:
 		return true
 	}
 	return false

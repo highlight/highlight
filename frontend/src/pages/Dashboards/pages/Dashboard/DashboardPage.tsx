@@ -15,6 +15,7 @@ import {
 	DashboardDefinition,
 	DashboardMetricConfig,
 	Maybe,
+	MetricViewComponentType,
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
@@ -29,6 +30,7 @@ import {
 	LAYOUT_CHART_WIDTH,
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
+import { HOME_DASHBOARD_CONFIGURATION } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -86,6 +88,25 @@ const DashboardPage = ({
 	useEffect(() => {
 		setNewDashboardCardIdx(undefined)
 	}, [dashboard])
+
+	useEffect(() => {
+		if (id === 'home' && dashboard?.metrics) {
+			const hasSegmentsTable = dashboard.metrics.some(
+				(m) =>
+					m.component_type === MetricViewComponentType.SegmentsTable,
+			)
+
+			if (!hasSegmentsTable) {
+				pushNewMetricConfig([
+					...dashboard.metrics,
+					{
+						...HOME_DASHBOARD_CONFIGURATION.SEGMENTS,
+					},
+				])
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [id, dashboard])
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 

@@ -51,11 +51,16 @@ export const HOME_DASHBOARD_CONFIGURATION: {
 		description: 'Top Routes',
 		component_type: MetricViewComponentType.TopRoutesTable,
 	},
+	Segments: {
+		name: 'Segments',
+		description: 'Segments',
+		component_type: MetricViewComponentType.SegmentsTable,
+	},
 }
 
 const LAYOUT_ROW_WIDTH = 12
 const LAYOUT_CHART_WIDTH = LAYOUT_ROW_WIDTH / 4
-const DEFAULT_SINGLE_LAYOUT = {
+export const DEFAULT_SINGLE_LAYOUT = {
 	w: LAYOUT_CHART_WIDTH,
 	h: 4,
 	x: 0,
@@ -111,6 +116,12 @@ export const DEFAULT_HOME_DASHBOARD_LAYOUT = {
 			x: 9,
 			y: 3,
 			i: '6',
+		},
+		{
+			...DEFAULT_SINGLE_LAYOUT,
+			x: 0,
+			y: 6,
+			i: '7',
 		},
 	],
 }

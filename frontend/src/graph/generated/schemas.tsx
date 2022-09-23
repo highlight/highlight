@@ -947,6 +947,7 @@ export enum MetricViewComponentType {
 	ActiveUsersTable = 'ActiveUsersTable',
 	RageClicksTable = 'RageClicksTable',
 	TopRoutesTable = 'TopRoutesTable',
+	SegmentsTable = 'SegmentsTable',
 }
 
 export type DashboardMetricConfig = {

@@ -7270,6 +7270,7 @@ enum MetricViewComponentType {
 	ActiveUsersTable
 	RageClicksTable
 	TopRoutesTable
+	SegmentsTable
 }
 
 type DashboardMetricConfig {

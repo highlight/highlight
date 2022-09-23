@@ -8,6 +8,7 @@ import ActiveUsersTable from '@pages/Home/components/ActiveUsersTable/ActiveUser
 import KeyPerformanceIndicators from '@pages/Home/components/KeyPerformanceIndicators/KeyPerformanceIndicators'
 import RageClicksForProjectTable from '@pages/Home/components/RageClicksForProjectTable/RageClicksForProjectTable'
 import ReferrersTable from '@pages/Home/components/ReferrersTable/ReferrersTable'
+import SegmentsTable from '@pages/Home/components/SegmentsTable/SegmentsTable'
 import TopRoutesTable from '@pages/Home/components/TopRoutesTable/TopRoutesTable'
 import {
 	ErrorCountGraph,
@@ -42,6 +43,7 @@ export const PrebuiltComponentMap: {
 		hasSearch: true,
 	},
 	[MetricViewComponentType.TopRoutesTable]: { fc: TopRoutesTable },
+	[MetricViewComponentType.SegmentsTable]: { fc: SegmentsTable },
 }
 
 export const DashboardComponentCard = ({

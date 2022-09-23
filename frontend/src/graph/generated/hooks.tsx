@@ -9107,6 +9107,63 @@ export type GetTopUsersQueryResult = Apollo.QueryResult<
 	Types.GetTopUsersQuery,
 	Types.GetTopUsersQueryVariables
 >
+export const GetTopSegmentsDocument = gql`
+	query GetTopSegments($project_id: ID!) {
+		segments(project_id: $project_id, limit: 20) {
+			id
+			name
+		}
+	}
+`
+
+/**
+ * __useGetTopSegmentsQuery__
+ *
+ * To run a query within a React component, call `useGetTopSegmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTopSegmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTopSegmentsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetTopSegmentsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTopSegmentsQuery,
+		Types.GetTopSegmentsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTopSegmentsQuery,
+		Types.GetTopSegmentsQueryVariables
+	>(GetTopSegmentsDocument, baseOptions)
+}
+export function useGetTopSegmentsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTopSegmentsQuery,
+		Types.GetTopSegmentsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTopSegmentsQuery,
+		Types.GetTopSegmentsQueryVariables
+	>(GetTopSegmentsDocument, baseOptions)
+}
+export type GetTopSegmentsQueryHookResult = ReturnType<
+	typeof useGetTopSegmentsQuery
+>
+export type GetTopSegmentsLazyQueryHookResult = ReturnType<
+	typeof useGetTopSegmentsLazyQuery
+>
+export type GetTopSegmentsQueryResult = Apollo.QueryResult<
+	Types.GetTopSegmentsQuery,
+	Types.GetTopSegmentsQueryVariables
+>
 export const GetDailySessionsCountDocument = gql`
 	query GetDailySessionsCount(
 		$project_id: ID!

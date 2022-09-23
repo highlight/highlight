@@ -3402,6 +3402,20 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTopSegmentsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetTopSegmentsQuery = { __typename?: 'Query' } & {
+	segments?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'Segment' } & Pick<Types.Segment, 'id' | 'name'>
+			>
+		>
+	>
+}
+
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeInput
@@ -4075,6 +4089,7 @@ export const namedOperations = {
 		GetNewUsersCount: 'GetNewUsersCount' as const,
 		GetAverageSessionLength: 'GetAverageSessionLength' as const,
 		GetTopUsers: 'GetTopUsers' as const,
+		GetTopSegments: 'GetTopSegments' as const,
 		GetDailySessionsCount: 'GetDailySessionsCount' as const,
 		GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
 		GetRageClicksForProject: 'GetRageClicksForProject' as const,
