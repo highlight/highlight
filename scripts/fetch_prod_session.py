@@ -104,6 +104,7 @@ def process(bucket, secure_id, copy_errors=False):
             'Key': file.key
         })
 
+    print('Finished copying session and associated errors.')
 
 def run_sql(sql='select 1;', prod=False, insert=False):
     if not insert:
