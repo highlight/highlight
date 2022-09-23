@@ -65,7 +65,6 @@ const DashboardsRouter = () => {
 					},
 				}).catch(H.consumeError)
 			}
-
 			if (
 				!data?.dashboard_definitions?.some(
 					(d) => d?.name === 'Request Metrics',

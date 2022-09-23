@@ -30,7 +30,6 @@ import {
 	LAYOUT_CHART_WIDTH,
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
-import { HOME_DASHBOARD_CONFIGURATION } from '@pages/Home/utils/HomePageUtils'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -90,19 +89,19 @@ const DashboardPage = ({
 	}, [dashboard])
 
 	useEffect(() => {
-		if (id === 'home' && dashboard?.metrics) {
+		if (dashboard?.name === 'Home' && dashboard?.metrics) {
 			const hasSegmentsTable = dashboard.metrics.some(
 				(m) =>
 					m.component_type === MetricViewComponentType.SegmentsTable,
 			)
 
 			if (!hasSegmentsTable) {
-				pushNewMetricConfig([
-					...dashboard.metrics,
-					{
-						...HOME_DASHBOARD_CONFIGURATION.SEGMENTS,
-					},
-				])
+				const segmentMetric = {
+					name: 'Segments',
+					description: 'Segments',
+					component_type: MetricViewComponentType.SegmentsTable,
+				}
+				pushNewMetricConfig([...dashboard.metrics, segmentMetric])
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
