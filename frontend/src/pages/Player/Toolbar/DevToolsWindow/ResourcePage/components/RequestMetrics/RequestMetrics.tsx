@@ -1,4 +1,4 @@
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
+import DataCard from '@components/DataCard/DataCard'
 import LineChart from '@components/LineChart/LineChart'
 import {
 	useGetDashboardDefinitionsQuery,
@@ -6,7 +6,6 @@ import {
 } from '@graph/hooks'
 import {
 	MetricAggregator,
-	MetricTagFilter,
 	MetricTagFilterOp,
 	NetworkRequestAttribute,
 } from '@graph/schemas'
@@ -102,44 +101,54 @@ const RequestMetrics: React.FC<Props> = ({ resource }) => {
 
 	return (
 		<div className={styles.requestMetrics}>
-			<div>
-				{dashboardWithMetric ? (
-					<ButtonLink
-						trackingId="viewDashboardFromNetworkRequestDetails"
-						to={`/${project_id}/dashboards/${dashboardWithMetric.id}`}
-					>
-						View on {dashboardWithMetric.name} Dashboard
-					</ButtonLink>
-				) : (
-					<Dropdown.Button overlay={<Menu items={dashboardItems} />}>
-						Add to Dashboard
-					</Dropdown.Button>
-				)}
+			<DataCard
+				title={
+					<>
+						<h2>Request Metrics</h2>
 
-				<LineChart
-					height={275}
-					data={(data?.metrics_timeline || []).map((x) => ({
-						date: x?.date,
-						[MetricAggregator.P50]: x?.value,
-					}))}
-					xAxisDataKeyName="date"
-					xAxisTickFormatter={(tickItem) =>
-						moment(tickItem).format('h:mm')
-					}
-					xAxisProps={{
-						domain: ['dataMin', 'dataMax'],
-					}}
-					lineColorMapping={LINE_COLORS}
-					yAxisLabel="ms"
-					referenceLines={[
-						{
-							label: 'This Request',
-							value: duration,
-							color: 'var(--color-red-500)',
-						},
-					]}
-				/>
-			</div>
+						{dashboardWithMetric ? (
+							<Link
+								to={`/${project_id}/dashboards/${dashboardWithMetric.id}`}
+							>
+								View on Dashboard
+							</Link>
+						) : (
+							<Dropdown.Button
+								size="small"
+								overlay={<Menu items={dashboardItems} />}
+							>
+								Add to Dashboard
+							</Dropdown.Button>
+						)}
+					</>
+				}
+				fullWidth
+			>
+				<div className={styles.chartContainer}>
+					<LineChart
+						data={(data?.metrics_timeline || []).map((x) => ({
+							date: x?.date,
+							[MetricAggregator.P50]: x?.value,
+						}))}
+						xAxisDataKeyName="date"
+						xAxisTickFormatter={(tickItem) =>
+							moment(tickItem).format('h:mm')
+						}
+						xAxisProps={{
+							domain: ['dataMin', 'dataMax'],
+						}}
+						lineColorMapping={LINE_COLORS}
+						yAxisLabel="ms"
+						referenceLines={[
+							{
+								label: 'This Request',
+								value: duration,
+								color: 'var(--color-red-500)',
+							},
+						]}
+					/>
+				</div>
+			</DataCard>
 		</div>
 	)
 }
