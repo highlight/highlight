@@ -30,10 +30,11 @@ import {
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Dropdown, Menu, message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
+import { VscEllipsis } from 'react-icons/vsc'
 import { useHistory, useLocation } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
@@ -231,10 +232,10 @@ const DashboardPage = ({
 							>
 								Add
 							</Button>
-							{dashboard.is_default ? null : (
-								<DeleteDashboardButton dashboard={dashboard} />
-							)}
 							<TimeRangePicker />
+							{dashboard.is_default ? null : (
+								<DashboardMenu dashboard={dashboard} />
+							)}
 						</div>
 					</div>
 				</div>
@@ -275,6 +276,31 @@ const DashboardPage = ({
 				containerStyles={containerStyles}
 			/>
 		</LeadAlignLayout>
+	)
+}
+export default DashboardPage
+
+function DashboardMenu({ dashboard }: { dashboard: DashboardDefinition }) {
+	if (dashboard.is_default) {
+		return null
+	}
+
+	return (
+		<Dropdown
+			trigger={['click']}
+			placement="bottomRight"
+			overlay={
+				<Menu inlineIndent={0} className={styles.settingsDropdownMenu}>
+					<Menu.Item>
+						<DeleteDashboardButton dashboard={dashboard} />
+					</Menu.Item>
+				</Menu>
+			}
+		>
+			<Button trackingId="dashboardPageSettings" type="ghost">
+				<VscEllipsis />
+			</Button>
+		</Dropdown>
 	)
 }
 
@@ -417,8 +443,6 @@ export const findDashboardMetric = (
 	})
 }
 
-export default DashboardPage
-
 function DeleteDashboardButton({
 	dashboard,
 }: {
@@ -446,6 +470,8 @@ function DeleteDashboardButton({
 				trackingId: 'DeleteDashboard',
 				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
 				danger: true,
+				className:
+					'border-transparent hover:bg-neutral-100 focus-visible:bg-neutral-100 focus:outline-none',
 			}}
 			modalTitleText="Are you sure you want to delete this dashboard?"
 			confirmText="Delete dashboard"
