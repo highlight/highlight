@@ -89,7 +89,7 @@ const DashboardPage = ({
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 
-	// Logic for adding a new metric based on the addToDashboard URL param.
+	// Logic for adding a new metric based from the router state.
 	useEffect(() => {
 		if (!dashboard || !metricConfig || metricAutoAdded.current) {
 			return
@@ -101,6 +101,9 @@ const DashboardPage = ({
 		const canAddMetric = !findDashboardMetric(dashboard, metricConfig)
 
 		if (canAddMetric && metricConfig) {
+			// Opens modal to edit metric config.
+			setNewDashboardCardIdx(dashboard.metrics.length)
+
 			pushNewMetricConfig([
 				...dashboard.metrics,
 				{
@@ -109,11 +112,7 @@ const DashboardPage = ({
 				},
 			])
 
-			message.success(
-				`${metricConfig.description} added successfully.`,
-				3000,
-			)
-
+			// Reset state so we don't try to add again.
 			history.replace({ state: {} })
 		}
 
