@@ -459,7 +459,6 @@ function DeleteDashboardButton({
 		onCompleted: () => {
 			history.push(`/${dashboard.project_id}/dashboards`)
 		},
-		// TODO: Look up what this does.
 		refetchQueries: [GetDashboardDefinitionsDocument],
 	})
 
