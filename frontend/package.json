@@ -1,6 +1,6 @@
 {
-	"name": "frontend-ts",
-	"version": "1.12.5",
+	"name": "@highlight-run/frontend",
+	"version": "1.13.0",
 	"private": true,
 	"dependencies": {
 		"@apollo/client": "3.4.17",
