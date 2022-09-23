@@ -71,6 +71,10 @@
 
 	&.error {
 		background-color: var(--color-red-400);
+
+		button {
+			background: transparent;
+		}
 	}
 
 	button {

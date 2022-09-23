@@ -130,6 +130,11 @@ func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID in
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspace(workspaceID int, adminEmail string, name string) (companyID *int, err error) {
+	// Don't create for Demo account
+	if workspaceID == 0 {
+		return
+	}
+
 	if emailproviders.Exists(adminEmail) {
 		adminEmail = ""
 	}
@@ -198,7 +203,7 @@ func (h *HubspotApi) UpdateCompanyProperty(workspaceID int, properties []hubspot
 		return e.Wrap(err, "error retrieving workspace details")
 	}
 	hubspotWorkspaceID := workspace.HubspotCompanyID
-	if hubspotWorkspaceID == nil {
+	if hubspotWorkspaceID == nil && workspace.ID != 0 {
 		id, err := h.CreateCompanyForWorkspace(
 			workspaceID,
 			"", ptr.ToString(workspace.Name),
