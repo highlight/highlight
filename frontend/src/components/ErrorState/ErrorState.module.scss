@@ -1,6 +1,6 @@
 .errorWrapper {
 	align-items: center;
-	background: var(--color-purple);
+	background: var(--color-primary-500);
 	display: flex;
 	height: 100vh;
 	justify-content: center;
@@ -24,7 +24,7 @@
 }
 
 .expandButton {
-	color: var(--color-purple);
+	color: var(--color-primary-500);
 	cursor: pointer;
 }
 

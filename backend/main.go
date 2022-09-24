@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"html/template"
 	"io"
 	"net/http"
@@ -198,7 +199,12 @@ func main() {
 	redisClient := redis.NewClient()
 	sfnClient := stepfunctions.NewClient()
 
-	private.SetupAuthClient()
+	oauthSrv, err := oauth.CreateServer(db)
+	if err != nil {
+		log.Fatalf("error creating oauth client: %v", err)
+	}
+
+	private.SetupAuthClient(oauthSrv)
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -217,6 +223,7 @@ func main() {
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
+		OAuthServer:            oauthSrv,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -245,6 +252,14 @@ func main() {
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
 		}
+
+		r.Route("/oauth", func(r chi.Router) {
+			r.Use(private.PrivateMiddleware)
+			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
+			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
+			r.HandleFunc("/validate", oauthSrv.HandleValidate)
+			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
+		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db)

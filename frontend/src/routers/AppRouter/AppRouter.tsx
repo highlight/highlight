@@ -20,6 +20,7 @@ import NewMemberPage from '../../pages/NewMember/NewMemberPage'
 import InternalRouter from '../InternalRouter/InternalRouter'
 import { ProjectRouter } from '../OrgRouter/OrgRouter'
 import styles from './AppRouter.module.scss'
+import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -39,6 +40,11 @@ export const AppRouter = () => {
 					<Route path="/new">
 						<Landing>
 							<NewProjectPage />
+						</Landing>
+					</Route>
+					<Route path="/oauth/authorize">
+						<Landing>
+							<OAuthApprovalPage />
 						</Landing>
 					</Route>
 					<Route path="/callback/:integrationName">

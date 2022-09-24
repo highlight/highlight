@@ -4006,6 +4006,19 @@ export type GetSourcemapVersionsQuery = { __typename?: 'Query' } & Pick<
 	'sourcemap_versions'
 >
 
+export type GetOAuthClientMetadataQueryVariables = Types.Exact<{
+	client_id: Types.Scalars['String']
+}>
+
+export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
+	oauth_client_metadata?: Types.Maybe<
+		{ __typename?: 'OAuthClient' } & Pick<
+			Types.OAuthClient,
+			'id' | 'created_at' | 'app_name'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4103,6 +4116,7 @@ export const namedOperations = {
 		GetMetricTagValues: 'GetMetricTagValues' as const,
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
+		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
