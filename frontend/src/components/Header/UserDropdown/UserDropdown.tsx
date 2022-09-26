@@ -3,9 +3,9 @@ import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
-import { useGetAdminQuery } from '../../../graph/generated/hooks'
-import { auth } from '../../../util/auth'
-import { client } from '../../../util/graph'
+import { useGetAdminQuery } from '@graph/hooks'
+import { auth } from '@util/auth'
+import { client } from '@util/graph'
 import { AdminAvatar } from '../../Avatar/Avatar'
 import styles from './UserDropdown.module.scss'
 

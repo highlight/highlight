@@ -15,20 +15,25 @@
 	}
 
 	h2 {
-		border-bottom: 1px solid var(--color-gray-300);
 		color: var(--text-primary);
 		font-size: 12px !important;
 		margin: 0;
-		margin-bottom: var(--size-xxSmall) !important;
-		padding-bottom: var(--size-small);
-		padding-left: var(--size-small);
-		padding-right: var(--size-small);
-		padding-top: var(--size-small);
 	}
 
 	&:hover {
 		border: 1px solid var(--color-purple);
 		box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+	}
+
+	.titleContainer {
+		align-items: center;
+		border-bottom: 1px solid var(--color-gray-300);
+		display: flex;
+		height: 48px;
+		justify-content: space-between;
+		margin-bottom: var(--size-xxSmall);
+		padding: 0 var(--size-small);
+		width: 100%;
 	}
 
 	.content {

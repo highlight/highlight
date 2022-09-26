@@ -234,6 +234,10 @@
 		grid-template-columns: 26px 1fr 0.25fr;
 	}
 
+	&.compact {
+		grid-template-columns: 1fr 0.33fr;
+	}
+
 	&.errorVersion {
 		grid-template-columns: 26px 1fr;
 	}

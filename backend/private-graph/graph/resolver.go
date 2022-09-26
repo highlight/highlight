@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -89,6 +90,7 @@ type Resolver struct {
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
+	OAuthServer            *oauth.Server
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

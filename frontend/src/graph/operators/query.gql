@@ -1621,3 +1621,11 @@ query GetSourcemapFiles($project_id: ID!, $version: String) {
 query GetSourcemapVersions($project_id: ID!) {
 	sourcemap_versions(project_id: $project_id)
 }
+
+query GetOAuthClientMetadata($client_id: String!) {
+	oauth_client_metadata(client_id: $client_id) {
+		id
+		created_at
+		app_name
+	}
+}

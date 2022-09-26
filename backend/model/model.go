@@ -169,6 +169,7 @@ var Models = []interface{}{
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
+	&OAuthClientStore{},
 }
 
 func init() {
@@ -1043,6 +1044,14 @@ type AlertEvent struct {
 	ErrorGroupID *int
 }
 
+type OAuthClientStore struct {
+	ID        string         `gorm:"primary_key;default:uuid_generate_v4()"`
+	CreatedAt time.Time      `json:"created_at" deep:"-"`
+	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
+	Domains   pq.StringArray `gorm:"not null;type:text[]"`
+	AppName   string
+}
+
 var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
@@ -1132,6 +1141,11 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating secure_id_generator")
+	}
+
+	// allows using postgres native UUID functions
+	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
+		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
 
 	if err := DB.AutoMigrate(

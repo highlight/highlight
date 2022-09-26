@@ -23,7 +23,7 @@ type Client struct {
 }
 
 var (
-	redisEventsStagingEndpoint = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
+	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
 )
 
 func UseRedis(projectId int, sessionSecureId string) bool {
@@ -42,7 +42,7 @@ func NewClient() *Client {
 	if util.IsDevOrTestEnv() {
 		return &Client{
 			redisClient: redis.NewClient(&redis.Options{
-				Addr:         redisEventsStagingEndpoint,
+				Addr:         ServerAddr,
 				Password:     "",
 				ReadTimeout:  5 * time.Second,
 				WriteTimeout: 5 * time.Second,
@@ -55,7 +55,7 @@ func NewClient() *Client {
 		}
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:        []string{redisEventsStagingEndpoint},
+			Addrs:        []string{ServerAddr},
 			Password:     "",
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,

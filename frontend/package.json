@@ -7,6 +7,7 @@
 		"@babel/core": "^7.19.0",
 		"@datadog/browser-logs": "^4.13.0",
 		"@fontsource/poppins": "^4.5.9",
+		"@frontapp/plugin-sdk": "^1.1.2",
 		"@highlight-run/react": "^1.2.1",
 		"@highlight-run/react-mentions": "4.4.1",
 		"@highlight-run/react-select": "^5.2.2",

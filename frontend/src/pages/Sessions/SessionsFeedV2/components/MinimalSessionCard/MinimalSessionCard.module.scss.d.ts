@@ -5,6 +5,7 @@ export const backfilledIcon: string
 export const bottomText: string
 export const cardAnnotation: string
 export const cardAnnotationContainer: string
+export const compact: string
 export const detailed: string
 export const detailedSection: string
 export const errorVersion: string
