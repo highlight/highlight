@@ -33,9 +33,8 @@
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "cd backend && go build",
-		"ci:install": "yarn ci:install:go && yarn ci:install:yarn",
+		"ci:install": "yarn ci:install:go && yarn",
 		"ci:install:go": "cd backend && go build",
-		"ci:install:yarn": "yarn --prefer-offline && cd frontend && yarn --prefer-offline && cd ../client && yarn --prefer-offline",
 		"ci:start": "run-p --print-label --race dev:frontend dev:client ci:backend",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome"
