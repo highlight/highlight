@@ -58,8 +58,6 @@ jobs:
                   cache: yarn
                   cache-dependency-path: |
                       yarn.lock
-                      frontend/yarn.lock
-                      client/yarn.lock
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
@@ -76,7 +74,7 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Install Go and NPM dependencies
-              run: yarn ci:install
+              run: yarn && yarn ci:install:go
             - name: Build backend
               run: yarn ci:build
             - name: Run Cypress tests

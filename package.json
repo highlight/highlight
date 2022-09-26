@@ -33,7 +33,6 @@
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "cd backend && go build",
-		"ci:install": "yarn ci:install:go && yarn",
 		"ci:install:go": "cd backend && go build",
 		"ci:start": "run-p --print-label --race dev:frontend dev:client ci:backend",
 		"cy:run": "cypress run",
