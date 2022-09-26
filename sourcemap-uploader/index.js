@@ -40,6 +40,7 @@ yargs(hideBin(process.argv))
         method: "post",
         headers: {
           "Content-Type": "application/json",
+          ApiKey: apiKey,
         },
         body: JSON.stringify({
           query: VERIFY_API_KEY_QUERY,
