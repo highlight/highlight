@@ -204,7 +204,6 @@ func main() {
 		log.Fatalf("error creating oauth client: %v", err)
 	}
 
-	private.SetupAuthClient(oauthSrv)
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -225,6 +224,7 @@ func main() {
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 	}
+	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	// r.Use(handlers.CompressHandler)
