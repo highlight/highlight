@@ -633,6 +633,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 
 type Field struct {
 	Model
+	ID int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	// 'user_property', 'session_property'.
 	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.

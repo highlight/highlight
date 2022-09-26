@@ -386,12 +386,12 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 
 	var entries []struct {
 		SessionID int
-		FieldID   int
+		FieldID   int64
 	}
 	for _, f := range allFields {
 		entries = append(entries, struct {
 			SessionID int
-			FieldID   int
+			FieldID   int64
 		}{
 			SessionID: session.ID,
 			FieldID:   f.ID,
@@ -547,7 +547,7 @@ func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTr
 			State:     modelInputs.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -586,7 +586,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			State:     modelInputs.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -858,7 +858,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
 	}
-	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
+	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(errorObj.ID), pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
@@ -950,7 +950,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, nil, f); err != nil {
+			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, int64(f.ID), nil, f); err != nil {
 				return e.Wrap(err, "error indexing new error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
