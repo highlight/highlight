@@ -470,6 +470,7 @@ export class Highlight {
 
 	async initialize(): Promise<undefined> {
 		if (
+			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
 			navigator?.userAgent?.includes('AdsBot')
 		) {
@@ -1174,6 +1175,7 @@ interface HighlightWindow extends Window {
 			on: (channel: string, listener: (...args: any[]) => void) => {}
 		}
 	}
+	Cypress?: any
 }
 
 declare var window: HighlightWindow
