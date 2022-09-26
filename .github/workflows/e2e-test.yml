@@ -1,0 +1,97 @@
+name: E2E Test
+on:
+    push:
+        branches:
+            - '**'
+            - '!master'
+        paths:
+            - '**/package.json'
+            - '**/yarn.lock'
+            - 'frontend/**'
+            - 'client/**'
+            - 'firstload/**'
+            - '.github/workflows/e2e-test.yml'
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        env:
+            ENVIRONMENT: test
+            PGPASSWORD: postgres
+            PSQL_HOST: localhost
+            PSQL_PORT: 5432
+            PSQL_USER: postgres
+            PSQL_DB: postgres
+            PSQL_PASSWORD: postgres
+            REDIS_HOST: redis
+            REDIS_PORT: 6379
+        services:
+            postgres:
+                image: postgres
+                env:
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_USER: postgres
+                    POSTGRES_DB: postgres
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+            redis:
+                image: redis
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 6379:6379
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 16.14.2
+                  registry-url: https://registry.npmjs.org
+                  cache: yarn
+                  cache-dependency-path: |
+                      yarn.lock
+                      frontend/yarn.lock
+                      client/yarn.lock
+            - name: Setup Go
+              uses: actions/setup-go@v3
+              with:
+                  go-version-file: 'backend/go.mod'
+                  cache: true
+                  cache-dependency-path: backend/go.mod
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v1
+            - name: Migrate and seed database
+              run: |
+                  cd backend/
+                  make migrate
+                  psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
+            - name: Install Go and NPM dependencies
+              run: yarn ci:install
+            - name: Build backend
+              run: yarn ci:build
+            - name: Run Cypress tests
+              uses: cypress-io/github-action@v4
+              with:
+                  start: yarn ci:start
+                  wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost:8082/health'
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
+                  NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
+            # Enable this step + remove `video: false` in `cypress.config.js` if
+            # you want to see a recording of your failures in CI.
+            # - name: Save videos
+            #   uses: actions/upload-artifact@v2
+            #   if: failure()
+            #   with:
+            #       name: cypress-videos
+            #       path: cypress/videos
