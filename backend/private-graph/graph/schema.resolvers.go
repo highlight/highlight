@@ -1874,6 +1874,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveFrontFromProject(project); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeVercel {
+		if err := r.RemoveVercelFromProject(project); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}

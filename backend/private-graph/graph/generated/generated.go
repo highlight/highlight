@@ -6578,6 +6578,7 @@ enum IntegrationType {
 	Linear
 	Zapier
 	Front
+	Vercel
 }
 
 enum ErrorState {

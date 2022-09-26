@@ -60,15 +60,14 @@
 		"**/*.chunk.js": true,
 		"**/*.js.map": true,
 		"**/*.min.js": true,
-		"backend/errors/test-files/*": true,
-		"backend/private-graph/graph/generated/*": true,
-		"backend/public-graph/graph/generated/*": true,
-		"backend/go.sum": true,
-		"backend/event-parse/sample-events/*.json": true,
 		"**/*.scss.d.ts": true,
-		// "frontend/src/graph/generated/*": true,
+		"**/yarn-error.log": true,
+		"backend/errors/test-files/*": true,
+		"backend/event-parse/sample-events/*.json": true,
+		"backend/go.sum": true,
 		"backend/payload/*": true,
-		"**/yarn-error.log": true
+		"backend/private-graph/graph/generated/*": true,
+		"backend/public-graph/graph/generated/*": true
 	},
 	"cSpell.words": ["Blocklist", "interactable"],
 	"[yaml]": {
@@ -76,5 +75,8 @@
 	},
 	"[sql]": {
 		"editor.defaultFormatter": "mtxr.sqltools"
+	},
+	"search.exclude": {
+		"frontend/src/graph/generated/*": true
 	}
 }

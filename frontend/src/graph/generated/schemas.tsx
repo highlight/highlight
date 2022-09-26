@@ -209,6 +209,7 @@ export enum IntegrationType {
 	Linear = 'Linear',
 	Zapier = 'Zapier',
 	Front = 'Front',
+	Vercel = 'Vercel',
 }
 
 export enum ErrorState {

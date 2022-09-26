@@ -3,6 +3,7 @@ import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontInte
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
+import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
 import React from 'react'
 
@@ -70,12 +71,23 @@ export const FRONT_INTEGRATION: Integration = {
 	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
 }
 
+export const VERCEL_INTEGRATION: Integration = {
+	key: 'vercel',
+	name: 'Vercel',
+	configurationPath: 'vercel',
+	onlyShowForHighlightAdmin: true,
+	description: 'Configuration for your Vercel projects.',
+	icon: 'https://camo.githubusercontent.com/add2c9721e333f0043ac938f3dadbc26a282776e01b95b308fcaba5afaf74ae3/68747470733a2f2f6173736574732e76657263656c2e636f6d2f696d6167652f75706c6f61642f76313538383830353835382f7265706f7369746f726965732f76657263656c2f6c6f676f2e706e67',
+	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
 	FRONT_INTEGRATION,
+	VERCEL_INTEGRATION,
 ]
 
 export default INTEGRATIONS

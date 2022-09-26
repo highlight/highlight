@@ -6,6 +6,7 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import React, { useMemo } from 'react'
@@ -36,12 +37,16 @@ const IntegrationsPage = () => {
 	const { isFrontIntegratedWithProject, loading: loadingFront } =
 		useFrontIntegration()
 
+	const { isVercelIntegratedWithProject, loading: loadingVercel } =
+		useVercelIntegration()
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
 		loadingZapier ||
 		loadingClearbit ||
-		loadingFront
+		loadingFront ||
+		loadingVercel
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -54,7 +59,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
 				(inter.key === 'clearbit' &&
 					isClearbitIntegratedWithWorkspace) ||
-				(inter.key === 'front' && isFrontIntegratedWithProject),
+				(inter.key === 'front' && isFrontIntegratedWithProject) ||
+				(inter.key === 'vercel' && isVercelIntegratedWithProject),
 		}))
 	}, [
 		isSlackConnectedToWorkspace,
@@ -63,6 +69,7 @@ const IntegrationsPage = () => {
 		isFrontIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
 		isHighlightAdmin,
+		isVercelIntegratedWithProject,
 	])
 
 	return (

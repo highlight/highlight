@@ -1709,6 +1709,10 @@ func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	return nil
 }
 
+func (r *Resolver) RemoveVercelFromProject(project *model.Project) error {
+	panic("Not implemented")
+}
+
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		LINEAR_CLIENT_ID     string

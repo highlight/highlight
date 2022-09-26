@@ -494,6 +494,7 @@ const (
 	IntegrationTypeLinear IntegrationType = "Linear"
 	IntegrationTypeZapier IntegrationType = "Zapier"
 	IntegrationTypeFront  IntegrationType = "Front"
+	IntegrationTypeVercel IntegrationType = "Vercel"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -501,11 +502,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
 	IntegrationTypeFront,
+	IntegrationTypeVercel,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel:
 		return true
 	}
 	return false

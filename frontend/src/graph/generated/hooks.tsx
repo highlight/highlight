@@ -9710,6 +9710,63 @@ export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithFrontQuery,
 	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithVercelDocument = gql`
+	query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
+		is_integrated_with_vercel: is_integrated_with(
+			integration_type: Vercel
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithVercelQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithVercelQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithVercelQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithVercelQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithVercelQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithVercelLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithVercelQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithVercelQuery,
+	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+>
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 		generate_zapier_access_token(project_id: $project_id)
