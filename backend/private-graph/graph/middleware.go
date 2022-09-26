@@ -2,7 +2,10 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -20,14 +23,17 @@ import (
 	e "github.com/pkg/errors"
 )
 
+type APITokenHandler func(ctx context.Context, apiKey string) (*int, error)
+
 var (
-	AuthClient  *auth.Client
-	OAuthServer *oauth.Server
+	AuthClient            *auth.Client
+	OAuthServer           *oauth.Server
+	workspaceTokenHandler APITokenHandler
 )
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io", "@runhighlight.com"}
 
-func SetupAuthClient(oauthServer *oauth.Server) {
+func SetupAuthClient(oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	secret := os.Getenv("FIREBASE_SECRET")
 	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
 		"https://www.googleapis.com/auth/firebase",
@@ -45,6 +51,7 @@ func SetupAuthClient(oauthServer *oauth.Server) {
 		log.Fatalf("error creating firebase client: %v", err)
 	}
 	OAuthServer = oauthServer
+	workspaceTokenHandler = wsTokenHandler
 }
 
 func updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
@@ -71,17 +78,58 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 	return ctx, nil
 }
 
+func getSourcemapRequestToken(r *http.Request) string {
+	bodyReader, err := r.GetBody()
+	if err != nil {
+		return ""
+	}
+	body, err := io.ReadAll(bodyReader)
+	if err != nil {
+		return ""
+	}
+	var graphqlQuery struct {
+		Query     string
+		Variables struct {
+			APIKey string `json:"api_key"`
+		}
+	}
+	err = json.Unmarshal(body, &graphqlQuery)
+	if err != nil {
+		return ""
+	}
+	return graphqlQuery.Variables.APIKey
+}
+
 func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var err error
 		ctx := r.Context()
+		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
+		defer span.Finish()
+		sourcemapRequestToken := getSourcemapRequestToken(r)
+		var err error
 		if token := r.Header.Get("token"); token != "" {
+			span.SetOperationName("tokenHeader")
 			ctx, err = updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+		} else if sourcemapRequestToken != "" {
+			span.SetOperationName("sourcemapBody")
+			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
+			if err != nil || workspaceID == nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
+		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
+			span.SetOperationName("apiKeyHeader")
+			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
+			if err != nil || workspaceID == nil {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
 		} else {
+			span.SetOperationName("oauth")
 			var cookie *http.Cookie
 			ctx, _, cookie, err = OAuthServer.Validate(ctx, r)
 			if err != nil {
