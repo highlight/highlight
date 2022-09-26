@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -30,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -3230,8 +3231,12 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 	for _, a := range workspaceAdmins {
 		if a != nil {
+			queryParams := url.Values{
+				"autoinvite_email": {*admin.Email},
+			}
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				*a.Name, *a.Email, inviteLink); err != nil {
 				log.Error(e.Wrap(err, "failed to send request access email"))
 				return &model.T, nil
 			}
