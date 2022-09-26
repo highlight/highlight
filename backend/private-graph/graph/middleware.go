@@ -1,11 +1,12 @@
 package graph
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -79,11 +80,9 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 }
 
 func getSourcemapRequestToken(r *http.Request) string {
-	bodyReader, err := r.GetBody()
-	if err != nil {
-		return ""
-	}
-	body, err := io.ReadAll(bodyReader)
+	body, err := ioutil.ReadAll(r.Body)
+	// put the body back so that graphql can also read it
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	if err != nil {
 		return ""
 	}
@@ -105,7 +104,6 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
-		sourcemapRequestToken := getSourcemapRequestToken(r)
 		var err error
 		if token := r.Header.Get("token"); token != "" {
 			span.SetOperationName("tokenHeader")
@@ -114,16 +112,16 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-		} else if sourcemapRequestToken != "" {
-			span.SetOperationName("sourcemapBody")
-			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
+		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
+			span.SetOperationName("apiKeyHeader")
+			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
-			span.SetOperationName("apiKeyHeader")
-			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
+		} else if sourcemapRequestToken := getSourcemapRequestToken(r); sourcemapRequestToken != "" {
+			span.SetOperationName("sourcemapBody")
+			workspaceID, err := workspaceTokenHandler(ctx, sourcemapRequestToken)
 			if err != nil || workspaceID == nil {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
