@@ -15,8 +15,16 @@ jobs:
               with:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
+            - name: Cache
+              uses: actions/cache@v2.1.6
+              id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
             - name: Install main dependencies
-              run: cd client && yarn install
+              run: yarn
             - name: Build Bundle
               run: cd client && yarn build
             - name: Run Test
