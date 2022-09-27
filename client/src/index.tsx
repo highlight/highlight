@@ -18,12 +18,12 @@ import {
 	SessionShortcutOptions,
 } from './types/client'
 import {
-	SamplingStrategy,
-	Metadata,
 	HighlightOptions,
 	HighlightPublicInterface,
-	SessionDetails,
 	Integration,
+	Metadata,
+	SamplingStrategy,
+	SessionDetails,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -67,15 +67,15 @@ import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
+import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from 'types/shared-types'
+import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import { MetricCategory, MetricName } from './constants/metrics'
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
-import { MetricCategory, MetricName } from './constants/metrics'
-import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
-import { ConsoleMessage } from 'types/shared-types'
-import { RequestResponsePair } from 'listeners/network-listener/utils/models'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
