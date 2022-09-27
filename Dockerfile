@@ -21,7 +21,7 @@ ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
-COPY ./frontend/package.json ./frontend/yarn.lock ./
+COPY ./frontend/package.json ./yarn.lock ./
 RUN yarn install
 COPY ./frontend ./
 COPY ./.prettierrc ./

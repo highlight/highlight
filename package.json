@@ -39,9 +39,12 @@
 		"g": "yarn generate",
 		"generate": "hygen",
 		"prepare": "husky install && patch-package",
-		"test:all": "yarn turbo run test"
+		"publish:all": "yarn turbo run test:all && changeset version && changeset publish",
+		"test:all": "yarn turbo run test",
+		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.24.4",
 		"@types/node": "^18.7.14",
 		"chalk": "^5.0.1",
 		"cypress": "^10.8.0",

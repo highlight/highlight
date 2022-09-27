@@ -6,13 +6,12 @@
 			"inputs": ["./**/*.gql"],
 			"outputs": ["src/graph/generated/**"]
 		},
-		"build": {
-			"dependsOn": ["codegen", "^build"],
-			"outputs": ["build/**", "dist/**"],
-			"env": ["NODE_OPTIONS='--max-old-space-size=7168'"]
-		},
 		"dev": {
 			"cache": false
+		},
+		"build": {
+			"dependsOn": ["codegen", "^build"],
+			"outputs": ["build/**", "dist/**"]
 		},
 		"test": {
 			"dependsOn": ["build"],
@@ -23,6 +22,10 @@
 				"test/**/*.ts",
 				"test/**/*.tsx"
 			]
+		},
+		"sourcemaps": {
+			"dependsOn": ["test"],
+			"env": ["HIGHLIGHT_API_KEY"]
 		}
 	},
 	"globalEnv": ["DOPPLER_TOKEN"]
