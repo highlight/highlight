@@ -189,6 +189,13 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
 }
 
+type Int64Model struct {
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
+}
+
 type Organization struct {
 	Model
 	Name             *string
@@ -632,8 +639,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 }
 
 type Field struct {
-	Model
-	ID int64 `json:"id"`
+	Int64Model
 	// 'user_property', 'session_property'.
 	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.
