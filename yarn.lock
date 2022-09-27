@@ -6489,7 +6489,7 @@ __metadata:
     "@graphql-codegen/typescript-operations": 2.5.2
     "@types/lru-cache": 5.1.1
     "@types/node": 17.0.13
-    error-stack-parser: 2.0.6
+    error-stack-parser: 2.0.7
     graphql: 15
     graphql-request: 3.7.0
     graphql-tag: 2.12.6
@@ -14741,6 +14741,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"error-stack-parser@npm:2.0.7":
+  version: 2.0.7
+  resolution: "error-stack-parser@npm:2.0.7"
+  dependencies:
+    stackframe: ^1.1.1
+  checksum: fe30bba934db08487dd2c5a8dfe785f64debf4948b5c79a531b610b4468d96b918a806c0f3d44f634e70945533d23f44cb3af0a2d2f934b1c698930307d1b73b
+  languageName: node
+  linkType: hard
+
 "es-abstract@npm:^1.17.2, es-abstract@npm:^1.19.0, es-abstract@npm:^1.19.1, es-abstract@npm:^1.19.2, es-abstract@npm:^1.19.5, es-abstract@npm:^1.20.1":
   version: 1.20.1
   resolution: "es-abstract@npm:1.20.1"
@@ -17999,6 +18008,7 @@ __metadata:
     patch-package: ^6.4.7
     prettier: ^2.7.1
     pretty-quick: ^3.1.3
+    turbo: ^1.5.4
   languageName: unknown
   linkType: soft
 
@@ -31165,6 +31175,77 @@ __metadata:
   dependencies:
     safe-buffer: ^5.0.1
   checksum: 05f6510358f8afc62a057b8b692f05d70c1782b70db86d6a1e0d5e28a32389e52fa6e7707b6c5ecccacc031462e4bc35af85ecfe4bbc341767917b7cf6965711
+  languageName: node
+  linkType: hard
+
+"turbo-darwin-64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-darwin-64@npm:1.5.4"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-darwin-arm64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-darwin-arm64@npm:1.5.4"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-linux-64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-linux-64@npm:1.5.4"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-linux-arm64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-linux-arm64@npm:1.5.4"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo-windows-64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-windows-64@npm:1.5.4"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"turbo-windows-arm64@npm:1.5.4":
+  version: 1.5.4
+  resolution: "turbo-windows-arm64@npm:1.5.4"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"turbo@npm:^1.5.4":
+  version: 1.5.4
+  resolution: "turbo@npm:1.5.4"
+  dependencies:
+    turbo-darwin-64: 1.5.4
+    turbo-darwin-arm64: 1.5.4
+    turbo-linux-64: 1.5.4
+    turbo-linux-arm64: 1.5.4
+    turbo-windows-64: 1.5.4
+    turbo-windows-arm64: 1.5.4
+  dependenciesMeta:
+    turbo-darwin-64:
+      optional: true
+    turbo-darwin-arm64:
+      optional: true
+    turbo-linux-64:
+      optional: true
+    turbo-linux-arm64:
+      optional: true
+    turbo-windows-64:
+      optional: true
+    turbo-windows-arm64:
+      optional: true
+  bin:
+    turbo: bin/turbo
+  checksum: 37f16e8a3e30c032d3fe250fff4a3c781702b3cd9e634855196a97aca2b4c7d3efeffbbd305affc0a4f677e1dfe3007a7d1953781f31f767f1a2a3ff71cf134d
   languageName: node
   linkType: hard
 

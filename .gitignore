@@ -5,6 +5,7 @@ dist
 esm
 out
 build
+.next
 
 apollo.config.js
 .yalc
@@ -41,3 +42,5 @@ cypress/screenshots/
 cypress/videos/
 
 *.tsbuildinfo
+.turbo
+

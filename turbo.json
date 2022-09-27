@@ -1,0 +1,30 @@
+{
+	"$schema": "https://turborepo.org/schema.json",
+	"baseBranch": "origin/master",
+	"pipeline": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["build/**", "dist/**"]
+		},
+		"dev": {
+			"cache": false
+		},
+		"test": {
+			"dependsOn": ["build"],
+			"outputs": [],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"test/**/*.ts",
+				"test/**/*.tsx"
+			]
+		},
+		"lint": {
+			"outputs": []
+		},
+		"deploy": {
+			"dependsOn": ["build", "test", "lint"],
+			"outputs": []
+		}
+	}
+}
