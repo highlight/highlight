@@ -401,6 +401,11 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type VercelProject struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type DashboardChartType string
 
 const (

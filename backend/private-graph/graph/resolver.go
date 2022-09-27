@@ -25,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -1600,6 +1601,19 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 	}
 
 	return r.saveFrontOAuth(project, oauth)
+}
+
+func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string) error {
+	res, err := vercel.GetAccessToken(code)
+	if err != nil {
+		return e.Wrap(err, "error getting Vercel oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+		return e.Wrap(err, "error updating Vercel access token in workspace")
+	}
+
+	return nil
 }
 
 func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {

@@ -169,6 +169,7 @@ var Models = []interface{}{
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
+	&VercelIntegrationConfig{},
 }
 
 func init() {
@@ -219,6 +220,8 @@ type Workspace struct {
 	SlackWebhookChannelID       *string
 	SlackChannels               *string
 	LinearAccessToken           *string
+	VercelAccessToken           *string
+	VercelTeamID                *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
@@ -1033,6 +1036,12 @@ type SavedAsset struct {
 	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	HashVal     string `gorm:"index:idx_project_id_hash_val"`
+}
+
+type VercelIntegrationConfig struct {
+	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
+	ProjectID       int
+	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
 }
 
 type AlertEvent struct {

@@ -190,6 +190,12 @@ export type LinearTeam = {
 	key: Scalars['String']
 }
 
+export type VercelProject = {
+	__typename?: 'VercelProject'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type SocialLink = {
 	__typename?: 'SocialLink'
 	type: SocialType
@@ -1086,6 +1092,7 @@ export type Query = {
 	slack_members: Array<Maybe<SanitizedSlackChannel>>
 	generate_zapier_access_token: Scalars['String']
 	is_integrated_with: Scalars['Boolean']
+	vercel_projects: Array<VercelProject>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	project?: Maybe<Project>
 	workspace?: Maybe<Workspace>
@@ -1411,6 +1418,10 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 
 export type QueryIs_Integrated_WithArgs = {
 	integration_type: IntegrationType
+	project_id: Scalars['ID']
+}
+
+export type QueryVercel_ProjectsArgs = {
 	project_id: Scalars['ID']
 }
 

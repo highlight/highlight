@@ -3543,7 +3543,14 @@ export type GetWorkspaceIsIntegratedWithVercelQueryVariables = Types.Exact<{
 
 export type GetWorkspaceIsIntegratedWithVercelQuery = {
 	__typename?: 'Query'
-} & { is_integrated_with_vercel: Types.Query['is_integrated_with'] }
+} & { is_integrated_with_vercel: Types.Query['is_integrated_with'] } & {
+	vercel_projects: Array<
+		{ __typename?: 'VercelProject' } & Pick<
+			Types.VercelProject,
+			'id' | 'name'
+		>
+	>
+}
 
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']

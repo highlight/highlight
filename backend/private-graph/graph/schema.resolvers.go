@@ -30,13 +30,14 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
@@ -1839,6 +1840,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddFrontToProject(project, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeVercel {
+		if err := r.AddVercelToWorkspace(workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1872,10 +1877,6 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
 		if err := r.RemoveFrontFromProject(project); err != nil {
-			return false, err
-		}
-	} else if *integrationType == modelInputs.IntegrationTypeVercel {
-		if err := r.RemoveVercelFromProject(project); err != nil {
 			return false, err
 		}
 	} else {
@@ -5445,9 +5446,42 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 			return false, e.Wrap(err, "failed to save oauth")
 		}
 		return project.FrontAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeVercel {
+		// If there is an error accessing the Vercel projects, user needs to integrate again
+		_, err := r.VercelProjects(ctx, projectID)
+		if err != nil {
+			return false, err
+		}
+		return workspace.VercelAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")
+}
+
+// VercelProjects is the resolver for the vercel_projects field.
+func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*modelInputs.VercelProject, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	ret := []*modelInputs.VercelProject{}
+	if err != nil {
+		return ret, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	// Workspace does not have linear set up yet, don't have to treat this as an error
+	if workspace.VercelAccessToken == nil {
+		return ret, nil
+	}
+
+	res, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return ret, e.Wrap(err, "error getting linear teams")
+	}
+
+	return res, nil
 }
 
 // LinearTeams is the resolver for the linear_teams field.

@@ -161,6 +161,11 @@ type LinearTeam {
 	key: String!
 }
 
+type VercelProject {
+	id: String!
+	name: String!
+}
+
 type SocialLink {
 	type: SocialType!
 	link: String
@@ -1074,6 +1079,7 @@ type Query {
 		integration_type: IntegrationType!
 		project_id: ID!
 	): Boolean!
+	vercel_projects(project_id: ID!): [VercelProject!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace

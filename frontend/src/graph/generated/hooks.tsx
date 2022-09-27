@@ -9716,6 +9716,10 @@ export const GetWorkspaceIsIntegratedWithVercelDocument = gql`
 			integration_type: Vercel
 			project_id: $project_id
 		)
+		vercel_projects(project_id: $project_id) {
+			id
+			name
+		}
 	}
 `
 

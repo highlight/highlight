@@ -25,7 +25,7 @@ export const useVercelIntegration = () => {
 		(code: string, projectId?: string) =>
 			addIntegrationToProject({
 				variables: {
-					integration_type: IntegrationType.Front,
+					integration_type: IntegrationType.Vercel,
 					code: code,
 					project_id: projectId || project_id,
 				},
@@ -36,7 +36,7 @@ export const useVercelIntegration = () => {
 	const [removeIntegrationFromProject] =
 		useRemoveIntegrationFromProjectMutation({
 			refetchQueries: [
-				namedOperations.Query.GetWorkspaceIsIntegratedWithFront,
+				namedOperations.Query.GetWorkspaceIsIntegratedWithVercel,
 			],
 		})
 
@@ -55,6 +55,7 @@ export const useVercelIntegration = () => {
 		addVercelIntegrationToProject,
 		removeVercelIntegrationFromProject,
 		isVercelIntegratedWithProject: data?.is_integrated_with_vercel,
+		vercelProjects: data?.vercel_projects,
 		loading,
 	}
 }

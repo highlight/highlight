@@ -1334,6 +1334,10 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 		integration_type: Vercel
 		project_id: $project_id
 	)
+	vercel_projects(project_id: $project_id) {
+		id
+		name
+	}
 }
 
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {

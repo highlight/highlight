@@ -20,6 +20,7 @@ export interface Integration {
 	 * The page to configure the integration. This can be rendered in a modal or on a different page.
 	 */
 	configurationPage: (opts: IntegrationConfigProps) => React.ReactNode
+	hasSettings: boolean
 }
 
 export const SLACK_INTEGRATION: Integration = {
@@ -30,6 +31,7 @@ export const SLACK_INTEGRATION: Integration = {
 		'Bring your Highlight comments and alerts to slack as messages.',
 	icon: '/images/integrations/slack.jpg',
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const LINEAR_INTEGRATION: Integration = {
@@ -39,6 +41,7 @@ export const LINEAR_INTEGRATION: Integration = {
 	description: 'Bring your Highlight comments to Linear as issues.',
 	icon: '/images/integrations/linear.png',
 	configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -49,6 +52,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 	description: 'Use Highlight alerts to trigger a Zap.',
 	icon: '/images/integrations/zapier.png',
 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const CLEARBIT_INTEGRATION: Integration = {
@@ -59,6 +63,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	description: 'Collect enhanced user analytics.',
 	icon: '/images/integrations/clearbit.svg',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const FRONT_INTEGRATION: Integration = {
@@ -69,6 +74,7 @@ export const FRONT_INTEGRATION: Integration = {
 	description: 'Enhance your customer interaction experience.',
 	icon: '/images/integrations/front.png',
 	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const VERCEL_INTEGRATION: Integration = {
@@ -77,8 +83,9 @@ export const VERCEL_INTEGRATION: Integration = {
 	configurationPath: 'vercel',
 	onlyShowForHighlightAdmin: true,
 	description: 'Configuration for your Vercel projects.',
-	icon: 'https://camo.githubusercontent.com/add2c9721e333f0043ac938f3dadbc26a282776e01b95b308fcaba5afaf74ae3/68747470733a2f2f6173736574732e76657263656c2e636f6d2f696d6167652f75706c6f61642f76313538383830353835382f7265706f7369746f726965732f76657263656c2f6c6f676f2e706e67',
+	icon: '/images/integrations/vercel.png',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
+	hasSettings: true,
 }
 
 const INTEGRATIONS: Integration[] = [

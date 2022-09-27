@@ -1,15 +1,23 @@
+import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
+import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import React, { useEffect, useState } from 'react'
 
 import styles from './Integration.module.scss'
 
+export enum IntegrationAction {
+	Setup,
+	Disconnect,
+	Settings,
+}
+
 export interface IntegrationConfigProps {
 	setModelOpen: (newVal: boolean) => void
 	setIntegrationEnabled: (newVal: boolean) => void
-	integrationEnabled: boolean
+	action: IntegrationAction
 }
 
 interface Props {
@@ -18,13 +26,21 @@ interface Props {
 }
 
 const Integration = ({
-	integration: { icon, name, description, configurationPage, defaultEnable },
+	integration: {
+		icon,
+		name,
+		description,
+		configurationPage,
+		defaultEnable,
+		hasSettings,
+	},
 	showModalDefault,
 }: Props) => {
 	const [showConfiguration, setShowConfiguration] = useState(
 		showModalDefault && !defaultEnable,
 	)
 	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+	const [showUpdateSettings, setShowUpdateSettings] = useState(false)
 	const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable)
 
 	useEffect(() => {
@@ -58,6 +74,17 @@ const Integration = ({
 							setIntegrationEnabled(newValue)
 						}}
 					/>
+					{hasSettings && integrationEnabled && (
+						<Button
+							trackingId="IntegrationSettings"
+							iconButton
+							onClick={() => {
+								setShowUpdateSettings(true)
+							}}
+						>
+							<SettingsIcon />
+						</Button>
+					)}
 				</div>
 				<div>
 					<h2 className={styles.title}>{name}</h2>
@@ -88,13 +115,19 @@ const Integration = ({
 					configurationPage({
 						setModelOpen: setShowConfiguration,
 						setIntegrationEnabled,
-						integrationEnabled: false, // show the modal to enable slack integration
+						action: IntegrationAction.Setup,
 					})}
 				{showDeleteConfirmation &&
 					configurationPage({
 						setModelOpen: setShowDeleteConfirmation,
 						setIntegrationEnabled,
-						integrationEnabled: true, // show the modal to disable slack integration
+						action: IntegrationAction.Disconnect,
+					})}
+				{showUpdateSettings &&
+					configurationPage({
+						setModelOpen: setShowUpdateSettings,
+						setIntegrationEnabled,
+						action: IntegrationAction.Settings,
 					})}
 			</Modal>
 		</>

@@ -9,6 +9,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -21,7 +22,9 @@ const IntegrationsPage = () => {
 		type: 'Organization',
 	})
 
+	const { integration_type } = useParams<{ integration_type: string }>()
 	const [popUpModal] = useQueryParam('enable', StringParam)
+	const enabled = popUpModal ?? integration_type
 
 	const { isHighlightAdmin } = useAuthContext()
 
@@ -91,9 +94,7 @@ const IntegrationsPage = () => {
 							<Integration
 								integration={integration}
 								key={integration.key}
-								showModalDefault={
-									popUpModal === integration.key
-								}
+								showModalDefault={enabled === integration.key}
 							/>
 						),
 					)}

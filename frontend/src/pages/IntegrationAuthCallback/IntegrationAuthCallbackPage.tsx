@@ -126,6 +126,40 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 	return null
 }
 
+const VercelIntegrationCallback = ({ code, projectId }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
+	const { addFrontIntegrationToProject } = useFrontIntegration()
+
+	useEffect(() => {
+		if (!code) return
+		const next = `/${projectId}/integrations`
+		;(async () => {
+			try {
+				await addFrontIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with Front!', 5)
+			} catch (e: any) {
+				H.consumeError(e)
+				console.error(e)
+				message.error(
+					'Failed to add integration to project. Please try again.',
+				)
+			} finally {
+				history.push(next)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		history,
+		setLoadingState,
+		addFrontIntegrationToProject,
+		code,
+		projectId,
+	])
+
+	return null
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -176,6 +210,8 @@ const IntegrationAuthCallbackPage = () => {
 			/>
 		)
 	} else if (integrationName.toLowerCase() === 'front') {
+		return <FrontIntegrationCallback code={code} projectId={projectId} />
+	} else if (integrationName.toLowerCase() === 'vercel') {
 		return <FrontIntegrationCallback code={code} projectId={projectId} />
 	}
 
