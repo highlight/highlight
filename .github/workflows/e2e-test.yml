@@ -75,7 +75,7 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Install Go and NPM dependencies
               run: yarn && yarn ci:install:go
-            - name: Build backend
+            - name: Build firstload + backend
               run: yarn ci:build
             - name: Run Cypress tests
               uses: cypress-io/github-action@v4
