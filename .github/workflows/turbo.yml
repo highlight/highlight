@@ -22,6 +22,10 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+
             - name: Cache
               uses: actions/cache@v2.1.6
               id: yarn-cache
