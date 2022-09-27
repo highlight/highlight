@@ -21,6 +21,6 @@ jobs:
               run: cd sourcemap-uploader && python3 ../scripts/compare.py -s sourcemap-uploader
             - name: Publish
               if: github.ref == 'refs/heads/master'
-              run: cd sourcemap-uploader && yarn publish --access public
+              run: cd sourcemap-uploader && yarn npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

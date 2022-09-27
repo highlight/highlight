@@ -31,11 +31,11 @@ jobs:
             - name: Build Bundle
               run: yarn firstload:build
             - name: Run tests
-              run: cd firstload && yarn test
+              run: yarn workspace highlight.run test
             - name: Confirm new version
               run: cd firstload && python3 ../scripts/compare.py -s firstload
             - name: Publish
               if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
-              run: cd firstload && yarn publish --access public
+              run: yarn workspace highlight.run npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
