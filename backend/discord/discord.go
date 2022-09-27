@@ -82,7 +82,7 @@ func RefreshOAuth(ctx context.Context, token *oauth2.Token) (*oauth2.Token, erro
 		return nil, e.Wrap(err, "failed to generate discord oauth config")
 	}
 
-	tokenSource := conf.TokenSource(oauth2.NoContext, token)
+	tokenSource := conf.TokenSource(ctx, token)
 
 	newToken, err := tokenSource.Token()
 	if err != nil {

@@ -5469,6 +5469,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		if err := r.upsertDiscordOauthConfig(workspace, token); err != nil {
 			return false, err
 		}
+		return workspace.DiscordAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")
