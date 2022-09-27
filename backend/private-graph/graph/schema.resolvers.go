@@ -5466,7 +5466,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		if err != nil {
 			return false, err
 		}
-		if err := r.upsertDiscordOauthConfig(workspace, token); err != nil {
+		if err := r.saveDiscordOauthConfig(workspace, token); err != nil {
 			return false, err
 		}
 		return workspace.DiscordAccessToken != nil, nil

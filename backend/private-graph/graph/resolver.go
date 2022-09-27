@@ -1622,10 +1622,10 @@ func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.W
 		return e.Wrapf(err, "failed to add discord to workspace id %d", workspace.ID)
 	}
 
-	return r.upsertDiscordOauthConfig(workspace, token)
+	return r.saveDiscordOauthConfig(workspace, token)
 }
 
-func (r *Resolver) upsertDiscordOauthConfig(workspace *model.Workspace, token *oauth2.Token) error {
+func (r *Resolver) saveDiscordOauthConfig(workspace *model.Workspace, token *oauth2.Token) error {
 	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordAccessToken: &token.AccessToken,
 		DiscordRefreshToken: &token.RefreshToken, DiscordTokenExpiresAt: &token.Expiry}).Error; err != nil {
 		return e.Wrap(err, "error updating discord access token on workspace")
