@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	e "github.com/pkg/errors"
+	"github.com/pkg/errors"
 
 	"golang.org/x/oauth2"
 )
@@ -48,13 +48,13 @@ func oauthConfig() (*oauth2.Config, error) {
 		FrontendUri         string
 	)
 	if DiscordClientID, ok = os.LookupEnv("DISCORD_CLIENT_ID"); !ok || DiscordClientID == "" {
-		return nil, e.New("DISCORD_CLIENT_ID not set")
+		return nil, errors.New("DISCORD_CLIENT_ID not set")
 	}
 	if DiscordClientSecret, ok = os.LookupEnv("DISCORD_CLIENT_SECRET"); !ok || DiscordClientSecret == "" {
-		return nil, e.New("DISCORD_CLIENT_SECRET not set")
+		return nil, errors.New("DISCORD_CLIENT_SECRET not set")
 	}
 	if FrontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || FrontendUri == "" {
-		return nil, e.New("REACT_APP_FRONTEND_URI not set")
+		return nil, errors.New("REACT_APP_FRONTEND_URI not set")
 	}
 
 	return &oauth2.Config{
@@ -70,7 +70,7 @@ func OAuth(ctx context.Context, code string) (*oauth2.Token, error) {
 	conf, err := oauthConfig()
 
 	if err != nil {
-		return nil, e.Wrap(err, "failed to generate discord oauth config")
+		return nil, errors.Wrap(err, "failed to generate discord oauth config")
 	}
 	return conf.Exchange(ctx, code)
 }
@@ -79,14 +79,14 @@ func RefreshOAuth(ctx context.Context, token *oauth2.Token) (*oauth2.Token, erro
 	conf, err := oauthConfig()
 
 	if err != nil {
-		return nil, e.Wrap(err, "failed to generate discord oauth config")
+		return nil, errors.Wrap(err, "failed to generate discord oauth config")
 	}
 
 	tokenSource := conf.TokenSource(ctx, token)
 
 	newToken, err := tokenSource.Token()
 	if err != nil {
-		return nil, e.Wrap(err, "failed to refetch new token for discord")
+		return nil, errors.Wrap(err, "failed to refetch new token for discord")
 	}
 
 	return newToken, nil
