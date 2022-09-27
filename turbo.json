@@ -3,11 +3,13 @@
 	"baseBranch": "origin/master",
 	"pipeline": {
 		"codegen": {
+			"inputs": ["./**/*.gql"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"build": {
-			"dependsOn": ["^build", "codegen"],
-			"outputs": ["build/**", "dist/**"]
+			"dependsOn": ["codegen", "^build"],
+			"outputs": ["build/**", "dist/**"],
+			"env": ["NODE_OPTIONS='--max-old-space-size=7168'"]
 		},
 		"dev": {
 			"cache": false
@@ -22,5 +24,6 @@
 				"test/**/*.tsx"
 			]
 		}
-	}
+	},
+	"globalEnv": ["DOPPLER_TOKEN"]
 }

@@ -11,6 +11,10 @@ jobs:
         name: Build and Test Yarn Turbo Monorepo
         timeout-minutes: 15
         runs-on: ubuntu-latest
+        # configures Turborepo Remote Caching
+        env:
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
             - name: Check out code
