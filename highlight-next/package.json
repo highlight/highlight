@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "1.1.7",
+	"version": "1.2.0",
 	"description": "Client for interfacing with Highlight in next.js",
 	"main": "dist/index.js",
 	"scripts": {
@@ -14,9 +14,9 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@highlight-run/node": "1.1.4",
-		"next": "^12.1.6",
-		"npm-run-all": "^4.1.5"
+		"@highlight-run/node": "workspace:*",
+		"next": "12.1.6",
+		"npm-run-all": "4.1.5"
 	},
 	"devDependencies": {
 		"@types/node": "17.0.23",

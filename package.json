@@ -11,8 +11,14 @@
 	},
 	"workspaces": [
 		"client",
+		"experiments/chrome-extension",
+		"experiments/performance",
 		"firstload",
-		"frontend"
+		"frontend",
+		"highlight-next",
+		"highlight-node",
+		"render",
+		"sourcemap-uploader"
 	],
 	"scripts": {
 		"prepare": "husky install && patch-package",

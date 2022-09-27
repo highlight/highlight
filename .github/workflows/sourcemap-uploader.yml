@@ -15,12 +15,25 @@ jobs:
               with:
                   node-version: 16.14.2
                   registry-url: https://registry.npmjs.org
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
+            - name: Cache
+              uses: actions/cache@v2.1.6
+              id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+              with:
+                  path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
             - name: Install main dependencies
-              run: cd sourcemap-uploader && yarn install
+              run: yarn
             - name: Confirm new version
               run: cd sourcemap-uploader && python3 ../scripts/compare.py -s sourcemap-uploader
             - name: Publish
               if: github.ref == 'refs/heads/master'
-              run: cd sourcemap-uploader && yarn npm publish --access public
+              run: |
+                  echo npmAuthToken: "$NODE_AUTH_TOKEN" >> ./.yarnrc.yml;
+                  yarn workspace @highlight-run/sourcemap-uploader npm publish --access public;
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
