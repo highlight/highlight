@@ -1,4 +1,5 @@
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
+import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
@@ -70,12 +71,23 @@ export const FRONT_INTEGRATION: Integration = {
 	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
 }
 
+export const DISCORD_INTEGRATION: Integration = {
+	key: 'discord',
+	name: 'Discord',
+	configurationPath: 'discord',
+	onlyShowForHighlightAdmin: true,
+	description: 'Bring your Highlight alerts to discord as messages.',
+	icon: '/images/integrations/discord.svg',
+	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
 	FRONT_INTEGRATION,
+	DISCORD_INTEGRATION,
 ]
 
 export default INTEGRATIONS

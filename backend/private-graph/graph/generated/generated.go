@@ -6619,6 +6619,7 @@ enum IntegrationType {
 	Linear
 	Zapier
 	Front
+	Discord
 }
 
 enum ErrorState {

@@ -1840,6 +1840,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddFrontToProject(project, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
+		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -5446,6 +5450,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 			return false, e.Wrap(err, "failed to save oauth")
 		}
 		return project.FrontAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeDiscord {
+		return workspace.DiscordAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

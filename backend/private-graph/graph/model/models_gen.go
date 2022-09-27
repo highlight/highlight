@@ -496,10 +496,11 @@ func (e ErrorState) MarshalGQL(w io.Writer) {
 type IntegrationType string
 
 const (
-	IntegrationTypeSlack  IntegrationType = "Slack"
-	IntegrationTypeLinear IntegrationType = "Linear"
-	IntegrationTypeZapier IntegrationType = "Zapier"
-	IntegrationTypeFront  IntegrationType = "Front"
+	IntegrationTypeSlack   IntegrationType = "Slack"
+	IntegrationTypeLinear  IntegrationType = "Linear"
+	IntegrationTypeZapier  IntegrationType = "Zapier"
+	IntegrationTypeFront   IntegrationType = "Front"
+	IntegrationTypeDiscord IntegrationType = "Discord"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -507,11 +508,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
 	IntegrationTypeFront,
+	IntegrationTypeDiscord,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeDiscord:
 		return true
 	}
 	return false

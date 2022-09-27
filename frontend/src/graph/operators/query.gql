@@ -1328,6 +1328,12 @@ query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
 		project_id: $project_id
 	)
 }
+query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
+	is_integrated_with_discord: is_integrated_with(
+		integration_type: Discord
+		project_id: $project_id
+	)
+}
 
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 	generate_zapier_access_token(project_id: $project_id)

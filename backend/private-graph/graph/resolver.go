@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/oauth"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -16,12 +15,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/oauth"
+
 	"gorm.io/gorm/clause"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -1609,6 +1611,19 @@ func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToke
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
 		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
 		return e.Wrap(err, "error updating front access token on project")
+	}
+	return nil
+}
+
+func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	oauth, err := discord.OAuth(ctx, code)
+	if err != nil {
+		return e.Wrapf(err, "failed to add discord to workspace id %d", workspace.ID)
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordAccessToken: &oauth.AccessToken,
+		DiscordRefreshToken: &oauth.RefreshToken, DiscordTokenExpiresAt: &oauth.Expiry}).Error; err != nil {
+		return e.Wrap(err, "error updating discord access token on workspace")
 	}
 	return nil
 }
