@@ -9,7 +9,8 @@
 	"scripts": {
 		"build": "tsc && rollup -c",
 		"dev": "doppler run -- rollup -c -w",
-		"gql": "graphql-codegen --config --watch codegen.yml",
+		"dev:gql": "graphql-codegen --config --watch codegen.yml",
+		"codegen": "graphql-codegen --config codegen.yml",
 		"test": "jest --passWithNoTests"
 	},
 	"repository": {

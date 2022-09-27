@@ -2,7 +2,6 @@
 	"name": "render",
 	"version": "0.0.0",
 	"scripts": {
-		"lint": "eslint . --ext .ts",
 		"build": "tsc --build ./",
 		"single": "DEV=true ts-node -r tsconfig-paths/register ./src",
 		"dev": "DEV=true nodemon",

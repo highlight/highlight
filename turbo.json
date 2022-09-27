@@ -2,8 +2,11 @@
 	"$schema": "https://turborepo.org/schema.json",
 	"baseBranch": "origin/master",
 	"pipeline": {
+		"codegen": {
+			"outputs": ["src/graph/generated/**"]
+		},
 		"build": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^build", "codegen"],
 			"outputs": ["build/**", "dist/**"]
 		},
 		"dev": {
@@ -18,13 +21,6 @@
 				"test/**/*.ts",
 				"test/**/*.tsx"
 			]
-		},
-		"lint": {
-			"outputs": []
-		},
-		"deploy": {
-			"dependsOn": ["build", "test", "lint"],
-			"outputs": []
 		}
 	}
 }
