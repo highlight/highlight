@@ -19,7 +19,7 @@
 		"firstload:build": "yarn workspace @highlight-run/client build && yarn workspace highlight.run build",
 		"frontend:clean": "concurrently 'rm -rf node_modules' 'cd frontend && rm -rf build node_modules' 'cd client && rm -rf dist node_modules' 'cd firstload && rm -rf dist node_modules'",
 		"frontend:build": "yarn firstload:build && yarn workspace @highlight-run/frontend build",
-		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
+		"frontend:start": "yarn firstload:build && run-p --print-label --race dev:client dev:client-gql dev:frontend",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:frontend": "yarn workspace @highlight-run/frontend dev",
