@@ -34,7 +34,13 @@ const (
 	ScopeApplicationsCommandsUpdate = "applications.commands.update"
 )
 
-func OAuth(ctx context.Context, code string) (*oauth2.Token, error) {
+var Endpoint = oauth2.Endpoint{
+	AuthURL:   "https://discord.com/api/oauth2/authorize",
+	TokenURL:  "https://discord.com/api/oauth2/token",
+	AuthStyle: oauth2.AuthStyleInParams,
+}
+
+func oauthConfig() (*oauth2.Config, error) {
 	var (
 		ok                  bool
 		DiscordClientID     string
@@ -51,19 +57,37 @@ func OAuth(ctx context.Context, code string) (*oauth2.Token, error) {
 		return nil, e.New("REACT_APP_FRONTEND_URI not set")
 	}
 
-	DiscordEndpoint := oauth2.Endpoint{
-		AuthURL:   "https://discord.com/api/oauth2/authorize",
-		TokenURL:  "https://discord.com/api/oauth2/token",
-		AuthStyle: oauth2.AuthStyleInParams,
-	}
-
-	conf := &oauth2.Config{
+	return &oauth2.Config{
 		ClientID:     DiscordClientID,
 		ClientSecret: DiscordClientSecret,
 		Scopes:       []string{ScopeBot},
-		Endpoint:     DiscordEndpoint,
+		Endpoint:     Endpoint,
 		RedirectURL:  FrontendUri + "/callback/discord",
+	}, nil
+}
+
+func OAuth(ctx context.Context, code string) (*oauth2.Token, error) {
+	conf, err := oauthConfig()
+
+	if err != nil {
+		return nil, e.Wrap(err, "failed to generate discord oauth config")
+	}
+	return conf.Exchange(ctx, code)
+}
+
+func RefreshOAuth(ctx context.Context, token *oauth2.Token) (*oauth2.Token, error) {
+	conf, err := oauthConfig()
+
+	if err != nil {
+		return nil, e.Wrap(err, "failed to generate discord oauth config")
 	}
 
-	return conf.Exchange(ctx, code)
+	tokenSource := conf.TokenSource(oauth2.NoContext, token)
+
+	newToken, err := tokenSource.Token()
+	if err != nil {
+		return nil, e.Wrap(err, "failed to refetch new token for discord")
+	}
+
+	return newToken, nil
 }

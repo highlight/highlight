@@ -21,11 +21,14 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -5451,7 +5454,21 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		}
 		return project.FrontAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
-		return workspace.DiscordAccessToken != nil, nil
+		if workspace.DiscordAccessToken == nil || workspace.DiscordRefreshToken == nil || workspace.DiscordTokenExpiresAt == nil {
+			return false, nil
+		}
+		token, err := discord.RefreshOAuth(ctx, &oauth2.Token{
+			AccessToken:  *workspace.DiscordAccessToken,
+			RefreshToken: *workspace.DiscordRefreshToken,
+			Expiry:       *workspace.DiscordTokenExpiresAt,
+		})
+
+		if err != nil {
+			return false, err
+		}
+		if err := r.upsertDiscordOauthConfig(workspace, token); err != nil {
+			return false, err
+		}
 	}
 
 	return false, e.New("invalid integrationType")
