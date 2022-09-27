@@ -9,13 +9,22 @@ import {
 } from '@highlight-run/rrweb/typings/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
+	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
-} from '../../firstload/src/types/client'
-import { SamplingStrategy } from '../../firstload/src/types/types'
+} from './types/client'
+import {
+	SamplingStrategy,
+	Metadata,
+	HighlightOptions,
+	HighlightPublicInterface,
+	SessionDetails,
+	Integration,
+} from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
 import ErrorStackParser from 'error-stack-parser'
@@ -64,6 +73,9 @@ import { Logger } from './logger'
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
 import { MetricCategory, MetricName } from './constants/metrics'
+import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from 'types/shared-types'
+import { RequestResponsePair } from 'listeners/network-listener/utils/models'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -1227,4 +1239,17 @@ declare global {
 		defaultWarn: any
 		defaultDebug: any
 	}
+}
+export { FirstLoadListeners, getPreviousSessionData, GenerateSecureID }
+export type {
+	AmplitudeIntegrationOptions,
+	ConsoleMessage,
+	MixpanelIntegrationOptions,
+	Integration,
+	Metadata,
+	HighlightFetchWindow,
+	HighlightOptions,
+	HighlightPublicInterface,
+	RequestResponsePair,
+	SessionDetails,
 }

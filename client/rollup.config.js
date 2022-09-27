@@ -46,6 +46,7 @@ const basePlugins = [
 	commonjs({}),
 	esbuild({
 		minify,
+		target: 'es6',
 	}),
 ]
 const rollupBuilds = []
@@ -65,9 +66,8 @@ if (development) {
 		],
 	})
 } else {
-	rollupBuilds.push({
+	const buildSettings = {
 		input: './src/index.tsx',
-		output,
 		external: ['web-worker:./workers/highlight-client-worker'],
 		treeshake: 'smallest',
 		plugins: [
@@ -77,7 +77,29 @@ if (development) {
 			}),
 			filesize(),
 		],
-	})
+	}
+	for (const x of [
+		{
+			output: {
+				file: pkg.main,
+				format: 'umd',
+				name: 'highlightLib',
+				sourcemap: sourceMap,
+			},
+		},
+		{
+			output: {
+				file: pkg.module,
+				format: 'esm',
+				sourcemap: sourceMap,
+			},
+		},
+	]) {
+		rollupBuilds.push({
+			...buildSettings,
+			...x,
+		})
+	}
 }
 
 export default rollupBuilds

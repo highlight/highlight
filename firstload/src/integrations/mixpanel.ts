@@ -1,6 +1,5 @@
 // @ts-nocheck
-import { MixpanelIntegrationOptions } from '../../../client/src'
-import { Integration } from '../types/types'
+import { MixpanelIntegrationOptions, Integration } from '@highlight-run/client'
 
 interface Window {
 	mixpanel?: MixpanelAPI

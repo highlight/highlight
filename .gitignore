@@ -39,3 +39,5 @@ dump.rdb
 # Cypress artifacts
 cypress/screenshots/
 cypress/videos/
+
+*.tsbuildinfo

@@ -4,7 +4,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import typescript from '@rollup/plugin-typescript'
 import { terser } from 'rollup-plugin-terser'
 import esbuild from 'rollup-plugin-esbuild'
 import webWorkerLoader from 'rollup-plugin-web-worker-loader'
@@ -29,7 +28,6 @@ const basePlugins = [
 		targetPlatform: 'browser',
 		inline: true,
 	}),
-	typescript(),
 	json(),
 	replace({
 		preventAssignment: true,
@@ -53,6 +51,7 @@ if (development) {
 			format: 'esm',
 			sourcemap: sourceMap,
 		},
+		external: ['@highlight-run/client'],
 		plugins: [...basePlugins, filesize()],
 	})
 } else {
@@ -92,7 +91,11 @@ if (development) {
 	]) {
 		rollupBuilds.push({
 			input: x.input,
-			output: x.output,
+			output: {
+				globals: { '@highlight-run/client': 'client' },
+				...x.output,
+			},
+			external: ['@highlight-run/client'],
 			treeshake: 'smallest',
 			plugins: [
 				...basePlugins,

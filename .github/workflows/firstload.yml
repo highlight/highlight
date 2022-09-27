@@ -28,10 +28,10 @@ jobs:
                       ${{ runner.os }}-yarn-
             - name: Install main dependencies
               run: yarn
-            # - name: Run tests
-            #   run: cd firstload && yarn test
             - name: Build Bundle
-              run: cd firstload && yarn build
+              run: yarn firstload:build
+            - name: Run tests
+              run: cd firstload && yarn test
             - name: Confirm new version
               run: cd firstload && python3 ../scripts/compare.py -s firstload
             - name: Publish

@@ -14,7 +14,11 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"jsx": "react",
-		"downlevelIteration": true
+		"downlevelIteration": true,
+		"composite": true
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["src/**/*.test.tsx"],
+	"files": ["package.json"],
+	"references": [{ "path": "../client" }]
 }

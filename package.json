@@ -12,13 +12,13 @@
 	"workspaces": [
 		"client",
 		"firstload",
-		"frontend",
-		"highlight-next",
-		"highlight-node"
+		"frontend"
 	],
 	"scripts": {
 		"prepare": "husky install && patch-package",
+		"firstload:build": "yarn workspace @highlight-run/client build && yarn workspace highlight.run build",
 		"frontend:clean": "concurrently 'rm -rf node_modules' 'cd frontend && rm -rf build node_modules' 'cd client && rm -rf dist node_modules' 'cd firstload && rm -rf dist node_modules'",
+		"frontend:build": "yarn firstload:build && yarn workspace @highlight-run/frontend build",
 		"frontend:start": "run-p --print-label --race dev:frontend dev:client dev:client-gql dev:firstload",
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",

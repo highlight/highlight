@@ -1,5 +1,5 @@
-import { HighlightFetchWindow } from '../../../../client/src/listeners/network-listener/utils/fetch-listener'
-import { HighlightPublicInterface } from '../../types/types'
+import { HighlightFetchWindow } from '@highlight-run/client'
+import { HighlightPublicInterface } from '@highlight-run/client'
 
 type HighlightWindow = Window & {
 	H: HighlightPublicInterface
@@ -10,7 +10,10 @@ declare var window: HighlightWindow
 export const initializeFetchListener = () => {
 	if (!(typeof window === 'undefined' || typeof document === 'undefined')) {
 		window._originalFetch = window.fetch
-		window._fetchProxy = (input, init) => {
+		window._fetchProxy = (
+			input: RequestInfo,
+			init: RequestInit | undefined,
+		) => {
 			return window._originalFetch(input, init)
 		}
 

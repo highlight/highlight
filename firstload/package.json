@@ -7,14 +7,17 @@
 		"test": "jest --detectOpenHandles"
 	},
 	"main": "dist/index.js",
-	"types": "dist/firstload/src/index.d.ts",
+	"module": "dist/indexESM.js",
+	"types": "dist/src/index.d.ts",
 	"license": "MIT",
+	"dependencies": {
+		"@highlight-run/client": "workspace:*"
+	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^22.0.1",
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^13.3.0",
 		"@rollup/plugin-replace": "^4.0.0",
-		"@rollup/plugin-typescript": "^8.3.3",
 		"@types/chrome": "^0.0.144",
 		"@types/jest": "^26.0.24",
 		"esbuild": "^0.14.47",
