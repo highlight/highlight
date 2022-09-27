@@ -16,8 +16,9 @@ import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
 import { message } from 'antd'
 import classNames from 'classnames/bind'
 import moment from 'moment'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useToggle } from 'react-use'
+import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useAuthContext } from '../../authentication/AuthContext'
 import commonStyles from '../../Common.module.scss'
@@ -67,6 +68,16 @@ const WorkspaceTeam = () => {
 		},
 	})
 	const [changeAdminRole] = useChangeAdminRoleMutation()
+
+	const [autoinvite_email, _] = useQueryParam('autoinvite_email', StringParam)
+
+	useEffect(() => {
+		if (autoinvite_email) {
+			setEmail(autoinvite_email)
+			setNewAdminRole(AdminRole.Member)
+			toggleShowModal(true)
+		}
+	}, [autoinvite_email, toggleShowModal])
 
 	const [
 		sendInviteEmail,
