@@ -6011,7 +6011,6 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if params.MaxPercentile != nil {
 			maxPercentile = *params.MaxPercentile
 		}
-		log.Infof("params %+v %f %f", params, minPercentile, maxPercentile)
 		query := fmt.Sprintf(`
 	  do = (q) =>
 		from(bucket: "%s")
