@@ -607,20 +607,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
-				this._worker.postMessage({
-					message: {
-						type: MessageType.Metrics,
-						metrics: [
-							{
-								name: 'DeviceMemory',
-								value: getDeviceDetails().deviceMemory,
-								category: 'Device',
-								group: window.location.href,
-								timestamp: new Date(),
-							},
-						],
+				this.recordMetric([
+					{
+						name: 'DeviceMemory',
+						value: getDeviceDetails().deviceMemory,
+						category: 'Device',
+						group: window.location.href,
 					},
-				})
+				])
 			}
 
 			if (this.pushPayloadTimerId) {
@@ -666,6 +660,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					this.listeners.push(this.recordStop)
 				}
 				this.addCustomEvent('Viewport', {
+					height: window.innerHeight,
+					width: window.innerWidth,
+				})
+				this.submitViewportMetrics({
 					height: window.innerHeight,
 					width: window.innerWidth,
 				})
@@ -812,6 +810,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				ViewportResizeListener((viewport) => {
 					this.addCustomEvent('Viewport', viewport)
+					this.submitViewportMetrics(viewport)
 				}),
 			)
 			this.listeners.push(
@@ -850,20 +849,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				WebVitalsListener((data) => {
 					const { name, value } = data
-					this._worker.postMessage({
-						message: {
-							type: MessageType.Metrics,
-							metrics: [
-								{
-									name,
-									value,
-									timestamp: new Date(),
-									group: window.location.href,
-									category: 'WebVital',
-								},
-							],
+					this.recordMetric([
+						{
+							name,
+							value,
+							group: window.location.href,
+							category: 'WebVital',
 						},
-					})
+					])
 				}),
 			)
 
@@ -937,6 +930,54 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				)
 			})
 		}
+	}
+
+	submitViewportMetrics({
+		height,
+		width,
+	}: {
+		height: number
+		width: number
+	}) {
+		this.recordMetric([
+			{
+				name: 'ViewportHeight',
+				value: height,
+				category: 'Device',
+				group: window.location.href,
+			},
+			{
+				name: 'ViewportWidth',
+				value: width,
+				category: 'Device',
+				group: window.location.href,
+			},
+			{
+				name: 'ViewportArea',
+				value: height * width,
+				category: 'Device',
+				group: window.location.href,
+			},
+		])
+	}
+
+	recordMetric(
+		metrics: {
+			name: string
+			value: number
+			category: 'WebVital' | 'Device'
+			group: string
+		}[],
+	) {
+		this._worker.postMessage({
+			message: {
+				type: MessageType.Metrics,
+				metrics: metrics.map((m) => ({
+					...m,
+					timestamp: new Date(),
+				})),
+			},
+		})
 	}
 
 	/**
