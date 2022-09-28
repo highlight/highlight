@@ -14,5 +14,6 @@
 		"resolveJsonModule": true,
 		"jsx": "react"
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"references": [{ "path": "../packages/rrweb" }]
 }

@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"types": ["@types/offscreencanvas", "@types/node"],
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"target": "ESNext",
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"removeComments": true,
+		"preserveConstEnums": true,
+		"rootDir": "src",
+		"outDir": "build",
+		"lib": ["esnext", "dom"],
+		"downlevelIteration": true,
+		"importsNotUsedAsValues": "error",
+		"strictBindCallApply": true,
+		"composite": true
+	},
+	"exclude": ["test"],
+	"include": [
+		"src",
+		"scripts",
+		"node_modules/@types/css-font-loading-module/index.d.ts",
+		"node_modules/@types/jest-image-snapshot/index.d.ts"
+	]
+}

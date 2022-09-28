@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+		"typeRoots": ["../node_modules"],
+		"types": ["@highlight-run/client", "@types/chrome", "@types/node"],
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"skipLibCheck": true,

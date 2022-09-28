@@ -10,8 +10,12 @@
 			"dependsOn": ["^build"],
 			"cache": false
 		},
+		"prepublish": {
+			"dependsOn": ["^prepublish"],
+			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		},
 		"build": {
-			"dependsOn": ["codegen", "^build"],
+			"dependsOn": ["codegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**"]
 		},
 		"test": {

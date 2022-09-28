@@ -32,5 +32,9 @@
 		}
 	},
 	"exclude": ["**/node_modules/**", "**/build/**"],
-	"references": [{ "path": "../client" }, { "path": "../firstload" }]
+	"references": [
+		{ "path": "../client" },
+		{ "path": "../firstload" },
+		{ "path": "../packages/rrweb" }
+	]
 }

@@ -4,5 +4,6 @@
 	"compilerOptions": {
 		"module": "es6",
 		"outDir": "esm"
-	}
+	},
+	"references": [{ "path": "../packages/rrweb" }]
 }

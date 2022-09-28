@@ -1,0 +1,230 @@
+/* eslint:disable: no-console */
+
+const fs = require('fs')
+const path = require('path')
+const EventEmitter = require('events')
+const inquirer = require('inquirer')
+const puppeteer = require('puppeteer')
+
+const emitter = new EventEmitter()
+
+function getCode() {
+	const bundlePath = path.resolve(__dirname, '../dist/rrweb.min.js')
+	return fs.readFileSync(bundlePath, 'utf8')
+}
+
+void (async () => {
+	const code = getCode()
+	let events = []
+
+	await start()
+
+	const fakeGoto = async (page, url) => {
+		const intercept = async (request) => {
+			await request.respond({
+				status: 200,
+				contentType: 'text/html',
+				body: ' ', // non-empty string or page will load indefinitely
+			})
+		}
+		await page.setRequestInterception(true)
+		page.on('request', intercept)
+		await page.goto(url)
+		await page.setRequestInterception(false)
+		page.off('request', intercept)
+	}
+
+	async function start() {
+		events = []
+		const { url } = await inquirer.prompt([
+			{
+				type: 'input',
+				name: 'url',
+				message:
+					'Enter the url you want to record, e.g https://react-redux.realworld.io: ',
+			},
+		])
+
+		console.log(`Going to open ${url}...`)
+		await record(url)
+		console.log('Ready to record. You can do any interaction on the page.')
+
+		const { shouldReplay } = await inquirer.prompt([
+			{
+				type: 'list',
+				choices: [
+					{ name: 'Start replay (default)', value: 'default' },
+					{
+						name: `Start replay on original url (helps when experiencing CORS issues)`,
+						value: 'replayWithFakeURL',
+					},
+					{ name: 'Skip replay', value: false },
+				],
+				name: 'shouldReplay',
+				message: `Once you want to finish the recording, choose the following to start replay: `,
+			},
+		])
+
+		emitter.emit('done', shouldReplay)
+
+		const { shouldStore } = await inquirer.prompt([
+			{
+				type: 'confirm',
+				name: 'shouldStore',
+				message: `Persistently store these recorded events?`,
+			},
+		])
+
+		if (shouldStore) {
+			saveEvents()
+		}
+
+		const { shouldRecordAnother } = await inquirer.prompt([
+			{
+				type: 'confirm',
+				name: 'shouldRecordAnother',
+				message: 'Record another one?',
+			},
+		])
+
+		if (shouldRecordAnother) {
+			start()
+		} else {
+			process.exit()
+		}
+	}
+
+	async function record(url) {
+		const browser = await puppeteer.launch({
+			headless: false,
+			defaultViewport: {
+				width: 1600,
+				height: 900,
+			},
+			args: [
+				'--start-maximized',
+				'--ignore-certificate-errors',
+				'--no-sandbox',
+			],
+		})
+		const page = await browser.newPage()
+		await page.goto(url, {
+			waitUntil: 'domcontentloaded',
+			timeout: 300000,
+		})
+
+		await page.exposeFunction('_replLog', (event) => {
+			events.push(event)
+		})
+		await page.evaluate(`;${code}
+      window.__IS_RECORDING__ = true
+      rrweb.record({
+        emit: event => console.log(event),
+        recordCanvas: true,
+        collectFonts: true
+      });
+    `)
+		page.on('framenavigated', async () => {
+			const isRecording = await page.evaluate('window.__IS_RECORDING__')
+			if (!isRecording) {
+				await page.evaluate(`;${code}
+          window.__IS_RECORDING__ = true
+          rrweb.record({
+            emit: event => window._replLog(event),
+            recordCanvas: true,
+            collectFonts: true
+          });
+        `)
+			}
+		})
+
+		emitter.once('done', async (shouldReplay) => {
+			const pages = await browser.pages()
+			await Promise.all(pages.map((page) => page.close()))
+			await browser.close()
+			if (shouldReplay) {
+				await replay(url, shouldReplay === 'replayWithFakeURL')
+			}
+		})
+	}
+
+	async function replay(url, useSpoofedUrl) {
+		const browser = await puppeteer.launch({
+			headless: false,
+			defaultViewport: {
+				width: 1600,
+				height: 900,
+			},
+			args: ['--start-maximized', '--no-sandbox'],
+		})
+		const page = await browser.newPage()
+		if (useSpoofedUrl) {
+			await fakeGoto(page, url)
+		} else {
+			await page.goto('about:blank')
+		}
+
+		await page.addStyleTag({
+			path: path.resolve(__dirname, '../dist/rrweb.min.css'),
+		})
+		await page.evaluate(`${code}
+      const events = ${JSON.stringify(events)};
+      const replayer = new rrweb.Replayer(events, {
+        UNSAFE_replayCanvas: true
+      });
+      replayer.play();
+    `)
+	}
+
+	function saveEvents() {
+		const tempFolder = path.join(__dirname, '../temp')
+		console.log(tempFolder)
+
+		if (!fs.existsSync(tempFolder)) {
+			fs.mkdirSync(tempFolder)
+		}
+		const time = new Date()
+			.toISOString()
+			.replace(/[-|:]/g, '_')
+			.replace(/\..+/, '')
+		const fileName = `replay_${time}.html`
+		const content = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Record @${time}</title>
+    <link rel="stylesheet" href="../dist/rrweb.min.css" />
+  </head>
+  <body>
+    <script src="../dist/rrweb.min.js"></script>
+    <script>
+      /*<!--*/
+      const events = ${JSON.stringify(events).replace(
+			/<\/script>/g,
+			'<\\/script>',
+		)};
+      /*-->*/
+      const replayer = new rrweb.Replayer(events, {
+        UNSAFE_replayCanvas: true
+      });
+      replayer.play();
+    </script>
+  </body>
+</html>  
+    `
+		const savePath = path.resolve(tempFolder, fileName)
+		fs.writeFileSync(savePath, content)
+		console.log(`Saved at ${savePath}`)
+	}
+
+	process
+		.on('uncaughtException', (error) => {
+			console.error(error)
+		})
+		.on('unhandledRejection', (error) => {
+			console.error(error)
+		})
+})()

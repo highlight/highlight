@@ -17,11 +17,12 @@
 		"frontend",
 		"highlight-next",
 		"highlight-node",
+		"packages/*",
 		"render",
 		"sourcemap-uploader"
 	],
 	"scripts": {
-		"build:all": "yarn turbo run build",
+		"build:all": "yarn turbo run prepublish build",
 		"build:frontend": "yarn turbo run build --filter frontend...",
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "run-p --print-label build:frontend ci:install:go",
@@ -47,7 +48,6 @@
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.24.4",
-		"@types/node": "^18.7.14",
 		"chalk": "^5.0.1",
 		"cypress": "^10.8.0",
 		"husky": "^8.0.1",

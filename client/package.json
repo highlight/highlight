@@ -54,7 +54,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/fingerprintjs": "^3.3.5",
-		"@highlight-run/rrweb": "2.1.10",
+		"@highlight-run/rrweb": "workspace:*",
 		"error-stack-parser": "2.0.6",
 		"esbuild": "^0.14.47",
 		"graphql": "^16.5.0",

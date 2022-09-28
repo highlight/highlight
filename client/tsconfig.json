@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"types": [],
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
@@ -22,5 +23,6 @@
 	},
 	"include": ["src"],
 	"exclude": ["src/**/*.test.tsx"],
-	"files": ["package.json"]
+	"files": ["package.json"],
+	"references": [{ "path": "../packages/rrweb" }]
 }
