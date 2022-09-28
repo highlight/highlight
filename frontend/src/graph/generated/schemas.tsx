@@ -24,7 +24,7 @@ export type Scalars = {
 
 export type Field = {
 	__typename?: 'Field'
-	id: Scalars['ID']
+	id: Scalars['Int64']
 	name: Scalars['String']
 	value: Scalars['String']
 	type?: Maybe<Scalars['String']>

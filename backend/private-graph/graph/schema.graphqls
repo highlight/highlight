@@ -6,7 +6,7 @@ scalar Int64
 scalar StringArray
 
 type Field {
-	id: ID!
+	id: Int64!
 	name: String!
 	value: String!
 	type: String
