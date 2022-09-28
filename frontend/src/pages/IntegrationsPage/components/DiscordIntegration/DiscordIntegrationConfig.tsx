@@ -10,6 +10,22 @@ import React, { useEffect } from 'react'
 
 import styles from './DiscordIntegrationConfig.module.scss'
 
+const getDiscordOauthUrl = (project_id: string): string => {
+	const redirectURI = `${GetBaseURL()}/callback/discord`
+	const discordClientId = '1024079182013149185'
+	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))
+	const scope = ['bot']
+
+	// If the bot needs more permissions, visit https://discord.com/developers/applications/1024079182013149185/oauth2/url-generator
+	// and use the generator to get a new value
+	// Current bot permissions:
+	// * Read Messages/View Channels
+	// * Send Messages
+	const botPermissions = '3072'
+
+	return `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&permissions=${botPermissions}&redirect_uri=${redirectURI}&state=${state}&response_type=code&scope=${scope}`
+}
+
 const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModelOpen,
 	setIntegrationEnabled,
@@ -73,8 +89,6 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		)
 	}
 
-	const redirectURI = `${GetBaseURL()}/callback/discord`
-	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
@@ -96,7 +110,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://discord.com/api/oauth2/authorize?client_id=1024079182013149185&permissions=2048&redirect_uri=${redirectURI}&state=${state}&response_type=code&scope=guilds%20guilds.join%20guilds.members.read%20bot`}
+					href={getDiscordOauthUrl(project_id)}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />

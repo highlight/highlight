@@ -1732,6 +1732,14 @@ func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	return nil
 }
 
+func (r *Resolver) RemoveDiscordFromWorkspace(workspace *model.Workspace) error {
+	if err := r.DB.Where(&workspace).Select("discord_access_token").Updates(&model.Workspace{DiscordAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing discord access token in project model")
+	}
+
+	return nil
+}
+
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		LINEAR_CLIENT_ID     string
