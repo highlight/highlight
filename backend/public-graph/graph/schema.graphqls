@@ -46,6 +46,11 @@ input BackendErrorObjectInput {
 	payload: String
 }
 
+input MetricTag {
+	name: String!
+	value: String!
+}
+
 input MetricInput {
 	session_secure_id: String!
 	group: String
@@ -53,9 +58,7 @@ input MetricInput {
 	value: Float!
 	category: String
 	timestamp: Timestamp!
-	# kept for backwards compatibility with old clients, do not use
-	type: Any
-	url: String
+	tags: [MetricTag!]
 }
 
 input ReplayEventInput {

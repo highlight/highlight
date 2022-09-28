@@ -1202,6 +1202,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			Name:            "sessions",
 			Value:           1,
 			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*model2.MetricTag{
+				{Name: "OS", Value: deviceDetails.OSName},
+				{Name: "OSVersion", Value: deviceDetails.OSVersion},
+				{Name: "Browser", Value: deviceDetails.BrowserName},
+				{Name: "BrowserVersion", Value: deviceDetails.BrowserVersion},
+				{Name: "Bot", Value: fmt.Sprintf("%v", deviceDetails.IsBot)},
+			},
 		},
 	}); err != nil {
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
@@ -1950,6 +1957,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			}
 			tags[m.Name] = category
 			fields[m.Name] = m.Value
+			for _, t := range m.Tags {
+				tags[t.Name] = t.Value
+			}
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
