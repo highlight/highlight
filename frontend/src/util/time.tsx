@@ -16,3 +16,39 @@ export function MillisToMinutesAndSecondsVerbose(millis: number) {
 	}
 	return str + seconds + ' seconds'
 }
+
+export function convertMillisToHMS(millis: number) {
+	let seconds = Math.floor(millis / 1000)
+	let minutes = Math.floor((seconds - (seconds % 60)) / 60)
+	const hours = Math.floor((minutes - (minutes % 60)) / 60)
+	seconds %= 60
+	minutes %= 60
+	return { s: seconds, m: minutes, h: hours }
+}
+
+function padTo2Digits(num: number) {
+	return num.toString().padStart(2, '0')
+}
+
+export function formatTimeAsHMS(millis: number) {
+	const parts = convertMillisToHMS(millis)
+	const secondsStr = padTo2Digits(parts.s)
+	const minutesStr = padTo2Digits(parts.m)
+
+	return !parts.h
+		? `${parts.m}:${secondsStr}`
+		: `${parts.h}:${minutesStr}:${secondsStr}`
+}
+
+export function formatTimeAsAlphanum(millis: number) {
+	const parts = convertMillisToHMS(millis)
+
+	if (parts.h && parts.m === 30 && !parts.s) {
+		return `${parts.h}.5h`
+	}
+	return (
+		(parts.h && !parts.m && !parts.s ? `${parts.h}h` : '') +
+		(parts.m && !parts.s ? `${parts.m}m` : '') +
+		(parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0s' : '')
+	)
+}

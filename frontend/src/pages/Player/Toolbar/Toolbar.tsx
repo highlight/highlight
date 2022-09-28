@@ -1,6 +1,7 @@
 import Switch from '@components/Switch/Switch'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
+import { LEFT_PANEL_WIDTH } from '@pages/Player/PlayerPage'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
@@ -76,7 +77,10 @@ export function getAnnotationColor(
 	return TimelineAnnotationColors[eventTypeKey]
 }
 
-export const Toolbar = React.memo(() => {
+interface Props {
+	width: number
+}
+export const Toolbar = ({ width }: Props) => {
 	const { isHighlightAdmin } = useAuthContext()
 	const {
 		replayer,
@@ -266,7 +270,12 @@ export const Toolbar = React.memo(() => {
 	// The play button should be disabled if the player has reached the end.
 	const disablePlayButton =
 		time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode
-	const leftSidebarWidth = isPlayerFullscreen ? 0 : showLeftPanel ? 475 : 0
+
+	const leftSidebarWidth = isPlayerFullscreen
+		? 0
+		: showLeftPanel
+		? LEFT_PANEL_WIDTH
+		: 0
 	/** 64 (sidebar width) + 12 (left padding for the toolbar)  */
 	const staticSidebarWidth = isPlayerFullscreen
 		? 16
@@ -286,10 +295,12 @@ export const Toolbar = React.memo(() => {
 			>
 				{histogramOn && (
 					<TimelineIndicatorsBarGraph
-						sessionIntervals={sessionIntervals}
 						selectedTimelineAnnotationTypes={
 							selectedTimelineAnnotationTypes
 						}
+						targetBucketCount={40}
+						timelineMargin={32}
+						width={width}
 					/>
 				)}
 				{!histogramOn && (
@@ -389,6 +400,7 @@ export const Toolbar = React.memo(() => {
 						<DevToolsWindow
 							time={(sessionMetadata.startTime ?? 0) + time}
 							startTime={sessionMetadata.startTime ?? 0}
+							width={width}
 						/>
 					</div>
 				)}
@@ -397,6 +409,7 @@ export const Toolbar = React.memo(() => {
 				className={classNames(styles.toolbarSection, {
 					[styles.devToolsOpen]: showDevTools,
 				})}
+				style={{ width }}
 			>
 				<div className={styles.toolbarLeftSection}>
 					<button
@@ -603,7 +616,7 @@ export const Toolbar = React.memo(() => {
 			</div>
 		</ToolbarItemsContextProvider>
 	)
-})
+}
 
 const SessionSegment = React.memo(
 	({

@@ -1,40 +1,147 @@
-.eventTitle {
-	margin-top: var(--size-small);
+.timelineIndicatorsContainer {
+	align-items: center;
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-bottom: 0;
+	display: flex;
+	flex-direction: column;
 }
 
-.eventContent {
-	max-height: 50px;
+.progressMonitor {
+	border-bottom: 1px var(--color-gray-300) solid;
+	border-top: 1px var(--color-gray-300) solid;
+	height: 38px;
 	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.histogramContainer {
-	margin-bottom: 26px;
 	position: relative;
-	z-index: 10;
+	width: 100%;
+	z-index: 2;
 }
 
-.timeMarker {
-	background: var(--color-scrubber-scrub-handle);
-	height: 44px;
-	position: absolute;
-	top: 10px;
-	width: 2px;
-	z-index: 8;
+.progressBarContainer {
+	border-top: 4px solid var(--color-purple-200);
 }
 
-.innerBounds {
-	height: 100%;
-	padding-left: var(--size-medium);
-	padding-right: var(--size-medium);
+.progressBar {
+	border-top: 4px solid var(--color-purple);
+	left: 0;
 	position: absolute;
+	top: 0;
+}
+
+.section {
+	box-sizing: border-box;
+	padding: 1em;
+	padding-top: 0;
 	width: 100%;
 }
 
-.histogramSkeleton {
-	margin-bottom: 26px;
+.timelineContainer {
+	height: 128px;
+	overflow-x: scroll;
+	overflow-y: hidden;
+	overscroll-behavior: none;
+	position: relative;
+	width: 100% !important;
+}
+.zoomArea {
+	background-color: var(--color-gray-500);
+	bottom: 0;
+	height: 40px;
+	opacity: 0.1;
+	position: absolute;
+	z-index: 2;
 }
 
-.scrubberSkeleton {
-	margin-bottom: 12px;
+.eventHistogram {
+	display: flex;
+	flex-direction: row;
+	height: 72px;
+	margin-left: 32px;
+	margin-right: 32px;
+	position: relative;
+	width: 100%;
+}
+
+.eventTrack {
+	margin-bottom: 8px;
+	margin-top: 8px;
+	position: relative;
+	width: 100%;
+}
+
+.timeAxis {
+	height: 39px;
+	margin-left: 32px;
+	margin-right: 32px;
+	pointer-events: none;
+	position: relative;
+}
+
+.separator {
+	border-bottom: 1px var(--color-gray-300) solid;
+}
+
+.bucketMark {
+	border-left: 1px var(--color-gray-300) solid;
+	bottom: 0;
+	position: absolute;
+}
+
+.timeMarker {
+	color: var(--color-gray-500);
+	font-size: 8px;
+	font-weight: 400;
+	line-height: 10.4px;
+	position: absolute;
+	text-align: center;
+	top: 16px;
+	user-select: none;
+}
+
+.timeTick {
+	border-left: 0.5px solid var(--color-gray-500);
+	position: absolute;
+}
+
+.timeTickMajor {
+	height: 8px;
+}
+
+.timeTickMid {
+	height: 4px;
+}
+
+.timeTickMinor {
+	height: 2px;
+}
+
+.timeIndicator {
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	height: 103px;
+	position: absolute;
+	width: 56px;
+}
+.timeIndicatorHair {
+	border-left: 1px var(--color-black) solid;
+	cursor: ew-resize;
+	height: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	z-index: 2;
+}
+.timeIndicatorTop {
+	align-items: center;
+	background-color: var(--color-black);
+	border-radius: 4px;
+	color: var(--color-white);
+	cursor: grab;
+	display: flex;
+	font-size: 12px;
+	font-weight: 600;
+	height: 24px;
+	justify-content: center;
+	line-height: 15.6px;
+	user-select: none;
 }

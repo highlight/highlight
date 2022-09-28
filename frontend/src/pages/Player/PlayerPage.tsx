@@ -58,6 +58,9 @@ interface Props {
 	integrated: boolean
 }
 
+export const LEFT_PANEL_WIDTH = 475
+export const RIGHT_PANEL_WIDTH = 350
+
 const Player = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
@@ -103,6 +106,7 @@ const Player = ({ integrated }: Props) => {
 		  }
 		| undefined
 	>(undefined)
+	const centerColumnRef = useRef<HTMLDivElement>(null)
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
@@ -189,17 +193,23 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
+	const playerWidth = useMemo(() => {
+		return Math.max(centerColumnRef.current?.offsetWidth || 0, 300)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		playerBoundingClientRectWidth,
+		showLeftPanel,
+		showRightPanel,
+		playerWrapperRef.current?.offsetWidth,
+	])
+
 	const playerFiller = useMemo(() => {
 		return (
 			<div className={styles.loadingWrapper}>
-				<PlayerSkeleton
-					showingLeftPanel={showLeftPanel}
-					showingRightPanel={showRightPanel}
-					width={playerWrapperRef.current?.clientWidth}
-				/>
+				<PlayerSkeleton width={playerWidth} />
 			</div>
 		)
-	}, [showLeftPanel, showRightPanel])
+	}, [playerWidth])
 
 	return (
 		<PlayerUIContextProvider
@@ -347,7 +357,10 @@ const Player = ({ integrated }: Props) => {
 						>
 							<div className={styles.playerContainer}>
 								<div className={styles.rrwebPlayerSection}>
-									<div className={styles.playerCenterColumn}>
+									<div
+										className={styles.playerCenterColumn}
+										ref={centerColumnRef}
+									>
 										{!isPlayerFullscreen && (
 											<SessionLevelBar />
 										)}
@@ -449,7 +462,7 @@ const Player = ({ integrated }: Props) => {
 										<ResourcesContextProvider
 											value={resources}
 										>
-											<Toolbar />
+											<Toolbar width={playerWidth} />
 										</ResourcesContextProvider>
 									</div>
 
@@ -487,25 +500,8 @@ const Player = ({ integrated }: Props) => {
 	)
 }
 
-const PlayerSkeleton = ({
-	width,
-	showingLeftPanel,
-	showingRightPanel,
-}: {
-	width: number | undefined
-	showingLeftPanel: boolean
-	showingRightPanel: boolean
-}) => {
+const PlayerSkeleton = ({ width }: { width: number }) => {
 	const { showDevTools } = usePlayerConfiguration()
-	let adjustedWidth = width ?? 80
-
-	if (showingLeftPanel) {
-		adjustedWidth -= 475
-	}
-	if (showingRightPanel) {
-		adjustedWidth -= 350
-	}
-	adjustedWidth = Math.min(Math.max(300, adjustedWidth), 600)
 
 	return (
 		<SkeletonTheme
@@ -513,8 +509,8 @@ const PlayerSkeleton = ({
 			highlightColor={'#f5f5f5'}
 		>
 			<Skeleton
-				height={!showDevTools ? adjustedWidth * 0.8 : '200px'}
-				width={adjustedWidth}
+				height={!showDevTools ? width * 0.8 : 200}
+				width={width}
 				duration={1}
 			/>
 		</SkeletonTheme>
