@@ -28,6 +28,7 @@ interface Props {
 		stroke?: string
 	}
 	yAxisLabel: string
+	noTooltipLabel?: boolean
 	tooltipIcon?: React.ReactNode
 	chartLabel?: string
 	/** This is used to align multiple charts. */
@@ -46,6 +47,7 @@ const StackedAreaChart = ({
 	onClickHandler,
 	referenceLineProps,
 	yAxisLabel,
+	noTooltipLabel,
 	tooltipIcon,
 	chartLabel,
 	syncId,
@@ -125,13 +127,15 @@ const StackedAreaChart = ({
 																: entry.value.toFixed(
 																		2,
 																  )}{' '}
-															<span
-																className={
-																	styles.label
-																}
-															>
-																{yAxisLabel}
-															</span>
+															{!noTooltipLabel && (
+																<span
+																	className={
+																		styles.label
+																	}
+																>
+																	{yAxisLabel}
+																</span>
+															)}
 														</span>
 													</p>
 												)

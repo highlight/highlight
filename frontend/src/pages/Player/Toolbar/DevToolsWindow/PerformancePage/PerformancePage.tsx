@@ -69,11 +69,17 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						key: 'jank',
 						customData: jankPayloads.map((p) => ({
 							jank: p.jankAmount,
+							selector: p.querySelector,
 							timestamp: p.relativeTimestamp * 1000,
 						})),
+						yAxisTickFormatter: (tickItem: number | string) =>
+							typeof tickItem === 'number'
+								? `${tickItem.toFixed(1)} ms`
+								: `${tickItem}`,
 						strokeColor: 'var(--color-red-700)',
 						fillColor: 'var(--color-red-400)',
 						yAxisLabel: 'ms',
+						noTooltipLabel: true,
 						tooltipIcon: <SvgActivityIcon />,
 						chartLabel: 'Jank',
 					},
@@ -85,6 +91,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						fillColor,
 						yAxisTickFormatter,
 						yAxisLabel,
+						noTooltipLabel,
 						tooltipIcon,
 						chartLabel,
 					}) => {
@@ -133,7 +140,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 								data={customData || data}
 								xAxisKey="timestamp"
 								showXAxis={key !== 'fps'}
-								heightPercent="33%"
+								heightPercent="30%"
 								fillColor={fillColor}
 								strokeColor={strokeColor}
 								xAxisTickFormatter={(tickItem) => {
@@ -154,6 +161,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 									x: closestTimestamp,
 								}}
 								yAxisLabel={yAxisLabel}
+								noTooltipLabel={noTooltipLabel || false}
 								tooltipIcon={tooltipIcon}
 								chartLabel={chartLabel}
 							/>
