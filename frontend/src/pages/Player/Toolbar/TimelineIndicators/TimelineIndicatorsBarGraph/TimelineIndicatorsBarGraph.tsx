@@ -16,6 +16,7 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
+import { debounce } from 'lodash'
 import moment from 'moment'
 import {
 	useCallback,
@@ -194,12 +195,12 @@ const TimelineIndicatorsBarGraph = ({
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
-	const [candidateTime, setCandidateTime] = useState<number>(time)
+	const [shownTime, setShownTime] = useState<number>(time)
 	useEffect(() => {
 		if (state === ReplayerState.Playing && !isDragging) {
-			setCandidateTime(time)
+			setShownTime(time)
 		}
-	}, [state, time, setCandidateTime, isDragging])
+	}, [state, time, setShownTime, isDragging])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -238,6 +239,7 @@ const TimelineIndicatorsBarGraph = ({
 		let isOnScrollbar = false
 		let isToDrag = false
 
+		const setTimeDebounced = debounce(setTime, 300)
 		const moveTime = (event: MouseEvent, isFinal?: boolean) => {
 			const { clientX } = event
 			const { offsetLeft, scrollLeft, scrollWidth } = viewportDiv
@@ -254,9 +256,9 @@ const TimelineIndicatorsBarGraph = ({
 				0,
 				duration,
 			)
-			setCandidateTime(newTime)
+			setShownTime(newTime)
 			if (isFinal) {
-				setTime(newTime)
+				setTimeDebounced(newTime)
 			}
 		}
 
@@ -316,25 +318,6 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		}
 
-		const onKeypress = (event: KeyboardEvent) => {
-			if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
-				event.preventDefault()
-				const direction = event.code === 'ArrowRight' ? 1 : -1
-				const canvasWidth =
-					(viewportDiv.offsetWidth - 2 * timelineMargin) * camera.zoom
-				requestAnimationFrame(() =>
-					setCamera((camera) => {
-						const x = clamp(
-							camera.x + direction * canvasWidth * 0.01,
-							0,
-							viewportWidth * camera.zoom - viewportWidth,
-						)
-						return { ...camera, x }
-					}),
-				)
-			}
-		}
-
 		viewportDiv.addEventListener('pointerdown', onViewportPointerdown)
 		timeIndicatorHair.addEventListener('pointerdown', onDrag)
 		viewportDiv.addEventListener('scroll', onScroll, { passive: false })
@@ -342,7 +325,6 @@ const TimelineIndicatorsBarGraph = ({
 		document.addEventListener('pointermove', onPointermove, {
 			passive: false,
 		})
-		document.addEventListener('keydown', onKeypress, { passive: false })
 		return () => {
 			viewportDiv.removeEventListener(
 				'pointerdown',
@@ -352,7 +334,6 @@ const TimelineIndicatorsBarGraph = ({
 			viewportDiv.removeEventListener('scroll', onScroll)
 			document.removeEventListener('pointerup', onGlobalPointerup)
 			document.removeEventListener('pointermove', onPointermove)
-			document.removeEventListener('keydown', onKeypress)
 		}
 	}, [
 		viewportRef,
@@ -506,15 +487,6 @@ const TimelineIndicatorsBarGraph = ({
 		buckets.length,
 		rightmostBucketIdx,
 	])
-
-	const shownTime = useMemo(
-		() =>
-			isDragging ||
-			[ReplayerState.Loading, ReplayerState.Playing].includes(state)
-				? candidateTime
-				: time,
-		[candidateTime, isDragging, state, time],
-	)
 
 	const [timeIndicatorOffset, setTimeIndicatorOffset] = useState<number>(-25)
 	useEffect(() => {
