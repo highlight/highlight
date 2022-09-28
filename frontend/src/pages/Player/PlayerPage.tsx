@@ -46,7 +46,14 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Suspense,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -193,15 +200,16 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
-	const playerWidth = useMemo(() => {
-		return Math.max(centerColumnRef.current?.offsetWidth || 0, 300)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		playerBoundingClientRectWidth,
-		showLeftPanel,
-		showRightPanel,
-		playerWrapperRef.current?.offsetWidth,
-	])
+	const [playerWidth, setPlayerWidth] = useState<number>(0)
+	useLayoutEffect(() => {
+		const div = centerColumnRef.current
+		if (!div) {
+			return
+		}
+
+		const width = Math.max(centerColumnRef.current.offsetWidth - 32, 200)
+		setPlayerWidth(width)
+	}, [centerColumnRef.current?.offsetWidth, setPlayerWidth])
 
 	const playerFiller = useMemo(() => {
 		return (
@@ -362,7 +370,9 @@ const Player = ({ integrated }: Props) => {
 										ref={centerColumnRef}
 									>
 										{!isPlayerFullscreen && (
-											<SessionLevelBar />
+											<SessionLevelBar
+												width={playerWidth}
+											/>
 										)}
 										<div
 											className={
