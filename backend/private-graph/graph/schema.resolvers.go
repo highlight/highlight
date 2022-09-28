@@ -6011,6 +6011,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if params.MaxPercentile != nil {
 			maxPercentile = *params.MaxPercentile
 		}
+		log.Infof("params %+v %f %f", params, minPercentile, maxPercentile)
 		query := fmt.Sprintf(`
 	  do = (q) =>
 		from(bucket: "%s")
@@ -6037,12 +6038,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if len(results) < 1 {
 			return nil, nil
 		}
+		// offset min and max to include min and max values and pad the distribution a bit
 		if params.MinValue == nil {
-			f := results[0].Value.(float64)
+			f := results[0].Value.(float64) * 0.9
 			params.MinValue = &f
 		}
 		if params.MaxValue == nil {
-			f := results[1].Value.(float64)
+			f := results[1].Value.(float64) * 1.1
 			params.MaxValue = &f
 		}
 	}
