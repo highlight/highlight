@@ -7,3 +7,10 @@ export type HighlightPerformancePayload = {
 	relativeTimestamp: number
 	fps: number
 }
+
+export type HighlightJankPayload = {
+	relativeTimestamp: number
+	jankAmount: number
+	querySelector: string
+	locationChanged: boolean
+}

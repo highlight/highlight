@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import StackedAreaChart from '@components/StackedAreaChart/StackedAreaChart'
+import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
 import SvgTimerIcon from '@icons/TimerIcon'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -14,9 +15,10 @@ type Props = {
 }
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-	const { performancePayloads, pause, events, session } = useReplayerContext()
+	const { performancePayloads, jankPayloads, pause, events, session } =
+		useReplayerContext()
 
-	const graphData = performancePayloads.map((payload) => {
+	const performanceData = performancePayloads.map((payload) => {
 		return {
 			timestamp: payload.relativeTimestamp * 1000,
 			fps: payload.fps,
@@ -63,9 +65,22 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						tooltipIcon: <SvgCarDashboardIcon />,
 						chartLabel: 'Device Memory',
 					},
+					{
+						key: 'jank',
+						customData: jankPayloads.map((p) => ({
+							jank: p.jankAmount,
+							timestamp: p.relativeTimestamp * 1000,
+						})),
+						strokeColor: 'var(--color-red-700)',
+						fillColor: 'var(--color-red-400)',
+						yAxisLabel: 'ms',
+						tooltipIcon: <SvgActivityIcon />,
+						chartLabel: 'Jank',
+					},
 				].map(
 					({
 						key,
+						customData,
 						strokeColor,
 						fillColor,
 						yAxisTickFormatter,
@@ -73,37 +88,52 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						tooltipIcon,
 						chartLabel,
 					}) => {
-						const timestamps = graphData.map((d) => d.timestamp)
-						const closestTimestamp = findClosestTimestamp(
-							timestamps,
-							currentTime - startTime,
-						)
-						const data = graphData.map((d) => ({
-							timestamp: d.timestamp,
-							// @ts-expect-error
-							[key]: d[key],
-						}))
+						let data: any = undefined
+						let closestTimestamp: number
+						if (!customData) {
+							const timestamps = performanceData.map(
+								(d) => d.timestamp,
+							)
+							closestTimestamp = findClosestTimestamp(
+								timestamps,
+								currentTime - startTime,
+							)
+							data = performanceData.map((d) => ({
+								timestamp: d.timestamp,
+								// @ts-expect-error
+								[key]: d[key],
+							}))
 
-						const hasData = data.some((data) => !isNaN(data[key]))
-						if (data.length === 0 || !hasData) {
-							return (
-								<div className={styles.noDataContainer}>
-									<p>
-										{session?.browser_name}{' '}
-										{session?.browser_version} does not
-										support recording {chartLabel}.
-									</p>
-								</div>
+							const hasData = data.some(
+								(data: any) => !isNaN(data[key]),
+							)
+							if (data.length === 0 || !hasData) {
+								return (
+									<div className={styles.noDataContainer}>
+										<p>
+											{session?.browser_name}{' '}
+											{session?.browser_version} does not
+											support recording {chartLabel}.
+										</p>
+									</div>
+								)
+							}
+						} else {
+							closestTimestamp = findClosestTimestamp(
+								jankPayloads.map(
+									(p) => p.relativeTimestamp * 1000,
+								),
+								currentTime - startTime,
 							)
 						}
 
 						return (
 							<StackedAreaChart
 								key={key}
-								data={data}
+								data={customData || data}
 								xAxisKey="timestamp"
 								showXAxis={key !== 'fps'}
-								heightPercent="50%"
+								heightPercent="33%"
 								fillColor={fillColor}
 								strokeColor={strokeColor}
 								xAxisTickFormatter={(tickItem) => {
