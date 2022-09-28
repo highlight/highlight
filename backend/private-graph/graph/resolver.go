@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/oauth"
-
 	"gorm.io/gorm/clause"
 
 	"golang.org/x/oauth2"
@@ -27,6 +25,7 @@ import (
 	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/leonelquinteros/hubspot"
