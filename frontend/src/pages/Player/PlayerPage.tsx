@@ -42,6 +42,7 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { clamp } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
@@ -519,8 +520,8 @@ const PlayerSkeleton = ({ width }: { width: number }) => {
 			highlightColor={'#f5f5f5'}
 		>
 			<Skeleton
-				height={!showDevTools ? width * 0.8 : 200}
-				width={width}
+				height={!showDevTools ? clamp(width * 0.8, 200, 400) : 200}
+				width={width - 32}
 				duration={1}
 			/>
 		</SkeletonTheme>

@@ -229,15 +229,9 @@ const TimelineIndicatorsBarGraph = ({
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
-		const timeAxisDiv = timeAxisRef.current
 		const timeIndicatorTopDiv = timeIndicatorTopRef.current
 		const timeIndicatorHair = timeIndicatorHairRef.current
-		if (
-			!viewportDiv ||
-			!timeIndicatorTopDiv ||
-			!timeAxisDiv ||
-			!timeIndicatorHair
-		) {
+		if (!viewportDiv || !timeIndicatorTopDiv || !timeIndicatorHair) {
 			return
 		}
 
@@ -255,7 +249,11 @@ const TimelineIndicatorsBarGraph = ({
 				canvasWidth,
 			)
 
-			const newTime = Math.round((x * duration) / canvasWidth)
+			const newTime = clamp(
+				Math.round((x * duration) / canvasWidth),
+				0,
+				duration,
+			)
 			setCandidateTime(newTime)
 			if (isFinal) {
 				setTime(newTime)
@@ -269,13 +267,17 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		const onViewportPointerdown = (event: MouseEvent) => {
+			const timeAxisDiv = timeAxisRef.current
+			if (!timeAxisDiv) {
+				return
+			}
 			const { clientY } = event
 			const { offsetTop } = viewportDiv
 			const { offsetHeight: timeAxisHeight } = timeAxisDiv
-			const timeAxisBottom =
-				offsetTop - document.documentElement.scrollTop + timeAxisHeight
+			const timeAxisBottom = offsetTop + timeAxisHeight
+			const pointerY = clientY + document.documentElement.scrollTop
 
-			if (clientY >= timeAxisBottom) {
+			if (pointerY >= timeAxisBottom) {
 				isOnScrollbar = true
 				setHasActiveScrollbar(isOnScrollbar)
 			} else {
@@ -352,16 +354,17 @@ const TimelineIndicatorsBarGraph = ({
 			document.removeEventListener('pointermove', onPointermove)
 			document.removeEventListener('keydown', onKeypress)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		viewportRef,
 		timeAxisRef,
 		timeIndicatorTopRef,
 		timeIndicatorHairRef,
-		viewportWidth,
 		timelineMargin,
+		width,
 		duration,
 		setTime,
+		camera.zoom,
+		viewportWidth,
 	])
 
 	const barChartData = useMemo(() => {
@@ -419,6 +422,7 @@ const TimelineIndicatorsBarGraph = ({
 		const canvasWidth = viewportWidth * camera.zoom
 		const step = (mainTickInMs * canvasWidth) / duration
 		const minorStep = step / 4
+
 		for (let idx = 0; idx < numTicks; ++idx) {
 			const left = idx * step
 			const progress = left / canvasWidth
@@ -430,23 +434,34 @@ const TimelineIndicatorsBarGraph = ({
 			}
 			const key = `${idx * size.multiple}${size.tick}`
 			const text = formatTimeAsAlphanum(mainTickInMs * idx)
+			const fontWeight = text.includes('h')
+				? 600
+				: text.includes('m')
+				? 500
+				: 400
 			elms.push(
 				<span
 					className={style.timeMarker}
 					key={`tick-verbose-${key}`}
 					style={{
 						left: left - text.length * 1.5,
+						fontWeight,
 					}}
 				>
 					{text}
 				</span>,
 			)
 
+			const borderLeftWidth = text.includes('h')
+				? 1
+				: text.includes('m')
+				? 0.75
+				: 0.5
 			elms.push(
 				<span
 					className={classNames(style.timeTick, style.timeTickMajor)}
 					key={`tick-major-${key}`}
-					style={{ left: left }}
+					style={{ left: left, borderLeftWidth }}
 				></span>,
 			)
 			if (idx !== numTicks - 1) {
@@ -492,11 +507,26 @@ const TimelineIndicatorsBarGraph = ({
 		rightmostBucketIdx,
 	])
 
-	const shownTime =
-		isDragging ||
-		[ReplayerState.Loading, ReplayerState.Playing].includes(state)
-			? candidateTime
-			: time
+	const shownTime = useMemo(
+		() =>
+			isDragging ||
+			[ReplayerState.Loading, ReplayerState.Playing].includes(state)
+				? candidateTime
+				: time,
+		[candidateTime, isDragging, state, time],
+	)
+
+	const [timeIndicatorOffset, setTimeIndicatorOffset] = useState<number>(-25)
+	useEffect(() => {
+		const timeIndicatorTop = timeIndicatorTopRef.current
+		if (!timeIndicatorTop) {
+			return
+		}
+		setTimeIndicatorOffset(
+			(shownTime * viewportWidth * camera.zoom) / duration -
+				timeIndicatorTop.offsetWidth / 2,
+		)
+	}, [camera.zoom, duration, shownTime, viewportWidth])
 
 	if (!sessionIntervals.length) {
 		return (
@@ -589,12 +619,7 @@ const TimelineIndicatorsBarGraph = ({
 					<div
 						className={style.timeIndicator}
 						style={{
-							left:
-								(shownTime * viewportWidth * camera.zoom) /
-									duration -
-								(timeIndicatorTopRef.current?.offsetWidth ||
-									0) /
-									2,
+							left: timeIndicatorOffset,
 						}}
 					>
 						<div
