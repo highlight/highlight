@@ -39,7 +39,9 @@
 		"g": "yarn generate",
 		"generate": "hygen",
 		"prepare": "husky install && patch-package",
-		"publish:all": "yarn turbo run test:all && changeset version && changeset publish",
+		"publish:all": "run-p --print-label publish:turbo publish:render",
+		"publish:turbo": "changeset version && changeset publish",
+		"publish:render": "yarn workspace render publish",
 		"test:all": "yarn turbo run test",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},

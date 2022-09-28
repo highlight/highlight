@@ -13,6 +13,7 @@ on:
             - '.github/workflows/e2e-test.yml'
 jobs:
     test:
+        name: End-to-end Cypress Testing
         runs-on: ubuntu-latest
         env:
             ENVIRONMENT: test
@@ -24,6 +25,9 @@ jobs:
             PSQL_PASSWORD: postgres
             REDIS_HOST: redis
             REDIS_PORT: 6379
+            # configures turborepo remote caching
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         services:
             postgres:
                 image: postgres
@@ -75,7 +79,7 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Install Go and NPM dependencies
               run: yarn && yarn ci:install:go
-            - name: Build firstload + backend
+            - name: Build frontend + backend
               run: yarn ci:build
             - name: Run Cypress tests
               uses: cypress-io/github-action@v4
