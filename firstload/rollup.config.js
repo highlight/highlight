@@ -45,13 +45,15 @@ const rollupBuilds = []
 
 if (development) {
 	rollupBuilds.push({
-		input: './src/index.tsx',
-		output: {
-			file: pkg.main,
-			format: 'esm',
-			sourcemap: sourceMap,
+		input: {
+			indexESM: input.index,
+			electronESM: input.electron,
 		},
-		external: ['@highlight-run/client'],
+		output: {
+			dir: './dist',
+			format: 'esm',
+			sourcemap: true,
+		},
 		plugins: [...basePlugins, filesize()],
 	})
 } else {
@@ -92,10 +94,8 @@ if (development) {
 		rollupBuilds.push({
 			input: x.input,
 			output: {
-				globals: { '@highlight-run/client': 'client' },
 				...x.output,
 			},
-			external: ['@highlight-run/client'],
 			treeshake: 'smallest',
 			plugins: [
 				...basePlugins,
