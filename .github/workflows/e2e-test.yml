@@ -11,6 +11,7 @@ on:
             - 'client/**'
             - 'firstload/**'
             - '.github/workflows/e2e-test.yml'
+            - 'cypress.config.js'
 jobs:
     test:
         name: End-to-end Cypress Testing
