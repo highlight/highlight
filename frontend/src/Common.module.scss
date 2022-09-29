@@ -1,6 +1,7 @@
 .bodyWrapper {
 	display: flex;
 	height: 100%;
+	overflow: hidden;
 	padding-left: var(--sidebar-width);
 	position: absolute;
 	width: 100%;

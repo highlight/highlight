@@ -1,35 +1,180 @@
+import Button from '@components/Button/Button/Button'
+import Popover from '@components/Popover/Popover'
+import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext'
+import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement'
+import timelineAnnotationStyles from '@pages/Player/Toolbar/TimelineAnnotation/TimelineAnnotation.module.scss'
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
+import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import { TooltipPlacement } from 'antd/lib/tooltip'
+import classNames from 'classnames'
+import { useLayoutEffect, useMemo, useState } from 'react'
+
 import styles from './TimelineBar.module.scss'
-export interface IBarRectangle {
-	color: string
-	percent: number
+export interface EventBucket {
+	totalCount: number
+	[props: string]: number | string
 }
 
 interface IBar {
-	data: IBarRectangle[]
+	bucket: EventBucket
 	left: number
-	barWidth: number
-	margin: number
+	width: number
+	height: number
+	viewportRef: React.RefObject<HTMLElement>
 }
 
-const TimelineIndicatorsBar = ({ data, barWidth, left, margin }: IBar) => {
-	const totalPercent = data
-		.map((rect) => rect.percent)
-		.reduce((acc, curr) => acc + curr, 0)
+const TimelineIndicatorsBar = ({
+	bucket,
+	width,
+	left,
+	height,
+	viewportRef,
+}: IBar) => {
+	const { setCurrentEvent } = useReplayerContext()
+	const { setShowRightPanel } = usePlayerConfiguration()
+	const data = useMemo(() => {
+		const selectedEventTypes = EventsForTimeline.filter(
+			(eventType) => bucket[eventType] !== undefined,
+		)
+
+		const barData = selectedEventTypes
+			.map((eventType) => {
+				const color = `var(${getAnnotationColor(eventType)})`
+				const icon = getPlayerEventIcon(eventType)
+				return {
+					name: getTimelineEventDisplayName(eventType || ''),
+					color,
+					icon,
+					count: bucket[eventType],
+					firstId: bucket[`${eventType}Identifier`],
+					percent:
+						((bucket[eventType] as number) / bucket.totalCount) *
+						100,
+				}
+			})
+			.filter((rect) => rect.percent > 0)
+
+		return barData
+	}, [bucket])
+
+	const [rightTooltipOffset, setRightTooltipOffset] = useState<number>(0)
+	const [placement, setPlacement] = useState<TooltipPlacement>('top')
+	const [relativePosition, setRelativePosition] = useState<number>(left)
+	useLayoutEffect(() => {
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return
+		}
+		const onPointermove = ({ clientX }: MouseEvent) => {
+			const { offsetLeft, offsetWidth } = viewportDiv
+			const relX =
+				((clientX + document.documentElement.scrollLeft - offsetLeft) *
+					100) /
+				offsetWidth
+			let relPos = 0
+			for (const threshold of [66, 33]) {
+				if (relX > threshold) {
+					relPos = threshold + 1
+					break
+				}
+			}
+			setRelativePosition(relPos)
+		}
+
+		viewportDiv.addEventListener('pointermove', onPointermove)
+		return () => {
+			viewportDiv.removeEventListener('pointermove', onPointermove)
+		}
+	}, [viewportRef])
+
+	useLayoutEffect(() => {
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return
+		}
+
+		const offset = (viewportDiv.scrollWidth * (width / 100)) / 8
+		if (relativePosition > 66) {
+			setRightTooltipOffset(offset)
+			setPlacement('topRight')
+		} else if (relativePosition > 33) {
+			setRightTooltipOffset(0)
+			setPlacement('top')
+		} else {
+			setRightTooltipOffset(-offset)
+			setPlacement('topLeft')
+		}
+	}, [relativePosition, viewportRef, width, viewportRef.current?.scrollWidth])
+
+	const popoverContent = useMemo(() => {
+		const rows = []
+		for (const { icon, color, count, name, firstId } of data) {
+			rows.push(
+				<Button
+					className={classNames(
+						timelineAnnotationStyles.title,
+						styles.eventAggregateTitle,
+					)}
+					trackingId="ViewEventDetail"
+					type="text"
+					key={name}
+					onClick={() => {
+						if (!!firstId) {
+							setCurrentEvent(firstId as string)
+							setShowRightPanel(true)
+						}
+					}}
+				>
+					<span
+						className={timelineAnnotationStyles.iconContainer}
+						style={{
+							background: color,
+							width: '30px',
+							height: '30px',
+						}}
+					>
+						{icon}
+					</span>
+					{name}
+					{count > 1 && ` x ${count}`}
+				</Button>,
+			)
+		}
+		return rows
+	}, [data, setCurrentEvent, setShowRightPanel])
+
+	const [isBarFramed, setIsBarFramed] = useState(false)
 	return (
-		<div
-			className={styles.bar}
-			style={{
-				width: `${barWidth}%`,
-				left: `${left}%`,
+		<Popover
+			getPopupContainer={getFullScreenPopoverGetPopupContainer}
+			content={<>{popoverContent}</>}
+			align={{
+				overflow: {
+					adjustY: false,
+					adjustX: false,
+				},
+				offset: [rightTooltipOffset, 0],
 			}}
+			placement={placement}
+			overlayClassName={styles.timelineBarPopoverContainer}
+			onVisibleChange={(visible) => setIsBarFramed(visible)}
 		>
-			{totalPercent ? (
+			<div
+				className={classNames(styles.bar, {
+					[styles.isFramed]: isBarFramed,
+				})}
+				style={{
+					width: `${width}%`,
+					left: `${left}%`,
+				}}
+			>
 				<div
 					className={styles.rectangleContainer}
 					style={{
-						margin,
-						height: `${totalPercent}%`,
-						width: `calc(100% - ${margin}px)`,
+						height: `${height}%`,
 					}}
 				>
 					{data.map((rect, idx) => {
@@ -37,18 +182,16 @@ const TimelineIndicatorsBar = ({ data, barWidth, left, margin }: IBar) => {
 							<div
 								className={styles.barRectangle}
 								style={{
-									background: `${rect.color}`,
-									height: `${
-										(rect.percent / totalPercent) * 100
-									}%`,
+									background: rect.color,
+									height: `${rect.percent}%`,
 								}}
 								key={idx}
 							></div>
 						)
 					})}
 				</div>
-			) : null}
-		</div>
+			</div>
+		</Popover>
 	)
 }
 
