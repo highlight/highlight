@@ -63,6 +63,7 @@ import { Logger } from './logger'
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
+import { MetricCategory, MetricName } from './constants/metrics'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -609,9 +610,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			if (getDeviceDetails) {
 				this.recordMetric([
 					{
-						name: 'DeviceMemory',
+						name: MetricName.DeviceMemory,
 						value: getDeviceDetails().deviceMemory,
-						category: 'Device',
+						category: MetricCategory.Device,
 						group: window.location.href,
 					},
 				])
@@ -659,14 +660,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				if (this.recordStop) {
 					this.listeners.push(this.recordStop)
 				}
-				this.addCustomEvent('Viewport', {
+				const viewport = {
 					height: window.innerHeight,
 					width: window.innerWidth,
-				})
-				this.submitViewportMetrics({
-					height: window.innerHeight,
-					width: window.innerWidth,
-				})
+				}
+				this.addCustomEvent('Viewport', viewport)
+				this.submitViewportMetrics(viewport)
 			}, 1)
 
 			if (document.referrer) {
@@ -854,7 +853,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							name,
 							value,
 							group: window.location.href,
-							category: 'WebVital',
+							category: MetricCategory.WebVital,
 						},
 					])
 				}),
@@ -941,21 +940,21 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}) {
 		this.recordMetric([
 			{
-				name: 'ViewportHeight',
+				name: MetricName.ViewportHeight,
 				value: height,
-				category: 'Device',
+				category: MetricCategory.Device,
 				group: window.location.href,
 			},
 			{
-				name: 'ViewportWidth',
+				name: MetricName.ViewportWidth,
 				value: width,
-				category: 'Device',
+				category: MetricCategory.Device,
 				group: window.location.href,
 			},
 			{
-				name: 'ViewportArea',
+				name: MetricName.ViewportArea,
 				value: height * width,
-				category: 'Device',
+				category: MetricCategory.Device,
 				group: window.location.href,
 			},
 		])
@@ -965,7 +964,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		metrics: {
 			name: string
 			value: number
-			category: 'WebVital' | 'Device'
+			category: MetricCategory
 			group: string
 		}[],
 	) {
