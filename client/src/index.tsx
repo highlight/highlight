@@ -985,6 +985,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				type: MessageType.Metrics,
 				metrics: metrics.map((m) => ({
 					...m,
+					tags: [],
 					timestamp: new Date(),
 				})),
 			},
