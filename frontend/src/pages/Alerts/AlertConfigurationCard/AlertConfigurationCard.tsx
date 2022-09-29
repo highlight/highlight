@@ -125,6 +125,7 @@ export const AlertConfigurationCard = ({
 					threshold_window: 30,
 					name: 'Session Feedback',
 					emails: emailsToNotify,
+					disabled: false,
 				},
 			},
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -281,7 +282,7 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedbackComment:
+					case ALERT_TYPE.SessionFeedback:
 						await createSessionFeedbackAlert({
 							...requestBody,
 							variables: {
@@ -289,6 +290,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: 1,
 									emails: emailsToNotify,
+									disabled: false,
 								},
 							},
 						})

@@ -117,7 +117,7 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 	SESSION_FEEDBACK_ALERT: {
 		name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
 		canControlThreshold: false,
-		type: ALERT_TYPE.SessionFeedbackComment,
+		type: ALERT_TYPE.SessionFeedback,
 		description: (
 			<>
 				Get alerted when a user submits{' '}

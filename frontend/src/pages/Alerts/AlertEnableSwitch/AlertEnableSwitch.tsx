@@ -85,13 +85,16 @@ export const AlertEnableSwitch: React.FC<
 					},
 				})
 				break
-			case ALERT_TYPE.SessionFeedbackComment:
+			case ALERT_TYPE.SessionFeedback:
 				await updateSessionFeedbackAlert({
 					...requestBody,
 					variables: {
-						project_id,
-						session_feedback_alert_id: record.id,
-						disabled: isDisabled,
+						id: record.id,
+						input: {
+							project_id,
+							disabled: isDisabled,
+							...record,
+						},
 					},
 				})
 				break
