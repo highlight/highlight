@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"html/template"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/timeseries"
 
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -195,8 +197,13 @@ func main() {
 	}
 
 	redisClient := redis.NewClient()
+	sfnClient := stepfunctions.NewClient()
 
-	private.SetupAuthClient()
+	oauthSrv, err := oauth.CreateServer(db)
+	if err != nil {
+		log.Fatalf("error creating oauth client: %v", err)
+	}
+
 	privateWorkerpool := workerpool.New(10000)
 	privateWorkerpool.SetPanicHandler(util.Recover)
 	subscriptionWorkerPool := workerpool.New(1000)
@@ -214,7 +221,10 @@ func main() {
 		OpenSearch:             opensearchClient,
 		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db),
 		Redis:                  redisClient,
+		StepFunctions:          sfnClient,
+		OAuthServer:            oauthSrv,
 	}
+	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	// r.Use(handlers.CompressHandler)
@@ -251,6 +261,14 @@ func main() {
 		if runtimeParsed == util.PrivateGraph {
 			privateEndpoint = "/"
 		}
+
+		r.Route("/oauth", func(r chi.Router) {
+			r.Use(private.PrivateMiddleware)
+			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
+			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
+			r.HandleFunc("/validate", oauthSrv.HandleValidate)
+			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
+		})
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(stripeWebhookSecret))
 		r.Route("/zapier", func(r chi.Router) {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)

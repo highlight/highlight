@@ -1,18 +1,20 @@
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
 
-import { useGetAdminQuery } from '../../../graph/generated/hooks'
-import { auth } from '../../../util/auth'
-import { client } from '../../../util/graph'
+import { useGetAdminQuery } from '@graph/hooks'
+import { auth } from '@util/auth'
+import { client } from '@util/graph'
 import { AdminAvatar } from '../../Avatar/Avatar'
 import styles from './UserDropdown.module.scss'
 
 interface Props {
 	border?: boolean
+	workspaceId?: string
 }
 
-export const UserDropdown = ({ border }: Props) => {
+export const UserDropdown = ({ border, workspaceId }: Props) => {
 	const {
 		loading: a_loading,
 		error: a_error,
@@ -47,6 +49,14 @@ export const UserDropdown = ({ border }: Props) => {
 								</p>
 							</div>
 						</div>
+						{workspaceId && (
+							<Link
+								className={styles.dropdownMyAccount}
+								to={`/w/${workspaceId}/account`}
+							>
+								My Account
+							</Link>
+						)}
 						<div
 							className={styles.dropdownLogout}
 							onClick={async () => {
@@ -55,7 +65,7 @@ export const UserDropdown = ({ border }: Props) => {
 								} catch (e) {
 									console.log(e)
 								}
-								client.clearStore()
+								await client.clearStore()
 							}}
 						>
 							<span className={styles.dropdownLogoutText}>

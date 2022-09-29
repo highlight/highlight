@@ -6,7 +6,7 @@ scalar Int64
 scalar StringArray
 
 type Field {
-	id: ID!
+	id: Int64!
 	name: String!
 	value: String!
 	type: String
@@ -178,6 +178,7 @@ enum IntegrationType {
 	Slack
 	Linear
 	Zapier
+	Front
 }
 
 enum ErrorState {
@@ -899,6 +900,7 @@ type DashboardDefinition {
 	metrics: [DashboardMetricConfig!]!
 	last_admin_to_edit_id: Int
 	layout: String
+	is_default: Boolean
 }
 
 type MetricPreview {
@@ -926,6 +928,12 @@ type EventChunk {
 	session_id: Int!
 	chunk_index: Int!
 	timestamp: Int64!
+}
+
+type OAuthClient {
+	id: String!
+	created_at: Timestamp!
+	app_name: String!
 }
 
 scalar Upload
@@ -1111,6 +1119,7 @@ type Query {
 	event_chunks(secure_id: String!): [EventChunk!]!
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
+	oauth_client_metadata(client_id: String!): OAuthClient
 }
 
 type Mutation {
@@ -1218,6 +1227,7 @@ type Mutation {
 		integrations: [IntegrationType]!
 	): SessionComment
 	deleteSessionComment(id: ID!): Boolean
+	muteSessionCommentThread(id: ID!, has_muted: Boolean): Boolean
 	replyToSessionComment(
 		comment_id: ID!
 		text: String!
@@ -1240,6 +1250,7 @@ type Mutation {
 		issue_team_id: String
 		integrations: [IntegrationType]!
 	): ErrorComment
+	muteErrorCommentThread(id: ID!, has_muted: Boolean): Boolean
 	createIssueForErrorComment(
 		project_id: ID!
 		error_url: String!
@@ -1484,7 +1495,14 @@ type Mutation {
 		name: String!
 		metrics: [DashboardMetricConfigInput!]!
 		layout: String
+		is_default: Boolean
 	): ID!
+	deleteDashboard(id: ID!): Boolean!
+	deleteSessions(
+		project_id: ID!
+		query: String!
+		sessionCount: Int!
+	): Boolean!
 }
 
 type Subscription {

@@ -40,6 +40,7 @@ yargs(hideBin(process.argv))
         method: "post",
         headers: {
           "Content-Type": "application/json",
+          ApiKey: apiKey,
         },
         body: JSON.stringify({
           query: VERIFY_API_KEY_QUERY,
@@ -119,16 +120,20 @@ async function getAllSourceMapFiles(paths) {
       }
 
       return new Promise((resolve) => {
-        glob("**/*.js?(.map)", { cwd: realPath }, async (err, files) => {
-          for (const file of files) {
-            map.push({
-              path: join(realPath, file),
-              name: file,
-            });
-          }
+        glob(
+          "**/*.js?(.map)",
+          { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
+          async (err, files) => {
+            for (const file of files) {
+              map.push({
+                path: join(realPath, file),
+                name: file,
+              });
+            }
 
-          resolve();
-        });
+            resolve();
+          }
+        );
       });
     })
   );

@@ -82,6 +82,7 @@ type DashboardDefinition struct {
 	Metrics           []*DashboardMetricConfig `json:"metrics"`
 	LastAdminToEditID *int                     `json:"last_admin_to_edit_id"`
 	Layout            *string                  `json:"layout"`
+	IsDefault         *bool                    `json:"is_default"`
 }
 
 type DashboardMetricConfig struct {
@@ -280,6 +281,12 @@ type NetworkHistogramParamsInput struct {
 
 type NewUsersCount struct {
 	Count int64 `json:"count"`
+}
+
+type OAuthClient struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	AppName   string    `json:"app_name"`
 }
 
 type Plan struct {
@@ -492,17 +499,19 @@ const (
 	IntegrationTypeSlack  IntegrationType = "Slack"
 	IntegrationTypeLinear IntegrationType = "Linear"
 	IntegrationTypeZapier IntegrationType = "Zapier"
+	IntegrationTypeFront  IntegrationType = "Front"
 )
 
 var AllIntegrationType = []IntegrationType{
 	IntegrationTypeSlack,
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
+	IntegrationTypeFront,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront:
 		return true
 	}
 	return false

@@ -1,8 +1,13 @@
 import { useParams } from '@util/react-router/useParams'
+import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 
-import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks'
+import {
+	useGetSessionCommentsQuery,
+	useMuteSessionCommentThreadMutation,
+} from '../../../graph/generated/hooks'
 import CommentPinIcon from '../../../static/comment-pin.png'
 import { PlayerSearchParameters } from '../PlayerHook/utils'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
@@ -63,10 +68,12 @@ const PlayerCommentCanvas = React.memo(
 		const playerBoundingClientRectHeight =
 			replayer?.wrapper?.getBoundingClientRect().height
 
+		const [muteSessionCommentThread] = useMuteSessionCommentThreadMutation()
+		const history = useHistory()
+
 		useEffect(() => {
-			const commentId = new URLSearchParams(location.search).get(
-				PlayerSearchParameters.commentId,
-			)
+			const searchParams = new URLSearchParams(location.search)
+			const commentId = searchParams.get(PlayerSearchParameters.commentId)
 
 			if (commentId) {
 				setDeepLinkedCommentId(commentId)
@@ -78,6 +85,29 @@ const PlayerCommentCanvas = React.memo(
 					])
 				}
 			}
+			const hasMuted =
+				searchParams.get(PlayerSearchParameters.muted) === '1'
+
+			if (commentId && hasMuted) {
+				muteSessionCommentThread({
+					variables: {
+						id: commentId,
+						has_muted: hasMuted,
+					},
+				}).then(() => {
+					searchParams.delete(PlayerSearchParameters.muted)
+					history.replace(
+						`${
+							history.location.pathname
+						}?${searchParams.toString()}`,
+					)
+
+					message.success(
+						'Muted notifications for the comment thread.',
+					)
+				})
+			}
+
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [location.search])
 

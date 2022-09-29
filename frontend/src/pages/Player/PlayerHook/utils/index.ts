@@ -144,6 +144,8 @@ export enum PlayerSearchParameters {
 	errorId = 'errorId',
 	/** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
 	commentId = 'commentId',
+	/** Whether to mark the comment thread as muted.*/
+	muted = 'muted',
 }
 
 /**
@@ -351,7 +353,7 @@ export const addErrorsToSessionIntervals = (
 ): ParsedSessionInterval[] => {
 	const errorsWithTimestamps = errors
 		.filter((error) => !!error.timestamp)
-		.sort((a, b) => b.timestamp - a.timestamp)
+		.sort((a, b) => Number(b.timestamp) - Number(a.timestamp))
 
 	const groupedErrors = assignEventToSessionIntervalRelative(
 		sessionIntervals,
@@ -387,8 +389,8 @@ const assignEventToSessionIntervalRelative = (
 	) {
 		const event = events[eventIndex]
 		const relativeTimestamp = relativeTime
-			? event.timestamp
-			: new Date(event.timestamp).getTime() - sessionStartTime
+			? Number(event.timestamp) || 0
+			: new Date(event.timestamp!).getTime() - sessionStartTime
 		if (relativeTimestamp < currentSessionInterval.startTime) {
 			eventIndex++
 		} else if (
@@ -479,8 +481,8 @@ const assignEventToSessionInterval = (
 
 	events.forEach((event) => {
 		const relativeTimestamp = relativeTime
-			? event.timestamp
-			: new Date(event.timestamp).getTime() - sessionStartTime
+			? Number(event.timestamp) || 0
+			: new Date(event.timestamp!).getTime() - sessionStartTime
 
 		response.push({
 			...event,

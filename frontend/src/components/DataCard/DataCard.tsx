@@ -21,7 +21,9 @@ const DataCard: React.FC<React.PropsWithChildren<Props>> = ({
 				[styles.fullWidth]: fullWidth,
 			})}
 		>
-			<h2>{title}</h2>
+			<div className={styles.titleContainer}>
+				{typeof title === 'string' ? <h2>{title}</h2> : title}
+			</div>
 			<main className={styles.content}>{children}</main>
 		</article>
 	)

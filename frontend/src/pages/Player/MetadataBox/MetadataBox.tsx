@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import Button from '@components/Button/Button/Button'
+import { ExternalLinkText } from '@components/ExternalLinkText'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Tooltip from '@components/Tooltip/Tooltip'
@@ -31,7 +32,6 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useCallback, useEffect } from 'react'
 import {
-	FaExternalLinkAlt,
 	FaExternalLinkSquareAlt,
 	FaFacebookSquare,
 	FaGithubSquare,
@@ -255,8 +255,9 @@ export const MetadataBox = React.memo(() => {
 								type="text"
 								onClick={searchIdentifier}
 							>
-								<span>All Sessions for this User</span>
-								<FaExternalLinkAlt size={10} />
+								<ExternalLinkText>
+									All Sessions for this User
+								</ExternalLinkText>
 							</Button>
 						</>
 					)}

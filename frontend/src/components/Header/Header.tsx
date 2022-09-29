@@ -42,7 +42,7 @@ export const Header = () => {
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { isLoggedIn } = useAuthContext()
-
+	const { currentWorkspace } = useApplicationContext()
 	const { showBanner } = useGlobalContext()
 	const isWorkspaceLevel = workspace_id !== undefined
 
@@ -99,7 +99,9 @@ export const Header = () => {
 								<FeedbackButton />
 							)}
 						</div>
-						{isLoggedIn && <UserDropdown />}
+						{isLoggedIn && (
+							<UserDropdown workspaceId={currentWorkspace?.id} />
+						)}
 					</div>
 				</div>
 			</div>
@@ -191,6 +193,9 @@ const BillingBanner = () => {
 		| React.ReactNode = `You've used ${data?.billingDetailsForProject?.meter}/${data?.billingDetailsForProject?.plan.quota} of your free sessions.`
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 	const canExtend = data?.workspace_for_project?.eligible_for_trial_extension
+	const hasExceededSessionsForMonth =
+		data?.billingDetailsForProject?.meter >
+		data?.billingDetailsForProject?.plan.quota
 
 	if (hasTrial) {
 		bannerMessage = getTrialEndDateMessage(
@@ -239,7 +244,11 @@ const BillingBanner = () => {
 	toggleShowBanner(true)
 
 	return (
-		<div className={styles.trialWrapper}>
+		<div
+			className={classNames(styles.trialWrapper, {
+				[styles.error]: hasExceededSessionsForMonth,
+			})}
+		>
 			<div className={classNames(styles.trialTimeText)}>
 				{bannerMessage}
 				{!canExtend && (

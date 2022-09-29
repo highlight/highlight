@@ -41,9 +41,8 @@ import (
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -404,12 +403,12 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 
 	var entries []struct {
 		SessionID int
-		FieldID   int
+		FieldID   int64
 	}
 	for _, f := range allFields {
 		entries = append(entries, struct {
 			SessionID int
-			FieldID   int
+			FieldID   int64
 		}{
 			SessionID: session.ID,
 			FieldID:   f.ID,
@@ -451,7 +450,7 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 	return environmentsString
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*model2.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
+func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
 	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).
@@ -484,7 +483,7 @@ func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
 	}
 
 	// TODO: maintain a list of potential error types so we can handle different stack trace formats
-	var normalizedStackFrameInput []*model2.StackFrameInput
+	var normalizedStackFrameInput []*publicModel.StackFrameInput
 	for _, frame := range stackTraceSlice {
 		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
 		if len(frameExtracted) != 1 {
@@ -498,7 +497,7 @@ func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
 		if err != nil {
 			return ""
 		}
-		normalizedStackFrameInput = append(normalizedStackFrameInput, &model2.StackFrameInput{
+		normalizedStackFrameInput = append(normalizedStackFrameInput, &publicModel.StackFrameInput{
 			FunctionName: &frameExtracted[0][1],
 			FileName:     &frameExtracted[0][2],
 			LineNumber:   &lineNumber,
@@ -549,7 +548,7 @@ func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTr
 			Event:      errorObj.Event,
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
+			State:      privateModel.ErrorStateOpen.String(),
 			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
@@ -562,10 +561,10 @@ func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTr
 			ProjectID: errorObj.ProjectID,
 			Event:     errorObj.Event,
 			Type:      errorObj.Type,
-			State:     modelInputs.ErrorStateOpen.String(),
+			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -588,7 +587,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			Event:      errorObj.Event,
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
+			State:      privateModel.ErrorStateOpen.String(),
 			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
@@ -601,10 +600,10 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			ProjectID: errorObj.ProjectID,
 			Event:     errorObj.Event,
 			Type:      errorObj.Type,
-			State:     modelInputs.ErrorStateOpen.String(),
+			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, newErrorGroup.ID, pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -739,7 +738,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
 // The input can include the stack trace as a string or []*StackFrameInput
 // If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*model2.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceString string, stackTrace []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -796,7 +795,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	fingerprints := []*model.ErrorFingerprint{}
 	if stackTrace != nil {
 		var err error
-		var mappedStackTrace []modelInputs.ErrorTrace
+		var mappedStackTrace []privateModel.ErrorTrace
 		newMappedStackTraceString, mappedStackTrace, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
@@ -876,7 +875,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
 	}
-	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, errorObj.ID, pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
+	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(errorObj.ID), pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
@@ -968,7 +967,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, f.ID, nil, f); err != nil {
+			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, int64(f.ID), nil, f); err != nil {
 				return e.Wrap(err, "error indexing new error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
@@ -1213,13 +1212,20 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
-	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*model2.MetricInput{
+	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
 			Timestamp:       session.CreatedAt,
 			Name:            "sessions",
 			Value:           1,
 			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "OS", Value: deviceDetails.OSName},
+				{Name: "OSVersion", Value: deviceDetails.OSVersion},
+				{Name: "Browser", Value: deviceDetails.BrowserName},
+				{Name: "BrowserVersion", Value: deviceDetails.BrowserVersion},
+				{Name: "Bot", Value: fmt.Sprintf("%v", deviceDetails.IsBot)},
+			},
 		},
 	}); err != nil {
 		log.Errorf("failed to count sessions metric for %s: %s", session.SecureID, err)
@@ -1721,7 +1727,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 		if err != nil {
 			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
 		}
-		withinBillingQuota := int64(pricing.TypeToQuota(modelInputs.PlanTypeFree)) > sessionCount
+		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
 		return withinBillingQuota
 	}
 
@@ -1736,7 +1742,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePlan := modelInputs.PlanType(workspace.PlanTier)
+		stripePlan := privateModel.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
@@ -1874,15 +1880,15 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 		}
 	})
 }
-func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*customModels.MetricInput) (int, error) {
+func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicModel.MetricInput) (int, error) {
 	if len(metrics) == 0 {
 		log.Errorf("got no metrics for pushmetrics: %+v", metrics)
 		return -1, e.New("no metrics provided")
 	}
-	sessionMetrics := make(map[string][]*customModels.MetricInput)
+	sessionMetrics := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
 		if _, ok := sessionMetrics[m.SessionSecureID]; !ok {
-			sessionMetrics[m.SessionSecureID] = []*customModels.MetricInput{}
+			sessionMetrics[m.SessionSecureID] = []*publicModel.MetricInput{}
 		}
 		sessionMetrics[m.SessionSecureID] = append(sessionMetrics[m.SessionSecureID], m)
 	}
@@ -1907,7 +1913,7 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
 		return -1, e.Wrapf(err, "error querying device metric session")
 	}
-	return r.SubmitMetricsMessage(ctx, []*customModels.MetricInput{{
+	return r.SubmitMetricsMessage(ctx, []*publicModel.MetricInput{{
 		SessionSecureID: session.SecureID,
 		Name:            name,
 		Value:           value,
@@ -1915,7 +1921,7 @@ func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name stri
 	}})
 }
 
-func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*customModels.MetricInput) error {
+func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, metrics []*publicModel.MetricInput) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-graph.PushMetricsImpl", tracer.ResourceName("go.push-metrics"))
 	defer span.Finish()
 
@@ -1930,14 +1936,14 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	sessionID := session.ID
 	projectID := session.ProjectID
 
-	metricsByGroup := make(map[string][]*customModels.MetricInput)
+	metricsByGroup := make(map[string][]*publicModel.MetricInput)
 	for _, m := range metrics {
 		group := ""
 		if m.Group != nil {
 			group = *m.Group
 		}
 		if _, ok := metricsByGroup[group]; !ok {
-			metricsByGroup[group] = []*customModels.MetricInput{}
+			metricsByGroup[group] = []*publicModel.MetricInput{}
 		}
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
@@ -1991,6 +1997,9 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			}
 			tags[m.Name] = category
 			fields[m.Name] = m.Value
+			for _, t := range m.Tags {
+				tags[t.Name] = t.Value
+			}
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
@@ -2053,7 +2062,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 
 	for sessionSecureId, count := range errorsBySession {
-		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*model2.MetricInput{
+		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
 				Timestamp:       n,
@@ -2067,7 +2076,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 	}
 }
 
-func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errors []*customModels.BackendErrorObjectInput) {
+func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureID string, errors []*publicModel.BackendErrorObjectInput) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload", tracer.ResourceName("db.querySessions"))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfSessions", 1)
@@ -2083,7 +2092,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	querySessionSpan.Finish()
 
 	// Filter out empty errors
-	var filteredErrors []*customModels.BackendErrorObjectInput
+	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errors {
 		if errorObject.Event == "[{}]" {
 			var objString string
@@ -2262,7 +2271,7 @@ func (r *Resolver) AddTrackProperties(ctx context.Context, sessionID int, events
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -2444,7 +2453,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 				}
 
-				if err := r.Redis.AddEventPayload(sessionID, score, string(b)); err != nil {
+				if err := r.Redis.AddEventPayload(ctx, sessionID, score, string(b)); err != nil {
 					return e.Wrap(err, "error adding event payload")
 				}
 				redisSpan.Finish()
@@ -2519,7 +2528,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 		// filter out empty errors
-		var filteredErrors []*customModels.ErrorObjectInput
+		var filteredErrors []*publicModel.ErrorObjectInput
 		for _, errorObject := range errors {
 			if errorObject.Event == "[{}]" {
 				var objString string
@@ -2703,24 +2712,24 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}
-		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
-			modelInputs.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			modelInputs.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			modelInputs.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
+		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
+			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
+			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
+			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
+			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
 			fields[key.String()] = value
 		}
-		categories := map[modelInputs.NetworkRequestAttribute]string{
-			modelInputs.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			modelInputs.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			modelInputs.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
+		categories := map[privateModel.NetworkRequestAttribute]string{
+			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
+			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
+			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
 		}
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
-				categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
+				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
 			}
 		}
 
@@ -2731,7 +2740,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				if u.Host == d {
 					u.RawQuery = ""
 					u.Fragment = ""
-					categories[modelInputs.NetworkRequestAttributeURL] = u.String()
+					categories[privateModel.NetworkRequestAttributeURL] = u.String()
 				}
 			}
 		}

@@ -24,7 +24,7 @@ export type Scalars = {
 
 export type Field = {
 	__typename?: 'Field'
-	id: Scalars['ID']
+	id: Scalars['Int64']
 	name: Scalars['String']
 	value: Scalars['String']
 	type?: Maybe<Scalars['String']>
@@ -208,6 +208,7 @@ export enum IntegrationType {
 	Slack = 'Slack',
 	Linear = 'Linear',
 	Zapier = 'Zapier',
+	Front = 'Front',
 }
 
 export enum ErrorState {
@@ -977,6 +978,7 @@ export type DashboardDefinition = {
 	metrics: Array<DashboardMetricConfig>
 	last_admin_to_edit_id?: Maybe<Scalars['Int']>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
 }
 
 export type MetricPreview = {
@@ -1007,6 +1009,13 @@ export type EventChunk = {
 	session_id: Scalars['Int']
 	chunk_index: Scalars['Int']
 	timestamp: Scalars['Int64']
+}
+
+export type OAuthClient = {
+	__typename?: 'OAuthClient'
+	id: Scalars['String']
+	created_at: Scalars['Timestamp']
+	app_name: Scalars['String']
 }
 
 export type Query = {
@@ -1108,6 +1117,7 @@ export type Query = {
 	event_chunks: Array<EventChunk>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
+	oauth_client_metadata?: Maybe<OAuthClient>
 }
 
 export type QueryAccount_DetailsArgs = {
@@ -1519,6 +1529,10 @@ export type QuerySourcemap_VersionsArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryOauth_Client_MetadataArgs = {
+	client_id: Scalars['String']
+}
+
 export type Mutation = {
 	__typename?: 'Mutation'
 	updateAdminAboutYouDetails: Scalars['Boolean']
@@ -1550,8 +1564,10 @@ export type Mutation = {
 	createSessionComment?: Maybe<SessionComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	deleteSessionComment?: Maybe<Scalars['Boolean']>
+	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
 	replyToSessionComment?: Maybe<CommentReply>
 	createErrorComment?: Maybe<ErrorComment>
+	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	replyToErrorComment?: Maybe<CommentReply>
@@ -1586,6 +1602,8 @@ export type Mutation = {
 	requestAccess?: Maybe<Scalars['Boolean']>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	upsertDashboard: Scalars['ID']
+	deleteDashboard: Scalars['Boolean']
+	deleteSessions: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1765,6 +1783,11 @@ export type MutationDeleteSessionCommentArgs = {
 	id: Scalars['ID']
 }
 
+export type MutationMuteSessionCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
+}
+
 export type MutationReplyToSessionCommentArgs = {
 	comment_id: Scalars['ID']
 	text: Scalars['String']
@@ -1787,6 +1810,11 @@ export type MutationCreateErrorCommentArgs = {
 	issue_description?: Maybe<Scalars['String']>
 	issue_team_id?: Maybe<Scalars['String']>
 	integrations: Array<Maybe<IntegrationType>>
+}
+
+export type MutationMuteErrorCommentThreadArgs = {
+	id: Scalars['ID']
+	has_muted?: Maybe<Scalars['Boolean']>
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -2084,6 +2112,17 @@ export type MutationUpsertDashboardArgs = {
 	name: Scalars['String']
 	metrics: Array<DashboardMetricConfigInput>
 	layout?: Maybe<Scalars['String']>
+	is_default?: Maybe<Scalars['Boolean']>
+}
+
+export type MutationDeleteDashboardArgs = {
+	id: Scalars['ID']
+}
+
+export type MutationDeleteSessionsArgs = {
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	sessionCount: Scalars['Int']
 }
 
 export type Subscription = {

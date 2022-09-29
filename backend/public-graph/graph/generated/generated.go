@@ -263,6 +263,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBackendErrorObjectInput,
 		ec.unmarshalInputErrorObjectInput,
 		ec.unmarshalInputMetricInput,
+		ec.unmarshalInputMetricTag,
 		ec.unmarshalInputReplayEventInput,
 		ec.unmarshalInputReplayEventsInput,
 		ec.unmarshalInputStackFrameInput,
@@ -374,6 +375,11 @@ input BackendErrorObjectInput {
 	payload: String
 }
 
+input MetricTag {
+	name: String!
+	value: String!
+}
+
 input MetricInput {
 	session_secure_id: String!
 	group: String
@@ -381,9 +387,7 @@ input MetricInput {
 	value: Float!
 	category: String
 	timestamp: Timestamp!
-	# kept for backwards compatibility with old clients, do not use
-	type: Any
-	url: String
+	tags: [MetricTag!]
 }
 
 input ReplayEventInput {
@@ -3743,7 +3747,7 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "group", "name", "value", "category", "timestamp", "type", "url"}
+	fieldsInOrder := [...]string{"session_secure_id", "group", "name", "value", "category", "timestamp", "tags"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3798,19 +3802,47 @@ func (ec *executionContext) unmarshalInputMetricInput(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
-		case "type":
+		case "tags":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalOAny2interface(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			it.Tags, err = ec.unmarshalOMetricTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricTagᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "url":
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMetricTag(ctx context.Context, obj interface{}) (model.MetricTag, error) {
+	var it model.MetricTag
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			it.URL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4698,6 +4730,11 @@ func (ec *executionContext) unmarshalNMetricInput2ᚕᚖgithubᚗcomᚋhighlight
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalNMetricTag2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricTag(ctx context.Context, v interface{}) (*model.MetricTag, error) {
+	res, err := ec.unmarshalInputMetricTag(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNReplayEventInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx context.Context, v interface{}) ([]*model.ReplayEventInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -5158,6 +5195,26 @@ func (ec *executionContext) unmarshalOMetricInput2ᚖgithubᚗcomᚋhighlightᚑ
 	}
 	res, err := ec.unmarshalInputMetricInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOMetricTag2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricTagᚄ(ctx context.Context, v interface{}) ([]*model.MetricTag, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.MetricTag, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNMetricTag2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricTag(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOReplayEventInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx context.Context, v interface{}) (*model.ReplayEventInput, error) {

@@ -184,7 +184,9 @@ type SearchOptions struct {
 	ReturnCount       *bool
 	ProjectIDOnParent *bool
 	ExcludeFields     []string
+	IncludeFields     []string
 	Aggregation       Aggregation
+	SearchAfter       []interface{}
 }
 
 func NewOpensearchClient() (*Client, error) {
@@ -269,7 +271,37 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
-func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) error {
+func (c *Client) Delete(index Index, id int) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
+	documentId := strconv.Itoa(id)
+
+	indexStr := GetIndex(index)
+
+	item := opensearchutil.BulkIndexerItem{
+		Index:           indexStr,
+		Action:          "delete",
+		DocumentID:      documentId,
+		RetryOnConflict: pointy.Int(3),
+		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
+			if err != nil {
+				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+			} else {
+				log.Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+			}
+		},
+	}
+
+	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for delete")
+	}
+
+	return nil
+}
+
+func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
@@ -287,7 +319,7 @@ func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) erro
 			joinClause = `,"join_type": {"name": "parent"}`
 		}
 	}
-	documentId += strconv.Itoa(id)
+	documentId += strconv.FormatInt(id, 10)
 
 	b, err := json.Marshal(obj)
 	if err != nil {
@@ -474,8 +506,31 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		if excludesStr != "" {
 			excludesStr += ", "
 		}
-
 		excludesStr += `"` + e + `"`
+	}
+
+	includesStr := ""
+	if len(options.IncludeFields) > 0 {
+		innerIncludes := ""
+		for _, e := range options.IncludeFields {
+			if innerIncludes != "" {
+				innerIncludes += ", "
+			}
+			innerIncludes += `"` + e + `"`
+		}
+		includesStr = fmt.Sprintf(`, "includes": [%s]`, innerIncludes)
+	}
+
+	searchAfterStr := ""
+	if len(options.SearchAfter) > 0 {
+		innerSearchAfter := ""
+		for _, sa := range options.SearchAfter {
+			if innerSearchAfter != "" {
+				innerSearchAfter += ", "
+			}
+			innerSearchAfter += fmt.Sprintf("%#v", sa)
+		}
+		searchAfterStr = fmt.Sprintf(`, "search_after": [%s]`, innerSearchAfter)
 	}
 
 	aggs := ""
@@ -483,8 +538,8 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		aggs = fmt.Sprintf(`, "aggs" : {%s}`, options.Aggregation.GetAggsString())
 	}
 
-	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]}, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
-		excludesStr, count, from, q, sort, trackTotalHits, aggs)
+	contentStr := fmt.Sprintf(`{"_source": {"excludes": [%s]%s}%s, "size": %d, "from": %d, "query": %s%s, "track_total_hits": %s%s}`,
+		excludesStr, includesStr, searchAfterStr, count, from, q, sort, trackTotalHits, aggs)
 	content := strings.NewReader(contentStr)
 
 	searchIndexes := []string{}

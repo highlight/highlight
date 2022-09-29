@@ -1,5 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import Alert from '@components/Alert/Alert'
 import Input from '@components/Input/Input'
+import Space from '@components/Space/Space'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,8 +13,16 @@ import { AppRouter } from '@routers/AppRouter/AppRouter'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
 import classNames from 'classnames'
+import firebase from 'firebase'
 import { H } from 'highlight.run'
-import { useEffect, useState } from 'react'
+import React, {
+	FormEvent,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useHistory } from 'react-router'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -101,6 +111,8 @@ enum LoginFormState {
 	MissingUserDetails,
 	// The user has finished onboarding and can continue to the page in the url
 	FinishedOnboarding,
+	// The user has MFA configured and needs to enter a code
+	EnterMultiFactorCode,
 }
 
 export default function LoginForm() {
@@ -108,6 +120,8 @@ export default function LoginForm() {
 	const [formState, setFormState] = useState<LoginFormState>(
 		signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn,
 	)
+	const [resolver, setResolver] =
+		useState<firebase.auth.MultiFactorResolver>()
 	const [, setSignUpReferral] = useLocalStorage('HighlightSignUpReferral', '')
 	const { isAuthLoading, isLoggedIn, admin } = useAuthContext()
 	const [firebaseError, setFirebaseError] = useState('')
@@ -125,8 +139,13 @@ export default function LoginForm() {
 		if (formState === LoginFormState.SignIn) {
 			auth.signInWithEmailAndPassword(email, password)
 				.then(() => {})
-				.catch((error) => {
-					setError(error.toString())
+				.catch((error: firebase.auth.MultiFactorError) => {
+					if (error.code == 'auth/multi-factor-auth-required') {
+						setResolver(error.resolver)
+						setFormState(LoginFormState.EnterMultiFactorCode)
+					} else {
+						setError(error.toString())
+					}
 				})
 				.finally(() => setIsLoadingFirebase(false))
 		} else if (formState === LoginFormState.ResetPassword) {
@@ -193,6 +212,11 @@ export default function LoginForm() {
 			} else {
 				setFormState(LoginFormState.FinishedOnboarding)
 			}
+		} else if (
+			!isLoggedIn &&
+			formState === LoginFormState.FinishedOnboarding
+		) {
+			setFormState(LoginFormState.SignIn)
 		}
 	}, [admin, admin?.email_verified, formState, isLoggedIn])
 
@@ -220,10 +244,6 @@ export default function LoginForm() {
 		return <AuthAdminRouter />
 	}
 
-	const heroBugClass = classNames(
-		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
-	)
-
 	function getLoginTitleText() {
 		if (formState === LoginFormState.ResetPassword) {
 			return 'Reset your password'
@@ -234,223 +254,378 @@ export default function LoginForm() {
 		return 'Welcome to Highlight.'
 	}
 
+	const getLoginDescriptionText = () => {
+		if (formState === LoginFormState.SignUp) {
+			return "It's time to squash some bugs."
+		}
+	}
+
+	if (formState === LoginFormState.EnterMultiFactorCode) {
+		return <VerifyPhone resolver={resolver} />
+	}
+
 	return (
 		<Landing>
-			<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
-				<section className="flex w-full max-w-md flex-col items-center gap-6">
-					<div className="flex flex-col items-center gap-2 text-center font-poppins font-semibold">
-						<h2 className="text-4xl tracking-wide text-white">
-							{getLoginTitleText()}
-						</h2>
-						{formState === LoginFormState.SignUp && (
-							<p className="text-xl tracking-wider text-white">
-								It's time to squash some bugs.
-							</p>
-						)}
-					</div>
-					<div className="w-full rounded-md bg-white px-8 py-6">
-						<form onSubmit={onSubmit} className={styles.loginForm}>
-							<div className={styles.loginTitleWrapper}>
-								<p className={styles.loginSubTitle}>
-									{formState === LoginFormState.SignIn ? (
-										<>
-											New here?{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignUp,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												Create an account.
-											</span>
-										</>
-									) : formState ===
-									  LoginFormState.ResetPassword ? (
-										<>
-											Want to{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignIn,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												sign in
-											</span>{' '}
-											again?
-										</>
-									) : (
-										<>
-											Already have an account?{' '}
-											<span
-												onClick={() => {
-													changeState(
-														LoginFormState.SignIn,
-													)
-												}}
-												className={
-													styles.loginStateSwitcher
-												}
-											>
-												Sign in.
-											</span>
-										</>
-									)}
-								</p>
-							</div>
-							<div className={styles.inputContainer}>
-								<Input
-									placeholder={'Email'}
-									name="email"
-									type={'email'}
-									value={email}
-									onChange={(e) => {
-										setEmail(e.target.value)
-									}}
-									autoFocus
-									required
-								/>
-								{formState !== LoginFormState.ResetPassword && (
-									<Input
-										placeholder={'Password'}
-										type="password"
-										name="password"
-										value={password}
-										onChange={(e) => {
-											setPassword(e.target.value)
+			<AuthPageLayout
+				title={getLoginTitleText()}
+				description={getLoginDescriptionText()}
+				showTestimonial={formState === LoginFormState.SignUp}
+			>
+				<form onSubmit={onSubmit} className={styles.loginForm}>
+					<div className={styles.loginTitleWrapper}>
+						<p className={styles.loginSubTitle}>
+							{formState === LoginFormState.SignIn ? (
+								<>
+									New here?{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignUp)
 										}}
-										required
-									/>
-								)}
-								{formState === LoginFormState.SignUp && (
-									<>
-										<Input
-											placeholder={'Confirm Password'}
-											type="password"
-											name="confirm-password"
-											required
-											value={passwordConfirmation}
-											onChange={(e) => {
-												setPasswordConfirmation(
-													e.target.value,
-												)
-											}}
-										/>
-									</>
-								)}
-							</div>
-							{error && (
-								<div className={commonStyles.errorMessage}>
-									{error}
-								</div>
-							)}
-							{formState !== LoginFormState.ResetPassword && (
-								<span
-									onClick={() => {
-										changeState(
-											LoginFormState.ResetPassword,
-										)
-									}}
-									className={classNames(
-										styles.loginStateSwitcher,
-										styles.resetPasswordText,
-									)}
-								>
-									Forgot your password?
-								</span>
-							)}
-							<Button
-								trackingId="LoginSignInUp"
-								className={commonStyles.submitButton}
-								type="primary"
-								htmlType="submit"
-								loading={isLoadingFirebase}
-							>
-								{formState === LoginFormState.SignIn
-									? 'Sign In'
-									: formState === LoginFormState.SignUp
-									? 'Sign Up'
-									: 'Reset Password'}
-							</Button>
-						</form>
-						{formState !== LoginFormState.ResetPassword && (
-							<>
-								<p className={styles.otherSigninText}>
-									or sign{' '}
-									{formState === LoginFormState.SignIn
-										? 'in'
-										: 'up'}{' '}
-									with
-								</p>
-								<Button
-									trackingId="LoginWithGoogle"
-									className={classNames(
-										commonStyles.secondaryButton,
-										styles.googleButton,
-									)}
-									onClick={() => {
-										auth.signInWithRedirect(
-											googleProvider,
-										).catch((e) =>
-											setFirebaseError(JSON.stringify(e)),
-										)
-									}}
-									loading={isLoadingFirebase}
-								>
-									<GoogleLogo
-										className={styles.googleLogoStyle}
-									/>
-									<span className={styles.googleText}>
-										Google Sign{' '}
-										{formState === LoginFormState.SignIn
-											? 'In'
-											: 'Up'}
+										className={styles.loginStateSwitcher}
+									>
+										Create an account.
 									</span>
-								</Button>
-								<div className={commonStyles.errorMessage}>
-									{firebaseError}
-								</div>
+								</>
+							) : formState === LoginFormState.ResetPassword ? (
+								<>
+									Want to{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignIn)
+										}}
+										className={styles.loginStateSwitcher}
+									>
+										sign in
+									</span>{' '}
+									again?
+								</>
+							) : (
+								<>
+									Already have an account?{' '}
+									<span
+										onClick={() => {
+											changeState(LoginFormState.SignIn)
+										}}
+										className={styles.loginStateSwitcher}
+									>
+										Sign in.
+									</span>
+								</>
+							)}
+						</p>
+					</div>
+					<div className={styles.inputContainer}>
+						<Input
+							placeholder={'Email'}
+							name="email"
+							type={'email'}
+							value={email}
+							onChange={(e) => {
+								setEmail(e.target.value)
+							}}
+							autoFocus
+							required
+						/>
+						{formState !== LoginFormState.ResetPassword && (
+							<Input
+								placeholder={'Password'}
+								type="password"
+								name="password"
+								value={password}
+								onChange={(e) => {
+									setPassword(e.target.value)
+								}}
+								required
+							/>
+						)}
+						{formState === LoginFormState.SignUp && (
+							<>
+								<Input
+									placeholder={'Confirm Password'}
+									type="password"
+									name="confirm-password"
+									required
+									value={passwordConfirmation}
+									onChange={(e) => {
+										setPasswordConfirmation(e.target.value)
+									}}
+								/>
 							</>
 						)}
 					</div>
-				</section>
-
-				{formState === LoginFormState.SignUp && (
-					<>
-						<img
-							src={heroBugLeft}
-							className={classNames(heroBugClass, '-left-56')}
-							style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
-						/>
-
-						<img
-							src={heroBugRight}
+					{error && (
+						<div className={commonStyles.errorMessage}>{error}</div>
+					)}
+					{formState !== LoginFormState.ResetPassword && (
+						<span
+							onClick={() => {
+								changeState(LoginFormState.ResetPassword)
+							}}
 							className={classNames(
-								heroBugClass,
-								'-right-56 -top-28',
+								styles.loginStateSwitcher,
+								styles.resetPasswordText,
 							)}
-						/>
-
-						<div className="hidden min-w-0 flex-1 xl:block">
-							<Testimonial />
+						>
+							Forgot your password?
+						</span>
+					)}
+					<Button
+						block
+						trackingId="LoginSignInUp"
+						className="mt-2"
+						type="primary"
+						htmlType="submit"
+						loading={isLoadingFirebase}
+					>
+						{formState === LoginFormState.SignIn
+							? 'Sign In'
+							: formState === LoginFormState.SignUp
+							? 'Sign Up'
+							: 'Reset Password'}
+					</Button>
+				</form>
+				{formState !== LoginFormState.ResetPassword && (
+					<>
+						<p className={styles.otherSigninText}>
+							or sign{' '}
+							{formState === LoginFormState.SignIn ? 'in' : 'up'}{' '}
+							with
+						</p>
+						<Button
+							trackingId="LoginWithGoogle"
+							className={classNames(
+								commonStyles.secondaryButton,
+								styles.googleButton,
+							)}
+							onClick={() => {
+								auth.signInWithPopup(googleProvider).catch(
+									(error: firebase.auth.MultiFactorError) => {
+										if (
+											error.code ===
+											'auth/multi-factor-auth-required'
+										) {
+											setResolver(error.resolver)
+											setFormState(
+												LoginFormState.EnterMultiFactorCode,
+											)
+										} else {
+											setFirebaseError(
+												JSON.stringify(error.message),
+											)
+										}
+									},
+								)
+							}}
+							loading={isLoadingFirebase}
+						>
+							<GoogleLogo className={styles.googleLogoStyle} />
+							<span className={styles.googleText}>
+								Google Sign{' '}
+								{formState === LoginFormState.SignIn
+									? 'In'
+									: 'Up'}
+							</span>
+						</Button>
+						<div className={commonStyles.errorMessage}>
+							{firebaseError}
 						</div>
 					</>
 				)}
-			</div>
+			</AuthPageLayout>
 		</Landing>
+	)
+}
+
+interface VerifyPhoneProps {
+	resolver?: firebase.auth.MultiFactorResolver
+}
+
+export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
+	const [loading, setLoading] = useState<boolean>(false)
+	const [error, setError] = useState<string | null>()
+	const [verificationId, setVerificationId] = useState<string>('')
+	const [verificationCode, setVerificationCode] = useState<string>('')
+	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
+	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
+
+	useEffect(() => {
+		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
+			'recaptcha',
+			{
+				size: 'invisible',
+			},
+		)
+	}, [])
+
+	useEffect(() => {
+		const sendAuthCode = async () => {
+			// Should never not be set but the check is necessary for types.
+			if (!recaptchaVerifier.current || !resolver) {
+				return
+			}
+
+			const vId = await phoneAuthProvider.verifyPhoneNumber(
+				{
+					multiFactorHint: resolver.hints[0],
+					session: resolver.session,
+				},
+				recaptchaVerifier.current,
+			)
+
+			setVerificationId(vId)
+		}
+
+		sendAuthCode()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const handleSubmit = useCallback(
+		async (e?: FormEvent<HTMLFormElement>) => {
+			if (!resolver) {
+				return
+			}
+
+			e?.preventDefault()
+			setLoading(true)
+			setError(null)
+
+			try {
+				const cred = firebase.auth.PhoneAuthProvider.credential(
+					verificationId,
+					verificationCode,
+				)
+				const multiFactorAssertion =
+					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
+
+				await resolver.resolveSignIn(multiFactorAssertion)
+			} catch (error: any) {
+				setError(error.message)
+			} finally {
+				setLoading(false)
+			}
+		},
+		[resolver, verificationCode, verificationId],
+	)
+
+	useEffect(() => {
+		if (verificationCode.length >= 6) {
+			handleSubmit()
+		}
+	}, [handleSubmit, verificationCode])
+
+	return (
+		<Landing>
+			<AuthPageLayout
+				title="Verify via SMS"
+				description="Enter the code we sent to your phone."
+				showTestimonial={false}
+			>
+				<form onSubmit={handleSubmit}>
+					<Space direction="vertical" size="medium">
+						{error && (
+							<Alert
+								shouldAlwaysShow
+								closable={false}
+								trackingId="2faVerifyError"
+								type="error"
+								description={error}
+							/>
+						)}
+
+						<div className={styles.inputContainer}>
+							<Input
+								placeholder="Verification code"
+								name="verification_code"
+								value={verificationCode}
+								onChange={(e) => {
+									setVerificationCode(e.target.value)
+								}}
+								autoFocus
+								required
+								autoComplete="off"
+							/>
+						</div>
+
+						<Button
+							block
+							type="primary"
+							htmlType="submit"
+							loading={loading}
+							trackingId="setup2fa"
+						>
+							Submit
+						</Button>
+					</Space>
+					<div id="recaptcha"></div>
+				</form>
+			</AuthPageLayout>
+		</Landing>
+	)
+}
+
+function AuthPageLayout({
+	title,
+	showTestimonial = false,
+	children,
+	description,
+}: {
+	title: string
+	showTestimonial: boolean
+	children: ReactNode
+	description?: string
+}) {
+	const heroBugClass = classNames(
+		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
+	)
+
+	return (
+		<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
+			<section className="flex w-full max-w-md flex-col items-center gap-6">
+				<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
+					<h2 className="text-4xl tracking-wide text-white">
+						{title}
+					</h2>
+
+					{!!description && (
+						<p className="text-xl tracking-wider text-white">
+							{description}
+						</p>
+					)}
+				</div>
+
+				<div className="w-full rounded-md bg-white px-8 py-6">
+					{children}
+				</div>
+			</section>
+
+			{showTestimonial && (
+				<>
+					<img
+						src={heroBugLeft}
+						className={classNames(heroBugClass, '-left-56')}
+						style={{ transform: 'rotate(-30deg)' }} // tailwind rotate class doesn't work for some reason
+					/>
+
+					<img
+						src={heroBugRight}
+						className={classNames(
+							heroBugClass,
+							'-right-56 -top-28',
+						)}
+					/>
+
+					<div className="hidden min-w-0 flex-1 xl:block">
+						<Testimonial />
+					</div>
+				</>
+			)}
+		</div>
 	)
 }
 
 function Testimonial() {
 	return (
-		<div className="flex flex-col gap-8 font-poppins tracking-wide text-white">
+		<div className="font-poppins flex flex-col gap-8 tracking-wide text-white">
 			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size

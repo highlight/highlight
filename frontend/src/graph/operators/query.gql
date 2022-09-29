@@ -1322,6 +1322,13 @@ query GetWorkspaceIsIntegratedWithZapier($project_id: ID!) {
 	)
 }
 
+query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
+	is_integrated_with_front: is_integrated_with(
+		integration_type: Front
+		project_id: $project_id
+	)
+}
+
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 	generate_zapier_access_token(project_id: $project_id)
 }
@@ -1557,6 +1564,7 @@ query GetDashboardDefinitions($project_id: ID!) {
 		updated_at
 		project_id
 		name
+		is_default
 		metrics {
 			component_type
 			name
@@ -1612,4 +1620,12 @@ query GetSourcemapFiles($project_id: ID!, $version: String) {
 
 query GetSourcemapVersions($project_id: ID!) {
 	sourcemap_versions(project_id: $project_id)
+}
+
+query GetOAuthClientMetadata($client_id: String!) {
+	oauth_client_metadata(client_id: $client_id) {
+		id
+		created_at
+		app_name
+	}
 }

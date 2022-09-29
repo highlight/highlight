@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	"golang.org/x/sync/errgroup"
@@ -24,6 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -87,7 +88,7 @@ func NewStorageClient() (*StorageClient, error) {
 
 	// Create a separate s3 client for us-east-2
 	// Eventually, the us-west-2 s3 client should be deprecated
-	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
+	cfgEast2, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading default from config")
 	}

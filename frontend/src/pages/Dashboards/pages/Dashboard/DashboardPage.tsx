@@ -3,8 +3,13 @@ import 'react-resizable/css/styles.css'
 
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
 import Button from '@components/Button/Button/Button'
+import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
+import {
+	GetDashboardDefinitionsDocument,
+	useDeleteDashboardMutation,
+} from '@graph/hooks'
 import {
 	Admin,
 	DashboardDefinition,
@@ -13,6 +18,7 @@ import {
 } from '@graph/schemas'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import PlusIcon from '@icons/PlusIcon'
+import SvgTrashIcon from '@icons/TrashIcon'
 import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
 import DashboardCard from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import { DashboardComponentCard } from '@pages/Dashboards/components/DashboardCard/DashboardComponentCard/DashboardComponentCard'
@@ -24,10 +30,11 @@ import {
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
+import { Dropdown, Menu, message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
+import { VscEllipsis } from 'react-icons/vsc'
 import { useHistory, useLocation } from 'react-router-dom'
 
 import styles from './DashboardPage.module.scss'
@@ -67,7 +74,6 @@ const DashboardPage = ({
 			return d?.id === id
 		})
 		if (dashboard) {
-			const name = dashboard.name || ''
 			setDashboard(dashboard)
 			setNewMetrics(dashboard.metrics)
 			if (dashboard.layout?.length) {
@@ -84,7 +90,7 @@ const DashboardPage = ({
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 
-	// Logic for adding a new metric based on the addToDashboard URL param.
+	// Logic for adding a new metric based from the router state.
 	useEffect(() => {
 		if (!dashboard || !metricConfig || metricAutoAdded.current) {
 			return
@@ -96,6 +102,9 @@ const DashboardPage = ({
 		const canAddMetric = !findDashboardMetric(dashboard, metricConfig)
 
 		if (canAddMetric && metricConfig) {
+			// Opens modal to edit metric config.
+			setNewDashboardCardIdx(dashboard.metrics.length)
+
 			pushNewMetricConfig([
 				...dashboard.metrics,
 				{
@@ -104,11 +113,7 @@ const DashboardPage = ({
 				},
 			])
 
-			message.success(
-				`${metricConfig.description} added successfully.`,
-				3000,
-			)
-
+			// Reset state so we don't try to add again.
 			history.replace({ state: {} })
 		}
 
@@ -218,16 +223,18 @@ const DashboardPage = ({
 										return nm
 									})
 								}}
+								icon={
+									<PlusIcon
+										style={{ marginRight: '0.5rem' }}
+									/>
+								}
 							>
 								Add
-								<PlusIcon
-									style={{
-										marginLeft: '1em',
-										marginBottom: '0.1em',
-									}}
-								/>
 							</Button>
 							<TimeRangePicker />
+							{dashboard.is_default ? null : (
+								<DashboardMenu dashboard={dashboard} />
+							)}
 						</div>
 					</div>
 				</div>
@@ -268,6 +275,31 @@ const DashboardPage = ({
 				containerStyles={containerStyles}
 			/>
 		</LeadAlignLayout>
+	)
+}
+export default DashboardPage
+
+function DashboardMenu({ dashboard }: { dashboard: DashboardDefinition }) {
+	if (dashboard.is_default) {
+		return null
+	}
+
+	return (
+		<Dropdown
+			trigger={['click']}
+			placement="bottomRight"
+			overlay={
+				<Menu inlineIndent={0} className={styles.settingsDropdownMenu}>
+					<Menu.Item>
+						<DeleteDashboardButton dashboard={dashboard} />
+					</Menu.Item>
+				</Menu>
+			}
+		>
+			<Button trackingId="dashboardPageSettings" type="ghost">
+				<VscEllipsis />
+			</Button>
+		</Dropdown>
 	)
 }
 
@@ -374,12 +406,7 @@ export const DashboardGrid = ({
 								editModalShown={index === newDashboardCardIdx}
 							/>
 						) : (
-							<DashboardComponentCard
-								metricIdx={index}
-								metricConfig={metric}
-								updateMetric={updateMetric}
-								deleteMetric={deleteMetric}
-							/>
+							<DashboardComponentCard metricConfig={metric} />
 						)}
 					</div>
 				))}
@@ -415,4 +442,43 @@ export const findDashboardMetric = (
 	})
 }
 
-export default DashboardPage
+function DeleteDashboardButton({
+	dashboard,
+}: {
+	dashboard: {
+		id: string
+		name: string
+		project_id: string
+	}
+}) {
+	const history = useHistory()
+
+	const [mutate] = useDeleteDashboardMutation({
+		variables: { id: dashboard.id },
+		onCompleted: () => {
+			history.push(`/${dashboard.project_id}/dashboards`)
+		},
+		refetchQueries: [GetDashboardDefinitionsDocument],
+	})
+
+	return (
+		<ConfirmModal
+			trackingId="DeleteDashboardModal"
+			buttonText="Delete dashboard"
+			buttonProps={{
+				trackingId: 'DeleteDashboard',
+				icon: <SvgTrashIcon style={{ marginRight: '0.5rem' }} />,
+				danger: true,
+				className:
+					'border-transparent hover:bg-neutral-100 focus-visible:bg-neutral-100 focus:outline-none',
+			}}
+			modalTitleText="Are you sure you want to delete this dashboard?"
+			confirmText="Delete dashboard"
+			cancelText="Never mind"
+			onConfirmHandler={async (actions) => {
+				await mutate()
+				actions.close()
+			}}
+		/>
+	)
+}

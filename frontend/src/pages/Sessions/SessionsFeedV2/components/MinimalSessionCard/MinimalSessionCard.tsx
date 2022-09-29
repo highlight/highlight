@@ -17,14 +17,13 @@ import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
-
-import { Avatar } from '../../../../../components/Avatar/Avatar'
-import { Maybe, Session } from '../../../../../graph/generated/schemas'
-import SvgEyeOffIcon from '../../../../../static/EyeOffIcon'
-import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time'
-import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker'
+import { Avatar } from '@components/Avatar/Avatar'
+import { Maybe, Session } from '@graph/schemas'
+import { MillisToMinutesAndSecondsVerbose } from '@util/time'
+import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import styles from './MinimalSessionCard.module.scss'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
+import SvgEyeOffIcon from '@icons/EyeOffIcon'
 
 interface Props {
 	session: Maybe<Session>
@@ -41,6 +40,8 @@ interface Props {
 		SessionFeedConfigurationContext,
 		'countFormat' | 'datetimeFormat'
 	>
+	target?: string
+	compact?: boolean
 }
 
 const MinimalSessionCard = React.memo(
@@ -55,6 +56,8 @@ const MinimalSessionCard = React.memo(
 		showDetailedSessionView:
 			showDetailedSessionViewPlayerConfiguration = false,
 		configuration,
+		target,
+		compact,
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { project_id, segment_id, session_secure_id } = useParams<{
@@ -119,15 +122,18 @@ const MinimalSessionCard = React.memo(
 					className={classNames(styles.sessionCardContentWrapper, {
 						[styles.detailed]: showDetailedSessionView,
 						[styles.errorVersion]: errorVersion,
+						[styles.compact]: compact,
 					})}
 				>
-					<div className={styles.avatarWrapper}>
-						<Avatar
-							seed={getDisplayName(session)}
-							style={{ height: 25, width: 25 }}
-							customImage={customAvatarImage}
-						/>
-					</div>
+					{!compact && (
+						<div className={styles.avatarWrapper}>
+							<Avatar
+								seed={getDisplayName(session)}
+								style={{ height: 25, width: 25 }}
+								customImage={customAvatarImage}
+							/>
+						</div>
+					)}
 					<div className={styles.sessionTextSectionWrapper}>
 						<div
 							className={classNames(styles.sessionTextSection, {
@@ -383,6 +389,7 @@ const MinimalSessionCard = React.memo(
 					innerContent
 				) : (
 					<Link
+						target={target}
 						to={`/${projectIdRemapped}/sessions/${
 							session?.secure_id
 						}${urlParams || ''}`}

@@ -15,7 +15,7 @@ const BATCH_SIZE = 200
 
 func (w *Worker) indexItem(index opensearch.Index, item interface{}) {
 	val := reflect.ValueOf(item).Elem()
-	id := int(val.FieldByName("ID").Int())
+	id := val.FieldByName("ID").Int()
 
 	// Add an item to the indexer
 	if err := w.Resolver.OpenSearch.Index(index, id, nil, item); err != nil {
@@ -92,7 +92,7 @@ func (w *Worker) IndexErrorGroups(isUpdate bool) {
 			Fields:     nil,
 			Filename:   filename,
 		}
-		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eg.ID, pointy.Int(0), os); err != nil {
+		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eg.ID), pointy.Int(0), os); err != nil {
 			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
 		}
 	}
@@ -126,7 +126,7 @@ func (w *Worker) IndexErrorObjects(isUpdate bool) {
 			Environment: eo.Environment,
 		}
 
-		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, eo.ID, pointy.Int(eo.ErrorGroupID), os); err != nil {
+		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eo.ID), pointy.Int(eo.ErrorGroupID), os); err != nil {
 			log.Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
 		}
 	}

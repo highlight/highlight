@@ -49,6 +49,7 @@ const (
 	SUGGESTION_LIMIT_CONSTANT       = 8
 	EVENTS_OBJECTS_ADVISORY_LOCK_ID = 1337
 	InternalMetricCategory          = "__internal"
+	AWS_REGION_US_EAST_2            = "us-east-2"
 )
 
 var AlertType = struct {
@@ -167,6 +168,8 @@ var Models = []interface{}{
 	&Dashboard{},
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
+	&DeleteSessionsTask{},
+	&OAuthClientStore{},
 	&ResthookSubscription{},
 }
 
@@ -183,6 +186,13 @@ func init() {
 
 type Model struct {
 	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
+}
+
+type Int64Model struct {
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -269,14 +279,17 @@ type WorkspaceAccessRequest struct {
 
 type Project struct {
 	Model
-	Name              *string
-	StripeCustomerID  *string
-	StripePriceID     *string
-	ZapierAccessToken *string
-	BillingEmail      *string
-	Secret            *string    `json:"-"`
-	Admins            []Admin    `gorm:"many2many:project_admins;"`
-	TrialEndDate      *time.Time `json:"trial_end_date"`
+	Name                *string
+	StripeCustomerID    *string
+	StripePriceID       *string
+	ZapierAccessToken   *string
+	FrontAccessToken    *string
+	FrontRefreshToken   *string
+	FrontTokenExpiresAt *time.Time
+	BillingEmail        *string
+	Secret              *string    `json:"-"`
+	Admins              []Admin    `gorm:"many2many:project_admins;"`
+	TrialEndDate        *time.Time `json:"trial_end_date"`
 	// Manual monthly session limit override
 	MonthlySessionLimit *int
 	WorkspaceID         int
@@ -335,7 +348,8 @@ type Dashboard struct {
 	Name              string
 	LastAdminToEditID *int
 	Layout            *string
-	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID"`
+	Metrics           []*DashboardMetric `gorm:"foreignKey:DashboardID;"`
+	IsDefault         *bool
 }
 
 type DashboardMetric struct {
@@ -634,7 +648,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 }
 
 type Field struct {
-	Model
+	Int64Model
 	// 'user_property', 'session_property'.
 	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.
@@ -982,6 +996,7 @@ type CommentFollower struct {
 	AdminId          int
 	SlackChannelName string
 	SlackChannelID   string
+	HasMuted         *bool
 }
 
 type CommentSlackThread struct {
@@ -1042,6 +1057,14 @@ type AlertEvent struct {
 	ProjectID    int
 	AlertID      int
 	ErrorGroupID *int
+}
+
+type OAuthClientStore struct {
+	ID        string         `gorm:"primary_key;default:uuid_generate_v4()"`
+	CreatedAt time.Time      `json:"created_at" deep:"-"`
+	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
+	Domains   pq.StringArray `gorm:"not null;type:text[]"`
+	AppName   string
 }
 
 var ErrorType = struct {
@@ -1133,6 +1156,11 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating secure_id_generator")
+	}
+
+	// allows using postgres native UUID functions
+	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
+		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
 
 	if err := DB.AutoMigrate(
@@ -1845,6 +1873,12 @@ type SendWelcomeSlackMessageInput struct {
 	Project              *Project
 	AlertID              *int
 	IncludeEditLink      bool
+}
+
+type DeleteSessionsTask struct {
+	TaskID    string `gorm:"index:idx_task_id_batch_id"`
+	BatchID   string `gorm:"index:idx_task_id_batch_id"`
+	SessionID int
 }
 
 func (obj *Alert) SendWelcomeSlackMessage(input *SendWelcomeSlackMessageInput) error {

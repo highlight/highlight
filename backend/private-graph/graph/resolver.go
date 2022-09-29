@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm/clause"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -16,13 +16,17 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm/clause"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -87,6 +91,8 @@ type Resolver struct {
 	RH                     *resthooks.Resthook
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
+	StepFunctions          *stepfunctions.Client
+	OAuthServer            *oauth.Server
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
@@ -693,7 +699,18 @@ func (r *Resolver) UpdateSessionsVisibility(workspaceID int, newPlan modelInputs
 	}
 }
 
-func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorName, viewLink, textForEmail, templateID string, sessionImage *string) error {
+func (r *Resolver) SendEmailAlert(
+	tos []*mail.Email,
+	ccs []*mail.Email,
+	authorName string,
+	viewLink string,
+	muteLink string,
+	subjectScope string,
+	textForEmail string,
+	templateID string,
+	sessionImage *string,
+	asmGroupId *int,
+) error {
 	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", Email.SendGridOutboundEmail)
 	m.SetFrom(from)
@@ -705,8 +722,10 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 	p.SetDynamicTemplateData("Author_Name", authorName)
 	p.SetDynamicTemplateData("Comment_Link", viewLink)
 	p.SetDynamicTemplateData("Comment_Body", textForEmail)
+	p.SetDynamicTemplateData("Mute_Thread", muteLink)
+	p.SetDynamicTemplateData("Subject_Scope", subjectScope)
 
-	if sessionImage != nil {
+	if sessionImage != nil && *sessionImage != "" {
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
 		a := mail.NewAttachment()
 		a.SetContent(*sessionImage)
@@ -718,9 +737,19 @@ func (r *Resolver) SendEmailAlert(tos []*mail.Email, ccs []*mail.Email, authorNa
 
 	m.AddPersonalizations(p)
 
-	_, err := r.MailClient.Send(m)
+	if asmGroupId != nil {
+		asm := mail.NewASM()
+		asm.SetGroupID(*asmGroupId)
+		m.SetASM(asm)
+	}
+
+	response, err := r.MailClient.Send(m)
 	if err != nil {
 		return e.Wrap(err, "error sending sendgrid email for comments mentions")
+	}
+
+	if response.StatusCode == 400 {
+		return e.Wrap(errors.New(response.Body), "bad request")
 	}
 
 	return nil
@@ -1568,6 +1597,24 @@ func (r *Resolver) CreateInviteLink(workspaceID int, email *string, role string,
 	return newInviteLink
 }
 
+func (r *Resolver) AddFrontToProject(project *model.Project, code string) error {
+	oauth, err := front.OAuth(code, nil)
+	if err != nil {
+		return e.Wrapf(err, "failed to add front to project id %d", project.ID)
+	}
+
+	return r.saveFrontOAuth(project, oauth)
+}
+
+func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
+	exp := time.Unix(oauth.ExpiresAt, 0)
+	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
+		FrontRefreshToken: &oauth.RefreshToken, FrontTokenExpiresAt: &exp}).Error; err != nil {
+		return e.Wrap(err, "error updating front access token on project")
+	}
+	return nil
+}
+
 func (r *Resolver) AddSlackToWorkspace(workspace *model.Workspace, code string) error {
 	var (
 		SLACK_CLIENT_ID     string
@@ -1653,6 +1700,14 @@ func (r *Resolver) RemoveSlackFromWorkspace(workspace *model.Workspace, projectI
 func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("zapier_access_token").Updates(&model.Project{ZapierAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing zapier access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
+	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing front access token in project model")
 	}
 
 	return nil
@@ -2042,7 +2097,21 @@ func (r *Resolver) findNewFollowers(taggedAdmins []*modelInputs.SanitizedAdminIn
 	return
 }
 
-func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *model.Admin, followers []*model.CommentFollower, workspace *model.Workspace, projectID int, threadIDs []int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string) {
+func (r *Resolver) sendFollowedCommentNotification(
+	ctx context.Context,
+	admin *model.Admin,
+	followers []*model.CommentFollower,
+	workspace *model.Workspace,
+	projectID int,
+	threadIDs []int,
+	textForEmail string,
+	viewLink string,
+	muteLink string,
+	sessionImage *string,
+	action string,
+	subjectScope string,
+	asmGroupId *int,
+) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	if admin.Email != nil {
@@ -2050,10 +2119,14 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 	}
 
 	for _, f := range followers {
-		// don't notify if the follower email is the reply author
-		if f.AdminId == admin.ID {
+		if f.HasMuted != nil && *f.HasMuted {
+			// remove the author's cc if they have unsubscribed from the thread
+			if f.AdminId == admin.ID {
+				ccs = nil
+			}
 			continue
 		}
+
 		// don't notify if the follower slack user is the reply author
 		found := false
 		for _, namePart := range strings.Split(*admin.Name, " ") {
@@ -2071,7 +2144,14 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				log.Error(err, "Error finding follower admin object")
 				continue
 			}
-			tos = append(tos, &mail.Email{Name: *admin.Name, Address: *a.Email})
+			if a.Email != nil {
+				if a.Name != nil {
+					tos = append(tos, &mail.Email{Name: *a.Name, Address: *a.Email})
+				} else {
+					tos = append(tos, &mail.Email{Address: *a.Email})
+				}
+
+			}
 		}
 	}
 
@@ -2094,7 +2174,18 @@ func (r *Resolver) sendFollowedCommentNotification(ctx context.Context, admin *m
 				tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionEmailSpan.Finish()
 
-			err := r.SendEmailAlert(tos, ccs, *admin.Name, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+			err := r.SendEmailAlert(
+				tos,
+				ccs,
+				*admin.Name,
+				viewLink,
+				muteLink,
+				subjectScope,
+				textForEmail,
+				Email.SendGridCommentEmailTemplateID,
+				sessionImage,
+				asmGroupId,
+			)
 			if err != nil {
 				log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 			}
@@ -2115,17 +2206,52 @@ func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *mo
 	})
 }
 
-func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *model.Admin, authorName string, taggedAdmins []*modelInputs.SanitizedAdminInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
+func (r *Resolver) sendCommentPrimaryNotification(
+	ctx context.Context,
+	admin *model.Admin,
+	authorName string,
+	taggedAdmins []*modelInputs.SanitizedAdminInput,
+	workspace *model.Workspace,
+	projectID int,
+	sessionCommentID *int,
+	errorCommentID *int,
+	textForEmail string,
+	viewLink string,
+	muteLink string,
+	sessionImage *string,
+	action string,
+	subjectScope string,
+	additionalContext *string,
+	asmGroupId *int,
+) {
 	var tos []*mail.Email
 	var ccs []*mail.Email
 	var adminIds []int
 
 	if admin.Email != nil {
-		ccs = append(ccs, &mail.Email{Address: *admin.Email})
+		if admin.Name != nil {
+			ccs = append(ccs, &mail.Email{Name: *admin.Name, Address: *admin.Email})
+		} else {
+			ccs = append(ccs, &mail.Email{Address: *admin.Email})
+
+		}
 	}
-	for _, admin := range taggedAdmins {
-		tos = append(tos, &mail.Email{Address: admin.Email})
-		adminIds = append(adminIds, admin.ID)
+
+	for _, taggedAdmin := range taggedAdmins {
+		adminIds = append(adminIds, taggedAdmin.ID)
+
+		if admin.Email != nil && taggedAdmin.Email == *admin.Email {
+			if len(taggedAdmins) == 1 {
+				ccs = nil
+			} else {
+				continue
+			}
+		}
+		if taggedAdmin.Name != nil {
+			tos = append(tos, &mail.Email{Name: *taggedAdmin.Name, Address: taggedAdmin.Email})
+		} else {
+			tos = append(tos, &mail.Email{Address: taggedAdmin.Email})
+		}
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
@@ -2133,7 +2259,18 @@ func (r *Resolver) sendCommentPrimaryNotification(ctx context.Context, admin *mo
 			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
 
-		err := r.SendEmailAlert(tos, ccs, authorName, viewLink, textForEmail, Email.SendGridSessionCommentEmailTemplateID, sessionImage)
+		err := r.SendEmailAlert(
+			tos,
+			ccs,
+			authorName,
+			viewLink,
+			muteLink,
+			subjectScope,
+			textForEmail,
+			Email.SendGridCommentEmailTemplateID,
+			sessionImage,
+			asmGroupId,
+		)
 		if err != nil {
 			log.Error(e.Wrap(err, "error notifying tagged admins in comment"))
 		}

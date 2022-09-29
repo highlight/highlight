@@ -63,6 +63,7 @@ import { Logger } from './logger'
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
+import { MetricCategory, MetricName } from './constants/metrics'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -319,11 +320,12 @@ export class Highlight {
 			options.enablePerformanceRecording ?? true
 		this.inlineImages = options.inlineImages || false
 		this.inlineStylesheet = options.inlineStylesheet || false
-		this.samplingStrategy = options.samplingStrategy || {
+		this.samplingStrategy = {
 			canvas: 5,
 			canvasQuality: 'low',
 			canvasFactor: 0.5,
-			canvasMaxSnapshotDimension: 960,
+			canvasMaxSnapshotDimension: 360,
+			...(options.samplingStrategy || {}),
 		}
 		this._backendUrl =
 			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
@@ -469,7 +471,7 @@ export class Highlight {
 
 	async initialize(): Promise<undefined> {
 		if (
-			navigator?.webdriver ||
+			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
 			navigator?.userAgent?.includes('AdsBot')
 		) {
@@ -480,8 +482,10 @@ export class Highlight {
 		try {
 			// disable recording for filtered projects while allowing for reloaded sessions
 			if (!this.reloaded && this.organizationID === '6glrjqg9') {
-				this._firstLoadListeners?.stopListening()
-				return
+				if (Math.random() >= 0.02) {
+					this._firstLoadListeners?.stopListening()
+					return
+				}
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
@@ -604,20 +608,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
-				this._worker.postMessage({
-					message: {
-						type: MessageType.Metrics,
-						metrics: [
-							{
-								name: 'DeviceMemory',
-								value: getDeviceDetails().deviceMemory,
-								category: 'Device',
-								group: window.location.href,
-								timestamp: new Date(),
-							},
-						],
+				this.recordMetric([
+					{
+						name: MetricName.DeviceMemory,
+						value: getDeviceDetails().deviceMemory,
+						category: MetricCategory.Device,
+						group: window.location.href,
 					},
-				})
+				])
 			}
 
 			if (this.pushPayloadTimerId) {
@@ -662,10 +660,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				if (this.recordStop) {
 					this.listeners.push(this.recordStop)
 				}
-				this.addCustomEvent('Viewport', {
+				const viewport = {
 					height: window.innerHeight,
 					width: window.innerWidth,
-				})
+				}
+				this.addCustomEvent('Viewport', viewport)
+				this.submitViewportMetrics(viewport)
 			}, 1)
 
 			if (document.referrer) {
@@ -809,6 +809,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				ViewportResizeListener((viewport) => {
 					this.addCustomEvent('Viewport', viewport)
+					this.submitViewportMetrics(viewport)
 				}),
 			)
 			this.listeners.push(
@@ -847,20 +848,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				WebVitalsListener((data) => {
 					const { name, value } = data
-					this._worker.postMessage({
-						message: {
-							type: MessageType.Metrics,
-							metrics: [
-								{
-									name,
-									value,
-									timestamp: new Date(),
-									group: window.location.href,
-									category: 'WebVital',
-								},
-							],
+					this.recordMetric([
+						{
+							name,
+							value,
+							group: window.location.href,
+							category: MetricCategory.WebVital,
 						},
-					})
+					])
 				}),
 			)
 
@@ -934,6 +929,54 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				)
 			})
 		}
+	}
+
+	submitViewportMetrics({
+		height,
+		width,
+	}: {
+		height: number
+		width: number
+	}) {
+		this.recordMetric([
+			{
+				name: MetricName.ViewportHeight,
+				value: height,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ViewportWidth,
+				value: width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ViewportArea,
+				value: height * width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+		])
+	}
+
+	recordMetric(
+		metrics: {
+			name: string
+			value: number
+			category: MetricCategory
+			group: string
+		}[],
+	) {
+		this._worker.postMessage({
+			message: {
+				type: MessageType.Metrics,
+				metrics: metrics.map((m) => ({
+					...m,
+					timestamp: new Date(),
+				})),
+			},
+		})
 	}
 
 	/**
@@ -1172,6 +1215,7 @@ interface HighlightWindow extends Window {
 			on: (channel: string, listener: (...args: any[]) => void) => {}
 		}
 	}
+	Cypress?: any
 }
 
 declare var window: HighlightWindow

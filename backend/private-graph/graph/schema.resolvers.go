@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -25,9 +26,12 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -51,6 +55,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+const HistogramPercentileOffset = 0.1
 
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -1155,6 +1161,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		c := context.Background()
@@ -1177,10 +1184,41 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			}
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
-			r.sendCommentPrimaryNotification(c, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
+			r.sendCommentPrimaryNotification(
+				c,
+				admin,
+				*admin.Name,
+				taggedAdmins,
+				workspace,
+				project.ID,
+				&sessionComment.ID,
+				nil,
+				textForEmail,
+				viewLink,
+				muteLink,
+				sessionImage,
+				"tagged",
+				"session",
+				additionalContext,
+				&Email.SessionCommentMentionsAsmId,
+			)
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
-			r.sendCommentMentionNotification(c, admin, taggedSlackUsers, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, sessionImage, "tagged", "session", additionalContext)
+			r.sendCommentMentionNotification(
+				c,
+				admin,
+				taggedSlackUsers,
+				workspace,
+				project.ID,
+				&sessionComment.ID,
+				nil,
+				textForEmail,
+				viewLink,
+				sessionImage,
+				"tagged",
+				"session",
+				additionalContext,
+			)
 		}
 	})
 
@@ -1201,12 +1239,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	}
 
-	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
 		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
-	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
 	for _, f := range newFollowers {
 		f.SessionCommentID = sessionComment.ID
 	}
@@ -1277,6 +1315,34 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
+// MuteSessionCommentThread is the resolver for the muteSessionCommentThread field.
+func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
+	var sessionComment model.SessionComment
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comment")
+	}
+
+	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not session owner")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	var commentFollower model.CommentFollower
+	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
+		&model.CommentFollower{
+			HasMuted: hasMuted,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
+}
+
 // ReplyToSessionComment is the resolver for the replyToSessionComment field.
 func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput) (*model.CommentReply, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
@@ -1321,16 +1387,48 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	createSessionCommentReplySpan.Finish()
 
 	viewLink := fmt.Sprintf("%v?commentId=%v", sessionURL, sessionComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", sessionURL, sessionComment.ID)
 
 	if len(taggedAdmins) > 0 {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, &sessionComment.ID, nil, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session", nil)
+		r.sendCommentPrimaryNotification(
+			ctx,
+			admin,
+			*admin.Name,
+			taggedAdmins,
+			workspace,
+			project.ID,
+			&sessionComment.ID,
+			nil,
+			textForEmail,
+			viewLink,
+			muteLink,
+			&sessionComment.SessionImage,
+			"replied to",
+			"session",
+			nil,
+			&Email.SessionCommentMentionsAsmId,
+		)
 	}
 	if len(sessionComment.Followers) > 0 {
 		var threadIDs []int
 		for _, thread := range sessionComment.Threads {
 			threadIDs = append(threadIDs, thread.ID)
 		}
-		r.sendFollowedCommentNotification(ctx, admin, sessionComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, &sessionComment.SessionImage, "replied to", "session")
+		r.sendFollowedCommentNotification(
+			ctx,
+			admin,
+			sessionComment.Followers,
+			workspace,
+			project.ID,
+			threadIDs,
+			textForEmail,
+			viewLink,
+			muteLink,
+			&sessionComment.SessionImage,
+			"replied to",
+			"session",
+			&Email.SessionCommentMentionsAsmId,
+		)
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, sessionComment.Followers)
@@ -1396,13 +1494,45 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 	createErrorCommentSpan.Finish()
 
-	viewLink := fmt.Sprintf("%v", errorURL)
+	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, authorName, taggedAdmins, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
+		r.sendCommentPrimaryNotification(
+			ctx,
+			admin,
+			authorName,
+			taggedAdmins,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			muteLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+			&Email.ErrorCommentMentionsAsmId,
+		)
 	}
 	if len(taggedSlackUsers) > 0 && !isGuest {
-		r.sendCommentMentionNotification(ctx, admin, taggedSlackUsers, workspace, projectID, nil, &errorComment.ID, textForEmail, viewLink, nil, "tagged", "error", nil)
+		r.sendCommentMentionNotification(
+			ctx,
+			admin,
+			taggedSlackUsers,
+			workspace,
+			projectID,
+			nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			nil,
+			"tagged",
+			"error",
+			nil,
+		)
 	}
 
 	if len(integrations) > 0 && *workspace.LinearAccessToken != "" {
@@ -1422,12 +1552,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		}
 	}
 
-	taggedAdmins = append(taggedAdmins, &modelInputs.SanitizedAdminInput{
+	taggedUsers := append(taggedAdmins, &modelInputs.SanitizedAdminInput{
 		ID:    admin.ID,
 		Name:  admin.Name,
 		Email: *admin.Email,
 	})
-	newFollowers := r.findNewFollowers(taggedAdmins, taggedSlackUsers, nil, nil)
+	newFollowers := r.findNewFollowers(taggedUsers, taggedSlackUsers, nil, nil)
 	for _, f := range newFollowers {
 		f.ErrorCommentID = errorComment.ID
 	}
@@ -1438,6 +1568,33 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 
 	return errorComment, nil
+}
+
+// MuteErrorCommentThread is the resolver for the muteErrorCommentThread field.
+func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
+	var errorGroupSecureID string
+	if err := r.DB.Table("error_comments").Select("error_secure_id").Where("id=?", id).Scan(&errorGroupSecureID).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments")
+	}
+	_, err := r.canAdminModifyErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not authorized to modify error group")
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not logged in")
+	}
+
+	var commentFollower model.CommentFollower
+	if err := r.DB.Where(&model.CommentFollower{ErrorCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
+		&model.CommentFollower{
+			HasMuted: hasMuted,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error changing the muted status")
+	}
+
+	return &model.T, nil
 }
 
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.
@@ -1541,16 +1698,47 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	createErrorCommentReplySpan.Finish()
 
 	viewLink := fmt.Sprintf("%v?commentId=%v", errorURL, errorComment.ID)
+	muteLink := fmt.Sprintf("%v?commentId=%v&muted=1", errorURL, errorComment.ID)
 
 	if len(taggedAdmins) > 0 && !isGuest {
-		r.sendCommentPrimaryNotification(ctx, admin, *admin.Name, taggedAdmins, workspace, project.ID, nil, &errorComment.ID, textForEmail, viewLink, nil, "replied to", "error", nil)
+		r.sendCommentPrimaryNotification(
+			ctx,
+			admin,
+			*admin.Name,
+			taggedAdmins,
+			workspace,
+			project.ID, nil,
+			&errorComment.ID,
+			textForEmail,
+			viewLink,
+			muteLink,
+			nil,
+			"replied to",
+			"error",
+			nil,
+			&Email.ErrorCommentMentionsAsmId,
+		)
 	}
 	if len(errorComment.Followers) > 0 && !isGuest {
 		var threadIDs []int
 		for _, thread := range errorComment.Threads {
 			threadIDs = append(threadIDs, thread.ID)
 		}
-		r.sendFollowedCommentNotification(ctx, admin, errorComment.Followers, workspace, project.ID, threadIDs, textForEmail, viewLink, nil, "replied to", "error")
+		r.sendFollowedCommentNotification(
+			ctx,
+			admin,
+			errorComment.Followers,
+			workspace,
+			project.ID,
+			threadIDs,
+			textForEmail,
+			viewLink,
+			muteLink,
+			nil,
+			"replied to",
+			"error",
+			&Email.ErrorCommentMentionsAsmId,
+		)
 	}
 
 	existingAdminIDs, existingSlackChannelIDs := r.getCommentFollowers(ctx, errorComment.Followers)
@@ -1650,6 +1838,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddSlackToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.AddFrontToProject(project, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1679,6 +1871,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeZapier {
 		if err := r.RemoveZapierFromWorkspace(project); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeFront {
+		if err := r.RemoveFrontFromProject(project); err != nil {
 			return false, err
 		}
 	} else {
@@ -3037,8 +3233,12 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 	for _, a := range workspaceAdmins {
 		if a != nil {
+			queryParams := url.Values{
+				"autoinvite_email": {*admin.Email},
+			}
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				*a.Name, *a.Email, inviteLink); err != nil {
 				log.Error(e.Wrap(err, "failed to send request access email"))
 				return &model.T, nil
 			}
@@ -3064,7 +3264,7 @@ func (r *mutationResolver) ModifyClearbitIntegration(ctx context.Context, worksp
 }
 
 // UpsertDashboard is the resolver for the upsertDashboard field.
-func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string) (int, error) {
+func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, projectID int, name string, metrics []*modelInputs.DashboardMetricConfigInput, layout *string, isDefault *bool) (int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return -1, err
@@ -3135,11 +3335,88 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 	dashboard.Name = name
 	dashboard.LastAdminToEditID = &admin.ID
 	dashboard.Layout = layout
+	dashboard.IsDefault = isDefault
 	if err := r.DB.Save(&dashboard).Error; err != nil {
 		return dashboard.ID, err
 	}
 
 	return dashboard.ID, nil
+}
+
+// DeleteDashboard is the resolver for the deleteDashboard field.
+func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, error) {
+	var dashboard model.Dashboard
+	if result := r.DB.First(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	if _, err := r.isAdminInProject(ctx, dashboard.ProjectID); err != nil {
+		return false, err
+	}
+
+	if dashboard.IsDefault != nil && *dashboard.IsDefault {
+		return false, e.New("cannot delete default dashboard")
+	}
+
+	if result := r.DB.Where("dashboard_id = ?", id).Delete(&model.DashboardMetric{}); result.Error != nil {
+		return false, result.Error
+	}
+
+	if result := r.DB.Delete(&dashboard, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	return true, nil
+}
+
+// DeleteSessions is the resolver for the deleteSessions field.
+func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, query string, sessionCount int) (bool, error) {
+	if util.IsDevOrTestEnv() {
+		return false, nil
+	}
+
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	email := ""
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	firstName := ""
+	if admin.FirstName != nil {
+		firstName = *admin.FirstName
+	}
+
+	role, err := r.GetAdminRole(admin.ID, project.WorkspaceID)
+	if err != nil {
+		return false, err
+	}
+
+	if role != model.AdminRole.ADMIN {
+		return false, e.New("Must be admin role to delete sessions")
+	}
+
+	_, err = r.StepFunctions.DeleteSessionsByQuery(ctx, utils.QuerySessionsInput{
+		ProjectId:    projectID,
+		Email:        email,
+		FirstName:    firstName,
+		Query:        query,
+		SessionCount: sessionCount,
+		DryRun:       util.IsDevOrTestEnv(),
+	})
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Accounts is the resolver for the accounts field.
@@ -5155,6 +5432,22 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.SlackAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeZapier {
 		return project.ZapierAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeFront {
+		if project.FrontAccessToken == nil || project.FrontRefreshToken == nil || project.FrontTokenExpiresAt == nil {
+			return false, nil
+		}
+		oauth, err := front.RefreshOAuth(&front.OAuthToken{
+			AccessToken:  *project.FrontAccessToken,
+			RefreshToken: *project.FrontRefreshToken,
+			ExpiresAt:    project.FrontTokenExpiresAt.Unix(),
+		})
+		if err != nil {
+			return false, e.Wrap(err, "failed to refresh oauth")
+		}
+		if err := r.saveFrontOAuth(project, oauth); err != nil {
+			return false, e.Wrap(err, "failed to save oauth")
+		}
+		return project.FrontAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")
@@ -5601,6 +5894,7 @@ func (r *queryResolver) DashboardDefinitions(ctx context.Context, projectID int)
 			Metrics:           metrics,
 			LastAdminToEditID: d.LastAdminToEditID,
 			Layout:            d.Layout,
+			IsDefault:         d.IsDefault,
 		})
 	}
 	return results, nil
@@ -5745,12 +6039,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if len(results) < 1 {
 			return nil, nil
 		}
+		// offset min and max to include min and max values and pad the distribution a bit
 		if params.MinValue == nil {
-			f := results[0].Value.(float64)
+			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)
 			params.MinValue = &f
 		}
 		if params.MaxValue == nil {
-			f := results[1].Value.(float64)
+			f := results[1].Value.(float64) * (1 + HistogramPercentileOffset)
 			params.MaxValue = &f
 		}
 	}
@@ -5953,6 +6248,19 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 	}
 
 	return appVersions, nil
+}
+
+// OauthClientMetadata is the resolver for the oauth_client_metadata field.
+func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string) (*modelInputs.OAuthClient, error) {
+	client := &model.OAuthClientStore{ID: clientID}
+	if err := r.DB.Model(&client).Select("id", "created_at", "app_name").Where(&client).First(&client).Error; err != nil {
+		return nil, e.Wrap(err, "error querying oauth client")
+	}
+	return &modelInputs.OAuthClient{
+		ID:        client.ID,
+		CreatedAt: client.CreatedAt,
+		AppName:   client.AppName,
+	}, nil
 }
 
 // Params is the resolver for the params field.
