@@ -50,16 +50,19 @@ const TimelineIndicatorsBarGraph = ({
 		state,
 	} = useReplayerContext()
 
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
-
 	const events = useMemo(
 		() => parseEvents(sessionIntervals, startTime, duration),
 		[sessionIntervals, startTime, duration],
 	)
 
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
+	const { session_secure_id } = useParams<{
+		session_secure_id: string
+	}>()
+
+	useEffect(() => {
+		setCamera({ x: 0, zoom: 1 })
+	}, [session_secure_id])
 
 	const bucketSize = useMemo(
 		() => pickBucketSize(duration / camera.zoom, TARGET_BUCKET_COUNT),
