@@ -2,7 +2,6 @@
 	"name": "highlight",
 	"private": true,
 	"version": "1.0.0",
-	"main": "index.js",
 	"repository": "git@github.com:highlight-run/highlight.git",
 	"author": "Highlight",
 	"license": "MIT",
@@ -17,8 +16,8 @@
 		"frontend",
 		"highlight-next",
 		"highlight-node",
-		"packages/*",
 		"render",
+		"rrweb/packages/*",
 		"sourcemap-uploader"
 	],
 	"scripts": {

@@ -15,5 +15,5 @@
 		"jsx": "react"
 	},
 	"include": ["src"],
-	"references": [{ "path": "../packages/rrweb" }]
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

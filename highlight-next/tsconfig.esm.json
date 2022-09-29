@@ -6,5 +6,5 @@
 		"outDir": "esm",
 		"removeComments": true
 	},
-	"references": [{ "path": "../packages/rrweb" }]
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

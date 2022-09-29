@@ -7,7 +7,7 @@
 			"outputs": ["src/graph/generated/**"]
 		},
 		"dev": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
 		},
 		"prepublish": {

@@ -3,6 +3,5 @@ build
 dist
 .yarn
 backend/errors/test-files
-packages/rrweb-snapshot/test
-packages/rrweb/test
-
+rrweb/packages/rrweb-snapshot/test
+rrweb/packages/rrweb/test

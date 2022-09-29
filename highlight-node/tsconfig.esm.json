@@ -5,5 +5,5 @@
 		"module": "es6",
 		"outDir": "esm"
 	},
-	"references": [{ "path": "../packages/rrweb" }]
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }
