@@ -3029,7 +3029,7 @@ export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateDefaultAlertsMutationVariables
 >
 export const CreateSessionFeedbackAlertDocument = gql`
-	mutation CreateSessionFeedbackAlert($input: AlertInput) {
+	mutation CreateSessionFeedbackAlert($input: SessionAlertInput) {
 		createSessionFeedbackAlert(input: $input) {
 			id
 			ChannelsToNotify {
@@ -3090,14 +3090,8 @@ export type CreateSessionFeedbackAlertMutationOptions =
 		Types.CreateSessionFeedbackAlertMutationVariables
 	>
 export const UpdateSessionFeedbackAlertDocument = gql`
-	mutation UpdateSessionFeedbackAlert(
-		$session_feedback_alert_id: ID!
-		$input: AlertInput
-	) {
-		updateSessionFeedbackAlert(
-			session_feedback_alert_id: $session_feedback_alert_id
-			input: $input
-		) {
+	mutation UpdateSessionFeedbackAlert($id: ID!, $input: SessionAlertInput) {
+		updateSessionFeedbackAlert(id: $id, input: $input) {
 			id
 			ChannelsToNotify {
 				webhook_channel
@@ -3131,7 +3125,7 @@ export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateSessionFeedbackAlertMutation, { data, loading, error }] = useUpdateSessionFeedbackAlertMutation({
  *   variables: {
- *      session_feedback_alert_id: // value for 'session_feedback_alert_id'
+ *      id: // value for 'id'
  *      input: // value for 'input'
  *   },
  * });

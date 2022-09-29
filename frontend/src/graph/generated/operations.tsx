@@ -939,7 +939,7 @@ export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
 >
 
 export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
-	input?: Types.Maybe<Types.AlertInput>
+	input?: Types.Maybe<Types.SessionAlertInput>
 }>
 
 export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
@@ -968,8 +968,8 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
 }
 
 export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
-	session_feedback_alert_id: Types.Scalars['ID']
-	input?: Types.Maybe<Types.AlertInput>
+	id: Types.Scalars['ID']
+	input?: Types.Maybe<Types.SessionAlertInput>
 }>
 
 export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {

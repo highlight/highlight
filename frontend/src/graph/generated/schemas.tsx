@@ -565,15 +565,15 @@ export type ErrorSearchParamsInput = {
 	query?: Maybe<Scalars['String']>
 }
 
-export type AlertInput = {
+export type SessionAlertInput = {
 	project_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
+	name: Scalars['String']
+	count_threshold: Scalars['Int']
+	threshold_window: Scalars['Int']
+	slack_channels: Array<SanitizedSlackChannelInput>
+	emails: Array<Scalars['String']>
+	environments: Array<Scalars['String']>
+	disabled: Scalars['Boolean']
 }
 
 export type ErrorSearchParams = {
@@ -1956,12 +1956,12 @@ export type MutationDeleteMetricMonitorArgs = {
 }
 
 export type MutationUpdateSessionFeedbackAlertArgs = {
-	session_feedback_alert_id: Scalars['ID']
-	input?: Maybe<AlertInput>
+	id: Scalars['ID']
+	input?: Maybe<SessionAlertInput>
 }
 
 export type MutationCreateSessionFeedbackAlertArgs = {
-	input?: Maybe<AlertInput>
+	input?: Maybe<SessionAlertInput>
 }
 
 export type MutationUpdateRageClickAlertArgs = {
