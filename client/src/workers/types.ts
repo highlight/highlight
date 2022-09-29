@@ -68,6 +68,7 @@ export type MetricsMessage = {
 		category: 'WebVital' | 'Device'
 		group: string
 		timestamp: Date
+		tags: { name: string; value: string }[]
 	}[]
 }
 
