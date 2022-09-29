@@ -19,6 +19,8 @@ jobs:
         steps:
             - name: Check out code
               uses: actions/checkout@v2
+              with:
+                  submodules: recursive
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
