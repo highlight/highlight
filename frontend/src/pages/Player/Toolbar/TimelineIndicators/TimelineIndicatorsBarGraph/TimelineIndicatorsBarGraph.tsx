@@ -359,7 +359,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const leftmostBucketIdx = useMemo(() => {
 		return clamp(
-			Math.floor((leftProgress * buckets.length) / width) - 2,
+			Math.floor((leftProgress * buckets.length) / width) - 1,
 			0,
 			buckets.length - 1,
 		)
@@ -367,7 +367,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const rightmostBucketIdx = useMemo(() => {
 		return clamp(
-			Math.ceil((rightProgress / width) * buckets.length) + 2,
+			Math.ceil((rightProgress / width) * buckets.length) + 1,
 			0,
 			buckets.length - 1,
 		)
@@ -387,13 +387,18 @@ const TimelineIndicatorsBarGraph = ({
 
 		const elms = []
 
-		for (let idx = 0; idx <= numTicks; ++idx) {
-			const left = idx * step
-			const leftTime = idx * mainTickInMs
+		const isTickRedundant = (idx: number, rem: number) => {
+			const leftTime = (idx + rem) * mainTickInMs
 			if (
 				leftTime < (leftmostBucketIdx - 1) * bucketTimestep ||
 				leftTime > (rightmostBucketIdx + 1) * bucketTimestep
 			) {
+				return true
+			}
+			return false
+		}
+		for (let idx = 0; idx <= numTicks; ++idx) {
+			if (isTickRedundant(idx, 0)) {
 				continue
 			}
 			const key = `${idx * size.multiple}${size.tick}`
@@ -403,6 +408,8 @@ const TimelineIndicatorsBarGraph = ({
 				: text.includes('m')
 				? 500
 				: 400
+
+			const left = idx * step
 			elms.push(
 				<span
 					className={style.timeMarker}
@@ -425,10 +432,13 @@ const TimelineIndicatorsBarGraph = ({
 				<span
 					className={classNames(style.timeTick, style.timeTickMajor)}
 					key={`tick-major-${key}`}
-					style={{ left: left, borderLeftWidth }}
+					style={{ left, borderLeftWidth }}
 				></span>,
 			)
 			if (idx !== numTicks) {
+				if (isTickRedundant(idx, 0.25)) {
+					continue
+				}
 				elms.push(
 					<span
 						className={classNames(
@@ -439,6 +449,9 @@ const TimelineIndicatorsBarGraph = ({
 						style={{ left: left + minorStep }}
 					></span>,
 				)
+				if (isTickRedundant(idx, 0.5)) {
+					continue
+				}
 				elms.push(
 					<span
 						className={classNames(
@@ -449,6 +462,9 @@ const TimelineIndicatorsBarGraph = ({
 						style={{ left: left + 2 * minorStep }}
 					></span>,
 				)
+				if (isTickRedundant(idx, 0.75)) {
+					continue
+				}
 				elms.push(
 					<span
 						className={classNames(
