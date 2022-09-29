@@ -1000,7 +1000,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			name: string
 			value: number
 			category?: MetricCategory
-			group: string
+			group?: string
 			tags?: { name: string; value: string }[]
 		}[],
 	) {
@@ -1010,6 +1010,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				metrics: metrics.map((m) => ({
 					...m,
 					tags: m.tags || [],
+					group: m.group || window.location.href,
 					category: m.category || MetricCategory.Frontend,
 					timestamp: new Date(),
 				})),

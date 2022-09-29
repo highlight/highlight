@@ -14,7 +14,6 @@ export declare interface Metadata {
 export declare interface Metric {
 	name: string
 	value: number
-	group: string
 	tags?: { name: string; value: string }[]
 }
 
