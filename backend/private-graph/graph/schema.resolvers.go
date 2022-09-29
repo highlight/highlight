@@ -2362,6 +2362,10 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id in
 
 	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
 
+	if err != nil {
+		return nil, e.Wrap(err, "failed to build session feedback alert")
+	}
+
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: id,
