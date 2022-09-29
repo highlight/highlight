@@ -28,7 +28,7 @@ import (
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/workerpool"
@@ -432,7 +432,7 @@ func (r *Resolver) getIncrementedEnvironmentCount(errorGroup *model.ErrorGroup, 
 	return environmentsString
 }
 
-func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []modelInputs.ErrorTrace, error) {
+func (r *Resolver) getMappedStackTraceString(stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
 	// get version from session
 	var version *string
 	if err := r.DB.Model(&model.Session{}).
@@ -530,7 +530,7 @@ func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTr
 			Event:      errorObj.Event,
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
+			State:      privateModel.ErrorStateOpen.String(),
 			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
@@ -543,7 +543,7 @@ func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTr
 			ProjectID: errorObj.ProjectID,
 			Event:     errorObj.Event,
 			Type:      errorObj.Type,
-			State:     modelInputs.ErrorStateOpen.String(),
+			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
 		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
@@ -569,7 +569,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			Event:      errorObj.Event,
 			StackTrace: stackTraceString,
 			Type:       errorObj.Type,
-			State:      modelInputs.ErrorStateOpen.String(),
+			State:      privateModel.ErrorStateOpen.String(),
 			Fields:     []*model.ErrorField{},
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
@@ -582,7 +582,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			ProjectID: errorObj.ProjectID,
 			Event:     errorObj.Event,
 			Type:      errorObj.Type,
-			State:     modelInputs.ErrorStateOpen.String(),
+			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
 		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
@@ -777,7 +777,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, stackTraceSt
 	fingerprints := []*model.ErrorFingerprint{}
 	if stackTrace != nil {
 		var err error
-		var mappedStackTrace []modelInputs.ErrorTrace
+		var mappedStackTrace []privateModel.ErrorTrace
 		newMappedStackTraceString, mappedStackTrace, err = r.getMappedStackTraceString(stackTrace, projectID, errorObj)
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
@@ -1695,7 +1695,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 		if err != nil {
 			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
 		}
-		withinBillingQuota := int64(pricing.TypeToQuota(modelInputs.PlanTypeFree)) > sessionCount
+		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
 		return withinBillingQuota
 	}
 
@@ -1710,7 +1710,7 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
-		stripePlan := modelInputs.PlanType(workspace.PlanTier)
+		stripePlan := privateModel.PlanType(workspace.PlanTier)
 		quota = pricing.TypeToQuota(stripePlan)
 	}
 
@@ -2671,24 +2671,24 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}
-		for key, value := range map[modelInputs.NetworkRequestAttribute]float64{
-			modelInputs.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			modelInputs.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			modelInputs.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			modelInputs.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
+		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
+			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
+			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
+			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
+			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
 		} {
 			fields[key.String()] = value
 		}
-		categories := map[modelInputs.NetworkRequestAttribute]string{
-			modelInputs.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			modelInputs.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			modelInputs.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
+		categories := map[privateModel.NetworkRequestAttribute]string{
+			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
+			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
+			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
 		}
 		requestBody := make(map[string]interface{})
 		// if the request body is json and contains the graphql key operationName, treat it as an operation
 		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
 			if _, ok := requestBody["operationName"]; ok {
-				categories[modelInputs.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
+				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
 			}
 		}
 
@@ -2699,7 +2699,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 				if u.Host == d {
 					u.RawQuery = ""
 					u.Fragment = ""
-					categories[modelInputs.NetworkRequestAttributeURL] = u.String()
+					categories[privateModel.NetworkRequestAttributeURL] = u.String()
 				}
 			}
 		}
