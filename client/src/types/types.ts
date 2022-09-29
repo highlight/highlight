@@ -11,6 +11,13 @@ export declare interface Metadata {
 	[key: string]: string | boolean | number
 }
 
+export declare interface Metric {
+	name: string
+	value: number
+	group: string
+	tags?: { name: string; value: string }[]
+}
+
 export declare type SamplingStrategy = {
 	/**
 	 * 'all' will record every single canvas call.
@@ -175,7 +182,13 @@ export declare interface HighlightPublicInterface {
 	/**
 	 * Calling this method will report an error in Highlight and map it to the current session being recorded.
 	 * A common use case for `H.error` is calling it right outside of an error boundary.
-	 * @see {@link https://docs.highlight.run/docs/error-handling} for more information.
+	 * @see {@link https://docs.highlight.run/grouping-errors} for more information.
+	 */
+	metrics: (metrics: Metric[]) => void
+	/**
+	 * Calling this method will report metrics to Highlight. You can graph metrics or configure
+	 * alerts  on metrics that exceed a threshold.
+	 * @see {@link https://docs.highlight.run/frontend-observability} for more information.
 	 */
 	consumeError: (
 		error: Error,

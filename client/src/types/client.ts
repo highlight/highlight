@@ -114,3 +114,16 @@ export declare interface MixpanelIntegrationOptions {
 export declare interface AmplitudeIntegrationOptions {
 	apiKey: string
 }
+
+export enum MetricName {
+	DeviceMemory = 'DeviceMemory',
+	ViewportHeight = 'ViewportHeight',
+	ViewportWidth = 'ViewportWidth',
+	ViewportArea = 'ViewportArea',
+}
+export enum MetricCategory {
+	Device = 'Device',
+	WebVital = 'WebVital',
+	Frontend = 'Frontend',
+	Backend = 'Backend',
+}
