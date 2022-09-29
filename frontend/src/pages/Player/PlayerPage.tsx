@@ -98,11 +98,8 @@ const Player = ({ integrated }: Props) => {
 		currentUrl,
 	} = player
 	const resources = useResources(session)
-	const {
-		setShowLeftPanel,
-		showLeftPanel: showLeftPanelPreference,
-		showRightPanel,
-	} = usePlayerConfiguration()
+	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
+		usePlayerConfiguration()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -201,7 +198,7 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
-	const [playerWidth, setPlayerWidth] = useState<number>(0)
+	const [controllerWidth, setControllerWidth] = useState<number>(0)
 	useLayoutEffect(() => {
 		const div = centerColumnRef.current
 		if (!div) {
@@ -209,16 +206,16 @@ const Player = ({ integrated }: Props) => {
 		}
 
 		const width = Math.max(centerColumnRef.current.offsetWidth - 32, 200)
-		setPlayerWidth(width)
-	}, [centerColumnRef.current?.offsetWidth, setPlayerWidth])
+		setControllerWidth(width)
+	}, [centerColumnRef.current?.offsetWidth, setControllerWidth])
 
 	const playerFiller = useMemo(() => {
 		return (
 			<div className={styles.loadingWrapper}>
-				<PlayerSkeleton width={playerWidth} />
+				<PlayerSkeleton width={controllerWidth} />
 			</div>
 		)
-	}, [playerWidth])
+	}, [controllerWidth])
 
 	return (
 		<PlayerUIContextProvider
@@ -372,7 +369,7 @@ const Player = ({ integrated }: Props) => {
 									>
 										{!isPlayerFullscreen && (
 											<SessionLevelBar
-												width={playerWidth}
+												width={controllerWidth}
 											/>
 										)}
 										<div
@@ -473,7 +470,7 @@ const Player = ({ integrated }: Props) => {
 										<ResourcesContextProvider
 											value={resources}
 										>
-											<Toolbar width={playerWidth} />
+											<Toolbar width={controllerWidth} />
 										</ResourcesContextProvider>
 									</div>
 

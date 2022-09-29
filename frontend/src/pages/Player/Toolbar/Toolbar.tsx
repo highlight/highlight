@@ -298,8 +298,6 @@ export const Toolbar = ({ width }: Props) => {
 						selectedTimelineAnnotationTypes={
 							selectedTimelineAnnotationTypes
 						}
-						targetBucketCount={40}
-						timelineMargin={32}
 						width={width}
 					/>
 				)}

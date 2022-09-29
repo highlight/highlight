@@ -8,15 +8,13 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import TimelineBar, {
-	IBarRectangle,
+	EventBucket,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
-import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { debounce } from 'lodash'
 import moment from 'moment'
 import {
 	useCallback,
@@ -31,15 +29,14 @@ import { Area, AreaChart } from 'recharts'
 import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
-	targetBucketCount: number
-	timelineMargin: number
 	width: number
 }
 
+const TARGET_BUCKET_COUNT = 36
+const TIMELINE_MARGIN = 32
+
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
-	targetBucketCount,
-	timelineMargin,
 	width,
 }: Props) => {
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
@@ -67,9 +64,10 @@ const TimelineIndicatorsBarGraph = ({
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
 
 	const bucketSize = useMemo(
-		() => pickBucketSize(duration / camera.zoom, targetBucketCount),
-		[duration, camera.zoom, targetBucketCount],
+		() => pickBucketSize(duration / camera.zoom, TARGET_BUCKET_COUNT),
+		[duration, camera.zoom],
 	)
+
 	const buckets = useMemo(
 		() =>
 			buildEventBuckets(
@@ -99,13 +97,14 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
 	const [viewportWidth, setViewportWidth] = useState(0)
+
 	useLayoutEffect(() => {
 		const div = viewportRef.current
 		if (!div) {
 			return
 		}
-		setViewportWidth(div.offsetWidth - 2 * timelineMargin)
-	}, [viewportRef, timelineMargin, width])
+		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
+	}, [width])
 
 	const shouldMockActivityGraph = useMemo(() => {
 		// buckets with less than 2 events slow down rendering,
@@ -141,7 +140,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			const { clientX, deltaY, deltaX, ctrlKey } = event
 			const { offsetWidth, offsetLeft, scrollLeft } = viewportDiv
-			const viewportWidth = offsetWidth - 2 * timelineMargin
+			const viewportWidth = offsetWidth - 2 * TIMELINE_MARGIN
 			const pointerX = clientX + document.documentElement.scrollLeft
 			if (ctrlKey) {
 				setCamera((camera) => {
@@ -156,7 +155,7 @@ const TimelineIndicatorsBarGraph = ({
 					const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
 
 					const pointer = clamp(
-						pointerX - offsetLeft - timelineMargin,
+						pointerX - offsetLeft - TIMELINE_MARGIN,
 						0,
 						viewportWidth,
 					)
@@ -191,16 +190,17 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 		}
-	}, [viewportRef, isRefreshingDOM, timelineMargin, duration])
+	}, [duration, isRefreshingDOM])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
 	const [shownTime, setShownTime] = useState<number>(time)
+
 	useEffect(() => {
 		if (state === ReplayerState.Playing && !isDragging) {
 			setShownTime(time)
 		}
-	}, [state, time, setShownTime, isDragging])
+	}, [isDragging, state, time])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -219,14 +219,24 @@ const TimelineIndicatorsBarGraph = ({
 			setIsRefreshingDOM(false)
 		})
 		return () => cancelAnimationFrame(timeout)
-	}, [
-		camera,
-		hasActiveScrollbar,
-		viewportRef,
-		canvasRef,
-		timeAxisRef,
-		viewportWidth,
-	])
+	}, [camera, hasActiveScrollbar, viewportWidth])
+
+	const [shouldPlay, setShouldPlay] = useState(false)
+	useEffect(() => {
+		if (isDragging) {
+			if (state === ReplayerState.Playing) {
+				pause(shownTime)
+				setShouldPlay(true)
+			}
+		} else {
+			if (shouldPlay) {
+				play(shownTime)
+				setShouldPlay(false)
+			} else if (state !== ReplayerState.Playing) {
+				setTime(shownTime)
+			}
+		}
+	}, [isDragging, pause, play, setTime, shouldPlay, shownTime, state])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -239,14 +249,13 @@ const TimelineIndicatorsBarGraph = ({
 		let isOnScrollbar = false
 		let isToDrag = false
 
-		const setTimeDebounced = debounce(setTime, 300)
-		const moveTime = (event: MouseEvent, isFinal?: boolean) => {
+		const moveTime = (event: MouseEvent) => {
 			const { clientX } = event
 			const { offsetLeft, scrollLeft, scrollWidth } = viewportDiv
-			const canvasWidth = scrollWidth - 2 * timelineMargin
+			const canvasWidth = scrollWidth - 2 * TIMELINE_MARGIN
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const x = clamp(
-				scrollLeft + pointerX - offsetLeft - timelineMargin,
+				scrollLeft + pointerX - offsetLeft - TIMELINE_MARGIN,
 				0,
 				canvasWidth,
 			)
@@ -257,9 +266,7 @@ const TimelineIndicatorsBarGraph = ({
 				duration,
 			)
 			setShownTime(newTime)
-			if (isFinal) {
-				setTimeDebounced(newTime)
-			}
+			return newTime
 		}
 
 		const onDrag = () => {
@@ -268,31 +275,35 @@ const TimelineIndicatorsBarGraph = ({
 			timeIndicatorTopDiv.style.cursor = 'grabbing'
 		}
 
-		const onViewportPointerdown = (event: MouseEvent) => {
+		const onPointerdown = (event: MouseEvent) => {
 			const timeAxisDiv = timeAxisRef.current
 			if (!timeAxisDiv) {
 				return
 			}
 			const { clientY } = event
-			const { offsetTop } = viewportDiv
+			const { offsetTop, clientHeight } = viewportDiv
 			const { offsetHeight: timeAxisHeight } = timeAxisDiv
 			const timeAxisBottom = offsetTop + timeAxisHeight
+			const histogramBottom = offsetTop + clientHeight
 			const pointerY = clientY + document.documentElement.scrollTop
 
-			if (pointerY >= timeAxisBottom) {
+			if (pointerY <= timeAxisBottom) {
+				onDrag()
+				moveTime(event)
+			}
+			if (pointerY > histogramBottom) {
 				isOnScrollbar = true
 				setHasActiveScrollbar(isOnScrollbar)
-			} else {
-				onDrag()
 			}
 		}
-		const onGlobalPointerup = (event: MouseEvent) => {
+
+		const onPointerup = (event: MouseEvent) => {
 			timeIndicatorTopDiv.style.cursor = 'grab'
 
 			if (isToDrag) {
 				isToDrag = false
 				setIsDragging(false)
-				moveTime(event, true)
+				moveTime(event)
 			}
 
 			isOnScrollbar = false
@@ -318,62 +329,36 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		}
 
-		viewportDiv.addEventListener('pointerdown', onViewportPointerdown)
+		viewportDiv.addEventListener('pointerdown', onPointerdown)
 		timeIndicatorHair.addEventListener('pointerdown', onDrag)
 		viewportDiv.addEventListener('scroll', onScroll, { passive: false })
-		document.addEventListener('pointerup', onGlobalPointerup)
+		document.addEventListener('pointerup', onPointerup)
 		document.addEventListener('pointermove', onPointermove, {
 			passive: false,
 		})
 		return () => {
-			viewportDiv.removeEventListener(
-				'pointerdown',
-				onViewportPointerdown,
-			)
+			viewportDiv.removeEventListener('pointerdown', onPointerdown)
 			timeIndicatorHair.removeEventListener('pointerdown', onDrag)
 			viewportDiv.removeEventListener('scroll', onScroll)
-			document.removeEventListener('pointerup', onGlobalPointerup)
+			document.removeEventListener('pointerup', onPointerup)
 			document.removeEventListener('pointermove', onPointermove)
+			timeIndicatorTopDiv.style.cursor = 'grab'
 		}
-	}, [
-		viewportRef,
-		timeAxisRef,
-		timeIndicatorTopRef,
-		timeIndicatorHairRef,
-		timelineMargin,
-		width,
-		duration,
-		setTime,
-		camera.zoom,
-		viewportWidth,
-	])
-
-	const barChartData = useMemo(() => {
-		const maxTotal = Math.max(...buckets.map((bucket) => bucket.totalCount))
-		return buckets.map((bucket) => {
-			const barData: IBarRectangle[] = EventsForTimeline.map(
-				(eventType) => ({
-					color: `var(${getAnnotationColor(eventType)})`,
-					percent: ((bucket[eventType] as number) / maxTotal) * 100,
-				}),
-			).filter((rect) => rect.percent > 0)
-			return barData
-		})
-	}, [buckets])
+	}, [duration])
 
 	const leftProgress = useMemo(() => {
 		const canvasWidth = viewportWidth * camera.zoom
 		const x =
-			clamp(camera.x, timelineMargin, canvasWidth - viewportWidth) -
-			timelineMargin
+			clamp(camera.x, TIMELINE_MARGIN, canvasWidth - viewportWidth) -
+			TIMELINE_MARGIN
 		return (width * x) / canvasWidth
-	}, [viewportWidth, camera.zoom, camera.x, timelineMargin, width])
+	}, [viewportWidth, camera.zoom, camera.x, width])
 
 	const rightProgress = useMemo(() => {
 		const canvasWidth = viewportWidth * camera.zoom
-		const actualZoom = canvasWidth / (viewportWidth + 2 * timelineMargin)
+		const actualZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
 		return leftProgress + width / actualZoom
-	}, [viewportWidth, camera.zoom, timelineMargin, leftProgress, width])
+	}, [viewportWidth, camera.zoom, leftProgress, width])
 
 	const leftmostBucketIdx = useMemo(() => {
 		return clamp(
@@ -480,12 +465,12 @@ const TimelineIndicatorsBarGraph = ({
 		}
 		return elms
 	}, [
-		duration,
-		camera.zoom,
-		viewportWidth,
-		leftmostBucketIdx,
 		buckets.length,
+		camera.zoom,
+		duration,
+		leftmostBucketIdx,
 		rightmostBucketIdx,
+		viewportWidth,
 	])
 
 	const [timeIndicatorOffset, setTimeIndicatorOffset] = useState<number>(-25)
@@ -516,6 +501,10 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
+	const maxBucketCount = Math.max(
+		...buckets.map((bucket) => bucket.totalCount),
+	)
+	const bucketPercentWidth = 100 / buckets.length
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressMonitor} ref={progressRef}>
@@ -530,23 +519,19 @@ const TimelineIndicatorsBarGraph = ({
 					) : null}
 				</div>
 				{shouldMockActivityGraph ? (
-					buckets.map((bucket, idx) => {
-						if (bucket.totalCount > 0) {
-							return (
-								<span
-									key={`bucket-mark-${idx}`}
-									className={style.bucketMark}
-									style={{
-										left: (idx / buckets.length) * width,
-										height:
-											bucket.totalCount >= 2
-												? '32%'
-												: '16%',
-									}}
-								></span>
-							)
-						}
-					})
+					buckets
+						.filter((bucket) => bucket.totalCount > 0)
+						.map((bucket, idx) => (
+							<span
+								key={`bucket-mark-${idx}`}
+								className={style.bucketMark}
+								style={{
+									left: (idx / buckets.length) * width,
+									height:
+										bucket.totalCount >= 2 ? '32%' : '16%',
+								}}
+							></span>
+						))
 				) : (
 					<AreaChart
 						width={width}
@@ -584,7 +569,8 @@ const TimelineIndicatorsBarGraph = ({
 				<div
 					className={style.separator}
 					style={{
-						width: viewportWidth * camera.zoom + 2 * timelineMargin,
+						width:
+							viewportWidth * camera.zoom + 2 * TIMELINE_MARGIN,
 					}}
 				></div>
 				<div className={style.eventHistogram} ref={canvasRef}>
@@ -606,24 +592,27 @@ const TimelineIndicatorsBarGraph = ({
 						></span>
 					</div>
 					<div className={style.eventTrack}>
-						{barChartData.map((barData, idx) => {
-							if (
-								idx < leftmostBucketIdx ||
-								idx > rightmostBucketIdx
-							) {
-								return null
-							}
-							const barWidth = 100 / buckets.length
-							return (
-								<TimelineBar
-									key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
-									data={barData}
-									barWidth={barWidth}
-									left={idx * barWidth}
-									margin={4}
-								/>
+						{buckets
+							.map((bucket, idx) =>
+								bucket.totalCount > 0 ? (
+									<TimelineBar
+										key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
+										bucket={bucket}
+										width={`${bucketPercentWidth}%`}
+										left={`${idx * bucketPercentWidth}%`}
+										height={`${
+											(bucket.totalCount /
+												maxBucketCount) *
+											100
+										}%`}
+									/>
+								) : null,
 							)
-						})}
+							.filter(
+								(_, idx) =>
+									idx >= leftmostBucketIdx &&
+									idx <= rightmostBucketIdx,
+							)}
 					</div>
 				</div>
 			</div>
@@ -642,10 +631,6 @@ interface SessionEvent {
 interface Camera {
 	x: number
 	zoom: number
-}
-interface EventBucket {
-	[props: string]: number | string
-	totalCount: number
 }
 
 enum TimelineTick {
