@@ -15,15 +15,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/highlight/backend/zapier"
-
 	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/samber/lo"
 
+	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/errors"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/pricing"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -34,16 +42,6 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-
-	"github.com/highlight-run/highlight/backend/errors"
-	parse "github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/pricing"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 // This file will not be regenerated automatically.
