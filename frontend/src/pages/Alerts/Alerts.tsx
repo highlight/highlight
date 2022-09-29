@@ -34,7 +34,7 @@ export enum ALERT_TYPE {
 	FirstTimeUser,
 	UserProperties,
 	TrackProperties,
-	SessionFeedbackComment,
+	SessionFeedback,
 	NewSession,
 	RageClick,
 	MetricMonitor,

@@ -417,7 +417,7 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedbackComment:
+					case ALERT_TYPE.SessionFeedback:
 						await updateSessionFeedbackAlert({
 							...requestBody,
 							variables: {
