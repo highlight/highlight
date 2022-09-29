@@ -8,6 +8,7 @@ import {
 	ParsedHighlightEvent,
 	ParsedSessionComment,
 	ParsedSessionInterval,
+	ReplayerPausedStates,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement'
@@ -44,8 +45,9 @@ const TimelineIndicatorsBarGraph = React.memo(
 			setZoomAreaRight,
 		} = useToolbarItemsContext()
 		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-		const { time, sessionMetadata, setTime, setCurrentEvent } =
+		const { time, state, sessionMetadata, setTime, setCurrentEvent } =
 			useReplayerContext()
+		const isPaused = ReplayerPausedStates.includes(state)
 		const { session_secure_id } = useParams<{
 			session_secure_id: string
 		}>()
@@ -228,6 +230,12 @@ const TimelineIndicatorsBarGraph = React.memo(
 		const onBucketClicked = useCallback(
 			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
+				if (window.electron?.ipcRenderer) {
+					window.electron.ipcRenderer.sendMessage('controller', {
+						play: !isPaused,
+						time: seriesState.bucketTimes[bucketIndex],
+					})
+				}
 			},
 			[seriesState.bucketTimes, setTime],
 		)
@@ -325,6 +333,12 @@ const TimelineIndicatorsBarGraph = React.memo(
 		const gotoAction = useCallback(
 			(bucketIndex: number) => {
 				setTime(seriesState.bucketTimes[bucketIndex])
+				if (window.electron?.ipcRenderer) {
+					window.electron.ipcRenderer.sendMessage('controller', {
+						play: !isPaused,
+						time: seriesState.bucketTimes[bucketIndex],
+					})
+				}
 			},
 			[seriesState.bucketTimes, setTime],
 		)

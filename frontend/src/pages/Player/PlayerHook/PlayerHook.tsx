@@ -78,7 +78,7 @@ export enum SessionViewability {
 	ERROR,
 }
 
-export const usePlayer = (): ReplayerContextInterface => {
+export const usePlayer = (minimal?: boolean): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { session_secure_id, project_id } = useParams<{
 		session_secure_id: string
@@ -625,7 +625,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const initReplayer = (newEvents: HighlightEvent[]) => {
 		const playerMountingRoot = document.getElementById(
 			'player',
-		) as HTMLElement
+		) as HTMLIFrameElement
 		if (!playerMountingRoot) {
 			setState(ReplayerState.Empty)
 			return
@@ -658,6 +658,118 @@ export const usePlayer = (): ReplayerContextInterface => {
 			setCurrentUrl(onlyUrlEvents[0].data.payload)
 		}
 		setPerformancePayloads(getAllPerformanceEvents(newEvents))
+		if (!minimal) {
+			if (window.electron?.ipcRenderer) {
+				window.electron.ipcRenderer.on(
+					'player',
+					({ time }: { time: number }) => {
+						setTime(time)
+					},
+				)
+			}
+
+			const mockPlayer = {
+				activityIntervals: undefined,
+				addEvent(): void {},
+				applyEventsSynchronously: undefined,
+				applyIncremental: undefined,
+				applyInput: undefined,
+				applyMutation: undefined,
+				applyScroll: undefined,
+				attachDocumentToIframe: undefined,
+				backToNormal: undefined,
+				cache: undefined,
+				canvasEventMap: undefined,
+				collectIframeAndAttachDocument: undefined,
+				config: undefined,
+				debug: undefined,
+				debugNodeNotFound: undefined,
+				deserializeAndPreloadCanvasEvents: undefined,
+				disableInteract(): void {},
+				drawMouseTail: undefined,
+				emitter: undefined,
+				enableInteract(): void {},
+				firstFullSnapshot: undefined,
+				getActivityIntervals(): Array<SessionInterval> {
+					return []
+				},
+				getCastFn: undefined,
+				getCurrentTime(): number {
+					return time
+				},
+				getMetaData(): playerMetaData {
+					const events = newEvents.sort(
+						(a, b) => a.timestamp - b.timestamp,
+					)
+					const first = events[0]
+					const last = events[events.length - 1]
+					const r = {
+						endTime: last.timestamp,
+						startTime: first.timestamp,
+						totalTime: last.timestamp - first.timestamp,
+					}
+					return r
+				},
+				getMirror(): any {
+					return undefined
+				},
+				getTimeOffset(): number {
+					return 0
+				},
+				handleInactivity: undefined,
+				handleResize: undefined,
+				hoverElements: undefined,
+				iframe: playerMountingRoot!,
+				imageMap: undefined,
+				inactiveEndTimestamp: undefined,
+				insertStyleRules: undefined,
+				isUserInteraction: undefined,
+				legacy_missingNodeRetryMap: undefined,
+				legacy_resolveMissingNode: undefined,
+				mirror: undefined,
+				mouse: undefined,
+				mousePos: undefined,
+				mouseTail: undefined,
+				moveAndHover: undefined,
+				newDocumentQueue: undefined,
+				nextUserInteractionEvent: undefined,
+				off(): any {
+					return undefined
+				},
+				on(): any {
+					return undefined
+				},
+				pause(): void {},
+				play(): void {},
+				preloadAllImages: undefined,
+				preloadImages: undefined,
+				rebuildFullSnapshot: undefined,
+				replaceEvents(): void {},
+				resetCache(): void {},
+				resume(timeOffset: number | undefined): void {},
+				service: undefined,
+				setConfig(): void {},
+				setupDom: undefined,
+				speedService: undefined,
+				startLive(baselineTime: number | undefined): void {},
+				tailPositions: undefined,
+				get timer(): any {
+					return undefined
+				},
+				touchActive: undefined,
+				usingVirtualDom: false,
+				virtualDom: undefined,
+				waitForStylesheetLoad: undefined,
+				warn: undefined,
+				warnCanvasMutationFailed: undefined,
+				warnNodeNotFound: undefined,
+				wrapper: undefined,
+			}
+			// @ts-ignore
+			setReplayer(mockPlayer)
+			setState(ReplayerState.Paused)
+			return
+		}
 		setReplayer(r)
 		if (isLiveMode) {
 			r.startLive(newEvents[0].timestamp)
@@ -938,7 +1050,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
-		if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
+		if (
+			(state === ReplayerState.Playing || isLiveMode) &&
+			!timerId &&
+			minimal
+		) {
 			const frameAction = () => {
 				if (replayer) {
 					// The player may start later than the session if earlier events are unloaded
@@ -968,7 +1084,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			setTimerId(requestAnimationFrame(frameAction))
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state, replayer, isLiveMode])
+	}, [state, replayer, isLiveMode, minimal])
 
 	useEffect(() => {
 		if (state !== ReplayerState.Playing && !isLiveMode && timerId) {

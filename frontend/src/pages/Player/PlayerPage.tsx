@@ -81,7 +81,7 @@ const Player = ({ integrated, minimal }: Props) => {
 
 	const [resizeListener, sizes] = useResizeAware()
 
-	const player = usePlayer()
+	const player = usePlayer(minimal)
 	const {
 		state: replayerState,
 		scale: replayerScale,
@@ -156,21 +156,21 @@ const Player = ({ integrated, minimal }: Props) => {
 	)
 
 	useEffect(() => {
-		if (window.electron?.ipcRenderer) {
+		if (minimal && window.electron?.ipcRenderer) {
 			return window.electron.ipcRenderer.on(
 				'controller',
 				controllerHandler,
 			)
 		}
-	}, [controllerHandler])
+	}, [minimal, controllerHandler])
 
 	useEffect(() => {
-		if (window.electron?.ipcRenderer) {
+		if (minimal && window.electron?.ipcRenderer) {
 			window.electron.ipcRenderer.sendMessage('player', {
 				time,
 			})
 		}
-	}, [])
+	}, [minimal, time])
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const resizePlayer = (replayer: Replayer): boolean => {

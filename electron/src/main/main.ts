@@ -92,12 +92,12 @@ const createWindow = async () => {
     frame: false,
     autoHideMenuBar: true,
     alwaysOnTop: true,
-    width: 1400,
-    height: 650,
+    width: 1100,
+    height: 450,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       sandbox: false,
-      devTools: true,
+      devTools: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -110,17 +110,19 @@ const createWindow = async () => {
       const mainBounds = mainWindow.getBounds();
       replayerWindow.setPosition(
         mainBounds.x + mainBounds.width - playerBounds.width - 200,
-        mainBounds.y + 160
+        mainBounds.y + 170
       );
     }
   };
   setTimeout(handleReplayResize, 100);
 
   mainWindow.loadURL(
-    'https://localhost:3000/1/sessions/deG6f2WjNdGeahHKd4IxmPy7HyRm'
+    'https://localhost:3000/1/sessions/RDRJSQH6zzRXo6BrwQe7ZKhzXm14'
+    // 'https://localhost:3000/1/sessions/tUBVvnlurO0vFkXzbbhjmKUFvjgA'
   );
   replayerWindow.loadURL(
-    'https://localhost:3000/1/player/deG6f2WjNdGeahHKd4IxmPy7HyRm'
+    'https://localhost:3000/1/player/RDRJSQH6zzRXo6BrwQe7ZKhzXm14'
+    // 'https://localhost:3000/1/player/tUBVvnlurO0vFkXzbbhjmKUFvjgA'
   );
   // replayerWindow.loadURL(resolveHtmlPath('index.html'));
   replayerWindow.once('ready-to-show', () => {
