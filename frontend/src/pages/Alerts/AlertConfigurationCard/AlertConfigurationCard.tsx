@@ -117,13 +117,15 @@ export const AlertConfigurationCard = ({
 	const [createSessionFeedbackAlert, {}] =
 		useCreateSessionFeedbackAlertMutation({
 			variables: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				slack_channels: [],
-				threshold_window: 30,
-				name: 'Session Feedback',
-				emails: emailsToNotify,
+				input: {
+					project_id,
+					count_threshold: 1,
+					environments: [],
+					slack_channels: [],
+					threshold_window: 30,
+					name: 'Session Feedback',
+					emails: emailsToNotify,
+				},
 			},
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		})
@@ -419,7 +421,7 @@ export const AlertConfigurationCard = ({
 						await updateSessionFeedbackAlert({
 							...requestBody,
 							variables: {
-								session_feedback_alert_id: alert.id,
+								id: alert.id,
 								input: {
 									...requestVariables,
 									threshold_window: lookbackPeriod,

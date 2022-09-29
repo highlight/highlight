@@ -54,17 +54,6 @@ type AdminAboutYouDetails struct {
 	Phone              *string `json:"phone"`
 }
 
-type AlertInput struct {
-	ProjectID       int                           `json:"project_id"`
-	Name            *string                       `json:"name"`
-	CountThreshold  *int                          `json:"count_threshold"`
-	ThresholdWindow *int                          `json:"threshold_window"`
-	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
-	Emails          []*string                     `json:"emails"`
-	Environments    []*string                     `json:"environments"`
-	Disabled        *bool                         `json:"disabled"`
-}
-
 type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }
@@ -366,6 +355,17 @@ type SearchParamsInput struct {
 	FirstTime               *bool                `json:"first_time"`
 	ShowLiveSessions        *bool                `json:"show_live_sessions"`
 	Query                   *string              `json:"query"`
+}
+
+type SessionAlertInput struct {
+	ProjectID       int                           `json:"project_id"`
+	Name            string                        `json:"name"`
+	CountThreshold  int                           `json:"count_threshold"`
+	ThresholdWindow int                           `json:"threshold_window"`
+	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
+	Emails          []string                      `json:"emails"`
+	Environments    []string                      `json:"environments"`
+	Disabled        bool                          `json:"disabled"`
 }
 
 type SessionCommentTagInput struct {
