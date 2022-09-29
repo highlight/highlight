@@ -56,6 +56,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const HistogramPercentileOffset = 0.1
+
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -6037,12 +6039,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if len(results) < 1 {
 			return nil, nil
 		}
+		// offset min and max to include min and max values and pad the distribution a bit
 		if params.MinValue == nil {
-			f := results[0].Value.(float64)
+			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)
 			params.MinValue = &f
 		}
 		if params.MaxValue == nil {
-			f := results[1].Value.(float64)
+			f := results[1].Value.(float64) * (1 + HistogramPercentileOffset)
 			params.MaxValue = &f
 		}
 	}
