@@ -1,8 +1,0 @@
-{
-	"extends": "../../../tsconfig.json",
-	"compilerOptions": {
-		"types": ["@types/offscreencanvas", "@types/node"],
-		"lib": ["webworker"]
-	},
-	"exclude": ["workers.d.ts"]
-}
