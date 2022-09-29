@@ -2358,7 +2358,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id in
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, model.AlertType.SESSION_FEEDBACK, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")
@@ -2387,7 +2387,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, input
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, model.AlertType.SESSION_FEEDBACK, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")

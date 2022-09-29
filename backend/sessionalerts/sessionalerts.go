@@ -44,7 +44,7 @@ func marshalAlertEmails(emails []string) (*string, error) {
 	return &channelsString, nil
 }
 
-func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin *model.Admin, input *modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin *model.Admin, alertType string, input *modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
 	envString, err := marshalEnvironments(input.Environments)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			ExcludedEnvironments: envString,
 			CountThreshold:       input.CountThreshold,
 			ThresholdWindow:      &input.ThresholdWindow,
-			Type:                 &model.AlertType.SESSION_FEEDBACK,
+			Type:                 &alertType,
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
 			Name:                 &input.Name,
