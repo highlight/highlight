@@ -55,8 +55,8 @@ const TimelineIndicatorsBarGraph = ({
 	}>()
 
 	const events = useMemo(
-		() => parseEvents(sessionIntervals),
-		[sessionIntervals],
+		() => parseEvents(sessionIntervals, startTime, duration),
+		[sessionIntervals, startTime, duration],
 	)
 
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
@@ -66,15 +66,20 @@ const TimelineIndicatorsBarGraph = ({
 		[duration, camera.zoom],
 	)
 
+	const bucketTimestep = useMemo(
+		() => getBucketSizeInMs(bucketSize),
+		[bucketSize],
+	)
+
 	const buckets = useMemo(
 		() =>
 			buildEventBuckets(
 				events,
 				duration,
-				bucketSize,
+				bucketTimestep,
 				selectedTimelineAnnotationTypes,
 			),
-		[events, duration, bucketSize, selectedTimelineAnnotationTypes],
+		[events, duration, bucketTimestep, selectedTimelineAnnotationTypes],
 	)
 
 	const formatTimeOnTop = useCallback(
@@ -371,19 +376,20 @@ const TimelineIndicatorsBarGraph = ({
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
 
-		const numTicks = Math.ceil(duration / mainTickInMs) + 1
-		const elms = []
-
 		const canvasWidth = viewportWidth * camera.zoom
-		const step = (mainTickInMs * canvasWidth) / duration
+		const step = (mainTickInMs / duration) * canvasWidth
 		const minorStep = step / 4
 
-		for (let idx = 0; idx < numTicks; ++idx) {
+		const numTicks = Math.ceil(duration / mainTickInMs)
+
+		const elms = []
+
+		for (let idx = 0; idx <= numTicks; ++idx) {
 			const left = idx * step
-			const progress = left / canvasWidth
+			const leftTime = idx * mainTickInMs
 			if (
-				progress < leftmostBucketIdx / buckets.length ||
-				progress > (rightmostBucketIdx + 1) / buckets.length
+				leftTime < (leftmostBucketIdx - 1) * bucketTimestep ||
+				leftTime > (rightmostBucketIdx + 1) * bucketTimestep
 			) {
 				continue
 			}
@@ -419,7 +425,7 @@ const TimelineIndicatorsBarGraph = ({
 					style={{ left: left, borderLeftWidth }}
 				></span>,
 			)
-			if (idx !== numTicks - 1) {
+			if (idx !== numTicks) {
 				elms.push(
 					<span
 						className={classNames(
@@ -454,7 +460,7 @@ const TimelineIndicatorsBarGraph = ({
 		}
 		return elms
 	}, [
-		buckets.length,
+		bucketTimestep,
 		camera.zoom,
 		duration,
 		leftmostBucketIdx,
@@ -493,7 +499,7 @@ const TimelineIndicatorsBarGraph = ({
 	const maxBucketCount = Math.max(
 		...buckets.map((bucket) => bucket.totalCount),
 	)
-	const bucketPercentWidth = 100 / buckets.length
+	const bucketPercentWidth = (bucketTimestep / duration) * 100
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressMonitor} ref={progressRef}>
@@ -686,66 +692,59 @@ const BUCKET_SIZES: readonly BucketSize[] = [
 	},
 ]
 
-function parseEvents(sessionIntervals: ParsedSessionInterval[]) {
+function parseEvents(
+	sessionIntervals: ParsedSessionInterval[],
+	startTime: number,
+	duration: number,
+) {
 	const events = sessionIntervals
 		.filter((session) => session.active)
 		.reduce(
-			(acc, interval) => acc.concat(parseSessionInterval(interval)),
+			(acc, interval) =>
+				acc.concat(parseSessionInterval(interval, startTime, duration)),
 			[] as SessionEvent[],
 		)
 	events.sort((a: any, b: any) => -b.sessionLoc + a.sessionLoc)
 	return events
 }
 
-function parseSessionInterval(interval: ParsedSessionInterval): SessionEvent[] {
+function parseSessionInterval(
+	interval: ParsedSessionInterval,
+	startTime: number,
+	duration: number,
+): SessionEvent[] {
 	const events: SessionEvent[] = []
 
-	const { endPercent: endProgress, startPercent: startProgress } = interval
-	const intervalRange = endProgress - startProgress
-
-	const getSessionLoc = (relPercentage: number) => {
-		return (intervalRange * (relPercentage || 0)) / 100 + startProgress
+	const getSessionLoc = (event: ParsedEvent) => {
+		if (!event.timestamp || !Number.isFinite(event.timestamp)) {
+			return 0
+		}
+		return clamp((Number(event.timestamp) - startTime) / duration, 0, 1)
 	}
 
 	interval.sessionEvents.forEach((event: ParsedEvent) => {
-		if (event.relativeIntervalPercentage === undefined) {
-			return
-		}
-
 		if (event.type === 5) {
 			const eventType = event.data.tag as typeof EventsForTimeline[number]
 
-			if (event.relativeIntervalPercentage === undefined) {
-				return
-			}
-
 			events.push({
 				eventType,
-				sessionLoc: getSessionLoc(event.relativeIntervalPercentage),
+				sessionLoc: getSessionLoc(event),
 				identifier: event.identifier,
 			})
 		}
 	})
 
 	interval.errors.forEach((error: any) => {
-		if (error.relativeIntervalPercentage === undefined) {
-			return
-		}
-
 		events.push({
 			eventType: 'Errors',
-			sessionLoc: getSessionLoc(error.relativeIntervalPercentage),
+			sessionLoc: getSessionLoc(error),
 		})
 	})
 
 	interval.comments.forEach((comment: any) => {
-		if (comment.relativeIntervalPercentage === undefined) {
-			return
-		}
-
 		events.push({
 			eventType: 'Comments',
-			sessionLoc: getSessionLoc(comment.relativeIntervalPercentage),
+			sessionLoc: getSessionLoc(comment),
 		})
 	})
 
@@ -793,7 +792,7 @@ function pickBucketSize(
 function buildEventBuckets(
 	events: SessionEvent[],
 	duration: number,
-	bucketSize: BucketSize,
+	timestep: number,
 	selectedTimelineAnnotationTypes: string[],
 ): EventBucket[] {
 	if (events.length < 2 || !selectedTimelineAnnotationTypes.length) {
@@ -801,34 +800,33 @@ function buildEventBuckets(
 	}
 
 	const defaultEventCounts = Object.fromEntries(
-		Array.from(selectedTimelineAnnotationTypes).map((eventType) => [
-			eventType,
-			0,
-		]),
+		selectedTimelineAnnotationTypes.map((eventType) => [eventType, 0]),
 	)
 
-	const timestep = getBucketSizeInMs(bucketSize)
 	const numBuckets = Math.ceil(duration / timestep)
-	const buckets: any = Array.from({ length: numBuckets }, (_, idx) => ({
-		label: idx,
-		...defaultEventCounts,
-		totalCount: 0,
-	}))
+	const eventBuckets: EventBucket[] = Array.from(
+		{ length: numBuckets },
+		(_, idx) => ({
+			label: idx,
+			...defaultEventCounts,
+			totalCount: 0,
+		}),
+	)
 
-	for (const { eventType, sessionLoc, identifier } of events) {
-		if (!selectedTimelineAnnotationTypes.includes(eventType)) {
-			continue
-		}
+	const filteredEvents = events.filter(({ eventType }) =>
+		selectedTimelineAnnotationTypes.includes(eventType),
+	)
+	for (const { eventType, sessionLoc, identifier } of filteredEvents) {
 		const bucketId = clamp(
-			Math.floor((sessionLoc * duration) / timestep),
+			Math.ceil((sessionLoc * duration) / timestep) - 1,
 			0,
 			numBuckets - 1,
 		)
-		if (!buckets[bucketId][eventType]) {
-			buckets[bucketId][`${eventType}Identifier`] = identifier
+		if (eventBuckets[bucketId][eventType] === 0) {
+			eventBuckets[bucketId][`${eventType}Identifier`] = identifier || ''
 		}
-		buckets[bucketId][eventType]++
-		buckets[bucketId].totalCount++
+		;(eventBuckets[bucketId][eventType] as number)++
+		eventBuckets[bucketId].totalCount++
 	}
-	return buckets
+	return eventBuckets
 }
