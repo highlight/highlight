@@ -283,9 +283,11 @@ export const AlertConfigurationCard = ({
 						await createSessionFeedbackAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								emails: emailsToNotify,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									emails: emailsToNotify,
+								},
 							},
 						})
 						break
@@ -417,11 +419,13 @@ export const AlertConfigurationCard = ({
 						await updateSessionFeedbackAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
 								session_feedback_alert_id: alert.id,
-								threshold_window: lookbackPeriod,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								input: {
+									...requestVariables,
+									threshold_window: lookbackPeriod,
+									emails: emailsToNotify,
+									disabled: isDisabled,
+								},
 							},
 						})
 						break

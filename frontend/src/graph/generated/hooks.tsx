@@ -3029,24 +3029,8 @@ export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateDefaultAlertsMutationVariables
 >
 export const CreateSessionFeedbackAlertDocument = gql`
-	mutation CreateSessionFeedbackAlert(
-		$project_id: ID!
-		$name: String!
-		$count_threshold: Int!
-		$threshold_window: Int!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-	) {
-		createSessionFeedbackAlert(
-			project_id: $project_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-		) {
+	mutation CreateSessionFeedbackAlert($input: AlertInput) {
+		createSessionFeedbackAlert(input: $input) {
 			id
 			ChannelsToNotify {
 				webhook_channel
@@ -3080,13 +3064,7 @@ export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  * @example
  * const [createSessionFeedbackAlertMutation, { data, loading, error }] = useCreateSessionFeedbackAlertMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      threshold_window: // value for 'threshold_window'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
+ *      input: // value for 'input'
  *   },
  * });
  */
@@ -3113,26 +3091,12 @@ export type CreateSessionFeedbackAlertMutationOptions =
 	>
 export const UpdateSessionFeedbackAlertDocument = gql`
 	mutation UpdateSessionFeedbackAlert(
-		$project_id: ID!
 		$session_feedback_alert_id: ID!
-		$count_threshold: Int
-		$name: String
-		$threshold_window: Int
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$disabled: Boolean
+		$input: AlertInput
 	) {
 		updateSessionFeedbackAlert(
-			project_id: $project_id
 			session_feedback_alert_id: $session_feedback_alert_id
-			count_threshold: $count_threshold
-			slack_channels: $slack_channels
-			emails: $emails
-			name: $name
-			environments: $environments
-			threshold_window: $threshold_window
-			disabled: $disabled
+			input: $input
 		) {
 			id
 			ChannelsToNotify {
@@ -3167,15 +3131,8 @@ export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
  * @example
  * const [updateSessionFeedbackAlertMutation, { data, loading, error }] = useUpdateSessionFeedbackAlertMutation({
  *   variables: {
- *      project_id: // value for 'project_id'
  *      session_feedback_alert_id: // value for 'session_feedback_alert_id'
- *      count_threshold: // value for 'count_threshold'
- *      name: // value for 'name'
- *      threshold_window: // value for 'threshold_window'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      disabled: // value for 'disabled'
+ *      input: // value for 'input'
  *   },
  * });
  */

@@ -939,19 +939,7 @@ export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
 >
 
 export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	count_threshold: Types.Scalars['Int']
-	threshold_window: Types.Scalars['Int']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	environments:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
+	input?: Types.Maybe<Types.AlertInput>
 }>
 
 export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
@@ -980,24 +968,8 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
 }
 
 export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
 	session_feedback_alert_id: Types.Scalars['ID']
-	count_threshold?: Types.Maybe<Types.Scalars['Int']>
-	name?: Types.Maybe<Types.Scalars['String']>
-	threshold_window?: Types.Maybe<Types.Scalars['Int']>
-	slack_channels?: Types.Maybe<
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	>
-	emails?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	environments?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	disabled?: Types.Maybe<Types.Scalars['Boolean']>
+	input?: Types.Maybe<Types.AlertInput>
 }>
 
 export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {

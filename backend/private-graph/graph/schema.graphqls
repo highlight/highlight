@@ -516,6 +516,17 @@ input ErrorSearchParamsInput {
 	query: String
 }
 
+input AlertInput {
+	project_id: ID!
+	name: String
+	count_threshold: Int
+	threshold_window: Int
+	slack_channels: [SanitizedSlackChannelInput]
+	emails: [String]
+	environments: [String]
+	disabled: Boolean
+}
+
 type ErrorSearchParams {
 	date_range: DateRange
 	os: String
@@ -1354,25 +1365,10 @@ type Mutation {
 	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
 	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
 	updateSessionFeedbackAlert(
-		project_id: ID!
 		session_feedback_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
+		input: AlertInput
 	): SessionAlert
-	createSessionFeedbackAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-	): SessionAlert
+	createSessionFeedbackAlert(input: AlertInput): SessionAlert
 	updateRageClickAlert(
 		project_id: ID!
 		rage_click_alert_id: ID!

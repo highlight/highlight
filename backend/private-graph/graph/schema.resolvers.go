@@ -31,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -55,8 +55,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-const HistogramPercentileOffset = 0.1
 
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -2351,8 +2349,8 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateSessionFeedbackAlert is the resolver for the updateSessionFeedbackAlert field.
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, sessionFeedbackAlertID int, input *modelInputs.AlertInput) (*model.SessionAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -2364,10 +2362,10 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 		return nil, e.Wrap(err, "error querying session feedback alert")
 	}
 
-	if slackChannels != nil {
+	if input.SlackChannels != nil {
 		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 		// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-		for _, ch := range slackChannels {
+		for _, ch := range input.SlackChannels {
 			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
 		}
 
@@ -2379,8 +2377,8 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 		projectAlert.ChannelsToNotify = &channelsString
 	}
 
-	if environments != nil {
-		envBytes, err := json.Marshal(environments)
+	if input.Environments != nil {
+		envBytes, err := json.Marshal(input.Environments)
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing environments")
 		}
@@ -2388,34 +2386,34 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 		projectAlert.ExcludedEnvironments = &envString
 	}
 
-	if emails != nil {
-		emailsString, err := r.MarshalAlertEmails(emails)
+	if input.Emails != nil {
+		emailsString, err := r.MarshalAlertEmails(input.Emails)
 		if err != nil {
 			return nil, err
 		}
 		projectAlert.EmailsToNotify = emailsString
 	}
 
-	if countThreshold != nil {
-		projectAlert.CountThreshold = *countThreshold
+	if input.CountThreshold != nil {
+		projectAlert.CountThreshold = *input.CountThreshold
 	}
-	if thresholdWindow != nil {
-		projectAlert.ThresholdWindow = thresholdWindow
+	if input.ThresholdWindow != nil {
+		projectAlert.ThresholdWindow = input.ThresholdWindow
 	}
-	if name != nil {
-		projectAlert.Name = name
+	if input.Name != nil {
+		projectAlert.Name = input.Name
 	}
 
 	projectAlert.LastAdminToEditID = admin.ID
 
-	if disabled != nil {
-		projectAlert.Disabled = disabled
+	if input.Disabled != nil {
+		projectAlert.Disabled = input.Disabled
 	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
 			ID: sessionFeedbackAlertID,
 		},
-	}).Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
+	}).Where("project_id = ?", input.ProjectID).Updates(projectAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
@@ -2426,40 +2424,40 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, proje
 }
 
 // CreateSessionFeedbackAlert is the resolver for the createSessionFeedbackAlert field.
-func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, input *modelInputs.AlertInput) (*model.SessionAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
+	envString, err := r.MarshalEnvironments(input.Environments)
 	if err != nil {
 		return nil, err
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
+	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(input.SlackChannels)
 	if err != nil {
 		return nil, err
 	}
 
-	emailsString, err := r.MarshalAlertEmails(emails)
+	emailsString, err := r.MarshalAlertEmails(input.Emails)
 	if err != nil {
 		return nil, err
 	}
 
 	newAlert := &model.SessionAlert{
 		Alert: model.Alert{
-			ProjectID:            projectID,
-			OrganizationID:       projectID,
+			ProjectID:            input.ProjectID,
+			OrganizationID:       input.ProjectID,
 			ExcludedEnvironments: envString,
-			CountThreshold:       countThreshold,
-			ThresholdWindow:      &thresholdWindow,
+			CountThreshold:       *input.CountThreshold,
+			ThresholdWindow:      input.ThresholdWindow,
 			Type:                 &model.AlertType.SESSION_FEEDBACK,
 			ChannelsToNotify:     channelsString,
 			EmailsToNotify:       emailsString,
-			Name:                 &name,
+			Name:                 input.Name,
 			LastAdminToEditID:    admin.ID,
 		},
 	}
@@ -6615,3 +6613,11 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+const HistogramPercentileOffset = 0.1

@@ -54,6 +54,17 @@ type AdminAboutYouDetails struct {
 	Phone              *string `json:"phone"`
 }
 
+type AlertInput struct {
+	ProjectID       int                           `json:"project_id"`
+	Name            *string                       `json:"name"`
+	CountThreshold  *int                          `json:"count_threshold"`
+	ThresholdWindow *int                          `json:"threshold_window"`
+	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
+	Emails          []*string                     `json:"emails"`
+	Environments    []*string                     `json:"environments"`
+	Disabled        *bool                         `json:"disabled"`
+}
+
 type AverageSessionLength struct {
 	Length float64 `json:"length"`
 }
