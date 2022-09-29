@@ -20,6 +20,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
               with:
+                  token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: recursive
 
             # automatically caches dependencies based on yarn.lock
