@@ -52,6 +52,5 @@
 		"cssom": "^0.5.0",
 		"cssstyle": "^2.3.0",
 		"nwsapi": "^2.2.0"
-	},
-	"gitHead": "d5751f9e6c52a7734597c8595caa763d0f4dd4ad"
+	}
 }

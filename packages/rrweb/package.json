@@ -9,7 +9,7 @@
 		"test:headless": "PUPPETEER_HEADLESS=true npm run test",
 		"test:watch": "PUPPETEER_HEADLESS=true npm run test -- --watch",
 		"repl": "npm run bundle:browser && node scripts/repl.js",
-		"dev": "yarn bundle:browser --watch",
+		"dev": "rollup --config --watch",
 		"bundle:browser": "cross-env BROWSER_ONLY=true rollup --config",
 		"bundle": "rollup --config",
 		"typings": "tsc -d --declarationDir typings",
@@ -83,6 +83,5 @@
 		"base64-arraybuffer": "^1.0.1",
 		"fflate": "^0.4.4",
 		"mitt": "^3.0.0"
-	},
-	"gitHead": "d5751f9e6c52a7734597c8595caa763d0f4dd4ad"
+	}
 }

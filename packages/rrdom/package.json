@@ -48,6 +48,5 @@
 	},
 	"dependencies": {
 		"@highlight-run/rrweb-snapshot": "workspace:*"
-	},
-	"gitHead": "d5751f9e6c52a7734597c8595caa763d0f4dd4ad"
+	}
 }

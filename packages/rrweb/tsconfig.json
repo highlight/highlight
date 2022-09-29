@@ -1,6 +1,11 @@
 {
 	"compilerOptions": {
-		"types": ["@types/offscreencanvas", "@types/node"],
+		"typeRoots": ["../../node_modules"],
+		"types": [
+			"@highlight-run/rrdom",
+			"@types/offscreencanvas",
+			"@types/node"
+		],
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"target": "ESNext",
@@ -22,5 +27,6 @@
 		"scripts",
 		"node_modules/@types/css-font-loading-module/index.d.ts",
 		"node_modules/@types/jest-image-snapshot/index.d.ts"
-	]
+	],
+	"references": [{ "path": "../rrdom" }]
 }

@@ -124,12 +124,11 @@ function getPlugins(options = {}) {
 			extract: true,
 			inject: false,
 			minimize: minify,
-			sourceMap,
+			sourceMap: true,
 		}),
 	]
 }
-
-for (const c of baseConfigs) {
+function getNodePlugins() {
 	const basePlugins = [
 		resolve({ browser: true }),
 
@@ -138,13 +137,18 @@ for (const c of baseConfigs) {
 
 		typescript(),
 	]
-	const plugins = basePlugins.concat(
+	return basePlugins.concat(
 		postcss({
 			extract: true,
 			inject: false,
 			minimize: true,
+			sourcemap: true,
 		}),
 	)
+}
+
+for (const c of baseConfigs) {
+	const plugins = getNodePlugins()
 	// browser
 	configs.push({
 		input: c.input,
@@ -198,7 +202,20 @@ for (const c of baseConfigs) {
 	}
 }
 
-if (process.env.BROWSER_ONLY) {
+if (process.env.ES_ONLY) {
+	configs = [
+		{
+			input: './src/entries/all.ts',
+			plugins: getNodePlugins(),
+			output: {
+				format: 'esm',
+				dir: 'es/rrweb',
+				plugins: [renameNodeModules('ext')],
+				sourcemap: true,
+			},
+		},
+	]
+} else if (process.env.BROWSER_ONLY) {
 	const browserOnlyBaseConfigs = [
 		{
 			input: './src/index.ts',

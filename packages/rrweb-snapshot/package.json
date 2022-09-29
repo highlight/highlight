@@ -59,6 +59,5 @@
 		"ts-node": "^7.0.1",
 		"tslib": "^1.9.3",
 		"typescript": "^4.7.3"
-	},
-	"gitHead": "d5751f9e6c52a7734597c8595caa763d0f4dd4ad"
+	}
 }
