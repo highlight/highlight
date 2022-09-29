@@ -1,9 +1,12 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
-import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
+import { customEvent } from '@highlight-run/rrweb/typings/types'
+import {
+	getCommentsForTimelineIndicator,
+	getErrorsForTimelineIndicator,
+} from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ParsedEvent,
-	ParsedSessionInterval,
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
@@ -11,7 +14,6 @@ import TimelineBar, {
 	EventBucket,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
 import { clamp } from '@util/numbers'
-import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
@@ -33,7 +35,9 @@ interface Props {
 }
 
 const TARGET_BUCKET_COUNT = 36
-const TIMELINE_MARGIN = 32
+const TIMELINE_MARGIN = 24
+
+type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
@@ -42,27 +46,58 @@ const TimelineIndicatorsBarGraph = ({
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const {
 		time,
-		sessionMetadata: { startTime, totalTime: duration },
+		sessionMetadata: { startTime: start, totalTime: duration },
 		setTime,
-		sessionIntervals,
 		play,
 		pause,
 		state,
+		eventsForTimelineIndicator,
+		sessionComments,
+		errors: sessionErrors,
+		// isLiveMode,
 	} = useReplayerContext()
 
-	const events = useMemo(
-		() => parseEvents(sessionIntervals, startTime, duration),
-		[sessionIntervals, startTime, duration],
-	)
+	const events = useMemo(() => {
+		const comments = getCommentsForTimelineIndicator(
+			sessionComments,
+			start,
+			duration,
+		)
+		const errors = getErrorsForTimelineIndicator(
+			sessionErrors,
+			start,
+			duration,
+		)
+		const combined: SessionEvent[] = [
+			...eventsForTimelineIndicator.map((event) => ({
+				...event,
+				eventType: (event as customEvent).data.tag,
+			})),
+			...comments.map((event) => ({
+				...event,
+				identifier: event.id,
+				eventType: 'Comments',
+			})),
+			...errors.map((event) => ({
+				...event,
+				identifier: event.id,
+				eventType: 'Errors',
+			})),
+		]
+		combined.sort(
+			(a, b) =>
+				a.relativeIntervalPercentage! - b.relativeIntervalPercentage!,
+		)
+		return combined
+	}, [
+		duration,
+		eventsForTimelineIndicator,
+		sessionComments,
+		sessionErrors,
+		start,
+	])
 
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
-	const { session_secure_id } = useParams<{
-		session_secure_id: string
-	}>()
-
-	useEffect(() => {
-		setCamera({ x: 0, zoom: 1 })
-	}, [session_secure_id])
 
 	const bucketSize = useMemo(
 		() => pickBucketSize(duration / camera.zoom, TARGET_BUCKET_COUNT),
@@ -89,11 +124,11 @@ const TimelineIndicatorsBarGraph = ({
 		(t: number) =>
 			showPlayerAbsoluteTime
 				? playerTimeToSessionAbsoluteTime({
-						sessionStartTime: startTime,
+						sessionStartTime: start,
 						relativeTime: t,
 				  }).toString()
 				: formatTimeAsHMS(t),
-		[startTime, showPlayerAbsoluteTime],
+		[showPlayerAbsoluteTime, start],
 	)
 
 	const viewportRef = useRef<HTMLDivElement>(null)
@@ -276,11 +311,12 @@ const TimelineIndicatorsBarGraph = ({
 			if (!timeAxisDiv) {
 				return
 			}
-			const { clientY } = event
-			const { offsetTop, clientHeight } = viewportDiv
 			const { offsetHeight: timeAxisHeight } = timeAxisDiv
-			const timeAxisBottom = offsetTop + timeAxisHeight
-			const histogramBottom = offsetTop + clientHeight
+
+			const { clientY } = event
+			const bbox = viewportDiv.getBoundingClientRect()
+			const timeAxisBottom = bbox.top + timeAxisHeight
+			const histogramBottom = bbox.top + viewportDiv.clientHeight
 			const pointerY = clientY + document.documentElement.scrollTop
 
 			if (pointerY <= timeAxisBottom) {
@@ -499,7 +535,7 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}, [camera.zoom, duration, time, viewportWidth])
 
-	if (!sessionIntervals.length) {
+	if (!events.length) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
@@ -637,12 +673,6 @@ const TimelineIndicatorsBarGraph = ({
 
 export default TimelineIndicatorsBarGraph
 
-interface SessionEvent {
-	eventType: string
-	sessionLoc: number
-	identifier?: string
-}
-
 interface Camera {
 	x: number
 	zoom: number
@@ -711,65 +741,6 @@ const BUCKET_SIZES: readonly BucketSize[] = [
 	},
 ]
 
-function parseEvents(
-	sessionIntervals: ParsedSessionInterval[],
-	startTime: number,
-	duration: number,
-) {
-	const events = sessionIntervals
-		.filter((session) => session.active)
-		.reduce(
-			(acc, interval) =>
-				acc.concat(parseSessionInterval(interval, startTime, duration)),
-			[] as SessionEvent[],
-		)
-	events.sort((a: any, b: any) => -b.sessionLoc + a.sessionLoc)
-	return events
-}
-
-function parseSessionInterval(
-	interval: ParsedSessionInterval,
-	startTime: number,
-	duration: number,
-): SessionEvent[] {
-	const events: SessionEvent[] = []
-
-	const getSessionLoc = (event: ParsedEvent) => {
-		if (!event.timestamp || !Number.isFinite(event.timestamp)) {
-			return 0
-		}
-		return clamp((Number(event.timestamp) - startTime) / duration, 0, 1)
-	}
-
-	interval.sessionEvents.forEach((event: ParsedEvent) => {
-		if (event.type === 5) {
-			const eventType = event.data.tag as typeof EventsForTimeline[number]
-
-			events.push({
-				eventType,
-				sessionLoc: getSessionLoc(event),
-				identifier: event.identifier,
-			})
-		}
-	})
-
-	interval.errors.forEach((error: any) => {
-		events.push({
-			eventType: 'Errors',
-			sessionLoc: getSessionLoc(error),
-		})
-	})
-
-	interval.comments.forEach((comment: any) => {
-		events.push({
-			eventType: 'Comments',
-			sessionLoc: getSessionLoc(comment),
-		})
-	})
-
-	return events
-}
-
 function getBucketSizeInMs({ multiple, tick }: BucketSize) {
 	let size = multiple
 	switch (tick) {
@@ -814,7 +785,11 @@ function buildEventBuckets(
 	timestep: number,
 	selectedTimelineAnnotationTypes: string[],
 ): EventBucket[] {
-	if (events.length < 2 || !selectedTimelineAnnotationTypes.length) {
+	if (
+		!selectedTimelineAnnotationTypes.length ||
+		!events.length ||
+		duration <= 0
+	) {
 		return []
 	}
 
@@ -835,11 +810,18 @@ function buildEventBuckets(
 	const filteredEvents = events.filter(({ eventType }) =>
 		selectedTimelineAnnotationTypes.includes(eventType),
 	)
-	for (const { eventType, sessionLoc, identifier } of filteredEvents) {
+
+	for (const {
+		eventType,
+		relativeIntervalPercentage,
+		identifier,
+	} of filteredEvents) {
 		const bucketId = clamp(
-			Math.ceil((sessionLoc * duration) / timestep) - 1,
+			Math.ceil(
+				((relativeIntervalPercentage! / 100) * duration) / timestep,
+			) - 1,
 			0,
-			numBuckets - 1,
+			eventBuckets.length - 1,
 		)
 		if (eventBuckets[bucketId][eventType] === 0) {
 			eventBuckets[bucketId][`${eventType}Identifier`] = identifier || ''

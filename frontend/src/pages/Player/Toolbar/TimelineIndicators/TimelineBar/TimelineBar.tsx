@@ -53,6 +53,7 @@ const TimelineIndicatorsBar = ({
 					percent:
 						((bucket[eventType] as number) / bucket.totalCount) *
 						100,
+					eventType,
 				}
 			})
 			.filter((rect) => rect.percent > 0)
@@ -111,7 +112,7 @@ const TimelineIndicatorsBar = ({
 
 	const popoverContent = useMemo(() => {
 		const rows = []
-		for (const { icon, color, count, name, firstId } of data) {
+		for (const { icon, color, count, name, firstId, eventType } of data) {
 			rows.push(
 				<Button
 					className={classNames(
@@ -122,7 +123,13 @@ const TimelineIndicatorsBar = ({
 					type="text"
 					key={name}
 					onClick={() => {
-						if (!!firstId) {
+						if (
+							!!firstId &&
+							!(
+								eventType === 'Comments' ||
+								eventType === 'Errors'
+							)
+						) {
 							setCurrentEvent(firstId as string)
 							setShowRightPanel(true)
 						}

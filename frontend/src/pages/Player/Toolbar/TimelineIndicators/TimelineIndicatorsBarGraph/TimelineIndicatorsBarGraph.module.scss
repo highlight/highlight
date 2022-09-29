@@ -1,3 +1,6 @@
+:root {
+	--timeline-margin: 24px;
+}
 .timelineIndicatorsContainer {
 	align-items: center;
 	background-color: var(--color-primary-background);
@@ -57,8 +60,8 @@
 	display: flex;
 	flex-direction: row;
 	height: 72px;
-	margin-left: 32px;
-	margin-right: 32px;
+	margin-left: var(--timeline-margin);
+	margin-right: var(--timeline-margin);
 	position: relative;
 }
 
@@ -71,8 +74,8 @@
 
 .timeAxis {
 	height: 39px;
-	margin-left: 32px;
-	margin-right: 32px;
+	margin-left: var(--timeline-margin);
+	margin-right: var(--timeline-margin);
 	pointer-events: none;
 	position: relative;
 }
