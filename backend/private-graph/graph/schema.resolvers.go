@@ -2359,7 +2359,7 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateSessionFeedbackAlert is the resolver for the updateSessionFeedbackAlert field.
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannelIds []string, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -5372,6 +5372,44 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 	return ret, nil
 }
 
+// DiscordChannelSuggestions is the resolver for the discord_channel_suggestions field.
+func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*modelInputs.DiscordChannel, error) {
+	ret := []*modelInputs.DiscordChannel{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return ret, e.Wrap(err, "error getting project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	bot, err := discord.InitBot(*workspace.DiscordGuildId)
+
+	// TODO - handle when discord is not enabled for the account.
+
+	if err != nil {
+		return ret, err
+	}
+
+	channels, err := discord.GetChannels(bot)
+
+	if err != nil {
+		return ret, err
+	}
+
+	for _, ch := range channels {
+		ret = append(ret, &modelInputs.DiscordChannel{
+			ID:   ch.ID,
+			Name: ch.Name,
+		})
+	}
+
+	return ret, nil
+}
+
 // SlackMembers is the resolver for the slack_members field.
 func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5469,9 +5507,24 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		if err != nil {
 			return false, err
 		}
-		if err := r.saveDiscordOauthConfig(workspace, token); err != nil {
+		if err := r.updateDiscordOauthConfig(workspace, token); err != nil {
 			return false, err
 		}
+
+		bot, err := discord.InitBot(*workspace.DiscordGuildId)
+
+		if err != nil {
+			return false, err
+		}
+
+		channels, err := discord.GetChannels(bot)
+
+		if err != nil {
+			return false, err
+		}
+
+		fmt.Sprintf("%b", channels)
+
 		return workspace.DiscordAccessToken != nil, nil
 	}
 

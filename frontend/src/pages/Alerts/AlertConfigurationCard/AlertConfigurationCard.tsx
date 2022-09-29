@@ -22,7 +22,11 @@ import {
 	useUpdateTrackPropertiesAlertMutation,
 	useUpdateUserPropertiesAlertMutation,
 } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
+import {
+	namedOperations,
+	UpdateSessionFeedbackAlertMutationVariables,
+} from '@graph/operations'
+import { DiscordChannel } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
@@ -55,6 +59,7 @@ interface Props {
 	configuration: AlertConfiguration
 	environmentOptions: any[]
 	channelSuggestions: any[]
+	discordChannelSuggestions: DiscordChannel[]
 	slackUrl: string
 	onDeleteHandler?: (alertId: string) => void
 	isCreatingNewAlert?: boolean
@@ -73,6 +78,7 @@ export const AlertConfigurationCard = ({
 	},
 	environmentOptions,
 	channelSuggestions,
+	discordChannelSuggestions,
 	slackUrl,
 	onDeleteHandler,
 	isCreatingNewAlert = false,
@@ -209,7 +215,7 @@ export const AlertConfigurationCard = ({
 	}, [alert.Name, defaultName, history])
 
 	const onSubmit = async () => {
-		const requestVariables = {
+		const requestVariables: UpdateSessionFeedbackAlertMutationVariables = {
 			project_id,
 			environments: form.getFieldValue(excludedEnvironmentsFormName),
 			count_threshold: form.getFieldValue('threshold'),
@@ -223,6 +229,8 @@ export const AlertConfigurationCard = ({
 					).webhook_channel,
 					webhook_channel_id,
 				})),
+
+			discord_channel_ids: form.getFieldValue('discordChannelIds'),
 			name: form.getFieldValue('name'),
 		}
 		const requestBody = {
@@ -508,6 +516,12 @@ export const AlertConfigurationCard = ({
 		}),
 	)
 
+	const discordChannels = discordChannelSuggestions.map(({ id, name }) => ({
+		displayValue: name,
+		value: id,
+		id: id,
+	}))
+
 	const emails = emailSuggestions.map((email) => ({
 		displayValue: email,
 		value: email,
@@ -567,6 +581,11 @@ export const AlertConfigurationCard = ({
 
 	const onChannelsChange = (channels: string[]) => {
 		form.setFieldsValue({ channels })
+		setFormTouched(true)
+	}
+
+	const onDiscordChannelsChange = (discordChannelIds: string[]) => {
+		form.setFieldsValue({ discordChannelIds })
 		setFormTouched(true)
 	}
 
@@ -817,6 +836,41 @@ export const AlertConfigurationCard = ({
 														</>
 													)}
 											</div>
+										)}
+									/>
+								)}
+							</Form.Item>
+						</section>
+
+						<section>
+							<h3>Discord Channels to Notify</h3>
+							<p>
+								Pick Discord channels or people to message when
+								an alert is created.
+							</p>
+							<Form.Item shouldUpdate>
+								{() => (
+									<Select
+										className={styles.channelSelect}
+										options={discordChannels}
+										mode="multiple"
+										onSearch={(value) => {
+											setSearchQuery(value)
+										}}
+										filterOption={(searchValue, option) => {
+											return (
+												option?.children
+													?.toString()
+													.toLowerCase()
+													.includes(
+														searchValue.toLowerCase(),
+													) || false
+											)
+										}}
+										placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
+										onChange={onDiscordChannelsChange}
+										dropdownRender={(menu) => (
+											<div>{menu}</div>
 										)}
 									/>
 								)}

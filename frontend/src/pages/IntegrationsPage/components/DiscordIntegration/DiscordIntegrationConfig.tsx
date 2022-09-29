@@ -114,7 +114,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
+						<span className="mt-1">
 							Connect Highlight with Discord
 						</span>
 					</span>

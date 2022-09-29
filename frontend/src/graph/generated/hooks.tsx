@@ -9886,6 +9886,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			webhook_channel
 			webhook_channel_id
 		}
+		discord_channel_suggestions(project_id: $project_id) {
+			id
+			name
+		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
 			admin {
 				id

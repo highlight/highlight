@@ -725,6 +725,11 @@ type SanitizedSlackChannel {
 	webhook_channel_id: String
 }
 
+type DiscordChannel {
+	id: String!
+	name: String!
+}
+
 input SanitizedSlackChannelInput {
 	webhook_channel_name: String
 	webhook_channel_id: String
@@ -1074,6 +1079,7 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
@@ -1361,6 +1367,7 @@ type Mutation {
 		count_threshold: Int
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channel_ids: [String!]
 		emails: [String]
 		environments: [String]
 		disabled: Boolean
@@ -1371,6 +1378,7 @@ type Mutation {
 		count_threshold: Int!
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channel_ids: [String!]
 		emails: [String]!
 		environments: [String]!
 	): SessionAlert
@@ -1381,6 +1389,7 @@ type Mutation {
 		count_threshold: Int
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channel_ids: [String!]
 		emails: [String]
 		environments: [String]
 		disabled: Boolean
@@ -1392,6 +1401,7 @@ type Mutation {
 		count_threshold: Int
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channel_ids: [String!]
 		emails: [String]
 		environments: [String]
 		disabled: Boolean
@@ -1401,6 +1411,7 @@ type Mutation {
 		name: String!
 		count_threshold: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channel_ids: [String!]
 		emails: [String]!
 		environments: [String]!
 		threshold_window: Int!
@@ -1410,6 +1421,7 @@ type Mutation {
 		session_alert_id: ID!
 		name: String
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channel_ids: [String!]
 		emails: [String]
 		environments: [String]
 		track_properties: [TrackPropertyInput]
@@ -1420,6 +1432,7 @@ type Mutation {
 		project_id: ID!
 		name: String!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channel_ids: [String!]
 		emails: [String]!
 		environments: [String]!
 		track_properties: [TrackPropertyInput]!

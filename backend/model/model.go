@@ -240,6 +240,7 @@ type Workspace struct {
 	ClearbitEnabled             bool       `gorm:"default:false"`
 	DiscordAccessToken          *string
 	DiscordRefreshToken         *string
+	DiscordGuildId              *string
 	DiscordTokenExpiresAt       *time.Time
 }
 
@@ -778,18 +779,19 @@ type MetricGroup struct {
 
 type MetricMonitor struct {
 	Model
-	ProjectID         int `gorm:"index;not null;"`
-	Name              string
-	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
-	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
-	Threshold         float64
-	Units             *string // Threshold value is in these Units.
-	MetricToMonitor   string
-	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
-	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
-	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
-	Disabled          *bool                    `gorm:"default:false"`
-	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	ProjectID               int `gorm:"index;not null;"`
+	Name                    string
+	Aggregator              modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes           *int                         // apply aggregator function on PeriodMinutes lookback
+	Threshold               float64
+	Units                   *string // Threshold value is in these Units.
+	MetricToMonitor         string
+	ChannelsToNotify        *string                  `gorm:"channels_to_notify"`
+	DiscordChannelsToNotify *string                  `gorm:"discord_channels_to_notify"`
+	EmailsToNotify          *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID       int                      `gorm:"last_admin_to_edit_id"`
+	Disabled                *bool                    `gorm:"default:false"`
+	Filters                 []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
 }
 
 func (m *MessagesObject) Contents() string {

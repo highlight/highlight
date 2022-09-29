@@ -156,6 +156,11 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type DiscordChannel struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type EnhancedUserDetailsResult struct {
 	ID      *int          `json:"id"`
 	Name    *string       `json:"name"`

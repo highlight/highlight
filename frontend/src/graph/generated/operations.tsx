@@ -3580,6 +3580,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 			>
 		>
 	>
+	discord_channel_suggestions: Array<
+		{ __typename?: 'DiscordChannel' } & Pick<
+			Types.DiscordChannel,
+			'id' | 'name'
+		>
+	>
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & {
 			admin: { __typename?: 'Admin' } & Pick<

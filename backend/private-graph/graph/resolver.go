@@ -1617,14 +1617,27 @@ func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToke
 
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
+
+	guild := token.Extra("guild").(map[string]interface{})
+	guildId := guild["id"].(string)
+
 	if err != nil {
 		return e.Wrapf(err, "failed to add discord to workspace id %d", workspace.ID)
 	}
 
-	return r.saveDiscordOauthConfig(workspace, token)
+	return r.saveDiscordOauthConfig(workspace, token, guildId)
 }
 
-func (r *Resolver) saveDiscordOauthConfig(workspace *model.Workspace, token *oauth2.Token) error {
+func (r *Resolver) saveDiscordOauthConfig(workspace *model.Workspace, token *oauth2.Token, guildId string) error {
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordAccessToken: &token.AccessToken,
+		DiscordRefreshToken: &token.RefreshToken, DiscordTokenExpiresAt: &token.Expiry, DiscordGuildId: &guildId}).Error; err != nil {
+		return e.Wrap(err, "error updating discord access token on workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) updateDiscordOauthConfig(workspace *model.Workspace, token *oauth2.Token) error {
 	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordAccessToken: &token.AccessToken,
 		DiscordRefreshToken: &token.RefreshToken, DiscordTokenExpiresAt: &token.Expiry}).Error; err != nil {
 		return e.Wrap(err, "error updating discord access token on workspace")

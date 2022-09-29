@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 
+	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
 	log "github.com/sirupsen/logrus"
@@ -125,6 +126,10 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
+			}
+
+			if err := discord.SendDiscordAlert(message, metricMonitor, &workspace); err != nil {
+				log.Error("error sending discord alert for metric monitor", err)
 			}
 
 			emailsToNotify, err := model.GetEmailsToNotify(metricMonitor.EmailsToNotify)

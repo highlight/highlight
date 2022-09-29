@@ -1,67 +1,25 @@
 package discord
 
 import (
-	"context"
-	"os"
-
+	"github.com/bwmarrin/discordgo"
 	"github.com/pkg/errors"
-
-	"golang.org/x/oauth2"
 )
 
-var Endpoint = oauth2.Endpoint{
-	AuthURL:   "https://discord.com/api/oauth2/authorize",
-	TokenURL:  "https://discord.com/api/oauth2/token",
-	AuthStyle: oauth2.AuthStyleInParams,
+type HighlightBot struct {
+	Session *discordgo.Session
+	GuildID string
 }
 
-func oauthConfig() (*oauth2.Config, error) {
-	var (
-		ok                  bool
-		DiscordClientID     string
-		DiscordClientSecret string
-		FrontendUri         string
-	)
-	if DiscordClientID, ok = os.LookupEnv("DISCORD_CLIENT_ID"); !ok || DiscordClientID == "" {
-		return nil, errors.New("DISCORD_CLIENT_ID not set")
-	}
-	if DiscordClientSecret, ok = os.LookupEnv("DISCORD_CLIENT_SECRET"); !ok || DiscordClientSecret == "" {
-		return nil, errors.New("DISCORD_CLIENT_SECRET not set")
-	}
-	if FrontendUri, ok = os.LookupEnv("REACT_APP_FRONTEND_URI"); !ok || FrontendUri == "" {
-		return nil, errors.New("REACT_APP_FRONTEND_URI not set")
+func InitBot(guildId string) (*HighlightBot, error) {
+	token := "MTAyNDA3OTE4MjAxMzE0OTE4NQ.GRv6g0.brlou2owOlRP-ZLQxZ_JNgI5pLxtqkPGL4t6v0"
+	session, err := discordgo.New("Bot " + token)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating Discord session")
 	}
 
-	return &oauth2.Config{
-		ClientID:     DiscordClientID,
-		ClientSecret: DiscordClientSecret,
-		Endpoint:     Endpoint,
-		RedirectURL:  FrontendUri + "/callback/discord",
+	return &HighlightBot{
+		Session: session,
+		GuildID: guildId,
 	}, nil
-}
-
-func OAuth(ctx context.Context, code string) (*oauth2.Token, error) {
-	conf, err := oauthConfig()
-
-	if err != nil {
-		return nil, err
-	}
-	return conf.Exchange(ctx, code)
-}
-
-func RefreshOAuth(ctx context.Context, token *oauth2.Token) (*oauth2.Token, error) {
-	conf, err := oauthConfig()
-
-	if err != nil {
-		return nil, err
-	}
-
-	tokenSource := conf.TokenSource(ctx, token)
-
-	newToken, err := tokenSource.Token()
-	if err != nil {
-		return nil, err
-	}
-
-	return newToken, nil
 }
