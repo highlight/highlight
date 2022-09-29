@@ -3,4 +3,4 @@
 	url = https://github.com/highlight-run/highlight-go
 [submodule "rrweb"]
 	path = rrweb
-	url = https://github.com/highlight-run/rrweb.git
+	url = https://github.com/highlight-run/rrweb
