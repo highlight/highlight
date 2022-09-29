@@ -1,6 +1,12 @@
 {
 	"compilerOptions": {
-		"types": [],
+		"types": [
+			"@types/chai",
+			"@types/jest",
+			"@types/jsdom",
+			"@types/node",
+			"@types/puppeteer"
+		],
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"noImplicitAny": true,

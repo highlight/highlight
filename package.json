@@ -43,7 +43,7 @@
 		"publish:all": "run-p --print-label publish:turbo publish:render",
 		"publish:turbo": "changeset version && changeset publish",
 		"publish:render": "yarn workspace render publish",
-		"test:all": "yarn turbo run test",
+		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-snapshot",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {

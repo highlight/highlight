@@ -19,7 +19,7 @@
 			"outputs": ["build/**", "dist/**"]
 		},
 		"test": {
-			"dependsOn": ["build"],
+			"dependsOn": ["prepublish", "build"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",
