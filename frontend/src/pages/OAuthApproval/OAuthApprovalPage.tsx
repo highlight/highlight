@@ -5,6 +5,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetOAuthClientMetadataQuery } from '@graph/hooks'
 import { GenerateSecureRandomString } from '@util/random'
+import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import Firebase from 'firebase'
 import React, { useEffect, useState } from 'react'
@@ -26,7 +27,7 @@ const OAuthBackend =
 		: `https://pri.highlight.localhost`
 const HighlightFrontend =
 	window.location.host.indexOf('local') === -1
-		? `https://app.highlight.run`
+		? GetBaseURL()
 		: `https://app.highlight.localhost`
 const OAuthApprovalPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
@@ -108,7 +109,7 @@ const OAuthApprovalPage = () => {
 		return null
 	} else if (called && !data?.oauth_client_metadata?.id) {
 		return (
-			<div className={'absolute flex h-full w-full top-0 left-0'}>
+			<div className={'absolute top-0 left-0 flex h-full w-full'}>
 				<ErrorState message="We don't recognize this OAuth client." />
 			</div>
 		)
