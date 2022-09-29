@@ -1364,6 +1364,11 @@ type Mutation {
 	): ErrorAlert
 	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
 	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
+	updateSessionAlertIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): SessionAlert
 	updateSessionFeedbackAlert(id: ID!, input: SessionAlertInput): SessionAlert
 	createSessionFeedbackAlert(input: SessionAlertInput): SessionAlert
 	updateRageClickAlert(

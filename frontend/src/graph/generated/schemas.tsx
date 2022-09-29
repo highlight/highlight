@@ -1594,6 +1594,7 @@ export type Mutation = {
 	updateErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
+	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
 	updateSessionFeedbackAlert?: Maybe<SessionAlert>
 	createSessionFeedbackAlert?: Maybe<SessionAlert>
 	updateRageClickAlert?: Maybe<SessionAlert>
@@ -1953,6 +1954,12 @@ export type MutationDeleteErrorAlertArgs = {
 export type MutationDeleteMetricMonitorArgs = {
 	project_id: Scalars['ID']
 	metric_monitor_id: Scalars['ID']
+}
+
+export type MutationUpdateSessionAlertIsDisabledArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+	disabled: Scalars['Boolean']
 }
 
 export type MutationUpdateSessionFeedbackAlertArgs = {

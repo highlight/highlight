@@ -764,6 +764,20 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
 	}
 }
 
+mutation UpdateSessionAlertIsDisabled(
+	$id: ID!
+	$project_id: ID!
+	$disabled: Boolean!
+) {
+	updateSessionAlertIsDisabled(
+		id: $id
+		project_id: $project_id
+		disabled: $disabled
+	) {
+		id
+	}
+}
+
 mutation CreateDefaultAlerts(
 	$project_id: ID!
 	$alert_types: [String!]!

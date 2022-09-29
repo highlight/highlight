@@ -495,6 +495,7 @@ type ComplexityRoot struct {
 		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) int
 		UpdateNewUserAlert               func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
 		UpdateRageClickAlert             func(childComplexity int, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) int
+		UpdateSessionAlertIsDisabled     func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateSessionFeedbackAlert       func(childComplexity int, id int, input *model.SessionAlertInput) int
 		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
 		UpdateTrackPropertiesAlert       func(childComplexity int, projectID int, sessionAlertID int, name *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow *int, disabled *bool) int
@@ -1002,6 +1003,7 @@ type MutationResolver interface {
 	UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model1.ErrorAlert, error)
 	DeleteErrorAlert(ctx context.Context, projectID int, errorAlertID int) (*model1.ErrorAlert, error)
 	DeleteMetricMonitor(ctx context.Context, projectID int, metricMonitorID int) (*model1.MetricMonitor, error)
+	UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model1.SessionAlert, error)
 	UpdateSessionFeedbackAlert(ctx context.Context, id int, input *model.SessionAlertInput) (*model1.SessionAlert, error)
 	CreateSessionFeedbackAlert(ctx context.Context, input *model.SessionAlertInput) (*model1.SessionAlert, error)
 	UpdateRageClickAlert(ctx context.Context, projectID int, rageClickAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model1.SessionAlert, error)
@@ -3664,6 +3666,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateRageClickAlert(childComplexity, args["project_id"].(int), args["rage_click_alert_id"].(int), args["name"].(*string), args["count_threshold"].(*int), args["threshold_window"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["environments"].([]*string), args["disabled"].(*bool)), true
+
+	case "Mutation.updateSessionAlertIsDisabled":
+		if e.complexity.Mutation.UpdateSessionAlertIsDisabled == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateSessionAlertIsDisabled_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateSessionAlertIsDisabled(childComplexity, args["id"].(int), args["project_id"].(int), args["disabled"].(bool)), true
 
 	case "Mutation.updateSessionFeedbackAlert":
 		if e.complexity.Mutation.UpdateSessionFeedbackAlert == nil {
@@ -7805,6 +7819,11 @@ type Mutation {
 	): ErrorAlert
 	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
 	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
+	updateSessionAlertIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): SessionAlert
 	updateSessionFeedbackAlert(id: ID!, input: SessionAlertInput): SessionAlert
 	createSessionFeedbackAlert(input: SessionAlertInput): SessionAlert
 	updateRageClickAlert(
@@ -10773,6 +10792,39 @@ func (ec *executionContext) field_Mutation_updateRageClickAlert_args(ctx context
 		}
 	}
 	args["disabled"] = arg8
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateSessionAlertIsDisabled_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg1
+	var arg2 bool
+	if tmp, ok := rawArgs["disabled"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["disabled"] = arg2
 	return args, nil
 }
 
@@ -27015,6 +27067,90 @@ func (ec *executionContext) fieldContext_Mutation_deleteMetricMonitor(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteMetricMonitor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateSessionAlertIsDisabled(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateSessionAlertIsDisabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateSessionAlertIsDisabled(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["disabled"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SessionAlert)
+	fc.Result = res
+	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateSessionAlertIsDisabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SessionAlert_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SessionAlert_updated_at(ctx, field)
+			case "Name":
+				return ec.fieldContext_SessionAlert_Name(ctx, field)
+			case "ChannelsToNotify":
+				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "EmailsToNotify":
+				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
+			case "ExcludedEnvironments":
+				return ec.fieldContext_SessionAlert_ExcludedEnvironments(ctx, field)
+			case "CountThreshold":
+				return ec.fieldContext_SessionAlert_CountThreshold(ctx, field)
+			case "TrackProperties":
+				return ec.fieldContext_SessionAlert_TrackProperties(ctx, field)
+			case "UserProperties":
+				return ec.fieldContext_SessionAlert_UserProperties(ctx, field)
+			case "ThresholdWindow":
+				return ec.fieldContext_SessionAlert_ThresholdWindow(ctx, field)
+			case "LastAdminToEditID":
+				return ec.fieldContext_SessionAlert_LastAdminToEditID(ctx, field)
+			case "Type":
+				return ec.fieldContext_SessionAlert_Type(ctx, field)
+			case "ExcludeRules":
+				return ec.fieldContext_SessionAlert_ExcludeRules(ctx, field)
+			case "DailyFrequency":
+				return ec.fieldContext_SessionAlert_DailyFrequency(ctx, field)
+			case "disabled":
+				return ec.fieldContext_SessionAlert_disabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SessionAlert", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateSessionAlertIsDisabled_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -50561,6 +50697,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteMetricMonitor(ctx, field)
+			})
+
+		case "updateSessionAlertIsDisabled":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateSessionAlertIsDisabled(ctx, field)
 			})
 
 		case "updateSessionFeedbackAlert":

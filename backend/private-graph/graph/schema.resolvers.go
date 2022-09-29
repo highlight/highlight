@@ -31,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2347,6 +2347,30 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 	}
 
 	return metricMonitor, nil
+}
+
+// UpdateSessionAlertIsDisabled is the resolver for the updateSessionAlertIsDisabled field.
+func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	sessionAlert := &model.SessionAlert{
+		Alert: model.Alert{
+			Disabled: &disabled,
+		},
+	}
+
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: id,
+		},
+	}).Where("project_id = ?", projectID).Updates(sessionAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
+	}
+
+	return sessionAlert, err
 }
 
 // UpdateSessionFeedbackAlert is the resolver for the updateSessionFeedbackAlert field.
@@ -6546,3 +6570,13 @@ type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) UpdateAlertIsDisabled(ctx context.Context, id int, disabled bool) (*model.SessionAlert, error) {
+	panic(fmt.Errorf("not implemented"))
+}

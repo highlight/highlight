@@ -2968,6 +2968,66 @@ export type DeleteSessionAlertMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionAlertMutation,
 	Types.DeleteSessionAlertMutationVariables
 >
+export const UpdateSessionAlertIsDisabledDocument = gql`
+	mutation UpdateSessionAlertIsDisabled(
+		$id: ID!
+		$project_id: ID!
+		$disabled: Boolean!
+	) {
+		updateSessionAlertIsDisabled(
+			id: $id
+			project_id: $project_id
+			disabled: $disabled
+		) {
+			id
+		}
+	}
+`
+export type UpdateSessionAlertIsDisabledMutationFn = Apollo.MutationFunction<
+	Types.UpdateSessionAlertIsDisabledMutation,
+	Types.UpdateSessionAlertIsDisabledMutationVariables
+>
+
+/**
+ * __useUpdateSessionAlertIsDisabledMutation__
+ *
+ * To run a mutation, you first call `useUpdateSessionAlertIsDisabledMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSessionAlertIsDisabledMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSessionAlertIsDisabledMutation, { data, loading, error }] = useUpdateSessionAlertIsDisabledMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      disabled: // value for 'disabled'
+ *   },
+ * });
+ */
+export function useUpdateSessionAlertIsDisabledMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateSessionAlertIsDisabledMutation,
+		Types.UpdateSessionAlertIsDisabledMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateSessionAlertIsDisabledMutation,
+		Types.UpdateSessionAlertIsDisabledMutationVariables
+	>(UpdateSessionAlertIsDisabledDocument, baseOptions)
+}
+export type UpdateSessionAlertIsDisabledMutationHookResult = ReturnType<
+	typeof useUpdateSessionAlertIsDisabledMutation
+>
+export type UpdateSessionAlertIsDisabledMutationResult =
+	Apollo.MutationResult<Types.UpdateSessionAlertIsDisabledMutation>
+export type UpdateSessionAlertIsDisabledMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.UpdateSessionAlertIsDisabledMutation,
+		Types.UpdateSessionAlertIsDisabledMutationVariables
+	>
 export const CreateDefaultAlertsDocument = gql`
 	mutation CreateDefaultAlerts(
 		$project_id: ID!
