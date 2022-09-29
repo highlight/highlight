@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/dchest/uniuri"
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt"
+	resthooks "github.com/highlight-run/go-resthooks"
 	model "github.com/highlight-run/highlight/backend/model"
-	resthooks "github.com/marconi/go-resthooks"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -59,10 +60,41 @@ func SetupZapierAuthContextMiddleware(db *gorm.DB) func(http.Handler) http.Handl
 	}
 }
 
+type HookPayload struct {
+	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
+	UserIdentifier string `json:"user_identifier"`
+	// UserObject is a required parameter for alerts that relate to a session
+	UserObject model.JSONB `json:"user_object"`
+	// Group is a required parameter for Error alerts
+	Group *model.ErrorGroup `json:"group"`
+	// URL is an optional parameter for Error alerts
+	URL *string `json:"url"`
+	// ErrorsCount is a required parameter for Error alerts
+	ErrorsCount *int64 `json:"errors_count"`
+	// MatchedFields is a required parameter for Track Properties and User Properties alerts
+	MatchedFields []*model.Field `json:"matched_fields"`
+	// RelatedFields is an optional parameter for Track Properties and User Properties alerts
+	RelatedFields []*model.Field `json:"related_fields"`
+	// UserProperties is a required parameter for User Properties alerts
+	UserProperties map[string]string `json:"user_properties"`
+	// CommentID is a required parameter for SessionFeedback alerts
+	CommentID *int `json:"comment_id"`
+	// CommentText is a required parameter for SessionFeedback alerts
+	CommentText string `json:"comment_text"`
+	// RageClicksCount is a required parameter for Rage Click Alerts
+	RageClicksCount *int64 `json:"rage_clicks_count"`
+	// MetricValue is a required parameter for MetricMonitor alerts
+	MetricValue *float64 `json:"metric_value"`
+	// MetricValue is a required parameter for MetricMonitor alerts
+	MetricThreshold *float64 `json:"metric_threshold"`
+	// Timestamp is an optional value for all session alerts.
+	Timestamp *time.Time `json:"timestamp"`
+}
+
 func RequireValidZapierAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		parsedToken := r.Context().Value("parsedToken").(*ParsedZapierToken)
-		project := r.Context().Value("project").(*model.Project)
+		parsedToken := r.Context().Value(model.ContextKeys.ZapierToken).(*ParsedZapierToken)
+		project := r.Context().Value(model.ContextKeys.ZapierProject).(*model.Project)
 
 		if *project.ZapierAccessToken != parsedToken.Magic {
 			log.Error("Access token magic does not match")
@@ -74,17 +106,11 @@ func RequireValidZapierAuth(next http.Handler) http.Handler {
 	})
 }
 
-func CreateZapierRoutes(r chi.Router, db *gorm.DB) {
-	store := ZapierResthookStore{
-		db: db,
-	}
-	rh := resthooks.NewResthook(&store)
-	defer rh.Close()
-
+func CreateZapierRoutes(r chi.Router, db *gorm.DB, store *ZapierResthookStore, rh *resthooks.Resthook) {
 	r.Use(SetupZapierAuthContextMiddleware(db))
 	r.Get("/initialize", func(w http.ResponseWriter, r *http.Request) {
-		parsedToken := r.Context().Value("parsedToken").(*ParsedZapierToken)
-		project := r.Context().Value("project").(*model.Project)
+		parsedToken := r.Context().Value(model.ContextKeys.ZapierToken).(*ParsedZapierToken)
+		project := r.Context().Value(model.ContextKeys.ZapierProject).(*model.Project)
 
 		if project.ZapierAccessToken != nil && *project.ZapierAccessToken != "" && *project.ZapierAccessToken != parsedToken.Magic {
 			log.Error("Access token magic does not match (and is not empty): ")
@@ -124,7 +150,7 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB) {
 	r.Route("/project-alerts", func(r chi.Router) {
 		r.Use(RequireValidZapierAuth)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			project := r.Context().Value("project").(*model.Project)
+			project := r.Context().Value(model.ContextKeys.ZapierProject).(*model.Project)
 
 			type AlertEntry struct {
 				ID        int    `json:"id"`
@@ -136,9 +162,9 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB) {
 			alertEntries := []AlertEntry{}
 
 			if err := db.Raw(`
-				SELECT 'session_alerts' AS alert_type, id, name, project_id FROM session_alerts WHERE project_id = ?
-				UNION ALL SELECT 'error_alerts' AS alert_type, id, name, project_id FROM error_alerts WHERE project_id = ?
-				UNION ALL select 'metric_monitors' AS alert_type, id, name, project_id FROM metric_monitors WHERE project_id = ?;
+				SELECT 'SessionAlert' AS alert_type, id, name, project_id FROM session_alerts WHERE project_id = ?
+				UNION ALL SELECT 'ErrorAlert' AS alert_type, id, name, project_id FROM error_alerts WHERE project_id = ?
+				UNION ALL select 'MetricMonitor' AS alert_type, id, name, project_id FROM metric_monitors WHERE project_id = ?;
 			`, project.ID, project.ID, project.ID).Scan(&alertEntries).Error; err != nil {
 				log.Error("Error querying alerts: ", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -158,13 +184,6 @@ func CreateZapierRoutes(r chi.Router, db *gorm.DB) {
 	})
 
 	r.Route("/hooks", func(r chi.Router) {
-		r.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				store.parsedToken = r.Context().Value("parsedToken").(*ParsedZapierToken)
-				store.project = r.Context().Value("project").(*model.Project)
-				next.ServeHTTP(w, r)
-			})
-		})
 		r.Use(RequireValidZapierAuth)
 		r.Handle("/*", rh.Handler())
 	})

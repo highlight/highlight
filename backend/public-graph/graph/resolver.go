@@ -15,13 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/timeseries"
-
 	"github.com/PaesslerAG/jsonpath"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/samber/lo"
 
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
@@ -30,7 +28,10 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -57,6 +58,7 @@ type Resolver struct {
 	StorageClient   *storage.StorageClient
 	OpenSearch      *opensearch.Client
 	Redis           *redis.Client
+	RH              *resthooks.Resthook
 }
 
 type Location struct {
@@ -259,6 +261,13 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 				return
 			}
 
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
+			}
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
+			}
+
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
 		}
 	})
@@ -324,6 +333,13 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			if err != nil {
 				log.Error(e.Wrap(err, "error querying workspace"))
 				return
+			}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
+			}
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
@@ -1323,6 +1339,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 					}
 				}
 
+				hookPayload := zapier.HookPayload{
+					UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl,
+				}
+				if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+					log.Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
+				}
+
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
 			}
 		})
@@ -1648,6 +1671,13 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 				return
 			}
 
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject,
+			}
+			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
+			}
+
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
 		}
 	}()
@@ -1833,6 +1863,15 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			workspace, err := r.getWorkspace(project.WorkspaceID)
 			if err != nil {
 				log.Error(err)
+			}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject,
+			}
+
+			log.Infof("sending error alert to zapier. id=ErrorAlert_%d", errorAlert.ID)
+			if err := r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})

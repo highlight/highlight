@@ -18,6 +18,7 @@ import (
 	"time"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
 
 	"gorm.io/gorm"
@@ -928,9 +929,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &model.SendSlackAlertInput{Workspace: workspace,
+			slackAlertPayload := model.SendSlackAlertInput{Workspace: workspace,
 				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
-				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}})
+				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}}
+
+			hookPayload := zapier.HookPayload{
+				UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
+			}
+
+			if err := w.Resolver.RH.Notify(s.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+				log.Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
+			}
+			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
 		}
 		return nil
 	})
@@ -1151,7 +1161,7 @@ func (w *Worker) InitializeOpenSearchIndex() {
 }
 
 func (w *Worker) StartMetricMonitorWatcher() {
-	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient)
+	metric_monitor.WatchMetricMonitors(w.Resolver.DB, w.Resolver.TDB, w.Resolver.MailClient, w.Resolver.RH)
 }
 
 func (w *Worker) RefreshMaterializedViews() {

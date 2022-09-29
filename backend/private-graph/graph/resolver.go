@@ -22,6 +22,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -87,6 +88,7 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	RH                     *resthooks.Resthook
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
