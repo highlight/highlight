@@ -16,7 +16,7 @@ import styles from './LinearIntegrationConfig.module.scss'
 
 const LinearIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen: setModelOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { removeLinearIntegrationFromProject } = useLinearIntegration()
 	const authUrl = useMemo(() => getLinearOAuthUrl(project_id), [project_id])

@@ -1879,6 +1879,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		if err := r.RemoveFrontFromProject(project); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeVercel {
+		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -3414,6 +3418,34 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 	if err != nil {
 		return false, err
 	}
+	return true, nil
+}
+
+// UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
+func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*modelInputs.VercelProjectMappingInput) (bool, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	workspaceId := project.WorkspaceID
+	configs := []*model.VercelIntegrationConfig{}
+	for _, m := range projectMappings {
+		configs = append(configs, &model.VercelIntegrationConfig{
+			WorkspaceID:     workspaceId,
+			VercelProjectID: m.VercelProjectID,
+			ProjectID:       m.ProjectID,
+		})
+	}
+
+	if err := r.DB.Where("workspace_id = ?", workspaceId).Delete(&model.VercelIntegrationConfig{}).Error; err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Create(configs).Error; err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -5482,6 +5514,28 @@ func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*m
 	}
 
 	return res, nil
+}
+
+// VercelProjectMappings is the resolver for the vercel_project_mappings field.
+func (r *queryResolver) VercelProjectMappings(ctx context.Context, projectID int) ([]*modelInputs.VercelProjectMapping, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := []*model.VercelIntegrationConfig{}
+	if err := r.DB.Where("workspace_id = ?", project.WorkspaceID).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := lo.Map(rows, func(c *model.VercelIntegrationConfig, idx int) *modelInputs.VercelProjectMapping {
+		return &modelInputs.VercelProjectMapping{
+			VercelProjectID: c.VercelProjectID,
+			ProjectID:       c.ProjectID,
+		}
+	})
+
+	return results, nil
 }
 
 // LinearTeams is the resolver for the linear_teams field.

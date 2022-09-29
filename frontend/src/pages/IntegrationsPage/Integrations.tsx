@@ -21,6 +21,7 @@ export interface Integration {
 	 */
 	configurationPage: (opts: IntegrationConfigProps) => React.ReactNode
 	hasSettings: boolean
+	modalWidth?: number
 }
 
 export const SLACK_INTEGRATION: Integration = {
@@ -81,11 +82,11 @@ export const VERCEL_INTEGRATION: Integration = {
 	key: 'vercel',
 	name: 'Vercel',
 	configurationPath: 'vercel',
-	onlyShowForHighlightAdmin: true,
 	description: 'Configuration for your Vercel projects.',
 	icon: '/images/integrations/vercel.png',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
 	hasSettings: true,
+	modalWidth: 672,
 }
 
 const INTEGRATIONS: Integration[] = [

@@ -1269,3 +1269,13 @@ mutation DeleteSessions(
 		sessionCount: $sessionCount
 	)
 }
+
+mutation UpdateVercelSettings(
+	$project_id: ID!
+	$project_mappings: [VercelProjectMappingInput!]!
+) {
+	updateVercelProjectMappings(
+		project_id: $project_id
+		project_mappings: $project_mappings
+	)
+}

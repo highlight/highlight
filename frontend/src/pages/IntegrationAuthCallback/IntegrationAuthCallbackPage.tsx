@@ -3,13 +3,20 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
+import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
+import { Landing } from '@pages/Landing/Landing'
+import { ApplicationContextProvider } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect, useMemo } from 'react'
-import { useHistory } from 'react-router-dom'
+import { Redirect, useHistory, useLocation } from 'react-router-dom'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 interface Props {
 	code: string
@@ -126,38 +133,79 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 	return null
 }
 
-const VercelIntegrationCallback = ({ code, projectId }: Props) => {
+const VercelIntegrationCallback = ({ code }: Props) => {
 	const history = useHistory()
-	const { setLoadingState } = useAppLoadingContext()
-	const { addFrontIntegrationToProject } = useFrontIntegration()
+
+	const [{ configurationId, next }] = useQueryParams({
+		configurationId: StringParam,
+		next: StringParam,
+	})
+
+	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
+
+	let projectId = ''
+	if (data?.projects && data.projects[0]) {
+		projectId = data.projects[0].id
+	}
+
+	const { addVercelIntegrationToProject } = useVercelIntegration(projectId)
 
 	useEffect(() => {
-		if (!code) return
-		const next = `/${projectId}/integrations`
-		;(async () => {
-			try {
-				await addFrontIntegrationToProject(code, projectId)
-				message.success('Highlight is now synced with Front!', 5)
-			} catch (e: any) {
-				H.consumeError(e)
-				console.error(e)
-				message.error(
-					'Failed to add integration to project. Please try again.',
-				)
-			} finally {
-				history.push(next)
-				setLoadingState(AppLoadingState.LOADED)
-			}
-		})()
-	}, [
-		history,
-		setLoadingState,
-		addFrontIntegrationToProject,
-		code,
-		projectId,
-	])
+		if (code && projectId) {
+			addVercelIntegrationToProject(code, projectId)
+		}
+	}, [addVercelIntegrationToProject, code, projectId])
 
-	return null
+	const { search } = useLocation()
+
+	// If there are no projects, redirect to create one
+	if (data?.projects?.length === 0) {
+		return (
+			<Redirect
+				to={`/new?next=${encodeURIComponent(
+					`/callback/vercel${search}`,
+				)}`}
+			/>
+		)
+	}
+
+	return (
+		<ApplicationContextProvider
+			value={{
+				currentProject: undefined,
+				allProjects: data?.projects || [],
+				currentWorkspace: undefined,
+				workspaces: [],
+			}}
+		>
+			<Landing>
+				<div className="w-[672px] rounded-md bg-white px-8 py-6">
+					<div className="m-4">
+						<h3>Configuring Vercel Integration</h3>
+						<VercelIntegrationSettings
+							onSuccess={() => {
+								if (next) {
+									window.location.href = next
+								} else {
+									history.push(`/${projectId}/integrations`)
+								}
+							}}
+							onCancel={() => {
+								if (next) {
+									window.close()
+								} else {
+									history.push(`/${projectId}/integrations`)
+								}
+							}}
+							setIntegrationEnabled={() => {}}
+							setModelOpen={() => {}}
+							action={IntegrationAction.Settings}
+						/>
+					</div>
+				</div>
+			</Landing>
+		</ApplicationContextProvider>
+	)
 }
 
 const IntegrationAuthCallbackPage = () => {
@@ -212,7 +260,7 @@ const IntegrationAuthCallbackPage = () => {
 	} else if (integrationName.toLowerCase() === 'front') {
 		return <FrontIntegrationCallback code={code} projectId={projectId} />
 	} else if (integrationName.toLowerCase() === 'vercel') {
-		return <FrontIntegrationCallback code={code} projectId={projectId} />
+		return <VercelIntegrationCallback code={code} />
 	}
 
 	return null

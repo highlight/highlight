@@ -406,6 +406,16 @@ type VercelProject struct {
 	Name string `json:"name"`
 }
 
+type VercelProjectMapping struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
+}
+
+type VercelProjectMappingInput struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
+}
+
 type DashboardChartType string
 
 const (

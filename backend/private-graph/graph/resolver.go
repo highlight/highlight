@@ -1723,8 +1723,14 @@ func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	return nil
 }
 
-func (r *Resolver) RemoveVercelFromProject(project *model.Project) error {
-	panic("Not implemented")
+func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+	if err := r.DB.Debug().Where(workspace).
+		Select("vercel_access_token", "vercel_team_id").
+		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing Vercel access token and team id")
+	}
+
+	return nil
 }
 
 func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string) error {

@@ -2,6 +2,12 @@ import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import {
+	AppLoadingState,
+	useAppLoadingContext,
+} from '@context/AppLoadingContext'
+import { VercelProjectMappingInput } from '@graph/schemas'
+import HighlightLogoSmall from '@icons/HighlightLogoSmall'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import {
@@ -10,10 +16,10 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
-import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
+import { message } from 'antd'
+import classNames from 'classnames'
 import React, { useEffect } from 'react'
-import { StringParam, useQueryParams } from 'use-query-params'
 
 import styles from './VercelIntegrationConfig.module.scss'
 
@@ -59,7 +65,8 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Connect Highlight with Vercel.
+				Connect Highlight with Vercel to automatically configure
+				environment variables.
 			</p>
 			<footer>
 				<Button
@@ -78,6 +85,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					type="primary"
 					target="_blank"
 					href="https://vercel.com/integrations/zane-test/new"
+					rel="noreferrer"
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
@@ -100,8 +108,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Disconnecting Front from Highlight will stop enhancing your
-				customer interactions.
+				Disconnecting Vercel from Highlight.
 			</p>
 			<footer>
 				<Button
@@ -121,39 +128,81 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					danger
 					onClick={() => {
 						removeVercelIntegrationFromProject()
-						setModelOpen(false)
-						setIntegrationEnabled(false)
+							.then(() => {
+								setModelOpen(false)
+								setIntegrationEnabled(false)
+							})
+							.catch((reason: any) => {
+								message.error(String(reason))
+							})
 					}}
 				>
 					<PlugIcon className={styles.modalBtnIcon} />
-					Disconnect Front
+					Disconnect Vercel
 				</Button>
 			</footer>
 		</>
 	)
 }
 
-const VercelIntegrationSettings: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
-	setIntegrationEnabled,
-}) => {
-	const { allProjects } = useApplicationContext()
+export const VercelIntegrationSettings: React.FC<
+	IntegrationConfigProps & { onCancel?: () => void; onSuccess?: () => void }
+> = ({ setModelOpen, setIntegrationEnabled, onCancel, onSuccess }) => {
+	const { allProjects: allHighlightProjects } = useApplicationContext()
+	const projectId =
+		(allHighlightProjects && allHighlightProjects[0]?.id) ?? '0'
 
-	const [projectMap, projectMapSet] = useMap<string, string | undefined>()
+	const [projectMap, projectMapSet, projectMapSetMulti] = useMap<
+		string,
+		string[]
+	>()
 
-	const highlightProjects = []
-	if (!!allProjects) {
-		for (const p of allProjects) {
+	const {
+		allVercelProjects,
+		vercelProjectMappings,
+		isVercelIntegratedWithProject,
+		updateVercelSettings,
+		loading,
+	} = useVercelIntegration(projectId)
+
+	useEffect(() => {
+		if (!vercelProjectMappings) {
+			return
+		}
+
+		const t = new Map<string, string[]>()
+		for (const m of vercelProjectMappings) {
+			if (!t.has(m.project_id)) {
+				t.set(m.project_id, [])
+			}
+			t.get(m.project_id)?.push(m.vercel_project_id)
+		}
+
+		projectMapSetMulti([...t.entries()])
+	}, [projectMapSetMulti, vercelProjectMappings])
+
+	const { setLoadingState, loadingState } = useAppLoadingContext()
+
+	useEffect(() => {
+		if (!loading && allVercelProjects && allVercelProjects.length > 0) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
+	}, [setLoadingState, loadingState, loading, allVercelProjects])
+
+	const highlightProjects: any[] = []
+	if (!!allHighlightProjects) {
+		for (const p of allHighlightProjects) {
 			if (!!p) {
 				if (!projectMap.has(p.id)) {
-					projectMapSet(p.id, undefined)
+					projectMapSet(p.id, [])
 				}
 
 				highlightProjects.push({
 					...p,
-					vercelProject: undefined,
-					onUpdateProjectLink: (vercelProjectId: string) => {
-						projectMapSet(p.id, vercelProjectId)
+					vercelProjects: [],
+					onUpdateProjectLink: (vercelProjectIds: string[]) => {
+						console.log('vercelProjectIds', vercelProjectIds)
+						projectMapSet(p.id, vercelProjectIds)
 						console.log('projectMap', projectMap)
 					},
 				})
@@ -161,29 +210,7 @@ const VercelIntegrationSettings: React.FC<IntegrationConfigProps> = ({
 		}
 	}
 
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const [{ code, configurationId, next }] = useQueryParams({
-		code: StringParam,
-		configurationId: StringParam,
-		next: StringParam,
-	})
-
-	const {
-		addVercelIntegrationToProject,
-		vercelProjects,
-		isVercelIntegratedWithProject,
-	} = useVercelIntegration()
-
 	console.log('isVercelIntegratedWithProject', isVercelIntegratedWithProject)
-
-	useEffect(() => {
-		if (!!code) {
-			addVercelIntegrationToProject(code, project_id)
-		}
-	}, [addVercelIntegrationToProject, code, project_id])
 
 	useEffect(() => {
 		if (isVercelIntegratedWithProject) {
@@ -191,69 +218,126 @@ const VercelIntegrationSettings: React.FC<IntegrationConfigProps> = ({
 		}
 	}, [isVercelIntegratedWithProject, setIntegrationEnabled, setModelOpen])
 
-	// if (!isVercelIntegratedWithProject) {
-	// 	return null
-	// }
+	const selectedOptions: string[] = []
+	for (const v of projectMap.values()) {
+		selectedOptions.push(...v)
+	}
 
 	const selectOptions =
-		vercelProjects?.map((p) => ({
+		allVercelProjects?.map((p) => ({
 			id: p.id,
 			value: p.id,
 			displayValue: p.name,
+			// disabled: selectedOptions.includes(p.id),
 		})) || []
 
-	let defaultValue: string | undefined = undefined
-	if (highlightProjects.length === 1 && selectOptions.length === 1) {
-		defaultValue = selectOptions[0].displayValue
-	}
+	// If there's only one option available, default to that.
+	useEffect(() => {
+		if (highlightProjects.length === 1 && selectOptions.length === 1) {
+			projectMapSet(highlightProjects[0].id, [selectOptions[0].id])
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [highlightProjects.length, selectOptions.length])
 
 	const tableColumns = [
+		{
+			title: 'Vercel',
+			dataIndex: 'vercelProjects',
+			key: 'vercelProjects',
+			width: '55%',
+			render: (_: string, row: any) => {
+				const vercelProjectIds = projectMap.get(row.id)
+				const opts = vercelProjectIds
+					?.map((i) => allVercelProjects?.find((j) => j.id === i)?.id)
+					.filter((i) => !!i)
+				return (
+					<div className={styles.select}>
+						<Select
+							className={'w-full'}
+							value={opts}
+							onChange={row.onUpdateProjectLink}
+							options={selectOptions}
+							placeholder={'Vercel project(s)'}
+							mode="tags"
+						/>
+					</div>
+				)
+			},
+		},
+		{
+			title: 'Arrow',
+			render: () => <div className="justify-center">→</div>,
+		},
 		{
 			title: 'Highlight',
 			dataIndex: 'name',
 			key: 'name',
-		},
-		{
-			title: 'Vercel',
-			dataIndex: 'vercelProject',
-			key: 'vercelProject',
-			render: (role: string, record: any) => {
+			width: '35%',
+			render: (value: string) => {
 				return (
-					<div>
-						<Select
-							className="w-full"
-							onChange={record.onUpdateProjectLink}
-							options={selectOptions}
-							allowClear={true}
-							placeholder={'Select a Vercel project'}
-							defaultValue={defaultValue}
-						/>
+					<div className="flex gap-2">
+						<HighlightLogoSmall width={20} height={20} />
+						<div
+							title={value}
+							className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
+						>
+							{value}
+						</div>
 					</div>
 				)
 			},
 		},
 	]
 
+	const projectMappings: VercelProjectMappingInput[] = []
+	for (const [projectId, vercelIds] of projectMap.entries()) {
+		for (const vercelId of vercelIds) {
+			projectMappings.push({
+				project_id: projectId,
+				vercel_project_id: vercelId,
+			})
+		}
+	}
+
+	const onSave = () => {
+		updateVercelSettings({
+			variables: {
+				project_id: projectId,
+				project_mappings: projectMappings,
+			},
+		})
+			.then(() => {
+				onSuccess && onSuccess()
+				setModelOpen(false)
+			})
+			.catch((reason: any) => {
+				message.error(String(reason))
+			})
+	}
+
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<div>
+			<p className={classNames(styles.modalSubTitle)}>
 				Select Vercel projects to link to your Highlight projects.
 			</p>
-			<Card noPadding>
-				<Table
-					dataSource={highlightProjects}
-					columns={tableColumns}
-					pagination={false}
-					showHeader={false}
-					rowHasPadding
-					smallPadding
-				></Table>
-			</Card>
-			<footer>
+			<div className="my-6">
+				<Card noPadding>
+					<Table
+						dataSource={highlightProjects}
+						columns={tableColumns}
+						pagination={false}
+						showHeader={false}
+						rowHasPadding
+						smallPadding
+					></Table>
+				</Card>
+			</div>
+			<footer className="flex justify-end gap-2">
 				<Button
 					trackingId={`IntegrationConfigurationCancel-Vercel`}
 					className={styles.modalBtn}
 					onClick={() => {
+						onCancel && onCancel()
 						setModelOpen(false)
 					}}
 				>
@@ -264,17 +348,16 @@ const VercelIntegrationSettings: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={next || ''}
+					onClick={onSave}
+					disabled={projectMappings.length === 0}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Vercel
-						</span>
+						<span>Link Projects</span>
 					</span>
 				</Button>
 			</footer>
-		</>
+		</div>
 	)
 }
 

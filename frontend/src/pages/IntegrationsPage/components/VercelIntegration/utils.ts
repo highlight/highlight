@@ -2,14 +2,19 @@ import {
 	useAddIntegrationToProjectMutation,
 	useGetWorkspaceIsIntegratedWithVercelQuery,
 	useRemoveIntegrationFromProjectMutation,
+	useUpdateVercelSettingsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { useCallback } from 'react'
 
-export const useVercelIntegration = () => {
-	const { project_id } = useParams<{ project_id: string }>()
+export const useVercelIntegration = (projectId?: string) => {
+	let { project_id } = useParams<{ project_id: string }>()
+	if (projectId !== undefined) {
+		project_id = projectId
+	}
+
 	const { data, loading } = useGetWorkspaceIsIntegratedWithVercelQuery({
 		variables: { project_id: project_id },
 		skip: !project_id,
@@ -51,11 +56,19 @@ export const useVercelIntegration = () => {
 		[project_id, removeIntegrationFromProject],
 	)
 
+	const [updateVercelSettings] = useUpdateVercelSettingsMutation({
+		refetchQueries: [
+			namedOperations.Query.GetWorkspaceIsIntegratedWithVercel,
+		],
+	})
+
 	return {
 		addVercelIntegrationToProject,
 		removeVercelIntegrationFromProject,
+		updateVercelSettings,
 		isVercelIntegratedWithProject: data?.is_integrated_with_vercel,
-		vercelProjects: data?.vercel_projects,
+		allVercelProjects: data?.vercel_projects,
+		vercelProjectMappings: data?.vercel_project_mappings,
 		loading,
 	}
 }

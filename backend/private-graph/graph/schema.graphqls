@@ -936,6 +936,16 @@ type EventChunk {
 	timestamp: Int64!
 }
 
+input VercelProjectMappingInput {
+	vercel_project_id: String!
+	project_id: ID!
+}
+
+type VercelProjectMapping {
+	vercel_project_id: String!
+	project_id: ID!
+}
+
 scalar Upload
 
 type Query {
@@ -1080,6 +1090,7 @@ type Query {
 		project_id: ID!
 	): Boolean!
 	vercel_projects(project_id: ID!): [VercelProject!]!
+	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
@@ -1502,6 +1513,10 @@ type Mutation {
 		project_id: ID!
 		query: String!
 		sessionCount: Int!
+	): Boolean!
+	updateVercelProjectMappings(
+		project_id: ID!
+		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
 }
 

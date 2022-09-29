@@ -15,7 +15,7 @@ import styles from './ClearbitIntegrationConfig.module.scss'
 
 const ClearbitIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen: setModelOpen, setIntegrationEnabled, action }) => {
 	const [redirectToBilling, setRedirectToBilling] = React.useState(false)
 	const {
 		isClearbitIntegratedWithWorkspace,

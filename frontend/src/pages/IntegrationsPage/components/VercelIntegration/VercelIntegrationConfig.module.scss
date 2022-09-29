@@ -19,3 +19,9 @@
 	display: inline-flex !important;
 	height: 100%;
 }
+
+.select {
+	:global(.ant-select-selection-item-content) {
+		max-width: 150px;
+	}
+}

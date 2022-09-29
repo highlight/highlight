@@ -16,7 +16,7 @@ import styles from './FrontIntegrationConfig.module.scss'
 const FRONT_CLIENT_ID = import.meta.env.REACT_APP_FRONT_INTEGRATION_CLIENT_ID
 
 const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen: setModelOpen,
 	setIntegrationEnabled,
 	action,
 }) => {

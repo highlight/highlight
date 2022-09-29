@@ -22,9 +22,11 @@ const IntegrationsPage = () => {
 		type: 'Organization',
 	})
 
-	const { integration_type } = useParams<{ integration_type: string }>()
+	const { integration_type: configureIntegration } = useParams<{
+		integration_type: string
+	}>()
+
 	const [popUpModal] = useQueryParam('enable', StringParam)
-	const enabled = popUpModal ?? integration_type
 
 	const { isHighlightAdmin } = useAuthContext()
 
@@ -94,7 +96,12 @@ const IntegrationsPage = () => {
 							<Integration
 								integration={integration}
 								key={integration.key}
-								showModalDefault={enabled === integration.key}
+								showModalDefault={
+									popUpModal === integration.key
+								}
+								showSettingsDefault={
+									configureIntegration === integration.key
+								}
 							/>
 						),
 					)}

@@ -1570,6 +1570,18 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteSessions'
 >
 
+export type UpdateVercelSettingsMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	project_mappings:
+		| Array<Types.VercelProjectMappingInput>
+		| Types.VercelProjectMappingInput
+}>
+
+export type UpdateVercelSettingsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateVercelProjectMappings'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -3550,6 +3562,12 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 			'id' | 'name'
 		>
 	>
+	vercel_project_mappings: Array<
+		{ __typename?: 'VercelProjectMapping' } & Pick<
+			Types.VercelProjectMapping,
+			'vercel_project_id' | 'project_id'
+		>
+	>
 }
 
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
@@ -4190,6 +4208,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
