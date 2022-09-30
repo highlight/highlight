@@ -43,6 +43,7 @@ interface Props {
 	setErrorPanel: (val: ParsedErrorObject) => void
 	replayer: Replayer
 	sessionMetadata: playerMetaData
+	width: number
 }
 
 const TimelineIndicatorsMemoized = React.memo(
@@ -60,6 +61,7 @@ const TimelineIndicatorsMemoized = React.memo(
 		setErrorPanel,
 		replayer,
 		sessionMetadata,
+		width,
 	}: Props) => {
 		const getRelativeStart = (
 			sessionInterval: ParsedSessionInterval,
@@ -83,6 +85,7 @@ const TimelineIndicatorsMemoized = React.memo(
 				<aside
 					className={classNames(styles.container)}
 					ref={refContainer}
+					style={{ width }}
 				>
 					{sessionIntervals.map((sessionInterval, index) => (
 						<div
@@ -126,7 +129,9 @@ const TimelineIndicatorsMemoized = React.memo(
 										key={`${error.timestamp}-${error.id}}`}
 										relativeStartPercent={getRelativeStart(
 											sessionInterval,
-											new Date(error.timestamp).getTime(),
+											new Date(
+												error.timestamp!,
+											).getTime(),
 										)}
 										errorId={errorId}
 										setShowDevTools={setShowDevTools}
@@ -178,7 +183,7 @@ const TimelineIndicatorsMemoized = React.memo(
 	},
 )
 
-const TimelineIndicators = React.memo(() => {
+const TimelineIndicators = React.memo(({ width }: { width: number }) => {
 	const location = useLocation()
 	const errorId = new URLSearchParams(location.search).get(
 		PlayerSearchParameters.errorId,
@@ -247,6 +252,7 @@ const TimelineIndicators = React.memo(() => {
 			setErrorPanel={setErrorPanel}
 			replayer={replayer}
 			sessionMetadata={sessionMetadata}
+			width={width}
 		/>
 	)
 })

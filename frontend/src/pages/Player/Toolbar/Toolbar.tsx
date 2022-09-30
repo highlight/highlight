@@ -1,7 +1,6 @@
 import Switch from '@components/Switch/Switch'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
-import { LEFT_PANEL_WIDTH } from '@pages/Player/PlayerPage'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
@@ -89,7 +88,6 @@ export const Toolbar = ({ width }: Props) => {
 		state,
 		play,
 		pause,
-		sessionIntervals,
 		canViewSession,
 		isPlayerReady,
 		isLiveMode,
@@ -102,7 +100,6 @@ export const Toolbar = ({ width }: Props) => {
 	usePlayerKeyboardShortcuts()
 	const {
 		playerSpeed,
-		showLeftPanel,
 		showDevTools,
 		setShowDevTools,
 		selectedDevToolsTab,
@@ -118,14 +115,8 @@ export const Toolbar = ({ width }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 	const max = sessionMetadata.totalTime ?? 0
-	const sliderWrapperRef = useRef<HTMLButtonElement>(null)
-	const wrapperWidth =
-		sliderWrapperRef.current?.getBoundingClientRect().width ?? 1
-	const [sliderClientX, setSliderClientX] = useState<number>(-1)
 	const disableControls = state === ReplayerState.Loading || !canViewSession
-	const draggableRef = React.useRef(null)
 
-	const [lastCanvasPreview, setLastCanvasPreview] = useState(0)
 	const isPaused = ReplayerPausedStates.includes(state)
 
 	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
@@ -181,107 +172,9 @@ export const Toolbar = ({ width }: Props) => {
 		isLiveMode,
 	])
 
-	const endLogger = useCallback(
-		(e: any) => {
-			let newTime = (e.x / wrapperWidth) * max
-			newTime = Math.max(0, newTime)
-			newTime = Math.min(max, newTime)
-
-			setLastCanvasPreview(e.x)
-
-			if (isPaused) {
-				pause(newTime)
-			} else {
-				play(newTime)
-			}
-		},
-		[isPaused, max, pause, play, wrapperWidth],
-	)
-
-	const startDraggable = useCallback(
-		(e: any, data: any) => {
-			setLastCanvasPreview(data.x)
-			if (!isPaused) {
-				pause()
-			}
-		},
-		[isPaused, pause],
-	)
-
-	const getSliderTime = useCallback(
-		(sliderPercent: number) => {
-			let newTime = 0
-			for (const interval of sessionIntervals) {
-				if (
-					sliderPercent < interval.endPercent &&
-					sliderPercent >= interval.startPercent
-				) {
-					if (!interval.active) {
-						return interval.endTime
-					}
-					const segmentPercent =
-						(sliderPercent - interval.startPercent) /
-						(interval.endPercent - interval.startPercent)
-					newTime =
-						segmentPercent * interval.duration + interval.startTime
-					return newTime
-				}
-			}
-			return newTime
-		},
-		[sessionIntervals],
-	)
-
-	const onDraggable = useCallback(
-		(e: any, data: any) => {
-			const sliderPercent = data.x / wrapperWidth
-			const newTime = getSliderTime(sliderPercent)
-			setTime(newTime)
-
-			// TODO: Add Math.abs to enable both forward and backward scrolling
-			// Only forward is supported due as going backwards creates a time heavy operation
-			if (data.x - lastCanvasPreview > 10) {
-				setLastCanvasPreview(data.x)
-			}
-		},
-		[getSliderTime, lastCanvasPreview, setTime, wrapperWidth],
-	)
-
-	const getSliderPercent = useCallback(
-		(time: number) => {
-			let sliderPercent = 0
-			for (const interval of sessionIntervals) {
-				if (time < interval.endTime && time >= interval.startTime) {
-					const segmentPercent =
-						(time - interval.startTime) /
-						(interval.endTime - interval.startTime)
-					sliderPercent =
-						segmentPercent *
-							(interval.endPercent - interval.startPercent) +
-						interval.startPercent
-					return sliderPercent
-				}
-			}
-			return sliderPercent
-		},
-		[sessionIntervals],
-	)
-
 	// The play button should be disabled if the player has reached the end.
 	const disablePlayButton =
 		time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode
-
-	const leftSidebarWidth = isPlayerFullscreen
-		? 0
-		: showLeftPanel
-		? LEFT_PANEL_WIDTH
-		: 0
-	/** 64 (sidebar width) + 12 (left padding for the toolbar)  */
-	const staticSidebarWidth = isPlayerFullscreen
-		? 16
-		: isLoggedIn
-		? 64 + 12
-		: 12
 
 	return (
 		<ToolbarItemsContextProvider value={toolbarItems}>
@@ -294,105 +187,23 @@ export const Toolbar = ({ width }: Props) => {
 				}}
 			>
 				{histogramOn && (
-					<TimelineIndicatorsBarGraph
-						selectedTimelineAnnotationTypes={
-							selectedTimelineAnnotationTypes
-						}
-						width={width}
-					/>
+					<>
+						<Slider width={width} />
+						<TimelineIndicatorsBarGraph
+							selectedTimelineAnnotationTypes={
+								selectedTimelineAnnotationTypes
+							}
+							width={width}
+						/>
+					</>
 				)}
 				{!histogramOn && (
 					<>
-						<TimelineIndicators />
-						{!isLiveMode ? (
-							<div className={styles.playerRail}>
-								<div
-									className={styles.sliderRail}
-									style={{
-										position: 'absolute',
-										display: 'flex',
-										background:
-											sessionIntervals.length > 0
-												? 'none'
-												: '#e4e8eb',
-									}}
-								>
-									{sessionIntervals.map((e, ind) => (
-										<SessionSegment
-											key={ind}
-											interval={e}
-											sliderClientX={sliderClientX}
-											wrapperWidth={wrapperWidth}
-											getSliderTime={getSliderTime}
-											isLastSegment={
-												ind ===
-												sessionIntervals.length - 1
-											}
-										/>
-									))}
-								</div>
-								<button
-									disabled={disableControls}
-									className={styles.sliderWrapper}
-									ref={sliderWrapperRef}
-									onMouseMove={(
-										e: React.MouseEvent<HTMLButtonElement>,
-									) =>
-										setSliderClientX(
-											e.clientX -
-												staticSidebarWidth -
-												leftSidebarWidth,
-										)
-									}
-									onMouseLeave={() => setSliderClientX(-1)}
-									onClick={(
-										e: React.MouseEvent<HTMLButtonElement>,
-									) => {
-										const ratio =
-											(e.clientX -
-												staticSidebarWidth -
-												leftSidebarWidth) /
-											wrapperWidth
-										timerStart('timelineChangeTime')
-										setTime(getSliderTime(ratio))
-									}}
-								>
-									<div className={styles.sliderRail}></div>
-
-									<Draggable
-										nodeRef={draggableRef}
-										axis="x"
-										bounds="parent"
-										onStop={endLogger}
-										onDrag={onDraggable}
-										onStart={startDraggable}
-										disabled={disableControls}
-										position={{
-											x: Math.max(
-												getSliderPercent(time) *
-													wrapperWidth -
-													10,
-												0,
-											),
-											y: 0,
-										}}
-									>
-										<div
-											className={styles.indicatorParent}
-											ref={draggableRef}
-										>
-											<div className={styles.indicator} />
-										</div>
-									</Draggable>
-								</button>
-							</div>
-						) : (
-							<div className={styles.playerRail}>
-								<div className={styles.livePlayerRail} />
-							</div>
-						)}
+						<TimelineIndicators width={width} />
+						<Slider width={width} />
 					</>
 				)}
+
 				{!isLiveMode && (
 					<div id={PlayerPageProductTourSelectors.DevToolsPanel}>
 						<DevToolsWindow
@@ -407,7 +218,7 @@ export const Toolbar = ({ width }: Props) => {
 				className={classNames(styles.toolbarSection, {
 					[styles.devToolsOpen]: showDevTools,
 				})}
-				style={{ width }}
+				style={{ width: width }}
 			>
 				<div className={styles.toolbarLeftSection}>
 					<button
@@ -616,6 +427,195 @@ export const Toolbar = ({ width }: Props) => {
 	)
 }
 
+interface SliderProps {
+	width: number
+}
+const Slider = ({ width }: SliderProps) => {
+	const {
+		setTime,
+		isLiveMode,
+		sessionIntervals,
+		state,
+		sessionMetadata,
+		pause,
+		play,
+		time,
+		canViewSession,
+	} = useReplayerContext()
+	const sliderWrapperRef = useRef<HTMLButtonElement>(null)
+	const wrapperWidth =
+		sliderWrapperRef.current?.getBoundingClientRect().width ?? 1
+	const [lastCanvasPreview, setLastCanvasPreview] = useState(0)
+	const wrapperLeft =
+		sliderWrapperRef.current?.getBoundingClientRect().left ?? 0
+	const [sliderClientX, setSliderClientX] = useState<number>(-1)
+	const draggableRef = React.useRef(null)
+
+	const getSliderTime = useCallback(
+		(sliderPercent: number) => {
+			let newTime = 0
+			for (const interval of sessionIntervals) {
+				if (
+					sliderPercent < interval.endPercent &&
+					sliderPercent >= interval.startPercent
+				) {
+					if (!interval.active) {
+						return interval.endTime
+					}
+					const segmentPercent =
+						(sliderPercent - interval.startPercent) /
+						(interval.endPercent - interval.startPercent)
+					newTime =
+						segmentPercent * interval.duration + interval.startTime
+					return newTime
+				}
+			}
+			return newTime
+		},
+		[sessionIntervals],
+	)
+
+	const isPaused = ReplayerPausedStates.includes(state)
+	const max = sessionMetadata.totalTime ?? 0
+
+	const endLogger = useCallback(
+		(e: any) => {
+			let newTime = (e.x / wrapperWidth) * max
+			newTime = Math.max(0, newTime)
+			newTime = Math.min(max, newTime)
+
+			setLastCanvasPreview(e.x)
+
+			if (isPaused) {
+				pause(newTime)
+			} else {
+				play(newTime)
+			}
+		},
+		[isPaused, max, pause, play, wrapperWidth],
+	)
+
+	const startDraggable = useCallback(
+		(e: any, data: any) => {
+			setLastCanvasPreview(data.x)
+			if (!isPaused) {
+				pause()
+			}
+		},
+		[isPaused, pause],
+	)
+	const onDraggable = useCallback(
+		(e: any, data: any) => {
+			const sliderPercent = data.x / wrapperWidth
+			const newTime = getSliderTime(sliderPercent)
+			setTime(newTime)
+
+			// TODO: Add Math.abs to enable both forward and backward scrolling
+			// Only forward is supported due as going backwards creates a time heavy operation
+			if (data.x - lastCanvasPreview > 10) {
+				setLastCanvasPreview(data.x)
+			}
+		},
+		[getSliderTime, lastCanvasPreview, setTime, wrapperWidth],
+	)
+
+	const getSliderPercent = useCallback(
+		(time: number) => {
+			let sliderPercent = 0
+			for (const interval of sessionIntervals) {
+				if (time < interval.endTime && time >= interval.startTime) {
+					const segmentPercent =
+						(time - interval.startTime) /
+						(interval.endTime - interval.startTime)
+					sliderPercent =
+						segmentPercent *
+							(interval.endPercent - interval.startPercent) +
+						interval.startPercent
+					return sliderPercent
+				}
+			}
+			return sliderPercent
+		},
+		[sessionIntervals],
+	)
+	const disableControls = state === ReplayerState.Loading || !canViewSession
+
+	return (
+		<div className={styles.playerRail} style={{ width }}>
+			{!isLiveMode ? (
+				<>
+					<div
+						className={styles.sliderRail}
+						style={{
+							position: 'absolute',
+							display: 'flex',
+							background:
+								sessionIntervals.length > 0
+									? 'none'
+									: '#e4e8eb',
+						}}
+					>
+						{sessionIntervals.map((e, ind) => (
+							<SessionSegment
+								key={ind}
+								interval={e}
+								sliderClientX={sliderClientX}
+								wrapperWidth={wrapperWidth}
+								getSliderTime={getSliderTime}
+								isLastSegment={
+									ind === sessionIntervals.length - 1
+								}
+							/>
+						))}
+					</div>
+					<button
+						disabled={disableControls}
+						className={styles.sliderWrapper}
+						ref={sliderWrapperRef}
+						onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+							setSliderClientX(e.clientX - wrapperLeft)
+						}
+						onMouseLeave={() => setSliderClientX(-1)}
+						onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+							const ratio =
+								(e.clientX - wrapperLeft) / wrapperWidth
+							timerStart('timelineChangeTime')
+							setTime(getSliderTime(ratio))
+						}}
+					>
+						<div className={styles.sliderRail}></div>
+
+						<Draggable
+							nodeRef={draggableRef}
+							axis="x"
+							bounds="parent"
+							onStop={endLogger}
+							onDrag={onDraggable}
+							onStart={startDraggable}
+							disabled={disableControls}
+							position={{
+								x: Math.max(
+									getSliderPercent(time) * wrapperWidth - 10,
+									0,
+								),
+								y: 0,
+							}}
+						>
+							<div
+								className={styles.indicatorParent}
+								ref={draggableRef}
+							>
+								<div className={styles.indicator} />
+							</div>
+						</Draggable>
+					</button>
+				</>
+			) : (
+				<div className={styles.livePlayerRail} />
+			)}
+		</div>
+	)
+}
 const SessionSegment = React.memo(
 	({
 		interval,

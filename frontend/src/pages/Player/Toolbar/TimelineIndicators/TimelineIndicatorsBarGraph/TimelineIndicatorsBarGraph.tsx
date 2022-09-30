@@ -35,7 +35,7 @@ interface Props {
 }
 
 const TARGET_BUCKET_COUNT = 36
-const TIMELINE_MARGIN = 24
+const TIMELINE_MARGIN = 32
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
@@ -54,6 +54,7 @@ const TimelineIndicatorsBarGraph = ({
 		eventsForTimelineIndicator,
 		sessionComments,
 		errors: sessionErrors,
+		replayer,
 	} = useReplayerContext()
 
 	const events = useMemo(() => {
@@ -118,6 +119,18 @@ const TimelineIndicatorsBarGraph = ({
 			),
 		[events, duration, bucketTimestep, selectedTimelineAnnotationTypes],
 	)
+	const maxBucketCount = Math.max(
+		...buckets.map((bucket) => bucket.totalCount),
+	)
+	const bucketPercentWidth = (bucketTimestep / duration) * 100
+
+	const shouldMockActivityGraph = useMemo(() => {
+		// fall back to a <span>-based mockup if too many buckets are small
+		if (buckets.length > 1000) {
+			return bucketPercentWidth < 0.5
+		}
+		return false
+	}, [bucketPercentWidth, buckets.length])
 
 	const formatTimeOnTop = useCallback(
 		(t: number) =>
@@ -146,21 +159,6 @@ const TimelineIndicatorsBarGraph = ({
 		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
 	}, [width])
 
-	const shouldMockActivityGraph = useMemo(() => {
-		// buckets with less than 2 events slow down rendering,
-		// so we fall back to a <span>-based mockup if too many buckets are small
-		if (buckets.length > 1000) {
-			let shouldMock = true
-			for (const bucket of buckets) {
-				if (bucket.totalCount > 2) {
-					shouldMock = false
-				}
-			}
-			return shouldMock
-		}
-		return false
-	}, [buckets])
-
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -178,11 +176,11 @@ const TimelineIndicatorsBarGraph = ({
 
 			setIsRefreshingDOM(true)
 
-			const { clientX, deltaY, deltaX, ctrlKey } = event
+			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
 			const { offsetWidth, offsetLeft, scrollLeft } = viewportDiv
 			const viewportWidth = offsetWidth - 2 * TIMELINE_MARGIN
 			const pointerX = clientX + document.documentElement.scrollLeft
-			if (ctrlKey) {
+			if (ctrlKey || metaKey) {
 				setCamera((camera) => {
 					const dz = deltaY / ZOOM_SCALING_FACTOR
 
@@ -534,7 +532,7 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}, [camera.zoom, duration, time, viewportWidth])
 
-	if (!events.length) {
+	if (!events.length || state === ReplayerState.Loading || !replayer) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
@@ -550,23 +548,9 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	const maxBucketCount = Math.max(
-		...buckets.map((bucket) => bucket.totalCount),
-	)
-	const bucketPercentWidth = (bucketTimestep / duration) * 100
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressMonitor} ref={progressRef}>
-				<div className={style.progressBarContainer}>
-					{time > 0 ? (
-						<div
-							className={style.progressBar}
-							style={{
-								width: (time * width) / duration,
-							}}
-						></div>
-					) : null}
-				</div>
 				{shouldMockActivityGraph ? (
 					buckets
 						.filter((bucket) => bucket.totalCount > 0)
