@@ -7,6 +7,7 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import { Landing } from '@pages/Landing/Landing'
 import LoginForm from '@pages/Login/Login'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
+import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
@@ -39,6 +40,11 @@ export const AppRouter = () => {
 					<Route path="/new">
 						<Landing>
 							<NewProjectPage />
+						</Landing>
+					</Route>
+					<Route path="/oauth/authorize">
+						<Landing>
+							<OAuthApprovalPage />
 						</Landing>
 					</Route>
 					<Route path="/callback/:integrationName">

@@ -170,6 +170,8 @@ var Models = []interface{}{
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
 	&VercelIntegrationConfig{},
+	&OAuthClientStore{},
+	&ResthookSubscription{},
 }
 
 func init() {
@@ -185,6 +187,13 @@ func init() {
 
 type Model struct {
 	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
+}
+
+type Int64Model struct {
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -317,6 +326,13 @@ type EnhancedUserDetails struct {
 	Email       *string `gorm:"uniqueIndex"`
 	PersonJSON  *string
 	CompanyJSON *string
+}
+
+type ResthookSubscription struct {
+	Model
+	ProjectID int     `json:"project_id"`
+	Event     *string `json:"event"`
+	TargetUrl *string `json:"target_url"`
 }
 
 type RegistrationData struct {
@@ -635,7 +651,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 }
 
 type Field struct {
-	Model
+	Int64Model
 	// 'user_property', 'session_property'.
 	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.
@@ -1052,6 +1068,14 @@ type AlertEvent struct {
 	ErrorGroupID *int
 }
 
+type OAuthClientStore struct {
+	ID        string         `gorm:"primary_key;default:uuid_generate_v4()"`
+	CreatedAt time.Time      `json:"created_at" deep:"-"`
+	Secret    string         `gorm:"uniqueIndex;not null;default:uuid_generate_v4()"`
+	Domains   pq.StringArray `gorm:"not null;type:text[]"`
+	AppName   string
+}
+
 var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
@@ -1141,6 +1165,11 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating secure_id_generator")
+	}
+
+	// allows using postgres native UUID functions
+	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
+		return false, e.Wrap(err, "failed to configure uuid extension")
 	}
 
 	if err := DB.AutoMigrate(

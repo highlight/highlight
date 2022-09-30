@@ -8,4 +8,9 @@
 .graphicContainer {
 	margin-bottom: var(--size-xLarge);
 	margin-top: var(--size-xLarge);
+
+	&.compact {
+		margin-bottom: var(--size-small);
+		margin-top: var(--size-medium);
+	}
 }

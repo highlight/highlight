@@ -512,6 +512,12 @@ type ComplexityRoot struct {
 		Count func(childComplexity int) int
 	}
 
+	OAuthClient struct {
+		AppName   func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+	}
+
 	Plan struct {
 		Interval     func(childComplexity int) int
 		MembersLimit func(childComplexity int) int
@@ -590,6 +596,7 @@ type ComplexityRoot struct {
 		NewSessionAlerts             func(childComplexity int, projectID int) int
 		NewUserAlerts                func(childComplexity int, projectID int) int
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
+		OauthClientMetadata          func(childComplexity int, clientID string) int
 		Project                      func(childComplexity int, id int) int
 		ProjectHasViewedASession     func(childComplexity int, projectID int) int
 		ProjectSuggestion            func(childComplexity int, query string) int
@@ -1138,6 +1145,7 @@ type QueryResolver interface {
 	EventChunks(ctx context.Context, secureID string) ([]*model1.EventChunk, error)
 	SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*model.S3File, error)
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
+	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -3773,6 +3781,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NewUsersCount.Count(childComplexity), true
 
+	case "OAuthClient.app_name":
+		if e.complexity.OAuthClient.AppName == nil {
+			break
+		}
+
+		return e.complexity.OAuthClient.AppName(childComplexity), true
+
+	case "OAuthClient.created_at":
+		if e.complexity.OAuthClient.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.OAuthClient.CreatedAt(childComplexity), true
+
+	case "OAuthClient.id":
+		if e.complexity.OAuthClient.ID == nil {
+			break
+		}
+
+		return e.complexity.OAuthClient.ID(childComplexity), true
+
 	case "Plan.interval":
 		if e.complexity.Plan.Interval == nil {
 			break
@@ -4524,6 +4553,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.NewUsersCount(childComplexity, args["project_id"].(int), args["lookBackPeriod"].(int)), true
+
+	case "Query.oauth_client_metadata":
+		if e.complexity.Query.OauthClientMetadata == nil {
+			break
+		}
+
+		args, err := ec.field_Query_oauth_client_metadata_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.OauthClientMetadata(childComplexity, args["client_id"].(string)), true
 
 	case "Query.project":
 		if e.complexity.Query.Project == nil {
@@ -6521,7 +6562,7 @@ scalar Int64
 scalar StringArray
 
 type Field {
-	id: ID!
+	id: Int64!
 	name: String!
 	value: String!
 	type: String
@@ -7458,6 +7499,7 @@ type EventChunk {
 	timestamp: Int64!
 }
 
+<<<<<<< HEAD
 input VercelProjectMappingInput {
 	vercel_project_id: String!
 	project_id: ID!
@@ -7466,6 +7508,12 @@ input VercelProjectMappingInput {
 type VercelProjectMapping {
 	vercel_project_id: String!
 	project_id: ID!
+=======
+type OAuthClient {
+	id: String!
+	created_at: Timestamp!
+	app_name: String!
+>>>>>>> 9ed1ff496961975536c09fa7ca29fb1421e97421
 }
 
 scalar Upload
@@ -7653,6 +7701,7 @@ type Query {
 	event_chunks(secure_id: String!): [EventChunk!]!
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
+	oauth_client_metadata(client_id: String!): OAuthClient
 }
 
 type Mutation {
@@ -12412,6 +12461,21 @@ func (ec *executionContext) field_Query_new_user_alerts_args(ctx context.Context
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_oauth_client_metadata_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["client_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("client_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["client_id"] = arg0
 	return args, nil
 }
 
@@ -22244,9 +22308,9 @@ func (ec *executionContext) _Field_id(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Field_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -22256,7 +22320,7 @@ func (ec *executionContext) fieldContext_Field_id(ctx context.Context, field gra
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -29109,6 +29173,138 @@ func (ec *executionContext) fieldContext_NewUsersCount_count(ctx context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OAuthClient_id(ctx context.Context, field graphql.CollectedField, obj *model.OAuthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OAuthClient_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OAuthClient_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OAuthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OAuthClient_created_at(ctx context.Context, field graphql.CollectedField, obj *model.OAuthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OAuthClient_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OAuthClient_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OAuthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _OAuthClient_app_name(ctx context.Context, field graphql.CollectedField, obj *model.OAuthClient) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_OAuthClient_app_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AppName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_OAuthClient_app_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "OAuthClient",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -36408,6 +36604,66 @@ func (ec *executionContext) fieldContext_Query_sourcemap_versions(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_sourcemap_versions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_oauth_client_metadata(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_oauth_client_metadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().OauthClientMetadata(rctx, fc.Args["client_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.OAuthClient)
+	fc.Result = res
+	return ec.marshalOOAuthClient2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthClient(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_oauth_client_metadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OAuthClient_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_OAuthClient_created_at(ctx, field)
+			case "app_name":
+				return ec.fieldContext_OAuthClient_app_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OAuthClient", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_oauth_client_metadata_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -51339,6 +51595,48 @@ func (ec *executionContext) _NewUsersCount(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var oAuthClientImplementors = []string{"OAuthClient"}
+
+func (ec *executionContext) _OAuthClient(ctx context.Context, sel ast.SelectionSet, obj *model.OAuthClient) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, oAuthClientImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OAuthClient")
+		case "id":
+
+			out.Values[i] = ec._OAuthClient_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_at":
+
+			out.Values[i] = ec._OAuthClient_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "app_name":
+
+			out.Values[i] = ec._OAuthClient_app_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var planImplementors = []string{"Plan"}
 
 func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj *model.Plan) graphql.Marshaler {
@@ -53632,6 +53930,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "oauth_client_metadata":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_oauth_client_metadata(ctx, field)
 				return res
 			}
 
@@ -60109,6 +60427,13 @@ func (ec *executionContext) marshalONewUsersCount2ᚖgithubᚗcomᚋhighlightᚑ
 		return graphql.Null
 	}
 	return ec._NewUsersCount(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOAuthClient2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐOAuthClient(ctx context.Context, sel ast.SelectionSet, v *model.OAuthClient) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OAuthClient(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProject2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v model1.Project) graphql.Marshaler {

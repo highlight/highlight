@@ -10815,3 +10815,61 @@ export type GetSourcemapVersionsQueryResult = Apollo.QueryResult<
 	Types.GetSourcemapVersionsQuery,
 	Types.GetSourcemapVersionsQueryVariables
 >
+export const GetOAuthClientMetadataDocument = gql`
+	query GetOAuthClientMetadata($client_id: String!) {
+		oauth_client_metadata(client_id: $client_id) {
+			id
+			created_at
+			app_name
+		}
+	}
+`
+
+/**
+ * __useGetOAuthClientMetadataQuery__
+ *
+ * To run a query within a React component, call `useGetOAuthClientMetadataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOAuthClientMetadataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOAuthClientMetadataQuery({
+ *   variables: {
+ *      client_id: // value for 'client_id'
+ *   },
+ * });
+ */
+export function useGetOAuthClientMetadataQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetOAuthClientMetadataQuery,
+		Types.GetOAuthClientMetadataQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetOAuthClientMetadataQuery,
+		Types.GetOAuthClientMetadataQueryVariables
+	>(GetOAuthClientMetadataDocument, baseOptions)
+}
+export function useGetOAuthClientMetadataLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetOAuthClientMetadataQuery,
+		Types.GetOAuthClientMetadataQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetOAuthClientMetadataQuery,
+		Types.GetOAuthClientMetadataQueryVariables
+	>(GetOAuthClientMetadataDocument, baseOptions)
+}
+export type GetOAuthClientMetadataQueryHookResult = ReturnType<
+	typeof useGetOAuthClientMetadataQuery
+>
+export type GetOAuthClientMetadataLazyQueryHookResult = ReturnType<
+	typeof useGetOAuthClientMetadataLazyQuery
+>
+export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
+	Types.GetOAuthClientMetadataQuery,
+	Types.GetOAuthClientMetadataQueryVariables
+>

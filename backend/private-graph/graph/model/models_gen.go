@@ -283,6 +283,12 @@ type NewUsersCount struct {
 	Count int64 `json:"count"`
 }
 
+type OAuthClient struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	AppName   string    `json:"app_name"`
+}
+
 type Plan struct {
 	Type         PlanType             `json:"type"`
 	Interval     SubscriptionInterval `json:"interval"`

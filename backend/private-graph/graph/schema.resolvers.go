@@ -13,6 +13,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -30,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -55,6 +56,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+const HistogramPercentileOffset = 0.1
 
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
@@ -3239,8 +3242,12 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 	for _, a := range workspaceAdmins {
 		if a != nil {
+			queryParams := url.Values{
+				"autoinvite_email": {*admin.Email},
+			}
+			inviteLink := fmt.Sprintf("%s/w/%d/team?%s", os.Getenv("FRONTEND_URI"), workspace.ID, queryParams.Encode())
 			if _, err := r.SendWorkspaceRequestEmail(*admin.Name, *admin.Email, *workspace.Name,
-				*a.Name, *a.Email, fmt.Sprintf("https://app.highlight.run/w/%d/team", workspace.ID)); err != nil {
+				*a.Name, *a.Email, inviteLink); err != nil {
 				log.Error(e.Wrap(err, "failed to send request access email"))
 				return &model.T, nil
 			}
@@ -6166,12 +6173,13 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if len(results) < 1 {
 			return nil, nil
 		}
+		// offset min and max to include min and max values and pad the distribution a bit
 		if params.MinValue == nil {
-			f := results[0].Value.(float64)
+			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)
 			params.MinValue = &f
 		}
 		if params.MaxValue == nil {
-			f := results[1].Value.(float64)
+			f := results[1].Value.(float64) * (1 + HistogramPercentileOffset)
 			params.MaxValue = &f
 		}
 	}
@@ -6374,6 +6382,19 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 	}
 
 	return appVersions, nil
+}
+
+// OauthClientMetadata is the resolver for the oauth_client_metadata field.
+func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string) (*modelInputs.OAuthClient, error) {
+	client := &model.OAuthClientStore{ID: clientID}
+	if err := r.DB.Model(&client).Select("id", "created_at", "app_name").Where(&client).First(&client).Error; err != nil {
+		return nil, e.Wrap(err, "error querying oauth client")
+	}
+	return &modelInputs.OAuthClient{
+		ID:        client.ID,
+		CreatedAt: client.CreatedAt,
+		AppName:   client.AppName,
+	}, nil
 }
 
 // Params is the resolver for the params field.

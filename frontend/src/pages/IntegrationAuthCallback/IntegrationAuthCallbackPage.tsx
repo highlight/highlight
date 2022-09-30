@@ -136,12 +136,12 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 const VercelIntegrationCallback = ({ code }: Props) => {
 	const history = useHistory()
 
-	const [{ configurationId, next }] = useQueryParams({
+	const [{ next }] = useQueryParams({
 		configurationId: StringParam,
 		next: StringParam,
 	})
 
-	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
+	const { data } = useGetProjectsAndWorkspacesQuery()
 
 	let projectId = ''
 	if (data?.projects && data.projects[0]) {

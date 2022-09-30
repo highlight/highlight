@@ -24,7 +24,7 @@ export type Scalars = {
 
 export type Field = {
 	__typename?: 'Field'
-	id: Scalars['ID']
+	id: Scalars['Int64']
 	name: Scalars['String']
 	value: Scalars['String']
 	type?: Maybe<Scalars['String']>
@@ -1037,6 +1037,13 @@ export type VercelProjectMapping = {
 	project_id: Scalars['ID']
 }
 
+export type OAuthClient = {
+	__typename?: 'OAuthClient'
+	id: Scalars['String']
+	created_at: Scalars['Timestamp']
+	app_name: Scalars['String']
+}
+
 export type Query = {
 	__typename?: 'Query'
 	accounts?: Maybe<Array<Maybe<Account>>>
@@ -1138,6 +1145,7 @@ export type Query = {
 	event_chunks: Array<EventChunk>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
+	oauth_client_metadata?: Maybe<OAuthClient>
 }
 
 export type QueryAccount_DetailsArgs = {
@@ -1555,6 +1563,10 @@ export type QuerySourcemap_FilesArgs = {
 
 export type QuerySourcemap_VersionsArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryOauth_Client_MetadataArgs = {
+	client_id: Scalars['String']
 }
 
 export type Mutation = {

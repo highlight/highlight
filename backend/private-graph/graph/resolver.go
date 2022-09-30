@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -87,9 +89,11 @@ type Resolver struct {
 	PrivateWorkerPool      *workerpool.WorkerPool
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
+	RH                     *resthooks.Resthook
 	HubspotApi             HubspotApiInterface
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
+	OAuthServer            *oauth.Server
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {

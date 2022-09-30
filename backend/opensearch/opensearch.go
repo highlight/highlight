@@ -301,7 +301,7 @@ func (c *Client) Delete(index Index, id int) error {
 	return nil
 }
 
-func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) error {
+func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
@@ -319,7 +319,7 @@ func (c *Client) Index(index Index, id int, parentId *int, obj interface{}) erro
 			joinClause = `,"join_type": {"name": "parent"}`
 		}
 	}
-	documentId += strconv.Itoa(id)
+	documentId += strconv.FormatInt(id, 10)
 
 	b, err := json.Marshal(obj)
 	if err != nil {

@@ -41,19 +41,13 @@ import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
-import packageJson from '../package.json'
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
 
 const dev = import.meta.env.DEV
-let commitSHA = import.meta.env.REACT_APP_COMMIT_SHA || ''
-if (commitSHA.length > 8) {
-	commitSHA = commitSHA.substring(0, 8)
-}
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
-	version: `${packageJson['version']}${commitSHA}`,
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,

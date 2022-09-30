@@ -6,7 +6,7 @@ scalar Int64
 scalar StringArray
 
 type Field {
-	id: ID!
+	id: Int64!
 	name: String!
 	value: String!
 	type: String
@@ -953,6 +953,12 @@ type VercelProjectMapping {
 	project_id: ID!
 }
 
+type OAuthClient {
+	id: String!
+	created_at: Timestamp!
+	app_name: String!
+}
+
 scalar Upload
 
 type Query {
@@ -1138,6 +1144,7 @@ type Query {
 	event_chunks(secure_id: String!): [EventChunk!]!
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
+	oauth_client_metadata(client_id: String!): OAuthClient
 }
 
 type Mutation {
