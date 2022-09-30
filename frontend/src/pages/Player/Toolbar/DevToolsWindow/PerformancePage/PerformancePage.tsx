@@ -14,18 +14,42 @@ type Props = {
 	startTime: number
 }
 
+interface PerformanceData {
+	timestamp: number
+	fps: number
+	jank: {
+		amount?: number
+		selector?: string
+		newLocation?: string
+	}
+	memoryUsagePercent: number
+}
+
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 	const { performancePayloads, jankPayloads, pause, events, session } =
 		useReplayerContext()
 
-	const performanceData = performancePayloads.map((payload) => {
-		return {
-			timestamp: payload.relativeTimestamp * 1000,
-			fps: payload.fps,
-			memoryUsagePercent:
-				payload.usedJSHeapSize / payload.jsHeapSizeLimit,
-		}
-	})
+	const performanceData: PerformanceData[] = performancePayloads.map(
+		(payload) => {
+			const jank = jankPayloads.find(
+				(j) =>
+					j.relativeTimestamp >= payload.relativeTimestamp &&
+					j.relativeTimestamp <=
+						payload.relativeTimestamp + j.jankAmount,
+			)
+			return {
+				timestamp: payload.relativeTimestamp * 1000,
+				fps: payload.fps,
+				jank: {
+					amount: jank?.jankAmount,
+					selector: jank?.querySelector,
+					newLocation: jank?.newLocation,
+				},
+				memoryUsagePercent:
+					payload.usedJSHeapSize / payload.jsHeapSizeLimit,
+			}
+		},
+	)
 
 	const isLoading = events.length === 0 && performancePayloads.length === 0
 	const hasNoPerformancePayloads =
@@ -48,7 +72,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 			{!isLoading &&
 				[
 					{
-						key: 'fps',
+						key: 'fps' as keyof PerformanceData,
 						strokeColor: 'var(--color-green-700)',
 						fillColor: 'var(--color-green-400)',
 						yAxisLabel: 'Frames per Second',
@@ -56,7 +80,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						chartLabel: 'Frames Per Second',
 					},
 					{
-						key: 'memoryUsagePercent',
+						key: 'memoryUsagePercent' as keyof PerformanceData,
 						strokeColor: 'var(--color-blue-700)',
 						fillColor: 'var(--color-blue-400)',
 						yAxisTickFormatter: (tickItem: number) =>
@@ -66,12 +90,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						chartLabel: 'Device Memory',
 					},
 					{
-						key: 'jank',
-						customData: jankPayloads.map((p) => ({
-							jank: p.jankAmount,
-							selector: p.querySelector,
-							timestamp: p.relativeTimestamp * 1000,
-						})),
+						key: 'jank' as keyof PerformanceData,
 						yAxisTickFormatter: (tickItem: number | string) =>
 							typeof tickItem === 'number'
 								? `${tickItem.toFixed(1)} ms`
@@ -86,7 +105,6 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 				].map(
 					({
 						key,
-						customData,
 						strokeColor,
 						fillColor,
 						yAxisTickFormatter,
@@ -95,51 +113,50 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						tooltipIcon,
 						chartLabel,
 					}) => {
-						let data: any = undefined
-						let closestTimestamp: number
-						if (!customData) {
-							const timestamps = performanceData.map(
-								(d) => d.timestamp,
-							)
-							closestTimestamp = findClosestTimestamp(
-								timestamps,
-								currentTime - startTime,
-							)
-							data = performanceData.map((d) => ({
-								timestamp: d.timestamp,
-								// @ts-expect-error
-								[key]: d[key],
-							}))
+						const timestamps = performanceData.map(
+							(d) => d.timestamp,
+						)
+						const closestTimestamp = findClosestTimestamp(
+							timestamps,
+							currentTime - startTime,
+						)
+						const data = performanceData.map((d) => ({
+							timestamp: d.timestamp,
+							...(key === 'jank'
+								? {
+										jank: d.jank.amount,
+										selector: d.jank.selector,
+										...(d.jank.newLocation
+											? {
+													locationChanged:
+														d.jank.newLocation,
+											  }
+											: {}),
+								  }
+								: { [key]: d[key] }),
+						}))
 
-							const hasData = data.some(
-								(data: any) => !isNaN(data[key]),
-							)
-							if (data.length === 0 || !hasData) {
-								return (
-									<div className={styles.noDataContainer}>
-										<p>
-											{session?.browser_name}{' '}
-											{session?.browser_version} does not
-											support recording {chartLabel}.
-										</p>
-									</div>
-								)
-							}
-						} else {
-							closestTimestamp = findClosestTimestamp(
-								jankPayloads.map(
-									(p) => p.relativeTimestamp * 1000,
-								),
-								currentTime - startTime,
+						const hasData = data.some(
+							(data: any) => !isNaN(data[key]),
+						)
+						if (data.length === 0 || !hasData) {
+							return (
+								<div className={styles.noDataContainer}>
+									<p>
+										{session?.browser_name}{' '}
+										{session?.browser_version} does not
+										support recording {chartLabel}.
+									</p>
+								</div>
 							)
 						}
 
 						return (
 							<StackedAreaChart
 								key={key}
-								data={customData || data}
+								data={data}
 								xAxisKey="timestamp"
-								showXAxis={key !== 'fps'}
+								showXAxis={key === 'jank'}
 								heightPercent="30%"
 								fillColor={fillColor}
 								strokeColor={strokeColor}

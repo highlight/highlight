@@ -1,4 +1,5 @@
 import { eventWithTime } from '@highlight-run/rrweb/typings/types'
+
 export type HighlightEvent = eventWithTime & { identifier: string }
 
 export type HighlightPerformancePayload = {
@@ -12,5 +13,5 @@ export type HighlightJankPayload = {
 	relativeTimestamp: number
 	jankAmount: number
 	querySelector: string
-	locationChanged: boolean
+	newLocation?: string
 }

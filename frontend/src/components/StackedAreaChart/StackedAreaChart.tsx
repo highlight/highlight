@@ -113,13 +113,13 @@ const StackedAreaChart = ({
 											}
 										>
 											{payload.map((entry: any) => {
+												if (!entry.value) return null
 												return (
 													<p key={entry.dataKey}>
 														{tooltipIcon &&
 															tooltipIcon}
 														<span>
-															{entry.value &&
-															yAxisTickFormatter
+															{yAxisTickFormatter
 																? yAxisTickFormatter(
 																		entry.value,
 																		0,

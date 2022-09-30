@@ -11,7 +11,7 @@ export interface JankPayload {
 	relativeTimestamp: number
 	jankAmount: number
 	querySelector: string
-	locationChanged: boolean
+	newLocation?: string
 }
 
 export const JankListener = (
@@ -53,7 +53,10 @@ export const JankListener = (
 			relativeTimestamp,
 			jankAmount: jank,
 			querySelector: generateQuerySelector(),
-			locationChanged: window.location.href != jankState.location,
+			newLocation:
+				window.location.href != jankState.location
+					? window.location.href
+					: undefined,
 		})
 	}
 
@@ -66,7 +69,7 @@ export const JankListener = (
 	window.addEventListener('keydown', listener, true)
 
 	return () => {
-		window.removeEventListener('click', listener, true)
 		window.removeEventListener('keydown', listener, true)
+		window.removeEventListener('click', listener, true)
 	}
 }
