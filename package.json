@@ -26,7 +26,7 @@
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "run-p --print-label build:frontend ci:install:go",
 		"ci:install:go": "cd backend && go build",
-		"ci:start": "run-p --print-label --race dev:frontend ci:backend",
+		"ci:start": "run-p --print-label dev:frontend ci:backend",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"dev": "run-p --print-label --race 'dev:*'",
