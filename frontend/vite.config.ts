@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => {
 				],
 			}),
 		],
-		envPrefix: ['VITE_', 'REACT_APP_', ...ENVVAR_ALLOWLIST],
+		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
 			port: 3000,
 			https: {
