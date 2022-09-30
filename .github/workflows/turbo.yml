@@ -17,11 +17,14 @@ jobs:
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
+
             - name: Checkout
               uses: actions/checkout@v3
               with:
                   token: ${{ secrets.GH_REPO_TOKEN }}
-                  submodules: recursive
+                  submodules: true
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
