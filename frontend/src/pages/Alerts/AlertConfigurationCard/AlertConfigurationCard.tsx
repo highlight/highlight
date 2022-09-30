@@ -479,6 +479,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: lookbackPeriod,
 									user_properties: [],
+									exclude_rules: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.SessionFeedbackAlert,
