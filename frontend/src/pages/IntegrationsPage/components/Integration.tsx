@@ -39,7 +39,6 @@ const Integration = ({
 	showModalDefault,
 	showSettingsDefault,
 }: Props) => {
-	console.log('showSettingsDefault', showSettingsDefault)
 	const [showConfiguration, setShowConfiguration] = useState(
 		showModalDefault && !defaultEnable,
 	)
@@ -47,7 +46,6 @@ const Integration = ({
 	const [showUpdateSettings, setShowUpdateSettings] = useState(
 		showSettingsDefault || false,
 	)
-	console.log('showUpdateSettings', showUpdateSettings)
 	const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable)
 
 	useEffect(() => {

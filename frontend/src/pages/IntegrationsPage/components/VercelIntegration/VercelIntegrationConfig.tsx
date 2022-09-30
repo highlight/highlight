@@ -203,7 +203,6 @@ export const VercelIntegrationSettings: React.FC<
 					...p,
 					vercelProjects: [],
 					onUpdateProjectLink: (vercelProjectNames: string[]) => {
-						console.log('vercelProjectNames', vercelProjectNames)
 						projectMapSet(
 							p.id,
 							vercelProjectNames.map(
@@ -212,14 +211,11 @@ export const VercelIntegrationSettings: React.FC<
 										?.id ?? '',
 							),
 						)
-						console.log('projectMap', projectMap)
 					},
 				})
 			}
 		}
 	}
-
-	console.log('isVercelIntegratedWithProject', isVercelIntegratedWithProject)
 
 	useEffect(() => {
 		if (isVercelIntegratedWithProject) {

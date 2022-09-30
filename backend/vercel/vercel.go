@@ -86,8 +86,6 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 		body = fmt.Sprintf("[%s]", body)
 	}
 
-	fmt.Println(body)
-
 	req, err := http.NewRequest(method, fmt.Sprintf("https://api.vercel.com/v9/projects/%s/env%s%s", projectId, envIdStr, teamIdParam),
 		strings.NewReader(body))
 	if err != nil {
