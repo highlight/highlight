@@ -5,9 +5,9 @@ import {
 	playerMetaData,
 	SessionInterval,
 } from '@highlight-run/rrweb/typings/types'
+import { clamp } from '@util/numbers'
 import { message } from 'antd'
 import * as H from 'history'
-import { clamp } from 'lodash'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
 

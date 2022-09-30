@@ -54,7 +54,6 @@ const TimelineIndicatorsBarGraph = ({
 		eventsForTimelineIndicator,
 		sessionComments,
 		errors: sessionErrors,
-		// isLiveMode,
 	} = useReplayerContext()
 
 	const events = useMemo(() => {

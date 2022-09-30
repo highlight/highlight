@@ -1,6 +1,5 @@
 import Dot, { CustomDotColor } from '@components/Dot/Dot'
 import SvgWarningTriangle from '@icons/WarningTriangle'
-// import { motion } from 'framer-motion'
 import React from 'react'
 import Skeleton from 'react-loading-skeleton'
 
