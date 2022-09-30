@@ -65,8 +65,8 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Connect Highlight with Vercel to automatically configure
-				environment variables.
+				Connect Highlight with Vercel to configure environment variables
+				for source map uploads.
 			</p>
 			<footer>
 				<Button
@@ -110,7 +110,8 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Disconnecting Vercel from Highlight.
+				Disconnecting Vercel from Highlight will remove the environment
+				variables for source map uploads.
 			</p>
 			<footer>
 				<Button
@@ -131,6 +132,9 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
+								message.success(
+									'Disconnected the Vercel integration!',
+								)
 								setModelOpen(false)
 								setIntegrationEnabled(false)
 							})

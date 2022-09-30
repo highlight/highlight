@@ -81,7 +81,7 @@ const Integration = ({
 							}}
 						/>
 						{hasSettings && (
-							<div className="flex w-full justify-end">
+							<div className="flex h-[18px] w-full justify-end">
 								<Button
 									trackingId="IntegrationSettings"
 									iconButton
