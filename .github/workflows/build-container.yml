@@ -8,8 +8,6 @@ jobs:
         name: Push Docker image to Docker Hub
         runs-on: ubuntu-latest
         steps:
-            - name: Use HTTPS for checkout
-              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
             - name: Checkout
               uses: actions/checkout@v3
               with:
