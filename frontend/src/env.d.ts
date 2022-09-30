@@ -11,7 +11,7 @@ interface ImportMetaEnv {
 	readonly REACT_APP_STRIPE_API_PK: string
 
 	readonly LINEAR_CLIENT_ID: string
-	readonly SLACK_CLIENT_I: string
+	readonly SLACK_CLIENT_ID: string
 }
 
 interface ImportMeta {
