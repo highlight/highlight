@@ -50,7 +50,7 @@ export default defineConfig({
 	},
 	build: {
 		outDir: 'build',
-		sourcemap: !!process.env.SOURCEMAP,
+		sourcemap: true,
 	},
 	test: {
 		globals: true,
