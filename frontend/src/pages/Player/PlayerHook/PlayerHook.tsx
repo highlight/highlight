@@ -430,6 +430,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 						)
 						.then((response) => response.json())
 						.then((data) => {
+							console.log(
+								'fetchEventChunkURL start',
+								window.performance.now(),
+							)
 							const toRemove = getChunkToRemove(
 								chunkEvents,
 								startTs,
@@ -441,7 +445,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 							if (toRemove !== undefined) {
 								toSet.push([toRemove, undefined])
 							}
+							console.log(
+								'fetchEventChunkURL premap',
+								window.performance.now(),
+							)
 							chunkEventsSetMulti(toSet)
+							console.log(
+								'fetchEventChunkURL end',
+								window.performance.now(),
+							)
 						})
 						.then(() => setOnEventsLoaded(callback))
 						.catch((e) => {

@@ -24,7 +24,9 @@ function useMap<K, V>(
 	}, [])
 
 	const setMulti = useCallback((entries: [K, V | undefined][]) => {
+		console.log('vadim', entries)
 		setMap((prev) => {
+			console.log(prev, entries)
 			const copy = new Map(prev)
 			for (const [k, v] of entries) {
 				if (v === undefined) {
