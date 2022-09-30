@@ -1,6 +1,6 @@
 [submodule "backend/highlight-go"]
 	path = backend/highlight-go
-	url = https://github.com/highlight-run/highlight-go
+	url = git@github.com:highlight-run/highlight-go.git
 [submodule "rrweb"]
 	path = rrweb
-	url = https://github.com/highlight-run/rrweb
+	url = git@github.com:highlight-run/rrweb.git
