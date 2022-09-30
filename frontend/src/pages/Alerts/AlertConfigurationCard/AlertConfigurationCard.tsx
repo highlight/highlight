@@ -8,7 +8,7 @@ import {
 	useCreateNewSessionAlertMutation,
 	useCreateNewUserAlertMutation,
 	useCreateRageClickAlertMutation,
-	useCreateSessionFeedbackAlertMutation,
+	useCreateSessionAlertMutation,
 	useCreateTrackPropertiesAlertMutation,
 	useCreateUserPropertiesAlertMutation,
 	useGetIdentifierSuggestionsQuery,
@@ -18,11 +18,12 @@ import {
 	useUpdateNewSessionAlertMutation,
 	useUpdateNewUserAlertMutation,
 	useUpdateRageClickAlertMutation,
-	useUpdateSessionFeedbackAlertMutation,
+	useUpdateSessionAlertMutation,
 	useUpdateTrackPropertiesAlertMutation,
 	useUpdateUserPropertiesAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { SessionAlertType } from '@graph/schemas'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
@@ -114,9 +115,9 @@ export const AlertConfigurationCard = ({
 		},
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createSessionFeedbackAlert, {}] =
-		useCreateSessionFeedbackAlertMutation({
-			variables: {
+	const [createSessionFeedbackAlert, {}] = useCreateSessionAlertMutation({
+		variables: {
+			input: {
 				project_id,
 				count_threshold: 1,
 				environments: [],
@@ -124,9 +125,12 @@ export const AlertConfigurationCard = ({
 				threshold_window: 30,
 				name: 'Session Feedback',
 				emails: emailsToNotify,
+				disabled: false,
+				type: SessionAlertType.NewSessionAlert,
 			},
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		})
+		},
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
 	const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
 		variables: {
 			project_id,
@@ -191,7 +195,7 @@ export const AlertConfigurationCard = ({
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		})
 	const [updateTrackPropertiesAlert] = useUpdateTrackPropertiesAlertMutation()
-	const [updateSessionFeedbackAlert] = useUpdateSessionFeedbackAlertMutation()
+	const [updateSessionFeedbackAlert] = useUpdateSessionAlertMutation()
 	const [updateRageClickAlert] = useUpdateRageClickAlertMutation()
 	const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation()
 
@@ -279,13 +283,17 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedbackComment:
+					case ALERT_TYPE.SessionFeedback:
 						await createSessionFeedbackAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								emails: emailsToNotify,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									emails: emailsToNotify,
+									disabled: false,
+									type: SessionAlertType.SessionFeedbackAlert,
+								},
 							},
 						})
 						break
@@ -413,15 +421,18 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedbackComment:
+					case ALERT_TYPE.SessionFeedback:
 						await updateSessionFeedbackAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								session_feedback_alert_id: alert.id,
-								threshold_window: lookbackPeriod,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									threshold_window: lookbackPeriod,
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.SessionFeedbackAlert,
+								},
 							},
 						})
 						break

@@ -357,6 +357,18 @@ type SearchParamsInput struct {
 	Query                   *string              `json:"query"`
 }
 
+type SessionAlertInput struct {
+	ProjectID       int                           `json:"project_id"`
+	Name            string                        `json:"name"`
+	CountThreshold  int                           `json:"count_threshold"`
+	ThresholdWindow int                           `json:"threshold_window"`
+	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
+	Emails          []string                      `json:"emails"`
+	Environments    []string                      `json:"environments"`
+	Disabled        bool                          `json:"disabled"`
+	Type            SessionAlertType              `json:"type"`
+}
+
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
@@ -833,6 +845,57 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SessionAlertType string
+
+const (
+	SessionAlertTypeErrorAlert           SessionAlertType = "ERROR_ALERT"
+	SessionAlertTypeNewUserAlert         SessionAlertType = "NEW_USER_ALERT"
+	SessionAlertTypeTrackPropertiesAlert SessionAlertType = "TRACK_PROPERTIES_ALERT"
+	SessionAlertTypeUserPropertiesAlert  SessionAlertType = "USER_PROPERTIES_ALERT"
+	SessionAlertTypeSessionFeedbackAlert SessionAlertType = "SESSION_FEEDBACK_ALERT"
+	SessionAlertTypeRageClickAlert       SessionAlertType = "RAGE_CLICK_ALERT"
+	SessionAlertTypeNewSessionAlert      SessionAlertType = "NEW_SESSION_ALERT"
+)
+
+var AllSessionAlertType = []SessionAlertType{
+	SessionAlertTypeErrorAlert,
+	SessionAlertTypeNewUserAlert,
+	SessionAlertTypeTrackPropertiesAlert,
+	SessionAlertTypeUserPropertiesAlert,
+	SessionAlertTypeSessionFeedbackAlert,
+	SessionAlertTypeRageClickAlert,
+	SessionAlertTypeNewSessionAlert,
+}
+
+func (e SessionAlertType) IsValid() bool {
+	switch e {
+	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeSessionFeedbackAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
+		return true
+	}
+	return false
+}
+
+func (e SessionAlertType) String() string {
+	return string(e)
+}
+
+func (e *SessionAlertType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SessionAlertType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SessionAlertType", str)
+	}
+	return nil
+}
+
+func (e SessionAlertType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

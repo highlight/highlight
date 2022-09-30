@@ -52,6 +52,7 @@ const (
 	AWS_REGION_US_EAST_2            = "us-east-2"
 )
 
+// TODO(et) - replace this with generated SessionAlertType
 var AlertType = struct {
 	ERROR            string
 	NEW_USER         string
