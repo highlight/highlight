@@ -550,6 +550,7 @@ input SessionAlertInput {
 	disabled: Boolean!
 	type: SessionAlertType!
 	user_properties: [UserPropertyInput!]!
+	exclude_rules: [String!]!
 }
 
 type ErrorSearchParams {
@@ -1422,28 +1423,6 @@ type Mutation {
 		threshold_window: Int!
 	): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-	updateNewSessionAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		count_threshold: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		threshold_window: Int
-		exclude_rules: [String]
-		disabled: Boolean
-	): SessionAlert
-	createNewSessionAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		threshold_window: Int!
-		exclude_rules: [String]!
-	): SessionAlert
 	updateSessionIsPublic(
 		session_secure_id: String!
 		is_public: Boolean!

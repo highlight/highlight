@@ -2256,7 +2256,7 @@ func (obj *Alert) sendSlackAlert(db *gorm.DB, alertID int, input *SendSlackAlert
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to notify from user properties alert")
+		return e.Wrap(err, "error getting channels to notify from ")
 	}
 	if len(channels) <= 0 {
 		return nil

@@ -66,6 +66,11 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
+	excludeRulesString, err := marshalEnvironments(input.ExcludeRules)
+	if err != nil {
+		return nil, err
+	}
+
 	inputType := string(input.Type)
 
 	return &model.SessionAlert{
@@ -83,5 +88,6 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			Disabled:             &input.Disabled,
 		},
 		UserProperties: &userPropertiesString,
+		ExcludeRules:   excludeRulesString,
 	}, nil
 }

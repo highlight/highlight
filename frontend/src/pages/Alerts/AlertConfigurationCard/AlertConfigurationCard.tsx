@@ -5,14 +5,12 @@ import Switch from '@components/Switch/Switch'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import {
 	useCreateErrorAlertMutation,
-	useCreateNewSessionAlertMutation,
 	useCreateSessionAlertMutation,
 	useCreateTrackPropertiesAlertMutation,
 	useGetIdentifierSuggestionsQuery,
 	useGetTrackSuggestionQuery,
 	useGetUserSuggestionQuery,
 	useUpdateErrorAlertMutation,
-	useUpdateNewSessionAlertMutation,
 	useUpdateSessionAlertMutation,
 	useUpdateTrackPropertiesAlertMutation,
 } from '@graph/hooks'
@@ -116,6 +114,7 @@ export const AlertConfigurationCard = ({
 				count_threshold: 1,
 				environments: [],
 				user_properties: [],
+				exclude_rules: [],
 				slack_channels: [],
 				threshold_window: 30,
 				name: 'Session Feedback',
@@ -133,6 +132,7 @@ export const AlertConfigurationCard = ({
 				count_threshold: 1,
 				environments: [],
 				user_properties: [],
+				exclude_rules: [],
 				slack_channels: [],
 				name: 'New User',
 				threshold_window: 1,
@@ -151,6 +151,7 @@ export const AlertConfigurationCard = ({
 				environments: [],
 				slack_channels: [],
 				user_properties: [],
+				exclude_rules: [],
 				name: 'Rage Click',
 				threshold_window: 30,
 				emails: emailsToNotify,
@@ -160,16 +161,21 @@ export const AlertConfigurationCard = ({
 		},
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
+	const [createNewSessionAlert, {}] = useCreateSessionAlertMutation({
 		variables: {
-			project_id,
-			count_threshold: 1,
-			environments: [],
-			slack_channels: [],
-			name: 'New Session',
-			threshold_window: 1,
-			exclude_rules: [],
-			emails: emailsToNotify,
+			input: {
+				project_id,
+				count_threshold: 1,
+				environments: [],
+				slack_channels: [],
+				user_properties: [],
+				name: 'New Session',
+				threshold_window: 1,
+				exclude_rules: [],
+				emails: emailsToNotify,
+				disabled: false,
+				type: SessionAlertType.NewSessionAlert,
+			},
 		},
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
@@ -194,6 +200,7 @@ export const AlertConfigurationCard = ({
 				slack_channels: [],
 				name: 'User',
 				user_properties: [],
+				exclude_rules: [],
 				threshold_window: 1,
 				count_threshold: 1,
 				emails: emailsToNotify,
@@ -206,7 +213,7 @@ export const AlertConfigurationCard = ({
 	const [updateTrackPropertiesAlert] = useUpdateTrackPropertiesAlertMutation()
 	const [updateSessionFeedbackAlert] = useUpdateSessionAlertMutation()
 	const [updateRageClickAlert] = useUpdateSessionAlertMutation()
-	const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation()
+	const [updateNewSessionAlert] = useUpdateSessionAlertMutation()
 
 	const excludedEnvironmentsFormName = `${
 		alert.Name || defaultName
@@ -266,6 +273,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: 1,
 									user_properties: [],
+									exclude_rules: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.NewUserAlert,
@@ -277,13 +285,18 @@ export const AlertConfigurationCard = ({
 						await createNewSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								exclude_rules:
-									form.getFieldValue(
-										excludedIdentifiersFormName,
-									) || [],
-								emails: emailsToNotify,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									exclude_rules:
+										form.getFieldValue(
+											excludedIdentifiersFormName,
+										) || [],
+									user_properties: [],
+									disabled: false,
+									emails: emailsToNotify,
+									type: SessionAlertType.NewSessionAlert,
+								},
 							},
 						})
 						break
@@ -295,6 +308,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: lookbackPeriod,
 									user_properties: [],
+									exclude_rules: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.RageClickAlert,
@@ -310,6 +324,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: 1,
 									user_properties: [],
+									exclude_rules: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.SessionFeedbackAlert,
@@ -356,6 +371,7 @@ export const AlertConfigurationCard = ({
 												name,
 											}
 										}),
+									exclude_rules: [],
 									emails: emailsToNotify,
 									type: SessionAlertType.UserPropertiesAlert,
 									disabled: false,
@@ -396,6 +412,7 @@ export const AlertConfigurationCard = ({
 									...requestVariables,
 									threshold_window: 1,
 									user_properties: [],
+									exclude_rules: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.NewUserAlert,
@@ -421,6 +438,7 @@ export const AlertConfigurationCard = ({
 												name,
 											}
 										}),
+									exclude_rules: [],
 									threshold_window: 1,
 									emails: emailsToNotify,
 									disabled: isDisabled,

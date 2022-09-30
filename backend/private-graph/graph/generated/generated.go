@@ -441,7 +441,6 @@ type ComplexityRoot struct {
 		CreateIssueForErrorComment       func(childComplexity int, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateIssueForSessionComment     func(childComplexity int, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) int
 		CreateMetricMonitor              func(childComplexity int, projectID int, name string, aggregator model.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, filters []*model.MetricTagFilterInput) int
-		CreateNewSessionAlert            func(childComplexity int, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) int
 		CreateOrUpdateStripeSubscription func(childComplexity int, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval) int
 		CreateProject                    func(childComplexity int, name string, workspaceID int) int
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
@@ -489,7 +488,6 @@ type ComplexityRoot struct {
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
 		UpdateErrorGroupState            func(childComplexity int, secureID string, state string) int
 		UpdateMetricMonitor              func(childComplexity int, metricMonitorID int, projectID int, name *string, aggregator *model.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*model.MetricTagFilterInput) int
-		UpdateNewSessionAlert            func(childComplexity int, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) int
 		UpdateSessionAlert               func(childComplexity int, id int, input model.SessionAlertInput) int
 		UpdateSessionAlertIsDisabled     func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
@@ -1022,8 +1020,6 @@ type MutationResolver interface {
 	UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow *int, disabled *bool) (*model1.SessionAlert, error)
 	CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*model.TrackPropertyInput, thresholdWindow int) (*model1.SessionAlert, error)
 	DeleteSessionAlert(ctx context.Context, projectID int, sessionAlertID int) (*model1.SessionAlert, error)
-	UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) (*model1.SessionAlert, error)
-	CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) (*model1.SessionAlert, error)
 	UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model1.Session, error)
 	UpdateErrorGroupIsPublic(ctx context.Context, errorGroupSecureID string, isPublic bool) (*model1.ErrorGroup, error)
 	UpdateAllowMeterOverage(ctx context.Context, workspaceID int, allowMeterOverage bool) (*model1.Workspace, error)
@@ -3030,18 +3026,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateMetricMonitor(childComplexity, args["project_id"].(int), args["name"].(string), args["aggregator"].(model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(float64), args["units"].(*string), args["metric_to_monitor"].(string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["filters"].([]*model.MetricTagFilterInput)), true
 
-	case "Mutation.createNewSessionAlert":
-		if e.complexity.Mutation.CreateNewSessionAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createNewSessionAlert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateNewSessionAlert(childComplexity, args["project_id"].(int), args["name"].(string), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["environments"].([]*string), args["threshold_window"].(int), args["exclude_rules"].([]*string)), true
-
 	case "Mutation.createOrUpdateStripeSubscription":
 		if e.complexity.Mutation.CreateOrUpdateStripeSubscription == nil {
 			break
@@ -3605,18 +3589,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateMetricMonitor(childComplexity, args["metric_monitor_id"].(int), args["project_id"].(int), args["name"].(*string), args["aggregator"].(*model.MetricAggregator), args["periodMinutes"].(*int), args["threshold"].(*float64), args["units"].(*string), args["metric_to_monitor"].(*string), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["disabled"].(*bool), args["filters"].([]*model.MetricTagFilterInput)), true
-
-	case "Mutation.updateNewSessionAlert":
-		if e.complexity.Mutation.UpdateNewSessionAlert == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateNewSessionAlert_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateNewSessionAlert(childComplexity, args["project_id"].(int), args["session_alert_id"].(int), args["name"].(*string), args["count_threshold"].(*int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["emails"].([]*string), args["environments"].([]*string), args["threshold_window"].(*int), args["exclude_rules"].([]*string), args["disabled"].(*bool)), true
 
 	case "Mutation.updateSessionAlert":
 		if e.complexity.Mutation.UpdateSessionAlert == nil {
@@ -7037,6 +7009,7 @@ input SessionAlertInput {
 	disabled: Boolean!
 	type: SessionAlertType!
 	user_properties: [UserPropertyInput!]!
+	exclude_rules: [String!]!
 }
 
 type ErrorSearchParams {
@@ -7909,28 +7882,6 @@ type Mutation {
 		threshold_window: Int!
 	): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-	updateNewSessionAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		count_threshold: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		threshold_window: Int
-		exclude_rules: [String]
-		disabled: Boolean
-	): SessionAlert
-	createNewSessionAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		threshold_window: Int!
-		exclude_rules: [String]!
-	): SessionAlert
 	updateSessionIsPublic(
 		session_secure_id: String!
 		is_public: Boolean!
@@ -8629,84 +8580,6 @@ func (ec *executionContext) field_Mutation_createMetricMonitor_args(ctx context.
 		}
 	}
 	args["filters"] = arg9
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createNewSessionAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["count_threshold"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count_threshold"] = arg2
-	var arg3 []*model.SanitizedSlackChannelInput
-	if tmp, ok := rawArgs["slack_channels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg3, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["slack_channels"] = arg3
-	var arg4 []*string
-	if tmp, ok := rawArgs["emails"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg4, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["emails"] = arg4
-	var arg5 []*string
-	if tmp, ok := rawArgs["environments"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-		arg5, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["environments"] = arg5
-	var arg6 int
-	if tmp, ok := rawArgs["threshold_window"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
-		arg6, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["threshold_window"] = arg6
-	var arg7 []*string
-	if tmp, ok := rawArgs["exclude_rules"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_rules"))
-		arg7, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["exclude_rules"] = arg7
 	return args, nil
 }
 
@@ -10330,102 +10203,6 @@ func (ec *executionContext) field_Mutation_updateMetricMonitor_args(ctx context.
 		}
 	}
 	args["filters"] = arg11
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateNewSessionAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["session_alert_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_alert_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_alert_id"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["name"] = arg2
-	var arg3 *int
-	if tmp, ok := rawArgs["count_threshold"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count_threshold"] = arg3
-	var arg4 []*model.SanitizedSlackChannelInput
-	if tmp, ok := rawArgs["slack_channels"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg4, err = ec.unmarshalOSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["slack_channels"] = arg4
-	var arg5 []*string
-	if tmp, ok := rawArgs["emails"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
-		arg5, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["emails"] = arg5
-	var arg6 []*string
-	if tmp, ok := rawArgs["environments"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-		arg6, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["environments"] = arg6
-	var arg7 *int
-	if tmp, ok := rawArgs["threshold_window"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["threshold_window"] = arg7
-	var arg8 []*string
-	if tmp, ok := rawArgs["exclude_rules"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_rules"))
-		arg8, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["exclude_rules"] = arg8
-	var arg9 *bool
-	if tmp, ok := rawArgs["disabled"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disabled"))
-		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["disabled"] = arg9
 	return args, nil
 }
 
@@ -27088,174 +26865,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionAlert(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteSessionAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_updateNewSessionAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateNewSessionAlert(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateNewSessionAlert(rctx, fc.Args["project_id"].(int), fc.Args["session_alert_id"].(int), fc.Args["name"].(*string), fc.Args["count_threshold"].(*int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["threshold_window"].(*int), fc.Args["exclude_rules"].([]*string), fc.Args["disabled"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateNewSessionAlert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_SessionAlert_id(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_SessionAlert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_SessionAlert_Name(ctx, field)
-			case "ChannelsToNotify":
-				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
-			case "EmailsToNotify":
-				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_SessionAlert_ExcludedEnvironments(ctx, field)
-			case "CountThreshold":
-				return ec.fieldContext_SessionAlert_CountThreshold(ctx, field)
-			case "TrackProperties":
-				return ec.fieldContext_SessionAlert_TrackProperties(ctx, field)
-			case "UserProperties":
-				return ec.fieldContext_SessionAlert_UserProperties(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_SessionAlert_ThresholdWindow(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_SessionAlert_LastAdminToEditID(ctx, field)
-			case "Type":
-				return ec.fieldContext_SessionAlert_Type(ctx, field)
-			case "ExcludeRules":
-				return ec.fieldContext_SessionAlert_ExcludeRules(ctx, field)
-			case "DailyFrequency":
-				return ec.fieldContext_SessionAlert_DailyFrequency(ctx, field)
-			case "disabled":
-				return ec.fieldContext_SessionAlert_disabled(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionAlert", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateNewSessionAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createNewSessionAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createNewSessionAlert(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateNewSessionAlert(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string), fc.Args["count_threshold"].(int), fc.Args["slack_channels"].([]*model.SanitizedSlackChannelInput), fc.Args["emails"].([]*string), fc.Args["environments"].([]*string), fc.Args["threshold_window"].(int), fc.Args["exclude_rules"].([]*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalOSessionAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createNewSessionAlert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_SessionAlert_id(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_SessionAlert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_SessionAlert_Name(ctx, field)
-			case "ChannelsToNotify":
-				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
-			case "EmailsToNotify":
-				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_SessionAlert_ExcludedEnvironments(ctx, field)
-			case "CountThreshold":
-				return ec.fieldContext_SessionAlert_CountThreshold(ctx, field)
-			case "TrackProperties":
-				return ec.fieldContext_SessionAlert_TrackProperties(ctx, field)
-			case "UserProperties":
-				return ec.fieldContext_SessionAlert_UserProperties(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_SessionAlert_ThresholdWindow(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_SessionAlert_LastAdminToEditID(ctx, field)
-			case "Type":
-				return ec.fieldContext_SessionAlert_Type(ctx, field)
-			case "ExcludeRules":
-				return ec.fieldContext_SessionAlert_ExcludeRules(ctx, field)
-			case "DailyFrequency":
-				return ec.fieldContext_SessionAlert_DailyFrequency(ctx, field)
-			case "disabled":
-				return ec.fieldContext_SessionAlert_disabled(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionAlert", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createNewSessionAlert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -47263,7 +46872,7 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "threshold_window", "slack_channels", "emails", "environments", "disabled", "type", "user_properties"}
+	fieldsInOrder := [...]string{"project_id", "name", "count_threshold", "threshold_window", "slack_channels", "emails", "environments", "disabled", "type", "user_properties", "exclude_rules"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47347,6 +46956,14 @@ func (ec *executionContext) unmarshalInputSessionAlertInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
 			it.UserProperties, err = ec.unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "exclude_rules":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exclude_rules"))
+			it.ExcludeRules, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50415,18 +50032,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteSessionAlert(ctx, field)
-			})
-
-		case "updateNewSessionAlert":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateNewSessionAlert(ctx, field)
-			})
-
-		case "createNewSessionAlert":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createNewSessionAlert(ctx, field)
 			})
 
 		case "updateSessionIsPublic":

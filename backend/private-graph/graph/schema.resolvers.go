@@ -31,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2541,137 +2541,6 @@ func (r *mutationResolver) DeleteSessionAlert(ctx context.Context, projectID int
 	}
 
 	return projectAlert, nil
-}
-
-// UpdateNewSessionAlert is the resolver for the updateNewSessionAlert field.
-func (r *mutationResolver) UpdateNewSessionAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, countThreshold *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow *int, excludeRules []*string, disabled *bool) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	projectAlert := &model.SessionAlert{}
-
-	if environments != nil {
-		envBytes, err := json.Marshal(environments)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing environments for new session alert")
-		}
-		envString := string(envBytes)
-		projectAlert.ExcludedEnvironments = &envString
-	}
-
-	if excludeRules != nil {
-		excludeRulesString, err := r.MarshalEnvironments(excludeRules)
-		if err != nil {
-			return nil, err
-		}
-		projectAlert.ExcludeRules = excludeRulesString
-	}
-
-	if slackChannels != nil {
-		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-		for _, ch := range slackChannels {
-			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-		}
-		channelsBytes, err := json.Marshal(sanitizedChannels)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing channels for new session alert")
-		}
-		channelsString := string(channelsBytes)
-		projectAlert.ChannelsToNotify = &channelsString
-	}
-
-	if emails != nil {
-		emailsString, err := r.MarshalAlertEmails(emails)
-		if err != nil {
-			return nil, err
-		}
-		projectAlert.EmailsToNotify = emailsString
-	}
-
-	projectAlert.LastAdminToEditID = admin.ID
-
-	if name != nil {
-		projectAlert.Name = name
-	}
-	if thresholdWindow != nil {
-		projectAlert.ThresholdWindow = thresholdWindow
-	} else {
-		// default to 0 (graph ql does not like this being nil)
-		defaultThresholdWindow := 0
-		projectAlert.ThresholdWindow = &defaultThresholdWindow
-	}
-	if disabled != nil {
-		projectAlert.Disabled = disabled
-	}
-	if err := r.DB.Model(&model.SessionAlert{
-		Model: model.Model{
-			ID: sessionAlertID,
-		},
-	}).Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields for new session alert")
-	}
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
-	}
-	return projectAlert, nil
-}
-
-// CreateNewSessionAlert is the resolver for the createNewSessionAlert field.
-func (r *mutationResolver) CreateNewSessionAlert(ctx context.Context, projectID int, name string, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, thresholdWindow int, excludeRules []*string) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
-	}
-	excludeRulesString, err := r.MarshalEnvironments(excludeRules)
-	if err != nil {
-		return nil, err
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	newAlert := &model.SessionAlert{
-		Alert: model.Alert{
-			ProjectID:            projectID,
-			OrganizationID:       projectID,
-			ExcludedEnvironments: envString,
-			Type:                 &model.AlertType.NEW_SESSION,
-			ChannelsToNotify:     channelsString,
-			EmailsToNotify:       emailsString,
-			Name:                 &name,
-			ThresholdWindow:      &thresholdWindow,
-			LastAdminToEditID:    admin.ID,
-		},
-		ExcludeRules: excludeRulesString,
-	}
-
-	if err := r.DB.Create(newAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new user properties alert")
-	}
-	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
-	}
-
-	return newAlert, nil
 }
 
 // UpdateSessionIsPublic is the resolver for the updateSessionIsPublic field.

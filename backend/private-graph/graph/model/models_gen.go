@@ -368,6 +368,7 @@ type SessionAlertInput struct {
 	Disabled        bool                          `json:"disabled"`
 	Type            SessionAlertType              `json:"type"`
 	UserProperties  []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules    []string                      `json:"exclude_rules"`
 }
 
 type SessionCommentTagInput struct {
