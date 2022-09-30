@@ -53,6 +53,8 @@ jobs:
                 ports:
                     - 6379:6379
         steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
             - name: Checkout
               uses: actions/checkout@v3
               with:
