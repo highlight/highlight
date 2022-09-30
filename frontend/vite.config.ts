@@ -94,12 +94,26 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			outDir: 'build',
-			sourcemap: true
+			sourcemap: true,
 		},
 		test: {
 			globals: true,
 			environment: 'happy-dom',
 			setupFiles: ['./src/setupTests.ts'],
+		},
+		css: {
+			devSourcemap: true,
+			preprocessorOptions: {
+				less: {
+					javascriptEnabled: true,
+					modifyVars: {
+						hack: `true; @import "${join(
+							__dirname,
+							'src/style/AntDesign/antd.overrides.less',
+						)}";`,
+					},
+				},
+			},
 		},
 	}
 })
