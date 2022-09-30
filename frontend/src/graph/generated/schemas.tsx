@@ -190,10 +190,18 @@ export type LinearTeam = {
 	key: Scalars['String']
 }
 
+export type VercelEnv = {
+	__typename?: 'VercelEnv'
+	id: Scalars['String']
+	key: Scalars['String']
+	configurationId: Scalars['String']
+}
+
 export type VercelProject = {
 	__typename?: 'VercelProject'
 	id: Scalars['String']
 	name: Scalars['String']
+	env: Array<VercelEnv>
 }
 
 export type SocialLink = {

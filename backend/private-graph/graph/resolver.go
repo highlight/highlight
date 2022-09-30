@@ -1724,7 +1724,31 @@ func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 }
 
 func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
-	if err := r.DB.Debug().Where(workspace).
+	if workspace.VercelAccessToken == nil {
+		return e.New("workspace does not have a Vercel access token")
+	}
+
+	projects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return err
+	}
+
+	configIdsToRemove := map[string]struct{}{}
+	for _, p := range projects {
+		for _, e := range p.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				configIdsToRemove[e.ConfigurationID] = struct{}{}
+			}
+		}
+	}
+
+	for c := range configIdsToRemove {
+		if err := vercel.RemoveConfiguration(c, *workspace.VercelAccessToken, workspace.VercelTeamID); err != nil {
+			return err
+		}
+	}
+
+	if err := r.DB.Where(workspace).
 		Select("vercel_access_token", "vercel_team_id").
 		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing Vercel access token and team id")

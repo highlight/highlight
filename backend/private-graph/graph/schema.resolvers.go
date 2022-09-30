@@ -3429,8 +3429,50 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 	}
 
 	workspaceId := project.WorkspaceID
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	if workspace.VercelAccessToken == nil {
+		return false, e.New("workspace does not have an access token")
+	}
+
+	vercelProjects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return false, err
+	}
+
+	vercelProjectsById := map[string]*modelInputs.VercelProject{}
+	for _, p := range vercelProjects {
+		vercelProjectsById[p.ID] = p
+	}
+
 	configs := []*model.VercelIntegrationConfig{}
 	for _, m := range projectMappings {
+		project, err := r.isAdminInProject(ctx, m.ProjectID)
+		if err != nil {
+			return false, err
+		}
+		if project.Secret == nil {
+			continue
+		}
+
+		vercelProject, ok := vercelProjectsById[m.VercelProjectID]
+		if !ok {
+			return false, e.New("cannot access Vercel project")
+		}
+
+		var matchingEnvId *string
+		for _, e := range vercelProject.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				matchingEnvId = &e.ID
+			}
+		}
+
+		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken, workspace.VercelTeamID, matchingEnvId); err != nil {
+			return false, err
+		}
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,

@@ -161,9 +161,16 @@ type LinearTeam {
 	key: String!
 }
 
+type VercelEnv {
+	id: String!
+	key: String!
+	configurationId: String!
+}
+
 type VercelProject {
 	id: String!
 	name: String!
+	env: [VercelEnv!]!
 }
 
 type SocialLink {

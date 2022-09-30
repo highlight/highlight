@@ -17,6 +17,7 @@ import (
 var (
 	VercelClientId     = os.Getenv("VERCEL_CLIENT_ID")
 	VercelClientSecret = os.Getenv("VERCEL_CLIENT_SECRET")
+	SourcemapEnvKey    = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
 )
 
 type VercelAccessTokenResponse struct {
@@ -66,16 +67,29 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	return accessTokenResponse, nil
 }
 
-func SetEnvVariable(projectId string, accessToken string, teamId *string) error {
+func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId *string, envId *string) error {
 	client := &http.Client{}
 
-	data := url.Values{}
+	teamIdParam := ""
 	if teamId != nil {
-		data.Set("teamId", *teamId)
+		teamIdParam = "?teamId=" + *teamId
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("/v9/projects/%s/env", projectId),
-		strings.NewReader(`[{"type":"secret","value":"ZANE-TEST","target":["production"],"key":"HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"}]`))
+	body := fmt.Sprintf(`{"type":"encrypted","value":"%s","target":["production"],"key":"%s"}`, apiKey, SourcemapEnvKey)
+
+	method := "POST"
+	envIdStr := ""
+	if envId != nil {
+		method = "PATCH"
+		envIdStr = fmt.Sprintf("/%s", *envId)
+	} else {
+		body = fmt.Sprintf("[%s]", body)
+	}
+
+	fmt.Println(body)
+
+	req, err := http.NewRequest(method, fmt.Sprintf("https://api.vercel.com/v9/projects/%s/env%s%s", projectId, envIdStr, teamIdParam),
+		strings.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating api request to Vercel")
 	}
@@ -90,6 +104,39 @@ func SetEnvVariable(projectId string, accessToken string, teamId *string) error 
 	b, err := ioutil.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
+		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error reading response body from Vercel env endpoint")
+	}
+
+	return nil
+}
+
+func RemoveConfiguration(configId string, accessToken string, teamId *string) error {
+	client := &http.Client{}
+
+	teamIdParam := ""
+	if teamId != nil {
+		teamIdParam = "?teamId=" + *teamId
+	}
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("https://api.vercel.com/v1/integrations/configuration/%s%s", configId, teamIdParam), nil)
+	if err != nil {
+		return errors.Wrap(err, "error creating api request to Vercel")
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return errors.Wrap(err, "error getting response from Vercel env endpoint")
+	}
+
+	b, err := ioutil.ReadAll(res.Body)
+
+	if res.StatusCode != 204 {
 		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 

@@ -84,7 +84,9 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href="https://vercel.com/integrations/zane-test/new"
+					href={`https://vercel.com/integrations/${
+						import.meta.env.REACT_APP_VERCEL_INTEGRATION_NAME
+					}/new`}
 					rel="noreferrer"
 				>
 					<span className={styles.modalBtnText}>
@@ -200,9 +202,16 @@ export const VercelIntegrationSettings: React.FC<
 				highlightProjects.push({
 					...p,
 					vercelProjects: [],
-					onUpdateProjectLink: (vercelProjectIds: string[]) => {
-						console.log('vercelProjectIds', vercelProjectIds)
-						projectMapSet(p.id, vercelProjectIds)
+					onUpdateProjectLink: (vercelProjectNames: string[]) => {
+						console.log('vercelProjectNames', vercelProjectNames)
+						projectMapSet(
+							p.id,
+							vercelProjectNames.map(
+								(n) =>
+									allVercelProjects?.find((p) => p.name === n)
+										?.id ?? '',
+							),
+						)
 						console.log('projectMap', projectMap)
 					},
 				})
@@ -223,13 +232,13 @@ export const VercelIntegrationSettings: React.FC<
 		selectedOptions.push(...v)
 	}
 
-	const selectOptions =
+	const selectOptions = (
 		allVercelProjects?.map((p) => ({
 			id: p.id,
-			value: p.id,
+			value: p.name,
 			displayValue: p.name,
-			// disabled: selectedOptions.includes(p.id),
 		})) || []
+	).filter((o) => !selectedOptions.includes(o.id))
 
 	// If there's only one option available, default to that.
 	useEffect(() => {
@@ -248,7 +257,9 @@ export const VercelIntegrationSettings: React.FC<
 			render: (_: string, row: any) => {
 				const vercelProjectIds = projectMap.get(row.id)
 				const opts = vercelProjectIds
-					?.map((i) => allVercelProjects?.find((j) => j.id === i)?.id)
+					?.map(
+						(i) => allVercelProjects?.find((j) => j.id === i)?.name,
+					)
 					.filter((i) => !!i)
 				return (
 					<div className={styles.select}>
@@ -258,7 +269,7 @@ export const VercelIntegrationSettings: React.FC<
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
 							placeholder={'Vercel project(s)'}
-							mode="tags"
+							mode="multiple"
 						/>
 					</div>
 				)
@@ -308,6 +319,7 @@ export const VercelIntegrationSettings: React.FC<
 		})
 			.then(() => {
 				onSuccess && onSuccess()
+				message.success('Vercel projects linked!')
 				setModelOpen(false)
 			})
 			.catch((reason: any) => {

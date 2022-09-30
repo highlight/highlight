@@ -879,7 +879,14 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	VercelEnv struct {
+		ConfigurationID func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Key             func(childComplexity int) int
+	}
+
 	VercelProject struct {
+		Env  func(childComplexity int) int
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
@@ -6186,6 +6193,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserProperty.Value(childComplexity), true
 
+	case "VercelEnv.configurationId":
+		if e.complexity.VercelEnv.ConfigurationID == nil {
+			break
+		}
+
+		return e.complexity.VercelEnv.ConfigurationID(childComplexity), true
+
+	case "VercelEnv.id":
+		if e.complexity.VercelEnv.ID == nil {
+			break
+		}
+
+		return e.complexity.VercelEnv.ID(childComplexity), true
+
+	case "VercelEnv.key":
+		if e.complexity.VercelEnv.Key == nil {
+			break
+		}
+
+		return e.complexity.VercelEnv.Key(childComplexity), true
+
+	case "VercelProject.env":
+		if e.complexity.VercelProject.Env == nil {
+			break
+		}
+
+		return e.complexity.VercelProject.Env(childComplexity), true
+
 	case "VercelProject.id":
 		if e.complexity.VercelProject.ID == nil {
 			break
@@ -6641,9 +6676,16 @@ type LinearTeam {
 	key: String!
 }
 
+type VercelEnv {
+	id: String!
+	key: String!
+	configurationId: String!
+}
+
 type VercelProject {
 	id: String!
 	name: String!
+	env: [VercelEnv!]!
 }
 
 type SocialLink {
@@ -34701,6 +34743,8 @@ func (ec *executionContext) fieldContext_Query_vercel_projects(ctx context.Conte
 				return ec.fieldContext_VercelProject_id(ctx, field)
 			case "name":
 				return ec.fieldContext_VercelProject_name(ctx, field)
+			case "env":
+				return ec.fieldContext_VercelProject_env(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type VercelProject", field.Name)
 		},
@@ -43937,6 +43981,138 @@ func (ec *executionContext) fieldContext_UserProperty_value(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _VercelEnv_id(ctx context.Context, field graphql.CollectedField, obj *model.VercelEnv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VercelEnv_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VercelEnv_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VercelEnv",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VercelEnv_key(ctx context.Context, field graphql.CollectedField, obj *model.VercelEnv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VercelEnv_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VercelEnv_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VercelEnv",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VercelEnv_configurationId(ctx context.Context, field graphql.CollectedField, obj *model.VercelEnv) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VercelEnv_configurationId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConfigurationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VercelEnv_configurationId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VercelEnv",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VercelProject_id(ctx context.Context, field graphql.CollectedField, obj *model.VercelProject) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VercelProject_id(ctx, field)
 	if err != nil {
@@ -44020,6 +44196,58 @@ func (ec *executionContext) fieldContext_VercelProject_name(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VercelProject_env(ctx context.Context, field graphql.CollectedField, obj *model.VercelProject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VercelProject_env(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Env, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.VercelEnv)
+	fc.Result = res
+	return ec.marshalNVercelEnv2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnvᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VercelProject_env(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VercelProject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VercelEnv_id(ctx, field)
+			case "key":
+				return ec.fieldContext_VercelEnv_key(ctx, field)
+			case "configurationId":
+				return ec.fieldContext_VercelEnv_configurationId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VercelEnv", field.Name)
 		},
 	}
 	return fc, nil
@@ -55166,6 +55394,48 @@ func (ec *executionContext) _UserProperty(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var vercelEnvImplementors = []string{"VercelEnv"}
+
+func (ec *executionContext) _VercelEnv(ctx context.Context, sel ast.SelectionSet, obj *model.VercelEnv) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, vercelEnvImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VercelEnv")
+		case "id":
+
+			out.Values[i] = ec._VercelEnv_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "key":
+
+			out.Values[i] = ec._VercelEnv_key(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "configurationId":
+
+			out.Values[i] = ec._VercelEnv_configurationId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var vercelProjectImplementors = []string{"VercelProject"}
 
 func (ec *executionContext) _VercelProject(ctx context.Context, sel ast.SelectionSet, obj *model.VercelProject) graphql.Marshaler {
@@ -55186,6 +55456,13 @@ func (ec *executionContext) _VercelProject(ctx context.Context, sel ast.Selectio
 		case "name":
 
 			out.Values[i] = ec._VercelProject_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "env":
+
+			out.Values[i] = ec._VercelProject_env(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -58422,6 +58699,60 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalNVercelEnv2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnvᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VercelEnv) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNVercelEnv2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnv(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNVercelEnv2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelEnv(ctx context.Context, sel ast.SelectionSet, v *model.VercelEnv) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._VercelEnv(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNVercelProject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐVercelProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.VercelProject) graphql.Marshaler {

@@ -401,9 +401,16 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type VercelEnv struct {
+	ID              string `json:"id"`
+	Key             string `json:"key"`
+	ConfigurationID string `json:"configurationId"`
+}
+
 type VercelProject struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID   string       `json:"id"`
+	Name string       `json:"name"`
+	Env  []*VercelEnv `json:"env"`
 }
 
 type VercelProjectMapping struct {
