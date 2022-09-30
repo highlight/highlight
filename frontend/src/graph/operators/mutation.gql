@@ -674,39 +674,6 @@ mutation UpdateAdminAboutYouDetails($adminDetails: AdminAboutYouDetails!) {
 	updateAdminAboutYouDetails(adminDetails: $adminDetails)
 }
 
-mutation CreateRageClickAlert(
-	$project_id: ID!
-	$name: String!
-	$count_threshold: Int!
-	$threshold_window: Int!
-	$slack_channels: [SanitizedSlackChannelInput]!
-	$emails: [String]!
-	$environments: [String]!
-) {
-	createRageClickAlert(
-		project_id: $project_id
-		count_threshold: $count_threshold
-		name: $name
-		slack_channels: $slack_channels
-		emails: $emails
-		environments: $environments
-		threshold_window: $threshold_window
-	) {
-		id
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		Name
-		ExcludedEnvironments
-		CountThreshold
-		ThresholdWindow
-		LastAdminToEditID
-		disabled
-	}
-}
-
 mutation UpdateErrorAlert(
 	$project_id: ID!
 	$name: String
@@ -852,39 +819,6 @@ mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
 	}
 }
 
-mutation CreateNewUserAlert(
-	$project_id: ID!
-	$name: String!
-	$count_threshold: Int!
-	$slack_channels: [SanitizedSlackChannelInput]!
-	$emails: [String]!
-	$environments: [String]!
-	$threshold_window: Int!
-) {
-	createNewUserAlert(
-		project_id: $project_id
-		count_threshold: $count_threshold
-		name: $name
-		slack_channels: $slack_channels
-		emails: $emails
-		environments: $environments
-		threshold_window: $threshold_window
-	) {
-		id
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		Name
-		ExcludedEnvironments
-		CountThreshold
-		ThresholdWindow
-		LastAdminToEditID
-		disabled
-	}
-}
-
 mutation CreateNewSessionAlert(
 	$project_id: ID!
 	$name: String!
@@ -957,75 +891,6 @@ mutation UpdateNewSessionAlert(
 		ThresholdWindow
 		LastAdminToEditID
 		ExcludeRules
-		disabled
-	}
-}
-
-mutation UpdateRageClickAlert(
-	$project_id: ID!
-	$rage_click_alert_id: ID!
-	$name: String
-	$count_threshold: Int
-	$threshold_window: Int
-	$slack_channels: [SanitizedSlackChannelInput]
-	$emails: [String]
-	$environments: [String]
-	$disabled: Boolean
-) {
-	updateRageClickAlert(
-		project_id: $project_id
-		rage_click_alert_id: $rage_click_alert_id
-		name: $name
-		count_threshold: $count_threshold
-		slack_channels: $slack_channels
-		emails: $emails
-		environments: $environments
-		threshold_window: $threshold_window
-		disabled: $disabled
-	) {
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		ExcludedEnvironments
-		CountThreshold
-		ThresholdWindow
-		disabled
-	}
-}
-
-mutation UpdateNewUserAlert(
-	$project_id: ID!
-	$session_alert_id: ID!
-	$count_threshold: Int
-	$name: String
-	$slack_channels: [SanitizedSlackChannelInput]
-	$emails: [String]
-	$environments: [String]
-	$threshold_window: Int
-	$disabled: Boolean
-) {
-	updateNewUserAlert(
-		project_id: $project_id
-		session_alert_id: $session_alert_id
-		count_threshold: $count_threshold
-		name: $name
-		slack_channels: $slack_channels
-		emails: $emails
-		environments: $environments
-		threshold_window: $threshold_window
-		disabled: $disabled
-	) {
-		id
-		ChannelsToNotify {
-			webhook_channel
-			webhook_channel_id
-		}
-		EmailsToNotify
-		ExcludedEnvironments
-		CountThreshold
-		LastAdminToEditID
 		disabled
 	}
 }

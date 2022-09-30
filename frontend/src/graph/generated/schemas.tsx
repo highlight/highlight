@@ -1634,7 +1634,6 @@ export type Mutation = {
 	removeIntegrationFromProject: Scalars['Boolean']
 	syncSlackIntegration: SlackSyncResponse
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
-	createRageClickAlert?: Maybe<SessionAlert>
 	createMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	createErrorAlert?: Maybe<ErrorAlert>
@@ -1644,9 +1643,6 @@ export type Mutation = {
 	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
 	updateSessionAlert?: Maybe<SessionAlert>
 	createSessionAlert?: Maybe<SessionAlert>
-	updateRageClickAlert?: Maybe<SessionAlert>
-	updateNewUserAlert?: Maybe<SessionAlert>
-	createNewUserAlert?: Maybe<SessionAlert>
 	updateTrackPropertiesAlert?: Maybe<SessionAlert>
 	createTrackPropertiesAlert?: Maybe<SessionAlert>
 	createUserPropertiesAlert?: Maybe<SessionAlert>
@@ -1930,16 +1926,6 @@ export type MutationCreateDefaultAlertsArgs = {
 	emails: Array<Maybe<Scalars['String']>>
 }
 
-export type MutationCreateRageClickAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	threshold_window: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-}
-
 export type MutationCreateMetricMonitorArgs = {
 	project_id: Scalars['ID']
 	name: Scalars['String']
@@ -2017,40 +2003,6 @@ export type MutationUpdateSessionAlertArgs = {
 
 export type MutationCreateSessionAlertArgs = {
 	input: SessionAlertInput
-}
-
-export type MutationUpdateRageClickAlertArgs = {
-	project_id: Scalars['ID']
-	rage_click_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationUpdateNewUserAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationCreateNewUserAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	threshold_window: Scalars['Int']
 }
 
 export type MutationUpdateTrackPropertiesAlertArgs = {

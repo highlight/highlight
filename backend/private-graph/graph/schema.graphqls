@@ -1339,15 +1339,6 @@ type Mutation {
 		slack_channels: [SanitizedSlackChannelInput!]!
 		emails: [String]!
 	): Boolean
-	createRageClickAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-	): SessionAlert
 	createMetricMonitor(
 		project_id: ID!
 		name: String!
@@ -1409,37 +1400,6 @@ type Mutation {
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert
 
-	updateRageClickAlert(
-		project_id: ID!
-		rage_click_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
-	): SessionAlert
-	updateNewUserAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
-	): SessionAlert
-	createNewUserAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		threshold_window: Int!
-	): SessionAlert
 	updateTrackPropertiesAlert(
 		project_id: ID!
 		session_alert_id: ID!

@@ -809,47 +809,6 @@ export type UpdateAdminAboutYouDetailsMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'updateAdminAboutYouDetails'>
 
-export type CreateRageClickAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	count_threshold: Types.Scalars['Int']
-	threshold_window: Types.Scalars['Int']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	environments:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-}>
-
-export type CreateRageClickAlertMutation = { __typename?: 'Mutation' } & {
-	createRageClickAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type UpdateErrorAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name?: Types.Maybe<Types.Scalars['String']>
@@ -1037,47 +996,6 @@ export type UpdateSessionAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateNewUserAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	count_threshold: Types.Scalars['Int']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	environments:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	threshold_window: Types.Scalars['Int']
-}>
-
-export type CreateNewUserAlertMutation = { __typename?: 'Mutation' } & {
-	createNewUserAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type CreateNewSessionAlertMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -1160,93 +1078,6 @@ export type UpdateNewSessionAlertMutation = { __typename?: 'Mutation' } & {
 			| 'ThresholdWindow'
 			| 'LastAdminToEditID'
 			| 'ExcludeRules'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
-export type UpdateRageClickAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	rage_click_alert_id: Types.Scalars['ID']
-	name?: Types.Maybe<Types.Scalars['String']>
-	count_threshold?: Types.Maybe<Types.Scalars['Int']>
-	threshold_window?: Types.Maybe<Types.Scalars['Int']>
-	slack_channels?: Types.Maybe<
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	>
-	emails?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	environments?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	disabled?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type UpdateRageClickAlertMutation = { __typename?: 'Mutation' } & {
-	updateRageClickAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'EmailsToNotify'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-			}
-	>
-}
-
-export type UpdateNewUserAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	session_alert_id: Types.Scalars['ID']
-	count_threshold?: Types.Maybe<Types.Scalars['Int']>
-	name?: Types.Maybe<Types.Scalars['String']>
-	slack_channels?: Types.Maybe<
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	>
-	emails?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	environments?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	threshold_window?: Types.Maybe<Types.Scalars['Int']>
-	disabled?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type UpdateNewUserAlertMutation = { __typename?: 'Mutation' } & {
-	updateNewUserAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'LastAdminToEditID'
 			| 'disabled'
 		> & {
 				ChannelsToNotify: Array<
@@ -4209,7 +4040,6 @@ export const namedOperations = {
 		UpdateMetricMonitor: 'UpdateMetricMonitor' as const,
 		DeleteMetricMonitor: 'DeleteMetricMonitor' as const,
 		UpdateAdminAboutYouDetails: 'UpdateAdminAboutYouDetails' as const,
-		CreateRageClickAlert: 'CreateRageClickAlert' as const,
 		UpdateErrorAlert: 'UpdateErrorAlert' as const,
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
@@ -4219,11 +4049,8 @@ export const namedOperations = {
 		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
-		CreateNewUserAlert: 'CreateNewUserAlert' as const,
 		CreateNewSessionAlert: 'CreateNewSessionAlert' as const,
 		UpdateNewSessionAlert: 'UpdateNewSessionAlert' as const,
-		UpdateRageClickAlert: 'UpdateRageClickAlert' as const,
-		UpdateNewUserAlert: 'UpdateNewUserAlert' as const,
 		CreateTrackPropertiesAlert: 'CreateTrackPropertiesAlert' as const,
 		UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
 		CreateUserPropertiesAlert: 'CreateUserPropertiesAlert' as const,
