@@ -82,6 +82,7 @@ export const VERCEL_INTEGRATION: Integration = {
 	key: 'vercel',
 	name: 'Vercel',
 	configurationPath: 'vercel',
+	onlyShowForHighlightAdmin: true,
 	description: 'Configuration for your Vercel projects.',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
 	hasSettings: true,
