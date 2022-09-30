@@ -14,15 +14,16 @@ const __dirname = dirname(__filename)
 
 // Adding something here? Please update `.env.d.ts` to update our Typescript definitions.
 // *DO NOT* put something in here unless you're positive it's safe to expose this to the world.
+const ENVVAR_ALLOWLIST = ['SLACK_CLIENT_ID']
 
-// Any env vars with the following prefixes will be exposed to the frontend via import.meta.env.*
-// See: https://vitejs.dev/config/shared-options.html#envprefix
-const ENVVAR_ALLOWLIST = [
-	// Everything that follows is an allowlist of env vars that we want to expose to the frontend that do not
-	// match the prefixes listed above.
-	'SLACK_CLIENT_ID',
-]
-
+// In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
+// the environment variable prefix (see: https://vitejs.dev/guide/env-and-mode.html#env-variables-and-modes)
+// Currently, we expose environment variables prefixed with `VITE_` and `REACT_`.
+//
+// While this feels like a nice feature, it doesn't play very well with our existing environment variables.
+//
+// This piece of code allows us to define an allowlist (see above) into the prefix system but ensures only
+// the env vars on the allowlist are actually exposed.
 const validateSafeAllowList = (env: Record<string, string>) => {
 	ENVVAR_ALLOWLIST.forEach((allowListEnvVar) => {
 		Object.keys(env).forEach((key) => {
