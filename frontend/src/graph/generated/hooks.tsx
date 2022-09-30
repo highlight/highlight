@@ -3088,9 +3088,9 @@ export type CreateDefaultAlertsMutationOptions = Apollo.BaseMutationOptions<
 	Types.CreateDefaultAlertsMutation,
 	Types.CreateDefaultAlertsMutationVariables
 >
-export const CreateSessionFeedbackAlertDocument = gql`
-	mutation CreateSessionFeedbackAlert($input: SessionAlertInput) {
-		createSessionFeedbackAlert(input: $input) {
+export const CreateSessionAlertDocument = gql`
+	mutation CreateSessionAlert($input: SessionAlertInput!) {
+		createSessionAlert(input: $input) {
 			id
 			ChannelsToNotify {
 				webhook_channel
@@ -3106,52 +3106,51 @@ export const CreateSessionFeedbackAlertDocument = gql`
 		}
 	}
 `
-export type CreateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateSessionFeedbackAlertMutation,
-	Types.CreateSessionFeedbackAlertMutationVariables
+export type CreateSessionAlertMutationFn = Apollo.MutationFunction<
+	Types.CreateSessionAlertMutation,
+	Types.CreateSessionAlertMutationVariables
 >
 
 /**
- * __useCreateSessionFeedbackAlertMutation__
+ * __useCreateSessionAlertMutation__
  *
- * To run a mutation, you first call `useCreateSessionFeedbackAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateSessionFeedbackAlertMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateSessionAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSessionAlertMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createSessionFeedbackAlertMutation, { data, loading, error }] = useCreateSessionFeedbackAlertMutation({
+ * const [createSessionAlertMutation, { data, loading, error }] = useCreateSessionAlertMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreateSessionFeedbackAlertMutation(
+export function useCreateSessionAlertMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateSessionFeedbackAlertMutation,
-		Types.CreateSessionFeedbackAlertMutationVariables
+		Types.CreateSessionAlertMutation,
+		Types.CreateSessionAlertMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.CreateSessionFeedbackAlertMutation,
-		Types.CreateSessionFeedbackAlertMutationVariables
-	>(CreateSessionFeedbackAlertDocument, baseOptions)
+		Types.CreateSessionAlertMutation,
+		Types.CreateSessionAlertMutationVariables
+	>(CreateSessionAlertDocument, baseOptions)
 }
-export type CreateSessionFeedbackAlertMutationHookResult = ReturnType<
-	typeof useCreateSessionFeedbackAlertMutation
+export type CreateSessionAlertMutationHookResult = ReturnType<
+	typeof useCreateSessionAlertMutation
 >
-export type CreateSessionFeedbackAlertMutationResult =
-	Apollo.MutationResult<Types.CreateSessionFeedbackAlertMutation>
-export type CreateSessionFeedbackAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.CreateSessionFeedbackAlertMutation,
-		Types.CreateSessionFeedbackAlertMutationVariables
-	>
-export const UpdateSessionFeedbackAlertDocument = gql`
-	mutation UpdateSessionFeedbackAlert($id: ID!, $input: SessionAlertInput) {
-		updateSessionFeedbackAlert(id: $id, input: $input) {
+export type CreateSessionAlertMutationResult =
+	Apollo.MutationResult<Types.CreateSessionAlertMutation>
+export type CreateSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateSessionAlertMutation,
+	Types.CreateSessionAlertMutationVariables
+>
+export const UpdateSessionAlertDocument = gql`
+	mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
+		updateSessionAlert(id: $id, input: $input) {
 			id
 			ChannelsToNotify {
 				webhook_channel
@@ -3167,50 +3166,49 @@ export const UpdateSessionFeedbackAlertDocument = gql`
 		}
 	}
 `
-export type UpdateSessionFeedbackAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateSessionFeedbackAlertMutation,
-	Types.UpdateSessionFeedbackAlertMutationVariables
+export type UpdateSessionAlertMutationFn = Apollo.MutationFunction<
+	Types.UpdateSessionAlertMutation,
+	Types.UpdateSessionAlertMutationVariables
 >
 
 /**
- * __useUpdateSessionFeedbackAlertMutation__
+ * __useUpdateSessionAlertMutation__
  *
- * To run a mutation, you first call `useUpdateSessionFeedbackAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateSessionFeedbackAlertMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUpdateSessionAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSessionAlertMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateSessionFeedbackAlertMutation, { data, loading, error }] = useUpdateSessionFeedbackAlertMutation({
+ * const [updateSessionAlertMutation, { data, loading, error }] = useUpdateSessionAlertMutation({
  *   variables: {
  *      id: // value for 'id'
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUpdateSessionFeedbackAlertMutation(
+export function useUpdateSessionAlertMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateSessionFeedbackAlertMutation,
-		Types.UpdateSessionFeedbackAlertMutationVariables
+		Types.UpdateSessionAlertMutation,
+		Types.UpdateSessionAlertMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.UpdateSessionFeedbackAlertMutation,
-		Types.UpdateSessionFeedbackAlertMutationVariables
-	>(UpdateSessionFeedbackAlertDocument, baseOptions)
+		Types.UpdateSessionAlertMutation,
+		Types.UpdateSessionAlertMutationVariables
+	>(UpdateSessionAlertDocument, baseOptions)
 }
-export type UpdateSessionFeedbackAlertMutationHookResult = ReturnType<
-	typeof useUpdateSessionFeedbackAlertMutation
+export type UpdateSessionAlertMutationHookResult = ReturnType<
+	typeof useUpdateSessionAlertMutation
 >
-export type UpdateSessionFeedbackAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateSessionFeedbackAlertMutation>
-export type UpdateSessionFeedbackAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.UpdateSessionFeedbackAlertMutation,
-		Types.UpdateSessionFeedbackAlertMutationVariables
-	>
+export type UpdateSessionAlertMutationResult =
+	Apollo.MutationResult<Types.UpdateSessionAlertMutation>
+export type UpdateSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateSessionAlertMutation,
+	Types.UpdateSessionAlertMutationVariables
+>
 export const CreateNewUserAlertDocument = gql`
 	mutation CreateNewUserAlert(
 		$project_id: ID!

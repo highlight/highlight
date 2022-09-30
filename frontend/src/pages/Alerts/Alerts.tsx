@@ -29,6 +29,7 @@ import { Link, useHistory } from 'react-router-dom'
 
 import styles from './Alerts.module.scss'
 
+// TODO(et) - replace these with the graphql generated SessionAlertType
 export enum ALERT_TYPE {
 	Error,
 	FirstTimeUser,

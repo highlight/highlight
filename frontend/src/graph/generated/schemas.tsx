@@ -227,6 +227,16 @@ export enum SessionCommentType {
 	Feedback = 'FEEDBACK',
 }
 
+export enum SessionAlertType {
+	ErrorAlert = 'ERROR_ALERT',
+	NewUserAlert = 'NEW_USER_ALERT',
+	TrackPropertiesAlert = 'TRACK_PROPERTIES_ALERT',
+	UserPropertiesAlert = 'USER_PROPERTIES_ALERT',
+	SessionFeedbackAlert = 'SESSION_FEEDBACK_ALERT',
+	RageClickAlert = 'RAGE_CLICK_ALERT',
+	NewSessionAlert = 'NEW_SESSION_ALERT',
+}
+
 export type Project = {
 	__typename?: 'Project'
 	id: Scalars['ID']
@@ -574,6 +584,7 @@ export type SessionAlertInput = {
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
 	disabled: Scalars['Boolean']
+	type: SessionAlertType
 }
 
 export type ErrorSearchParams = {
@@ -1595,8 +1606,8 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
-	updateSessionFeedbackAlert?: Maybe<SessionAlert>
-	createSessionFeedbackAlert?: Maybe<SessionAlert>
+	updateSessionAlert?: Maybe<SessionAlert>
+	createSessionAlert?: Maybe<SessionAlert>
 	updateRageClickAlert?: Maybe<SessionAlert>
 	updateNewUserAlert?: Maybe<SessionAlert>
 	createNewUserAlert?: Maybe<SessionAlert>
@@ -1962,13 +1973,13 @@ export type MutationUpdateSessionAlertIsDisabledArgs = {
 	disabled: Scalars['Boolean']
 }
 
-export type MutationUpdateSessionFeedbackAlertArgs = {
+export type MutationUpdateSessionAlertArgs = {
 	id: Scalars['ID']
-	input?: Maybe<SessionAlertInput>
+	input: SessionAlertInput
 }
 
-export type MutationCreateSessionFeedbackAlertArgs = {
-	input?: Maybe<SessionAlertInput>
+export type MutationCreateSessionAlertArgs = {
+	input: SessionAlertInput
 }
 
 export type MutationUpdateRageClickAlertArgs = {

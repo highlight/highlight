@@ -791,8 +791,8 @@ mutation CreateDefaultAlerts(
 		emails: $emails
 	)
 }
-mutation CreateSessionFeedbackAlert($input: SessionAlertInput) {
-	createSessionFeedbackAlert(input: $input) {
+mutation CreateSessionAlert($input: SessionAlertInput!) {
+	createSessionAlert(input: $input) {
 		id
 		ChannelsToNotify {
 			webhook_channel
@@ -808,8 +808,8 @@ mutation CreateSessionFeedbackAlert($input: SessionAlertInput) {
 	}
 }
 
-mutation UpdateSessionFeedbackAlert($id: ID!, $input: SessionAlertInput) {
-	updateSessionFeedbackAlert(id: $id, input: $input) {
+mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
+	updateSessionAlert(id: $id, input: $input) {
 		id
 		ChannelsToNotify {
 			webhook_channel

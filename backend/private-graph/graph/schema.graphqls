@@ -197,6 +197,16 @@ enum SessionCommentType {
 	FEEDBACK
 }
 
+enum SessionAlertType {
+	ERROR_ALERT
+	NEW_USER_ALERT
+	TRACK_PROPERTIES_ALERT
+	USER_PROPERTIES_ALERT
+	SESSION_FEEDBACK_ALERT
+	RAGE_CLICK_ALERT
+	NEW_SESSION_ALERT
+}
+
 type Project {
 	id: ID!
 	verbose_id: String!
@@ -525,6 +535,7 @@ input SessionAlertInput {
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
+	type: SessionAlertType!
 }
 
 type ErrorSearchParams {
@@ -1369,8 +1380,10 @@ type Mutation {
 		project_id: ID!
 		disabled: Boolean!
 	): SessionAlert
-	updateSessionFeedbackAlert(id: ID!, input: SessionAlertInput): SessionAlert
-	createSessionFeedbackAlert(input: SessionAlertInput): SessionAlert
+
+	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
+	createSessionAlert(input: SessionAlertInput!): SessionAlert
+
 	updateRageClickAlert(
 		project_id: ID!
 		rage_click_alert_id: ID!

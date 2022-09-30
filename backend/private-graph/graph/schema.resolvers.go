@@ -2373,8 +2373,8 @@ func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id 
 	return sessionAlert, err
 }
 
-// UpdateSessionFeedbackAlert is the resolver for the updateSessionFeedbackAlert field.
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id int, input *modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+// UpdateSessionAlert is the resolver for the updateSessionAlert field.
+func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2382,7 +2382,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id in
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, model.AlertType.SESSION_FEEDBACK, input)
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")
@@ -2393,7 +2393,7 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id in
 			ID: id,
 		},
 	}).Where("project_id = ?", input.ProjectID).Updates(sessionAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating session feedback alert")
+		return nil, e.Wrap(err, "error updating session alert")
 	}
 
 	if err := sessionAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
@@ -2402,8 +2402,8 @@ func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, id in
 	return sessionAlert, nil
 }
 
-// CreateSessionFeedbackAlert is the resolver for the createSessionFeedbackAlert field.
-func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, input *modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+// CreateSessionAlert is the resolver for the createSessionAlert field.
+func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2411,7 +2411,7 @@ func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, input
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, model.AlertType.SESSION_FEEDBACK, input)
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")

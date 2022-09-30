@@ -952,12 +952,12 @@ export type CreateDefaultAlertsMutation = { __typename?: 'Mutation' } & Pick<
 	'createDefaultAlerts'
 >
 
-export type CreateSessionFeedbackAlertMutationVariables = Types.Exact<{
-	input?: Types.Maybe<Types.SessionAlertInput>
+export type CreateSessionAlertMutationVariables = Types.Exact<{
+	input: Types.SessionAlertInput
 }>
 
-export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
-	createSessionFeedbackAlert?: Types.Maybe<
+export type CreateSessionAlertMutation = { __typename?: 'Mutation' } & {
+	createSessionAlert?: Types.Maybe<
 		{ __typename?: 'SessionAlert' } & Pick<
 			Types.SessionAlert,
 			| 'id'
@@ -981,13 +981,13 @@ export type CreateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type UpdateSessionFeedbackAlertMutationVariables = Types.Exact<{
+export type UpdateSessionAlertMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
-	input?: Types.Maybe<Types.SessionAlertInput>
+	input: Types.SessionAlertInput
 }>
 
-export type UpdateSessionFeedbackAlertMutation = { __typename?: 'Mutation' } & {
-	updateSessionFeedbackAlert?: Types.Maybe<
+export type UpdateSessionAlertMutation = { __typename?: 'Mutation' } & {
+	updateSessionAlert?: Types.Maybe<
 		{ __typename?: 'SessionAlert' } & Pick<
 			Types.SessionAlert,
 			| 'id'
@@ -4154,8 +4154,8 @@ export const namedOperations = {
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
-		CreateSessionFeedbackAlert: 'CreateSessionFeedbackAlert' as const,
-		UpdateSessionFeedbackAlert: 'UpdateSessionFeedbackAlert' as const,
+		CreateSessionAlert: 'CreateSessionAlert' as const,
+		UpdateSessionAlert: 'UpdateSessionAlert' as const,
 		CreateNewUserAlert: 'CreateNewUserAlert' as const,
 		CreateNewSessionAlert: 'CreateNewSessionAlert' as const,
 		UpdateNewSessionAlert: 'UpdateNewSessionAlert' as const,
