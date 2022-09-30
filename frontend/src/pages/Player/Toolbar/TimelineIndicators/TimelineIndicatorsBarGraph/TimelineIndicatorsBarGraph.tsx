@@ -123,6 +123,8 @@ const TimelineIndicatorsBarGraph = ({
 		...buckets.map((bucket) => bucket.totalCount),
 	)
 	const bucketPercentWidth = (bucketTimestep / duration) * 100
+	const lastBucketPercentWidth =
+		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration
 
 	const shouldMockActivityGraph = useMemo(() => {
 		// fall back to a <span>-based mockup if too many buckets are small
@@ -423,6 +425,7 @@ const TimelineIndicatorsBarGraph = ({
 		const isTickRedundant = (idx: number, rem: number) => {
 			const leftTime = (idx + rem) * mainTickInMs
 			if (
+				leftTime > duration ||
 				leftTime < (leftmostBucketIdx - 1) * bucketTimestep ||
 				leftTime > (rightmostBucketIdx + 1) * bucketTimestep
 			) {
@@ -631,7 +634,11 @@ const TimelineIndicatorsBarGraph = ({
 									<TimelineBar
 										key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
 										bucket={bucket}
-										width={bucketPercentWidth}
+										width={
+											idx === buckets.length - 1
+												? lastBucketPercentWidth
+												: bucketPercentWidth
+										}
 										left={idx * bucketPercentWidth}
 										height={
 											(bucket.totalCount /

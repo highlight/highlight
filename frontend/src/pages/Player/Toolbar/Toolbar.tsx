@@ -17,6 +17,7 @@ import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu'
 import useLocalStorage from '@rehooks/local-storage'
+import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { timerStart } from '@util/timer/timer'
 import classNames from 'classnames'
@@ -188,7 +189,6 @@ export const Toolbar = ({ width }: Props) => {
 			>
 				{histogramOn && (
 					<>
-						<Slider width={width} />
 						<TimelineIndicatorsBarGraph
 							selectedTimelineAnnotationTypes={
 								selectedTimelineAnnotationTypes
@@ -480,11 +480,7 @@ const Slider = ({ width }: SliderProps) => {
 
 	const endLogger = useCallback(
 		(e: any) => {
-			let newTime = (e.x / wrapperWidth) * max
-			newTime = Math.max(0, newTime)
-			newTime = Math.min(max, newTime)
-
-			setLastCanvasPreview(e.x)
+			const newTime = clamp((e.x / wrapperWidth) * max, 0, max)
 
 			if (isPaused) {
 				pause(newTime)
@@ -495,28 +491,18 @@ const Slider = ({ width }: SliderProps) => {
 		[isPaused, max, pause, play, wrapperWidth],
 	)
 
-	const startDraggable = useCallback(
-		(e: any, data: any) => {
-			setLastCanvasPreview(data.x)
-			if (!isPaused) {
-				pause()
-			}
-		},
-		[isPaused, pause],
-	)
+	const startDraggable = useCallback(() => {
+		if (!isPaused) {
+			pause()
+		}
+	}, [isPaused, pause])
 	const onDraggable = useCallback(
 		(e: any, data: any) => {
 			const sliderPercent = data.x / wrapperWidth
 			const newTime = getSliderTime(sliderPercent)
 			setTime(newTime)
-
-			// TODO: Add Math.abs to enable both forward and backward scrolling
-			// Only forward is supported due as going backwards creates a time heavy operation
-			if (data.x - lastCanvasPreview > 10) {
-				setLastCanvasPreview(data.x)
-			}
 		},
-		[getSliderTime, lastCanvasPreview, setTime, wrapperWidth],
+		[getSliderTime, setTime, wrapperWidth],
 	)
 
 	const getSliderPercent = useCallback(
