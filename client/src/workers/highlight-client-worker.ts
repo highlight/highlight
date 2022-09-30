@@ -99,7 +99,7 @@ function stringifyProperties(
 	let debug: boolean = false
 	let recordingStartTime: number = 0
 	let logger = new Logger(false, '[worker]')
-	let metricsPayload: {
+	const metricsPayload: {
 		name: string
 		value: number
 		session_secure_id: string
@@ -157,9 +157,15 @@ function stringifyProperties(
 		const eventsSize = graphqlSDK
 			.PushPayload(payload)
 			.then((res) => res.pushPayload ?? 0)
-		const metrics = graphqlSDK.pushMetrics({
-			metrics: metricsPayload,
-		})
+
+		if (metricsPayload.length) {
+			const metrics = graphqlSDK.pushMetrics({
+				metrics: metricsPayload,
+			})
+			// clear batched payload before yielding for network request
+			metricsPayload.splice(0)
+			await metrics
+		}
 
 		worker.postMessage({
 			response: {
@@ -168,7 +174,6 @@ function stringifyProperties(
 				eventsSize: await eventsSize,
 			},
 		})
-		await metrics
 	}
 
 	const processIdentifyMessage = async (msg: IdentifyMessage) => {
