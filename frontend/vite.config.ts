@@ -14,14 +14,22 @@ const __dirname = dirname(__filename)
 
 // Adding something here? Please update `.env.d.ts` to update our Typescript definitions.
 // *DO NOT* put something in here unless you're positive it's safe to expose this to the world.
-const ENVVAR_ALLOWLIST = ['SLACK_CLIENT_ID']
+const ENVVAR_ALLOWLIST = [
+	'REACT_APP_COMMIT_SHA',
+	'REACT_APP_ENVIRONMENT',
+	'REACT_APP_FIREBASE_CONFIG_OBJECT',
+	'REACT_APP_FRONT_INTEGRATION_CLIENT_ID',
+	'REACT_APP_FRONTEND_ORG',
+	'REACT_APP_ONPREM',
+	'REACT_APP_PRIVATE_GRAPH_URI',
+	'REACT_APP_STRIPE_API_PK',
+
+	'LINEAR_CLIENT_ID',
+	'SLACK_CLIENT_ID',
+]
 
 // In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
 // the environment variable prefix (see: https://vitejs.dev/guide/env-and-mode.html#env-variables-and-modes)
-// Currently, we expose environment variables prefixed with `VITE_` and `REACT_`.
-//
-// While this feels like a nice feature, it doesn't play very well with our existing environment variables.
-//
 // This piece of code allows us to define an allowlist (see above) into the prefix system but ensures only
 // the env vars on the allowlist are actually exposed.
 const validateSafeAllowList = (env: Record<string, string>) => {
@@ -71,7 +79,7 @@ export default defineConfig(({ mode }) => {
 				],
 			}),
 		],
-		envPrefix: ['REACT_APP_', 'VITE_', ...ENVVAR_ALLOWLIST],
+		envPrefix: ['VITE_', ...ENVVAR_ALLOWLIST],
 		server: {
 			port: 3000,
 			https: {
