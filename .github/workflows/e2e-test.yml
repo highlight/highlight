@@ -63,6 +63,8 @@ jobs:
               with:
                   node-version: 16
                   cache: 'yarn'
+            - name: Install js dependencies
+              run: yarn
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
@@ -78,8 +80,6 @@ jobs:
                   psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-            - name: Install dependencies
-              run: yarn
             - name: Build frontend + backend
               run: yarn ci:build
             - name: Run Cypress tests
