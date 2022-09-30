@@ -26,7 +26,7 @@
 		"build:frontend": "yarn turbo run build --filter frontend...",
 		"ci:backend": "cd backend && doppler run -- ./backend",
 		"ci:build": "run-p --print-label build:frontend build:backend",
-		"ci:frontend": "yarn dev:frontend --only",
+		"ci:frontend": "yarn turbo run dev --filter frontend --filter client --filter firstload --only",
 		"ci:start": "run-p --print-label ci:frontend ci:backend",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
