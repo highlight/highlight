@@ -28,7 +28,7 @@ jobs:
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v3
               with:
                   node-version: 16
                   cache: 'yarn'
