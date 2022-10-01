@@ -764,6 +764,20 @@ mutation DeleteSessionAlert($project_id: ID!, $session_alert_id: ID!) {
 	}
 }
 
+mutation UpdateSessionAlertIsDisabled(
+	$id: ID!
+	$project_id: ID!
+	$disabled: Boolean!
+) {
+	updateSessionAlertIsDisabled(
+		id: $id
+		project_id: $project_id
+		disabled: $disabled
+	) {
+		id
+	}
+}
+
 mutation CreateDefaultAlerts(
 	$project_id: ID!
 	$alert_types: [String!]!
@@ -777,24 +791,8 @@ mutation CreateDefaultAlerts(
 		emails: $emails
 	)
 }
-mutation CreateSessionFeedbackAlert(
-	$project_id: ID!
-	$name: String!
-	$count_threshold: Int!
-	$threshold_window: Int!
-	$slack_channels: [SanitizedSlackChannelInput]!
-	$emails: [String]!
-	$environments: [String]!
-) {
-	createSessionFeedbackAlert(
-		project_id: $project_id
-		count_threshold: $count_threshold
-		name: $name
-		slack_channels: $slack_channels
-		emails: $emails
-		environments: $environments
-		threshold_window: $threshold_window
-	) {
+mutation CreateSessionAlert($input: SessionAlertInput!) {
+	createSessionAlert(input: $input) {
 		id
 		ChannelsToNotify {
 			webhook_channel
@@ -810,28 +808,8 @@ mutation CreateSessionFeedbackAlert(
 	}
 }
 
-mutation UpdateSessionFeedbackAlert(
-	$project_id: ID!
-	$session_feedback_alert_id: ID!
-	$count_threshold: Int
-	$name: String
-	$threshold_window: Int
-	$slack_channels: [SanitizedSlackChannelInput]
-	$emails: [String]
-	$environments: [String]
-	$disabled: Boolean
-) {
-	updateSessionFeedbackAlert(
-		project_id: $project_id
-		session_feedback_alert_id: $session_feedback_alert_id
-		count_threshold: $count_threshold
-		slack_channels: $slack_channels
-		emails: $emails
-		name: $name
-		environments: $environments
-		threshold_window: $threshold_window
-		disabled: $disabled
-	) {
+mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
+	updateSessionAlert(id: $id, input: $input) {
 		id
 		ChannelsToNotify {
 			webhook_channel

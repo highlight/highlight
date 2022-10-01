@@ -52,6 +52,7 @@ const (
 	AWS_REGION_US_EAST_2            = "us-east-2"
 )
 
+// TODO(et) - replace this with generated SessionAlertType
 var AlertType = struct {
 	ERROR            string
 	NEW_USER         string
@@ -170,6 +171,7 @@ var Models = []interface{}{
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
 	&OAuthClientStore{},
+	&ResthookSubscription{},
 }
 
 func init() {
@@ -322,6 +324,13 @@ type EnhancedUserDetails struct {
 	Email       *string `gorm:"uniqueIndex"`
 	PersonJSON  *string
 	CompanyJSON *string
+}
+
+type ResthookSubscription struct {
+	Model
+	ProjectID int     `json:"project_id"`
+	Event     *string `json:"event"`
+	TargetUrl *string `json:"target_url"`
 }
 
 type RegistrationData struct {

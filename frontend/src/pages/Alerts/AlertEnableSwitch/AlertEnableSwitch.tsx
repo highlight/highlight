@@ -1,15 +1,6 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Switch from '@components/Switch/Switch'
-import {
-	useUpdateErrorAlertMutation,
-	useUpdateMetricMonitorMutation,
-	useUpdateNewSessionAlertMutation,
-	useUpdateNewUserAlertMutation,
-	useUpdateRageClickAlertMutation,
-	useUpdateSessionFeedbackAlertMutation,
-	useUpdateTrackPropertiesAlertMutation,
-	useUpdateUserPropertiesAlertMutation,
-} from '@graph/hooks'
+import { useUpdateSessionAlertIsDisabledMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ALERT_TYPE } from '@pages/Alerts/Alerts'
 import { useParams } from '@util/react-router/useParams'
@@ -24,14 +15,8 @@ export const AlertEnableSwitch: React.FC<
 	const { project_id } = useParams<{ project_id: string }>()
 	const [loading, setLoading] = useState<boolean>(false)
 	const [disabled, setDisabled] = useState<boolean>(record.disabled ?? false)
-	const [updateErrorAlert] = useUpdateErrorAlertMutation()
-	const [updateNewUserAlert] = useUpdateNewUserAlertMutation()
-	const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation()
-	const [updateRageClickAlert] = useUpdateRageClickAlertMutation()
-	const [updateMetricMonitor] = useUpdateMetricMonitorMutation()
-	const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation()
-	const [updateTrackPropertiesAlert] = useUpdateTrackPropertiesAlertMutation()
-	const [updateSessionFeedbackAlert] = useUpdateSessionFeedbackAlertMutation()
+	const [updateSessionAlertIsDisabled] =
+		useUpdateSessionAlertIsDisabledMutation()
 
 	const onChange = async () => {
 		setLoading(true)
@@ -46,80 +31,17 @@ export const AlertEnableSwitch: React.FC<
 
 		switch (type) {
 			case ALERT_TYPE.Error:
-				await updateErrorAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						error_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
 			case ALERT_TYPE.FirstTimeUser:
-				await updateNewUserAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						session_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
 			case ALERT_TYPE.UserProperties:
-				await updateUserPropertiesAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						session_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
 			case ALERT_TYPE.TrackProperties:
-				await updateTrackPropertiesAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						session_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
-			case ALERT_TYPE.SessionFeedbackComment:
-				await updateSessionFeedbackAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						session_feedback_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
+			case ALERT_TYPE.SessionFeedback:
 			case ALERT_TYPE.NewSession:
-				await updateNewSessionAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						session_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
 			case ALERT_TYPE.RageClick:
-				await updateRageClickAlert({
-					...requestBody,
-					variables: {
-						project_id,
-						rage_click_alert_id: record.id,
-						disabled: isDisabled,
-					},
-				})
-				break
 			case ALERT_TYPE.MetricMonitor:
-				await updateMetricMonitor({
+				await updateSessionAlertIsDisabled({
 					...requestBody,
 					variables: {
-						metric_monitor_id: record.id,
+						id: record.id,
 						project_id,
 						disabled: isDisabled,
 					},

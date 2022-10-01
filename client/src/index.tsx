@@ -611,8 +611,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 			if (!this._firstLoadListeners.isListening()) {
 				this._firstLoadListeners.startListening()
-			}
-			if (!this._firstLoadListeners.hasNetworkRecording) {
+			} else if (!this._firstLoadListeners.hasNetworkRecording) {
+				// for firstload versions < 3.0. even if they are listening, add network listeners
 				FirstLoadListeners.setupNetworkListener(
 					this._firstLoadListeners,
 					this.options,
@@ -766,7 +766,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 			}
 		}
-		this.stopRecording()
+		this.stopRecordingEvents()
 	}
 
 	_setupWindowListeners() {
@@ -997,6 +997,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	 * @param manual The end user requested to stop recording.
 	 */
 	stopRecording(manual?: boolean) {
+		this.stopRecordingEvents(manual)
+		this._firstLoadListeners.stopListening()
+	}
+
+	stopRecordingEvents(manual?: boolean) {
 		if (manual) {
 			this.addCustomEvent(
 				'Stop',
@@ -1004,7 +1009,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
-		this._firstLoadListeners.stopListening()
 		if (this.recordStop) {
 			this.recordStop()
 			this.recordStop = undefined

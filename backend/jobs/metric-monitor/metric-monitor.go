@@ -15,8 +15,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 
+	"github.com/highlight-run/go-resthooks"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/zapier"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -25,13 +27,13 @@ const (
 	sigFigs = 4
 )
 
-func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client) {
+func WatchMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, rh *resthooks.Resthook) {
 	log.Info("Starting to watch Metric Monitors")
 
 	for range time.Tick(time.Minute * 1) {
 		go func() {
 			metricMonitors := getMetricMonitors(DB)
-			processMetricMonitors(DB, TDB, MailClient, metricMonitors)
+			processMetricMonitors(DB, TDB, MailClient, metricMonitors, rh)
 		}()
 	}
 }
@@ -47,7 +49,7 @@ func getMetricMonitors(DB *gorm.DB) []*model.MetricMonitor {
 	return metricMonitors
 }
 
-func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor) {
+func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.Client, metricMonitors []*model.MetricMonitor, rh *resthooks.Resthook) {
 	log.Info("Number of Metric Monitors to Process: ", len(metricMonitors))
 	for _, metricMonitor := range metricMonitors {
 		var value float64
@@ -106,6 +108,14 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			unitsStr := ""
 			if metricMonitor.Units != nil {
 				unitsStr = *metricMonitor.Units
+			}
+
+			hookPayload := zapier.HookPayload{
+				MetricValue:     &value,
+				MetricThreshold: &metricMonitor.Threshold,
+			}
+			if err := rh.Notify(project.ID, fmt.Sprintf("MetricMonitor_%d", metricMonitor.ID), hookPayload); err != nil {
+				log.Error("error notifying zapier", err)
 			}
 
 			message := fmt.Sprintf(
