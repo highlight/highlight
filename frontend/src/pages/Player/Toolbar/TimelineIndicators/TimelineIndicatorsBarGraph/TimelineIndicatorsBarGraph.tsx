@@ -35,7 +35,7 @@ interface Props {
 	width: number
 }
 
-const TARGET_BUCKET_COUNT = 36
+const TARGET_BUCKET_COUNT = 40
 const TIMELINE_MARGIN = 32
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
@@ -127,14 +127,6 @@ const TimelineIndicatorsBarGraph = ({
 	const bucketPercentWidth = (bucketTimestep / duration) * 100
 	const lastBucketPercentWidth =
 		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration
-
-	const shouldMockActivityGraph = useMemo(() => {
-		// fall back to a <span>-based mockup if too many buckets are small
-		if (buckets.length > 1000) {
-			return bucketPercentWidth < 0.5
-		}
-		return false
-	}, [bucketPercentWidth, buckets.length])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -582,17 +574,17 @@ const TimelineIndicatorsBarGraph = ({
 				})}
 			</div>
 			<div className={style.progressMonitor}>
-				{shouldMockActivityGraph ? (
+				{bucketPercentWidth < 0.5 ? (
 					buckets
-						.filter((bucket) => bucket.totalCount > 0)
-						.map((bucket, idx) => (
+						.map(({ totalCount }, idx) => ({ totalCount, idx }))
+						.filter(({ totalCount }) => totalCount > 0)
+						.map(({ totalCount, idx }) => (
 							<span
 								key={`bucket-mark-${idx}`}
 								className={style.bucketMark}
 								style={{
 									left: (idx / buckets.length) * width,
-									height:
-										bucket.totalCount >= 2 ? '32%' : '16%',
+									height: `${totalCount * 8}%`,
 								}}
 							></span>
 						))
