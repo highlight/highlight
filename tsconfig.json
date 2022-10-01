@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"typeRoots": ["./node_modules/@types"],
+		"types": [],
+		"target": "ESNext",
+		"module": "esnext",
+		"moduleResolution": "node",
+		"skipLibCheck": true
+	}
+}

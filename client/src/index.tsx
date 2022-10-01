@@ -9,13 +9,22 @@ import {
 } from '@highlight-run/rrweb/typings/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
+	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
-} from '../../firstload/src/types/client'
-import { SamplingStrategy } from '../../firstload/src/types/types'
+} from './types/client'
+import {
+	HighlightOptions,
+	HighlightPublicInterface,
+	Integration,
+	Metadata,
+	SamplingStrategy,
+	SessionDetails,
+} from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
 import ErrorStackParser from 'error-stack-parser'
@@ -58,12 +67,15 @@ import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
+import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from 'types/shared-types'
+import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import { MetricCategory, MetricName } from './constants/metrics'
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
-import { MetricCategory, MetricName } from './constants/metrics'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -973,6 +985,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				type: MessageType.Metrics,
 				metrics: metrics.map((m) => ({
 					...m,
+					tags: [],
 					timestamp: new Date(),
 				})),
 			},
@@ -1231,4 +1244,17 @@ declare global {
 		defaultWarn: any
 		defaultDebug: any
 	}
+}
+export { FirstLoadListeners, getPreviousSessionData, GenerateSecureID }
+export type {
+	AmplitudeIntegrationOptions,
+	ConsoleMessage,
+	MixpanelIntegrationOptions,
+	Integration,
+	Metadata,
+	HighlightFetchWindow,
+	HighlightOptions,
+	HighlightPublicInterface,
+	RequestResponsePair,
+	SessionDetails,
 }

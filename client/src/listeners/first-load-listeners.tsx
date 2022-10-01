@@ -1,14 +1,8 @@
 import { ConsoleListener } from './console-listener'
-import {
-	ALL_CONSOLE_METHODS,
-	ConsoleMethods,
-} from '../../../firstload/src/types/client'
 import { ErrorListener } from './error-listener'
 
-import {
-	ConsoleMessage,
-	ErrorMessage,
-} from '../../../frontend/src/util/shared-types'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { ALL_CONSOLE_METHODS, ConsoleMethods } from '../types/client'
 import { ERRORS_TO_IGNORE, ERROR_PATTERNS_TO_IGNORE } from '../constants/errors'
 import { HighlightClassOptions } from '../index'
 import stringify from 'json-stringify-safe'
