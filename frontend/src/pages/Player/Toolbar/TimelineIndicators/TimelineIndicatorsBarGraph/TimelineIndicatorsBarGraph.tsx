@@ -55,6 +55,7 @@ const TimelineIndicatorsBarGraph = ({
 		sessionComments,
 		errors: sessionErrors,
 		replayer,
+		sessionIntervals,
 	} = useReplayerContext()
 
 	const events = useMemo(() => {
@@ -134,6 +135,12 @@ const TimelineIndicatorsBarGraph = ({
 		return false
 	}, [bucketPercentWidth, buckets.length])
 
+	const inactivityPeriods: [number, number][] = useMemo(() => {
+		return sessionIntervals
+			.filter((interval) => !interval.active)
+			.map((interval) => [interval.startTime, interval.endTime])
+	}, [sessionIntervals])
+
 	const formatTimeOnTop = useCallback(
 		(t: number) =>
 			showPlayerAbsoluteTime
@@ -166,6 +173,7 @@ const TimelineIndicatorsBarGraph = ({
 		if (!viewportDiv) {
 			return
 		}
+		console.log(inactivityPeriods)
 
 		const onWheel = (event: WheelEvent) => {
 			event.preventDefault()
@@ -439,9 +447,9 @@ const TimelineIndicatorsBarGraph = ({
 			const key = `${idx * size.multiple}${size.tick}`
 			const text = formatTimeAsAlphanum(mainTickInMs * idx)
 			const fontWeight = text.includes('h')
-				? 600
-				: text.includes('m')
 				? 500
+				: text.includes('m')
+				? 450
 				: 400
 
 			const left = idx * step
@@ -450,7 +458,7 @@ const TimelineIndicatorsBarGraph = ({
 					className={style.timeTickMark}
 					key={`tick-verbose-${key}`}
 					style={{
-						left: left - text.length * 1.5,
+						left: left - text.length * 3,
 						fontWeight,
 					}}
 				>
@@ -559,8 +567,23 @@ const TimelineIndicatorsBarGraph = ({
 						style={{
 							width: (time * width) / duration,
 						}}
-					></div>
+					/>
 				) : null}
+				{inactivityPeriods.map((interval, idx) => {
+					const left = (interval[0] / duration) * width
+					const pWidth =
+						((interval[1] - interval[0]) / duration) * width
+					return (
+						<div
+							key={idx}
+							className={style.inactivityPeriod}
+							style={{
+								left,
+								width: clamp(pWidth, 0, width - left - 2),
+							}}
+						/>
+					)
+				})}
 			</div>
 			<div className={style.progressMonitor}>
 				{shouldMockActivityGraph ? (

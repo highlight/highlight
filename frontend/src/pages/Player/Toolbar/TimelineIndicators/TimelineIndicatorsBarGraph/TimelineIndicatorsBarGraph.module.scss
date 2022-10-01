@@ -28,6 +28,7 @@
 	height: var(--progress-bar-height);
 	position: relative;
 	width: 100%;
+	z-index: 1;
 }
 
 .progressBar {
@@ -36,6 +37,15 @@
 	left: 0;
 	position: absolute;
 	top: 0;
+	z-index: 3;
+}
+
+.inactivityPeriod {
+	background-color: var(--color-white);
+	height: var(--progress-bar-height);
+	position: absolute;
+	top: 0;
+	z-index: 2;
 }
 
 .section {
@@ -99,7 +109,6 @@
 	color: var(--color-n-300);
 	font-family: var(--header-font-family);
 	font-size: 10px;
-	font-weight: 400;
 	letter-spacing: -0.1em;
 	line-height: 12px;
 	position: absolute;
