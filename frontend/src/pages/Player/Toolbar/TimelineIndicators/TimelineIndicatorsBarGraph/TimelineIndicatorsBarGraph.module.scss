@@ -133,32 +133,3 @@
 .timeTickMinor {
 	height: 2px;
 }
-
-.timeIndicator {
-	align-items: center;
-	bottom: 0;
-	display: flex;
-	flex-direction: column;
-	height: 90px;
-	position: absolute;
-	z-index: 2;
-}
-
-.timeIndicatorHair {
-	border-left: 2px var(--color-n-900) solid;
-	bottom: 0;
-	cursor: ew-resize;
-	height: calc(100% - 14px);
-	left: calc(50% - 1px);
-	position: absolute;
-}
-
-.timeIndicatorTop {
-	background-color: var(--color-n-900);
-	border: 1px solid var(--color-white);
-	border-radius: 1px 1px 12px 12px;
-	cursor: grab;
-	height: 16px;
-	user-select: none;
-	width: 10px;
-}

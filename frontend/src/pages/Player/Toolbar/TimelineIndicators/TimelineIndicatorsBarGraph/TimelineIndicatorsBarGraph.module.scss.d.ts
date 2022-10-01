@@ -8,9 +8,6 @@ export const progressMonitor: string
 export const section: string
 export const separator: string
 export const timeAxis: string
-export const timeIndicator: string
-export const timeIndicatorHair: string
-export const timeIndicatorTop: string
 export const timelineContainer: string
 export const timelineIndicatorsContainer: string
 export const timeTick: string

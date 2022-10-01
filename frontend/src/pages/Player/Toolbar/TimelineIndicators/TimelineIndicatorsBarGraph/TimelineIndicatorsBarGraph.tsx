@@ -10,6 +10,7 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar, {
 	EventBucket,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
@@ -173,7 +174,6 @@ const TimelineIndicatorsBarGraph = ({
 		if (!viewportDiv) {
 			return
 		}
-		console.log(inactivityPeriods)
 
 		const onWheel = (event: WheelEvent) => {
 			event.preventDefault()
@@ -279,7 +279,13 @@ const TimelineIndicatorsBarGraph = ({
 		const viewportDiv = viewportRef.current
 		const timeIndicatorTopDiv = timeIndicatorTopRef.current
 		const timeIndicatorHair = timeIndicatorHairRef.current
-		if (!viewportDiv || !timeIndicatorTopDiv || !timeIndicatorHair) {
+		const timeIndicatorTop = timeIndicatorTopRef.current
+		if (
+			!viewportDiv ||
+			!timeIndicatorTopDiv ||
+			!timeIndicatorHair ||
+			!timeIndicatorTop
+		) {
 			return
 		}
 
@@ -369,6 +375,7 @@ const TimelineIndicatorsBarGraph = ({
 
 		viewportDiv.addEventListener('pointerdown', onPointerdown)
 		timeIndicatorHair.addEventListener('pointerdown', onDrag)
+		timeIndicatorTop.addEventListener('pointerdown', onDrag)
 		viewportDiv.addEventListener('scroll', onScroll, { passive: false })
 		document.addEventListener('pointerup', onPointerup)
 		document.addEventListener('pointermove', onPointermove, {
@@ -377,6 +384,7 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('pointerdown', onPointerdown)
 			timeIndicatorHair.removeEventListener('pointerdown', onDrag)
+			timeIndicatorTop.removeEventListener('pointerdown', onDrag)
 			viewportDiv.removeEventListener('scroll', onScroll)
 			document.removeEventListener('pointerup', onPointerup)
 			document.removeEventListener('pointermove', onPointermove)
@@ -530,18 +538,6 @@ const TimelineIndicatorsBarGraph = ({
 		viewportWidth,
 	])
 
-	const [timeIndicatorOffset, setTimeIndicatorOffset] = useState<number>(-25)
-	useEffect(() => {
-		const timeIndicatorTop = timeIndicatorTopRef.current
-		if (!timeIndicatorTop) {
-			return
-		}
-		setTimeIndicatorOffset(
-			(time * viewportWidth * camera.zoom) / duration -
-				timeIndicatorTop.offsetWidth / 2,
-		)
-	}, [camera.zoom, duration, time, viewportWidth])
-
 	if (!events.length || state === ReplayerState.Loading || !replayer) {
 		return (
 			<div
@@ -631,6 +627,15 @@ const TimelineIndicatorsBarGraph = ({
 				/>
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>
+				<TimeIndicator
+					left={
+						(time * viewportWidth * camera.zoom) / duration +
+						TIMELINE_MARGIN
+					}
+					topRef={timeIndicatorTopRef}
+					hairRef={timeIndicatorHairRef}
+					text={formatTimeOnTop(time)}
+				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>
 					{ticks}
 				</div>
@@ -642,21 +647,6 @@ const TimelineIndicatorsBarGraph = ({
 					}}
 				></div>
 				<div className={style.eventHistogram} ref={canvasRef}>
-					<div
-						className={style.timeIndicator}
-						style={{
-							left: timeIndicatorOffset,
-						}}
-					>
-						<div
-							className={style.timeIndicatorTop}
-							ref={timeIndicatorTopRef}
-						/>
-						<span
-							className={style.timeIndicatorHair}
-							ref={timeIndicatorHairRef}
-						></span>
-					</div>
 					<div className={style.eventTrack}>
 						{buckets
 							.map((bucket, idx) =>
