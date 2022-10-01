@@ -148,7 +148,6 @@ const TimelineIndicatorsBarGraph = ({
 	const viewportRef = useRef<HTMLDivElement>(null)
 	const canvasRef = useRef<HTMLDivElement>(null)
 	const timeAxisRef = useRef<HTMLDivElement>(null)
-	const progressRef = useRef<HTMLDivElement>(null)
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
 	const [viewportWidth, setViewportWidth] = useState(0)
@@ -448,7 +447,7 @@ const TimelineIndicatorsBarGraph = ({
 			const left = idx * step
 			elms.push(
 				<span
-					className={style.timeMarker}
+					className={style.timeTickMark}
 					key={`tick-verbose-${key}`}
 					style={{
 						left: left - text.length * 1.5,
@@ -541,7 +540,7 @@ const TimelineIndicatorsBarGraph = ({
 				className={style.timelineIndicatorsContainer}
 				style={{ width }}
 			>
-				<div className={style.progressMonitor} ref={progressRef}>
+				<div className={style.progressMonitor}>
 					<Skeleton height={38} />
 				</div>
 				<div className={style.timelineContainer} ref={viewportRef}>
@@ -553,7 +552,17 @@ const TimelineIndicatorsBarGraph = ({
 
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
-			<div className={style.progressMonitor} ref={progressRef}>
+			<div className={style.progressBarContainer}>
+				{time > 0 ? (
+					<div
+						className={style.progressBar}
+						style={{
+							width: (time * width) / duration,
+						}}
+					></div>
+				) : null}
+			</div>
+			<div className={style.progressMonitor}>
 				{shouldMockActivityGraph ? (
 					buckets
 						.filter((bucket) => bucket.totalCount > 0)
@@ -579,7 +588,7 @@ const TimelineIndicatorsBarGraph = ({
 							type="monotone"
 							stroke="transparent"
 							dataKey="totalCount"
-							fill="var(--color-gray-300)"
+							fill="var(--color-n-200)"
 						></Area>
 					</AreaChart>
 				)}
@@ -619,9 +628,7 @@ const TimelineIndicatorsBarGraph = ({
 						<div
 							className={style.timeIndicatorTop}
 							ref={timeIndicatorTopRef}
-						>
-							{formatTimeOnTop(time)}
-						</div>
+						/>
 						<span
 							className={style.timeIndicatorHair}
 							ref={timeIndicatorHairRef}

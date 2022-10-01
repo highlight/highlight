@@ -153,7 +153,7 @@ const TimelineIndicatorsBar = ({
 		return rows
 	}, [data, setCurrentEvent, setShowRightPanel])
 
-	const [isBarFramed, setIsBarFramed] = useState(false)
+	const [isBarShaded, setIsBarShaded] = useState(false)
 	return (
 		<Popover
 			getPopupContainer={getFullScreenPopoverGetPopupContainer}
@@ -167,11 +167,11 @@ const TimelineIndicatorsBar = ({
 			}}
 			placement={placement}
 			overlayClassName={styles.timelineBarPopoverContainer}
-			onVisibleChange={(visible) => setIsBarFramed(visible)}
+			onVisibleChange={(visible) => setIsBarShaded(visible)}
 		>
 			<div
 				className={classNames(styles.bar, {
-					[styles.isFramed]: isBarFramed,
+					[styles.isShaded]: isBarShaded,
 				})}
 				style={{
 					width: `${width}%`,

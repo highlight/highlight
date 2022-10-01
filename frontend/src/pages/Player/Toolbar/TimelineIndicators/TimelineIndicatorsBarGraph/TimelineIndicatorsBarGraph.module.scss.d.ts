@@ -12,9 +12,9 @@ export const timeIndicatorHair: string
 export const timeIndicatorTop: string
 export const timelineContainer: string
 export const timelineIndicatorsContainer: string
-export const timeMarker: string
 export const timeTick: string
 export const timeTickMajor: string
+export const timeTickMark: string
 export const timeTickMid: string
 export const timeTickMinor: string
 export const zoomArea: string

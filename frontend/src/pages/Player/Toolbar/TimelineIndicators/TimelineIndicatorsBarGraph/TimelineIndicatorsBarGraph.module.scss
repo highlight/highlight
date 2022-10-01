@@ -1,19 +1,21 @@
 :root {
 	--timeline-margin: 32px;
+	--progress-bar-height: 3px;
 }
 .timelineIndicatorsContainer {
 	align-items: center;
 	background-color: var(--color-primary-background);
-	border: 1px solid var(--color-gray-300);
+	border: 1px solid var(--color-n-100);
 	border-bottom: 0;
+	border-radius: 2px 2px 8px 8px;
 	display: flex;
 	flex-direction: column;
 	z-index: 5;
 }
 
 .progressMonitor {
-	border-bottom: 1px var(--color-gray-300) solid;
-	border-top: 1px var(--color-gray-300) solid;
+	border-bottom: 1px var(--color-n-100) solid;
+	border-top: 1px var(--color-n-100) solid;
 	height: 38px;
 	overflow: hidden;
 	position: relative;
@@ -22,11 +24,15 @@
 }
 
 .progressBarContainer {
-	border-top: 4px solid var(--color-purple-200);
+	background-color: var(--color-purple-200);
+	height: var(--progress-bar-height);
+	position: relative;
+	width: 100%;
 }
 
 .progressBar {
-	border-top: 4px solid var(--color-purple);
+	background-color: var(--color-purple);
+	height: var(--progress-bar-height);
 	left: 0;
 	position: absolute;
 	top: 0;
@@ -40,7 +46,7 @@
 }
 
 .timelineContainer {
-	height: 128px;
+	height: 118px;
 	overflow-x: scroll;
 	overflow-y: hidden;
 	overscroll-behavior: none;
@@ -59,21 +65,19 @@
 .eventHistogram {
 	display: flex;
 	flex-direction: row;
-	height: 72px;
+	height: 78px;
 	margin-left: var(--timeline-margin);
 	margin-right: var(--timeline-margin);
 	position: relative;
 }
 
 .eventTrack {
-	margin-bottom: 8px;
-	margin-top: 8px;
 	position: relative;
 	width: 100%;
 }
 
 .timeAxis {
-	height: 39px;
+	height: 24px;
 	margin-left: var(--timeline-margin);
 	margin-right: var(--timeline-margin);
 	pointer-events: none;
@@ -81,28 +85,31 @@
 }
 
 .separator {
-	border-bottom: 1px var(--color-gray-300) solid;
+	border-bottom: 1px var(--color-n-100) solid;
 }
 
 .bucketMark {
-	border-left: 1px var(--color-gray-300) solid;
+	border-left: 1px var(--color-n-200) solid;
 	bottom: 0;
 	position: absolute;
 }
 
-.timeMarker {
-	color: var(--color-gray-500);
-	font-size: 8px;
+.timeTickMark {
+	bottom: 10px;
+	color: var(--color-n-300);
+	font-family: var(--header-font-family);
+	font-size: 10px;
 	font-weight: 400;
-	line-height: 10.4px;
+	letter-spacing: -0.1em;
+	line-height: 12px;
 	position: absolute;
 	text-align: center;
-	top: 16px;
 	user-select: none;
 }
 
 .timeTick {
-	border-left: 0.5px solid var(--color-gray-500);
+	border-left: 1px solid var(--color-n-200);
+	bottom: 0;
 	position: absolute;
 }
 
@@ -119,32 +126,30 @@
 }
 
 .timeIndicator {
+	align-items: center;
 	bottom: 0;
 	display: flex;
 	flex-direction: column;
-	height: 103px;
+	height: 90px;
 	position: absolute;
-}
-.timeIndicatorHair {
-	border-left: 1px var(--color-black) solid;
-	cursor: ew-resize;
-	height: 100%;
-	margin-left: auto;
-	margin-right: auto;
 	z-index: 2;
 }
+
+.timeIndicatorHair {
+	border-left: 2px var(--color-n-900) solid;
+	bottom: 0;
+	cursor: ew-resize;
+	height: calc(100% - 14px);
+	left: calc(50% - 1px);
+	position: absolute;
+}
+
 .timeIndicatorTop {
-	align-items: center;
-	background-color: var(--color-black);
-	border-radius: 4px;
-	color: var(--color-white);
+	background-color: var(--color-n-900);
+	border: 1px solid var(--color-white);
+	border-radius: 1px 1px 12px 12px;
 	cursor: grab;
-	display: flex;
-	font-size: 12px;
-	font-weight: 600;
-	height: 24px;
-	justify-content: center;
-	line-height: 15.6px;
-	padding: 8px;
+	height: 16px;
 	user-select: none;
+	width: 10px;
 }
