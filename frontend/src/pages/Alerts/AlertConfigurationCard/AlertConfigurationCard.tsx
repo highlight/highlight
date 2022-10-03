@@ -88,8 +88,6 @@ export const AlertConfigurationCard = ({
 	const { project_id } = useParams<{ project_id: string }>()
 	const [form] = Form.useForm()
 	const [updateErrorAlert] = useUpdateErrorAlertMutation()
-	const [updateNewUserAlert] = useUpdateSessionAlertMutation()
-	const [updateUserPropertiesAlert] = useUpdateSessionAlertMutation()
 	const history = useHistory()
 	const [createErrorAlert, {}] = useCreateErrorAlertMutation({
 		variables: {
@@ -105,124 +103,10 @@ export const AlertConfigurationCard = ({
 		},
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createSessionFeedbackAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				user_properties: [],
-				exclude_rules: [],
-				slack_channels: [],
-				track_properties: [],
-				threshold_window: 30,
-				name: 'Session Feedback',
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.NewSessionAlert,
-			},
-		},
+	const [createSessionAlert] = useCreateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createNewUserAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				user_properties: [],
-				exclude_rules: [],
-				slack_channels: [],
-				track_properties: [],
-				name: 'New User',
-				threshold_window: 1,
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.NewSessionAlert,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createRageClickAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				slack_channels: [],
-				user_properties: [],
-				exclude_rules: [],
-				track_properties: [],
-				name: 'Rage Click',
-				threshold_window: 30,
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.RageClickAlert,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createNewSessionAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				slack_channels: [],
-				user_properties: [],
-				track_properties: [],
-				name: 'New Session',
-				threshold_window: 1,
-				exclude_rules: [],
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.NewSessionAlert,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createTrackPropertiesAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				environments: [],
-				count_threshold: 1,
-				slack_channels: [],
-				exclude_rules: [],
-				name: 'Track',
-				track_properties: [],
-				user_properties: [],
-				threshold_window: 1,
-				emails: emailsToNotify,
-				disabled: true,
-				type: SessionAlertType.TrackPropertiesAlert,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createUserPropertiesAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				environments: [],
-				slack_channels: [],
-				name: 'User',
-				user_properties: [],
-				exclude_rules: [],
-				track_properties: [],
-				threshold_window: 1,
-				count_threshold: 1,
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.UserPropertiesAlert,
-			},
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [updateTrackPropertiesAlert] = useUpdateSessionAlertMutation()
-	const [updateSessionFeedbackAlert] = useUpdateSessionAlertMutation()
-	const [updateRageClickAlert] = useUpdateSessionAlertMutation()
-	const [updateNewSessionAlert] = useUpdateSessionAlertMutation()
+	const [updateSessionAlert] = useUpdateSessionAlertMutation()
 
 	const excludedEnvironmentsFormName = `${
 		alert.Name || defaultName
@@ -275,7 +159,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.FirstTimeUser:
-						await createNewUserAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -292,7 +176,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.NewSession:
-						await createNewSessionAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -312,7 +196,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.RageClick:
-						await createRageClickAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -329,7 +213,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.SessionFeedback:
-						await createSessionFeedbackAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -346,7 +230,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.TrackProperties:
-						await createTrackPropertiesAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -373,7 +257,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.UserProperties:
-						await createUserPropertiesAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
@@ -424,7 +308,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.FirstTimeUser:
-						await updateNewUserAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
@@ -442,7 +326,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.UserProperties:
-						await updateUserPropertiesAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
@@ -470,7 +354,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.TrackProperties:
-						await updateTrackPropertiesAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
@@ -498,7 +382,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.SessionFeedback:
-						await updateSessionFeedbackAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
@@ -516,7 +400,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.NewSession:
-						await updateNewSessionAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
@@ -537,7 +421,7 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.RageClick:
-						await updateRageClickAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
