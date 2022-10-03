@@ -9,13 +9,25 @@ import {
 } from '@highlight-run/rrweb/typings/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
+	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MetricCategory,
+	MetricName,
+	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
-} from '../../firstload/src/types/client'
-import { SamplingStrategy } from '../../firstload/src/types/types'
+} from './types/client'
+import {
+	HighlightOptions,
+	HighlightPublicInterface,
+	Integration,
+	Metadata,
+	Metric,
+	SamplingStrategy,
+	SessionDetails,
+} from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
 import ErrorStackParser from 'error-stack-parser'
@@ -58,12 +70,18 @@ import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
+import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from 'types/shared-types'
+import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import {
+	JankListener,
+	JankPayload,
+} from './listeners/jank-listener/jank-listener'
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
 // @ts-ignore
 import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
-import { MetricCategory, MetricName } from './constants/metrics'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -252,6 +270,10 @@ export class Highlight {
 				`Tab reloaded, continuing previous session: ${this.sessionData.sessionSecureID}`,
 			)
 		} else {
+			// new session. we should clear any session storage data
+			for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
+				window.sessionStorage.removeItem(storageKeyName)
+			}
 			this.sessionData = {
 				sessionSecureID: this.options.sessionSecureID,
 				projectID: 0,
@@ -874,6 +896,19 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						this.addCustomEvent('Performance', stringify(payload))
 					}, this._recordingStartTime),
 				)
+				this.listeners.push(
+					JankListener((payload: JankPayload) => {
+						this.addCustomEvent('Jank', stringify(payload))
+						this.recordMetric([
+							{
+								name: 'Jank',
+								value: payload.jankAmount,
+								category: MetricCategory.WebVital,
+								group: payload.querySelector,
+							},
+						])
+					}, this._recordingStartTime),
+				)
 			}
 
 			// setup electron main thread window visiblity events listener
@@ -964,8 +999,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		metrics: {
 			name: string
 			value: number
-			category: MetricCategory
-			group: string
+			category?: MetricCategory
+			group?: string
+			tags?: { name: string; value: string }[]
 		}[],
 	) {
 		this._worker.postMessage({
@@ -973,6 +1009,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				type: MessageType.Metrics,
 				metrics: metrics.map((m) => ({
 					...m,
+					tags: m.tags || [],
+					group: m.group || window.location.href,
+					category: m.category || MetricCategory.Frontend,
 					timestamp: new Date(),
 				})),
 			},
@@ -1231,4 +1270,23 @@ declare global {
 		defaultWarn: any
 		defaultDebug: any
 	}
+}
+export {
+	FirstLoadListeners,
+	GenerateSecureID,
+	MetricCategory,
+	getPreviousSessionData,
+}
+export type {
+	AmplitudeIntegrationOptions,
+	ConsoleMessage,
+	MixpanelIntegrationOptions,
+	Integration,
+	Metadata,
+	Metric,
+	HighlightFetchWindow,
+	HighlightOptions,
+	HighlightPublicInterface,
+	RequestResponsePair,
+	SessionDetails,
 }

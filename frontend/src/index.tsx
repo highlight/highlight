@@ -21,6 +21,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { datadogLogs } from '@datadog/browser-logs'
+import { datadogRum } from '@datadog/browser-rum'
 import {
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
@@ -115,12 +116,27 @@ if (!isOnPrem) {
 
 	if (!dev) {
 		datadogLogs.init({
-			clientToken: 'pub4946b807f59c69ede4bae46eb55dd066',
+			clientToken: import.meta.env.DD_CLIENT_TOKEN,
 			site: 'datadoghq.com',
 			forwardErrorsToLogs: true,
 			sampleRate: 100,
 			service: 'frontend',
 		})
+		datadogRum.init({
+			applicationId: import.meta.env.DD_RUM_APPLICATION_ID,
+			clientToken: import.meta.env.DD_CLIENT_TOKEN,
+			site: 'datadoghq.com',
+			service: 'frontend',
+			env: options.environment,
+			version: options.version,
+			sampleRate: 10,
+			sessionReplaySampleRate: 1,
+			trackResources: true,
+			trackLongTasks: true,
+			trackInteractions: true,
+			defaultPrivacyLevel: 'allow',
+		})
+		datadogRum.startSessionReplayRecording()
 	}
 }
 

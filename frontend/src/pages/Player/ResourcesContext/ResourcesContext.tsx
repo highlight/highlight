@@ -1,9 +1,9 @@
 import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
+import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
-import { RequestResponsePair } from 'highlight.run/dist/client/src/listeners/network-listener/utils/models'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 

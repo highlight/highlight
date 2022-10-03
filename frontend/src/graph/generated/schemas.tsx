@@ -190,6 +190,20 @@ export type LinearTeam = {
 	key: Scalars['String']
 }
 
+export type VercelEnv = {
+	__typename?: 'VercelEnv'
+	id: Scalars['String']
+	key: Scalars['String']
+	configurationId: Scalars['String']
+}
+
+export type VercelProject = {
+	__typename?: 'VercelProject'
+	id: Scalars['String']
+	name: Scalars['String']
+	env: Array<VercelEnv>
+}
+
 export type SocialLink = {
 	__typename?: 'SocialLink'
 	type: SocialType
@@ -209,6 +223,7 @@ export enum IntegrationType {
 	Linear = 'Linear',
 	Zapier = 'Zapier',
 	Front = 'Front',
+	Vercel = 'Vercel',
 }
 
 export enum ErrorState {
@@ -1033,6 +1048,17 @@ export type EventChunk = {
 	timestamp: Scalars['Int64']
 }
 
+export type VercelProjectMappingInput = {
+	vercel_project_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type VercelProjectMapping = {
+	__typename?: 'VercelProjectMapping'
+	vercel_project_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export type OAuthClient = {
 	__typename?: 'OAuthClient'
 	id: Scalars['String']
@@ -1114,6 +1140,8 @@ export type Query = {
 	slack_members: Array<Maybe<SanitizedSlackChannel>>
 	generate_zapier_access_token: Scalars['String']
 	is_integrated_with: Scalars['Boolean']
+	vercel_projects: Array<VercelProject>
+	vercel_project_mappings: Array<VercelProjectMapping>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	project?: Maybe<Project>
 	workspace?: Maybe<Workspace>
@@ -1443,6 +1471,14 @@ export type QueryIs_Integrated_WithArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryVercel_ProjectsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryVercel_Project_MappingsArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QueryLinear_TeamsArgs = {
 	project_id: Scalars['ID']
 }
@@ -1627,6 +1663,7 @@ export type Mutation = {
 	upsertDashboard: Scalars['ID']
 	deleteDashboard: Scalars['Boolean']
 	deleteSessions: Scalars['Boolean']
+	updateVercelProjectMappings: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -2139,6 +2176,11 @@ export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	sessionCount: Scalars['Int']
+}
+
+export type MutationUpdateVercelProjectMappingsArgs = {
+	project_id: Scalars['ID']
+	project_mappings: Array<VercelProjectMappingInput>
 }
 
 export type Subscription = {

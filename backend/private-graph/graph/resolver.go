@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/oauth"
-
 	"gorm.io/gorm/clause"
 
 	"golang.org/x/text/cases"
@@ -26,8 +24,10 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -1607,6 +1607,19 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 	return r.saveFrontOAuth(project, oauth)
 }
 
+func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string) error {
+	res, err := vercel.GetAccessToken(code)
+	if err != nil {
+		return e.Wrap(err, "error getting Vercel oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Select("vercel_access_token", "vercel_team_id").Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+		return e.Wrap(err, "error updating Vercel access token in workspace")
+	}
+
+	return nil
+}
+
 func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
 	exp := time.Unix(oauth.ExpiresAt, 0)
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
@@ -1709,6 +1722,43 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+	if workspace.VercelAccessToken == nil {
+		return e.New("workspace does not have a Vercel access token")
+	}
+
+	projects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return err
+	}
+
+	configIdsToRemove := map[string]struct{}{}
+	for _, p := range projects {
+		for _, e := range p.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				if e.ConfigurationID == "" {
+					continue
+				}
+				configIdsToRemove[e.ConfigurationID] = struct{}{}
+			}
+		}
+	}
+
+	for c := range configIdsToRemove {
+		if err := vercel.RemoveConfiguration(c, *workspace.VercelAccessToken, workspace.VercelTeamID); err != nil {
+			return err
+		}
+	}
+
+	if err := r.DB.Where(workspace).
+		Select("vercel_access_token", "vercel_team_id").
+		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing Vercel access token and team id")
 	}
 
 	return nil
@@ -1924,7 +1974,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI"))}}
 
 	requestBytes, err := json.Marshal(req)
 	if err != nil {
@@ -2650,13 +2700,13 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
-	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true}[strings.ToLower(metricName)] {
+	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	}
-	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ms")
+	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
-	}
-	if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("b")
 	}
 	return

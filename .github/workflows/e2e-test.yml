@@ -11,8 +11,10 @@ on:
             - 'client/**'
             - 'firstload/**'
             - '.github/workflows/e2e-test.yml'
+            - 'cypress.config.js'
 jobs:
     test:
+        name: End-to-end Cypress Testing
         runs-on: ubuntu-latest
         env:
             ENVIRONMENT: test
@@ -24,6 +26,9 @@ jobs:
             PSQL_PASSWORD: postgres
             REDIS_HOST: redis
             REDIS_PORT: 6379
+            # configures turborepo remote caching
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         services:
             postgres:
                 image: postgres
@@ -48,24 +53,26 @@ jobs:
                 ports:
                     - 6379:6379
         steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
             - name: Checkout
               uses: actions/checkout@v3
-            - name: Setup Node.js
-              uses: actions/setup-node@v2
               with:
-                  node-version: 16.14.2
-                  registry-url: https://registry.npmjs.org
-                  cache: yarn
-                  cache-dependency-path: |
-                      yarn.lock
-                      frontend/yarn.lock
-                      client/yarn.lock
+                  token: ${{ secrets.GH_REPO_TOKEN }}
+                  submodules: true
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'yarn'
+            - name: Install js dependencies
+              run: yarn
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
                   go-version-file: 'backend/go.mod'
                   cache: true
-                  cache-dependency-path: backend/go.mod
+                  cache-dependency-path: backend/go.sum
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
             - name: Migrate and seed database
@@ -75,23 +82,22 @@ jobs:
                   psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < ../scripts/migrations/init.sql
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-            - name: Install Go and NPM dependencies
-              run: yarn ci:install
-            - name: Build backend
+            - name: Build frontend + backend
               run: yarn ci:build
             - name: Run Cypress tests
               uses: cypress-io/github-action@v4
               with:
-                  start: yarn ci:start
+                  install: false
+                  # frontend dependencies of ci:frontend are built prior by ci:build
+                  start: yarn ci:frontend, yarn ci:backend
                   wait-on: 'https://localhost:3000, http://localhost:8080/dist/index.js, https://localhost:8082/health'
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   NODE_EXTRA_CA_CERTS: ./backend/localhostssl/server.crt
-            # Enable this step + remove `video: false` in `cypress.config.js` if
-            # you want to see a recording of your failures in CI.
-            # - name: Save videos
-            #   uses: actions/upload-artifact@v2
-            #   if: failure()
-            #   with:
-            #       name: cypress-videos
-            #       path: cypress/videos
+#            Cypress video creation is very slow
+#            - name: Save videos
+#              uses: actions/upload-artifact@v2
+#              if: failure()
+#              with:
+#                  name: cypress-videos
+#                  path: cypress/videos

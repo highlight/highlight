@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import typescript from '@rollup/plugin-typescript'
 import { terser } from 'rollup-plugin-terser'
 import esbuild from 'rollup-plugin-esbuild'
 import webWorkerLoader from 'rollup-plugin-web-worker-loader'
@@ -22,6 +21,7 @@ const output = {
 	format: 'umd',
 	name: 'highlightLib',
 	sourcemap: sourceMap,
+	chunkFileNames: '[name].js',
 	globals: {
 		['web-worker:./workers/highlight-client-worker']: 'highlightWebWorker',
 	},
@@ -31,12 +31,6 @@ const basePlugins = [
 		publicGraphURI: process.env.PUBLIC_GRAPH_URI,
 	}),
 	resolve({ browser: true }),
-	webWorkerLoader({
-		targetPlatform: 'browser',
-		inline: true,
-		sourceMap,
-	}),
-	typescript(),
 	json(),
 	replace({
 		preventAssignment: true,
@@ -44,9 +38,15 @@ const basePlugins = [
 			development ? 'development' : 'production',
 		),
 	}),
+	webWorkerLoader({
+		targetPlatform: 'browser',
+		inline: true,
+		sourceMap,
+	}),
 	commonjs({}),
 	esbuild({
 		minify,
+		target: 'es6',
 	}),
 ]
 const rollupBuilds = []
@@ -66,9 +66,8 @@ if (development) {
 		],
 	})
 } else {
-	rollupBuilds.push({
+	const buildSettings = {
 		input: './src/index.tsx',
-		output,
 		external: ['web-worker:./workers/highlight-client-worker'],
 		treeshake: 'smallest',
 		plugins: [
@@ -78,7 +77,29 @@ if (development) {
 			}),
 			filesize(),
 		],
-	})
+	}
+	for (const x of [
+		{
+			output: {
+				file: pkg.main,
+				format: 'umd',
+				name: 'highlightLib',
+				sourcemap: sourceMap,
+			},
+		},
+		{
+			output: {
+				file: pkg.module,
+				format: 'esm',
+				sourcemap: sourceMap,
+			},
+		},
+	]) {
+		rollupBuilds.push({
+			...buildSettings,
+			...x,
+		})
+	}
 }
 
 export default rollupBuilds

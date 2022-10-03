@@ -39,6 +39,7 @@ import (
 	"github.com/highlight-run/highlight/backend/sessionalerts"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
@@ -1841,6 +1842,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddFrontToProject(project, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeVercel {
+		if err := r.AddVercelToWorkspace(workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1874,6 +1879,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeFront {
 		if err := r.RemoveFrontFromProject(project); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeVercel {
+		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -3369,6 +3378,76 @@ func (r *mutationResolver) DeleteSessions(ctx context.Context, projectID int, qu
 	if err != nil {
 		return false, err
 	}
+	return true, nil
+}
+
+// UpdateVercelProjectMappings is the resolver for the updateVercelProjectMappings field.
+func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, projectID int, projectMappings []*modelInputs.VercelProjectMappingInput) (bool, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return false, err
+	}
+
+	workspaceId := project.WorkspaceID
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return false, err
+	}
+
+	if workspace.VercelAccessToken == nil {
+		return false, e.New("workspace does not have an access token")
+	}
+
+	vercelProjects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return false, err
+	}
+
+	vercelProjectsById := map[string]*modelInputs.VercelProject{}
+	for _, p := range vercelProjects {
+		vercelProjectsById[p.ID] = p
+	}
+
+	configs := []*model.VercelIntegrationConfig{}
+	for _, m := range projectMappings {
+		project, err := r.isAdminInProject(ctx, m.ProjectID)
+		if err != nil {
+			return false, err
+		}
+		if project.Secret == nil {
+			continue
+		}
+
+		vercelProject, ok := vercelProjectsById[m.VercelProjectID]
+		if !ok {
+			return false, e.New("cannot access Vercel project")
+		}
+
+		var matchingEnvId *string
+		for _, e := range vercelProject.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				matchingEnvId = &e.ID
+			}
+		}
+
+		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken, workspace.VercelTeamID, matchingEnvId); err != nil {
+			return false, err
+		}
+		configs = append(configs, &model.VercelIntegrationConfig{
+			WorkspaceID:     workspaceId,
+			VercelProjectID: m.VercelProjectID,
+			ProjectID:       m.ProjectID,
+		})
+	}
+
+	if err := r.DB.Where("workspace_id = ?", workspaceId).Delete(&model.VercelIntegrationConfig{}).Error; err != nil {
+		return false, err
+	}
+
+	if err := r.DB.Create(configs).Error; err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
@@ -5401,9 +5480,64 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 			return false, e.Wrap(err, "failed to save oauth")
 		}
 		return project.FrontAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeVercel {
+		// If there is an error accessing the Vercel projects, user needs to integrate again
+		_, err := r.VercelProjects(ctx, projectID)
+		if err != nil {
+			return false, err
+		}
+		return workspace.VercelAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")
+}
+
+// VercelProjects is the resolver for the vercel_projects field.
+func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*modelInputs.VercelProject, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	ret := []*modelInputs.VercelProject{}
+	if err != nil {
+		return ret, e.Wrap(err, "error querying project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	// Workspace does not have linear set up yet, don't have to treat this as an error
+	if workspace.VercelAccessToken == nil {
+		return ret, nil
+	}
+
+	res, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return ret, e.Wrap(err, "error getting vercel teams")
+	}
+
+	return res, nil
+}
+
+// VercelProjectMappings is the resolver for the vercel_project_mappings field.
+func (r *queryResolver) VercelProjectMappings(ctx context.Context, projectID int) ([]*modelInputs.VercelProjectMapping, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := []*model.VercelIntegrationConfig{}
+	if err := r.DB.Where("workspace_id = ?", project.WorkspaceID).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := lo.Map(rows, func(c *model.VercelIntegrationConfig, idx int) *modelInputs.VercelProjectMapping {
+		return &modelInputs.VercelProjectMapping{
+			VercelProjectID: c.VercelProjectID,
+			ProjectID:       c.ProjectID,
+		}
+	})
+
+	return results, nil
 }
 
 // LinearTeams is the resolver for the linear_teams field.

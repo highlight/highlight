@@ -11,7 +11,11 @@ import styles from './ZapierIntegrationConfig.module.scss'
 
 const ZapierIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
+> = ({
+	setModalOpen: setModelOpen,
+	setIntegrationEnabled,
+	integrationEnabled,
+}) => {
 	const {
 		generatedJwtToken,
 		removeZapierIntegrationFromProject,

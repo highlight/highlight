@@ -108,7 +108,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 		// Is this an AWS Amplify environment?
 		isAWSEnv := (strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")) || origin == "https://master.d25bj3loqvp3nx.amplifyapp.com" || origin == "https://beta.d25bj3loqvp3nx.amplifyapp.com"
 
-		if origin == frontendURL || origin == "https://www.highlight.run" || origin == "https://highlight.run" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
+		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {

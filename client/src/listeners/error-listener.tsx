@@ -1,4 +1,4 @@
-import { ErrorMessage } from '../../../frontend/src/util/shared-types'
+import { ErrorMessage } from '../types/shared-types'
 import stringify from 'json-stringify-safe'
 import ErrorStackParser from 'error-stack-parser'
 

@@ -1,6 +1,3 @@
-import { Highlight, HighlightClassOptions } from '../../client/src/index'
-import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
-import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
 import packageJson from '../package.json'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
@@ -10,13 +7,19 @@ import {
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
 import {
-	Metadata,
+	FirstLoadListeners,
+	GenerateSecureID,
+	Highlight,
+	HighlightClassOptions,
 	HighlightOptions,
 	HighlightPublicInterface,
+	Metadata,
+	Metric,
+	MetricCategory,
 	SessionDetails,
-} from './types/types'
+	getPreviousSessionData,
+} from '@highlight-run/client'
 import HighlightSegmentMiddleware from './integrations/segment'
-import { GenerateSecureID } from '../../client/src/utils/secure-id'
 import configureElectronHighlight from './environments/electron'
 
 initializeFetchListener()
@@ -296,6 +299,20 @@ export const H: HighlightPublicInterface = {
 			}
 		}
 	},
+	metrics: (metrics: Metric[]) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.recordMetric(
+					metrics.map((m) => ({
+						...m,
+						category: MetricCategory.Frontend,
+					})),
+				),
+			)
+		} catch (e) {
+			HighlightWarning('metrics', e)
+		}
+	},
 	getSessionURL: () => {
 		return new Promise<string>((resolve, reject) => {
 			H.onHighlightReady(() => {
@@ -358,8 +375,5 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 
-export {
-	HighlightSegmentMiddleware,
-	HighlightOptions,
-	configureElectronHighlight,
-}
+export { HighlightSegmentMiddleware, configureElectronHighlight }
+export type { HighlightOptions }

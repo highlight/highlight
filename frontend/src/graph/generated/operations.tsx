@@ -938,6 +938,32 @@ export type UpdateSessionAlertIsDisabledMutation = {
 	>
 }
 
+export type UpdateMetricMonitorIsDisabledMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateMetricMonitorIsDisabledMutation = {
+	__typename?: 'Mutation'
+} & {
+	updateMetricMonitor?: Types.Maybe<
+		{ __typename?: 'MetricMonitor' } & Pick<Types.MetricMonitor, 'id'>
+	>
+}
+
+export type UpdateErrorAlertIsDisabledMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
+	updateErrorAlert?: Types.Maybe<
+		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
+	>
+}
+
 export type CreateDefaultAlertsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	alert_types: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -1554,6 +1580,18 @@ export type DeleteSessionsMutationVariables = Types.Exact<{
 export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'deleteSessions'
+>
+
+export type UpdateVercelSettingsMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	project_mappings:
+		| Array<Types.VercelProjectMappingInput>
+		| Types.VercelProjectMappingInput
+}>
+
+export type UpdateVercelSettingsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateVercelProjectMappings'
 >
 
 export type SessionPayloadFragmentFragment = {
@@ -3523,6 +3561,27 @@ export type GetWorkspaceIsIntegratedWithFrontQuery = {
 	__typename?: 'Query'
 } & { is_integrated_with_front: Types.Query['is_integrated_with'] }
 
+export type GetWorkspaceIsIntegratedWithVercelQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithVercelQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_vercel: Types.Query['is_integrated_with'] } & {
+	vercel_projects: Array<
+		{ __typename?: 'VercelProject' } & Pick<
+			Types.VercelProject,
+			'id' | 'name'
+		>
+	>
+	vercel_project_mappings: Array<
+		{ __typename?: 'VercelProjectMapping' } & Pick<
+			Types.VercelProjectMapping,
+			'vercel_project_id' | 'project_id'
+		>
+	>
+}
+
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4088,6 +4147,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithZapier' as const,
 		GetWorkspaceIsIntegratedWithFront:
 			'GetWorkspaceIsIntegratedWithFront' as const,
+		GetWorkspaceIsIntegratedWithVercel:
+			'GetWorkspaceIsIntegratedWithVercel' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
@@ -4153,6 +4214,8 @@ export const namedOperations = {
 		DeleteErrorAlert: 'DeleteErrorAlert' as const,
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
+		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
+		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
 		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
@@ -4174,6 +4237,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

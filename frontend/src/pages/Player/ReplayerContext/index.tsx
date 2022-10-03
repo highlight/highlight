@@ -1,3 +1,9 @@
+import {
+	ErrorObject,
+	Session,
+	SessionComment,
+	SessionResults,
+} from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import {
 	playerMetaData,
@@ -5,15 +11,13 @@ import {
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
 import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook'
+import { createContext } from '@util/context/context'
 
 import {
-	ErrorObject,
-	Session,
-	SessionComment,
-	SessionResults,
-} from '../../../graph/generated/schemas'
-import { createContext } from '../../../util/context/context'
-import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent'
+	HighlightEvent,
+	HighlightJankPayload,
+	HighlightPerformancePayload,
+} from '../HighlightEvent'
 
 export enum ReplayerState {
 	/** There is no active session. */
@@ -75,6 +79,7 @@ export interface ReplayerContextInterface {
 	setScale: React.Dispatch<React.SetStateAction<number>>
 	events: Array<HighlightEvent>
 	performancePayloads: HighlightPerformancePayload[]
+	jankPayloads: HighlightJankPayload[]
 	errors: ErrorObject[]
 	sessionIntervals: Array<ParsedSessionInterval>
 	sessionComments: SessionComment[]

@@ -6,8 +6,10 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
@@ -19,6 +21,10 @@ const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot({
 		type: 'Organization',
 	})
+
+	const { integration_type: configureIntegration } = useParams<{
+		integration_type: string
+	}>()
 
 	const [popUpModal] = useQueryParam('enable', StringParam)
 
@@ -36,12 +42,16 @@ const IntegrationsPage = () => {
 	const { isFrontIntegratedWithProject, loading: loadingFront } =
 		useFrontIntegration()
 
+	const { isVercelIntegratedWithProject, loading: loadingVercel } =
+		useVercelIntegration()
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
 		loadingZapier ||
 		loadingClearbit ||
-		loadingFront
+		loadingFront ||
+		loadingVercel
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -54,7 +64,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
 				(inter.key === 'clearbit' &&
 					isClearbitIntegratedWithWorkspace) ||
-				(inter.key === 'front' && isFrontIntegratedWithProject),
+				(inter.key === 'front' && isFrontIntegratedWithProject) ||
+				(inter.key === 'vercel' && isVercelIntegratedWithProject),
 		}))
 	}, [
 		isSlackConnectedToWorkspace,
@@ -63,6 +74,7 @@ const IntegrationsPage = () => {
 		isFrontIntegratedWithProject,
 		isClearbitIntegratedWithWorkspace,
 		isHighlightAdmin,
+		isVercelIntegratedWithProject,
 	])
 
 	return (
@@ -86,6 +98,9 @@ const IntegrationsPage = () => {
 								key={integration.key}
 								showModalDefault={
 									popUpModal === integration.key
+								}
+								showSettingsDefault={
+									configureIntegration === integration.key
 								}
 							/>
 						),

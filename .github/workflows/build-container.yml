@@ -8,8 +8,13 @@ jobs:
         name: Push Docker image to Docker Hub
         runs-on: ubuntu-latest
         steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
             - name: Checkout
               uses: actions/checkout@v3
+              with:
+                  token: ${{ secrets.GH_REPO_TOKEN }}
+                  submodules: true
             - name: Setup Go
               uses: actions/setup-go@v3
               with:
@@ -28,13 +33,15 @@ jobs:
               uses: docker/build-push-action@v2
               with:
                   context: ./
-                  push: true
+                  push: ${{ github.ref == 'refs/heads/master' }}
                   tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
                   build-args: |
                       REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
+                      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
                   secrets: |
                       SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
                       SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
                       SLACK_CLIENT_SECRET=${{ secrets.SLACK_CLIENT_SECRET }}
+                      TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
             - name: Image digest
               run: echo ${{ steps.docker_build.outputs.digest }}

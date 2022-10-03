@@ -11,7 +11,7 @@ import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import styles from './SwitchWorkspace.module.scss'
@@ -29,6 +29,8 @@ const SwitchWorkspace = () => {
 	const [shouldRedirect, setShouldRedirect] = useState(false)
 
 	const { loading, data } = useGetWorkspacesQuery()
+
+	const { search } = useLocation()
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
@@ -125,9 +127,9 @@ const SwitchWorkspace = () => {
 
 	if (shouldRedirect) {
 		if (actionText === 'Join') {
-			return <Redirect to={`/w/${selectedWorkspace}/switch`} />
+			return <Redirect to={`/w/${selectedWorkspace}/switch${search}`} />
 		}
-		return <Redirect to={`/w/${selectedWorkspace}`} />
+		return <Redirect to={`/w/${selectedWorkspace}${search}`} />
 	}
 
 	return (
@@ -184,7 +186,7 @@ const SwitchWorkspace = () => {
 					<ButtonLink
 						trackingId={`SwitchWorkspace-CreateWorkspace`}
 						className={styles.button}
-						to="/new"
+						to={`/new${search}`}
 						fullWidth
 						type="default"
 					>

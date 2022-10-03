@@ -1,8 +1,6 @@
 import { eventWithTime } from '@highlight-run/rrweb/typings/types'
-import {
-	ConsoleMessage,
-	ErrorMessage,
-} from '../../../frontend/src/util/shared-types'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
+import { MetricCategory } from '../types/client'
 
 export type Source = 'segment' | undefined
 
@@ -65,7 +63,7 @@ export type MetricsMessage = {
 	metrics: {
 		name: string
 		value: number
-		category: 'WebVital' | 'Device'
+		category: MetricCategory
 		group: string
 		timestamp: Date
 		tags: { name: string; value: string }[]

@@ -22,7 +22,8 @@ import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { Redirect, useLocation } from 'react-router-dom'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -63,6 +64,11 @@ const NewProjectPage = () => {
 	}, [setLoadingState])
 
 	const { data, loading } = useGetWorkspacesCountQuery()
+
+	const { search } = useLocation()
+	const [{ next }] = useQueryParams({
+		next: StringParam,
+	})
 
 	// User is creating a workspace if workspace is not specified in the URL
 	const isWorkspace = !workspace_id
@@ -109,12 +115,20 @@ const NewProjectPage = () => {
 
 	// When a workspace is created, redirect to the 'create project' page
 	if (isWorkspace && workspaceData?.createWorkspace?.id) {
-		return <Redirect to={`/w/${workspaceData.createWorkspace.id}/new`} />
+		return (
+			<Redirect
+				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
+			/>
+		)
 	}
 
 	// When a project is created, redirect to the 'project setup' page
 	if (projectData?.createProject?.id) {
-		return <Redirect to={`/${projectData.createProject.id}/setup`} />
+		if (!!next) {
+			return <Redirect to={next} />
+		} else {
+			return <Redirect to={`/${projectData.createProject.id}/setup`} />
+		}
 	}
 
 	const pageType = isWorkspace ? 'workspace' : 'project'
@@ -183,7 +197,7 @@ const NewProjectPage = () => {
 							<ButtonLink
 								trackingId={`Enter${pageTypeCaps}`}
 								className={classNames(styles.button)}
-								to="/switch"
+								to={`/switch${search}`}
 								fullWidth
 								type="default"
 							>
@@ -204,7 +218,7 @@ const NewProjectPage = () => {
 								<ButtonLink
 									trackingId={`Enter${pageTypeCaps}`}
 									className={classNames(styles.button)}
-									to={`/w/${workspace_id}/switch`}
+									to={`/w/${workspace_id}/switch${search}`}
 									fullWidth
 									type="default"
 								>
