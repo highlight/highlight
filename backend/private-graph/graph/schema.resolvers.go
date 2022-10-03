@@ -5511,7 +5511,7 @@ func (r *queryResolver) VercelProjects(ctx context.Context, projectID int) ([]*m
 
 	res, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
 	if err != nil {
-		return ret, e.Wrap(err, "error getting linear teams")
+		return ret, e.Wrap(err, "error getting vercel teams")
 	}
 
 	return res, nil
