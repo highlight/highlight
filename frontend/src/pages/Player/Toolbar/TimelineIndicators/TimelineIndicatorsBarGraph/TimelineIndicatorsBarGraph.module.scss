@@ -27,6 +27,7 @@
 	background-color: var(--color-new-purple-100);
 	border-radius: 1px 1px 0 0;
 	height: var(--progress-bar-height);
+	overflow: hidden;
 	position: relative;
 	width: 100%;
 	z-index: 1;

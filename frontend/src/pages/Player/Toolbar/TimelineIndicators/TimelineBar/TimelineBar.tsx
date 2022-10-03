@@ -35,7 +35,7 @@ const TimelineIndicatorsBar = ({
 	viewportRef,
 }: IBar) => {
 	const { setCurrentEvent } = useReplayerContext()
-	const { setShowRightPanel } = usePlayerConfiguration()
+	const { setShowRightPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const data = useMemo(() => {
 		const selectedEventTypes = EventsForTimeline.filter(
 			(eventType) => bucket[eventType] !== undefined,
@@ -132,6 +132,7 @@ const TimelineIndicatorsBar = ({
 							)
 						) {
 							setCurrentEvent(firstId as string)
+							setShowLeftPanel(false)
 							setShowRightPanel(true)
 						}
 					}}

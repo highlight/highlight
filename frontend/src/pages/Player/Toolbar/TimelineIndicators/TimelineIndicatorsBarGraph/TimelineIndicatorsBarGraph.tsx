@@ -37,6 +37,7 @@ interface Props {
 
 const TARGET_BUCKET_COUNT = 40
 const TIMELINE_MARGIN = 32
+const CONTAINER_BORDER_WIDTH = 1
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
@@ -575,6 +576,7 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
+	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressBarContainer}>
@@ -587,17 +589,19 @@ const TimelineIndicatorsBarGraph = ({
 								className={style.progressBar}
 								style={{
 									width: clamp(
-										(time * width) / duration,
+										(time * borderlessWidth) / duration,
 										0,
-										width - 2,
+										borderlessWidth,
 									),
 								}}
 							/>
 						) : null}
 						{inactivityPeriods.map((interval, idx) => {
-							const left = (interval[0] / duration) * width
+							const left =
+								(interval[0] / duration) * borderlessWidth
 							const pWidth =
-								((interval[1] - interval[0]) / duration) * width
+								((interval[1] - interval[0]) / duration) *
+								borderlessWidth
 							return (
 								<div
 									key={idx}
@@ -607,7 +611,7 @@ const TimelineIndicatorsBarGraph = ({
 										width: clamp(
 											pWidth,
 											0,
-											width - left - 2,
+											borderlessWidth - left,
 										),
 									}}
 								/>
@@ -626,14 +630,16 @@ const TimelineIndicatorsBarGraph = ({
 								key={`bucket-mark-${idx}`}
 								className={style.bucketMark}
 								style={{
-									left: (idx / buckets.length) * width,
+									left:
+										(idx / buckets.length) *
+										borderlessWidth,
 									height: `${clamp(totalCount * 8, 0, 100)}%`,
 								}}
 							></span>
 						))
 				) : (
 					<AreaChart
-						width={width}
+						width={borderlessWidth}
 						height={36}
 						data={buckets}
 						margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
