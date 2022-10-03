@@ -1,6 +1,6 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.18
+go 1.19
 
 replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/opensearch-go v1.0.1
 
@@ -39,7 +39,6 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
-	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/mssola/user_agent v0.5.3
 	github.com/openlyinc/pointy v1.1.2
@@ -82,6 +81,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/marconi/go-resthooks v0.0.0-20190225103922-ad217f832acb // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
