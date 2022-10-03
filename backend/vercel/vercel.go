@@ -18,6 +18,7 @@ var (
 	VercelClientId     = os.Getenv("VERCEL_CLIENT_ID")
 	VercelClientSecret = os.Getenv("VERCEL_CLIENT_SECRET")
 	SourcemapEnvKey    = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
+	VercelApiBaseUrl   = "https://api.vercel.com"
 )
 
 type VercelAccessTokenResponse struct {
@@ -38,7 +39,7 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 
 	accessTokenResponse := VercelAccessTokenResponse{}
 
-	req, err := http.NewRequest("POST", "https://api.vercel.com/v2/oauth/access_token", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/v2/oauth/access_token", VercelApiBaseUrl), strings.NewReader(data.Encode()))
 	if err != nil {
 		return accessTokenResponse, errors.Wrap(err, "error creating api request to Vercel")
 	}
@@ -86,7 +87,7 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 		body = fmt.Sprintf("[%s]", body)
 	}
 
-	req, err := http.NewRequest(method, fmt.Sprintf("https://api.vercel.com/v9/projects/%s/env%s%s", projectId, envIdStr, teamIdParam),
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/v9/projects/%s/env%s%s", VercelApiBaseUrl, projectId, envIdStr, teamIdParam),
 		strings.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating api request to Vercel")
@@ -120,7 +121,7 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 		teamIdParam = "?teamId=" + *teamId
 	}
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("https://api.vercel.com/v1/integrations/configuration/%s%s", configId, teamIdParam), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/integrations/configuration/%s%s", VercelApiBaseUrl, configId, teamIdParam), nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating api request to Vercel")
 	}
@@ -159,7 +160,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 			data.Set("until", strconv.Itoa(next))
 		}
 
-		req, err := http.NewRequest("GET", "https://api.vercel.com/v9/projects", strings.NewReader(data.Encode()))
+		req, err := http.NewRequest("GET", fmt.Sprintf("%s/v9/projects", VercelApiBaseUrl), strings.NewReader(data.Encode()))
 		if err != nil {
 			return nil, errors.Wrap(err, "error creating api request to Vercel")
 		}

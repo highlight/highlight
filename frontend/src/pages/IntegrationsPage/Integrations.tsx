@@ -1,3 +1,4 @@
+import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
@@ -86,7 +87,7 @@ export const VERCEL_INTEGRATION: Integration = {
 	description: 'Configuration for your Vercel projects.',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
 	hasSettings: true,
-	modalWidth: 672,
+	modalWidth: VercelSettingsModalWidth,
 }
 
 const INTEGRATIONS: Integration[] = [

@@ -7499,7 +7499,6 @@ type EventChunk {
 	timestamp: Int64!
 }
 
-<<<<<<< HEAD
 input VercelProjectMappingInput {
 	vercel_project_id: String!
 	project_id: ID!
@@ -7508,12 +7507,12 @@ input VercelProjectMappingInput {
 type VercelProjectMapping {
 	vercel_project_id: String!
 	project_id: ID!
-=======
+}
+
 type OAuthClient {
 	id: String!
 	created_at: Timestamp!
 	app_name: String!
->>>>>>> 9ed1ff496961975536c09fa7ca29fb1421e97421
 }
 
 scalar Upload
