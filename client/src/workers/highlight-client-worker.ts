@@ -14,7 +14,6 @@ import {
 	PushPayloadMutationVariables,
 	Sdk,
 } from '../graph/generated/operations'
-import { MetricCategory } from '../../../firstload/src/types/client'
 import { ReplayEventsInput } from '../graph/generated/schemas'
 import { GraphQLClient } from 'graphql-request'
 import { getGraphQLRequestWrapper } from '../utils/graph'
@@ -24,6 +23,7 @@ import {
 	PROPERTY_MAX_LENGTH,
 } from './constants'
 import { Logger } from '../logger'
+import { MetricCategory } from '../types/client'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
