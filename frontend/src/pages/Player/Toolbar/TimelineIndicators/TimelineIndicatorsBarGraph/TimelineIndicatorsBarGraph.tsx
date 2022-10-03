@@ -584,7 +584,7 @@ const TimelineIndicatorsBarGraph = ({
 								className={style.bucketMark}
 								style={{
 									left: (idx / buckets.length) * width,
-									height: `${totalCount * 8}%`,
+									height: `${clamp(totalCount * 8, 0, 100)}%`,
 								}}
 							></span>
 						))
