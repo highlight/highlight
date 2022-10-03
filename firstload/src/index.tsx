@@ -1,6 +1,3 @@
-import { Highlight, HighlightClassOptions } from '../../client/src/index'
-import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
-import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
 import packageJson from '../package.json'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
@@ -10,13 +7,17 @@ import {
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
 import {
+	Highlight,
+	HighlightClassOptions,
+	FirstLoadListeners,
+	getPreviousSessionData,
+	GenerateSecureID,
 	Metadata,
 	HighlightOptions,
 	HighlightPublicInterface,
 	SessionDetails,
-} from './types/types'
+} from '@highlight-run/client'
 import HighlightSegmentMiddleware from './integrations/segment'
-import { GenerateSecureID } from '../../client/src/utils/secure-id'
 import configureElectronHighlight from './environments/electron'
 
 initializeFetchListener()
@@ -358,8 +359,5 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 
-export {
-	HighlightSegmentMiddleware,
-	HighlightOptions,
-	configureElectronHighlight,
-}
+export { HighlightSegmentMiddleware, configureElectronHighlight }
+export type { HighlightOptions }

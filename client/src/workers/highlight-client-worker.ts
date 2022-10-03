@@ -218,6 +218,7 @@ function stringifyProperties(
 				category: m.category,
 				group: m.group,
 				timestamp: m.timestamp.toISOString(),
+				tags: m.tags,
 			})),
 		})
 	}

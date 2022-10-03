@@ -52,6 +52,7 @@ const (
 	AWS_REGION_US_EAST_2            = "us-east-2"
 )
 
+// TODO(et) - replace this with generated SessionAlertType
 var AlertType = struct {
 	ERROR            string
 	NEW_USER         string
@@ -170,6 +171,7 @@ var Models = []interface{}{
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
 	&OAuthClientStore{},
+	&ResthookSubscription{},
 }
 
 func init() {
@@ -185,6 +187,13 @@ func init() {
 
 type Model struct {
 	ID        int        `gorm:"primary_key;type:serial" json:"id" deep:"-"`
+	CreatedAt time.Time  `json:"created_at" deep:"-"`
+	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
+	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
+}
+
+type Int64Model struct {
+	ID        int64      `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
 	CreatedAt time.Time  `json:"created_at" deep:"-"`
 	UpdatedAt time.Time  `json:"updated_at" deep:"-"`
 	DeletedAt *time.Time `json:"deleted_at" deep:"-"`
@@ -315,6 +324,13 @@ type EnhancedUserDetails struct {
 	Email       *string `gorm:"uniqueIndex"`
 	PersonJSON  *string
 	CompanyJSON *string
+}
+
+type ResthookSubscription struct {
+	Model
+	ProjectID int     `json:"project_id"`
+	Event     *string `json:"event"`
+	TargetUrl *string `json:"target_url"`
 }
 
 type RegistrationData struct {
@@ -633,7 +649,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 }
 
 type Field struct {
-	Model
+	Int64Model
 	// 'user_property', 'session_property'.
 	Type string `gorm:"uniqueIndex:idx_fields_type_name_value_project_id"`
 	// 'email', 'identifier', etc.

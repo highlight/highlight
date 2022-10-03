@@ -6,7 +6,7 @@ scalar Int64
 scalar StringArray
 
 type Field {
-	id: ID!
+	id: Int64!
 	name: String!
 	value: String!
 	type: String
@@ -195,6 +195,16 @@ enum AdminRole {
 enum SessionCommentType {
 	Admin
 	FEEDBACK
+}
+
+enum SessionAlertType {
+	ERROR_ALERT
+	NEW_USER_ALERT
+	TRACK_PROPERTIES_ALERT
+	USER_PROPERTIES_ALERT
+	SESSION_FEEDBACK_ALERT
+	RAGE_CLICK_ALERT
+	NEW_SESSION_ALERT
 }
 
 type Project {
@@ -514,6 +524,18 @@ input ErrorSearchParamsInput {
 	event: String
 	type: String
 	query: String
+}
+
+input SessionAlertInput {
+	project_id: ID!
+	name: String!
+	count_threshold: Int!
+	threshold_window: Int!
+	slack_channels: [SanitizedSlackChannelInput!]!
+	emails: [String!]!
+	environments: [String!]!
+	disabled: Boolean!
+	type: SessionAlertType!
 }
 
 type ErrorSearchParams {
@@ -1353,26 +1375,15 @@ type Mutation {
 	): ErrorAlert
 	deleteErrorAlert(project_id: ID!, error_alert_id: ID!): ErrorAlert
 	deleteMetricMonitor(project_id: ID!, metric_monitor_id: ID!): MetricMonitor
-	updateSessionFeedbackAlert(
+	updateSessionAlertIsDisabled(
+		id: ID!
 		project_id: ID!
-		session_feedback_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
+		disabled: Boolean!
 	): SessionAlert
-	createSessionFeedbackAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-	): SessionAlert
+
+	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
+	createSessionAlert(input: SessionAlertInput!): SessionAlert
+
 	updateRageClickAlert(
 		project_id: ID!
 		rage_click_alert_id: ID!

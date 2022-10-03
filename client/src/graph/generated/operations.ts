@@ -59,10 +59,14 @@ export type MetricInput = {
 	group?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
 	session_secure_id: Scalars['String']
+	tags?: InputMaybe<Array<MetricTag>>
 	timestamp: Scalars['Timestamp']
-	type?: InputMaybe<Scalars['Any']>
-	url?: InputMaybe<Scalars['String']>
 	value: Scalars['Float']
+}
+
+export type MetricTag = {
+	name: Scalars['String']
+	value: Scalars['String']
 }
 
 export type Mutation = {

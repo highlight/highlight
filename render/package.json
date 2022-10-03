@@ -1,12 +1,12 @@
 {
 	"name": "render",
+	"private": true,
 	"version": "0.0.0",
 	"scripts": {
-		"lint": "eslint . --ext .ts",
 		"build": "tsc --build ./",
 		"single": "DEV=true ts-node -r tsconfig-paths/register ./src",
 		"dev": "DEV=true nodemon",
-		"publish": "zip -r function.zip dist node_modules && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+		"publish": "zip -r function.zip dist node_modules -x node_modules/puppeteer/.local-chromium/\\* && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"nodemonConfig": {
 		"watch": [
@@ -55,7 +55,7 @@
 	],
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.76.0",
-		"@highlight-run/rrweb": "^1.2.1",
+		"@highlight-run/rrweb": "workspace:*",
 		"@types/aws-lambda": "^8.10.95",
 		"@types/find": "^0.2.1",
 		"@types/fs-extra": "^9.0.13",

@@ -1,0 +1,37 @@
+{
+	"$schema": "https://turborepo.org/schema.json",
+	"baseBranch": "origin/master",
+	"pipeline": {
+		"codegen": {
+			"inputs": ["./**/*.gql"],
+			"outputs": ["src/graph/generated/**"]
+		},
+		"dev": {
+			"dependsOn": ["^prepublish", "^build"],
+			"cache": false
+		},
+		"prepublish": {
+			"dependsOn": ["^prepublish"],
+			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		},
+		"build": {
+			"dependsOn": ["codegen", "^prepublish", "^build"],
+			"outputs": ["build/**", "dist/**"]
+		},
+		"test": {
+			"dependsOn": ["prepublish", "build"],
+			"outputs": [],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"test/**/*.ts",
+				"test/**/*.tsx"
+			]
+		},
+		"sourcemaps": {
+			"dependsOn": ["test"],
+			"env": ["HIGHLIGHT_API_KEY"]
+		}
+	},
+	"globalEnv": ["DOPPLER_TOKEN"]
+}

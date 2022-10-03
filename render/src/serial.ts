@@ -8,7 +8,7 @@ export async function serialRender(
 	chunk?: number,
 ) {
 	console.log(
-		`starting serial render for ${project} ${session} ${ts} ${chunk}`,
+		`starting serial render for ${project} ${session} ${ts} ${chunk || ''}`,
 	)
 	const events = await getEvents(project, session, chunk)
 	return await render(events, 0, 1, undefined, ts)

@@ -9,13 +9,22 @@ import {
 } from '@highlight-run/rrweb/typings/types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
 import {
+	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
-} from '../../firstload/src/types/client'
-import { SamplingStrategy } from '../../firstload/src/types/types'
+} from './types/client'
+import {
+	HighlightOptions,
+	HighlightPublicInterface,
+	Integration,
+	Metadata,
+	SamplingStrategy,
+	SessionDetails,
+} from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
 import ErrorStackParser from 'error-stack-parser'
@@ -58,6 +67,10 @@ import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
+import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from 'types/shared-types'
+import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import { MetricCategory, MetricName } from './constants/metrics'
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
@@ -598,8 +611,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 			if (!this._firstLoadListeners.isListening()) {
 				this._firstLoadListeners.startListening()
-			}
-			if (!this._firstLoadListeners.hasNetworkRecording) {
+			} else if (!this._firstLoadListeners.hasNetworkRecording) {
+				// for firstload versions < 3.0. even if they are listening, add network listeners
 				FirstLoadListeners.setupNetworkListener(
 					this._firstLoadListeners,
 					this.options,
@@ -607,20 +620,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			const { getDeviceDetails } = getPerformanceMethods()
 			if (getDeviceDetails) {
-				this._worker.postMessage({
-					message: {
-						type: MessageType.Metrics,
-						metrics: [
-							{
-								name: 'DeviceMemory',
-								value: getDeviceDetails().deviceMemory,
-								category: 'Device',
-								group: window.location.href,
-								timestamp: new Date(),
-							},
-						],
+				this.recordMetric([
+					{
+						name: MetricName.DeviceMemory,
+						value: getDeviceDetails().deviceMemory,
+						category: MetricCategory.Device,
+						group: window.location.href,
 					},
-				})
+				])
 			}
 
 			if (this.pushPayloadTimerId) {
@@ -665,10 +672,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				if (this.recordStop) {
 					this.listeners.push(this.recordStop)
 				}
-				this.addCustomEvent('Viewport', {
+				const viewport = {
 					height: window.innerHeight,
 					width: window.innerWidth,
-				})
+				}
+				this.addCustomEvent('Viewport', viewport)
+				this.submitViewportMetrics(viewport)
 			}, 1)
 
 			if (document.referrer) {
@@ -757,7 +766,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 			}
 		}
-		this.stopRecording()
+		this.stopRecordingEvents()
 	}
 
 	_setupWindowListeners() {
@@ -812,6 +821,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				ViewportResizeListener((viewport) => {
 					this.addCustomEvent('Viewport', viewport)
+					this.submitViewportMetrics(viewport)
 				}),
 			)
 			this.listeners.push(
@@ -850,20 +860,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.listeners.push(
 				WebVitalsListener((data) => {
 					const { name, value } = data
-					this._worker.postMessage({
-						message: {
-							type: MessageType.Metrics,
-							metrics: [
-								{
-									name,
-									value,
-									timestamp: new Date(),
-									group: window.location.href,
-									category: 'WebVital',
-								},
-							],
+					this.recordMetric([
+						{
+							name,
+							value,
+							group: window.location.href,
+							category: MetricCategory.WebVital,
 						},
-					})
+					])
 				}),
 			)
 
@@ -939,11 +943,65 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 	}
 
+	submitViewportMetrics({
+		height,
+		width,
+	}: {
+		height: number
+		width: number
+	}) {
+		this.recordMetric([
+			{
+				name: MetricName.ViewportHeight,
+				value: height,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ViewportWidth,
+				value: width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+			{
+				name: MetricName.ViewportArea,
+				value: height * width,
+				category: MetricCategory.Device,
+				group: window.location.href,
+			},
+		])
+	}
+
+	recordMetric(
+		metrics: {
+			name: string
+			value: number
+			category: MetricCategory
+			group: string
+		}[],
+	) {
+		this._worker.postMessage({
+			message: {
+				type: MessageType.Metrics,
+				metrics: metrics.map((m) => ({
+					...m,
+					tags: [],
+					timestamp: new Date(),
+				})),
+			},
+		})
+	}
+
 	/**
 	 * Stops Highlight from recording.
 	 * @param manual The end user requested to stop recording.
 	 */
 	stopRecording(manual?: boolean) {
+		this.stopRecordingEvents(manual)
+		this._firstLoadListeners.stopListening()
+	}
+
+	stopRecordingEvents(manual?: boolean) {
 		if (manual) {
 			this.addCustomEvent(
 				'Stop',
@@ -951,7 +1009,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
-		this._firstLoadListeners.stopListening()
 		if (this.recordStop) {
 			this.recordStop()
 			this.recordStop = undefined
@@ -1187,4 +1244,17 @@ declare global {
 		defaultWarn: any
 		defaultDebug: any
 	}
+}
+export { FirstLoadListeners, getPreviousSessionData, GenerateSecureID }
+export type {
+	AmplitudeIntegrationOptions,
+	ConsoleMessage,
+	MixpanelIntegrationOptions,
+	Integration,
+	Metadata,
+	HighlightFetchWindow,
+	HighlightOptions,
+	HighlightPublicInterface,
+	RequestResponsePair,
+	SessionDetails,
 }

@@ -1,0 +1,67 @@
+name: Monorepo
+
+on:
+    push:
+        branches: ['master']
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    build:
+        name: Build Yarn Turborepo
+        timeout-minutes: 15
+        runs-on: ubuntu-latest
+        # configures turborepo Remote Caching
+        env:
+            TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+            TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+        steps:
+            - name: Use HTTPS for checkout
+              run: echo -e '[url "https://github.com/"]\n  insteadOf = "git@github.com:"' >> ~/.gitconfig
+
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  token: ${{ secrets.GH_REPO_TOKEN }}
+                  submodules: true
+
+            # automatically caches dependencies based on yarn.lock
+            - name: Setup Node.js environment
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'yarn'
+
+            - name: Install js dependencies
+              run: yarn
+
+            - name: Check formatting
+              run: yarn format-check
+
+            - name: Build & test
+              run: yarn test:all
+
+            - name: Upload frontend sourcemaps
+              if: github.ref == 'refs/heads/master'
+              run: yarn sourcemaps:frontend
+              env:
+                  HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
+
+            - name: Configure AWS credentials
+              if: github.ref == 'refs/heads/master'
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+
+            - name: Publish npm packages
+              if: github.ref == 'refs/heads/master'
+              uses: changesets/action@v1
+              with:
+                  publish: yarn publish:all
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}

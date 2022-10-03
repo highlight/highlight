@@ -5,11 +5,19 @@ dist
 esm
 out
 build
-
+.next
 
 apollo.config.js
 .yalc
 yalc.lock
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 **/*.pem
 **/*.test
@@ -32,3 +40,7 @@ dump.rdb
 # Cypress artifacts
 cypress/screenshots/
 cypress/videos/
+
+*.tsbuildinfo
+.turbo
+

@@ -16,5 +16,6 @@
 		"typeRoots": ["./node_modules/@types"],
 		"types": ["node"]
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

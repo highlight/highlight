@@ -29,12 +29,13 @@ import { Link, useHistory } from 'react-router-dom'
 
 import styles from './Alerts.module.scss'
 
+// TODO(et) - replace these with the graphql generated SessionAlertType
 export enum ALERT_TYPE {
 	Error,
 	FirstTimeUser,
 	UserProperties,
 	TrackProperties,
-	SessionFeedbackComment,
+	SessionFeedback,
 	NewSession,
 	RageClick,
 	MetricMonitor,
@@ -117,7 +118,7 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 	SESSION_FEEDBACK_ALERT: {
 		name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
 		canControlThreshold: false,
-		type: ALERT_TYPE.SessionFeedbackComment,
+		type: ALERT_TYPE.SessionFeedback,
 		description: (
 			<>
 				Get alerted when a user submits{' '}
