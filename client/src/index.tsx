@@ -13,6 +13,8 @@ import {
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MetricCategory,
+	MetricName,
 	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
@@ -22,6 +24,7 @@ import {
 	HighlightPublicInterface,
 	Integration,
 	Metadata,
+	Metric,
 	SamplingStrategy,
 	SessionDetails,
 } from './types/types'
@@ -70,7 +73,10 @@ import { Logger } from './logger'
 import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
 import { ConsoleMessage } from 'types/shared-types'
 import { RequestResponsePair } from 'listeners/network-listener/utils/models'
-import { MetricCategory, MetricName } from './constants/metrics'
+import {
+	JankListener,
+	JankPayload,
+} from './listeners/jank-listener/jank-listener'
 
 // silence typescript warning in firstload build since firstload imports client code
 // but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
@@ -264,6 +270,10 @@ export class Highlight {
 				`Tab reloaded, continuing previous session: ${this.sessionData.sessionSecureID}`,
 			)
 		} else {
+			// new session. we should clear any session storage data
+			for (const storageKeyName of Object.values(SESSION_STORAGE_KEYS)) {
+				window.sessionStorage.removeItem(storageKeyName)
+			}
 			this.sessionData = {
 				sessionSecureID: this.options.sessionSecureID,
 				projectID: 0,
@@ -886,6 +896,19 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						this.addCustomEvent('Performance', stringify(payload))
 					}, this._recordingStartTime),
 				)
+				this.listeners.push(
+					JankListener((payload: JankPayload) => {
+						this.addCustomEvent('Jank', stringify(payload))
+						this.recordMetric([
+							{
+								name: 'Jank',
+								value: payload.jankAmount,
+								category: MetricCategory.WebVital,
+								group: payload.querySelector,
+							},
+						])
+					}, this._recordingStartTime),
+				)
 			}
 
 			// setup electron main thread window visiblity events listener
@@ -976,8 +999,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		metrics: {
 			name: string
 			value: number
-			category: MetricCategory
-			group: string
+			category?: MetricCategory
+			group?: string
+			tags?: { name: string; value: string }[]
 		}[],
 	) {
 		this._worker.postMessage({
@@ -985,7 +1009,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				type: MessageType.Metrics,
 				metrics: metrics.map((m) => ({
 					...m,
-					tags: [],
+					tags: m.tags || [],
+					group: m.group || window.location.href,
+					category: m.category || MetricCategory.Frontend,
 					timestamp: new Date(),
 				})),
 			},
@@ -1245,13 +1271,19 @@ declare global {
 		defaultDebug: any
 	}
 }
-export { FirstLoadListeners, getPreviousSessionData, GenerateSecureID }
+export {
+	FirstLoadListeners,
+	GenerateSecureID,
+	MetricCategory,
+	getPreviousSessionData,
+}
 export type {
 	AmplitudeIntegrationOptions,
 	ConsoleMessage,
 	MixpanelIntegrationOptions,
 	Integration,
 	Metadata,
+	Metric,
 	HighlightFetchWindow,
 	HighlightOptions,
 	HighlightPublicInterface,

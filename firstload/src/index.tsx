@@ -7,15 +7,17 @@ import {
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
 import {
+	FirstLoadListeners,
+	GenerateSecureID,
 	Highlight,
 	HighlightClassOptions,
-	FirstLoadListeners,
-	getPreviousSessionData,
-	GenerateSecureID,
-	Metadata,
 	HighlightOptions,
 	HighlightPublicInterface,
+	Metadata,
+	Metric,
+	MetricCategory,
 	SessionDetails,
+	getPreviousSessionData,
 } from '@highlight-run/client'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
@@ -295,6 +297,20 @@ export const H: HighlightPublicInterface = {
 
 				window.amplitude.getInstance().identify(amplitudeUserProperties)
 			}
+		}
+	},
+	metrics: (metrics: Metric[]) => {
+		try {
+			H.onHighlightReady(() =>
+				highlight_obj.recordMetric(
+					metrics.map((m) => ({
+						...m,
+						category: MetricCategory.Frontend,
+					})),
+				),
+			)
+		} catch (e) {
+			HighlightWarning('metrics', e)
 		}
 	},
 	getSessionURL: () => {

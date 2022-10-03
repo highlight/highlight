@@ -10,6 +10,7 @@ import { GetBaseURL } from '@util/window'
 import { useCallback } from 'react'
 
 const LINEAR_SCOPES = ['read', 'issues:create', 'comments:create']
+const LINEAR_CLIENT_ID = import.meta.env.LINEAR_CLIENT_ID
 
 export const useLinearIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -78,7 +79,7 @@ export const getLinearOAuthUrl = (projectId: string) => {
 
 	const redirectUri = `${GetBaseURL()}/callback/linear`
 
-	const authUrl = `https://linear.app/oauth/authorize?client_id=f60ff43c7376d0aceaa1e111db39e60d&prompt=consent&response_type=code&scope=${encodeURIComponent(
+	const authUrl = `https://linear.app/oauth/authorize?client_id=${LINEAR_CLIENT_ID}&prompt=consent&response_type=code&scope=${encodeURIComponent(
 		LINEAR_SCOPES.join(','),
 	)}&state=${btoa(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
 		redirectUri,

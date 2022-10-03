@@ -27,6 +27,7 @@ import {
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	findLatestUrl,
+	getAllJankEvents,
 	getAllPerformanceEvents,
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
@@ -40,7 +41,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
-import { HighlightEvent, HighlightPerformancePayload } from '../HighlightEvent'
+import {
+	HighlightEvent,
+	HighlightJankPayload,
+	HighlightPerformancePayload,
+} from '../HighlightEvent'
 import {
 	ParsedHighlightEvent,
 	ParsedSessionInterval,
@@ -93,6 +98,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const [performancePayloads, setPerformancePayloads] = useState<
 		Array<HighlightPerformancePayload>
+	>([])
+	const [jankPayloads, setJankPayloads] = useState<
+		Array<HighlightJankPayload>
 	>([])
 	const [sessionComments, setSessionComments] = useState<SessionComment[]>([])
 	const [eventsForTimelineIndicator, setEventsForTimelineIndicator] =
@@ -658,6 +666,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			setCurrentUrl(onlyUrlEvents[0].data.payload)
 		}
 		setPerformancePayloads(getAllPerformanceEvents(newEvents))
+		setJankPayloads(getAllJankEvents(newEvents))
 		setReplayer(r)
 		if (isLiveMode) {
 			r.startLive(newEvents[0].timestamp)
@@ -1245,6 +1254,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		rageClicks,
 		events,
 		performancePayloads,
+		jankPayloads,
 		play: playHandler,
 		pause,
 		errors,
