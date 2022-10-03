@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { datadogLogs } from '@datadog/browser-logs'
+import { datadogRum } from '@datadog/browser-rum'
 import {
 	OnSessionPayloadAppendedDocument,
 	useGetEventChunksQuery,
@@ -951,11 +952,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
 			let lastUpdate = window.performance?.now()
 			const frameAction = () => {
+				const name = `player/update/duration-ms`
 				const now = window.performance?.now()
+				const dur = now - lastUpdate
+				lastUpdate = now
 				window.H.metrics([
 					{
-						name: `player/update/duration-ms`,
-						value: now - lastUpdate,
+						name,
+						value: dur,
 						tags: [
 							{ name: 'state', value: state.toString() },
 							{
@@ -965,7 +969,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						],
 					},
 				])
-				lastUpdate = now
+				datadogRum.addTiming(name, dur)
 				if (replayer) {
 					// The player may start later than the session if earlier events are unloaded
 					const timeOffset =
