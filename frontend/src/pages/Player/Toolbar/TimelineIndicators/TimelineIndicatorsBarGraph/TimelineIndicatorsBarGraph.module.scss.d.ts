@@ -7,7 +7,6 @@ export const liveShimmer: string
 export const progressBar: string
 export const progressBarContainer: string
 export const progressMonitor: string
-export const section: string
 export const separator: string
 export const timeAxis: string
 export const timelineContainer: string

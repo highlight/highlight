@@ -142,7 +142,7 @@ const TimelineIndicatorsBarGraph = ({
 	)
 
 	const canvasWidth = viewportWidth * camera.zoom
-	const minBucketWidth = (16 / canvasWidth) * 100 // 16px in the zoomed view
+	const minBucketWidth = (5 / canvasWidth) * 100 // 5px in the zoomed view
 	const bucketPercentWidth = Math.max(
 		(100 * bucketTimestep) / duration,
 		minBucketWidth,
@@ -621,7 +621,7 @@ const TimelineIndicatorsBarGraph = ({
 							type="monotone"
 							stroke="transparent"
 							dataKey="totalCount"
-							fill="var(--color-n-200)"
+							fill="var(--color-neutral-200)"
 						></Area>
 					</AreaChart>
 				)}

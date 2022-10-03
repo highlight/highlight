@@ -9,7 +9,7 @@
 }
 
 .timeIndicatorHair {
-	border-left: 2px var(--color-n-900) solid;
+	border-left: 2px var(--color-neutral-900) solid;
 	cursor: ew-resize;
 	height: 76px;
 	position: absolute;
@@ -17,7 +17,7 @@
 }
 
 .timeIndicatorTop {
-	background-color: var(--color-n-900);
+	background-color: var(--color-neutral-900);
 	border: 1px solid var(--color-white);
 	border-radius: 1px 1px 12px 12px;
 	cursor: grab;
@@ -29,9 +29,9 @@
 }
 
 .timeIndicatorText {
-	background-color: var(--color-n-800);
+	background-color: var(--color-neutral-800);
 	border-radius: 10px;
-	color: var(--color-n-200);
+	color: var(--color-neutral-200);
 	font-family: var(--header-font-family);
 	font-size: 12px;
 	font-weight: 400;

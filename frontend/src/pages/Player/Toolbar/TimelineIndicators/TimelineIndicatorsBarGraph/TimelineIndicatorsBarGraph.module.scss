@@ -5,7 +5,7 @@
 .timelineIndicatorsContainer {
 	align-items: center;
 	background-color: var(--color-primary-background);
-	border: 1px solid var(--color-n-100);
+	border: 1px solid var(--color-neutral-100);
 	border-bottom: 0;
 	border-radius: 2px 2px 8px 8px;
 	display: flex;
@@ -14,8 +14,8 @@
 }
 
 .progressMonitor {
-	border-bottom: 1px var(--color-n-100) solid;
-	border-top: 1px var(--color-n-100) solid;
+	border-bottom: 1px var(--color-neutral-100) solid;
+	border-top: 1px var(--color-neutral-100) solid;
 	height: 38px;
 	overflow: hidden;
 	position: relative;
@@ -24,7 +24,7 @@
 }
 
 .progressBarContainer {
-	background-color: var(--color-purple-200);
+	background-color: var(--color-new-purple-100);
 	border-radius: 1px 1px 0 0;
 	height: var(--progress-bar-height);
 	position: relative;
@@ -33,7 +33,7 @@
 }
 
 .progressBar {
-	background-color: var(--color-purple);
+	background-color: var(--color-new-purple-500);
 	height: var(--progress-bar-height);
 	left: 0;
 	position: absolute;
@@ -67,13 +67,6 @@
 	position: absolute;
 	top: 0;
 	z-index: 2;
-}
-
-.section {
-	box-sizing: border-box;
-	padding: 1em;
-	padding-top: 0;
-	width: 100%;
 }
 
 .timelineContainer {
@@ -116,18 +109,18 @@
 }
 
 .separator {
-	border-bottom: 1px var(--color-n-100) solid;
+	border-bottom: 1px var(--color-neutral-100) solid;
 }
 
 .bucketMark {
-	border-left: 1px var(--color-n-200) solid;
+	border-left: 1px var(--color-neutral-200) solid;
 	bottom: 0;
 	position: absolute;
 }
 
 .timeTickMark {
 	bottom: 10px;
-	color: var(--color-n-300);
+	color: var(--color-neutral-300);
 	font-family: var(--header-font-family);
 	font-size: 10px;
 	letter-spacing: -0.1em;
@@ -138,7 +131,7 @@
 }
 
 .timeTick {
-	border-left: 1px solid var(--color-n-200);
+	border-left: 1px solid var(--color-neutral-200);
 	bottom: 0;
 	position: absolute;
 }
