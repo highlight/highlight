@@ -23,6 +23,7 @@ import {
 	PROPERTY_MAX_LENGTH,
 } from './constants'
 import { Logger } from '../logger'
+import { MetricCategory } from '../types/client'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
@@ -98,6 +99,15 @@ function stringifyProperties(
 	let debug: boolean = false
 	let recordingStartTime: number = 0
 	let logger = new Logger(false, '[worker]')
+	const metricsPayload: {
+		name: string
+		value: number
+		session_secure_id: string
+		category: MetricCategory
+		group: string
+		timestamp: string
+		tags: { name: string; value: string }[]
+	}[] = []
 
 	const shouldSendRequest = (): boolean => {
 		return (
@@ -144,12 +154,25 @@ function stringifyProperties(
 			payload.highlight_logs = highlightLogs
 		}
 
-		const eventsSize = await graphqlSDK
+		const eventsSize = graphqlSDK
 			.PushPayload(payload)
 			.then((res) => res.pushPayload ?? 0)
 
+		if (metricsPayload.length) {
+			const metrics = graphqlSDK.pushMetrics({
+				metrics: metricsPayload,
+			})
+			// clear batched payload before yielding for network request
+			metricsPayload.splice(0)
+			await metrics
+		}
+
 		worker.postMessage({
-			response: { type: MessageType.AsyncEvents, id, eventsSize },
+			response: {
+				type: MessageType.AsyncEvents,
+				id,
+				eventsSize: await eventsSize,
+			},
 		})
 	}
 
@@ -210,8 +233,8 @@ function stringifyProperties(
 	}
 
 	const processMetricsMessage = async (msg: MetricsMessage) => {
-		await graphqlSDK.pushMetrics({
-			metrics: msg.metrics.map((m) => ({
+		metricsPayload.push(
+			...msg.metrics.map((m) => ({
 				name: m.name,
 				value: m.value,
 				session_secure_id: sessionSecureID,
@@ -220,7 +243,7 @@ function stringifyProperties(
 				timestamp: m.timestamp.toISOString(),
 				tags: m.tags,
 			})),
-		})
+		)
 	}
 
 	const processFeedbackMessage = async (msg: FeedbackMessage) => {

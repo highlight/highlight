@@ -13,6 +13,8 @@ import {
 	ConsoleMethods,
 	DebugOptions,
 	FeedbackWidgetOptions,
+	MetricCategory,
+	MetricName,
 	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
@@ -22,6 +24,7 @@ import {
 	HighlightPublicInterface,
 	Integration,
 	Metadata,
+	Metric,
 	SamplingStrategy,
 	SessionDetails,
 } from './types/types'
@@ -70,7 +73,6 @@ import { Logger } from './logger'
 import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
 import { ConsoleMessage } from 'types/shared-types'
 import { RequestResponsePair } from 'listeners/network-listener/utils/models'
-import { MetricCategory, MetricName } from './constants/metrics'
 import {
 	JankListener,
 	JankPayload,
@@ -997,8 +999,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		metrics: {
 			name: string
 			value: number
-			category: MetricCategory
-			group: string
+			category?: MetricCategory
+			group?: string
+			tags?: { name: string; value: string }[]
 		}[],
 	) {
 		this._worker.postMessage({
@@ -1006,7 +1009,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				type: MessageType.Metrics,
 				metrics: metrics.map((m) => ({
 					...m,
-					tags: [],
+					tags: m.tags || [],
+					group: m.group || window.location.href,
+					category: m.category || MetricCategory.Frontend,
 					timestamp: new Date(),
 				})),
 			},
@@ -1266,13 +1271,19 @@ declare global {
 		defaultDebug: any
 	}
 }
-export { FirstLoadListeners, getPreviousSessionData, GenerateSecureID }
+export {
+	FirstLoadListeners,
+	GenerateSecureID,
+	MetricCategory,
+	getPreviousSessionData,
+}
 export type {
 	AmplitudeIntegrationOptions,
 	ConsoleMessage,
 	MixpanelIntegrationOptions,
 	Integration,
 	Metadata,
+	Metric,
 	HighlightFetchWindow,
 	HighlightOptions,
 	HighlightPublicInterface,
