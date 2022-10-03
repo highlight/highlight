@@ -419,6 +419,28 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type VercelEnv struct {
+	ID              string `json:"id"`
+	Key             string `json:"key"`
+	ConfigurationID string `json:"configurationId"`
+}
+
+type VercelProject struct {
+	ID   string       `json:"id"`
+	Name string       `json:"name"`
+	Env  []*VercelEnv `json:"env"`
+}
+
+type VercelProjectMapping struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
+}
+
+type VercelProjectMappingInput struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
+}
+
 type DashboardChartType string
 
 const (
@@ -512,6 +534,7 @@ const (
 	IntegrationTypeLinear IntegrationType = "Linear"
 	IntegrationTypeZapier IntegrationType = "Zapier"
 	IntegrationTypeFront  IntegrationType = "Front"
+	IntegrationTypeVercel IntegrationType = "Vercel"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -519,11 +542,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
 	IntegrationTypeFront,
+	IntegrationTypeVercel,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel:
 		return true
 	}
 	return false

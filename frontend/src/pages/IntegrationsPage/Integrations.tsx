@@ -1,8 +1,10 @@
+import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import LinearIntegrationConfig from '@pages/IntegrationsPage/components/LinearIntegration/LinearIntegrationConfig'
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
+import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
 import React from 'react'
 
@@ -13,12 +15,14 @@ export interface Integration {
 	configurationPath: string
 	description: string
 	defaultEnable?: boolean
-	icon: string
+	icon?: string
 	onlyShowForHighlightAdmin?: boolean
 	/**
 	 * The page to configure the integration. This can be rendered in a modal or on a different page.
 	 */
 	configurationPage: (opts: IntegrationConfigProps) => React.ReactNode
+	hasSettings: boolean
+	modalWidth?: number
 }
 
 export const SLACK_INTEGRATION: Integration = {
@@ -29,6 +33,7 @@ export const SLACK_INTEGRATION: Integration = {
 		'Bring your Highlight comments and alerts to slack as messages.',
 	icon: '/images/integrations/slack.jpg',
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const LINEAR_INTEGRATION: Integration = {
@@ -38,6 +43,7 @@ export const LINEAR_INTEGRATION: Integration = {
 	description: 'Bring your Highlight comments to Linear as issues.',
 	icon: '/images/integrations/linear.png',
 	configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -48,6 +54,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 	description: 'Use Highlight alerts to trigger a Zap.',
 	icon: '/images/integrations/zapier.png',
 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const CLEARBIT_INTEGRATION: Integration = {
@@ -58,6 +65,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	description: 'Collect enhanced user analytics.',
 	icon: '/images/integrations/clearbit.svg',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
+	hasSettings: false,
 }
 
 export const FRONT_INTEGRATION: Integration = {
@@ -68,6 +76,18 @@ export const FRONT_INTEGRATION: Integration = {
 	description: 'Enhance your customer interaction experience.',
 	icon: '/images/integrations/front.png',
 	configurationPage: (opts) => <FrontIntegrationConfig {...opts} />,
+	hasSettings: false,
+}
+
+export const VERCEL_INTEGRATION: Integration = {
+	key: 'vercel',
+	name: 'Vercel',
+	configurationPath: 'vercel',
+	onlyShowForHighlightAdmin: true,
+	description: 'Configuration for your Vercel projects.',
+	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
+	hasSettings: true,
+	modalWidth: VercelSettingsModalWidth,
 }
 
 const INTEGRATIONS: Integration[] = [
@@ -76,6 +96,7 @@ const INTEGRATIONS: Integration[] = [
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
 	FRONT_INTEGRATION,
+	VERCEL_INTEGRATION,
 ]
 
 export default INTEGRATIONS

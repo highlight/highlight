@@ -54,7 +54,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				<Route path="/:project_id/setup">
 					<SetupRouter integrated={integrated} />
 				</Route>
-				<Route path="/:project_id/integrations">
+				<Route path="/:project_id/integrations/:integration_type?">
 					<IntegrationsPage />
 				</Route>
 				<Route path="/:project_id/buttons">

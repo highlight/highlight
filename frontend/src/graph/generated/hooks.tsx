@@ -4613,6 +4613,60 @@ export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutation,
 	Types.DeleteSessionsMutationVariables
 >
+export const UpdateVercelSettingsDocument = gql`
+	mutation UpdateVercelSettings(
+		$project_id: ID!
+		$project_mappings: [VercelProjectMappingInput!]!
+	) {
+		updateVercelProjectMappings(
+			project_id: $project_id
+			project_mappings: $project_mappings
+		)
+	}
+`
+export type UpdateVercelSettingsMutationFn = Apollo.MutationFunction<
+	Types.UpdateVercelSettingsMutation,
+	Types.UpdateVercelSettingsMutationVariables
+>
+
+/**
+ * __useUpdateVercelSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateVercelSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateVercelSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateVercelSettingsMutation, { data, loading, error }] = useUpdateVercelSettingsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      project_mappings: // value for 'project_mappings'
+ *   },
+ * });
+ */
+export function useUpdateVercelSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateVercelSettingsMutation,
+		Types.UpdateVercelSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateVercelSettingsMutation,
+		Types.UpdateVercelSettingsMutationVariables
+	>(UpdateVercelSettingsDocument, baseOptions)
+}
+export type UpdateVercelSettingsMutationHookResult = ReturnType<
+	typeof useUpdateVercelSettingsMutation
+>
+export type UpdateVercelSettingsMutationResult =
+	Apollo.MutationResult<Types.UpdateVercelSettingsMutation>
+export type UpdateVercelSettingsMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateVercelSettingsMutation,
+	Types.UpdateVercelSettingsMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -9838,6 +9892,71 @@ export type GetWorkspaceIsIntegratedWithFrontLazyQueryHookResult = ReturnType<
 export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithFrontQuery,
 	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
+>
+export const GetWorkspaceIsIntegratedWithVercelDocument = gql`
+	query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
+		is_integrated_with_vercel: is_integrated_with(
+			integration_type: Vercel
+			project_id: $project_id
+		)
+		vercel_projects(project_id: $project_id) {
+			id
+			name
+		}
+		vercel_project_mappings(project_id: $project_id) {
+			vercel_project_id
+			project_id
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithVercelQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithVercelQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithVercelQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithVercelQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithVercelQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithVercelLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithVercelQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithVercelQuery,
+	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
 >
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {

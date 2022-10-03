@@ -1329,6 +1329,21 @@ query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
 	)
 }
 
+query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
+	is_integrated_with_vercel: is_integrated_with(
+		integration_type: Vercel
+		project_id: $project_id
+	)
+	vercel_projects(project_id: $project_id) {
+		id
+		name
+	}
+	vercel_project_mappings(project_id: $project_id) {
+		vercel_project_id
+		project_id
+	}
+}
+
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 	generate_zapier_access_token(project_id: $project_id)
 }

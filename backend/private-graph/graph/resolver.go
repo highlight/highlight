@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -1606,6 +1607,19 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 	return r.saveFrontOAuth(project, oauth)
 }
 
+func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string) error {
+	res, err := vercel.GetAccessToken(code)
+	if err != nil {
+		return e.Wrap(err, "error getting Vercel oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Select("vercel_access_token", "vercel_team_id").Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+		return e.Wrap(err, "error updating Vercel access token in workspace")
+	}
+
+	return nil
+}
+
 func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
 	exp := time.Unix(oauth.ExpiresAt, 0)
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
@@ -1708,6 +1722,43 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+	if workspace.VercelAccessToken == nil {
+		return e.New("workspace does not have a Vercel access token")
+	}
+
+	projects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return err
+	}
+
+	configIdsToRemove := map[string]struct{}{}
+	for _, p := range projects {
+		for _, e := range p.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				if e.ConfigurationID == "" {
+					continue
+				}
+				configIdsToRemove[e.ConfigurationID] = struct{}{}
+			}
+		}
+	}
+
+	for c := range configIdsToRemove {
+		if err := vercel.RemoveConfiguration(c, *workspace.VercelAccessToken, workspace.VercelTeamID); err != nil {
+			return err
+		}
+	}
+
+	if err := r.DB.Where(workspace).
+		Select("vercel_access_token", "vercel_team_id").
+		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing Vercel access token and team id")
 	}
 
 	return nil
