@@ -26,7 +26,7 @@ DROP_ERROR_GROUP_KEYS = {'metadata_log', 'resolved'}
 DROP_ERROR_OBJECT_KEYS = {'line_no', 'column_no', 'error_type'}
 DROP_TIMELINE_INDICATORS_KEYS = {'id'}
 SESSIONS_FULL_FILE = 'session-contents'
-BATCH_INSERT_SIZE = 512
+BATCH_INSERT_SIZE = 128
 
 
 def format_sql_value(value: any) -> str:
@@ -38,6 +38,8 @@ def format_sql_value(value: any) -> str:
         return str(value)
     if isinstance(value, dict) or isinstance(value, list):
         return f"'{json.dumps(value)}'"
+    if isinstance(value, str):
+        value = value.replace("'", "''")
     return f"'{value}'"
 
 
