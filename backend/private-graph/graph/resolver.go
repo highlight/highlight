@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/oauth"
-
 	"gorm.io/gorm/clause"
 
 	"golang.org/x/text/cases"
