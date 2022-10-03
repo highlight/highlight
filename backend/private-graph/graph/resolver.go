@@ -2649,13 +2649,13 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
-	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	}
-	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ms")
+	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
-	}
-	if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("b")
 	}
 	return
