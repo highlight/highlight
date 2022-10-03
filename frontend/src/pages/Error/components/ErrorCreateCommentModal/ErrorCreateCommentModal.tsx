@@ -2,6 +2,7 @@ import { GetErrorGroupQuery } from '@graph/operations'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { useParams } from '@util/react-router/useParams'
+import { GetBaseURL } from '@util/window'
 import React from 'react'
 
 export enum CreateModalType {
@@ -30,9 +31,7 @@ export const ErrorCreateCommentModal = ({
 	const { width, height } = useWindowSize()
 
 	const currentUrl = `${
-		window.location.port !== ''
-			? 'https://app.highlight.run'
-			: window.location.origin
+		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
 
 	return (

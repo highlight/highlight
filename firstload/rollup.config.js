@@ -1,11 +1,9 @@
 // rollup.config.js
 
-import dev from 'rollup-plugin-dev'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import typescript from '@rollup/plugin-typescript'
 import { terser } from 'rollup-plugin-terser'
 import esbuild from 'rollup-plugin-esbuild'
 import webWorkerLoader from 'rollup-plugin-web-worker-loader'
@@ -21,12 +19,6 @@ const input = {
 	index: './src/index.tsx',
 	electron: './src/environments/electron.ts',
 }
-const output = {
-	file: pkg.main,
-	format: 'umd',
-	name: 'highlightLib',
-	sourcemap: sourceMap,
-}
 const basePlugins = [
 	consts({
 		publicGraphURI: process.env.PUBLIC_GRAPH_URI,
@@ -36,7 +28,6 @@ const basePlugins = [
 		targetPlatform: 'browser',
 		inline: true,
 	}),
-	typescript(),
 	json(),
 	replace({
 		preventAssignment: true,
@@ -54,22 +45,27 @@ const rollupBuilds = []
 
 if (development) {
 	rollupBuilds.push({
-		input: './src/index.tsx',
-		output,
-		plugins: [
-			...basePlugins,
-			filesize(),
-			dev({
-				host: 'localhost',
-				port: 9000,
-			}),
-		],
+		input: {
+			indexESM: input.index,
+			electronESM: input.electron,
+		},
+		output: {
+			dir: './dist',
+			format: 'esm',
+			sourcemap: true,
+		},
+		plugins: [...basePlugins, filesize()],
 	})
 } else {
 	for (const x of [
 		{
 			input: input.index,
-			output,
+			output: {
+				file: pkg.main,
+				format: 'umd',
+				name: 'highlightLib',
+				sourcemap: sourceMap,
+			},
 		},
 		{
 			input: {
@@ -97,7 +93,9 @@ if (development) {
 	]) {
 		rollupBuilds.push({
 			input: x.input,
-			output: x.output,
+			output: {
+				...x.output,
+			},
 			treeshake: 'smallest',
 			plugins: [
 				...basePlugins,

@@ -242,6 +242,16 @@ export enum SessionCommentType {
 	Feedback = 'FEEDBACK',
 }
 
+export enum SessionAlertType {
+	ErrorAlert = 'ERROR_ALERT',
+	NewUserAlert = 'NEW_USER_ALERT',
+	TrackPropertiesAlert = 'TRACK_PROPERTIES_ALERT',
+	UserPropertiesAlert = 'USER_PROPERTIES_ALERT',
+	SessionFeedbackAlert = 'SESSION_FEEDBACK_ALERT',
+	RageClickAlert = 'RAGE_CLICK_ALERT',
+	NewSessionAlert = 'NEW_SESSION_ALERT',
+}
+
 export type Project = {
 	__typename?: 'Project'
 	id: Scalars['ID']
@@ -578,6 +588,18 @@ export type ErrorSearchParamsInput = {
 	event?: Maybe<Scalars['String']>
 	type?: Maybe<Scalars['String']>
 	query?: Maybe<Scalars['String']>
+}
+
+export type SessionAlertInput = {
+	project_id: Scalars['ID']
+	name: Scalars['String']
+	count_threshold: Scalars['Int']
+	threshold_window: Scalars['Int']
+	slack_channels: Array<SanitizedSlackChannelInput>
+	emails: Array<Scalars['String']>
+	environments: Array<Scalars['String']>
+	disabled: Scalars['Boolean']
+	type: SessionAlertType
 }
 
 export type ErrorSearchParams = {
@@ -1619,8 +1641,9 @@ export type Mutation = {
 	updateErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
-	updateSessionFeedbackAlert?: Maybe<SessionAlert>
-	createSessionFeedbackAlert?: Maybe<SessionAlert>
+	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
+	updateSessionAlert?: Maybe<SessionAlert>
+	createSessionAlert?: Maybe<SessionAlert>
 	updateRageClickAlert?: Maybe<SessionAlert>
 	updateNewUserAlert?: Maybe<SessionAlert>
 	createNewUserAlert?: Maybe<SessionAlert>
@@ -1981,26 +2004,19 @@ export type MutationDeleteMetricMonitorArgs = {
 	metric_monitor_id: Scalars['ID']
 }
 
-export type MutationUpdateSessionFeedbackAlertArgs = {
+export type MutationUpdateSessionAlertIsDisabledArgs = {
+	id: Scalars['ID']
 	project_id: Scalars['ID']
-	session_feedback_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
+	disabled: Scalars['Boolean']
 }
 
-export type MutationCreateSessionFeedbackAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	threshold_window: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
+export type MutationUpdateSessionAlertArgs = {
+	id: Scalars['ID']
+	input: SessionAlertInput
+}
+
+export type MutationCreateSessionAlertArgs = {
+	input: SessionAlertInput
 }
 
 export type MutationUpdateRageClickAlertArgs = {

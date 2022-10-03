@@ -36,6 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/sessionalerts"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -2357,128 +2358,82 @@ func (r *mutationResolver) DeleteMetricMonitor(ctx context.Context, projectID in
 	return metricMonitor, nil
 }
 
-// UpdateSessionFeedbackAlert is the resolver for the updateSessionFeedbackAlert field.
-func (r *mutationResolver) UpdateSessionFeedbackAlert(ctx context.Context, projectID int, sessionFeedbackAlertID int, name *string, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, disabled *bool) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+// UpdateSessionAlertIsDisabled is the resolver for the updateSessionAlertIsDisabled field.
+func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.SessionAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	var projectAlert *model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionFeedbackAlertID}}).Find(&projectAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session feedback alert")
+	sessionAlert := &model.SessionAlert{
+		Alert: model.Alert{
+			Disabled: &disabled,
+		},
 	}
 
-	if slackChannels != nil {
-		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-		// For each of the new Slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-		for _, ch := range slackChannels {
-			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-		}
-
-		channelsBytes, err := json.Marshal(sanitizedChannels)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing channels")
-		}
-		channelsString := string(channelsBytes)
-		projectAlert.ChannelsToNotify = &channelsString
-	}
-
-	if environments != nil {
-		envBytes, err := json.Marshal(environments)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing environments")
-		}
-		envString := string(envBytes)
-		projectAlert.ExcludedEnvironments = &envString
-	}
-
-	if emails != nil {
-		emailsString, err := r.MarshalAlertEmails(emails)
-		if err != nil {
-			return nil, err
-		}
-		projectAlert.EmailsToNotify = emailsString
-	}
-
-	if countThreshold != nil {
-		projectAlert.CountThreshold = *countThreshold
-	}
-	if thresholdWindow != nil {
-		projectAlert.ThresholdWindow = thresholdWindow
-	}
-	if name != nil {
-		projectAlert.Name = name
-	}
-
-	projectAlert.LastAdminToEditID = admin.ID
-
-	if disabled != nil {
-		projectAlert.Disabled = disabled
-	}
 	if err := r.DB.Model(&model.SessionAlert{
 		Model: model.Model{
-			ID: sessionFeedbackAlertID,
+			ID: id,
 		},
-	}).Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
+	}).Where("project_id = ?", projectID).Updates(sessionAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for new session alert")
 	}
 
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionFeedbackAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
-	}
-	return projectAlert, nil
+	return sessionAlert, err
 }
 
-// CreateSessionFeedbackAlert is the resolver for the createSessionFeedbackAlert field.
-func (r *mutationResolver) CreateSessionFeedbackAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+// UpdateSessionAlert is the resolver for the updateSessionAlert field.
+func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	envString, err := r.MarshalEnvironments(environments)
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+
 	if err != nil {
-		return nil, err
+		return nil, e.Wrap(err, "failed to build session feedback alert")
 	}
 
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	newAlert := &model.SessionAlert{
-		Alert: model.Alert{
-			ProjectID:            projectID,
-			OrganizationID:       projectID,
-			ExcludedEnvironments: envString,
-			CountThreshold:       countThreshold,
-			ThresholdWindow:      &thresholdWindow,
-			Type:                 &model.AlertType.SESSION_FEEDBACK,
-			ChannelsToNotify:     channelsString,
-			EmailsToNotify:       emailsString,
-			Name:                 &name,
-			LastAdminToEditID:    admin.ID,
+	if err := r.DB.Model(&model.SessionAlert{
+		Model: model.Model{
+			ID: id,
 		},
+	}).Where("project_id = ?", input.ProjectID).Updates(sessionAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating session alert")
 	}
 
-	if err := r.DB.Create(newAlert).Error; err != nil {
+	if err := sessionAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &id, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+		log.Error(err)
+	}
+	return sessionAlert, nil
+}
+
+// CreateSessionAlert is the resolver for the createSessionAlert field.
+func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, input.ProjectID)
+	admin, _ := r.getCurrentAdmin(ctx)
+	workspace, _ := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+
+	if err != nil {
+		return nil, e.Wrap(err, "failed to build session feedback alert")
+	}
+
+	if err := r.DB.Create(sessionAlert).Error; err != nil {
 		return nil, e.Wrap(err, "error creating a new session feedback alert")
 	}
-	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
+	if err := sessionAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
 		log.Error(err)
 	}
 
-	return newAlert, nil
+	return sessionAlert, nil
 }
 
 // UpdateRageClickAlert is the resolver for the updateRageClickAlert field.
@@ -6171,6 +6126,8 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		if len(results) < 1 {
 			return nil, nil
 		}
+
+		HistogramPercentileOffset := 0.1
 		// offset min and max to include min and max values and pad the distribution a bit
 		if params.MinValue == nil {
 			f := results[0].Value.(float64) * (1 - HistogramPercentileOffset)

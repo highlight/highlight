@@ -22,68 +22,74 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
+export const uploadSourcemaps = async ({ apiKey, appVersion, path }) => {
+  if (!apiKey || apiKey === "") {
+    if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
+      apiKey = process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY;
+    } else {
+      throw new Error("api key cannot be empty");
+    }
+  }
+
+  const variables = {
+    api_key: apiKey,
+  };
+
+  const res = await fetch("https://pri.highlight.run", {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+      ApiKey: apiKey,
+    },
+    body: JSON.stringify({
+      query: VERIFY_API_KEY_QUERY,
+      variables: variables,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+
+  if (
+    !res ||
+    !res.data ||
+    !res.data.api_key_to_org_id ||
+    res.data.api_key_to_org_id === "0"
+  ) {
+    throw new Error("invalid api key");
+  }
+
+  let organizationId = res.data.api_key_to_org_id;
+
+  console.info(`Starting to upload source maps from ${path}`);
+
+  const fileList = await getAllSourceMapFiles([path]);
+
+  if (fileList.length === 0) {
+    console.error(
+      `Error: No source maps found in ${path}, is this the correct path?`
+    );
+    console.info("Failed to upload source maps. Please see reason above.");
+    return;
+  }
+
+  await Promise.all(
+    fileList.map(({ path, name }) =>
+      uploadFile(organizationId, appVersion, path, name)
+    )
+  );
+};
+
 yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
     () => {},
-    async ({ apiKey, appVersion, path }) => {
-      if (!apiKey || apiKey === "") {
-        throw new Error("api key cannot be empty");
-      }
-
-      const variables = {
-        api_key: apiKey,
-      };
-
-      const res = await fetch("https://pri.highlight.run", {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-          ApiKey: apiKey,
-        },
-        body: JSON.stringify({
-          query: VERIFY_API_KEY_QUERY,
-          variables: variables,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          return data;
-        })
-        .catch((e) => {
-          console.log(e);
-        });
-
-      if (
-        !res ||
-        !res.data ||
-        !res.data.api_key_to_org_id ||
-        res.data.api_key_to_org_id === "0"
-      ) {
-        throw new Error("invalid api key");
-      }
-
-      let organizationId = res.data.api_key_to_org_id;
-
-      console.info(`Starting to upload source maps from ${path}`);
-
-      const fileList = await getAllSourceMapFiles([path]);
-
-      if (fileList.length === 0) {
-        console.error(
-          `Error: No source maps found in ${path}, is this the correct path?`
-        );
-        console.info("Failed to upload source maps. Please see reason above.");
-        return;
-      }
-
-      await Promise.all(
-        fileList.map(({ path, name }) =>
-          uploadFile(organizationId, appVersion, path, name)
-        )
-      );
-    }
+    uploadSourcemaps
   )
   .option("apiKey", {
     alias: "k",

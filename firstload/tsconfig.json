@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
-		"target": "es5",
+		"typeRoots": ["../node_modules"],
+		"types": ["@highlight-run/client", "@types/chrome", "@types/node"],
+		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"skipLibCheck": true,
 		"esModuleInterop": true,
@@ -14,7 +16,11 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"jsx": "react",
-		"downlevelIteration": true
+		"downlevelIteration": true,
+		"composite": true
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["src/**/*.test.tsx"],
+	"files": ["package.json"],
+	"references": [{ "path": "../client" }]
 }

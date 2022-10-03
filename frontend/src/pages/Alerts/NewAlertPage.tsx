@@ -188,7 +188,7 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					ExcludedEnvironments: [],
 					CountThreshold: 1,
 					ThresholdWindow: 30,
-					Type: ALERT_TYPE.SessionFeedbackComment,
+					Type: ALERT_TYPE.SessionFeedback,
 				},
 				configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
 			}

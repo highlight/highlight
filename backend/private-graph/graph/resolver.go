@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/oauth"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/oauth"
 
 	"gorm.io/gorm/clause"
 
@@ -1971,7 +1972,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI"))}}
 
 	requestBytes, err := json.Marshal(req)
 	if err != nil {

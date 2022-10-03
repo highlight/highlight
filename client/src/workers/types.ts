@@ -1,8 +1,5 @@
 import { eventWithTime } from '@highlight-run/rrweb/typings/types'
-import {
-	ConsoleMessage,
-	ErrorMessage,
-} from '../../../frontend/src/util/shared-types'
+import { ConsoleMessage, ErrorMessage } from '../types/shared-types'
 
 export type Source = 'segment' | undefined
 
