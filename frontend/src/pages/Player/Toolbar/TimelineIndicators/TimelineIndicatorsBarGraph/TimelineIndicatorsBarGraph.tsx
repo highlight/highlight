@@ -57,6 +57,7 @@ const TimelineIndicatorsBarGraph = ({
 		errors: sessionErrors,
 		replayer,
 		sessionIntervals,
+		isLiveMode,
 	} = useReplayerContext()
 
 	const events = useMemo(() => {
@@ -549,29 +550,39 @@ const TimelineIndicatorsBarGraph = ({
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressBarContainer}>
-				{time > 0 ? (
-					<div
-						className={style.progressBar}
-						style={{
-							width: (time * width) / duration,
-						}}
-					/>
-				) : null}
-				{inactivityPeriods.map((interval, idx) => {
-					const left = (interval[0] / duration) * width
-					const pWidth =
-						((interval[1] - interval[0]) / duration) * width
-					return (
-						<div
-							key={idx}
-							className={style.inactivityPeriod}
-							style={{
-								left,
-								width: clamp(pWidth, 0, width - left - 2),
-							}}
-						/>
-					)
-				})}
+				{isLiveMode ? (
+					<div className={style.liveProgressBar} />
+				) : (
+					<>
+						{time > 0 ? (
+							<div
+								className={style.progressBar}
+								style={{
+									width: (time * width) / duration,
+								}}
+							/>
+						) : null}
+						{inactivityPeriods.map((interval, idx) => {
+							const left = (interval[0] / duration) * width
+							const pWidth =
+								((interval[1] - interval[0]) / duration) * width
+							return (
+								<div
+									key={idx}
+									className={style.inactivityPeriod}
+									style={{
+										left,
+										width: clamp(
+											pWidth,
+											0,
+											width - left - 2,
+										),
+									}}
+								/>
+							)
+						})}
+					</>
+				)}
 			</div>
 			<div className={style.progressMonitor}>
 				{bucketPercentWidth < 0.5 ? (

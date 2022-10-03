@@ -40,6 +40,26 @@
 	z-index: 3;
 }
 
+.liveProgressBar {
+	animation-duration: 2s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: infinite;
+	animation-name: liveShimmer;
+	animation-timing-function: linear;
+	background: linear-gradient(
+		to right,
+		var(--color-red-300) 8%,
+		var(--color-red) 38%,
+		var(--color-red-300) 68%
+	);
+	background-size: 800px 5px;
+	display: flex;
+	height: var(--progress-bar-height);
+	position: absolute;
+	transition: all 0.2s ease-in-out;
+	width: 100%;
+}
+
 .inactivityPeriod {
 	background-color: var(--color-white);
 	height: var(--progress-bar-height);

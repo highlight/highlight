@@ -445,7 +445,6 @@ const Slider = ({ width }: SliderProps) => {
 	const sliderWrapperRef = useRef<HTMLButtonElement>(null)
 	const wrapperWidth =
 		sliderWrapperRef.current?.getBoundingClientRect().width ?? 1
-	const [lastCanvasPreview, setLastCanvasPreview] = useState(0)
 	const wrapperLeft =
 		sliderWrapperRef.current?.getBoundingClientRect().left ?? 0
 	const [sliderClientX, setSliderClientX] = useState<number>(-1)
