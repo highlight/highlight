@@ -3,17 +3,17 @@
 	bottom: 0;
 	display: flex;
 	flex-direction: column;
-	height: calc(100% + 24px);
+	height: calc(100% + 36px);
 	position: absolute;
 	z-index: 2;
 }
 
 .timeIndicatorHair {
 	border-left: 2px var(--color-n-900) solid;
-	bottom: 0;
 	cursor: ew-resize;
 	height: 76px;
 	position: absolute;
+	top: 62px;
 }
 
 .timeIndicatorTop {

@@ -558,7 +558,11 @@ const TimelineIndicatorsBarGraph = ({
 							<div
 								className={style.progressBar}
 								style={{
-									width: (time * width) / duration,
+									width: clamp(
+										(time * width) / duration,
+										0,
+										width - 2,
+									),
 								}}
 							/>
 						) : null}
@@ -631,10 +635,12 @@ const TimelineIndicatorsBarGraph = ({
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>
 				<TimeIndicator
-					left={
+					left={clamp(
 						(time * viewportWidth * camera.zoom) / duration +
-						TIMELINE_MARGIN
-					}
+							TIMELINE_MARGIN,
+						TIMELINE_MARGIN,
+						TIMELINE_MARGIN + viewportWidth * camera.zoom,
+					)}
 					topRef={timeIndicatorTopRef}
 					hairRef={timeIndicatorHairRef}
 					text={formatTimeOnTop(time)}
