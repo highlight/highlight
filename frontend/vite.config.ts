@@ -26,6 +26,8 @@ const ENVVAR_ALLOWLIST = [
 
 	'LINEAR_CLIENT_ID',
 	'SLACK_CLIENT_ID',
+	'DD_CLIENT_TOKEN',
+	'DD_RUM_APPLICATION_ID',
 ]
 
 // In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
