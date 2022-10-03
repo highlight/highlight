@@ -2,6 +2,7 @@ import { customEvent } from '@highlight-run/rrweb/typings/types'
 
 import {
 	HighlightEvent,
+	HighlightJankPayload,
 	HighlightPerformancePayload,
 } from '../../HighlightEvent'
 
@@ -136,4 +137,20 @@ export const getAllPerformanceEvents = (
 	return performanceEvents.map((event) =>
 		JSON.parse((event.data as any).payload),
 	)
+}
+
+export const getAllJankEvents = (
+	events: HighlightEvent[],
+): HighlightJankPayload[] => {
+	return events
+		.filter((event) => {
+			if (event.type !== 5) {
+				return false
+			}
+			return event.data.tag === 'Jank'
+		})
+		.map(
+			(event) =>
+				JSON.parse((event.data as any).payload) as HighlightJankPayload,
+		)
 }

@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/oauth"
-
 	"gorm.io/gorm/clause"
 
 	"golang.org/x/text/cases"
@@ -26,6 +24,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
+	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/leonelquinteros/hubspot"
@@ -1924,7 +1923,7 @@ func (r *Resolver) CreateLinearAttachment(accessToken string, issueID string, ti
 		Variables GraphQLVars `json:"variables"`
 	}
 
-	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: "https://app.highlight.run/logo_with_gradient_bg.png"}}
+	req := GraphQLReq{Query: requestQuery, Variables: GraphQLVars{IssueID: issueID, Title: title, Subtitle: subtitle, Url: url, IconUrl: fmt.Sprintf("%s/logo_with_gradient_bg.png", os.Getenv("FRONTEND_URI"))}}
 
 	requestBytes, err := json.Marshal(req)
 	if err != nil {
@@ -2650,7 +2649,7 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
-	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true}[strings.ToLower(metricName)] {
+	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ms")
 	}
 	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {

@@ -16,6 +16,7 @@
 	left: 62px;
 	position: absolute;
 	top: var(--size-xxSmall);
+	z-index: 999;
 
 	p {
 		border-radius: var(--size-xxSmall);

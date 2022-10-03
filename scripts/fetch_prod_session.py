@@ -24,7 +24,9 @@ Prerequisites:
 DROP_SESSION_KEYS = {'user_id', 'details', 'status'}
 DROP_ERROR_GROUP_KEYS = {'metadata_log', 'resolved'}
 DROP_ERROR_OBJECT_KEYS = {'line_no', 'column_no', 'error_type'}
+DROP_TIMELINE_INDICATORS_KEYS = {'id'}
 SESSIONS_FULL_FILE = 'session-contents'
+BATCH_INSERT_SIZE = 128
 
 
 def format_sql_value(value: any) -> str:
@@ -36,6 +38,8 @@ def format_sql_value(value: any) -> str:
         return str(value)
     if isinstance(value, dict) or isinstance(value, list):
         return f"'{json.dumps(value)}'"
+    if isinstance(value, str):
+        value = value.replace("'", "''")
     return f"'{value}'"
 
 
@@ -46,8 +50,12 @@ def process(bucket, secure_id, copy_errors=False, store=False):
     sourcemaps_bucket = s3.Bucket(sourcemaps_bucket_name)
 
     # Get session from prod
+    print(f'Fetching session {secure_id} from prod DB...')
     session = run_sql(f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'", prod=True)[0]
-    print(f'Copying session {session["id"]} to your local DB...')
+    intervals = run_sql(f"SELECT * FROM session_intervals WHERE session_secure_id = '{secure_id}'", prod=True)
+    indicators = run_sql(f"SELECT * FROM timeline_indicator_events WHERE session_secure_id = '{secure_id}'", prod=True)
+    session_id = session['id']
+    chunks = run_sql(f"SELECT * FROM event_chunks WHERE session_id = {session_id}", prod=True)
 
     # Prepare values for insert into dev DB
     new_session = session.copy()
@@ -56,7 +64,31 @@ def process(bucket, secure_id, copy_errors=False, store=False):
     values = ", ".join(format_sql_value(new_session[k]) for k in new_session if k not in DROP_SESSION_KEYS)
 
     # Insert into dev DB
-    run_sql(f'INSERT INTO public.sessions ({keys}) VALUES ({values}) ON CONFLICT DO NOTHING', insert=True)
+    print(f'Copying session {session["id"]} to your local DB...')
+    run_sql(f'INSERT INTO sessions ({keys}) '
+            f'VALUES ({values}) '
+            f'ON CONFLICT DO NOTHING', insert=True)
+    print(f'Copying {len(intervals)} session_intervals...')
+    for interval in intervals:
+        run_sql(f'INSERT INTO session_intervals ({", ".join(interval)}) '
+                f'VALUES ({", ".join(map(format_sql_value, interval.values()))}) '
+                f'ON CONFLICT DO NOTHING', insert=True)
+    print(f'Copying {len(indicators)} timeline_indicator_events...')
+    ti_keys = ", ".join(k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS)
+    for start in range(0, len(indicators), BATCH_INSERT_SIZE):
+        batch = indicators[start: start + BATCH_INSERT_SIZE]
+        print(f'Bulk copying {len(batch)} timeline_indicator_events...')
+        indicators_bulk = ', '.join(map(lambda x: f'({", ".join(format_sql_value(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})', batch))
+        run_sql(f'INSERT INTO timeline_indicator_events ({ti_keys}) '
+                f'VALUES {indicators_bulk} '
+                f'ON CONFLICT DO NOTHING', insert=True)
+    inserted_session = run_sql(f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'")[0]
+    print(f'Copying {len(chunks)} event_chunks...')
+    for chunk in chunks:
+        chunk['session_id'] = inserted_session['id']
+        run_sql(f'INSERT INTO event_chunks ({", ".join(chunk)}) '
+                f'VALUES ({", ".join(map(format_sql_value, chunk.values()))}) '
+                f'ON CONFLICT DO NOTHING', insert=True)
 
     print("Copying session files from prod S3 to dev/1...")
     prefix = f'{session["project_id"]}/{session["id"]}'
