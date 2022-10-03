@@ -17,6 +17,7 @@ import {
 } from '@pages/IntegrationsPage/Integrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
+import { GetBaseURL } from '@util/window'
 import { Form, message } from 'antd'
 import { H } from 'highlight.run'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -89,9 +90,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation()
 
 	const currentUrl = `${
-		window.location.port !== ''
-			? 'https://app.highlight.run'
-			: window.location.origin
+		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
 
 	useEffect(() => {
