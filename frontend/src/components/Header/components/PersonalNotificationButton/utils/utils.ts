@@ -13,6 +13,8 @@ import {
 	useRemoveIntegrationFromProjectMutation,
 } from '../../../../../graph/generated/hooks'
 
+const SLACK_CLIENT_ID = import.meta.env.SLACK_CLIENT_ID
+
 export interface UseSlackBotProps {
 	type: 'Organization' | 'Personal'
 }
@@ -149,7 +151,7 @@ export const getSlackUrl = (
 		type === 'Personal' ? PersonalSlackScopes : OrganizationSlackScopes
 	const redirectUri = `${GetBaseURL()}/callback/slack`
 
-	const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=${encodeURIComponent(
+	const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${encodeURIComponent(
 		slackScopes,
 	)}&state=${btoa(JSON.stringify(state))}&redirect_uri=${encodeURIComponent(
 		redirectUri,
