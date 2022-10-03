@@ -16,13 +16,13 @@ type Props = {
 
 interface PerformanceData {
 	timestamp: number
-	fps: number
 	jank: {
 		amount?: number
 		selector?: string
 		newLocation?: string
 	}
-	memoryUsagePercent: number
+	fps?: number
+	memoryUsagePercent?: number
 }
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
@@ -31,25 +31,33 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
 		(payload) => {
-			const jank = jankPayloads.find(
-				(j) =>
-					j.relativeTimestamp >= payload.relativeTimestamp &&
-					j.relativeTimestamp <=
-						payload.relativeTimestamp + j.jankAmount,
-			)
 			return {
 				timestamp: payload.relativeTimestamp * 1000,
 				fps: payload.fps,
-				jank: {
-					amount: jank?.jankAmount,
-					selector: jank?.querySelector,
-					newLocation: jank?.newLocation,
-				},
+				jank: {},
 				memoryUsagePercent:
 					payload.usedJSHeapSize / payload.jsHeapSizeLimit,
 			}
 		},
 	)
+	performanceData.push(
+		...jankPayloads.map((j) => {
+			const perf = performanceData.find(
+				(p) => p.timestamp >= j.relativeTimestamp * 1000,
+			)
+			return {
+				timestamp: j.relativeTimestamp * 1000,
+				jank: {
+					amount: j.jankAmount,
+					selector: j.querySelector,
+					newLocation: j.newLocation,
+				},
+				fps: perf?.fps,
+				memoryUsagePercent: perf?.memoryUsagePercent,
+			}
+		}),
+	)
+	performanceData.sort((a, b) => a.timestamp - b.timestamp)
 
 	const isLoading = events.length === 0 && performancePayloads.length === 0
 	const hasNoPerformancePayloads =
@@ -78,6 +86,8 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						yAxisLabel: 'Frames per Second',
 						tooltipIcon: <SvgTimerIcon />,
 						chartLabel: 'Frames Per Second',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Web/Performance/Animation_performance_and_frame_rate',
 					},
 					{
 						key: 'memoryUsagePercent' as keyof PerformanceData,
@@ -88,19 +98,23 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						yAxisLabel: 'Memory Used',
 						tooltipIcon: <SvgCarDashboardIcon />,
 						chartLabel: 'Device Memory',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory',
 					},
 					{
 						key: 'jank' as keyof PerformanceData,
 						yAxisTickFormatter: (tickItem: number | string) =>
 							typeof tickItem === 'number'
-								? `${tickItem.toFixed(1)} ms`
+								? `${tickItem.toFixed(0)} ms`
 								: `${tickItem}`,
-						strokeColor: 'var(--color-red-700)',
-						fillColor: 'var(--color-red-400)',
+						strokeColor: 'var(--color-purple-700)',
+						fillColor: 'var(--color-purple-400)',
 						yAxisLabel: 'ms',
 						noTooltipLabel: true,
 						tooltipIcon: <SvgActivityIcon />,
 						chartLabel: 'Jank',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
 					},
 				].map(
 					({
@@ -112,6 +126,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						noTooltipLabel,
 						tooltipIcon,
 						chartLabel,
+						helpLink,
 					}) => {
 						const timestamps = performanceData.map(
 							(d) => d.timestamp,
@@ -181,6 +196,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 								noTooltipLabel={noTooltipLabel || false}
 								tooltipIcon={tooltipIcon}
 								chartLabel={chartLabel}
+								helpLink={helpLink}
 							/>
 						)
 					},

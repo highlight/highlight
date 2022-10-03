@@ -1,4 +1,5 @@
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
+import SvgInformationIcon from '@icons/InformationIcon'
 import React from 'react'
 import {
 	Area,
@@ -31,6 +32,7 @@ interface Props {
 	noTooltipLabel?: boolean
 	tooltipIcon?: React.ReactNode
 	chartLabel?: string
+	helpLink?: string
 	/** This is used to align multiple charts. */
 	syncId?: string
 }
@@ -50,6 +52,7 @@ const StackedAreaChart = ({
 	noTooltipLabel,
 	tooltipIcon,
 	chartLabel,
+	helpLink,
 	syncId,
 }: Props) => {
 	return (
@@ -65,6 +68,13 @@ const StackedAreaChart = ({
 						}}
 					>
 						{chartLabel}
+						{helpLink && (
+							<SvgInformationIcon
+								onClick={() => {
+									window.open(helpLink, '_blank')
+								}}
+							/>
+						)}
 					</p>
 				</div>
 			)}
