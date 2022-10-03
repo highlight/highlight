@@ -1,6 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { datadogLogs } from '@datadog/browser-logs'
-import { datadogRum } from '@datadog/browser-rum'
 import {
 	OnSessionPayloadAppendedDocument,
 	useGetEventChunksQuery,
@@ -33,7 +32,7 @@ import {
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
-import { timedCall } from '@util/perf/instrument'
+import { timedCall, timedCallback } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMap from '@util/useMap'
@@ -950,50 +949,34 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
 		if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
-			let lastUpdate = window.performance?.now()
-			const frameAction = () => {
-				const name = `player/update/duration-ms`
-				const now = window.performance?.now()
-				const dur = now - lastUpdate
-				lastUpdate = now
-				window.H.metrics([
-					{
-						name,
-						value: dur,
-						tags: [
-							{ name: 'state', value: state.toString() },
-							{
-								name: 'live',
-								value: isLiveMode ? 'true' : 'false',
-							},
-						],
-					},
-				])
-				datadogRum.addTiming(name, dur)
-				if (replayer) {
-					// The player may start later than the session if earlier events are unloaded
-					const timeOffset =
-						replayer.getMetaData().startTime -
-						sessionMetadata.startTime
+			const frameAction = timedCallback<FrameRequestCallback>(
+				`player/update`,
+				() => {
+					if (replayer) {
+						// The player may start later than the session if earlier events are unloaded
+						const timeOffset =
+							replayer.getMetaData().startTime -
+							sessionMetadata.startTime
 
-					setTime(replayer.getCurrentTime() + timeOffset)
+						setTime(replayer.getCurrentTime() + timeOffset)
 
-					if (
-						replayer.getCurrentTime() + timeOffset >=
-						sessionMetadata.totalTime
-					) {
-						setState(
-							isLiveMode
-								? ReplayerState.Paused // Waiting for more data
-								: ReplayerState.SessionEnded,
-						)
+						if (
+							replayer.getCurrentTime() + timeOffset >=
+							sessionMetadata.totalTime
+						) {
+							setState(
+								isLiveMode
+									? ReplayerState.Paused // Waiting for more data
+									: ReplayerState.SessionEnded,
+							)
+						}
+						// Compute the string rather than number here, so that dependencies don't
+						// have to re-render on every tick
+						updateLastActiveString(Date.now() - LIVE_MODE_DELAY)
 					}
-					// Compute the string rather than number here, so that dependencies don't
-					// have to re-render on every tick
-					updateLastActiveString(Date.now() - LIVE_MODE_DELAY)
-				}
-				setTimerId(requestAnimationFrame(frameAction))
-			}
+					setTimerId(requestAnimationFrame(frameAction))
+				},
+			)
 
 			setTimerId(requestAnimationFrame(frameAction))
 		}
