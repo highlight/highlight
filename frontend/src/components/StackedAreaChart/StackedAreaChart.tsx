@@ -1,4 +1,5 @@
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
+import SvgInformationIcon from '@icons/InformationIcon'
 import React from 'react'
 import {
 	Area,
@@ -28,8 +29,10 @@ interface Props {
 		stroke?: string
 	}
 	yAxisLabel: string
+	noTooltipLabel?: boolean
 	tooltipIcon?: React.ReactNode
 	chartLabel?: string
+	helpLink?: string
 	/** This is used to align multiple charts. */
 	syncId?: string
 }
@@ -46,8 +49,10 @@ const StackedAreaChart = ({
 	onClickHandler,
 	referenceLineProps,
 	yAxisLabel,
+	noTooltipLabel,
 	tooltipIcon,
 	chartLabel,
+	helpLink,
 	syncId,
 }: Props) => {
 	return (
@@ -63,6 +68,13 @@ const StackedAreaChart = ({
 						}}
 					>
 						{chartLabel}
+						{helpLink && (
+							<SvgInformationIcon
+								onClick={() => {
+									window.open(helpLink, '_blank')
+								}}
+							/>
+						)}
 					</p>
 				</div>
 			)}
@@ -111,13 +123,13 @@ const StackedAreaChart = ({
 											}
 										>
 											{payload.map((entry: any) => {
+												if (!entry.value) return null
 												return (
 													<p key={entry.dataKey}>
 														{tooltipIcon &&
 															tooltipIcon}
 														<span>
-															{entry.value &&
-															yAxisTickFormatter
+															{yAxisTickFormatter
 																? yAxisTickFormatter(
 																		entry.value,
 																		0,
@@ -125,13 +137,15 @@ const StackedAreaChart = ({
 																: entry.value.toFixed(
 																		2,
 																  )}{' '}
-															<span
-																className={
-																	styles.label
-																}
-															>
-																{yAxisLabel}
-															</span>
+															{!noTooltipLabel && (
+																<span
+																	className={
+																		styles.label
+																	}
+																>
+																	{yAxisLabel}
+																</span>
+															)}
 														</span>
 													</p>
 												)

@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import StackedAreaChart from '@components/StackedAreaChart/StackedAreaChart'
+import SvgActivityIcon from '@icons/ActivityIcon'
 import SvgCarDashboardIcon from '@icons/CarDashboardIcon'
 import SvgTimerIcon from '@icons/TimerIcon'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -13,17 +14,50 @@ type Props = {
 	startTime: number
 }
 
-const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-	const { performancePayloads, pause, events, session } = useReplayerContext()
+interface PerformanceData {
+	timestamp: number
+	jank: {
+		amount?: number
+		selector?: string
+		newLocation?: string
+	}
+	fps?: number
+	memoryUsagePercent?: number
+}
 
-	const graphData = performancePayloads.map((payload) => {
-		return {
-			timestamp: payload.relativeTimestamp * 1000,
-			fps: payload.fps,
-			memoryUsagePercent:
-				payload.usedJSHeapSize / payload.jsHeapSizeLimit,
-		}
-	})
+const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
+	const { performancePayloads, jankPayloads, pause, events, session } =
+		useReplayerContext()
+
+	const performanceData: PerformanceData[] = performancePayloads.map(
+		(payload) => {
+			return {
+				timestamp: payload.relativeTimestamp * 1000,
+				fps: payload.fps,
+				jank: {},
+				memoryUsagePercent:
+					payload.usedJSHeapSize / payload.jsHeapSizeLimit,
+			}
+		},
+	)
+	performanceData.push(
+		...jankPayloads.map((j) => {
+			const perf = performanceData.find(
+				(p) => p.timestamp >= j.relativeTimestamp * 1000,
+			)
+			return {
+				timestamp: j.relativeTimestamp * 1000,
+				jank: {
+					amount: j.jankAmount,
+					selector: j.querySelector,
+					newLocation: j.newLocation,
+				},
+				fps: perf?.fps,
+				memoryUsagePercent: perf?.memoryUsagePercent,
+			}
+		}),
+	)
+	performanceData.sort((a, b) => a.timestamp - b.timestamp)
 
 	const isLoading = events.length === 0 && performancePayloads.length === 0
 	const hasNoPerformancePayloads =
@@ -46,15 +80,17 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 			{!isLoading &&
 				[
 					{
-						key: 'fps',
+						key: 'fps' as keyof PerformanceData,
 						strokeColor: 'var(--color-green-700)',
 						fillColor: 'var(--color-green-400)',
 						yAxisLabel: 'Frames per Second',
 						tooltipIcon: <SvgTimerIcon />,
 						chartLabel: 'Frames Per Second',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Web/Performance/Animation_performance_and_frame_rate',
 					},
 					{
-						key: 'memoryUsagePercent',
+						key: 'memoryUsagePercent' as keyof PerformanceData,
 						strokeColor: 'var(--color-blue-700)',
 						fillColor: 'var(--color-blue-400)',
 						yAxisTickFormatter: (tickItem: number) =>
@@ -62,6 +98,23 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						yAxisLabel: 'Memory Used',
 						tooltipIcon: <SvgCarDashboardIcon />,
 						chartLabel: 'Device Memory',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory',
+					},
+					{
+						key: 'jank' as keyof PerformanceData,
+						yAxisTickFormatter: (tickItem: number | string) =>
+							typeof tickItem === 'number'
+								? `${tickItem.toFixed(0)} ms`
+								: `${tickItem}`,
+						strokeColor: 'var(--color-purple-700)',
+						fillColor: 'var(--color-purple-400)',
+						yAxisLabel: 'ms',
+						noTooltipLabel: true,
+						tooltipIcon: <SvgActivityIcon />,
+						chartLabel: 'Jank',
+						helpLink:
+							'https://developer.mozilla.org/en-US/docs/Glossary/Jank',
 					},
 				].map(
 					({
@@ -70,21 +123,37 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						fillColor,
 						yAxisTickFormatter,
 						yAxisLabel,
+						noTooltipLabel,
 						tooltipIcon,
 						chartLabel,
+						helpLink,
 					}) => {
-						const timestamps = graphData.map((d) => d.timestamp)
+						const timestamps = performanceData.map(
+							(d) => d.timestamp,
+						)
 						const closestTimestamp = findClosestTimestamp(
 							timestamps,
 							currentTime - startTime,
 						)
-						const data = graphData.map((d) => ({
+						const data = performanceData.map((d) => ({
 							timestamp: d.timestamp,
-							// @ts-expect-error
-							[key]: d[key],
+							...(key === 'jank'
+								? {
+										jank: d.jank.amount,
+										selector: d.jank.selector,
+										...(d.jank.newLocation
+											? {
+													locationChanged:
+														d.jank.newLocation,
+											  }
+											: {}),
+								  }
+								: { [key]: d[key] }),
 						}))
 
-						const hasData = data.some((data) => !isNaN(data[key]))
+						const hasData = data.some(
+							(data: any) => !isNaN(data[key]),
+						)
 						if (data.length === 0 || !hasData) {
 							return (
 								<div className={styles.noDataContainer}>
@@ -102,8 +171,8 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 								key={key}
 								data={data}
 								xAxisKey="timestamp"
-								showXAxis={key !== 'fps'}
-								heightPercent="50%"
+								showXAxis={key === 'jank'}
+								heightPercent="30%"
 								fillColor={fillColor}
 								strokeColor={strokeColor}
 								xAxisTickFormatter={(tickItem) => {
@@ -124,8 +193,10 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 									x: closestTimestamp,
 								}}
 								yAxisLabel={yAxisLabel}
+								noTooltipLabel={noTooltipLabel || false}
 								tooltipIcon={tooltipIcon}
 								chartLabel={chartLabel}
+								helpLink={helpLink}
 							/>
 						)
 					},
