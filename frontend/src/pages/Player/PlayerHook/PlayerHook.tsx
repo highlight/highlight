@@ -32,6 +32,7 @@ import {
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
+import { timedCall } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMap from '@util/useMap'
@@ -948,7 +949,23 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
 		if ((state === ReplayerState.Playing || isLiveMode) && !timerId) {
+			let lastUpdate = window.performance?.now()
 			const frameAction = () => {
+				const now = window.performance?.now()
+				window.H.metrics([
+					{
+						name: `player/update/duration-ms`,
+						value: now - lastUpdate,
+						tags: [
+							{ name: 'state', value: state.toString() },
+							{
+								name: 'live',
+								value: isLiveMode ? 'true' : 'false',
+							},
+						],
+					},
+				])
+				lastUpdate = now
 				if (replayer) {
 					// The player may start later than the session if earlier events are unloaded
 					const timeOffset =
@@ -1030,59 +1047,61 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const play = useCallback(
 		(newTime: number) => {
-			if (isLiveMode) {
-				// Return if no events
-				if (events.length === 0) {
+			timedCall('player/play', () => {
+				if (isLiveMode) {
+					// Return if no events
+					if (events.length === 0) {
+						return
+					}
+
+					const desiredTime =
+						Date.now() - LIVE_MODE_DELAY - events[0].timestamp
+					// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+					// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+					// the last UI the user idled in is displayed.
+					if (
+						desiredTime - newTime > 5000 ||
+						state != ReplayerState.Playing
+					) {
+						newTime = Math.min(desiredTime, sessionEndTime - 1)
+					} else {
+						return
+					}
+				}
+				// Don't play the session if the player is already at the end of the session.
+				if (newTime >= sessionEndTime) {
 					return
 				}
+				setState(ReplayerState.Playing)
+				setTime(newTime)
 
-				const desiredTime =
-					Date.now() - LIVE_MODE_DELAY - events[0].timestamp
-				// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
-				// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
-				// the last UI the user idled in is displayed.
-				if (
-					desiredTime - newTime > 5000 ||
-					state != ReplayerState.Playing
-				) {
-					newTime = Math.min(desiredTime, sessionEndTime - 1)
+				const newTs = (newTime ?? 0) + (sessionMetadata.startTime ?? 0)
+				const newTimeWithOffset =
+					replayer === undefined || newTime === undefined
+						? undefined
+						: newTime -
+						  replayer.getMetaData().startTime +
+						  sessionMetadata.startTime
+
+				const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
+					setIsLoadingEvents(false)
+					if (replayer?.iframe.contentWindow !== null) {
+						replayer?.play(newTimeWithOffset)
+					}
+				})
+				if (needsLoad) {
+					setIsLoadingEvents(true)
+					replayer?.pause()
 				} else {
-					return
-				}
-			}
-			// Don't play the session if the player is already at the end of the session.
-			if (newTime >= sessionEndTime) {
-				return
-			}
-			setState(ReplayerState.Playing)
-			setTime(newTime)
-
-			const newTs = (newTime ?? 0) + (sessionMetadata.startTime ?? 0)
-			const newTimeWithOffset =
-				replayer === undefined || newTime === undefined
-					? undefined
-					: newTime -
-					  replayer.getMetaData().startTime +
-					  sessionMetadata.startTime
-
-			const needsLoad = ensureChunksLoaded(newTs, undefined, () => {
-				setIsLoadingEvents(false)
-				if (replayer?.iframe.contentWindow !== null) {
 					replayer?.play(newTimeWithOffset)
 				}
-			})
-			if (needsLoad) {
-				setIsLoadingEvents(true)
-				replayer?.pause()
-			} else {
-				replayer?.play(newTimeWithOffset)
-			}
 
-			// Log how long it took to move to the new time.
-			const timelineChangeTime = timerEnd('timelineChangeTime')
-			datadogLogs.logger.info('Timeline Change Time', {
-				duration: timelineChangeTime,
-				sessionId: session?.secure_id,
+				// Log how long it took to move to the new time.
+				const timelineChangeTime = timerEnd('timelineChangeTime')
+				datadogLogs.logger.info('Timeline Change Time', {
+					duration: timelineChangeTime,
+					sessionId: session?.secure_id,
+				})
 			})
 		},
 		[
