@@ -142,7 +142,7 @@ const TimelineIndicatorsBarGraph = ({
 	)
 
 	const canvasWidth = viewportWidth * camera.zoom
-	const minBucketWidth = (5 / canvasWidth) * 100 // 5px in the zoomed view
+	const minBucketWidth = (10 / canvasWidth) * 100 // 10px in the zoomed view
 	const bucketPercentWidth = Math.max(
 		(100 * bucketTimestep) / duration,
 		minBucketWidth,
@@ -178,6 +178,38 @@ const TimelineIndicatorsBarGraph = ({
 			return
 		}
 
+		const zoom = (clientX: number, dz: number) => {
+			const pointerX = clientX + document.documentElement.scrollLeft
+			const { offsetLeft, scrollLeft } = viewportDiv
+
+			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
+
+			const minZoom = 1
+			// show 10s at max for long sessions
+			const maxZoom = Math.max(duration / 10_000, 2)
+
+			setCamera((camera) => {
+				const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
+				const pointA =
+					scrollLeft +
+					clamp(
+						pointerX - offsetLeft - TIMELINE_MARGIN,
+						0,
+						viewportWidth,
+					)
+
+				const pointB = (pointA * zoom) / camera.zoom
+				const delta = pointB - pointA
+				const x = clamp(
+					camera.x + delta,
+					0,
+					viewportWidth * zoom - viewportWidth,
+				)
+
+				return { x, zoom }
+			})
+		}
+
 		const onWheel = (event: WheelEvent) => {
 			event.preventDefault()
 			event.stopPropagation()
@@ -189,38 +221,10 @@ const TimelineIndicatorsBarGraph = ({
 			setIsRefreshingDOM(true)
 
 			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
-			const { offsetWidth, offsetLeft, scrollLeft } = viewportDiv
-			const viewportWidth = offsetWidth - 2 * TIMELINE_MARGIN
-			const pointerX = clientX + document.documentElement.scrollLeft
+
 			if (ctrlKey || metaKey) {
-				setCamera((camera) => {
-					const dz = deltaY / ZOOM_SCALING_FACTOR
-
-					const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
-
-					const minZoom = 1
-
-					// show 10s at max for long sessions
-					const maxZoom = Math.max(duration / 10_000, 2)
-					const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
-
-					const pointer = clamp(
-						pointerX - offsetLeft - TIMELINE_MARGIN,
-						0,
-						viewportWidth,
-					)
-
-					const pointA = scrollLeft + pointer
-					const pointB = (pointA * zoom) / camera.zoom
-					const delta = pointB - pointA
-					const x = clamp(
-						camera.x + delta,
-						0,
-						viewportWidth * zoom - viewportWidth,
-					)
-
-					return { x, zoom }
-				})
+				const dz = deltaY / ZOOM_SCALING_FACTOR
+				zoom(clientX, dz)
 			} else {
 				setCamera(({ zoom, x }) => {
 					x = clamp(
@@ -234,13 +238,30 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		}
 
+		const onDoubleclick = (event: MouseEvent) => {
+			event.preventDefault()
+			event.stopPropagation()
+
+			if (isRefreshingDOM) {
+				return
+			}
+
+			setIsRefreshingDOM(true)
+			const { clientX } = event
+			zoom(clientX, -1.618)
+		}
+
 		viewportDiv.addEventListener('wheel', onWheel, {
+			passive: false,
+		})
+		viewportDiv.addEventListener('dblclick', onDoubleclick, {
 			passive: false,
 		})
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
+			viewportDiv.removeEventListener('dblclick', onDoubleclick)
 		}
-	}, [duration, isRefreshingDOM])
+	}, [duration, isRefreshingDOM, viewportWidth])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
