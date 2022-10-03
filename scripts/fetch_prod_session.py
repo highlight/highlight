@@ -75,8 +75,8 @@ def process(bucket, secure_id, copy_errors=False, store=False):
                 f'ON CONFLICT DO NOTHING', insert=True)
     print(f'Copying {len(indicators)} timeline_indicator_events...')
     ti_keys = ", ".join(k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS)
-    for b_idx in range(len(indicators) // BATCH_INSERT_SIZE):
-        batch = indicators[b_idx * BATCH_INSERT_SIZE: (b_idx + 1) * BATCH_INSERT_SIZE]
+    for start in range(0, len(indicators), BATCH_INSERT_SIZE):
+        batch = indicators[start: start + BATCH_INSERT_SIZE]
         print(f'Bulk copying {len(batch)} timeline_indicator_events...')
         indicators_bulk = ', '.join(map(lambda x: f'({", ".join(format_sql_value(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})', batch))
         run_sql(f'INSERT INTO timeline_indicator_events ({ti_keys}) '
