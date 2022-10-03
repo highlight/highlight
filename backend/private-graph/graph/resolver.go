@@ -1613,7 +1613,7 @@ func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string)
 		return e.Wrap(err, "error getting Vercel oauth access token")
 	}
 
-	if err := r.DB.Where(&workspace).Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+	if err := r.DB.Where(&workspace).Select("vercel_access_token", "vercel_team_id").Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
 		return e.Wrap(err, "error updating Vercel access token in workspace")
 	}
 

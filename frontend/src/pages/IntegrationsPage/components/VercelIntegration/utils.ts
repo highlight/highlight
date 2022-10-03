@@ -17,7 +17,7 @@ export const useVercelIntegration = (projectId?: string) => {
 
 	const { data, loading } = useGetWorkspaceIsIntegratedWithVercelQuery({
 		variables: { project_id: project_id },
-		skip: !project_id,
+		skip: !project_id || project_id === '0',
 	})
 
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({

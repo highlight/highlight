@@ -160,7 +160,12 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 			data.Set("until", strconv.Itoa(next))
 		}
 
-		req, err := http.NewRequest("GET", fmt.Sprintf("%s/v9/projects", VercelApiBaseUrl), strings.NewReader(data.Encode()))
+		queryStr := ""
+		if len(data) > 0 {
+			queryStr = "?" + data.Encode()
+		}
+
+		req, err := http.NewRequest("GET", fmt.Sprintf("%s/v9/projects%s", VercelApiBaseUrl, queryStr), strings.NewReader(data.Encode()))
 		if err != nil {
 			return nil, errors.Wrap(err, "error creating api request to Vercel")
 		}
