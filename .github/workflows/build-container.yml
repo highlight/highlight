@@ -3,6 +3,8 @@ on:
     push:
         branches:
             - 'master'
+    pull_request:
+        types: [opened, synchronize]
 jobs:
     push_to_registry:
         name: Push Docker image to Docker Hub
@@ -33,7 +35,7 @@ jobs:
               uses: docker/build-push-action@v2
               with:
                   context: ./
-                  push: true
+                  push: github.ref == 'refs/heads/master'
                   tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
                   build-args: |
                       REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
