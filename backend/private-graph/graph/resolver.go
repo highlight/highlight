@@ -1741,6 +1741,9 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 	for _, p := range projects {
 		for _, e := range p.Env {
 			if e.Key == vercel.SourcemapEnvKey {
+				if e.ConfigurationID == "" {
+					continue
+				}
 				configIdsToRemove[e.ConfigurationID] = struct{}{}
 			}
 		}
