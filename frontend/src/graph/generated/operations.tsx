@@ -952,6 +952,18 @@ export type UpdateMetricMonitorIsDisabledMutation = {
 	>
 }
 
+export type UpdateErrorAlertIsDisabledMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	disabled: Types.Scalars['Boolean']
+}>
+
+export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
+	updateErrorAlert?: Types.Maybe<
+		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
+	>
+}
+
 export type CreateDefaultAlertsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	alert_types: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -4168,6 +4180,7 @@ export const namedOperations = {
 		DeleteSessionAlert: 'DeleteSessionAlert' as const,
 		UpdateSessionAlertIsDisabled: 'UpdateSessionAlertIsDisabled' as const,
 		UpdateMetricMonitorIsDisabled: 'UpdateMetricMonitorIsDisabled' as const,
+		UpdateErrorAlertIsDisabled: 'UpdateErrorAlertIsDisabled' as const,
 		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,

@@ -791,6 +791,20 @@ mutation UpdateMetricMonitorIsDisabled(
 	}
 }
 
+mutation UpdateErrorAlertIsDisabled(
+	$id: ID!
+	$project_id: ID!
+	$disabled: Boolean!
+) {
+	updateErrorAlert(
+		error_alert_id: $id
+		project_id: $project_id
+		disabled: $disabled
+	) {
+		id
+	}
+}
+
 mutation CreateDefaultAlerts(
 	$project_id: ID!
 	$alert_types: [String!]!

@@ -1,6 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Switch from '@components/Switch/Switch'
 import {
+	useUpdateErrorAlertIsDisabledMutation,
 	useUpdateMetricMonitorIsDisabledMutation,
 	useUpdateSessionAlertIsDisabledMutation,
 } from '@graph/hooks'
@@ -20,6 +21,7 @@ export const AlertEnableSwitch: React.FC<
 	const [disabled, setDisabled] = useState<boolean>(record.disabled ?? false)
 	const [updateSessionAlertIsDisabled] =
 		useUpdateSessionAlertIsDisabledMutation()
+	const [updateErrorAlertIsDisabled] = useUpdateErrorAlertIsDisabledMutation()
 	const [updateMetricMonitorIsDisabled] =
 		useUpdateMetricMonitorIsDisabledMutation()
 
@@ -35,7 +37,6 @@ export const AlertEnableSwitch: React.FC<
 		}
 
 		switch (type) {
-			case ALERT_TYPE.Error:
 			case ALERT_TYPE.FirstTimeUser:
 			case ALERT_TYPE.UserProperties:
 			case ALERT_TYPE.TrackProperties:
@@ -43,6 +44,16 @@ export const AlertEnableSwitch: React.FC<
 			case ALERT_TYPE.NewSession:
 			case ALERT_TYPE.RageClick:
 				await updateSessionAlertIsDisabled({
+					...requestBody,
+					variables: {
+						id: record.id,
+						project_id,
+						disabled: isDisabled,
+					},
+				})
+				break
+			case ALERT_TYPE.Error:
+				await updateErrorAlertIsDisabled({
 					...requestBody,
 					variables: {
 						id: record.id,

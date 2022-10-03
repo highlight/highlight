@@ -3088,6 +3088,66 @@ export type UpdateMetricMonitorIsDisabledMutationOptions =
 		Types.UpdateMetricMonitorIsDisabledMutation,
 		Types.UpdateMetricMonitorIsDisabledMutationVariables
 	>
+export const UpdateErrorAlertIsDisabledDocument = gql`
+	mutation UpdateErrorAlertIsDisabled(
+		$id: ID!
+		$project_id: ID!
+		$disabled: Boolean!
+	) {
+		updateErrorAlert(
+			error_alert_id: $id
+			project_id: $project_id
+			disabled: $disabled
+		) {
+			id
+		}
+	}
+`
+export type UpdateErrorAlertIsDisabledMutationFn = Apollo.MutationFunction<
+	Types.UpdateErrorAlertIsDisabledMutation,
+	Types.UpdateErrorAlertIsDisabledMutationVariables
+>
+
+/**
+ * __useUpdateErrorAlertIsDisabledMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorAlertIsDisabledMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorAlertIsDisabledMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorAlertIsDisabledMutation, { data, loading, error }] = useUpdateErrorAlertIsDisabledMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      disabled: // value for 'disabled'
+ *   },
+ * });
+ */
+export function useUpdateErrorAlertIsDisabledMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateErrorAlertIsDisabledMutation,
+		Types.UpdateErrorAlertIsDisabledMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateErrorAlertIsDisabledMutation,
+		Types.UpdateErrorAlertIsDisabledMutationVariables
+	>(UpdateErrorAlertIsDisabledDocument, baseOptions)
+}
+export type UpdateErrorAlertIsDisabledMutationHookResult = ReturnType<
+	typeof useUpdateErrorAlertIsDisabledMutation
+>
+export type UpdateErrorAlertIsDisabledMutationResult =
+	Apollo.MutationResult<Types.UpdateErrorAlertIsDisabledMutation>
+export type UpdateErrorAlertIsDisabledMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.UpdateErrorAlertIsDisabledMutation,
+		Types.UpdateErrorAlertIsDisabledMutationVariables
+	>
 export const CreateDefaultAlertsDocument = gql`
 	mutation CreateDefaultAlerts(
 		$project_id: ID!
