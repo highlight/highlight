@@ -23,10 +23,11 @@ ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./ ./
+RUN yarn
 RUN --mount=type=secret,id=TURBO_TOKEN \
   export TURBO_TOKEN=$(cat /run/secrets/TURBO_TOKEN) && \
   export NODE_OPTIONS="--max-old-space-size=7168" && \
-    yarn && yarn build:frontend
+    yarn build:frontend
 
 FROM alpine
 RUN apk update && apk add build-base
