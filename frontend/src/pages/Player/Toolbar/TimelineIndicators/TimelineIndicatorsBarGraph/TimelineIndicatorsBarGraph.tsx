@@ -102,6 +102,21 @@ const TimelineIndicatorsBarGraph = ({
 
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
 
+	const viewportRef = useRef<HTMLDivElement>(null)
+	const canvasRef = useRef<HTMLDivElement>(null)
+	const timeAxisRef = useRef<HTMLDivElement>(null)
+	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
+	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
+	const [viewportWidth, setViewportWidth] = useState(0)
+
+	useLayoutEffect(() => {
+		const div = viewportRef.current
+		if (!div) {
+			return
+		}
+		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
+	}, [width])
+
 	const bucketSize = useMemo(
 		() => pickBucketSize(duration / camera.zoom, TARGET_BUCKET_COUNT),
 		[duration, camera.zoom],
@@ -125,9 +140,20 @@ const TimelineIndicatorsBarGraph = ({
 	const maxBucketCount = Math.max(
 		...buckets.map((bucket) => bucket.totalCount),
 	)
-	const bucketPercentWidth = (bucketTimestep / duration) * 100
-	const lastBucketPercentWidth =
-		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration
+
+	const canvasWidth = viewportWidth * camera.zoom
+	const minBucketWidth = (16 / canvasWidth) * 100 // 16px in the zoomed view
+	const bucketPercentWidth = Math.max(
+		(100 * bucketTimestep) / duration,
+		minBucketWidth,
+	)
+
+	const lastBucketPercentWidth = clamp(
+		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration,
+		minBucketWidth,
+		(1 + TIMELINE_MARGIN / canvasWidth) * 100 -
+			(buckets.length - 1) * bucketPercentWidth,
+	)
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -145,22 +171,6 @@ const TimelineIndicatorsBarGraph = ({
 				: formatTimeAsHMS(t),
 		[showPlayerAbsoluteTime, start],
 	)
-
-	const viewportRef = useRef<HTMLDivElement>(null)
-	const canvasRef = useRef<HTMLDivElement>(null)
-	const timeAxisRef = useRef<HTMLDivElement>(null)
-	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
-	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
-	const [viewportWidth, setViewportWidth] = useState(0)
-
-	useLayoutEffect(() => {
-		const div = viewportRef.current
-		if (!div) {
-			return
-		}
-		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
-	}, [width])
-
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -387,18 +397,16 @@ const TimelineIndicatorsBarGraph = ({
 	}, [duration])
 
 	const leftProgress = useMemo(() => {
-		const canvasWidth = viewportWidth * camera.zoom
 		const x =
 			clamp(camera.x, TIMELINE_MARGIN, canvasWidth - viewportWidth) -
 			TIMELINE_MARGIN
 		return (width * x) / canvasWidth
-	}, [viewportWidth, camera.zoom, camera.x, width])
+	}, [viewportWidth, canvasWidth, camera.x, width])
 
 	const rightProgress = useMemo(() => {
-		const canvasWidth = viewportWidth * camera.zoom
 		const actualZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
 		return leftProgress + width / actualZoom
-	}, [viewportWidth, camera.zoom, leftProgress, width])
+	}, [canvasWidth, leftProgress, viewportWidth, width])
 
 	const leftmostBucketIdx = useMemo(() => {
 		return clamp(
@@ -422,7 +430,6 @@ const TimelineIndicatorsBarGraph = ({
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
 
-		const canvasWidth = viewportWidth * camera.zoom
 		const step = (mainTickInMs / duration) * canvasWidth
 		const minorStep = step / 4
 
@@ -525,10 +532,10 @@ const TimelineIndicatorsBarGraph = ({
 	}, [
 		bucketTimestep,
 		camera.zoom,
+		canvasWidth,
 		duration,
 		leftmostBucketIdx,
 		rightmostBucketIdx,
-		viewportWidth,
 	])
 
 	if (!events.length || state === ReplayerState.Loading || !replayer) {

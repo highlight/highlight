@@ -26,6 +26,7 @@ interface IBar {
 	viewportRef: React.RefObject<HTMLElement>
 }
 
+const MIN_RECTANGLE_HEIGHT = 5
 const TimelineIndicatorsBar = ({
 	bucket,
 	width,
@@ -181,7 +182,9 @@ const TimelineIndicatorsBar = ({
 				<div
 					className={styles.rectangleContainer}
 					style={{
-						height: `${height}%`,
+						height: `calc(max(${height}%, ${
+							MIN_RECTANGLE_HEIGHT * data.length
+						}px))`,
 					}}
 				>
 					{data.map((rect, idx) => {
@@ -190,7 +193,9 @@ const TimelineIndicatorsBar = ({
 								className={styles.barRectangle}
 								style={{
 									background: rect.color,
-									height: `${rect.percent}%`,
+									height: `calc(max(${rect.percent}%, ${MIN_RECTANGLE_HEIGHT}px))`,
+									marginBottom:
+										idx === data.length - 1 ? 0 : undefined,
 								}}
 								key={idx}
 							></div>
