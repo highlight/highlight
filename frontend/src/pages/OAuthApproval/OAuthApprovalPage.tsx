@@ -22,11 +22,11 @@ interface OAuthToken {
 }
 
 const OAuthBackend =
-	window.location.host.indexOf('local') === -1
+	window.location.port === ''
 		? `https://pri.highlight.run`
 		: `https://pri.highlight.localhost`
 const HighlightFrontend =
-	window.location.host.indexOf('local') === -1
+	window.location.port === ''
 		? GetBaseURL()
 		: `https://app.highlight.localhost`
 const OAuthApprovalPage = () => {

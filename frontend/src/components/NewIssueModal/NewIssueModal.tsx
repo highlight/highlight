@@ -90,7 +90,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	const [createIssueForErrorComment] = useCreateIssueForErrorCommentMutation()
 
 	const currentUrl = `${
-		window.location.port !== '' ? GetBaseURL() : window.location.origin
+		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
 
 	useEffect(() => {

@@ -31,7 +31,7 @@ export const ErrorCreateCommentModal = ({
 	const { width, height } = useWindowSize()
 
 	const currentUrl = `${
-		window.location.port !== '' ? GetBaseURL() : window.location.origin
+		window.location.port === '' ? GetBaseURL() : window.location.origin
 	}${window.location.pathname}`
 
 	return (
