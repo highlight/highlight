@@ -441,7 +441,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 func (w *Worker) PublicWorker() {
-	const parallelWorkers = 32
+	const parallelWorkers = 64
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
