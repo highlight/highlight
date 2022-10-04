@@ -153,7 +153,7 @@ const TimelineIndicatorsBar = ({
 			)
 		}
 		return rows
-	}, [data, setCurrentEvent, setShowRightPanel])
+	}, [data, setCurrentEvent, setShowLeftPanel, setShowRightPanel])
 
 	const [isBarShaded, setIsBarShaded] = useState(false)
 	return (
