@@ -45,12 +45,20 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	} = useDiscordIntegration()
 
 	useEffect(() => {
-		if (isDiscordIntegratedWithProject) {
+		if (
+			isDiscordIntegratedWithProject &&
+			action === IntegrationAction.Setup
+		) {
 			setIntegrationEnabled(true)
 			setModelOpen(false)
 			message.success('Discord integration enabled')
 		}
-	}, [isDiscordIntegratedWithProject, setIntegrationEnabled, setModelOpen])
+	}, [
+		isDiscordIntegratedWithProject,
+		setIntegrationEnabled,
+		setModelOpen,
+		action,
+	])
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
