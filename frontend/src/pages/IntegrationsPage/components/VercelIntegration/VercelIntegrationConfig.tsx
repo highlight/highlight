@@ -84,9 +84,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"
-					href={`https://vercel.com/integrations/${
-						import.meta.env.REACT_APP_VERCEL_INTEGRATION_NAME
-					}/new`}
+					href={`https://vercel.com/integrations/highlight/new`}
 					rel="noreferrer"
 				>
 					<span className={styles.modalBtnText}>
