@@ -10,7 +10,7 @@ interface Props {
 const ZOOM_AREA_SIDE_WIDTH = 15
 const ZoomArea = ({ leftProgress, rightProgress, isHidden }: Props) => {
 	const left = clamp(
-		leftProgress - ZOOM_AREA_SIDE_WIDTH,
+		leftProgress,
 		0,
 		rightProgress - 2 * ZOOM_AREA_SIDE_WIDTH,
 	)

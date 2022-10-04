@@ -8,6 +8,7 @@ interface Props {
 	text?: string
 	isDragging?: boolean
 }
+const TIME_INDICATOR_ACTIVATION_RADIUS = 20
 const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
@@ -26,9 +27,11 @@ const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 			const topCenterX = bbox.left + bbox.width / 2
 			const topCenterY = bbox.top + bbox.height / 2
 			const { clientX, clientY } = event
-
+			const pointerX = document.documentElement.scrollLeft + clientX
+			const pointerY = document.documentElement.scrollTop + clientY
 			return (
-				(clientX - topCenterX) ** 2 + (clientY - topCenterY) ** 2 < 300
+				(pointerX - topCenterX) ** 2 + (pointerY - topCenterY) ** 2 <
+				TIME_INDICATOR_ACTIVATION_RADIUS ** 2
 			)
 		}
 
@@ -61,7 +64,7 @@ const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 				className={style.timeIndicatorText}
 				ref={textRef}
 				style={{
-					top: (origin?.top || 0) - 24,
+					top: (origin?.top || 0) - 1.8 * (origin?.height || 0),
 					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
 					visibility:
 						isTextVisible || isDragging ? 'visible' : 'hidden',

@@ -69,6 +69,9 @@ interface Props {
 export const LEFT_PANEL_WIDTH = 475
 export const RIGHT_PANEL_WIDTH = 350
 
+const CENTER_COLUMN_MARGIN = 16
+const MIN_CENTER_COLUMN_WIDTH = 200
+
 const Player = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
@@ -205,7 +208,10 @@ const Player = ({ integrated }: Props) => {
 			return
 		}
 
-		const width = Math.max(centerColumnRef.current.offsetWidth - 32, 200)
+		const width = Math.max(
+			centerColumnRef.current.offsetWidth - 2 * CENTER_COLUMN_MARGIN,
+			MIN_CENTER_COLUMN_WIDTH,
+		)
 		setControllerWidth(width)
 	}, [centerColumnRef.current?.offsetWidth, setControllerWidth])
 
@@ -517,8 +523,16 @@ const PlayerSkeleton = ({ width }: { width: number }) => {
 			highlightColor={'#f5f5f5'}
 		>
 			<Skeleton
-				height={!showDevTools ? clamp(width * 0.8, 200, 400) : 200}
-				width={width - 32}
+				height={
+					!showDevTools
+						? clamp(
+								width * 0.8,
+								MIN_CENTER_COLUMN_WIDTH,
+								2 * MIN_CENTER_COLUMN_WIDTH,
+						  )
+						: MIN_CENTER_COLUMN_WIDTH
+				}
+				width={width - 2 * CENTER_COLUMN_MARGIN}
 				duration={1}
 			/>
 		</SkeletonTheme>
