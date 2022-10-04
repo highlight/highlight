@@ -4,6 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -299,6 +300,8 @@ const IntegrationAuthCallbackPage = () => {
 		return <FrontIntegrationCallback code={code} projectId={projectId} />
 	} else if (integrationName.toLowerCase() === 'vercel') {
 		return <VercelIntegrationCallback code={code} />
+	} else if (integrationName.toLowerCase() === 'discord') {
+		return <DiscordIntegrationCallback code={code} />
 	}
 
 	return null
