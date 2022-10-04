@@ -33,5 +33,5 @@
 			"env": ["HIGHLIGHT_API_KEY"]
 		}
 	},
-	"globalEnv": ["DOPPLER_TOKEN"]
+	"globalEnv": ["DOPPLER_TOKEN", "REACT_APP_PRIVATE_GRAPH_URI"]
 }
