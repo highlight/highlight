@@ -78,14 +78,6 @@
 	position: relative;
 	width: 100% !important;
 }
-.zoomArea {
-	background-color: var(--color-gray-500);
-	bottom: 0;
-	height: 40px;
-	opacity: 0.1;
-	position: absolute;
-	z-index: 2;
-}
 
 .eventHistogram {
 	display: flex;

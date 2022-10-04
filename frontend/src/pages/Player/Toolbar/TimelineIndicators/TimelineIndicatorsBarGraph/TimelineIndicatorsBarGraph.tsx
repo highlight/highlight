@@ -14,6 +14,7 @@ import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicato
 import TimelineBar, {
 	EventBucket,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
+import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
@@ -180,6 +181,11 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		const zoom = (clientX: number, dz: number) => {
+			if (isRefreshingDOM) {
+				return
+			}
+			setIsRefreshingDOM(true)
+
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const { offsetLeft, scrollLeft } = viewportDiv
 
@@ -210,16 +216,22 @@ const TimelineIndicatorsBarGraph = ({
 				return { x, zoom }
 			})
 		}
-
-		const onWheel = (event: WheelEvent) => {
-			event.preventDefault()
-			event.stopPropagation()
-
+		const pan = (deltaX: number) => {
 			if (isRefreshingDOM) {
 				return
 			}
 
 			setIsRefreshingDOM(true)
+			setCamera(({ zoom, x }) => {
+				x = clamp(x + deltaX, 0, viewportWidth * zoom - viewportWidth)
+
+				return { zoom, x }
+			})
+		}
+
+		const onWheel = (event: WheelEvent) => {
+			event.preventDefault()
+			event.stopPropagation()
 
 			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
 
@@ -227,15 +239,7 @@ const TimelineIndicatorsBarGraph = ({
 				const dz = deltaY / ZOOM_SCALING_FACTOR
 				zoom(clientX, dz)
 			} else {
-				setCamera(({ zoom, x }) => {
-					x = clamp(
-						x + deltaX,
-						0,
-						viewportWidth * zoom - viewportWidth,
-					)
-
-					return { zoom, x }
-				})
+				pan(deltaX)
 			}
 		}
 
@@ -243,11 +247,6 @@ const TimelineIndicatorsBarGraph = ({
 			event.preventDefault()
 			event.stopPropagation()
 
-			if (isRefreshingDOM) {
-				return
-			}
-
-			setIsRefreshingDOM(true)
 			const { clientX } = event
 			zoom(clientX, -1.618)
 		}
@@ -258,6 +257,7 @@ const TimelineIndicatorsBarGraph = ({
 		viewportDiv.addEventListener('dblclick', onDoubleclick, {
 			passive: false,
 		})
+
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 			viewportDiv.removeEventListener('dblclick', onDoubleclick)
@@ -269,7 +269,7 @@ const TimelineIndicatorsBarGraph = ({
 	const [shouldPlay, setShouldPlay] = useState(false)
 	useEffect(() => {
 		// pause playing on drag start
-		if (state === ReplayerState.Playing && isDragging) {
+		if (state === ReplayerState.Playing && isDragging && !shouldPlay) {
 			pause()
 			setShouldPlay(true)
 		}
@@ -427,7 +427,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const rightProgress = useMemo(() => {
 		const actualZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
-		return leftProgress + width / actualZoom
+		return clamp(leftProgress + width / actualZoom, 1, width)
 	}, [canvasWidth, leftProgress, viewportWidth, width])
 
 	const leftmostBucketIdx = useMemo(() => {
@@ -652,19 +652,13 @@ const TimelineIndicatorsBarGraph = ({
 						></Area>
 					</AreaChart>
 				)}
-				<div
-					style={{
-						left: 0,
-						width: Math.min(leftProgress, rightProgress - 1),
-					}}
-					className={style.zoomArea}
-				/>
-				<div
-					style={{
-						left: rightProgress,
-						width: width - rightProgress,
-					}}
-					className={style.zoomArea}
+				<ZoomArea
+					leftProgress={leftProgress}
+					rightProgress={rightProgress}
+					isHidden={
+						leftProgress < TIMELINE_MARGIN &&
+						rightProgress > canvasWidth - TIMELINE_MARGIN
+					}
 				/>
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>

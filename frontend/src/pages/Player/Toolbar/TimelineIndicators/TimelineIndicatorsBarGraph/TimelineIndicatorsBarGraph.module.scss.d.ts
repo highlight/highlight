@@ -16,4 +16,3 @@ export const timeTickMajor: string
 export const timeTickMark: string
 export const timeTickMid: string
 export const timeTickMinor: string
-export const zoomArea: string
