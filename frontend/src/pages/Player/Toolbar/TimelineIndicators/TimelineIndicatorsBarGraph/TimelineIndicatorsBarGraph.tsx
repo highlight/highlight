@@ -33,7 +33,7 @@ const TARGET_BUCKET_COUNT = 40
 const TARGET_TICK_COUNT = 20
 const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
-const TIME_JUMP_WAIT = 25
+const DOUBLE_CLICK_ZOOM = 1.618
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
@@ -239,7 +239,7 @@ const TimelineIndicatorsBarGraph = ({
 			setIsRefreshingDOM(true)
 
 			const { clientX } = event
-			zoom(clientX, -1.618)
+			zoom(clientX, -DOUBLE_CLICK_ZOOM)
 		}
 
 		viewportDiv.addEventListener('wheel', onWheel, {
