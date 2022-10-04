@@ -86,9 +86,14 @@ const TimelineIndicatorsBar = ({
 			setRelativePosition(relPos)
 		}
 
+		const onScroll = () => {
+			setIsSelected(false)
+		}
 		viewportDiv.addEventListener('pointermove', onPointermove)
+		viewportDiv.addEventListener('scroll', onScroll)
 		return () => {
 			viewportDiv.removeEventListener('pointermove', onPointermove)
+			viewportDiv.removeEventListener('scroll', onScroll)
 		}
 	}, [viewportRef])
 
@@ -159,15 +164,15 @@ const TimelineIndicatorsBar = ({
 	const [isInsidePopover, setIsInsidePopover] = useState(false)
 	const [isSelected, setIsSelected] = useState(false)
 	useLayoutEffect(() => {
-		const onPointerDown = () => {
+		const hidePopover = () => {
 			if (!(isInsideBar || isInsidePopover)) {
 				setIsSelected(false)
 			}
 		}
-		document.addEventListener('pointerdown', onPointerDown)
+		document.addEventListener('pointerdown', hidePopover)
 
 		return () => {
-			document.removeEventListener('pointerdown', onPointerDown)
+			document.removeEventListener('pointerdown', hidePopover)
 		}
 	}, [isInsideBar, isInsidePopover])
 

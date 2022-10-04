@@ -33,7 +33,6 @@ const TARGET_BUCKET_COUNT = 50
 const TARGET_TICK_COUNT = 20
 const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
-const DOUBLE_CLICK_ZOOM = 1.618
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 

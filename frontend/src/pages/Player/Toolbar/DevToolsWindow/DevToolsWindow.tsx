@@ -139,7 +139,6 @@ function ResizePanel({
 		if (handle && event.composedPath().includes(handle)) {
 			setDragging(true)
 			event.preventDefault()
-			event.stopPropagation()
 		}
 	})
 
