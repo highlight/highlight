@@ -15,7 +15,7 @@ import styles from './ClearbitIntegrationConfig.module.scss'
 
 const ClearbitIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModelOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const [redirectToBilling, setRedirectToBilling] = React.useState(false)
 	const {
 		isClearbitIntegratedWithWorkspace,
@@ -32,13 +32,13 @@ const ClearbitIntegrationConfig: React.FC<
 			action === IntegrationAction.Setup
 		) {
 			setIntegrationEnabled(true)
-			setModelOpen(false)
+			setModalOpen(false)
 			message.success('Clearbit integration enabled')
 		}
 	}, [
 		isClearbitIntegratedWithWorkspace,
 		setIntegrationEnabled,
-		setModelOpen,
+		setModalOpen,
 		action,
 	])
 
@@ -54,7 +54,7 @@ const ClearbitIntegrationConfig: React.FC<
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -66,7 +66,7 @@ const ClearbitIntegrationConfig: React.FC<
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							modifyClearbit({ enabled: false })
 						}}
@@ -103,7 +103,7 @@ const ClearbitIntegrationConfig: React.FC<
 							trackingId={`IntegrationConfigurationCancelUpgrade-Clearbit`}
 							className={styles.modalBtn}
 							onClick={() => {
-								setModelOpen(false)
+								setModalOpen(false)
 								setIntegrationEnabled(false)
 							}}
 						>
@@ -128,7 +128,7 @@ const ClearbitIntegrationConfig: React.FC<
 						trackingId={`IntegrationConfigurationCancel-Clearbit`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 						}}
 					>
