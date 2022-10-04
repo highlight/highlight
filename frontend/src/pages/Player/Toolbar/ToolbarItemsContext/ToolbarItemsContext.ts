@@ -25,10 +25,6 @@ interface ToolbarItemsContext {
 	setAutoPlay: ToolbarItemSetter
 	showPlayerTime: ToolbarItem
 	setShowPlayerTime: ToolbarItemSetter
-	zoomAreaLeft: number
-	setZoomAreaLeft: React.Dispatch<React.SetStateAction<number>>
-	zoomAreaRight: number
-	setZoomAreaRight: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const [useToolbarItemsContext, ToolbarItemsContextProvider] =

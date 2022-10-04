@@ -736,6 +736,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 
 		setEvents(nextEvents)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [chunkEvents, eventChunksData])
 
 	const [eventsDataLoaded, setEventsDataLoaded] = useState(false)
@@ -829,12 +830,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 				sessionMetadata.startTime,
 			)
 			setSessionIntervals(si)
-			const test = getEventsForTimelineIndicator(
-				parsedTimelineIndicatorEvents,
-				sessionMetadata.startTime,
-				sessionMetadata.totalTime,
+			setEventsForTimelineIndicator(
+				getEventsForTimelineIndicator(
+					parsedTimelineIndicatorEvents,
+					sessionMetadata.startTime,
+					sessionMetadata.totalTime,
+				),
 			)
-			setEventsForTimelineIndicator(test)
 			setSessionEndTime(sessionMetadata.endTime)
 
 			if (eventsData?.rage_clicks) {

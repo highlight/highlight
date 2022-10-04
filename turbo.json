@@ -1,6 +1,5 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
-	"baseBranch": "origin/master",
 	"pipeline": {
 		"codegen": {
 			"inputs": ["./**/*.gql"],
@@ -16,7 +15,23 @@
 		},
 		"build": {
 			"dependsOn": ["codegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**"]
+			"outputs": ["build/**", "dist/**"],
+			"env": [
+				"REACT_APP_COMMIT_SHA",
+				"REACT_APP_ENVIRONMENT",
+				"REACT_APP_FIREBASE_CONFIG_OBJECT",
+				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
+				"REACT_APP_FRONTEND_ORG",
+				"REACT_APP_ONPREM",
+				"REACT_APP_PRIVATE_GRAPH_URI",
+				"REACT_APP_STRIPE_API_PK",
+				"REACT_APP_VERCEL_INTEGRATION_NAME",
+
+				"LINEAR_CLIENT_ID",
+				"SLACK_CLIENT_ID",
+				"DD_CLIENT_TOKEN",
+				"DD_RUM_APPLICATION_ID"
+			]
 		},
 		"test": {
 			"dependsOn": ["prepublish", "build"],

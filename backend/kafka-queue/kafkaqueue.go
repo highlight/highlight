@@ -24,7 +24,7 @@ const KafkaOperationTimeout = 25 * time.Second
 const (
 	taskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
+	prefetchSizeBytes     = 16 * 1000 * 1000  // 16 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 

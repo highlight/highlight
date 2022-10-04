@@ -5,22 +5,12 @@ import Switch from '@components/Switch/Switch'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import {
 	useCreateErrorAlertMutation,
-	useCreateNewSessionAlertMutation,
-	useCreateNewUserAlertMutation,
-	useCreateRageClickAlertMutation,
 	useCreateSessionAlertMutation,
-	useCreateTrackPropertiesAlertMutation,
-	useCreateUserPropertiesAlertMutation,
 	useGetIdentifierSuggestionsQuery,
 	useGetTrackSuggestionQuery,
 	useGetUserSuggestionQuery,
 	useUpdateErrorAlertMutation,
-	useUpdateNewSessionAlertMutation,
-	useUpdateNewUserAlertMutation,
-	useUpdateRageClickAlertMutation,
 	useUpdateSessionAlertMutation,
-	useUpdateTrackPropertiesAlertMutation,
-	useUpdateUserPropertiesAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { SessionAlertType } from '@graph/schemas'
@@ -98,8 +88,6 @@ export const AlertConfigurationCard = ({
 	const { project_id } = useParams<{ project_id: string }>()
 	const [form] = Form.useForm()
 	const [updateErrorAlert] = useUpdateErrorAlertMutation()
-	const [updateNewUserAlert] = useUpdateNewUserAlertMutation()
-	const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation()
 	const history = useHistory()
 	const [createErrorAlert, {}] = useCreateErrorAlertMutation({
 		variables: {
@@ -115,89 +103,10 @@ export const AlertConfigurationCard = ({
 		},
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createSessionFeedbackAlert, {}] = useCreateSessionAlertMutation({
-		variables: {
-			input: {
-				project_id,
-				count_threshold: 1,
-				environments: [],
-				slack_channels: [],
-				threshold_window: 30,
-				name: 'Session Feedback',
-				emails: emailsToNotify,
-				disabled: false,
-				type: SessionAlertType.NewSessionAlert,
-			},
-		},
+	const [createSessionAlert] = useCreateSessionAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
-	const [createNewUserAlert, {}] = useCreateNewUserAlertMutation({
-		variables: {
-			project_id,
-			count_threshold: 1,
-			environments: [],
-			slack_channels: [],
-			name: 'New User',
-			threshold_window: 1,
-			emails: emailsToNotify,
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createRageClickAlert, {}] = useCreateRageClickAlertMutation({
-		variables: {
-			project_id,
-			count_threshold: 1,
-			environments: [],
-			slack_channels: [],
-			name: 'Rage Click',
-			threshold_window: 30,
-			emails: emailsToNotify,
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createNewSessionAlert, {}] = useCreateNewSessionAlertMutation({
-		variables: {
-			project_id,
-			count_threshold: 1,
-			environments: [],
-			slack_channels: [],
-			name: 'New Session',
-			threshold_window: 1,
-			exclude_rules: [],
-			emails: emailsToNotify,
-		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [createTrackPropertiesAlert, {}] =
-		useCreateTrackPropertiesAlertMutation({
-			variables: {
-				project_id,
-				environments: [],
-				slack_channels: [],
-				name: 'Track',
-				track_properties: [],
-				threshold_window: 1,
-				emails: emailsToNotify,
-			},
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		})
-	const [createUserPropertiesAlert, {}] =
-		useCreateUserPropertiesAlertMutation({
-			variables: {
-				project_id,
-				environments: [],
-				slack_channels: [],
-				name: 'User',
-				user_properties: [],
-				threshold_window: 1,
-				emails: emailsToNotify,
-			},
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		})
-	const [updateTrackPropertiesAlert] = useUpdateTrackPropertiesAlertMutation()
-	const [updateSessionFeedbackAlert] = useUpdateSessionAlertMutation()
-	const [updateRageClickAlert] = useUpdateRageClickAlertMutation()
-	const [updateNewSessionAlert] = useUpdateNewSessionAlertMutation()
+	const [updateSessionAlert] = useUpdateSessionAlertMutation()
 
 	const excludedEnvironmentsFormName = `${
 		alert.Name || defaultName
@@ -250,46 +159,69 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.FirstTimeUser:
-						await createNewUserAlert({
-							...requestBody,
-							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								emails: emailsToNotify,
-							},
-						})
-						break
-					case ALERT_TYPE.NewSession:
-						await createNewSessionAlert({
-							...requestBody,
-							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								exclude_rules:
-									form.getFieldValue(
-										excludedIdentifiersFormName,
-									) || [],
-								emails: emailsToNotify,
-							},
-						})
-						break
-					case ALERT_TYPE.RageClick:
-						await createRageClickAlert({
-							...requestBody,
-							variables: {
-								...requestVariables,
-								threshold_window: lookbackPeriod,
-								emails: emailsToNotify,
-							},
-						})
-						break
-					case ALERT_TYPE.SessionFeedback:
-						await createSessionFeedbackAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
 								input: {
 									...requestVariables,
 									threshold_window: 1,
+									user_properties: [],
+									exclude_rules: [],
+									track_properties: [],
+									emails: emailsToNotify,
+									disabled: false,
+									type: SessionAlertType.NewUserAlert,
+								},
+							},
+						})
+						break
+					case ALERT_TYPE.NewSession:
+						await createSessionAlert({
+							...requestBody,
+							variables: {
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									exclude_rules:
+										form.getFieldValue(
+											excludedIdentifiersFormName,
+										) || [],
+									user_properties: [],
+									track_properties: [],
+									disabled: false,
+									emails: emailsToNotify,
+									type: SessionAlertType.NewSessionAlert,
+								},
+							},
+						})
+						break
+					case ALERT_TYPE.RageClick:
+						await createSessionAlert({
+							...requestBody,
+							variables: {
+								input: {
+									...requestVariables,
+									threshold_window: lookbackPeriod,
+									user_properties: [],
+									exclude_rules: [],
+									track_properties: [],
+									emails: emailsToNotify,
+									disabled: false,
+									type: SessionAlertType.RageClickAlert,
+								},
+							},
+						})
+						break
+					case ALERT_TYPE.SessionFeedback:
+						await createSessionAlert({
+							...requestBody,
+							variables: {
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									user_properties: [],
+									exclude_rules: [],
+									track_properties: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.SessionFeedbackAlert,
@@ -298,44 +230,56 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.TrackProperties:
-						await createTrackPropertiesAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								track_properties: form
-									.getFieldValue('trackProperties')
-									.map((trackProperty: any) => {
-										const [value, name, id] =
-											trackProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									emails: emailsToNotify,
+									track_properties: form
+										.getFieldValue('trackProperties')
+										.map((trackProperty: any) => {
+											const [value, name, id] =
+												trackProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									disabled: false,
+									exclude_rules: [],
+									user_properties: [],
+									type: SessionAlertType.TrackPropertiesAlert,
+								},
 							},
 						})
 						break
 					case ALERT_TYPE.UserProperties:
-						await createUserPropertiesAlert({
+						await createSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								user_properties: form
-									.getFieldValue('userProperties')
-									.map((userProperty: any) => {
-										const [value, name, id] =
-											userProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
-								emails: emailsToNotify,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									user_properties: form
+										.getFieldValue('userProperties')
+										.map((userProperty: any) => {
+											const [value, name, id] =
+												userProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									exclude_rules: [],
+									track_properties: [],
+									emails: emailsToNotify,
+									type: SessionAlertType.UserPropertiesAlert,
+									disabled: false,
+								},
 							},
 						})
 						break
@@ -364,71 +308,90 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.FirstTimeUser:
-						await updateNewUserAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								session_alert_id: alert.id,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									user_properties: [],
+									exclude_rules: [],
+									track_properties: [],
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.NewUserAlert,
+								},
 							},
 						})
 						break
 					case ALERT_TYPE.UserProperties:
-						await updateUserPropertiesAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								user_properties: form
-									.getFieldValue('userProperties')
-									.map((userProperty: any) => {
-										const [value, name, id] =
-											userProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
-								session_alert_id: alert.id,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									user_properties: form
+										.getFieldValue('userProperties')
+										.map((userProperty: any) => {
+											const [value, name, id] =
+												userProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									exclude_rules: [],
+									track_properties: [],
+									threshold_window: 1,
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.UserPropertiesAlert,
+								},
 							},
 						})
 						break
 					case ALERT_TYPE.TrackProperties:
-						await updateTrackPropertiesAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								track_properties: form
-									.getFieldValue('trackProperties')
-									.map((trackProperty: any) => {
-										const [value, name, id] =
-											trackProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
-								session_alert_id: alert.id,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									track_properties: form
+										.getFieldValue('trackProperties')
+										.map((trackProperty: any) => {
+											const [value, name, id] =
+												trackProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									threshold_window: 1,
+									user_properties: [],
+									exclude_rules: [],
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.TrackPropertiesAlert,
+								},
 							},
 						})
 						break
 					case ALERT_TYPE.SessionFeedback:
-						await updateSessionFeedbackAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
 								id: alert.id,
 								input: {
 									...requestVariables,
 									threshold_window: lookbackPeriod,
+									user_properties: [],
+									exclude_rules: [],
+									track_properties: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.SessionFeedbackAlert,
@@ -437,30 +400,41 @@ export const AlertConfigurationCard = ({
 						})
 						break
 					case ALERT_TYPE.NewSession:
-						await updateNewSessionAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								session_alert_id: alert.id,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								exclude_rules:
-									form.getFieldValue(
-										excludedIdentifiersFormName,
-									) || [],
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									emails: emailsToNotify,
+									user_properties: [],
+									exclude_rules:
+										form.getFieldValue(
+											excludedIdentifiersFormName,
+										) || [],
+									track_properties: [],
+									disabled: isDisabled,
+									type: SessionAlertType.NewSessionAlert,
+								},
 							},
 						})
 						break
 					case ALERT_TYPE.RageClick:
-						await updateRageClickAlert({
+						await updateSessionAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								rage_click_alert_id: alert.id,
-								threshold_window: lookbackPeriod,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									threshold_window: lookbackPeriod,
+									exclude_rules: [],
+									user_properties: [],
+									track_properties: [],
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.RageClickAlert,
+								},
 							},
 						})
 						break
