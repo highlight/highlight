@@ -2526,7 +2526,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.DB.Where(&model.ErrorObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ErrorObject{})
 		}
 		// filter out empty errors
-		var filteredErrors []*publicModel.ErrorObjectInput
+		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
 			if errorObject.Event == "[{}]" {
 				var objString string
@@ -2543,10 +2543,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					"error_object": objString,
 				}).Warn("caught empty error, continuing...")
 			} else {
-				filteredErrors = append(filteredErrors, errorObject)
+				seenEvents[errorObject.Event] = errorObject
 			}
 		}
-		errors = filteredErrors
+		errors = lo.Values(seenEvents)
 
 		// increment daily error table
 		numErrors := int64(len(errors))
