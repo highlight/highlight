@@ -18,6 +18,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             ENVIRONMENT: test
+            REACT_APP_COMMIT_SHA: ${{ env.GITHUB_SHA }}
             PGPASSWORD: postgres
             PSQL_HOST: localhost
             PSQL_PORT: 5432
