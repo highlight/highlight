@@ -2,7 +2,10 @@ import Button from '@components/Button/Button/Button'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import {
+	IntegrationAction,
+	IntegrationConfigProps,
+} from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
@@ -10,9 +13,10 @@ import React, { useEffect } from 'react'
 
 import styles from './DiscordIntegrationConfig.module.scss'
 
+const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
+
 const getDiscordOauthUrl = (project_id: string): string => {
 	const redirectURI = `${GetBaseURL()}/callback/discord`
-	const discordClientId = '1024079182013149185'
 
 	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))
 	const scope = ['bot']
@@ -24,13 +28,13 @@ const getDiscordOauthUrl = (project_id: string): string => {
 	// * Send Messages
 	const botPermissions = '3072'
 
-	return `https://discord.com/api/oauth2/authorize?client_id=${discordClientId}&permissions=${botPermissions}&redirect_uri=${redirectURI}&state=${state}&response_type=code&scope=${scope}`
+	return `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&permissions=${botPermissions}&redirect_uri=${redirectURI}&state=${state}&response_type=code&scope=${scope}`
 }
 
 const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModelOpen,
 	setIntegrationEnabled,
-	integrationEnabled,
+	action,
 }) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -41,19 +45,14 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	} = useDiscordIntegration()
 
 	useEffect(() => {
-		if (isDiscordIntegratedWithProject && !integrationEnabled) {
+		if (isDiscordIntegratedWithProject) {
 			setIntegrationEnabled(true)
 			setModelOpen(false)
 			message.success('Discord integration enabled')
 		}
-	}, [
-		isDiscordIntegratedWithProject,
-		setIntegrationEnabled,
-		setModelOpen,
-		integrationEnabled,
-	])
+	}, [isDiscordIntegratedWithProject, setIntegrationEnabled, setModelOpen])
 
-	if (integrationEnabled) {
+	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
