@@ -6623,6 +6623,7 @@ enum IntegrationType {
 	Zapier
 	Front
 	Vercel
+	Discord
 }
 
 enum ErrorState {

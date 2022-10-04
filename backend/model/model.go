@@ -250,6 +250,7 @@ type Workspace struct {
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
+	DiscordGuildId              *string
 }
 
 type WorkspaceAdmin struct {
