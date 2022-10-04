@@ -20,14 +20,7 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
 import moment from 'moment'
-import {
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Area, AreaChart } from 'recharts'
 
 import style from './TimelineIndicatorsBarGraph.module.scss'
@@ -37,8 +30,10 @@ interface Props {
 }
 
 const TARGET_BUCKET_COUNT = 40
+const TARGET_TICK_COUNT = 20
 const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
+const TIME_JUMP_WAIT = 25
 
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
@@ -51,8 +46,6 @@ const TimelineIndicatorsBarGraph = ({
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
 		setTime,
-		play,
-		pause,
 		state,
 		eventsForTimelineIndicator,
 		sessionComments,
@@ -119,15 +112,12 @@ const TimelineIndicatorsBarGraph = ({
 		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
 	}, [width])
 
-	const bucketSize = useMemo(
-		() => pickBucketSize(duration / camera.zoom, TARGET_BUCKET_COUNT),
-		[duration, camera.zoom],
+	const canvasWidth = viewportWidth * camera.zoom
+	const bucketSize = pickBucketSize(
+		duration / camera.zoom,
+		TARGET_BUCKET_COUNT,
 	)
-
-	const bucketTimestep = useMemo(
-		() => getBucketSizeInMs(bucketSize),
-		[bucketSize],
-	)
+	const bucketTimestep = getBucketSizeInMs(bucketSize)
 
 	const buckets = useMemo(
 		() =>
@@ -143,7 +133,6 @@ const TimelineIndicatorsBarGraph = ({
 		...buckets.map((bucket) => bucket.totalCount),
 	)
 
-	const canvasWidth = viewportWidth * camera.zoom
 	const minBucketWidth = (10 / canvasWidth) * 100 // 10px in the zoomed view
 	const bucketPercentWidth = Math.max(
 		(100 * bucketTimestep) / duration,
@@ -181,11 +170,6 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		const zoom = (clientX: number, dz: number) => {
-			if (isRefreshingDOM) {
-				return
-			}
-			setIsRefreshingDOM(true)
-
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const { offsetLeft, scrollLeft } = viewportDiv
 
@@ -196,6 +180,7 @@ const TimelineIndicatorsBarGraph = ({
 			const maxZoom = Math.max(duration / 10_000, 2)
 
 			setCamera((camera) => {
+				setIsRefreshingDOM(true)
 				const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
 				const pointA =
 					scrollLeft +
@@ -217,12 +202,8 @@ const TimelineIndicatorsBarGraph = ({
 			})
 		}
 		const pan = (deltaX: number) => {
-			if (isRefreshingDOM) {
-				return
-			}
-
-			setIsRefreshingDOM(true)
 			setCamera(({ zoom, x }) => {
+				setIsRefreshingDOM(true)
 				x = clamp(x + deltaX, 0, viewportWidth * zoom - viewportWidth)
 
 				return { zoom, x }
@@ -232,6 +213,10 @@ const TimelineIndicatorsBarGraph = ({
 		const onWheel = (event: WheelEvent) => {
 			event.preventDefault()
 			event.stopPropagation()
+
+			if (isRefreshingDOM) {
+				return
+			}
 
 			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
 
@@ -246,6 +231,12 @@ const TimelineIndicatorsBarGraph = ({
 		const onDoubleclick = (event: MouseEvent) => {
 			event.preventDefault()
 			event.stopPropagation()
+
+			if (isRefreshingDOM) {
+				return
+			}
+
+			setIsRefreshingDOM(true)
 
 			const { clientX } = event
 			zoom(clientX, -1.618)
@@ -266,20 +257,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
-	const [shouldPlay, setShouldPlay] = useState(false)
-	useEffect(() => {
-		// pause playing on drag start
-		if (state === ReplayerState.Playing && isDragging && !shouldPlay) {
-			pause()
-			setShouldPlay(true)
-		}
-
-		if (state === ReplayerState.Paused && !isDragging && shouldPlay) {
-			// start playing after dragging
-			play()
-			setShouldPlay(false)
-		}
-	}, [isDragging, pause, play, shouldPlay, state])
+	const [dragTime, setDragTime] = useState<number>(time)
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -333,13 +311,17 @@ const TimelineIndicatorsBarGraph = ({
 				0,
 				duration,
 			)
-			setTime(newTime)
+			if (!shouldDrag) {
+				setTime(newTime)
+			} else {
+				setDragTime(newTime)
+			}
 			return newTime
 		}
 
 		const onDrag = () => {
 			shouldDrag = true
-			setIsDragging(shouldDrag)
+			setIsDragging(true)
 			timeIndicatorTopDiv.style.cursor = 'grabbing'
 		}
 
@@ -418,36 +400,31 @@ const TimelineIndicatorsBarGraph = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [duration])
 
-	const leftProgress = useMemo(() => {
-		const x =
-			clamp(camera.x, TIMELINE_MARGIN, canvasWidth - viewportWidth) -
-			TIMELINE_MARGIN
-		return (width * x) / canvasWidth
-	}, [viewportWidth, canvasWidth, camera.x, width])
+	// camera.x frame of reference is the canvas; to fix it to the viewport and make
+	// margins insignificant parts of panning/zooming the session, we clamp the values
+	const relativeX =
+		clamp(camera.x, TIMELINE_MARGIN, canvasWidth - viewportWidth) -
+		TIMELINE_MARGIN
+	const leftProgress = (width * relativeX) / canvasWidth
 
-	const rightProgress = useMemo(() => {
-		const actualZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
-		return clamp(leftProgress + width / actualZoom, 1, width)
-	}, [canvasWidth, leftProgress, viewportWidth, width])
+	// the same reasoning applies to camera.zoom
+	const relativeZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
+	const rightProgress = clamp(leftProgress + width / relativeZoom, 1, width)
 
-	const leftmostBucketIdx = useMemo(() => {
-		return clamp(
-			Math.floor((leftProgress * buckets.length) / width) - 1,
-			0,
-			buckets.length - 1,
-		)
-	}, [buckets, leftProgress, width])
+	const leftmostBucketIdx = clamp(
+		Math.floor((leftProgress * buckets.length) / width) - 1,
+		0,
+		buckets.length - 1,
+	)
 
-	const rightmostBucketIdx = useMemo(() => {
-		return clamp(
-			Math.ceil((rightProgress / width) * buckets.length) + 1,
-			0,
-			buckets.length - 1,
-		)
-	}, [buckets, rightProgress, width])
+	const rightmostBucketIdx = clamp(
+		Math.ceil((rightProgress / width) * buckets.length) + 1,
+		0,
+		buckets.length - 1,
+	)
 
 	const ticks = useMemo(() => {
-		let size = pickBucketSize(duration / camera.zoom, 20)
+		let size = pickBucketSize(duration / camera.zoom, TARGET_TICK_COUNT)
 		// do Math.ceil to have 1 second as the min tick
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
@@ -462,7 +439,7 @@ const TimelineIndicatorsBarGraph = ({
 		const isTickRedundant = (idx: number, rem: number) => {
 			const leftTime = (idx + rem) * mainTickInMs
 			if (
-				leftTime > duration ||
+				leftTime > duration + 250 ||
 				leftTime < (leftmostBucketIdx - 1) * bucketTimestep ||
 				leftTime > (rightmostBucketIdx + 1) * bucketTimestep
 			) {
@@ -560,6 +537,9 @@ const TimelineIndicatorsBarGraph = ({
 		rightmostBucketIdx,
 	])
 
+	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
+
+	const shownTime = isDragging ? dragTime : time
 	if (!events.length || state === ReplayerState.Loading || !replayer) {
 		return (
 			<div
@@ -576,7 +556,6 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			<div className={style.progressBarContainer}>
@@ -589,7 +568,8 @@ const TimelineIndicatorsBarGraph = ({
 								className={style.progressBar}
 								style={{
 									width: clamp(
-										(time * borderlessWidth) / duration,
+										(shownTime * borderlessWidth) /
+											duration,
 										0,
 										borderlessWidth,
 									),
@@ -640,7 +620,7 @@ const TimelineIndicatorsBarGraph = ({
 				) : (
 					<AreaChart
 						width={borderlessWidth}
-						height={36}
+						height={22}
 						data={buckets}
 						margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
 					>
@@ -664,14 +644,14 @@ const TimelineIndicatorsBarGraph = ({
 			<div className={style.timelineContainer} ref={viewportRef}>
 				<TimeIndicator
 					left={clamp(
-						(time * viewportWidth * camera.zoom) / duration +
+						(shownTime * viewportWidth * camera.zoom) / duration +
 							TIMELINE_MARGIN,
 						TIMELINE_MARGIN,
 						TIMELINE_MARGIN + viewportWidth * camera.zoom,
 					)}
 					topRef={timeIndicatorTopRef}
 					hairRef={timeIndicatorHairRef}
-					text={formatTimeOnTop(time)}
+					text={formatTimeOnTop(isDragging ? dragTime : time)}
 					isDragging={isDragging}
 				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>

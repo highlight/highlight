@@ -1,3 +1,5 @@
+import { clamp } from '@util/numbers'
+
 import style from './ZoomArea.module.scss'
 
 interface Props {
@@ -7,14 +9,16 @@ interface Props {
 }
 const ZOOM_AREA_SIDE_WIDTH = 15
 const ZoomArea = ({ leftProgress, rightProgress, isHidden }: Props) => {
+	const left = clamp(
+		leftProgress - ZOOM_AREA_SIDE_WIDTH,
+		0,
+		rightProgress - 2 * ZOOM_AREA_SIDE_WIDTH,
+	)
 	return (
 		<div
 			style={{
-				left: leftProgress,
-				width: Math.max(
-					rightProgress - leftProgress,
-					ZOOM_AREA_SIDE_WIDTH * 2,
-				),
+				left,
+				width: Math.max(rightProgress - left, ZOOM_AREA_SIDE_WIDTH * 2),
 				visibility: isHidden ? 'hidden' : 'visible',
 			}}
 			className={style.zoomArea}
