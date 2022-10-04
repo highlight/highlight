@@ -51,6 +51,9 @@ export const LoadingPage = React.memo<{ show?: boolean }>(({ show }) => {
 	const speedFactor = 0.1
 
 	return (
+		// TODO - we need to update the framer-motion package to pull the new type definitions
+		// https://github.com/framer/motion/pull/1507
+		// @ts-expect-error
 		<AnimatePresence>
 			{(show ||
 				[

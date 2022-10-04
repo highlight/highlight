@@ -22,6 +22,9 @@ const DetailPanel = () => {
 	}, [session_secure_id])
 
 	return (
+		// TODO - we need to update the framer-motion package to pull the new type definitions
+		// https://github.com/framer/motion/pull/1507
+		// @ts-expect-error
 		<AnimatePresence presenceAffectsLayout>
 			{!detailedPanel ? null : (
 				<Resizable

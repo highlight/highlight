@@ -81,6 +81,9 @@ const TimelineIndicatorsMemoized = React.memo(
 			)
 		}
 		return (
+			// TODO - we need to update the framer-motion package to pull the new type definitions
+			// https://github.com/framer/motion/pull/1507
+			// @ts-expect-error
 			<AnimatePresence presenceAffectsLayout>
 				<aside
 					className={classNames(styles.container)}

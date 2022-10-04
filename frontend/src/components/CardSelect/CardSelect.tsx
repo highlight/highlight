@@ -21,6 +21,10 @@ const CardSelect = ({
 }: Props) => {
 	return (
 		<button onClick={onClick} type="button" className={styles.button}>
+			{/*
+		    // TODO - we need to update the framer-motion package to pull the new type definitions
+		    // https://github.com/framer/motion/pull/1507
+			  // @ts-expect-error*/}
 			<AnimatePresence>
 				{isSelected && (
 					<motion.div
