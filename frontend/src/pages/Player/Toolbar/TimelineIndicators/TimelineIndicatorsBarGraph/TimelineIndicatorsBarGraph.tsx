@@ -672,6 +672,7 @@ const TimelineIndicatorsBarGraph = ({
 					topRef={timeIndicatorTopRef}
 					hairRef={timeIndicatorHairRef}
 					text={formatTimeOnTop(time)}
+					isDragging={isDragging}
 				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>
 					{ticks}

@@ -6,9 +6,9 @@ interface Props {
 	topRef: RefObject<HTMLElement>
 	hairRef: RefObject<HTMLElement>
 	text?: string
-	hideText?: boolean
+	isDragging?: boolean
 }
-const TimeIndicator = ({ left, topRef, hairRef, text, hideText }: Props) => {
+const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
 	const [isTextVisible, setIsTextVisible] = useState(false)
@@ -64,7 +64,7 @@ const TimeIndicator = ({ left, topRef, hairRef, text, hideText }: Props) => {
 					top: (origin?.top || 0) - 24,
 					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
 					visibility:
-						isTextVisible && !hideText ? 'visible' : 'hidden',
+						isTextVisible || isDragging ? 'visible' : 'hidden',
 				}}
 			>
 				{text}
