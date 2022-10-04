@@ -90,7 +90,7 @@ const ErrorCard = React.memo(
 									e.stopPropagation()
 
 									const dateTimeErrorCreated = new Date(
-										error.timestamp,
+										error.timestamp || 0,
 									)
 									const startTime = sessionMetadata.startTime
 									if (startTime) {

@@ -143,7 +143,7 @@ const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
 									sessionMetadata.startTime
 
 								const relativeTime =
-									new Date(error.timestamp).getTime() -
+									new Date(error.timestamp || 0).getTime() -
 									sessionStartTime
 
 								if (

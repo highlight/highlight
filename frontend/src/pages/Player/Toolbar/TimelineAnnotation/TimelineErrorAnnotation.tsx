@@ -97,7 +97,7 @@ function TimelineErrorAnnotation({
 				onClickHandler={() => {
 					if (replayer) {
 						const newTime =
-							new Date(error.timestamp).getTime() -
+							new Date(error.timestamp || 0).getTime() -
 							sessionMetadata.startTime
 
 						pause(newTime)
