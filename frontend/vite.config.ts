@@ -2,34 +2,19 @@
 /// <reference types="vitest/globals" />
 import react from '@vitejs/plugin-react'
 import { dirname, join } from 'node:path'
+import { keys } from 'ts-transformer-keys'
 import { fileURLToPath } from 'url'
-import { loadEnv } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vitePluginImp from 'vite-plugin-imp'
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { defineConfig } from 'vitest/config'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Adding something here? Please update `.env.d.ts` to update our Typescript definitions.
+// Need to send an environment variable to the frontend? Add it to `.env.d.ts`.
 // *DO NOT* put something in here unless you're positive it's safe to expose this to the world.
-const ENVVAR_ALLOWLIST = [
-	'REACT_APP_COMMIT_SHA',
-	'REACT_APP_ENVIRONMENT',
-	'REACT_APP_FIREBASE_CONFIG_OBJECT',
-	'REACT_APP_FRONT_INTEGRATION_CLIENT_ID',
-	'REACT_APP_FRONTEND_ORG',
-	'REACT_APP_ONPREM',
-	'REACT_APP_PRIVATE_GRAPH_URI',
-	'REACT_APP_STRIPE_API_PK',
-	'REACT_APP_VERCEL_INTEGRATION_NAME',
-
-	'LINEAR_CLIENT_ID',
-	'SLACK_CLIENT_ID',
-	'DD_CLIENT_TOKEN',
-	'DD_RUM_APPLICATION_ID',
-]
+const ENVVAR_ALLOWLIST = keys<ImportMetaEnv>().map((key) => key.toString())
 
 // In order to prevent accidentally env var leakage, Vite only allows the configuration of defining
 // the environment variable prefix (see: https://vitejs.dev/guide/env-and-mode.html#env-variables-and-modes)

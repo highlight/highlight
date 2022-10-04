@@ -76,6 +76,7 @@
 		"source-map-explorer": "^2.5.2",
 		"stacktrace-js": "^2.0.2",
 		"subscriptions-transport-ws": "^0.11.0",
+		"ts-transformer-keys": "^0.4.3",
 		"use-http": "^1.0.26",
 		"use-query-params": "^1.2.0",
 		"validator": "13.7.0",
