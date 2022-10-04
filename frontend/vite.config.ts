@@ -25,6 +25,12 @@ const ENVVAR_ALLOWLIST = js.pipeline.build.env
 // the env vars on the allowlist are actually exposed.
 const validateSafeAllowList = (env: Record<string, string>) => {
 	ENVVAR_ALLOWLIST.forEach((allowListEnvVar) => {
+		if (process.env[allowListEnvVar] === undefined) {
+			throw new Error(
+				`Environment variable, ${allowListEnvVar}, is not defined`,
+			)
+		}
+
 		Object.keys(env).forEach((key) => {
 			if (key === allowListEnvVar) {
 				return
