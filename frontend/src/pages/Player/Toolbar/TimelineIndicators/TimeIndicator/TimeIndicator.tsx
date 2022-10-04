@@ -6,29 +6,43 @@ interface Props {
 	topRef: RefObject<HTMLElement>
 	hairRef: RefObject<HTMLElement>
 	text?: string
+	hideText?: boolean
 }
-const TimeIndicator = ({ left, topRef, hairRef, text }: Props) => {
+const TimeIndicator = ({ left, topRef, hairRef, text, hideText }: Props) => {
+	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
 	const [isTextVisible, setIsTextVisible] = useState(false)
 
 	useLayoutEffect(() => {
 		const topElem = topRef.current
 		const hairElem = hairRef.current
-		if (!topElem || !hairElem) {
+		const container = indicatorRef.current
+		if (!topElem || !hairElem || !container) {
 			return
 		}
-		const onMouseenter = () => setIsTextVisible(true)
-		const onMouseleave = () => setIsTextVisible(false)
 
-		topElem.addEventListener('mouseenter', onMouseenter)
-		topElem.addEventListener('mouseleave', onMouseleave)
-		hairElem.addEventListener('mouseenter', onMouseenter)
-		hairElem.addEventListener('mouseleave', onMouseleave)
+		const isClose = (event: MouseEvent) => {
+			const bbox = topElem.getBoundingClientRect()
+			const topCenterX = bbox.left + bbox.width / 2
+			const topCenterY = bbox.top + bbox.height / 2
+			const { clientX, clientY } = event
+
+			return (
+				(clientX - topCenterX) ** 2 + (clientY - topCenterY) ** 2 < 300
+			)
+		}
+
+		const onPointermove = (event: MouseEvent) => {
+			setIsTextVisible(isClose(event))
+		}
+
+		const onPointerleave = () => setIsTextVisible(false)
+
+		container.addEventListener('pointermove', onPointermove)
+		container.addEventListener('pointerleave', onPointerleave)
 		return () => {
-			topElem.removeEventListener('mouseenter', onMouseenter)
-			topElem.removeEventListener('mouseeleave', onMouseleave)
-			hairElem.removeEventListener('mouseenter', onMouseenter)
-			hairElem.removeEventListener('mouseeleave', onMouseleave)
+			container.removeEventListener('pointermove', onPointermove)
+			container.removeEventListener('pointermove', onPointerleave)
 		}
 	}, [hairRef, topRef])
 	const origin = topRef.current?.getBoundingClientRect()
@@ -41,6 +55,7 @@ const TimeIndicator = ({ left, topRef, hairRef, text }: Props) => {
 			style={{
 				left: left - pinWidth / 2,
 			}}
+			ref={indicatorRef}
 		>
 			<span
 				className={style.timeIndicatorText}
@@ -48,7 +63,8 @@ const TimeIndicator = ({ left, topRef, hairRef, text }: Props) => {
 				style={{
 					top: (origin?.top || 0) - 24,
 					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
-					visibility: isTextVisible ? 'visible' : 'hidden',
+					visibility:
+						isTextVisible && !hideText ? 'visible' : 'hidden',
 				}}
 			>
 				{text}
