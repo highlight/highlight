@@ -1,5 +1,6 @@
 import {
 	AsyncEventsMessage,
+	EventMessage,
 	FeedbackMessage,
 	HighlightClientWorkerParams,
 	HighlightClientWorkerResponse,
@@ -24,6 +25,7 @@ import {
 } from './constants'
 import { Logger } from '../logger'
 import { MetricCategory } from '../types/client'
+import { eventWithTime } from '@highlight-run/rrweb/typings/types'
 
 export interface HighlightClientRequestWorker {
 	postMessage: (message: HighlightClientWorkerParams) => void
@@ -108,6 +110,7 @@ function stringifyProperties(
 		timestamp: string
 		tags: { name: string; value: string }[]
 	}[] = []
+	const eventsPayload: eventWithTime[] = []
 
 	const shouldSendRequest = (): boolean => {
 		return (
@@ -127,10 +130,13 @@ function stringifyProperties(
 		})
 	}
 
+	const processEventMessage = async (msg: EventMessage) => {
+		eventsPayload.push(msg.event)
+	}
+
 	const processAsyncEventsMessage = async (msg: AsyncEventsMessage) => {
 		const {
 			id,
-			events,
 			messages,
 			errors,
 			resourcesString,
@@ -142,7 +148,7 @@ function stringifyProperties(
 		const messagesString = stringify({ messages: messages })
 		let payload: PushPayloadMutationVariables = {
 			session_secure_id: sessionSecureID,
-			events: { events } as ReplayEventsInput,
+			events: { events: eventsPayload } as ReplayEventsInput,
 			messages: messagesString,
 			resources: resourcesString,
 			errors,
@@ -157,6 +163,8 @@ function stringifyProperties(
 		const eventsSize = graphqlSDK
 			.PushPayload(payload)
 			.then((res) => res.pushPayload ?? 0)
+		// clear batched payload before yielding for network request
+		eventsPayload.splice(0)
 
 		if (metricsPayload.length) {
 			const metrics = graphqlSDK.pushMetrics({
@@ -276,7 +284,9 @@ function stringifyProperties(
 			return
 		}
 		try {
-			if (e.data.message.type === MessageType.AsyncEvents) {
+			if (e.data.message.type === MessageType.EventMessage) {
+				await processEventMessage(e.data.message as EventMessage)
+			} else if (e.data.message.type === MessageType.AsyncEvents) {
 				await processAsyncEventsMessage(
 					e.data.message as AsyncEventsMessage,
 				)

@@ -158,7 +158,6 @@ export class Highlight {
 	/** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
 	organizationID!: string
 	graphqlSDK!: Sdk
-	events!: eventWithTime[]
 	sessionData!: SessionData
 	ready!: boolean
 	state!: 'NotRecording' | 'Recording'
@@ -388,7 +387,6 @@ export class Highlight {
 		this._optionsInternal = optionsInternal
 		this.listeners = []
 
-		this.events = []
 		this.hasSessionUnloaded = false
 		this.hasPushedData = false
 
@@ -647,7 +645,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this._save()
 			}, FIRST_SEND_FREQUENCY)
 			const emit = (event: eventWithTime) => {
-				this.events.push(event)
+				this._worker.postMessage({
+					message: {
+						type: MessageType.EventMessage,
+						event,
+					},
+				})
 			}
 			emit.bind(this)
 			setTimeout(() => {
@@ -1142,17 +1145,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			let intervalId: ReturnType<typeof setInterval>
 			const worker = () => {
 				clearInterval(intervalId)
-				if (this.state === 'Recording' && this.events.length > 0) {
+				if (this.state === 'Recording') {
 					rrwebAddCustomEvent(tag, payload)
 				} else {
 					intervalId = setTimeout(worker, 500)
 				}
 			}
 			intervalId = setTimeout(worker, 500)
-		} else if (
-			this.state === 'Recording' &&
-			(this.events.length > 0 || this.hasPushedData)
-		) {
+		} else if (this.state === 'Recording' && this.hasPushedData) {
 			rrwebAddCustomEvent(tag, payload)
 		}
 	}
@@ -1168,7 +1168,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._firstLoadListeners,
 			this._recordingStartTime,
 		)
-		const events = [...this.events]
 		const messages = [...this._firstLoadListeners.messages]
 		const errors = [...this._firstLoadListeners.errors]
 
@@ -1189,13 +1188,13 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 
 		this.logger.log(
-			`Sending: ${events.length} events, ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionSecureID: ${this.sessionData.sessionSecureID}`,
+			`Sending: ${messages.length} messages, ${resources.length} network resources, ${errors.length} errors \nTo: ${this._backendUrl}\nOrg: ${this.organizationID}\nSessionSecureID: ${this.sessionData.sessionSecureID}`,
 		)
 		const highlightLogs = getHighlightLogs()
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
-				events: { events } as ReplayEventsInput,
+				events: { events: [] } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
 				errors,
@@ -1208,7 +1207,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				message: {
 					type: MessageType.AsyncEvents,
 					id: this._payloadId,
-					events,
 					messages,
 					errors,
 					resourcesString: JSON.stringify({ resources: resources }),
@@ -1237,7 +1235,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			// 2. rrweb pushes to this.events (with M events)
 			// 3. Network request made to push payload (Only includes N events)
 			// 4. this.events is cleared (we lose M events)
-			this.events = this.events.slice(events.length)
 
 			this._firstLoadListeners.messages =
 				this._firstLoadListeners.messages.slice(messages.length)
@@ -1248,6 +1245,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 }
 
+// eslint-disable-next-line no-extra-semi
 ;(window as any).Highlight = Highlight
 
 interface HighlightWindow extends Window {

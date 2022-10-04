@@ -17,6 +17,7 @@ export enum MessageType {
 	Metrics,
 	Feedback,
 	CustomEvent,
+	EventMessage,
 }
 
 export type InitializeMessage = {
@@ -27,13 +28,17 @@ export type InitializeMessage = {
 	recordingStartTime: number
 }
 
+export type EventMessage = {
+	type: MessageType.EventMessage
+	event: eventWithTime
+}
+
 export type AsyncEventsMessage = {
 	type: MessageType.AsyncEvents
 	id: number
 	isBeacon: boolean
 	hasSessionUnloaded: boolean
 	highlightLogs: string
-	events: eventWithTime[]
 	messages: ConsoleMessage[]
 	errors: ErrorMessage[]
 	resourcesString: string
@@ -87,6 +92,7 @@ export type CustomEventResponse = {
 export type HighlightClientWorkerParams = {
 	message:
 		| InitializeMessage
+		| EventMessage
 		| AsyncEventsMessage
 		| IdentifyMessage
 		| PropertiesMessage
