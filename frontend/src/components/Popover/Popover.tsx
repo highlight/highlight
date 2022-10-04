@@ -20,6 +20,7 @@ type PopoverProps = Pick<
 	| 'visible'
 	| 'destroyTooltipOnHide'
 	| 'getPopupContainer'
+	| 'overlayClassName'
 > & {
 	isList?: boolean
 	popoverClassName?: string

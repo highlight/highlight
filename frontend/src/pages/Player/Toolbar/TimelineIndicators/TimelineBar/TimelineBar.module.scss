@@ -1,0 +1,39 @@
+.bar {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	justify-content: flex-end;
+	overflow: hidden;
+	position: absolute;
+}
+
+.isShaded {
+	background-color: var(--color-neutral-100);
+}
+
+.rectangleContainer {
+	border-radius: 0.2em;
+	display: flex;
+	flex-direction: column;
+	margin: 2px;
+	margin-top: 8px;
+	overflow: hidden;
+	width: calc(100% - 4px);
+}
+
+.barRectangle {
+	cursor: pointer;
+	margin-bottom: 2px;
+}
+
+.eventAggregateTitle {
+	margin: 0;
+	width: 100%;
+}
+
+.timelineBarPopoverContainer {
+	:global(.ant-popover-inner-content) {
+		padding: 4px !important;
+	}
+}

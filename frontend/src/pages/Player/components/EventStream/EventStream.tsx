@@ -247,9 +247,6 @@ export const usefulEvent = (e: eventWithTime): boolean => {
 		}
 		return !!e.data.tag
 	}
-	// If its not an 'incrementalSnapshot', discard.
-	if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
-		return false
 
 	return false
 }

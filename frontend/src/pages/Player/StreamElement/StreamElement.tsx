@@ -1,3 +1,5 @@
+/// <reference types="vite-plugin-svgr/client" />
+
 import { ExternalLinkText } from '@components/ExternalLinkText'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { EventType } from '@highlight-run/rrweb'
@@ -8,13 +10,14 @@ import SegmentIcon from '@icons/SegmentIcon'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender'
+import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { message } from 'antd'
 import classNames from 'classnames/bind'
 import moment from 'moment'
 import React, { useState } from 'react'
 import { FaBug, FaRegStopCircle } from 'react-icons/fa'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import GoToButton from '../../../components/Button/GoToButton'
@@ -64,7 +67,7 @@ export const StreamElement = ({
 	const [selected, setSelected] = useState(false)
 	const details = getEventRenderDetails(e)
 	const { pause } = useReplayerContext()
-	const timeSinceStart = e?.timestamp - start
+	const timeSinceStart = Math.max(e?.timestamp - start, 0)
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveEvent } = usePlayerUIContext()
 	const params = useParams<{ project_id: string }>()
@@ -249,7 +252,7 @@ export const StreamElement = ({
 	)
 }
 
-type EventRenderDetails = {
+export type EventRenderDetails = {
 	title?: string
 	payload?: string
 	displayValue: string | React.ReactNode

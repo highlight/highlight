@@ -1,7 +1,6 @@
 import { TooltipPlacement } from 'antd/lib/tooltip'
 import classNames from 'classnames'
 import { motion } from 'framer-motion'
-import React from 'react'
 
 import { EventsForTimeline } from '../../PlayerHook/utils'
 import { ParsedEvent } from '../../ReplayerContext'

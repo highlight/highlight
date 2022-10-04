@@ -1,9 +1,11 @@
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	playerMetaData,
 	SessionInterval,
 } from '@highlight-run/rrweb/typings/types'
+import { clamp } from '@util/numbers'
 import { message } from 'antd'
 import * as H from 'history'
 import { useCallback, useState } from 'react'
@@ -300,7 +302,7 @@ export const getEventsForTimelineIndicator = (
 	sessionTotalTime: number,
 ): ParsedHighlightEvent[] => {
 	const eventsToAddToTimeline = events.filter((event) => {
-		if (event.type === 5) {
+		if (event.type === EventType.Custom) {
 			const data = event.data as any
 			return CustomEventsForTimelineSet.has(data.tag)
 		}
@@ -317,6 +319,61 @@ export const getEventsForTimelineIndicator = (
 }
 
 /**
+ * Gets errors with timestamps for the timeline indicator.
+ */
+export const getErrorsForTimelineIndicator = (
+	errors: ErrorObject[],
+	sessionStartTime: number,
+	sessionTotalTime: number,
+): ParsedErrorObject[] => {
+	const errorsWithTimestamps = errors.filter((error) => !!error.timestamp)
+
+	const groupedEvents = assignEventToSessionInterval(
+		errorsWithTimestamps,
+		sessionStartTime,
+		sessionTotalTime,
+	)
+
+	return groupedEvents as ParsedErrorObject[]
+}
+
+/**
+ * Gets comments for the timeline indicator based on the type of event.
+ */
+export const getCommentsForTimelineIndicator = (
+	comments: SessionComment[],
+	sessionStartTime: number,
+	sessionTotalTime: number,
+): ParsedSessionComment[] => {
+	const commentsWithTimestamps = comments
+		.filter(
+			(comment) => !!comment.timestamp || !!comment.metadata?.timestamp,
+		)
+		.map((comment) => {
+			if (comment.type === 'FEEDBACK') {
+				const timestamp =
+					new Date(comment.metadata.timestamp).getTime() -
+					sessionStartTime
+				return {
+					...comment,
+					timestamp,
+				}
+			}
+
+			return { ...comment }
+		})
+
+	const groupedEvents = assignEventToSessionInterval(
+		commentsWithTimestamps,
+		sessionStartTime,
+		sessionTotalTime,
+		true,
+	)
+
+	return groupedEvents as ParsedSessionComment[]
+}
+
+/**
  * Adds error events based on the interval that the error was thrown.
  */
 export const addEventsToSessionIntervals = (
@@ -325,7 +382,7 @@ export const addEventsToSessionIntervals = (
 	sessionStartTime: number,
 ): ParsedSessionInterval[] => {
 	const eventsToAddToTimeline = events.filter((event) => {
-		if (event.type === 5) {
+		if (event.type === EventType.Custom) {
 			const data = event.data as any
 			return CustomEventsForTimelineSet.has(data.tag)
 		}
@@ -402,8 +459,11 @@ const assignEventToSessionIntervalRelative = (
 			response[sessionIntervalIndex].push({
 				...event,
 				// Calculate at the percentage of time where the event occurred in the session.
-				relativeIntervalPercentage:
+				relativeIntervalPercentage: clamp(
 					(relativeTime / currentSessionInterval.duration) * 100,
+					0,
+					100,
+				),
 			})
 			eventIndex++
 		} else {
@@ -486,8 +546,11 @@ const assignEventToSessionInterval = (
 
 		response.push({
 			...event,
-			relativeIntervalPercentage:
+			relativeIntervalPercentage: clamp(
 				(relativeTimestamp / sessionTotalTime) * 100,
+				0,
+				100,
+			),
 		})
 	})
 
