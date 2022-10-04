@@ -87,9 +87,10 @@
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"codegen": "graphql-codegen --config codegen.yml",
-		"build": "NODE_OPTIONS='--max-old-space-size=7168' vite build",
+		"build": "yarn types:check && NODE_OPTIONS='--max-old-space-size=7168' vite build",
 		"sourcemaps": "npx --yes @highlight-run/sourcemap-uploader upload --apiKey \"${HIGHLIGHT_API_KEY}\" --path ./build",
 		"test": "TZ=UTC vitest --run",
+		"types:check": "tsc -noEmit",
 		"analyze": "source-map-explorer 'build/static/js/*.js'",
 		"svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es"
 	},
