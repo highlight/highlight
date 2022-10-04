@@ -600,6 +600,7 @@ export type SessionAlertInput = {
 	environments: Array<Scalars['String']>
 	disabled: Scalars['Boolean']
 	type: SessionAlertType
+	user_properties: Array<UserPropertyInput>
 }
 
 export type ErrorSearchParams = {
@@ -1645,9 +1646,7 @@ export type Mutation = {
 	createSessionAlert?: Maybe<SessionAlert>
 	updateTrackPropertiesAlert?: Maybe<SessionAlert>
 	createTrackPropertiesAlert?: Maybe<SessionAlert>
-	createUserPropertiesAlert?: Maybe<SessionAlert>
 	deleteSessionAlert?: Maybe<SessionAlert>
-	updateUserPropertiesAlert?: Maybe<SessionAlert>
 	updateNewSessionAlert?: Maybe<SessionAlert>
 	createNewSessionAlert?: Maybe<SessionAlert>
 	updateSessionIsPublic?: Maybe<Session>
@@ -2027,31 +2026,9 @@ export type MutationCreateTrackPropertiesAlertArgs = {
 	threshold_window: Scalars['Int']
 }
 
-export type MutationCreateUserPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	user_properties: Array<Maybe<UserPropertyInput>>
-	threshold_window: Scalars['Int']
-}
-
 export type MutationDeleteSessionAlertArgs = {
 	project_id: Scalars['ID']
 	session_alert_id: Scalars['ID']
-}
-
-export type MutationUpdateUserPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	threshold_window?: Maybe<Scalars['Int']>
-	disabled?: Maybe<Scalars['Boolean']>
 }
 
 export type MutationUpdateNewSessionAlertArgs = {

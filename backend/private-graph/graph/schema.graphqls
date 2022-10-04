@@ -549,6 +549,7 @@ input SessionAlertInput {
 	environments: [String!]!
 	disabled: Boolean!
 	type: SessionAlertType!
+	user_properties: [UserPropertyInput!]!
 }
 
 type ErrorSearchParams {
@@ -1420,27 +1421,7 @@ type Mutation {
 		track_properties: [TrackPropertyInput]!
 		threshold_window: Int!
 	): SessionAlert
-	createUserPropertiesAlert(
-		project_id: ID!
-		name: String!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		user_properties: [UserPropertyInput]!
-		threshold_window: Int!
-	): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-	updateUserPropertiesAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		user_properties: [UserPropertyInput]
-		threshold_window: Int
-		disabled: Boolean
-	): SessionAlert
 	updateNewSessionAlert(
 		project_id: ID!
 		session_alert_id: ID!

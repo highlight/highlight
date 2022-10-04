@@ -367,6 +367,7 @@ type SessionAlertInput struct {
 	Environments    []string                      `json:"environments"`
 	Disabled        bool                          `json:"disabled"`
 	Type            SessionAlertType              `json:"type"`
+	UserProperties  []*UserPropertyInput          `json:"user_properties"`
 }
 
 type SessionCommentTagInput struct {

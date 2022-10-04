@@ -60,6 +60,12 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, err
 	}
 
+	userPropertiesBytes, err := json.Marshal(input.UserProperties)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing user properties for user properties alert")
+	}
+	userPropertiesString := string(userPropertiesBytes)
+
 	inputType := string(input.Type)
 
 	return &model.SessionAlert{
@@ -76,5 +82,6 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
 		},
+		UserProperties: &userPropertiesString,
 	}, nil
 }

@@ -8,7 +8,6 @@ import {
 	useCreateNewSessionAlertMutation,
 	useCreateSessionAlertMutation,
 	useCreateTrackPropertiesAlertMutation,
-	useCreateUserPropertiesAlertMutation,
 	useGetIdentifierSuggestionsQuery,
 	useGetTrackSuggestionQuery,
 	useGetUserSuggestionQuery,
@@ -16,7 +15,6 @@ import {
 	useUpdateNewSessionAlertMutation,
 	useUpdateSessionAlertMutation,
 	useUpdateTrackPropertiesAlertMutation,
-	useUpdateUserPropertiesAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { SessionAlertType } from '@graph/schemas'
@@ -95,7 +93,7 @@ export const AlertConfigurationCard = ({
 	const [form] = Form.useForm()
 	const [updateErrorAlert] = useUpdateErrorAlertMutation()
 	const [updateNewUserAlert] = useUpdateSessionAlertMutation()
-	const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation()
+	const [updateUserPropertiesAlert] = useUpdateSessionAlertMutation()
 	const history = useHistory()
 	const [createErrorAlert, {}] = useCreateErrorAlertMutation({
 		variables: {
@@ -117,6 +115,7 @@ export const AlertConfigurationCard = ({
 				project_id,
 				count_threshold: 1,
 				environments: [],
+				user_properties: [],
 				slack_channels: [],
 				threshold_window: 30,
 				name: 'Session Feedback',
@@ -133,6 +132,7 @@ export const AlertConfigurationCard = ({
 				project_id,
 				count_threshold: 1,
 				environments: [],
+				user_properties: [],
 				slack_channels: [],
 				name: 'New User',
 				threshold_window: 1,
@@ -150,6 +150,7 @@ export const AlertConfigurationCard = ({
 				count_threshold: 1,
 				environments: [],
 				slack_channels: [],
+				user_properties: [],
 				name: 'Rage Click',
 				threshold_window: 30,
 				emails: emailsToNotify,
@@ -185,19 +186,23 @@ export const AlertConfigurationCard = ({
 			},
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		})
-	const [createUserPropertiesAlert, {}] =
-		useCreateUserPropertiesAlertMutation({
-			variables: {
+	const [createUserPropertiesAlert, {}] = useCreateSessionAlertMutation({
+		variables: {
+			input: {
 				project_id,
 				environments: [],
 				slack_channels: [],
 				name: 'User',
 				user_properties: [],
 				threshold_window: 1,
+				count_threshold: 1,
 				emails: emailsToNotify,
+				disabled: false,
+				type: SessionAlertType.UserPropertiesAlert,
 			},
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		})
+		},
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
 	const [updateTrackPropertiesAlert] = useUpdateTrackPropertiesAlertMutation()
 	const [updateSessionFeedbackAlert] = useUpdateSessionAlertMutation()
 	const [updateRageClickAlert] = useUpdateSessionAlertMutation()
@@ -260,6 +265,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: 1,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.NewUserAlert,
@@ -288,6 +294,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: lookbackPeriod,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.RageClickAlert,
@@ -302,6 +309,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: 1,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: false,
 									type: SessionAlertType.SessionFeedbackAlert,
@@ -334,20 +342,24 @@ export const AlertConfigurationCard = ({
 						await createUserPropertiesAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								threshold_window: 1,
-								user_properties: form
-									.getFieldValue('userProperties')
-									.map((userProperty: any) => {
-										const [value, name, id] =
-											userProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
-								emails: emailsToNotify,
+								input: {
+									...requestVariables,
+									threshold_window: 1,
+									user_properties: form
+										.getFieldValue('userProperties')
+										.map((userProperty: any) => {
+											const [value, name, id] =
+												userProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									emails: emailsToNotify,
+									type: SessionAlertType.UserPropertiesAlert,
+									disabled: false,
+								},
 							},
 						})
 						break
@@ -383,6 +395,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: 1,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.NewUserAlert,
@@ -394,22 +407,25 @@ export const AlertConfigurationCard = ({
 						await updateUserPropertiesAlert({
 							...requestBody,
 							variables: {
-								...requestVariables,
-								user_properties: form
-									.getFieldValue('userProperties')
-									.map((userProperty: any) => {
-										const [value, name, id] =
-											userProperty.split(':')
-										return {
-											id,
-											value,
-											name,
-										}
-									}),
-								session_alert_id: alert.id,
-								threshold_window: 1,
-								emails: emailsToNotify,
-								disabled: isDisabled,
+								id: alert.id,
+								input: {
+									...requestVariables,
+									user_properties: form
+										.getFieldValue('userProperties')
+										.map((userProperty: any) => {
+											const [value, name, id] =
+												userProperty.split(':')
+											return {
+												id,
+												value,
+												name,
+											}
+										}),
+									threshold_window: 1,
+									emails: emailsToNotify,
+									disabled: isDisabled,
+									type: SessionAlertType.UserPropertiesAlert,
+								},
 							},
 						})
 						break
@@ -444,6 +460,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: lookbackPeriod,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.SessionFeedbackAlert,
@@ -475,6 +492,7 @@ export const AlertConfigurationCard = ({
 								input: {
 									...requestVariables,
 									threshold_window: lookbackPeriod,
+									user_properties: [],
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.RageClickAlert,
