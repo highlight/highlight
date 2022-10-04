@@ -71,6 +71,12 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, err
 	}
 
+	trackPropertiesBytes, err := json.Marshal(input.TrackProperties)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing track properties")
+	}
+	trackPropertiesString := string(trackPropertiesBytes)
+
 	inputType := string(input.Type)
 
 	return &model.SessionAlert{
@@ -87,7 +93,8 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
 		},
-		UserProperties: &userPropertiesString,
-		ExcludeRules:   excludeRulesString,
+		UserProperties:  &userPropertiesString,
+		TrackProperties: &trackPropertiesString,
+		ExcludeRules:    excludeRulesString,
 	}, nil
 }

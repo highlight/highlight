@@ -996,113 +996,6 @@ export type UpdateSessionAlertMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type CreateTrackPropertiesAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	slack_channels:
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	emails:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	environments:
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	track_properties:
-		| Array<Types.Maybe<Types.TrackPropertyInput>>
-		| Types.Maybe<Types.TrackPropertyInput>
-	threshold_window: Types.Scalars['Int']
-}>
-
-export type CreateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
-	createTrackPropertiesAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'Name'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'ThresholdWindow'
-			| 'LastAdminToEditID'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-				TrackProperties: Array<
-					Types.Maybe<
-						{ __typename?: 'TrackProperty' } & Pick<
-							Types.TrackProperty,
-							'id' | 'name' | 'value'
-						>
-					>
-				>
-			}
-	>
-}
-
-export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	session_alert_id: Types.Scalars['ID']
-	name?: Types.Maybe<Types.Scalars['String']>
-	slack_channels?: Types.Maybe<
-		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-		| Types.Maybe<Types.SanitizedSlackChannelInput>
-	>
-	emails?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	environments?: Types.Maybe<
-		| Array<Types.Maybe<Types.Scalars['String']>>
-		| Types.Maybe<Types.Scalars['String']>
-	>
-	track_properties?: Types.Maybe<
-		| Array<Types.Maybe<Types.TrackPropertyInput>>
-		| Types.Maybe<Types.TrackPropertyInput>
-	>
-	threshold_window?: Types.Maybe<Types.Scalars['Int']>
-	disabled?: Types.Maybe<Types.Scalars['Boolean']>
-}>
-
-export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
-	updateTrackPropertiesAlert?: Types.Maybe<
-		{ __typename?: 'SessionAlert' } & Pick<
-			Types.SessionAlert,
-			| 'id'
-			| 'EmailsToNotify'
-			| 'ExcludedEnvironments'
-			| 'CountThreshold'
-			| 'LastAdminToEditID'
-			| 'Name'
-			| 'disabled'
-		> & {
-				ChannelsToNotify: Array<
-					Types.Maybe<
-						{ __typename?: 'SanitizedSlackChannel' } & Pick<
-							Types.SanitizedSlackChannel,
-							'webhook_channel' | 'webhook_channel_id'
-						>
-					>
-				>
-				TrackProperties: Array<
-					Types.Maybe<
-						{ __typename?: 'TrackProperty' } & Pick<
-							Types.TrackProperty,
-							'id' | 'name' | 'value'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type UpdateSessionIsPublicMutationVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 	is_public: Types.Scalars['Boolean']
@@ -3846,8 +3739,6 @@ export const namedOperations = {
 		CreateDefaultAlerts: 'CreateDefaultAlerts' as const,
 		CreateSessionAlert: 'CreateSessionAlert' as const,
 		UpdateSessionAlert: 'UpdateSessionAlert' as const,
-		CreateTrackPropertiesAlert: 'CreateTrackPropertiesAlert' as const,
-		UpdateTrackPropertiesAlert: 'UpdateTrackPropertiesAlert' as const,
 		UpdateSessionIsPublic: 'UpdateSessionIsPublic' as const,
 		UpdateErrorGroupIsPublic: 'UpdateErrorGroupIsPublic' as const,
 		UpdateAllowMeterOverage: 'UpdateAllowMeterOverage' as const,

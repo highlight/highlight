@@ -31,7 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2386,136 +2386,6 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 	}
 
 	return sessionAlert, nil
-}
-
-// UpdateTrackPropertiesAlert is the resolver for the updateTrackPropertiesAlert field.
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, projectID int, sessionAlertID int, name *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow *int, disabled *bool) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	projectAlert := &model.SessionAlert{}
-
-	if environments != nil {
-		envBytes, err := json.Marshal(environments)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing environments for track properties alert")
-		}
-		envString := string(envBytes)
-		projectAlert.ExcludedEnvironments = &envString
-	}
-
-	if slackChannels != nil {
-		var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-		// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-		for _, ch := range slackChannels {
-			sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-		}
-
-		channelsBytes, err := json.Marshal(sanitizedChannels)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing channels for track properties alert")
-		}
-		channelsString := string(channelsBytes)
-
-		projectAlert.ChannelsToNotify = &channelsString
-	}
-
-	if trackProperties != nil {
-		trackPropertiesBytes, err := json.Marshal(trackProperties)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing track properties for track properties alert")
-		}
-		trackPropertiesString := string(trackPropertiesBytes)
-		projectAlert.TrackProperties = &trackPropertiesString
-	}
-
-	if emails != nil {
-		emailsString, err := r.MarshalAlertEmails(emails)
-		if err != nil {
-			return nil, err
-		}
-		projectAlert.EmailsToNotify = emailsString
-	}
-
-	projectAlert.LastAdminToEditID = admin.ID
-
-	if name != nil {
-		projectAlert.Name = name
-	}
-	if disabled != nil {
-		projectAlert.Disabled = disabled
-	}
-
-	if err := r.DB.Model(&model.SessionAlert{
-		Model: model.Model{
-			ID: sessionAlertID,
-		},
-	}).Where("project_id = ?", projectID).Updates(projectAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields for track properties alert")
-	}
-	if err := projectAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &sessionAlertID, Project: project, OperationName: "updated", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
-	}
-	return projectAlert, nil
-}
-
-// CreateTrackPropertiesAlert is the resolver for the createTrackPropertiesAlert field.
-func (r *mutationResolver) CreateTrackPropertiesAlert(ctx context.Context, projectID int, name string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, trackProperties []*modelInputs.TrackPropertyInput, thresholdWindow int) (*model.SessionAlert, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	admin, _ := r.getCurrentAdmin(ctx)
-	workspace, _ := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-
-	envString, err := r.MarshalEnvironments(environments)
-	if err != nil {
-		return nil, err
-	}
-
-	channelsString, err := r.MarshalSlackChannelsToSanitizedSlackChannels(slackChannels)
-	if err != nil {
-		return nil, err
-	}
-
-	trackPropertiesBytes, err := json.Marshal(trackProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
-	}
-	trackPropertiesString := string(trackPropertiesBytes)
-
-	emailsString, err := r.MarshalAlertEmails(emails)
-	if err != nil {
-		return nil, err
-	}
-
-	newAlert := &model.SessionAlert{
-		Alert: model.Alert{
-			ProjectID:            projectID,
-			OrganizationID:       projectID,
-			ExcludedEnvironments: envString,
-			Type:                 &model.AlertType.TRACK_PROPERTIES,
-			ChannelsToNotify:     channelsString,
-			EmailsToNotify:       emailsString,
-			Name:                 &name,
-			ThresholdWindow:      &thresholdWindow,
-			LastAdminToEditID:    admin.ID,
-		},
-		TrackProperties: &trackPropertiesString,
-	}
-
-	if err := r.DB.Create(newAlert).Error; err != nil {
-		return nil, e.Wrap(err, "error creating a new session track properties alert")
-	}
-	if err := newAlert.SendWelcomeSlackMessage(&model.SendWelcomeSlackMessageInput{Workspace: workspace, Admin: admin, AlertID: &newAlert.ID, Project: project, OperationName: "created", OperationDescription: "Alerts will now be sent to this channel.", IncludeEditLink: true}); err != nil {
-		log.Error(err)
-	}
-
-	return newAlert, nil
 }
 
 // DeleteSessionAlert is the resolver for the deleteSessionAlert field.

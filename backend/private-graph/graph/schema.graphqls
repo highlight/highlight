@@ -551,6 +551,7 @@ input SessionAlertInput {
 	type: SessionAlertType!
 	user_properties: [UserPropertyInput!]!
 	exclude_rules: [String!]!
+	track_properties: [TrackPropertyInput!]!
 }
 
 type ErrorSearchParams {
@@ -1401,27 +1402,6 @@ type Mutation {
 
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert
-
-	updateTrackPropertiesAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		track_properties: [TrackPropertyInput]
-		threshold_window: Int
-		disabled: Boolean
-	): SessionAlert
-	createTrackPropertiesAlert(
-		project_id: ID!
-		name: String!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		track_properties: [TrackPropertyInput]!
-		threshold_window: Int!
-	): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
 	updateSessionIsPublic(
 		session_secure_id: String!

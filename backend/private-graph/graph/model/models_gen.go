@@ -369,6 +369,7 @@ type SessionAlertInput struct {
 	Type            SessionAlertType              `json:"type"`
 	UserProperties  []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules    []string                      `json:"exclude_rules"`
+	TrackProperties []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {
