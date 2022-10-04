@@ -29,7 +29,7 @@ interface Props {
 	width: number
 }
 
-const TARGET_BUCKET_COUNT = 40
+const TARGET_BUCKET_COUNT = 50
 const TARGET_TICK_COUNT = 20
 const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
