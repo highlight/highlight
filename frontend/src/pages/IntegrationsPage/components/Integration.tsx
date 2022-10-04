@@ -15,7 +15,7 @@ export enum IntegrationAction {
 }
 
 export interface IntegrationConfigProps {
-	setModelOpen: (newVal: boolean) => void
+	setModalOpen: (newVal: boolean) => void
 	setIntegrationEnabled: (newVal: boolean) => void
 	action: IntegrationAction
 }
@@ -130,19 +130,19 @@ const Integration = ({
 			>
 				{showConfiguration &&
 					configurationPage({
-						setModelOpen: setShowConfiguration,
+						setModalOpen: setShowConfiguration,
 						setIntegrationEnabled,
 						action: IntegrationAction.Setup,
 					})}
 				{showDeleteConfirmation &&
 					configurationPage({
-						setModelOpen: setShowDeleteConfirmation,
+						setModalOpen: setShowDeleteConfirmation,
 						setIntegrationEnabled,
 						action: IntegrationAction.Disconnect,
 					})}
 				{showUpdateSettings &&
 					configurationPage({
-						setModelOpen: setShowUpdateSettings,
+						setModalOpen: setShowUpdateSettings,
 						setIntegrationEnabled,
 						action: IntegrationAction.Settings,
 					})}

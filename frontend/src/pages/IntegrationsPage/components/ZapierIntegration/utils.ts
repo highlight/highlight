@@ -6,25 +6,13 @@ import {
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
-const REPOLL_INTERVAL = 2000
-
-export const useZapierIntegration = (props?: { repoll?: boolean }) => {
-	const { repoll } = props || {}
+export const useZapierIntegration = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { data, loading, stopPolling, startPolling } =
-		useGetWorkspaceIsIntegratedWithZapierQuery({
-			variables: { project_id: project_id },
-		})
-
-	useEffect(() => {
-		if (repoll) {
-			startPolling(REPOLL_INTERVAL)
-		} else {
-			stopPolling()
-		}
-	}, [repoll, startPolling, stopPolling])
+	const { data, loading } = useGetWorkspaceIsIntegratedWithZapierQuery({
+		variables: { project_id: project_id },
+	})
 
 	const { data: jwtToken, loading: loadingJwt } =
 		useGenerateNewZapierAccessTokenJwtQuery({
