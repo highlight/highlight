@@ -57,11 +57,4 @@ export const useDiscordIntegration = () => {
 		isDiscordIntegratedWithProject: data?.is_integrated_with_discord,
 		loading,
 	}
-	frontend /
-		src /
-		pages /
-		IntegrationsPage /
-		components /
-		DiscordIntegration /
-		DiscordIntegrationConfig.tsx
 }
