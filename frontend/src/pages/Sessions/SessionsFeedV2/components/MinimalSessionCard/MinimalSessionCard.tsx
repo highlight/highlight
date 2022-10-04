@@ -1,29 +1,30 @@
+import { Avatar } from '@components/Avatar/Avatar'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import Tooltip from '@components/Tooltip/Tooltip'
+import { Maybe, Session } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
+import SvgEyeOffIcon from '@icons/EyeOffIcon'
 import UserCross from '@icons/UserCross'
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
+import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
+import { MillisToMinutesAndSecondsVerbose } from '@util/time'
 import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
-import { Avatar } from '@components/Avatar/Avatar'
-import { Maybe, Session } from '@graph/schemas'
-import { MillisToMinutesAndSecondsVerbose } from '@util/time'
-import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
+
 import styles from './MinimalSessionCard.module.scss'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
-import SvgEyeOffIcon from '@icons/EyeOffIcon'
 
 interface Props {
 	session: Maybe<Session>
@@ -216,11 +217,13 @@ const MinimalSessionCard = React.memo(
 											text={
 												configuration?.datetimeFormat
 													? formatDatetime(
-															session?.created_at,
+															session?.created_at ||
+																'',
 															configuration.datetimeFormat,
 													  )
 													: `${new Date(
-															session?.created_at,
+															session?.created_at ||
+																'',
 													  ).toLocaleString(
 															'en-us',
 															{
@@ -252,7 +255,7 @@ const MinimalSessionCard = React.memo(
 										: !errorVersion
 										? 'Live'
 										: new Date(
-												session?.created_at,
+												session?.created_at || '',
 										  ).toLocaleString('en-us', {
 												day: 'numeric',
 												month: 'long',
