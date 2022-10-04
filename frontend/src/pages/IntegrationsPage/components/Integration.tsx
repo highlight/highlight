@@ -47,10 +47,12 @@ const Integration = ({
 	const [showUpdateSettings, setShowUpdateSettings] = useState(
 		showSettingsDefault || false,
 	)
-	const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable)
+	const [integrationEnabled, setIntegrationEnabled] = useState<boolean>(
+		defaultEnable || false,
+	)
 
 	useEffect(() => {
-		setIntegrationEnabled(defaultEnable)
+		setIntegrationEnabled(defaultEnable || false)
 	}, [defaultEnable, setIntegrationEnabled])
 
 	return (
@@ -131,21 +133,24 @@ const Integration = ({
 			>
 				{showConfiguration &&
 					configurationPage({
-						setModelOpen: setShowConfiguration,
+						setModalOpen: setShowConfiguration,
 						setIntegrationEnabled,
 						action: IntegrationAction.Setup,
+						integrationEnabled: integrationEnabled,
 					})}
 				{showDeleteConfirmation &&
 					configurationPage({
-						setModelOpen: setShowDeleteConfirmation,
+						setModalOpen: setShowDeleteConfirmation,
 						setIntegrationEnabled,
 						action: IntegrationAction.Disconnect,
+						integrationEnabled: integrationEnabled,
 					})}
 				{showUpdateSettings &&
 					configurationPage({
-						setModelOpen: setShowUpdateSettings,
+						setModalOpen: setShowUpdateSettings,
 						setIntegrationEnabled,
 						action: IntegrationAction.Settings,
+						integrationEnabled: integrationEnabled,
 					})}
 			</Modal>
 		</>
