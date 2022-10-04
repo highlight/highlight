@@ -3,7 +3,7 @@
 	"version": "1.13.0",
 	"private": true,
 	"dependencies": {
-		"@apollo/client": "3.4.17",
+		"@apollo/client": "^3.7.0",
 		"@babel/core": "^7.19.0",
 		"@datadog/browser-logs": "^4.13.0",
 		"@datadog/browser-rum": "^4.21.0",
