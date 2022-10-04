@@ -24,7 +24,7 @@ import React, { useEffect } from 'react'
 import styles from './VercelIntegrationConfig.module.scss'
 
 const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen,
 	setIntegrationEnabled,
 	action,
 }) => {
@@ -32,7 +32,7 @@ const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		case IntegrationAction.Setup:
 			return (
 				<VercelIntegrationSetup
-					setModelOpen={setModelOpen}
+					setModalOpen={setModalOpen}
 					setIntegrationEnabled={setIntegrationEnabled}
 					action={action}
 				/>
@@ -40,7 +40,7 @@ const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		case IntegrationAction.Settings:
 			return (
 				<VercelIntegrationSettings
-					setModelOpen={setModelOpen}
+					setModalOpen={setModalOpen}
 					setIntegrationEnabled={setIntegrationEnabled}
 					action={action}
 				/>
@@ -48,7 +48,7 @@ const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		case IntegrationAction.Disconnect:
 			return (
 				<VercelIntegrationDisconnect
-					setModelOpen={setModelOpen}
+					setModalOpen={setModalOpen}
 					setIntegrationEnabled={setIntegrationEnabled}
 					action={action}
 				/>

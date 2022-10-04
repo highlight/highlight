@@ -15,7 +15,7 @@ export enum IntegrationAction {
 }
 
 export interface IntegrationConfigProps {
-	setModelOpen: (newVal: boolean) => void
+	setModalOpen: (newVal: boolean) => void
 	setIntegrationEnabled: (newVal: boolean) => void
 	action: IntegrationAction
 }

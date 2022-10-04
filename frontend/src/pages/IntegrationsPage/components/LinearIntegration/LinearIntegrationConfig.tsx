@@ -16,7 +16,7 @@ import styles from './LinearIntegrationConfig.module.scss'
 
 const LinearIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModelOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { removeLinearIntegrationFromProject } = useLinearIntegration()
 	const authUrl = useMemo(() => getLinearOAuthUrl(project_id), [project_id])
@@ -32,7 +32,7 @@ const LinearIntegrationConfig: React.FC<
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -44,7 +44,7 @@ const LinearIntegrationConfig: React.FC<
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeLinearIntegrationFromProject(project_id)
 						}}
@@ -68,7 +68,7 @@ const LinearIntegrationConfig: React.FC<
 					trackingId={`IntegrationConfigurationCancel-Slack`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>
