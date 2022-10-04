@@ -202,7 +202,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								}
 							}}
 							setIntegrationEnabled={() => {}}
-							setModelOpen={() => {}}
+							setModalOpen={() => {}}
 							action={IntegrationAction.Settings}
 						/>
 					</div>

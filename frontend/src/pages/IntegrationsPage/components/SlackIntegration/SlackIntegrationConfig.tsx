@@ -67,7 +67,7 @@ const SlackIntegrationConfig: React.FC<
 					trackingId={`IntegrationConfigurationCancel-Slack`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>

@@ -59,7 +59,7 @@ const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 }
 
 const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen,
 	setIntegrationEnabled,
 }) => {
 	return (
@@ -73,7 +73,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					trackingId="IntegrationConfigurationCancel-Vercel"
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>
@@ -100,7 +100,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 }
 
 const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen,
 	setIntegrationEnabled,
 }) => {
 	const { removeVercelIntegrationFromProject } = useVercelIntegration()
@@ -116,7 +116,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					trackingId={`IntegrationDisconnectCancel-Slack`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(true)
 					}}
 				>
@@ -133,7 +133,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 								message.success(
 									'Disconnected the Vercel integration!',
 								)
-								setModelOpen(false)
+								setModalOpen(false)
 								setIntegrationEnabled(false)
 							})
 							.catch((reason: any) => {
@@ -151,7 +151,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 
 export const VercelIntegrationSettings: React.FC<
 	IntegrationConfigProps & { onCancel?: () => void; onSuccess?: () => void }
-> = ({ setModelOpen, setIntegrationEnabled, onCancel, onSuccess }) => {
+> = ({ setModalOpen, setIntegrationEnabled, onCancel, onSuccess }) => {
 	const { allProjects: allHighlightProjects } = useApplicationContext()
 	const projectId =
 		(allHighlightProjects && allHighlightProjects[0]?.id) ?? '0'
@@ -223,7 +223,7 @@ export const VercelIntegrationSettings: React.FC<
 		if (isVercelIntegratedWithProject) {
 			setIntegrationEnabled(true)
 		}
-	}, [isVercelIntegratedWithProject, setIntegrationEnabled, setModelOpen])
+	}, [isVercelIntegratedWithProject, setIntegrationEnabled, setModalOpen])
 
 	const selectedOptions: string[] = []
 	for (const v of projectMap.values()) {
@@ -318,7 +318,7 @@ export const VercelIntegrationSettings: React.FC<
 			.then(() => {
 				onSuccess && onSuccess()
 				message.success('Vercel projects linked!')
-				setModelOpen(false)
+				setModalOpen(false)
 			})
 			.catch((reason: any) => {
 				message.error(String(reason))
@@ -348,7 +348,7 @@ export const VercelIntegrationSettings: React.FC<
 					className={styles.modalBtn}
 					onClick={() => {
 						onCancel && onCancel()
-						setModelOpen(false)
+						setModalOpen(false)
 					}}
 				>
 					Cancel
