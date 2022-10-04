@@ -301,7 +301,7 @@ const IntegrationAuthCallbackPage = () => {
 	} else if (integrationName.toLowerCase() === 'vercel') {
 		return <VercelIntegrationCallback code={code} />
 	} else if (integrationName.toLowerCase() === 'discord') {
-		return <DiscordIntegrationCallback code={code} />
+		return <DiscordIntegrationCallback code={code} projectId={projectId} />
 	}
 
 	return null

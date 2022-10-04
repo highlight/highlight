@@ -1624,11 +1624,15 @@ func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string)
 func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
 	token, err := discord.OAuth(ctx, code)
 
+	if err != nil {
+		return e.Wrapf(err, "failed to get oauth token when connecting discord to workspace id %d", workspace.ID)
+	}
+
 	guild := token.Extra("guild").(map[string]interface{})
 	guildId := guild["id"].(string)
 
-	if err != nil {
-		return e.Wrapf(err, "failed to add discord to workspace id %d", workspace.ID)
+	if guildId == "" {
+		return e.Wrapf(err, "failed to extra guild id from discord oauth response")
 	}
 
 	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordGuildId: &guildId}).Error; err != nil {
