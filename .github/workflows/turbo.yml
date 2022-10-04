@@ -13,6 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         # configures turborepo Remote Caching
         env:
+            REACT_APP_COMMIT_SHA: ${{ env.GITHUB_SHA }}
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
