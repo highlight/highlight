@@ -228,30 +228,12 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		}
 
-		const onDoubleclick = (event: MouseEvent) => {
-			event.preventDefault()
-			event.stopPropagation()
-
-			if (isRefreshingDOM) {
-				return
-			}
-
-			setIsRefreshingDOM(true)
-
-			const { clientX } = event
-			zoom(clientX, -DOUBLE_CLICK_ZOOM)
-		}
-
 		viewportDiv.addEventListener('wheel', onWheel, {
-			passive: false,
-		})
-		viewportDiv.addEventListener('dblclick', onDoubleclick, {
 			passive: false,
 		})
 
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
-			viewportDiv.removeEventListener('dblclick', onDoubleclick)
 		}
 	}, [duration, isRefreshingDOM, viewportWidth])
 
@@ -651,6 +633,7 @@ const TimelineIndicatorsBarGraph = ({
 					)}
 					topRef={timeIndicatorTopRef}
 					hairRef={timeIndicatorHairRef}
+					viewportRef={viewportRef}
 					text={formatTimeOnTop(isDragging ? dragTime : time)}
 					isDragging={isDragging}
 				/>

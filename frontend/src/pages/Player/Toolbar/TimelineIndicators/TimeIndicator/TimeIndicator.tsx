@@ -5,11 +5,19 @@ interface Props {
 	left: number
 	topRef: RefObject<HTMLElement>
 	hairRef: RefObject<HTMLElement>
+	viewportRef: RefObject<HTMLElement>
 	text?: string
 	isDragging?: boolean
 }
-const TIME_INDICATOR_ACTIVATION_RADIUS = 20
-const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
+const TIME_INDICATOR_ACTIVATION_RADIUS = 15
+const TimeIndicator = ({
+	left,
+	topRef,
+	hairRef,
+	text,
+	isDragging,
+	viewportRef,
+}: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
 	const [isTextVisible, setIsTextVisible] = useState(false)
@@ -18,36 +26,48 @@ const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 		const topElem = topRef.current
 		const hairElem = hairRef.current
 		const container = indicatorRef.current
-		if (!topElem || !hairElem || !container) {
+		const viewport = viewportRef.current
+		if (!topElem || !hairElem || !container || !viewport) {
 			return
 		}
 
 		const isClose = (event: MouseEvent) => {
+			const { clientX, clientY } = event
+			if (
+				clientX < viewport.offsetLeft ||
+				clientX > viewport.offsetLeft + viewport.offsetWidth
+			) {
+				return false
+			}
 			const bbox = topElem.getBoundingClientRect()
 			const topCenterX = bbox.left + bbox.width / 2
 			const topCenterY = bbox.top + bbox.height / 2
-			const { clientX, clientY } = event
 			const pointerX = document.documentElement.scrollLeft + clientX
 			const pointerY = document.documentElement.scrollTop + clientY
+
 			return (
+				isDragging ||
 				(pointerX - topCenterX) ** 2 + (pointerY - topCenterY) ** 2 <
-				TIME_INDICATOR_ACTIVATION_RADIUS ** 2
+					TIME_INDICATOR_ACTIVATION_RADIUS ** 2
 			)
 		}
 
-		const onPointermove = (event: MouseEvent) => {
+		const checkVisibility = (event: MouseEvent) => {
 			setIsTextVisible(isClose(event))
 		}
 
 		const onPointerleave = () => setIsTextVisible(false)
 
-		container.addEventListener('pointermove', onPointermove)
+		document.addEventListener('pointerdown', checkVisibility)
+		document.addEventListener('pointermove', checkVisibility)
 		container.addEventListener('pointerleave', onPointerleave)
 		return () => {
-			container.removeEventListener('pointermove', onPointermove)
-			container.removeEventListener('pointermove', onPointerleave)
+			document.removeEventListener('pointerup', checkVisibility)
+			document.removeEventListener('pointermove', checkVisibility)
+			container.removeEventListener('pointerleave', onPointerleave)
 		}
-	}, [hairRef, topRef])
+	}, [hairRef, isDragging, topRef, viewportRef])
+
 	const origin = topRef.current?.getBoundingClientRect()
 	const pinWidth = origin?.width || 0
 
@@ -66,8 +86,7 @@ const TimeIndicator = ({ left, topRef, hairRef, text, isDragging }: Props) => {
 				style={{
 					top: (origin?.top || 0) - 1.8 * (origin?.height || 0),
 					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
-					visibility:
-						isTextVisible || isDragging ? 'visible' : 'hidden',
+					visibility: isTextVisible ? 'visible' : 'hidden',
 				}}
 			>
 				{text}
