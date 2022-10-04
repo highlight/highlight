@@ -25,7 +25,7 @@
 		"dinero.js": "^2.0.0-alpha.8",
 		"eslint-plugin-simple-import-sort": "^7.0.0",
 		"firebase": "^8.10.1",
-		"framer-motion": "^4.1.17",
+		"framer-motion": "^6.3.15",
 		"graphql": "^15.5.0",
 		"highlight.run": "workspace:*",
 		"intro.js": "^4.1.0",
