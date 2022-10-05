@@ -52,7 +52,7 @@ export enum ALERT_NAMES {
 	METRIC_MONITOR = 'Metric Monitor',
 }
 
-interface AlertConfiguration {
+export interface AlertConfiguration {
 	name: string
 	canControlThreshold: boolean
 	type: ALERT_TYPE

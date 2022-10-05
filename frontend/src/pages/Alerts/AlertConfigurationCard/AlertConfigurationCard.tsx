@@ -29,17 +29,9 @@ import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
 import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss'
 import Select from '../../../components/Select/Select'
-import { ALERT_TYPE } from '../Alerts'
+import { ALERT_TYPE, AlertConfiguration } from '../Alerts'
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils'
 import styles from './AlertConfigurationCard.module.scss'
-
-interface AlertConfiguration {
-	name: string
-	canControlThreshold: boolean
-	type: ALERT_TYPE
-	description?: string
-	supportsExcludeRules: boolean
-}
 
 interface Props {
 	alert: any
