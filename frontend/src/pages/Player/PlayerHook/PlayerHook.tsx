@@ -451,6 +451,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 								toSet.push([toRemove, undefined])
 							}
 							chunkEventsSetMulti(toSet)
+							if (replayer) {
+								replayer.replaceEvents(data)
+							}
 						})
 						.then(() => setOnEventsLoaded(callback))
 						.catch((e) => {
@@ -655,7 +658,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			mouseTail: showPlayerMouseTail,
 			UNSAFE_replayCanvas: true,
 			liveMode: isLiveMode,
-			useVirtualDom: false,
+			useVirtualDom: true,
 			pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(project_id),
 		})
 
