@@ -26,12 +26,13 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -4807,6 +4808,48 @@ func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*mod
 			WebhookChannelID: &channelID,
 		})
 	}
+	return ret, nil
+}
+
+// DiscordChannelSuggestions is the resolver for the discord_channel_suggestions field.
+func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*modelInputs.DiscordChannel, error) {
+	ret := []*modelInputs.DiscordChannel{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return ret, e.Wrap(err, "error getting project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	guildId := workspace.DiscordGuildId
+
+	if guildId == nil {
+		return ret, e.Wrap(err, "discord not enabled for workspace")
+	}
+
+	bot, err := discord.InitBot(*guildId)
+
+	if err != nil {
+		return ret, err
+	}
+
+	channels, err := discord.GetChannels(bot)
+
+	if err != nil {
+		return ret, err
+	}
+
+	for _, ch := range channels {
+		ret = append(ret, &modelInputs.DiscordChannel{
+			ID:   ch.ID,
+			Name: ch.Name,
+		})
+	}
+
 	return ret, nil
 }
 

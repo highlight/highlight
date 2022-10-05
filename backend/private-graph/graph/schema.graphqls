@@ -758,6 +758,11 @@ type Dashboard {
 	last_admin_to_edit_id: ID!
 }
 
+type DiscordChannel {
+	id: String!
+	name: String!
+}
+
 type SanitizedSlackChannel {
 	webhook_channel: String
 	webhook_channel_id: String
@@ -1123,6 +1128,7 @@ type Query {
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
 	slack_members(project_id: ID!): [SanitizedSlackChannel]!
+	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
 		integration_type: IntegrationType!

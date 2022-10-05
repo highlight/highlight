@@ -824,6 +824,12 @@ export type Dashboard = {
 	last_admin_to_edit_id: Scalars['ID']
 }
 
+export type DiscordChannel = {
+	__typename?: 'DiscordChannel'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type SanitizedSlackChannel = {
 	__typename?: 'SanitizedSlackChannel'
 	webhook_channel?: Maybe<Scalars['String']>
@@ -1142,6 +1148,7 @@ export type Query = {
 	identifier_suggestion: Array<Scalars['String']>
 	slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>
 	slack_members: Array<Maybe<SanitizedSlackChannel>>
+	discord_channel_suggestions: Array<DiscordChannel>
 	generate_zapier_access_token: Scalars['String']
 	is_integrated_with: Scalars['Boolean']
 	vercel_projects: Array<VercelProject>
@@ -1463,6 +1470,10 @@ export type QuerySlack_Channel_SuggestionArgs = {
 }
 
 export type QuerySlack_MembersArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryDiscord_Channel_SuggestionsArgs = {
 	project_id: Scalars['ID']
 }
 
