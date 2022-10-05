@@ -157,7 +157,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const lastBucketPercentWidth = clamp(
 		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration,
-		minBucketWidthPercent,
+		bucketPercentWidth,
 		(1 + TIMELINE_MARGIN / canvasWidth) * 100 -
 			(buckets.length - 1) * bucketPercentWidth,
 	)
