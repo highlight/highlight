@@ -1,5 +1,9 @@
-import { ToolbarItem } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import {
+	ToolbarItem,
+	ZoomAreaPercent,
+} from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import useLocalStorage from '@rehooks/local-storage'
+import { useState } from 'react'
 
 const LocalStorageKeyPrefix = 'highlightToolbarItem'
 
@@ -49,6 +53,11 @@ const useToolbarItems = () => {
 		},
 	)
 
+	const [zoomAreaPercent, setZoomAreaPercent] = useState<ZoomAreaPercent>({
+		left: 0,
+		right: 100,
+	})
+
 	return {
 		devToolsButton,
 		setDevToolsButton,
@@ -64,6 +73,8 @@ const useToolbarItems = () => {
 		setAutoPlay,
 		showPlayerTime,
 		setShowPlayerTime,
+		zoomAreaPercent,
+		setZoomAreaPercent,
 	}
 }
 

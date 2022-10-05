@@ -26,7 +26,7 @@ interface IBar {
 	viewportRef: React.RefObject<HTMLElement>
 }
 
-const MIN_RECTANGLE_HEIGHT = 5
+const MIN_RECTANGLE_HEIGHT = 10
 const TimelineIndicatorsBar = ({
 	bucket,
 	width,
@@ -86,9 +86,14 @@ const TimelineIndicatorsBar = ({
 			setRelativePosition(relPos)
 		}
 
+		const onScroll = () => {
+			setIsSelected(false)
+		}
 		viewportDiv.addEventListener('pointermove', onPointermove)
+		viewportDiv.addEventListener('scroll', onScroll)
 		return () => {
 			viewportDiv.removeEventListener('pointermove', onPointermove)
+			viewportDiv.removeEventListener('scroll', onScroll)
 		}
 	}, [viewportRef])
 
@@ -141,8 +146,8 @@ const TimelineIndicatorsBar = ({
 						className={timelineAnnotationStyles.iconContainer}
 						style={{
 							background: color,
-							width: '30px',
-							height: '30px',
+							width: 30,
+							height: 30,
 						}}
 					>
 						{icon}
@@ -155,7 +160,22 @@ const TimelineIndicatorsBar = ({
 		return rows
 	}, [data, setCurrentEvent, setShowLeftPanel, setShowRightPanel])
 
-	const [isBarShaded, setIsBarShaded] = useState(false)
+	const [isInsideBar, setIsInsideBar] = useState(false)
+	const [isInsidePopover, setIsInsidePopover] = useState(false)
+	const [isSelected, setIsSelected] = useState(false)
+	useLayoutEffect(() => {
+		const hidePopover = () => {
+			if (!(isInsideBar || isInsidePopover)) {
+				setIsSelected(false)
+			}
+		}
+		document.addEventListener('pointerdown', hidePopover)
+
+		return () => {
+			document.removeEventListener('pointerdown', hidePopover)
+		}
+	}, [isInsideBar, isInsidePopover])
+
 	return (
 		<Popover
 			getPopupContainer={getFullScreenPopoverGetPopupContainer}
@@ -169,16 +189,21 @@ const TimelineIndicatorsBar = ({
 			}}
 			placement={placement}
 			overlayClassName={styles.timelineBarPopoverContainer}
-			onVisibleChange={(visible) => setIsBarShaded(visible)}
+			visible={isSelected}
+			onMouseEnter={() => setIsInsidePopover(true)}
+			onMouseLeave={() => setIsInsidePopover(false)}
 		>
 			<div
 				className={classNames(styles.bar, {
-					[styles.isShaded]: isBarShaded,
+					[styles.isShaded]: isInsideBar,
 				})}
 				style={{
 					width: `${width}%`,
 					left: `${left}%`,
 				}}
+				onPointerEnter={() => setIsInsideBar(true)}
+				onPointerLeave={() => setIsInsideBar(false)}
+				onPointerDown={() => setIsSelected(true)}
 			>
 				<div
 					className={styles.rectangleContainer}

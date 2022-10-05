@@ -16,7 +16,7 @@
 .progressMonitor {
 	border-bottom: 1px var(--color-neutral-100) solid;
 	border-top: 1px var(--color-neutral-100) solid;
-	height: 24px;
+	height: 22px;
 	overflow: hidden;
 	position: relative;
 	width: 100%;
@@ -24,7 +24,7 @@
 }
 
 .progressBarContainer {
-	background-color: var(--color-new-purple-100);
+	background-color: var(--color-neutral-300);
 	border-radius: 1px 1px 0 0;
 	height: var(--progress-bar-height);
 	overflow: hidden;
@@ -34,7 +34,7 @@
 }
 
 .progressBar {
-	background-color: var(--color-new-purple-500);
+	background-color: var(--color-neutral-700);
 	height: var(--progress-bar-height);
 	left: 0;
 	position: absolute;
@@ -68,6 +68,11 @@
 	position: absolute;
 	top: 0;
 	z-index: 2;
+}
+
+.inactivityPeriodPlayed {
+	background-color: var(--color-neutral-500);
+	z-index: 4;
 }
 
 .timelineContainer {
