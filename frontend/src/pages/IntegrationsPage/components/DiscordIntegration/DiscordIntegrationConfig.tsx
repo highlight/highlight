@@ -32,7 +32,7 @@ const getDiscordOauthUrl = (project_id: string): string => {
 }
 
 const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen,
 	setIntegrationEnabled,
 	action,
 }) => {
@@ -50,13 +50,13 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 			action === IntegrationAction.Setup
 		) {
 			setIntegrationEnabled(true)
-			setModelOpen(false)
+			setModalOpen(false)
 			message.success('Discord integration enabled')
 		}
 	}, [
 		isDiscordIntegratedWithProject,
 		setIntegrationEnabled,
-		setModelOpen,
+		setModalOpen,
 		action,
 	])
 
@@ -72,7 +72,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						trackingId={`IntegrationDisconnectCancel-Discord`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -84,7 +84,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeDiscordIntegrationFromProject()
 						}}
@@ -107,7 +107,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					trackingId={`IntegrationConfigurationCancel-Discord`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>
