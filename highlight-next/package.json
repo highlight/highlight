@@ -19,7 +19,6 @@
 		"next": "12.1.6",
 		"npm-run-all": "4.1.5"
 	},
-	"type": "module",
 	"devDependencies": {
 		"@types/node": "17.0.23",
 		"eslint": "8.12.0",

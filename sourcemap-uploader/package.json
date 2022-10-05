@@ -4,7 +4,6 @@
   "description": "Command line tool to upload source maps to Highlight",
   "main": "dist/index.js",
   "module": "esm/index.js",
-  "type": "module",
   "types": "dist/src/index.d.ts",
   "author": "Highlight",
   "license": "MIT",
