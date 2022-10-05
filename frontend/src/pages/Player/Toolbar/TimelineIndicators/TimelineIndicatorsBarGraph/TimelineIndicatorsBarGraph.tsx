@@ -20,12 +20,14 @@ import {
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { clamp } from '@util/numbers'
+import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
 import moment from 'moment'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Area, AreaChart } from 'recharts'
+import { NumberParam, useQueryParams } from 'use-query-params'
 
 import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
@@ -33,12 +35,11 @@ interface Props {
 	width: number
 }
 
-const TARGET_BUCKET_COUNT = 80
-
 const TARGET_TICK_COUNT = 20
-export const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
+const MIN_BUCKET_WIDTH_PX = 10
 
+export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
 const TimelineIndicatorsBarGraph = ({
@@ -58,12 +59,17 @@ const TimelineIndicatorsBarGraph = ({
 		sessionIntervals,
 		isLiveMode,
 	} = useReplayerContext()
+	const [{ zoomStart, zoomEnd }] = useQueryParams({
+		zoomStart: NumberParam,
+		zoomEnd: NumberParam,
+	})
 
 	const minZoom = 1
 	// show 10s at max for long sessions
 	const maxZoom = Math.max(duration / 10_000, 2)
 
 	const { setZoomAreaPercent } = useToolbarItemsContext()
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
 	const events = useMemo(() => {
 		const comments = getCommentsForTimelineIndicator(
@@ -124,10 +130,9 @@ const TimelineIndicatorsBarGraph = ({
 	}, [width])
 
 	const canvasWidth = viewportWidth * camera.zoom
-	const bucketSize = pickBucketSize(
-		duration / camera.zoom,
-		TARGET_BUCKET_COUNT,
-	)
+	const visibleDuration = duration / camera.zoom
+	const targetBucketCount = Math.ceil(viewportWidth / MIN_BUCKET_WIDTH_PX)
+	const bucketSize = pickBucketSize(visibleDuration, targetBucketCount)
 	const bucketTimestep = getBucketSizeInMs(bucketSize)
 
 	const buckets = useMemo(
@@ -144,15 +149,15 @@ const TimelineIndicatorsBarGraph = ({
 		...buckets.map((bucket) => bucket.totalCount),
 	)
 
-	const minBucketWidth = (10 / canvasWidth) * 100 // 10px in the zoomed view
+	const minBucketWidthPercent = (MIN_BUCKET_WIDTH_PX / canvasWidth) * 100
 	const bucketPercentWidth = Math.max(
 		(100 * bucketTimestep) / duration,
-		minBucketWidth,
+		minBucketWidthPercent,
 	)
 
 	const lastBucketPercentWidth = clamp(
 		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration,
-		minBucketWidth,
+		minBucketWidthPercent,
 		(1 + TIMELINE_MARGIN / canvasWidth) * 100 -
 			(buckets.length - 1) * bucketPercentWidth,
 	)
@@ -459,10 +464,29 @@ const TimelineIndicatorsBarGraph = ({
 
 			requestAnimationFrame(() => {
 				setCamera({ x, zoom })
+				setZoomAreaPercent({ left, right })
 			})
 		},
-		[maxZoom, viewportWidth, zoomAdjustmentFactor],
+		[maxZoom, setZoomAreaPercent, viewportWidth, zoomAdjustmentFactor],
 	)
+
+	useLayoutEffect(() => {
+		const zoomPercent = {
+			left:
+				zoomStart !== undefined && zoomStart !== null
+					? clamp(zoomStart, 0, 100)
+					: 0,
+			right:
+				zoomEnd !== undefined && zoomEnd !== null
+					? clamp(zoomEnd, 0, 100)
+					: 100,
+		}
+		setZoomAreaPercent(zoomPercent)
+		updateCameraFromZoomArea(zoomPercent)
+		// run once for session secure id
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [session_secure_id])
 
 	const ticks = useMemo(() => {
 		let size = pickBucketSize(duration / camera.zoom, TARGET_TICK_COUNT)
@@ -707,6 +731,7 @@ const TimelineIndicatorsBarGraph = ({
 					containerWidth={borderlessWidth}
 					wrapperRef={progressMonitorRef}
 					update={updateCameraFromZoomArea}
+					minZoomAreaPercent={100 / maxZoom}
 				/>
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>
