@@ -269,9 +269,9 @@ const TimelineIndicatorsBarGraph = ({
 					x += TIMELINE_MARGIN
 				}
 
-				viewportDiv.scrollTo(x, 0)
+				viewportDiv.scrollTo({ left: x })
+				setIsRefreshingDOM(false)
 			}
-			setIsRefreshingDOM(false)
 		})
 		return () => cancelAnimationFrame(timeout)
 	}, [camera, hasActiveScrollbar, viewportWidth])
@@ -439,7 +439,7 @@ const TimelineIndicatorsBarGraph = ({
 	}, [leftProgress, rightProgress, setZoomAreaPercent, width])
 
 	const zoomAdjustmentFactor = relativeZoom / camera.zoom
-	const updateCamera = useCallback(
+	const updateCameraFromZoomArea = useCallback(
 		(percent: ZoomAreaPercent) => {
 			const { left, right } = percent
 			let zoom = clamp(
@@ -457,7 +457,9 @@ const TimelineIndicatorsBarGraph = ({
 				zoom = 1
 			}
 
-			setCamera({ x, zoom })
+			requestAnimationFrame(() => {
+				setCamera({ x, zoom })
+			})
 		},
 		[maxZoom, viewportWidth, zoomAdjustmentFactor],
 	)
@@ -704,7 +706,7 @@ const TimelineIndicatorsBarGraph = ({
 				<ZoomArea
 					containerWidth={borderlessWidth}
 					wrapperRef={progressMonitorRef}
-					update={updateCamera}
+					update={updateCameraFromZoomArea}
 				/>
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>

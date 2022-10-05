@@ -79,15 +79,23 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 			event.stopPropagation()
 			const percent = (100 * getRelativeX(event)) / wrapperWidth
 			if (isLeftDragging) {
-				setDragPercent(({ right }) => ({
-					left: clamp(percent, 0, right - minAreaPercent),
-					right,
-				}))
+				setDragPercent(({ right }) => {
+					const zoomPercent = {
+						left: clamp(percent, 0, right - minAreaPercent),
+						right,
+					}
+					update(zoomPercent)
+					return zoomPercent
+				})
 			} else if (isRightDragging) {
-				setDragPercent(({ left }) => ({
-					left,
-					right: clamp(percent, left + minAreaPercent, 100),
-				}))
+				setDragPercent(({ left }) => {
+					const zoomPercent = {
+						left,
+						right: clamp(percent, left + minAreaPercent, 100),
+					}
+					update(zoomPercent)
+					return zoomPercent
+				})
 			} else if (isPanning) {
 				const offsetX = getRelativeX(event) - panX
 				const offset = (100 * offsetX) / wrapperWidth
@@ -95,7 +103,7 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 				setDragPercent(({ left, right }) => {
 					const zoomerWidth = right - left
 					const newLeft = clamp(left + offset, 0, 100 - zoomerWidth)
-					return {
+					const zoomPercent = {
 						left: newLeft,
 						right: clamp(
 							newLeft + zoomerWidth,
@@ -103,6 +111,8 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 							100,
 						),
 					}
+					update(zoomPercent)
+					return zoomPercent
 				})
 				panX += offsetX
 			}
@@ -145,14 +155,14 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 			document.removeEventListener('pointermove', onPointerMove)
 			document.removeEventListener('pointerup', onPointerUp)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		containerDiv,
-		wrapperWidth,
 		leftDiv,
 		minAreaPercent,
 		rightDiv,
-		update,
 		wrapperDiv,
+		wrapperWidth,
 	])
 
 	useLayoutEffect(() => {
