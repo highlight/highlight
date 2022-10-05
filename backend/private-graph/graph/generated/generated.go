@@ -6755,7 +6755,7 @@ type ErrorObject {
 	columnNumber: Int
 	stack_trace: String!
 	structured_stack_trace: [ErrorTrace]!
-	timestamp: Timestamp
+	timestamp: Timestamp!
 	payload: String
 	request_id: String
 }
@@ -19676,11 +19676,14 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorObject_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -48460,6 +48463,9 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 
 			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "payload":
 
 			out.Values[i] = ec._ErrorObject_payload(ctx, field, obj)
