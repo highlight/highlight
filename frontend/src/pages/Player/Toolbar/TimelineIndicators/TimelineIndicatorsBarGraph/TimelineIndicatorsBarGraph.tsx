@@ -259,7 +259,14 @@ const TimelineIndicatorsBarGraph = ({
 				const width = camera.zoom * viewportWidth
 				canvasDiv.style.width = `${width}px`
 				timeAxisDiv.style.width = `${width}px`
-				viewportDiv.scrollTo(camera.x, 0)
+
+				let x = camera.x
+				console.log(':::', x + viewportWidth, width)
+				if (x + viewportWidth + TIMELINE_MARGIN >= width) {
+					x += TIMELINE_MARGIN
+				}
+
+				viewportDiv.scrollTo(x, 0)
 			}
 			setIsRefreshingDOM(false)
 		})
