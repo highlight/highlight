@@ -33,7 +33,8 @@ interface Props {
 	width: number
 }
 
-const TARGET_BUCKET_COUNT = 50
+const TARGET_BUCKET_COUNT = 80
+
 const TARGET_TICK_COUNT = 20
 export const TIMELINE_MARGIN = 32
 const CONTAINER_BORDER_WIDTH = 1
@@ -256,12 +257,15 @@ const TimelineIndicatorsBarGraph = ({
 		}
 		const timeout = requestAnimationFrame(() => {
 			if (!hasActiveScrollbar) {
-				const width = camera.zoom * viewportWidth
-				canvasDiv.style.width = `${width}px`
-				timeAxisDiv.style.width = `${width}px`
+				const canvasWidth = camera.zoom * viewportWidth
+				canvasDiv.style.width = `${canvasWidth}px`
+				timeAxisDiv.style.width = `${canvasWidth}px`
 
 				let x = camera.x
-				if (x + viewportWidth + TIMELINE_MARGIN >= width) {
+				if (
+					x > TIMELINE_MARGIN &&
+					x + viewportWidth + TIMELINE_MARGIN + 1 >= canvasWidth
+				) {
 					x += TIMELINE_MARGIN
 				}
 
