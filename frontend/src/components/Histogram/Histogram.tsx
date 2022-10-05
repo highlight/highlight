@@ -50,13 +50,7 @@ const Histogram = React.memo(
 
 		const bucketStartTimes = bucketTimes.slice(0, -1)
 		const bucketEndTimes = bucketTimes.slice(1)
-
-		// assert all series have the same length
 		const seriesLength = bucketStartTimes.length
-		if (!seriesList.every((s) => s.counts.length === seriesLength)) {
-			console.log('seriesList', seriesList, seriesLength)
-			throw new Error('all series must have the same length')
-		}
 
 		const chartData: {
 			[key: string]: string | number
@@ -150,6 +144,15 @@ const Histogram = React.memo(
 					{inner}
 				</div>
 			)
+		}
+
+		// assert all series have the same length
+		if (!seriesList.every((s) => s.counts.length === seriesLength)) {
+			console.error('all series must have the same length', {
+				seriesList,
+				bucketStartTimes,
+			})
+			return null
 		}
 
 		return (

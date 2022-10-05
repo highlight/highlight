@@ -46,10 +46,13 @@ const PAGE_SIZE = 10
 const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 	const { backendSearchQuery, searchParams, setSearchParams } =
 		useErrorSearchContext()
-	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
-	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
-		[],
-	)
+	const [histogram, setHistogram] = useState<{
+		seriesList: Series[]
+		bucketTimes: number[]
+	}>({
+		seriesList: [],
+		bucketTimes: [],
+	})
 	const { loading } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
@@ -83,8 +86,10 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 					},
 				]
 			}
-			setHistogramSeriesList(seriesList)
-			setHistogramBucketTimes(bucketTimes)
+			setHistogram({
+				seriesList,
+				bucketTimes,
+			})
 		},
 		skip: !backendSearchQuery?.childSearchQuery,
 		fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
@@ -107,8 +112,8 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 
 	return (
 		<SearchResultsHistogram
-			seriesList={histogramSeriesList}
-			bucketTimes={histogramBucketTimes}
+			seriesList={histogram.seriesList}
+			bucketTimes={histogram.bucketTimes}
 			bucketSize={backendSearchQuery?.histogramBucketSize}
 			loading={loading}
 			updateTimeRange={updateTimeRange}
