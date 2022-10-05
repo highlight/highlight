@@ -145,7 +145,9 @@ const MetadataPanel = () => {
 		if (session?.object_storage_enabled) {
 			sessionData.push({
 				keyDisplayValue: 'Session Size',
-				valueDisplayValue: `${formatSize(session.payload_size)}`,
+				valueDisplayValue: session?.payload_size
+					? `${formatSize(session.payload_size)}`
+					: 'Unknown',
 				renderType: 'string',
 			})
 		}
