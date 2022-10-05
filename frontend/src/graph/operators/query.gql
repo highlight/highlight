@@ -1329,6 +1329,13 @@ query GetWorkspaceIsIntegratedWithFront($project_id: ID!) {
 	)
 }
 
+query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
+	is_integrated_with_discord: is_integrated_with(
+		integration_type: Discord
+		project_id: $project_id
+	)
+}
+
 query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	is_integrated_with_vercel: is_integrated_with(
 		integration_type: Vercel

@@ -11,6 +11,7 @@ interface ImportMetaEnv {
 	readonly REACT_APP_STRIPE_API_PK: string
 	readonly REACT_APP_VERCEL_INTEGRATION_NAME: string
 
+	readonly DISCORD_CLIENT_ID: string
 	readonly LINEAR_CLIENT_ID: string
 	readonly SLACK_CLIENT_ID: string
 	readonly DD_CLIENT_TOKEN: string

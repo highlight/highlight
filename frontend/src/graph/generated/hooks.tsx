@@ -9018,6 +9018,63 @@ export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithFrontQuery,
 	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithDiscordDocument = gql`
+	query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithDiscordQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithDiscordQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithDiscordQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithDiscordQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithDiscordQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>(GetWorkspaceIsIntegratedWithDiscordDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithDiscordLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>(GetWorkspaceIsIntegratedWithDiscordDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithDiscordQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithDiscordQuery
+>
+export type GetWorkspaceIsIntegratedWithDiscordLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithDiscordLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithDiscordQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+	Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+>
 export const GetWorkspaceIsIntegratedWithVercelDocument = gql`
 	query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 		is_integrated_with_vercel: is_integrated_with(

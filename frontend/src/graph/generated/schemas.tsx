@@ -224,6 +224,7 @@ export enum IntegrationType {
 	Zapier = 'Zapier',
 	Front = 'Front',
 	Vercel = 'Vercel',
+	Discord = 'Discord',
 }
 
 export enum ErrorState {

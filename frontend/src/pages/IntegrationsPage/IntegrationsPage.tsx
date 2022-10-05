@@ -3,6 +3,7 @@ import { useSlackBot } from '@components/Header/components/PersonalNotificationB
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
+import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -45,13 +46,17 @@ const IntegrationsPage = () => {
 	const { isVercelIntegratedWithProject, loading: loadingVercel } =
 		useVercelIntegration()
 
+	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
+		useDiscordIntegration()
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
 		loadingZapier ||
 		loadingClearbit ||
 		loadingFront ||
-		loadingVercel
+		loadingVercel ||
+		loadingDiscord
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -65,7 +70,8 @@ const IntegrationsPage = () => {
 				(inter.key === 'clearbit' &&
 					isClearbitIntegratedWithWorkspace) ||
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
-				(inter.key === 'vercel' && isVercelIntegratedWithProject),
+				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
+				(inter.key === 'discord' && isDiscordIntegratedWithProject),
 		}))
 	}, [
 		isSlackConnectedToWorkspace,
@@ -75,6 +81,7 @@ const IntegrationsPage = () => {
 		isClearbitIntegratedWithWorkspace,
 		isHighlightAdmin,
 		isVercelIntegratedWithProject,
+		isDiscordIntegratedWithProject,
 	])
 
 	return (
