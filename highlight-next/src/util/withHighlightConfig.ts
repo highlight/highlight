@@ -10,7 +10,16 @@ import { Rewrite } from 'next/dist/lib/load-custom-routes'
 import HighlightWebpackPlugin from './highlightWebpackPlugin'
 import { WebpackConfigContext } from 'next/dist/server/config-shared'
 
-export const withHighlightConfig = (config: NextConfig): NextConfig => {
+export interface HighlightConfigOptions {
+	apiKey?: string
+	appVersion?: string
+	path?: string
+}
+
+export const withHighlightConfig = (
+	config: NextConfig,
+	highlightOpts?: HighlightConfigOptions,
+): NextConfig => {
 	const newRewrites = async () => {
 		let re
 		if (!config.rewrites) {
@@ -25,8 +34,8 @@ export const withHighlightConfig = (config: NextConfig): NextConfig => {
 		}
 
 		const highlightRewrite = {
-			source: '/:path*.map',
-			destination: '/404',
+			source: '/highlight-events',
+			destination: 'https://pub.highlight.run',
 		}
 
 		if (Array.isArray(re)) {
@@ -49,7 +58,15 @@ export const withHighlightConfig = (config: NextConfig): NextConfig => {
 		if (config.webpack) {
 			originalConfig = config.webpack(webpackConfig, opts)
 		}
-		originalConfig.plugins.push(new HighlightWebpackPlugin())
+
+		originalConfig.plugins.push(
+			new HighlightWebpackPlugin(
+				highlightOpts?.apiKey ?? '',
+				highlightOpts?.appVersion ?? '',
+				highlightOpts?.path ?? '',
+			),
+		)
+
 		return originalConfig
 	}
 

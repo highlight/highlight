@@ -32,6 +32,7 @@ export const uploadSourcemaps = async ({
   appVersion: string;
   path: string;
 }) => {
+  console.log("hi1");
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
       apiKey = process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY;
@@ -39,6 +40,7 @@ export const uploadSourcemaps = async ({
       throw new Error("api key cannot be empty");
     }
   }
+  console.log("hi2");
 
   const variables = {
     api_key: apiKey,
