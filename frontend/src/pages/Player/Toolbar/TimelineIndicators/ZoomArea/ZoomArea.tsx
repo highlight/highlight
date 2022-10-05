@@ -93,11 +93,15 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 				const offset = (100 * offsetX) / wrapperWidth
 
 				setDragPercent(({ left, right }) => {
-					const width = right - left
-					const newLeft = clamp(left + offset, 0, 100 - width)
+					const zoomerWidth = right - left
+					const newLeft = clamp(left + offset, 0, 100 - zoomerWidth)
 					return {
 						left: newLeft,
-						right: clamp(newLeft + width, minAreaPercent, 100),
+						right: clamp(
+							newLeft + zoomerWidth,
+							minAreaPercent,
+							100,
+						),
 					}
 				})
 				panX += offsetX

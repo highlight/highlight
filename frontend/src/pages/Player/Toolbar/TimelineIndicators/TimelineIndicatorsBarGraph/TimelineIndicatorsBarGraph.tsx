@@ -597,17 +597,49 @@ const TimelineIndicatorsBarGraph = ({
 				) : (
 					<>
 						{time > 0 ? (
-							<div
-								className={style.progressBar}
-								style={{
-									width: clamp(
-										(shownTime * borderlessWidth) /
-											duration,
-										0,
-										borderlessWidth,
-									),
-								}}
-							/>
+							<>
+								<div
+									className={style.progressBar}
+									style={{
+										width: clamp(
+											(shownTime * borderlessWidth) /
+												duration,
+											0,
+											borderlessWidth,
+										),
+									}}
+								/>
+								{inactivityPeriods.map((interval, idx) => {
+									if (interval[0] >= shownTime) {
+										return null
+									}
+									const left =
+										(interval[0] / duration) *
+										borderlessWidth
+									const pWidth =
+										((Math.min(shownTime, interval[1]) -
+											interval[0]) /
+											duration) *
+										borderlessWidth
+									return (
+										<div
+											key={idx}
+											className={classNames(
+												style.inactivityPeriod,
+												style.inactivityPeriodPlayed,
+											)}
+											style={{
+												left,
+												width: clamp(
+													pWidth,
+													0,
+													borderlessWidth - left,
+												),
+											}}
+										/>
+									)
+								})}{' '}
+							</>
 						) : null}
 						{inactivityPeriods.map((interval, idx) => {
 							const left =
