@@ -1,5 +1,3 @@
-import { datadogRum } from '@datadog/browser-rum'
-
 export const timedCall = (
 	metric: string,
 	fn: CallableFunction,
@@ -18,7 +16,6 @@ export const timedCall = (
 				tags: tags || [],
 			},
 		])
-		datadogRum.addTiming(name, dur)
 	}
 }
 
@@ -43,7 +40,6 @@ export const timedCallback = <T extends Function>(
 					tags: tags || [],
 				},
 			])
-			datadogRum.addTiming(name, dur)
 		}
 	}
 }
