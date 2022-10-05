@@ -41,6 +41,7 @@ import moment from 'moment'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
+import { useTransitionEffect } from 'use-transition-effect'
 
 import {
 	HighlightEvent,
@@ -91,6 +92,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		project_id: string
 	}>()
 	const history = useHistory()
+	const [isPending, startTransitionEffect, stopTransitionEffect] =
+		useTransitionEffect()
 
 	const [download] = useQueryParam('download', BooleanParam)
 	const [scale, setScale] = useState(1)
@@ -1045,6 +1048,20 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state,
 	])
 
+	const playTransition = useCallback(
+		(newTime?: number) => {
+			startTransitionEffect(function* () {
+				console.log('vadim', 'transition')
+				if (!replayer) return
+				for (const _ of replayer.play(newTime)) {
+					console.log('vadim', 'ITER')
+					yield
+				}
+			})
+		},
+		[replayer, startTransitionEffect],
+	)
+
 	const play = useCallback(
 		(newTime: number) => {
 			timedCall(
@@ -1092,7 +1109,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						() => {
 							setIsLoadingEvents(false)
 							if (replayer?.iframe.contentWindow !== null) {
-								replayer?.play(newTimeWithOffset)
+								playTransition(newTimeWithOffset)
 							}
 						},
 					)
@@ -1100,7 +1117,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						setIsLoadingEvents(true)
 						replayer?.pause()
 					} else {
-						replayer?.play(newTimeWithOffset)
+						playTransition(newTimeWithOffset)
 					}
 
 					// Log how long it took to move to the new time.
@@ -1128,6 +1145,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			events,
 			isLiveMode,
 			replayer,
+			playTransition,
 			session?.secure_id,
 			sessionEndTime,
 			sessionMetadata.startTime,
