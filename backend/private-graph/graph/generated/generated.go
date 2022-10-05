@@ -6780,7 +6780,7 @@ type ErrorGroup {
 	fields: [ErrorField]
 	state: ErrorState!
 	environments: String
-	error_frequency: [Int64]!
+	error_frequency: [Int64!]!
 	is_public: Boolean!
 }
 
@@ -18469,7 +18469,7 @@ func (ec *executionContext) _ErrorGroup_error_frequency(ctx context.Context, fie
 	}
 	res := resTmp.([]int64)
 	fc.Result = res
-	return ec.marshalNInt642ᚕint64(ctx, field.Selections, res)
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorGroup_error_frequency(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -55720,32 +55720,6 @@ func (ec *executionContext) marshalNInt642int64(ctx context.Context, sel ast.Sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNInt642ᚕint64(ctx context.Context, v interface{}) ([]int64, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]int64, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOInt642int64(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNInt642ᚕint64(ctx context.Context, sel ast.SelectionSet, v []int64) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOInt642int64(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNInt642ᚕint64ᚄ(ctx context.Context, v interface{}) ([]int64, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -58373,16 +58347,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	res := graphql.MarshalInt(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOInt642int64(ctx context.Context, v interface{}) (int64, error) {
-	res, err := graphql.UnmarshalInt64(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOInt642int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
-	res := graphql.MarshalInt64(v)
 	return res
 }
 

@@ -392,7 +392,7 @@ export type ErrorGroup = {
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	state: ErrorState
 	environments?: Maybe<Scalars['String']>
-	error_frequency: Array<Maybe<Scalars['Int64']>>
+	error_frequency: Array<Scalars['Int64']>
 	is_public: Scalars['Boolean']
 }
 
