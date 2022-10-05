@@ -324,7 +324,7 @@ type ErrorObject {
 	columnNumber: Int
 	stack_trace: String!
 	structured_stack_trace: [ErrorTrace]!
-	timestamp: Timestamp
+	timestamp: Timestamp!
 	payload: String
 	request_id: String
 }

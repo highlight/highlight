@@ -365,7 +365,7 @@ export type ErrorObject = {
 	columnNumber?: Maybe<Scalars['Int']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
-	timestamp?: Maybe<Scalars['Timestamp']>
+	timestamp: Scalars['Timestamp']
 	payload?: Maybe<Scalars['String']>
 	request_id?: Maybe<Scalars['String']>
 }
