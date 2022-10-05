@@ -36,7 +36,7 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
@@ -129,7 +129,7 @@ if (!isOnPrem) {
 			service: 'frontend',
 			env: options.environment,
 			version: options.version,
-			sampleRate: 10,
+			sampleRate: 100,
 			sessionReplaySampleRate: 1,
 			trackResources: true,
 			trackLongTasks: true,
@@ -402,9 +402,12 @@ get in contact with us!
 	)
 }
 
-ReactDOM.render(
-	<React.StrictMode>
-		<App />
-	</React.StrictMode>,
-	document.getElementById('root'),
-)
+let root
+if (!root) {
+	root = createRoot(document.getElementById('root')!)
+	root.render(
+		<React.StrictMode>
+			<App />
+		</React.StrictMode>,
+	)
+}
