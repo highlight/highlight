@@ -261,7 +261,6 @@ const TimelineIndicatorsBarGraph = ({
 				timeAxisDiv.style.width = `${width}px`
 
 				let x = camera.x
-				console.log(':::', x + viewportWidth, width)
 				if (x + viewportWidth + TIMELINE_MARGIN >= width) {
 					x += TIMELINE_MARGIN
 				}

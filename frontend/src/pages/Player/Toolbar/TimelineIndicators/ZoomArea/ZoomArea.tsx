@@ -151,22 +151,29 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 		wrapperDiv,
 	])
 
-	const left = dragPercent.left
-	const width = clamp(dragPercent.right - left, 100 / wrapperWidth, 100)
-
 	useLayoutEffect(() => {
 		if (!isDragging) {
 			setDragPercent(zoomAreaPercent)
 		}
 	}, [isDragging, zoomAreaPercent])
 
-	const isHidden = !isDragging && left === 0 && width === 100
+	const left = dragPercent.left
+	const percentWidth = clamp(
+		dragPercent.right - left,
+		100 / wrapperWidth,
+		100,
+	)
+	const isWide = (percentWidth * wrapperWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
+	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
+	const handleWidth = isWide ? 3 : 0
+
+	const isHidden = !isDragging && left === 0 && percentWidth === 100
 
 	return (
 		<div
 			style={{
 				left: `${left}%`,
-				width: `${width}%`,
+				width: `${percentWidth}%`,
 				visibility: isHidden ? 'hidden' : 'visible',
 			}}
 			className={style.zoomArea}
@@ -175,17 +182,23 @@ const ZoomArea = ({ wrapperRef, update }: Props) => {
 			<div
 				ref={leftRef}
 				className={style.zoomAreaSide}
-				style={{ alignItems: 'flex-start', width: ZOOM_AREA_SIDE }}
+				style={{ alignItems: 'flex-start', width: sideWidth }}
 			>
-				<span className={style.zoomAreaHandle} />
+				<span
+					className={style.zoomAreaHandle}
+					style={{ width: handleWidth }}
+				/>
 			</div>
 
 			<div
 				ref={rightRef}
 				className={style.zoomAreaSide}
-				style={{ alignItems: 'flex-end', width: ZOOM_AREA_SIDE }}
+				style={{ alignItems: 'flex-end', width: sideWidth }}
 			>
-				<span className={style.zoomAreaHandle} />
+				<span
+					className={style.zoomAreaHandle}
+					style={{ width: handleWidth }}
+				/>
 			</div>
 		</div>
 	)
