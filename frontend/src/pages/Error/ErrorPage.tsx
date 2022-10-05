@@ -539,16 +539,22 @@ const timeFilter = [
 export const ErrorFrequencyGraph: React.FC<
 	React.PropsWithChildren<FrequencyGraphProps>
 > = ({ errorGroup }) => {
-	const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
-		Array(LookbackPeriod).fill(0),
-	)
-	const [totalErrors, setTotalErrors] = useState<number>(0)
+	const [errorFrequency, setErrorFrequency] = useState<{
+		errorDates: Array<ErrorFrequency>
+		totalErrors: number
+	}>({
+		errorDates: Array(LookbackPeriod).fill(0),
+		totalErrors: 0,
+	})
 	const [dateRangeLength, setDateRangeLength] = useState<number>(
 		timeFilter[2].value,
 	)
 
 	useEffect(() => {
-		setErrorDates(Array(dateRangeLength).fill(0))
+		setErrorFrequency({
+			errorDates: Array(dateRangeLength).fill(0),
+			totalErrors: 0,
+		})
 	}, [dateRangeLength])
 
 	useGetDailyErrorFrequencyQuery({
@@ -566,10 +572,13 @@ export const ErrorFrequencyGraph: React.FC<
 					.format('D MMM YYYY'),
 				occurrences: val,
 			}))
-			setTotalErrors(
-				response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0),
-			)
-			setErrorDates(errorData)
+			setErrorFrequency({
+				errorDates: errorData,
+				totalErrors: response.dailyErrorFrequency.reduce(
+					(acc, val) => acc + val,
+					0,
+				),
+			})
 		},
 	})
 
@@ -594,7 +603,7 @@ export const ErrorFrequencyGraph: React.FC<
 					<BarChart
 						width={500}
 						height={300}
-						data={errorDates}
+						data={errorFrequency.errorDates}
 						margin={{
 							top: 5,
 							right: 10,
@@ -616,12 +625,15 @@ export const ErrorFrequencyGraph: React.FC<
 						/>
 						<RechartsTooltip content={<RechartTooltip />} />
 						<Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
-							{errorDates.map((e, i) => (
+							{errorFrequency.errorDates.map((e, i) => (
 								<Cell
 									key={i}
 									fill={
 										e.occurrences >
-										Math.max(totalErrors * 0.1, 10)
+										Math.max(
+											errorFrequency.totalErrors * 0.1,
+											10,
+										)
 											? 'var(--color-red-500)'
 											: 'var(--color-brown)'
 									}
@@ -631,7 +643,7 @@ export const ErrorFrequencyGraph: React.FC<
 					</BarChart>
 				</ResponsiveContainer>
 				<div className={styles.graphLabels}>
-					<div>{`Total Occurrences: ${totalErrors}`}</div>
+					<div>{`Total Occurrences: ${errorFrequency.totalErrors}`}</div>
 				</div>
 			</div>
 		</>
