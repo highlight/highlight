@@ -14,7 +14,8 @@
 		"resolveJsonModule": true,
 		"jsx": "react",
 		"typeRoots": ["./node_modules/@types"],
-		"types": ["node"]
+		"types": ["node"],
+		"composite": true
 	},
 	"include": ["src"],
 	"references": [{ "path": "../rrweb/packages/rrweb" }]

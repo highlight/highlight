@@ -7,6 +7,7 @@ import { readFileSync, statSync } from "fs";
 import glob from "glob";
 import AWS from "aws-sdk";
 import fetch from "node-fetch";
+import { ArgumentsCamelCase, InferredOptionTypes, Options } from "yargs";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
@@ -22,7 +23,15 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
-export const uploadSourcemaps = async ({ apiKey, appVersion, path }) => {
+export const uploadSourcemaps = async ({
+  apiKey,
+  appVersion,
+  path,
+}: {
+  apiKey: string;
+  appVersion: string;
+  path: string;
+}) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
       apiKey = process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY;
@@ -88,7 +97,8 @@ yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
-    () => {},
+    undefined,
+    // @ts-expect-error ZANETODO
     uploadSourcemaps
   )
   .option("apiKey", {
@@ -109,8 +119,8 @@ yargs(hideBin(process.argv))
   })
   .help("help").argv;
 
-async function getAllSourceMapFiles(paths) {
-  const map = [];
+async function getAllSourceMapFiles(paths: string[]) {
+  const map: { path: string; name: string }[] = [];
 
   await Promise.all(
     paths.map((path) => {
@@ -125,7 +135,7 @@ async function getAllSourceMapFiles(paths) {
         return Promise.resolve();
       }
 
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         glob(
           "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
@@ -147,7 +157,12 @@ async function getAllSourceMapFiles(paths) {
   return map;
 }
 
-async function uploadFile(organizationId, version, filePath, fileName) {
+async function uploadFile(
+  organizationId: string,
+  version: string,
+  filePath: string,
+  fileName: string
+) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
@@ -162,7 +177,7 @@ async function uploadFile(organizationId, version, filePath, fileName) {
     Body: fileContent,
   };
 
-  s3.upload(params, function (err) {
+  s3.upload(params, function (err: Error) {
     if (err) {
       throw err;
     }

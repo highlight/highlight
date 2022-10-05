@@ -6745,6 +6745,7 @@ __metadata:
   resolution: "@highlight-run/next@workspace:highlight-next"
   dependencies:
     "@highlight-run/node": "workspace:*"
+    "@highlight-run/sourcemap-uploader": "workspace:*"
     "@types/node": 17.0.23
     eslint: 8.12.0
     next: 12.1.6
@@ -6969,17 +6970,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/sourcemap-uploader@workspace:sourcemap-uploader":
+"@highlight-run/sourcemap-uploader@workspace:*, @highlight-run/sourcemap-uploader@workspace:sourcemap-uploader":
   version: 0.0.0-use.local
   resolution: "@highlight-run/sourcemap-uploader@workspace:sourcemap-uploader"
   dependencies:
+    "@types/glob": ^8.0.0
+    "@types/node": 17.0.23
+    "@types/node-fetch": ^2.6.2
     "@types/yargs": ^17.0.0
     aws-sdk: 2.1163.0
+    eslint: 8.12.0
     glob: 7.2.3
     node-fetch: 3.2.10
+    npm-run-all: 4.1.5
+    typescript: 4.6.3
     yargs: 17.5.1
-  bin:
-    sourcemap-uploader: ./index.js
   languageName: unknown
   linkType: soft
 
@@ -9229,6 +9234,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/glob@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@types/glob@npm:8.0.0"
+  dependencies:
+    "@types/minimatch": "*"
+    "@types/node": "*"
+  checksum: 1817b05f5a8aed851d102a65b5e926d5c777bef927ea62b36d635860eef5364f2046bb5a692d135b6f2b28f34e4a9d44ade9396122c0845bcc7636d35f624747
+  languageName: node
+  linkType: hard
+
 "@types/graceful-fs@npm:^4.1.2":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
@@ -9487,6 +9502,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/minimatch@npm:*":
+  version: 5.1.2
+  resolution: "@types/minimatch@npm:5.1.2"
+  checksum: 0391a282860c7cb6fe262c12b99564732401bdaa5e395bee9ca323c312c1a0f45efbf34dce974682036e857db59a5c9b1da522f3d6055aeead7097264c8705a8
+  languageName: node
+  linkType: hard
+
 "@types/minimatch@npm:^3.0.3":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
@@ -9498,6 +9520,16 @@ __metadata:
   version: 1.2.1
   resolution: "@types/minimist@npm:1.2.1"
   checksum: 02631cdd79d346ed6838f5443767b5218a0d915fd0529d4a8840c4eba942d7f6906f0056686dd5a119d42528bed0bee5767ebef7667fdca6fcb95411bb56084e
+  languageName: node
+  linkType: hard
+
+"@types/node-fetch@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "@types/node-fetch@npm:2.6.2"
+  dependencies:
+    "@types/node": "*"
+    form-data: ^3.0.0
+  checksum: 6f73b1470000d303d25a6fb92875ea837a216656cb7474f66cdd67bb014aa81a5a11e7ac9c21fe19bee9ecb2ef87c1962bceeaec31386119d1ac86e4c30ad7a6
   languageName: node
   linkType: hard
 

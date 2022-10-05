@@ -1,10 +1,13 @@
 {
 	"extends": "./tsconfig.json",
-
 	"compilerOptions": {
 		"module": "commonjs",
 		"outDir": "dist",
 		"removeComments": true
 	},
-	"references": [{ "path": "../rrweb/packages/rrweb" }]
+	"references": [
+		{ "path": "../rrweb/packages/rrweb" },
+		{ "path": "../highlight-node" },
+		{ "path": "../sourcemap-uploader" }
+	]
 }
