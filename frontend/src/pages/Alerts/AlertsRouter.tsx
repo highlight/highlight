@@ -78,6 +78,9 @@ const AlertsRouter = () => {
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false
 							}
+							isDiscordIntegrated={
+								data?.is_integrated_with_discord || false
+							}
 							emailSuggestions={(data?.admins || []).map(
 								(wa) => wa.admin!.email,
 							)}
@@ -93,6 +96,9 @@ const AlertsRouter = () => {
 							}
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false
+							}
+							isDiscordIntegrated={
+								data?.is_integrated_with_discord || false
 							}
 							emailSuggestions={(data?.admins || []).map(
 								(wa) => wa.admin!.email,

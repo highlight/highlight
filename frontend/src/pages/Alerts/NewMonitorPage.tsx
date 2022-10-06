@@ -22,12 +22,14 @@ interface Props {
 	emailSuggestions: string[]
 	discordChannelSuggestions: DiscordChannel[]
 	isSlackIntegrated: boolean
+	isDiscordIntegrated: boolean
 }
 
 const NewMonitorPage = ({
 	channelSuggestions,
 	discordChannelSuggestions,
 	isSlackIntegrated,
+	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
 	const { project_id } = useParams<{
@@ -127,6 +129,7 @@ const NewMonitorPage = ({
 						discordChannelSuggestions={discordChannelSuggestions}
 						onFormSubmit={onFinish}
 						isSlackIntegrated={isSlackIntegrated}
+						isDiscordIntegrated={isDiscordIntegrated}
 						slackUrl={slackUrl}
 						onFormCancel={() => {
 							history.push(`/${project_id}/alerts/new`)

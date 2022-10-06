@@ -59,6 +59,7 @@ interface Props {
 	discordChannelSuggestions: DiscordChannel[]
 	emailSuggestions: string[]
 	isSlackIntegrated: boolean
+	isDiscordIntegrated: boolean
 	slackUrl: string
 	formSubmitButtonLabel: string
 	formCancelButtonLabel?: string
@@ -83,6 +84,7 @@ const MonitorConfiguration = ({
 	channelSuggestions,
 	emailSuggestions,
 	isSlackIntegrated,
+	isDiscordIntegrated,
 	slackUrl,
 	formSubmitButtonLabel,
 	formCancelButtonLabel,
@@ -492,12 +494,14 @@ const MonitorConfiguration = ({
 					/>
 				</section>
 
-				<DiscordChannnelsSection
-					options={discordChannelSuggestions}
-					selectedChannels={discordChannels}
-					onChannelsChange={onDiscordChannelsChange}
-					defaultName="the alert"
-				/>
+				{isDiscordIntegrated && (
+					<DiscordChannnelsSection
+						options={discordChannelSuggestions}
+						selectedChannels={discordChannels}
+						onChannelsChange={onDiscordChannelsChange}
+						defaultName="the alert"
+					/>
+				)}
 
 				<section>
 					<h3>Emails to Notify</h3>

@@ -24,12 +24,14 @@ interface Props {
 	discordChannelSuggestions: DiscordChannel[]
 	emailSuggestions: string[]
 	isSlackIntegrated: boolean
+	isDiscordIntegrated: boolean
 }
 
 const EditMonitorPage = ({
 	channelSuggestions,
 	discordChannelSuggestions,
 	isSlackIntegrated,
+	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
 	const { project_id, id } = useParams<{
@@ -174,6 +176,7 @@ const EditMonitorPage = ({
 						discordChannelSuggestions={discordChannelSuggestions}
 						onFormSubmit={onFinish}
 						isSlackIntegrated={isSlackIntegrated}
+						isDiscordIntegrated={isDiscordIntegrated}
 						slackUrl={slackUrl}
 						formSubmitButtonLabel="Save"
 						onFormDestructiveAction={async () => {
