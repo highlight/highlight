@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": ["../node_modules/@types"],
     "target": "ES6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
