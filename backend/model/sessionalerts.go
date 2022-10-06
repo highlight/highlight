@@ -3,8 +3,9 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type DiscordChannel struct {
