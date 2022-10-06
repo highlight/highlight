@@ -1627,7 +1627,7 @@ type DiscordChannel struct {
 	ID   string
 }
 
-type DiscordChannels []DiscordChannel
+type DiscordChannels []*DiscordChannel
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
 func (dc *DiscordChannels) Scan(value interface{}) error {

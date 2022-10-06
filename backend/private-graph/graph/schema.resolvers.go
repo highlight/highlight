@@ -26,7 +26,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
-	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -76,7 +75,7 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
-	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
+	return obj.DiscordChannelsToNotify, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -266,7 +265,7 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 
 // DiscordChannelsToNotify is the resolver for the discord_channels_to_notify field.
 func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*model.DiscordChannel, error) {
-	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
+	return obj.DiscordChannelsToNotify, nil
 }
 
 // EmailsToNotify is the resolver for the emails_to_notify field.
@@ -5847,7 +5846,7 @@ func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.
 
 // DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
 func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*model.DiscordChannel, error) {
-	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
+	return obj.DiscordChannelsToNotify, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
