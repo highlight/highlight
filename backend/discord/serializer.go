@@ -15,5 +15,4 @@ func GQLInputToGo(discordChannels []*modelInputs.DiscordChannelInput) []*model.D
 	}
 
 	return ret
-
 }
