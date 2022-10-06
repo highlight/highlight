@@ -7,7 +7,6 @@ import { readFileSync, statSync } from "fs";
 import glob from "glob";
 import AWS from "aws-sdk";
 import fetch from "node-fetch";
-import { ArgumentsCamelCase, InferredOptionTypes, Options } from "yargs";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {

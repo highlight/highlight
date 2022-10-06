@@ -1,7 +1,7 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"module": "ESNext",
+		"module": "ES6",
 		"outDir": "esm",
 		"removeComments": true
 	},
