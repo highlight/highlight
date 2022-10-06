@@ -86,7 +86,7 @@ export const AlertConfigurationCard = ({
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>([])
 	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
 		DiscordChannel[]
-	>(alert?.DiscordChannelsToNotify)
+	>(alert?.DiscordChannelsToNotify || [])
 
 	const { currentWorkspace } = useApplicationContext()
 	/** lookbackPeriod units is minutes. */
