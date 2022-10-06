@@ -5,6 +5,7 @@
 	"main": "dist/index.js",
 	"module": "esm/index.js",
 	"types": "dist/index.d.ts",
+	"exports": "./esm/index.js",
 	"publishConfig": {
 		"access": "public"
 	},

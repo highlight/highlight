@@ -2,8 +2,9 @@
 	"name": "@highlight-run/next",
 	"version": "1.2.0",
 	"description": "Client for interfacing with Highlight in next.js",
-	"main": "esm/src/index.js",
+	"main": "dist/src/index.js",
 	"module": "esm/src/index.js",
+	"exports": "./esm/src/index.js",
 	"type": "module",
 	"scripts": {
 		"build": "run-p build:cjs build:esm",
