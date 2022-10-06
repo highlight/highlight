@@ -15,7 +15,8 @@
 		"jsx": "react",
 		"typeRoots": ["./node_modules/@types"],
 		"types": ["node"],
-		"composite": true
+		"composite": true,
+		"removeComments": true
 	},
 	"include": ["src"],
 	"references": [{ "path": "../rrweb/packages/rrweb" }]
