@@ -25,7 +25,9 @@
 				"src/**/*.tsx",
 				"src/**/*.ts",
 				"test/**/*.ts",
-				"test/**/*.tsx"
+				"test/**/*.tsx",
+				"**/*.test.tsx",
+				"**/*.test.ts"
 			]
 		},
 		"sourcemaps": {
