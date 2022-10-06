@@ -349,7 +349,7 @@ type ErrorGroup {
 	fields: [ErrorField]
 	state: ErrorState!
 	environments: String
-	error_frequency: [Int64]!
+	error_frequency: [Int64!]!
 	is_public: Boolean!
 }
 
