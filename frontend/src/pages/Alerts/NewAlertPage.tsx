@@ -147,9 +147,6 @@ const NewAlertPage = () => {
 					channelSuggestions={
 						alertsPayload?.slack_channel_suggestion || []
 					}
-					discordChannelSuggestions={
-						alertsPayload?.discord_channel_suggestions || []
-					}
 					environmentOptions={
 						alertsPayload?.environment_suggestion || []
 					}
