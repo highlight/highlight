@@ -1189,6 +1189,41 @@ export type SessionPayloadFragmentFragment = {
 		>
 	}
 
+export type SessionAlertFragmentFragment = {
+	__typename?: 'SessionAlert'
+} & Pick<
+	Types.SessionAlert,
+	| 'CountThreshold'
+	| 'DailyFrequency'
+	| 'disabled'
+	| 'EmailsToNotify'
+	| 'ExcludedEnvironments'
+	| 'ExcludeRules'
+	| 'id'
+	| 'LastAdminToEditID'
+	| 'Name'
+	| 'updated_at'
+	| 'ThresholdWindow'
+	| 'Type'
+> & {
+		ChannelsToNotify: Array<
+			Types.Maybe<
+				{ __typename?: 'SanitizedSlackChannel' } & Pick<
+					Types.SanitizedSlackChannel,
+					'webhook_channel' | 'webhook_channel_id'
+				>
+			>
+		>
+		TrackProperties: Array<
+			Types.Maybe<
+				{ __typename?: 'TrackProperty' } & Pick<
+					Types.TrackProperty,
+					'id' | 'name' | 'value'
+				>
+			>
+		>
+	}
+
 export type GetMetricsTimelineQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	metric_name: Types.Scalars['String']
@@ -3187,185 +3222,45 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 							>
 						>
 					>
+					DiscordChannelsToNotify: Array<
+						{ __typename?: 'DiscordChannel' } & Pick<
+							Types.DiscordChannel,
+							'id' | 'name'
+						>
+					>
 				}
 		>
 	>
 	session_feedback_alerts: Array<
 		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & Pick<
-				Types.SessionAlert,
-				| 'EmailsToNotify'
-				| 'updated_at'
-				| 'ExcludedEnvironments'
-				| 'CountThreshold'
-				| 'ThresholdWindow'
-				| 'LastAdminToEditID'
-				| 'id'
-				| 'Name'
-				| 'Type'
-				| 'DailyFrequency'
-				| 'disabled'
-			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-				}
+			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	new_session_alerts: Array<
 		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & Pick<
-				Types.SessionAlert,
-				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
-				| 'CountThreshold'
-				| 'ThresholdWindow'
-				| 'updated_at'
-				| 'LastAdminToEditID'
-				| 'Name'
-				| 'id'
-				| 'Type'
-				| 'ExcludeRules'
-				| 'DailyFrequency'
-				| 'disabled'
-			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-				}
+			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	rage_click_alerts: Array<
 		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & Pick<
-				Types.SessionAlert,
-				| 'id'
-				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
-				| 'CountThreshold'
-				| 'ThresholdWindow'
-				| 'updated_at'
-				| 'LastAdminToEditID'
-				| 'Name'
-				| 'Type'
-				| 'DailyFrequency'
-				| 'disabled'
-			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-				}
+			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	new_user_alerts?: Types.Maybe<
 		Array<
 			Types.Maybe<
-				{ __typename?: 'SessionAlert' } & Pick<
-					Types.SessionAlert,
-					| 'id'
-					| 'EmailsToNotify'
-					| 'ExcludedEnvironments'
-					| 'CountThreshold'
-					| 'updated_at'
-					| 'LastAdminToEditID'
-					| 'Name'
-					| 'Type'
-					| 'DailyFrequency'
-					| 'disabled'
-				> & {
-						ChannelsToNotify: Array<
-							Types.Maybe<
-								{ __typename?: 'SanitizedSlackChannel' } & Pick<
-									Types.SanitizedSlackChannel,
-									'webhook_channel' | 'webhook_channel_id'
-								>
-							>
-						>
-					}
+				{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 			>
 		>
 	>
 	track_properties_alerts: Array<
 		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & Pick<
-				Types.SessionAlert,
-				| 'id'
-				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
-				| 'updated_at'
-				| 'LastAdminToEditID'
-				| 'CountThreshold'
-				| 'Name'
-				| 'Type'
-				| 'DailyFrequency'
-				| 'disabled'
-			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-					TrackProperties: Array<
-						Types.Maybe<
-							{ __typename?: 'TrackProperty' } & Pick<
-								Types.TrackProperty,
-								'id' | 'name' | 'value'
-							>
-						>
-					>
-				}
+			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	user_properties_alerts: Array<
 		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & Pick<
-				Types.SessionAlert,
-				| 'id'
-				| 'EmailsToNotify'
-				| 'ExcludedEnvironments'
-				| 'updated_at'
-				| 'LastAdminToEditID'
-				| 'CountThreshold'
-				| 'Name'
-				| 'Type'
-				| 'DailyFrequency'
-				| 'disabled'
-			> & {
-					ChannelsToNotify: Array<
-						Types.Maybe<
-							{ __typename?: 'SanitizedSlackChannel' } & Pick<
-								Types.SanitizedSlackChannel,
-								'webhook_channel' | 'webhook_channel_id'
-							>
-						>
-					>
-					UserProperties: Array<
-						Types.Maybe<
-							{ __typename?: 'UserProperty' } & Pick<
-								Types.UserProperty,
-								'id' | 'name' | 'value'
-							>
-						>
-					>
-				}
+			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	metric_monitors: Array<
@@ -3390,6 +3285,12 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 								Types.SanitizedSlackChannel,
 								'webhook_channel' | 'webhook_channel_id'
 							>
+						>
+					>
+					discord_channels_to_notify: Array<
+						{ __typename?: 'DiscordChannel' } & Pick<
+							Types.DiscordChannel,
+							'id' | 'name'
 						>
 					>
 					filters?: Types.Maybe<
@@ -3766,5 +3667,6 @@ export const namedOperations = {
 	},
 	Fragment: {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,
+		SessionAlertFragment: 'SessionAlertFragment' as const,
 	},
 }

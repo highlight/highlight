@@ -56,6 +56,31 @@ export const SessionPayloadFragmentFragmentDoc = gql`
 		last_user_interaction_time
 	}
 `
+export const SessionAlertFragmentFragmentDoc = gql`
+	fragment SessionAlertFragment on SessionAlert {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		CountThreshold
+		DailyFrequency
+		disabled
+		EmailsToNotify
+		ExcludedEnvironments
+		ExcludeRules
+		id
+		LastAdminToEditID
+		Name
+		updated_at
+		ThresholdWindow
+		TrackProperties {
+			id
+			name
+			value
+		}
+		Type
+	}
+`
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 		markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -9276,6 +9301,10 @@ export const GetAlertsPagePayloadDocument = gql`
 				webhook_channel
 				webhook_channel_id
 			}
+			DiscordChannelsToNotify {
+				id
+				name
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			updated_at
@@ -9291,114 +9320,22 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 		}
 		session_feedback_alerts(project_id: $project_id) {
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			updated_at
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			id
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		new_session_alerts(project_id: $project_id) {
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			updated_at
-			LastAdminToEditID
-			Name
-			id
-			Type
-			ExcludeRules
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		rage_click_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			updated_at
-			LastAdminToEditID
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		new_user_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			updated_at
-			LastAdminToEditID
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		track_properties_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			TrackProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			updated_at
-			LastAdminToEditID
-			CountThreshold
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		user_properties_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			UserProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			updated_at
-			LastAdminToEditID
-			CountThreshold
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		metric_monitors(project_id: $project_id) {
 			id
@@ -9407,6 +9344,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			channels_to_notify {
 				webhook_channel
 				webhook_channel_id
+			}
+			discord_channels_to_notify {
+				id
+				name
 			}
 			emails_to_notify
 			aggregator
@@ -9423,6 +9364,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 		}
 	}
+	${SessionAlertFragmentFragmentDoc}
 `
 
 /**
