@@ -154,7 +154,7 @@ export type Plan = {
 export type DiscordChannel = {
 	__typename?: 'DiscordChannel'
 	id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
+	name: Scalars['String']
 }
 
 export enum PlanType {

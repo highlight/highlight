@@ -126,7 +126,7 @@ type Plan {
 
 type DiscordChannel {
 	id: ID!
-	name: String
+	name: String!
 }
 
 enum PlanType {

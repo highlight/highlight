@@ -796,19 +796,19 @@ type MetricGroup struct {
 
 type MetricMonitor struct {
 	Model
-	ProjectID               int `gorm:"index;not null;"`
-	Name                    string
-	Aggregator              modelInputs.MetricAggregator `gorm:"default:P50"`
-	PeriodMinutes           *int                         // apply aggregator function on PeriodMinutes lookback
-	Threshold               float64
-	Units                   *string // Threshold value is in these Units.
-	MetricToMonitor         string
-	ChannelsToNotify        *string                  `gorm:"channels_to_notify"`
-	DiscordChannelsToNotify DiscordChannels          `gorm:"default:[]:type:text"`
-	EmailsToNotify          *string                  `gorm:"emails_to_notify"`
-	LastAdminToEditID       int                      `gorm:"last_admin_to_edit_id"`
-	Disabled                *bool                    `gorm:"default:false"`
-	Filters                 []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	ProjectID         int `gorm:"index;not null;"`
+	Name              string
+	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
+	Threshold         float64
+	Units             *string // Threshold value is in these Units.
+	MetricToMonitor   string
+	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
+	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
+	Disabled          *bool                    `gorm:"default:false"`
+	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	AlertIntegrations
 }
 
 func (m *MessagesObject) Contents() string {
@@ -1646,26 +1646,30 @@ func (dc DiscordChannels) Value() (driver.Value, error) {
 	return string(bytes), err
 }
 
+type AlertIntegrations struct {
+	DiscordChannelsToNotify DiscordChannels `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
+}
+
 type Alert struct {
-	OrganizationID          int
-	ProjectID               int
-	ExcludedEnvironments    *string
-	CountThreshold          int
-	ThresholdWindow         *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
-	ChannelsToNotify        *string
-	DiscordChannelsToNotify DiscordChannels `gorm:"default:[]:type:text"`
-	EmailsToNotify          *string
-	Name                    *string
-	Type                    *string `gorm:"index"`
-	LastAdminToEditID       int     `gorm:"last_admin_to_edit_id"`
-	Frequency               int     `gorm:"default:15"` // time in seconds
-	Disabled                *bool   `gorm:"default:false"`
+	OrganizationID       int
+	ProjectID            int
+	ExcludedEnvironments *string
+	CountThreshold       int
+	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
+	ChannelsToNotify     *string
+	EmailsToNotify       *string
+	Name                 *string
+	Type                 *string `gorm:"index"`
+	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
+	Frequency            int     `gorm:"default:15"` // time in seconds
+	Disabled             *bool   `gorm:"default:false"`
 }
 
 type ErrorAlert struct {
 	Model
 	Alert
 	RegexGroups *string
+	AlertIntegrations
 }
 
 func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
@@ -1709,6 +1713,7 @@ type SessionAlert struct {
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
+	AlertIntegrations
 }
 
 func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {

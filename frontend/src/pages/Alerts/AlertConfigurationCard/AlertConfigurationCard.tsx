@@ -142,6 +142,7 @@ export const AlertConfigurationCard = ({
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		}
+
 		setLoading(true)
 		if (isCreatingNewAlert) {
 			try {
