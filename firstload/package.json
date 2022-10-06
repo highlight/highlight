@@ -10,6 +10,9 @@
 	"module": "dist/indexESM.js",
 	"types": "dist/src/index.d.ts",
 	"license": "MIT",
+	"bundledDependencies": [
+		"@highlight-run/client"
+	],
 	"dependencies": {
 		"@highlight-run/client": "workspace:*"
 	},
