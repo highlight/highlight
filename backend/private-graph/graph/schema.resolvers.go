@@ -26,12 +26,13 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -71,6 +72,11 @@ func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentRep
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
+}
+
+// DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
+func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
+	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -256,6 +262,11 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
 	}
 	return sanitizedChannels, nil
+}
+
+// DiscordChannelsToNotify is the resolver for the discord_channels_to_notify field.
+func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*model.DiscordChannel, error) {
+	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
 }
 
 // EmailsToNotify is the resolver for the emails_to_notify field.
@@ -5832,6 +5843,11 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
+}
+
+// DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
+func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*model.DiscordChannel, error) {
+	return discord.SerializeModelToGQL(obj.DiscordChannelsToNotify), nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.

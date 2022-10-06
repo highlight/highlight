@@ -202,6 +202,11 @@ type ComplexityRoot struct {
 		StartDate func(childComplexity int) int
 	}
 
+	DiscordChannel struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
 	EnhancedUserDetailsResult struct {
 		Avatar  func(childComplexity int) int
 		Bio     func(childComplexity int) int
@@ -212,20 +217,21 @@ type ComplexityRoot struct {
 	}
 
 	ErrorAlert struct {
-		ChannelsToNotify     func(childComplexity int) int
-		CountThreshold       func(childComplexity int) int
-		DailyFrequency       func(childComplexity int) int
-		Disabled             func(childComplexity int) int
-		EmailsToNotify       func(childComplexity int) int
-		ExcludedEnvironments func(childComplexity int) int
-		Frequency            func(childComplexity int) int
-		ID                   func(childComplexity int) int
-		LastAdminToEditID    func(childComplexity int) int
-		Name                 func(childComplexity int) int
-		RegexGroups          func(childComplexity int) int
-		ThresholdWindow      func(childComplexity int) int
-		Type                 func(childComplexity int) int
-		UpdatedAt            func(childComplexity int) int
+		ChannelsToNotify        func(childComplexity int) int
+		CountThreshold          func(childComplexity int) int
+		DailyFrequency          func(childComplexity int) int
+		Disabled                func(childComplexity int) int
+		DiscordChannelsToNotify func(childComplexity int) int
+		EmailsToNotify          func(childComplexity int) int
+		ExcludedEnvironments    func(childComplexity int) int
+		Frequency               func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		LastAdminToEditID       func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		RegexGroups             func(childComplexity int) int
+		ThresholdWindow         func(childComplexity int) int
+		Type                    func(childComplexity int) int
+		UpdatedAt               func(childComplexity int) int
 	}
 
 	ErrorComment struct {
@@ -404,19 +410,20 @@ type ComplexityRoot struct {
 	}
 
 	MetricMonitor struct {
-		Aggregator        func(childComplexity int) int
-		ChannelsToNotify  func(childComplexity int) int
-		Disabled          func(childComplexity int) int
-		EmailsToNotify    func(childComplexity int) int
-		Filters           func(childComplexity int) int
-		ID                func(childComplexity int) int
-		LastAdminToEditID func(childComplexity int) int
-		MetricToMonitor   func(childComplexity int) int
-		Name              func(childComplexity int) int
-		PeriodMinutes     func(childComplexity int) int
-		Threshold         func(childComplexity int) int
-		Units             func(childComplexity int) int
-		UpdatedAt         func(childComplexity int) int
+		Aggregator              func(childComplexity int) int
+		ChannelsToNotify        func(childComplexity int) int
+		Disabled                func(childComplexity int) int
+		DiscordChannelsToNotify func(childComplexity int) int
+		EmailsToNotify          func(childComplexity int) int
+		Filters                 func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		LastAdminToEditID       func(childComplexity int) int
+		MetricToMonitor         func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		PeriodMinutes           func(childComplexity int) int
+		Threshold               func(childComplexity int) int
+		Units                   func(childComplexity int) int
+		UpdatedAt               func(childComplexity int) int
 	}
 
 	MetricPreview struct {
@@ -751,21 +758,22 @@ type ComplexityRoot struct {
 	}
 
 	SessionAlert struct {
-		ChannelsToNotify     func(childComplexity int) int
-		CountThreshold       func(childComplexity int) int
-		DailyFrequency       func(childComplexity int) int
-		Disabled             func(childComplexity int) int
-		EmailsToNotify       func(childComplexity int) int
-		ExcludeRules         func(childComplexity int) int
-		ExcludedEnvironments func(childComplexity int) int
-		ID                   func(childComplexity int) int
-		LastAdminToEditID    func(childComplexity int) int
-		Name                 func(childComplexity int) int
-		ThresholdWindow      func(childComplexity int) int
-		TrackProperties      func(childComplexity int) int
-		Type                 func(childComplexity int) int
-		UpdatedAt            func(childComplexity int) int
-		UserProperties       func(childComplexity int) int
+		ChannelsToNotify        func(childComplexity int) int
+		CountThreshold          func(childComplexity int) int
+		DailyFrequency          func(childComplexity int) int
+		Disabled                func(childComplexity int) int
+		DiscordChannelsToNotify func(childComplexity int) int
+		EmailsToNotify          func(childComplexity int) int
+		ExcludeRules            func(childComplexity int) int
+		ExcludedEnvironments    func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		LastAdminToEditID       func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		ThresholdWindow         func(childComplexity int) int
+		TrackProperties         func(childComplexity int) int
+		Type                    func(childComplexity int) int
+		UpdatedAt               func(childComplexity int) int
+		UserProperties          func(childComplexity int) int
 	}
 
 	SessionComment struct {
@@ -932,6 +940,7 @@ type CommentReplyResolver interface {
 }
 type ErrorAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model.SanitizedSlackChannel, error)
+	DiscordChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model1.DiscordChannel, error)
 	EmailsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
 
@@ -960,6 +969,7 @@ type ErrorSegmentResolver interface {
 }
 type MetricMonitorResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*model.SanitizedSlackChannel, error)
+	DiscordChannelsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*model1.DiscordChannel, error)
 	EmailsToNotify(ctx context.Context, obj *model1.MetricMonitor) ([]*string, error)
 
 	Filters(ctx context.Context, obj *model1.MetricMonitor) ([]*model.MetricTagFilter, error)
@@ -1142,6 +1152,7 @@ type SessionResolver interface {
 }
 type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
+	DiscordChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model1.DiscordChannel, error)
 	EmailsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
 
@@ -1831,6 +1842,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
 
+	case "DiscordChannel.id":
+		if e.complexity.DiscordChannel.ID == nil {
+			break
+		}
+
+		return e.complexity.DiscordChannel.ID(childComplexity), true
+
+	case "DiscordChannel.name":
+		if e.complexity.DiscordChannel.Name == nil {
+			break
+		}
+
+		return e.complexity.DiscordChannel.Name(childComplexity), true
+
 	case "EnhancedUserDetailsResult.avatar":
 		if e.complexity.EnhancedUserDetailsResult.Avatar == nil {
 			break
@@ -1900,6 +1925,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorAlert.Disabled(childComplexity), true
+
+	case "ErrorAlert.DiscordChannelsToNotify":
+		if e.complexity.ErrorAlert.DiscordChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.ErrorAlert.DiscordChannelsToNotify(childComplexity), true
 
 	case "ErrorAlert.EmailsToNotify":
 		if e.complexity.ErrorAlert.EmailsToNotify == nil {
@@ -2796,6 +2828,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.MetricMonitor.Disabled(childComplexity), true
+
+	case "MetricMonitor.discord_channels_to_notify":
+		if e.complexity.MetricMonitor.DiscordChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.MetricMonitor.DiscordChannelsToNotify(childComplexity), true
 
 	case "MetricMonitor.emails_to_notify":
 		if e.complexity.MetricMonitor.EmailsToNotify == nil {
@@ -5599,6 +5638,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionAlert.Disabled(childComplexity), true
 
+	case "SessionAlert.DiscordChannelsToNotify":
+		if e.complexity.SessionAlert.DiscordChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.SessionAlert.DiscordChannelsToNotify(childComplexity), true
+
 	case "SessionAlert.EmailsToNotify":
 		if e.complexity.SessionAlert.EmailsToNotify == nil {
 			break
@@ -6555,6 +6601,11 @@ type Plan {
 	membersLimit: Int
 }
 
+type DiscordChannel {
+	id: ID!
+	name: String
+}
+
 enum PlanType {
 	Free
 	Basic
@@ -7204,6 +7255,7 @@ type ErrorAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -7233,6 +7285,7 @@ type SessionAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -7383,6 +7436,7 @@ type MetricMonitor {
 	updated_at: Timestamp!
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
+	discord_channels_to_notify: [DiscordChannel!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int
@@ -16269,6 +16323,91 @@ func (ec *executionContext) fieldContext_DateRange_end_date(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _DiscordChannel_id(ctx context.Context, field graphql.CollectedField, obj *model1.DiscordChannel) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DiscordChannel_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DiscordChannel_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DiscordChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DiscordChannel_name(ctx context.Context, field graphql.CollectedField, obj *model1.DiscordChannel) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DiscordChannel_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DiscordChannel_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DiscordChannel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EnhancedUserDetailsResult_id(ctx context.Context, field graphql.CollectedField, obj *model.EnhancedUserDetailsResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EnhancedUserDetailsResult_id(ctx, field)
 	if err != nil {
@@ -16695,6 +16834,56 @@ func (ec *executionContext) fieldContext_ErrorAlert_ChannelsToNotify(ctx context
 				return ec.fieldContext_SanitizedSlackChannel_webhook_channel_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SanitizedSlackChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorAlert_DiscordChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorAlert().DiscordChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.DiscordChannel)
+	fc.Result = res
+	return ec.marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DiscordChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_DiscordChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -22410,6 +22599,56 @@ func (ec *executionContext) fieldContext_MetricMonitor_channels_to_notify(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _MetricMonitor_discord_channels_to_notify(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MetricMonitor_discord_channels_to_notify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.MetricMonitor().DiscordChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.DiscordChannel)
+	fc.Result = res
+	return ec.marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MetricMonitor_discord_channels_to_notify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MetricMonitor",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DiscordChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_DiscordChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _MetricMonitor_emails_to_notify(ctx context.Context, field graphql.CollectedField, obj *model1.MetricMonitor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_MetricMonitor_emails_to_notify(ctx, field)
 	if err != nil {
@@ -25725,6 +25964,8 @@ func (ec *executionContext) fieldContext_Mutation_createMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_name(ctx, field)
 			case "channels_to_notify":
 				return ec.fieldContext_MetricMonitor_channels_to_notify(ctx, field)
+			case "discord_channels_to_notify":
+				return ec.fieldContext_MetricMonitor_discord_channels_to_notify(ctx, field)
 			case "emails_to_notify":
 				return ec.fieldContext_MetricMonitor_emails_to_notify(ctx, field)
 			case "aggregator":
@@ -25805,6 +26046,8 @@ func (ec *executionContext) fieldContext_Mutation_updateMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_name(ctx, field)
 			case "channels_to_notify":
 				return ec.fieldContext_MetricMonitor_channels_to_notify(ctx, field)
+			case "discord_channels_to_notify":
+				return ec.fieldContext_MetricMonitor_discord_channels_to_notify(ctx, field)
 			case "emails_to_notify":
 				return ec.fieldContext_MetricMonitor_emails_to_notify(ctx, field)
 			case "aggregator":
@@ -25885,6 +26128,8 @@ func (ec *executionContext) fieldContext_Mutation_createErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -25967,6 +26212,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -26049,6 +26296,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteErrorAlert(ctx context.C
 				return ec.fieldContext_ErrorAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -26131,6 +26380,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteMetricMonitor(ctx contex
 				return ec.fieldContext_MetricMonitor_name(ctx, field)
 			case "channels_to_notify":
 				return ec.fieldContext_MetricMonitor_channels_to_notify(ctx, field)
+			case "discord_channels_to_notify":
+				return ec.fieldContext_MetricMonitor_discord_channels_to_notify(ctx, field)
 			case "emails_to_notify":
 				return ec.fieldContext_MetricMonitor_emails_to_notify(ctx, field)
 			case "aggregator":
@@ -26211,6 +26462,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionAlertIsDisabled(c
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -26295,6 +26548,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -26379,6 +26634,8 @@ func (ec *executionContext) fieldContext_Mutation_createSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -26463,6 +26720,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteSessionAlert(ctx context
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -31919,6 +32178,8 @@ func (ec *executionContext) fieldContext_Query_error_alerts(ctx context.Context,
 				return ec.fieldContext_ErrorAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_ErrorAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_ErrorAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_ErrorAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32004,6 +32265,8 @@ func (ec *executionContext) fieldContext_Query_session_feedback_alerts(ctx conte
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32088,6 +32351,8 @@ func (ec *executionContext) fieldContext_Query_new_user_alerts(ctx context.Conte
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32175,6 +32440,8 @@ func (ec *executionContext) fieldContext_Query_track_properties_alerts(ctx conte
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32262,6 +32529,8 @@ func (ec *executionContext) fieldContext_Query_user_properties_alerts(ctx contex
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32349,6 +32618,8 @@ func (ec *executionContext) fieldContext_Query_new_session_alerts(ctx context.Co
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -32436,6 +32707,8 @@ func (ec *executionContext) fieldContext_Query_rage_click_alerts(ctx context.Con
 				return ec.fieldContext_SessionAlert_Name(ctx, field)
 			case "ChannelsToNotify":
 				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
+			case "DiscordChannelsToNotify":
+				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
 			case "EmailsToNotify":
 				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
 			case "ExcludedEnvironments":
@@ -34493,6 +34766,8 @@ func (ec *executionContext) fieldContext_Query_metric_monitors(ctx context.Conte
 				return ec.fieldContext_MetricMonitor_name(ctx, field)
 			case "channels_to_notify":
 				return ec.fieldContext_MetricMonitor_channels_to_notify(ctx, field)
+			case "discord_channels_to_notify":
+				return ec.fieldContext_MetricMonitor_discord_channels_to_notify(ctx, field)
 			case "emails_to_notify":
 				return ec.fieldContext_MetricMonitor_emails_to_notify(ctx, field)
 			case "aggregator":
@@ -38970,6 +39245,56 @@ func (ec *executionContext) fieldContext_SessionAlert_ChannelsToNotify(ctx conte
 				return ec.fieldContext_SanitizedSlackChannel_webhook_channel_id(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SanitizedSlackChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionAlert_DiscordChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.SessionAlert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SessionAlert().DiscordChannelsToNotify(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.DiscordChannel)
+	fc.Result = res
+	return ec.marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionAlert_DiscordChannelsToNotify(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionAlert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DiscordChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_DiscordChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -47682,6 +48007,38 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var discordChannelImplementors = []string{"DiscordChannel"}
+
+func (ec *executionContext) _DiscordChannel(ctx context.Context, sel ast.SelectionSet, obj *model1.DiscordChannel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, discordChannelImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DiscordChannel")
+		case "id":
+
+			out.Values[i] = ec._DiscordChannel_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._DiscordChannel_name(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var enhancedUserDetailsResultImplementors = []string{"EnhancedUserDetailsResult"}
 
 func (ec *executionContext) _EnhancedUserDetailsResult(ctx context.Context, sel ast.SelectionSet, obj *model.EnhancedUserDetailsResult) graphql.Marshaler {
@@ -47765,6 +48122,26 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._ErrorAlert_ChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "DiscordChannelsToNotify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorAlert_DiscordChannelsToNotify(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -49147,6 +49524,26 @@ func (ec *executionContext) _MetricMonitor(ctx context.Context, sel ast.Selectio
 					}
 				}()
 				res = ec._MetricMonitor_channels_to_notify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "discord_channels_to_notify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MetricMonitor_discord_channels_to_notify(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -52978,6 +53375,26 @@ func (ec *executionContext) _SessionAlert(ctx context.Context, sel ast.Selection
 				return innerFunc(ctx)
 
 			})
+		case "DiscordChannelsToNotify":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SessionAlert_DiscordChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "EmailsToNotify":
 			field := field
 
@@ -55075,6 +55492,60 @@ func (ec *executionContext) unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlight
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.DiscordChannel) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDiscordChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDiscordChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannel(ctx context.Context, sel ast.SelectionSet, v *model1.DiscordChannel) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DiscordChannel(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNErrorAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorAlert) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -55673,6 +56144,21 @@ func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{})
 
 func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalIntID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

@@ -151,6 +151,12 @@ export type Plan = {
 	membersLimit?: Maybe<Scalars['Int']>
 }
 
+export type DiscordChannel = {
+	__typename?: 'DiscordChannel'
+	id: Scalars['ID']
+	name?: Maybe<Scalars['String']>
+}
+
 export enum PlanType {
 	Free = 'Free',
 	Basic = 'Basic',
@@ -841,6 +847,7 @@ export type ErrorAlert = {
 	updated_at: Scalars['Timestamp']
 	Name?: Maybe<Scalars['String']>
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	CountThreshold: Scalars['Int']
@@ -872,6 +879,7 @@ export type SessionAlert = {
 	updated_at: Scalars['Timestamp']
 	Name?: Maybe<Scalars['String']>
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	CountThreshold: Scalars['Int']
@@ -1034,6 +1042,7 @@ export type MetricMonitor = {
 	updated_at: Scalars['Timestamp']
 	name: Scalars['String']
 	channels_to_notify: Array<Maybe<SanitizedSlackChannel>>
+	discord_channels_to_notify: Array<DiscordChannel>
 	emails_to_notify: Array<Maybe<Scalars['String']>>
 	aggregator: MetricAggregator
 	period_minutes?: Maybe<Scalars['Int']>

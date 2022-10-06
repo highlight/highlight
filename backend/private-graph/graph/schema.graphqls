@@ -124,6 +124,11 @@ type Plan {
 	membersLimit: Int
 }
 
+type DiscordChannel {
+	id: ID!
+	name: String
+}
+
 enum PlanType {
 	Free
 	Basic
@@ -773,6 +778,7 @@ type ErrorAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -802,6 +808,7 @@ type SessionAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -952,6 +959,7 @@ type MetricMonitor {
 	updated_at: Timestamp!
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
+	discord_channels_to_notify: [DiscordChannel!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int

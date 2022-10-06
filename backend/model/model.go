@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -795,18 +796,19 @@ type MetricGroup struct {
 
 type MetricMonitor struct {
 	Model
-	ProjectID         int `gorm:"index;not null;"`
-	Name              string
-	Aggregator        modelInputs.MetricAggregator `gorm:"default:P50"`
-	PeriodMinutes     *int                         // apply aggregator function on PeriodMinutes lookback
-	Threshold         float64
-	Units             *string // Threshold value is in these Units.
-	MetricToMonitor   string
-	ChannelsToNotify  *string                  `gorm:"channels_to_notify"`
-	EmailsToNotify    *string                  `gorm:"emails_to_notify"`
-	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
-	Disabled          *bool                    `gorm:"default:false"`
-	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	ProjectID               int `gorm:"index;not null;"`
+	Name                    string
+	Aggregator              modelInputs.MetricAggregator `gorm:"default:P50"`
+	PeriodMinutes           *int                         // apply aggregator function on PeriodMinutes lookback
+	Threshold               float64
+	Units                   *string // Threshold value is in these Units.
+	MetricToMonitor         string
+	ChannelsToNotify        *string                  `gorm:"channels_to_notify"`
+	DiscordChannelsToNotify DiscordChannels          `gorm:"default:[]:type:text"`
+	EmailsToNotify          *string                  `gorm:"emails_to_notify"`
+	LastAdminToEditID       int                      `gorm:"last_admin_to_edit_id"`
+	Disabled                *bool                    `gorm:"default:false"`
+	Filters                 []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
 }
 
 func (m *MessagesObject) Contents() string {
@@ -1620,19 +1622,44 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
+type DiscordChannel struct {
+	Name string
+	ID   string
+}
+
+type DiscordChannels []DiscordChannel
+
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (dc *DiscordChannels) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+
+	result := json.RawMessage{}
+	return json.Unmarshal(bytes, &result)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (dc DiscordChannels) Value() (driver.Value, error) {
+	bytes, err := json.Marshal(dc)
+	return string(bytes), err
+}
+
 type Alert struct {
-	OrganizationID       int
-	ProjectID            int
-	ExcludedEnvironments *string
-	CountThreshold       int
-	ThresholdWindow      *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
-	ChannelsToNotify     *string
-	EmailsToNotify       *string
-	Name                 *string
-	Type                 *string `gorm:"index"`
-	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
-	Frequency            int     `gorm:"default:15"` // time in seconds
-	Disabled             *bool   `gorm:"default:false"`
+	OrganizationID          int
+	ProjectID               int
+	ExcludedEnvironments    *string
+	CountThreshold          int
+	ThresholdWindow         *int // TODO(geooot): [HIG-2351] make this not a pointer or change graphql struct field to be nullable
+	ChannelsToNotify        *string
+	DiscordChannelsToNotify DiscordChannels `gorm:"default:[]:type:text"`
+	EmailsToNotify          *string
+	Name                    *string
+	Type                    *string `gorm:"index"`
+	LastAdminToEditID       int     `gorm:"last_admin_to_edit_id"`
+	Frequency               int     `gorm:"default:15"` // time in seconds
+	Disabled                *bool   `gorm:"default:false"`
 }
 
 type ErrorAlert struct {
