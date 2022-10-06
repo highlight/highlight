@@ -13,9 +13,14 @@ import classNames from 'classnames'
 import { useLayoutEffect, useMemo, useState } from 'react'
 
 import styles from './TimelineBar.module.scss'
+
 export interface EventBucket {
 	totalCount: number
-	[props: string]: number | string
+	startTime: number
+	endTime: number
+	identifier: {
+		[props: string]: string[]
+	}
 }
 
 interface IBar {
@@ -38,7 +43,7 @@ const TimelineIndicatorsBar = ({
 	const { setShowRightPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const data = useMemo(() => {
 		const selectedEventTypes = EventsForTimeline.filter(
-			(eventType) => bucket[eventType] !== undefined,
+			(eventType) => bucket.identifier[eventType] !== undefined,
 		)
 
 		const barData = selectedEventTypes
@@ -49,10 +54,11 @@ const TimelineIndicatorsBar = ({
 					name: getTimelineEventDisplayName(eventType || ''),
 					color,
 					icon,
-					count: bucket[eventType],
-					firstId: bucket[`${eventType}Identifier`],
+					count: bucket.identifier[eventType].length,
+					firstId: bucket.identifier[eventType][0],
 					percent:
-						((bucket[eventType] as number) / bucket.totalCount) *
+						(bucket.identifier[eventType].length /
+							bucket.totalCount) *
 						100,
 					eventType,
 				}

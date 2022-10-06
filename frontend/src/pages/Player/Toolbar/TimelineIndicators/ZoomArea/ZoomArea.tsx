@@ -76,7 +76,6 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 
 		const onPointerMove = (event: MouseEvent) => {
 			event.preventDefault()
-			event.stopPropagation()
 			const percent = (100 * getRelativeX(event)) / wrapperWidth
 			if (isLeftDragging) {
 				setDragPercent(({ right }) => {
