@@ -32,7 +32,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2389,7 +2389,6 @@ func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id in
 	}
 
 	return errorAlert, err
-
 }
 
 // UpdateMetricMonitorIsDisabled is the resolver for the updateMetricMonitorIsDisabled field.
