@@ -482,7 +482,6 @@ const TimelineIndicatorsBarGraph = ({
 		},
 		[roundedDuration, zoomAreaPercent],
 	)
-
 	const ticks = useMemo(() => {
 		let size = pickBucketSize(
 			roundedDuration / camera.zoom,
@@ -492,16 +491,19 @@ const TimelineIndicatorsBarGraph = ({
 		// do Math.ceil to have 1 second as the min tick
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
+		const numTicks = Math.ceil(roundedDuration / mainTickInMs)
 
 		const step = (mainTickInMs / roundedDuration) * canvasWidth
 		const minorStep = step / (MINOR_TICK_COUNT + 1)
 
-		const numTicks = Math.ceil(roundedDuration / mainTickInMs)
-
 		const elms = []
 
+		const showTick = (idx: number) =>
+			isVisible(idx * mainTickInMs) &&
+			((idx * mainTickInMs) / roundedDuration) * canvasWidth < canvasWidth
+
 		for (let idx = 0; idx <= numTicks; ++idx) {
-			if (!isVisible(idx * mainTickInMs)) {
+			if (!showTick(idx)) {
 				continue
 			}
 			const key = `${idx * size.multiple}${size.tick}`
@@ -544,11 +546,7 @@ const TimelineIndicatorsBarGraph = ({
 					minorIdx < MINOR_TICK_COUNT;
 					++minorIdx
 				) {
-					if (
-						!isVisible(
-							(idx + minorIdx / MINOR_TICK_COUNT) * mainTickInMs,
-						)
-					) {
+					if (!showTick(idx + minorIdx / MINOR_TICK_COUNT)) {
 						continue
 					}
 					const isMid = minorIdx === Math.floor(MINOR_TICK_COUNT / 2)
