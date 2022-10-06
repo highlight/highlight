@@ -636,6 +636,9 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 	slack_channels:
 		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
 		| Types.Maybe<Types.SanitizedSlackChannelInput>
+	discord_channels:
+		| Array<Types.DiscordChannelInput>
+		| Types.DiscordChannelInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -689,6 +692,9 @@ export type CreateMetricMonitorMutationVariables = Types.Exact<{
 	slack_channels:
 		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
 		| Types.Maybe<Types.SanitizedSlackChannelInput>
+	discord_channels:
+		| Array<Types.DiscordChannelInput>
+		| Types.DiscordChannelInput
 	emails:
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -737,6 +743,9 @@ export type UpdateMetricMonitorMutationVariables = Types.Exact<{
 		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
 		| Types.Maybe<Types.SanitizedSlackChannelInput>
 	>
+	discord_channels:
+		| Array<Types.DiscordChannelInput>
+		| Types.DiscordChannelInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -819,6 +828,9 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
 		| Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
 		| Types.Maybe<Types.SanitizedSlackChannelInput>
 	>
+	discord_channels:
+		| Array<Types.DiscordChannelInput>
+		| Types.DiscordChannelInput
 	emails?: Types.Maybe<
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
@@ -906,7 +918,7 @@ export type UpdateMetricMonitorIsDisabledMutationVariables = Types.Exact<{
 export type UpdateMetricMonitorIsDisabledMutation = {
 	__typename?: 'Mutation'
 } & {
-	updateMetricMonitor?: Types.Maybe<
+	updateMetricMonitorIsDisabled?: Types.Maybe<
 		{ __typename?: 'MetricMonitor' } & Pick<Types.MetricMonitor, 'id'>
 	>
 }
@@ -918,7 +930,7 @@ export type UpdateErrorAlertIsDisabledMutationVariables = Types.Exact<{
 }>
 
 export type UpdateErrorAlertIsDisabledMutation = { __typename?: 'Mutation' } & {
-	updateErrorAlert?: Types.Maybe<
+	updateErrorAlertIsDisabled?: Types.Maybe<
 		{ __typename?: 'ErrorAlert' } & Pick<Types.ErrorAlert, 'id'>
 	>
 }
@@ -990,6 +1002,12 @@ export type UpdateSessionAlertMutation = { __typename?: 'Mutation' } & {
 							Types.SanitizedSlackChannel,
 							'webhook_channel' | 'webhook_channel_id'
 						>
+					>
+				>
+				DiscordChannelsToNotify: Array<
+					{ __typename?: 'DiscordChannel' } & Pick<
+						Types.DiscordChannel,
+						'id' | 'name'
 					>
 				>
 			}
@@ -1215,10 +1233,7 @@ export type SessionAlertFragmentFragment = {
 			>
 		>
 		DiscordChannelsToNotify: Array<
-			{ __typename?: 'DiscordChannel' } & Pick<
-				Types.DiscordChannel,
-				'id' | 'name'
-			>
+			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 		>
 		TrackProperties: Array<
 			Types.Maybe<
@@ -1229,6 +1244,10 @@ export type SessionAlertFragmentFragment = {
 			>
 		>
 	}
+
+export type DiscordChannelFragmentFragment = {
+	__typename?: 'DiscordChannel'
+} & Pick<Types.DiscordChannel, 'name' | 'id'>
 
 export type GetMetricsTimelineQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -3176,6 +3195,7 @@ export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
 
 export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
+	is_integrated_with_discord: Types.Query['is_integrated_with']
 } & {
 	slack_channel_suggestion?: Types.Maybe<
 		Array<
@@ -3186,6 +3206,9 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				>
 			>
 		>
+	>
+	discord_channel_suggestions: Array<
+		{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 	>
 	admins: Array<
 		{ __typename?: 'WorkspaceAdminRole' } & {
@@ -3229,10 +3252,9 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						>
 					>
 					DiscordChannelsToNotify: Array<
-						{ __typename?: 'DiscordChannel' } & Pick<
-							Types.DiscordChannel,
-							'id' | 'name'
-						>
+						{
+							__typename?: 'DiscordChannel'
+						} & DiscordChannelFragmentFragment
 					>
 				}
 		>
@@ -3674,5 +3696,6 @@ export const namedOperations = {
 	Fragment: {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,
 		SessionAlertFragment: 'SessionAlertFragment' as const,
+		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 	},
 }

@@ -21,9 +21,7 @@ func (dc *DiscordChannels) Scan(value interface{}) error {
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
-
-	result := json.RawMessage{}
-	return json.Unmarshal(bytes, &result)
+	return json.Unmarshal(bytes, &dc)
 }
 
 // Value return json value, implement driver.Valuer interface

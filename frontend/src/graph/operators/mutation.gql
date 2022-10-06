@@ -531,6 +531,7 @@ mutation CreateErrorAlert(
 	$count_threshold: Int!
 	$threshold_window: Int!
 	$slack_channels: [SanitizedSlackChannelInput]!
+	$discord_channels: [DiscordChannelInput!]!
 	$emails: [String]!
 	$environments: [String]!
 	$regex_groups: [String]!
@@ -541,6 +542,7 @@ mutation CreateErrorAlert(
 		count_threshold: $count_threshold
 		name: $name
 		slack_channels: $slack_channels
+		discord_channels: $discord_channels
 		emails: $emails
 		environments: $environments
 		threshold_window: $threshold_window
@@ -574,6 +576,7 @@ mutation CreateMetricMonitor(
 	$periodMinutes: Int
 	$metric_to_monitor: String!
 	$slack_channels: [SanitizedSlackChannelInput]!
+	$discord_channels: [DiscordChannelInput!]!
 	$emails: [String]!
 ) {
 	createMetricMonitor(
@@ -586,6 +589,7 @@ mutation CreateMetricMonitor(
 		periodMinutes: $periodMinutes
 		metric_to_monitor: $metric_to_monitor
 		slack_channels: $slack_channels
+		discord_channels: $discord_channels
 		emails: $emails
 	) {
 		id
@@ -616,6 +620,7 @@ mutation UpdateMetricMonitor(
 	$periodMinutes: Int
 	$metric_to_monitor: String
 	$slack_channels: [SanitizedSlackChannelInput]
+	$discord_channels: [DiscordChannelInput!]!
 	$emails: [String]
 	$disabled: Boolean
 ) {
@@ -630,6 +635,7 @@ mutation UpdateMetricMonitor(
 		periodMinutes: $periodMinutes
 		metric_to_monitor: $metric_to_monitor
 		slack_channels: $slack_channels
+		discord_channels: $discord_channels
 		emails: $emails
 		disabled: $disabled
 	) {
@@ -681,6 +687,7 @@ mutation UpdateErrorAlert(
 	$count_threshold: Int
 	$threshold_window: Int
 	$slack_channels: [SanitizedSlackChannelInput]
+	$discord_channels: [DiscordChannelInput!]!
 	$emails: [String]
 	$environments: [String]
 	$regex_groups: [String]
@@ -693,6 +700,7 @@ mutation UpdateErrorAlert(
 		name: $name
 		count_threshold: $count_threshold
 		slack_channels: $slack_channels
+		discord_channels: $discord_channels
 		emails: $emails
 		environments: $environments
 		threshold_window: $threshold_window
@@ -749,8 +757,8 @@ mutation UpdateMetricMonitorIsDisabled(
 	$project_id: ID!
 	$disabled: Boolean!
 ) {
-	updateMetricMonitor(
-		metric_monitor_id: $id
+	updateMetricMonitorIsDisabled(
+		id: $id
 		project_id: $project_id
 		disabled: $disabled
 	) {
@@ -763,8 +771,8 @@ mutation UpdateErrorAlertIsDisabled(
 	$project_id: ID!
 	$disabled: Boolean!
 ) {
-	updateErrorAlert(
-		error_alert_id: $id
+	updateErrorAlertIsDisabled(
+		id: $id
 		project_id: $project_id
 		disabled: $disabled
 	) {
@@ -808,6 +816,10 @@ mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
 		ChannelsToNotify {
 			webhook_channel
 			webhook_channel_id
+		}
+		DiscordChannelsToNotify {
+			id
+			name
 		}
 		EmailsToNotify
 		ExcludedEnvironments

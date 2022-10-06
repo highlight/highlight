@@ -57,8 +57,7 @@ fragment SessionAlertFragment on SessionAlert {
 		webhook_channel_id
 	}
 	DiscordChannelsToNotify {
-		id
-		name
+		...DiscordChannelFragment
 	}
 	CountThreshold
 	DailyFrequency
@@ -77,6 +76,11 @@ fragment SessionAlertFragment on SessionAlert {
 		value
 	}
 	Type
+}
+
+fragment DiscordChannelFragment on DiscordChannel {
+	name
+	id
 }
 
 query GetMetricsTimeline(
@@ -1392,9 +1396,16 @@ query GetAlertsPagePayload($project_id: ID!) {
 		integration_type: Slack
 		project_id: $project_id
 	)
+	is_integrated_with_discord: is_integrated_with(
+		integration_type: Discord
+		project_id: $project_id
+	)
 	slack_channel_suggestion(project_id: $project_id) {
 		webhook_channel
 		webhook_channel_id
+	}
+	discord_channel_suggestions(project_id: $project_id) {
+		...DiscordChannelFragment
 	}
 	admins: workspace_admins_by_project_id(project_id: $project_id) {
 		admin {
@@ -1414,8 +1425,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 			webhook_channel_id
 		}
 		DiscordChannelsToNotify {
-			id
-			name
+			...DiscordChannelFragment
 		}
 		EmailsToNotify
 		ExcludedEnvironments

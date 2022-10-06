@@ -56,6 +56,14 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, err
 	}
 
+	discordChannelsToNotify := []*model.DiscordChannel{}
+	for _, channel := range input.DiscordChannels {
+		discordChannelsToNotify = append(discordChannelsToNotify, &model.DiscordChannel{
+			ID:   channel.ID,
+			Name: channel.Name,
+		})
+	}
+
 	emailsString, err := marshalAlertEmails(input.Emails)
 	if err != nil {
 		return nil, err
@@ -97,5 +105,8 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		UserProperties:  &userPropertiesString,
 		TrackProperties: &trackPropertiesString,
 		ExcludeRules:    excludeRulesString,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discordChannelsToNotify,
+		},
 	}, nil
 }

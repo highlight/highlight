@@ -16,7 +16,7 @@ const mapToSelectOptions = (channels: DiscordChannel[]) => {
 	return channels.map((channel) => {
 		return {
 			displayValue: channel.name,
-			value: channel.name,
+			value: channel.id,
 			id: channel.id,
 		}
 	})
@@ -28,6 +28,13 @@ export const DiscordChannnelsSection = ({
 	defaultName,
 	selectedChannels,
 }: Props) => {
+	const handleChange = (channelIds: string[]) => {
+		const channels = options.filter((option) => {
+			return channelIds.includes(option.id)
+		})
+		onChannelsChange(channels)
+	}
+
 	return (
 		<section>
 			<h3>Discord Channels to Notify</h3>
@@ -43,7 +50,7 @@ export const DiscordChannnelsSection = ({
 						value={mapToSelectOptions(selectedChannels)}
 						mode="multiple"
 						placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
-						onChange={onChannelsChange}
+						onChange={handleChange}
 					/>
 				)}
 			</Form.Item>

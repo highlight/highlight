@@ -60,11 +60,17 @@ const EditAlertsPage = () => {
 					channelSuggestions={
 						alertsPayload?.slack_channel_suggestion || []
 					}
+					discordChannelSuggestions={
+						alertsPayload.discord_channel_suggestions
+					}
 					environmentOptions={
 						alertsPayload?.environment_suggestion || []
 					}
 					isSlackIntegrated={
 						alertsPayload?.is_integrated_with_slack || false
+					}
+					isDiscordIntegrated={
+						alertsPayload.is_integrated_with_discord
 					}
 					emailSuggestions={(alertsPayload?.admins || []).map(
 						(wa) => wa.admin!.email,

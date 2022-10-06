@@ -56,6 +56,12 @@ export const SessionPayloadFragmentFragmentDoc = gql`
 		last_user_interaction_time
 	}
 `
+export const DiscordChannelFragmentFragmentDoc = gql`
+	fragment DiscordChannelFragment on DiscordChannel {
+		name
+		id
+	}
+`
 export const SessionAlertFragmentFragmentDoc = gql`
 	fragment SessionAlertFragment on SessionAlert {
 		ChannelsToNotify {
@@ -63,8 +69,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 			webhook_channel_id
 		}
 		DiscordChannelsToNotify {
-			id
-			name
+			...DiscordChannelFragment
 		}
 		CountThreshold
 		DailyFrequency
@@ -84,6 +89,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		}
 		Type
 	}
+	${DiscordChannelFragmentFragmentDoc}
 `
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
@@ -2327,6 +2333,7 @@ export const CreateErrorAlertDocument = gql`
 		$count_threshold: Int!
 		$threshold_window: Int!
 		$slack_channels: [SanitizedSlackChannelInput]!
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]!
 		$environments: [String]!
 		$regex_groups: [String]!
@@ -2337,6 +2344,7 @@ export const CreateErrorAlertDocument = gql`
 			count_threshold: $count_threshold
 			name: $name
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -2383,6 +2391,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -2421,6 +2430,7 @@ export const CreateMetricMonitorDocument = gql`
 		$periodMinutes: Int
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]!
 	) {
 		createMetricMonitor(
@@ -2433,6 +2443,7 @@ export const CreateMetricMonitorDocument = gql`
 			periodMinutes: $periodMinutes
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 		) {
 			id
@@ -2479,6 +2490,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *   },
  * });
@@ -2515,6 +2527,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$periodMinutes: Int
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]
 		$disabled: Boolean
 	) {
@@ -2529,6 +2542,7 @@ export const UpdateMetricMonitorDocument = gql`
 			periodMinutes: $periodMinutes
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			disabled: $disabled
 		) {
@@ -2577,6 +2591,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      disabled: // value for 'disabled'
  *   },
@@ -2722,6 +2737,7 @@ export const UpdateErrorAlertDocument = gql`
 		$count_threshold: Int
 		$threshold_window: Int
 		$slack_channels: [SanitizedSlackChannelInput]
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]
 		$environments: [String]
 		$regex_groups: [String]
@@ -2734,6 +2750,7 @@ export const UpdateErrorAlertDocument = gql`
 			name: $name
 			count_threshold: $count_threshold
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -2781,6 +2798,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -2981,8 +2999,8 @@ export const UpdateMetricMonitorIsDisabledDocument = gql`
 		$project_id: ID!
 		$disabled: Boolean!
 	) {
-		updateMetricMonitor(
-			metric_monitor_id: $id
+		updateMetricMonitorIsDisabled(
+			id: $id
 			project_id: $project_id
 			disabled: $disabled
 		) {
@@ -3041,8 +3059,8 @@ export const UpdateErrorAlertIsDisabledDocument = gql`
 		$project_id: ID!
 		$disabled: Boolean!
 	) {
-		updateErrorAlert(
-			error_alert_id: $id
+		updateErrorAlertIsDisabled(
+			id: $id
 			project_id: $project_id
 			disabled: $disabled
 		) {
@@ -3222,6 +3240,10 @@ export const UpdateSessionAlertDocument = gql`
 			ChannelsToNotify {
 				webhook_channel
 				webhook_channel_id
+			}
+			DiscordChannelsToNotify {
+				id
+				name
 			}
 			EmailsToNotify
 			ExcludedEnvironments
@@ -9284,9 +9306,16 @@ export const GetAlertsPagePayloadDocument = gql`
 			integration_type: Slack
 			project_id: $project_id
 		)
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
 		slack_channel_suggestion(project_id: $project_id) {
 			webhook_channel
 			webhook_channel_id
+		}
+		discord_channel_suggestions(project_id: $project_id) {
+			...DiscordChannelFragment
 		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
 			admin {
@@ -9306,8 +9335,7 @@ export const GetAlertsPagePayloadDocument = gql`
 				webhook_channel_id
 			}
 			DiscordChannelsToNotify {
-				id
-				name
+				...DiscordChannelFragment
 			}
 			EmailsToNotify
 			ExcludedEnvironments
@@ -9368,6 +9396,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 		}
 	}
+	${DiscordChannelFragmentFragmentDoc}
 	${SessionAlertFragmentFragmentDoc}
 `
 
