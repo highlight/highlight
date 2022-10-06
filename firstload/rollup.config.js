@@ -78,18 +78,6 @@ if (development) {
 				sourcemap: sourceMap,
 			},
 		},
-		{
-			input: {
-				indexCJS: input.index,
-				electronCJS: input.electron,
-			},
-			output: {
-				dir: './dist',
-				format: 'cjs',
-				exports: 'auto',
-				sourcemap: sourceMap,
-			},
-		},
 	]) {
 		rollupBuilds.push({
 			input: x.input,

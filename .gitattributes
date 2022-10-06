@@ -4,3 +4,5 @@ go.sum linguist-generated=true
 go.mod linguist-generated=true
 /.yarn/releases/** binary
 /.yarn/plugins/** binary
+/yarn.lock binary
+
