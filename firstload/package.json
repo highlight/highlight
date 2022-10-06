@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "4.5.1",
+	"version": "4.6.0",
 	"scripts": {
 		"build": "tsc && rollup -c",
 		"dev": "doppler run -- rollup -c -w",
