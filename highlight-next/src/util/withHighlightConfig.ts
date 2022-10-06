@@ -30,11 +30,14 @@ const getDefaultOpts = (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
 ): HighlightConfigOptionsDefault => {
+	const isProdBuild = process.env.NODE_ENV === 'production'
+
 	return {
 		uploadSourceMaps:
-			highlightOpts?.uploadSourceMaps ??
-			!config.productionBrowserSourceMaps ??
-			true,
+			isProdBuild &&
+			(highlightOpts?.uploadSourceMaps ??
+				!config.productionBrowserSourceMaps ??
+				true),
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? '',
@@ -42,7 +45,6 @@ const getDefaultOpts = (
 	}
 }
 
-// ZANETODO: test with next dev - make sure upload sourcemaps only runs with a prod build by default
 export const withHighlightConfig = (
 	config: NextConfig,
 	highlightOpts?: HighlightConfigOptions,
@@ -115,7 +117,8 @@ export const withHighlightConfig = (
 
 	return {
 		...config,
-		productionBrowserSourceMaps: defaultOpts.uploadSourceMaps,
+		productionBrowserSourceMaps:
+			defaultOpts.uploadSourceMaps || config.productionBrowserSourceMaps,
 		rewrites: newRewrites,
 		webpack: newWebpack,
 	}
