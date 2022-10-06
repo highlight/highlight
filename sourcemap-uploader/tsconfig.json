@@ -1,19 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "typeRoots": ["./node_modules/@types"],
+    "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
+    "module": "ESNext",
     "declaration": true,
     "declarationDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "react",
-    "composite": true
+    "composite": true,
+    "outDir": "dist",
+    "removeComments": true
   },
   "include": ["src"]
 }

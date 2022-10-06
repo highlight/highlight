@@ -8,11 +8,11 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"type": "module",
 	"scripts": {
 		"build": "run-p build:cjs build:esm",
 		"build:cjs": "tsc -p tsconfig.cjs.json",
 		"build:dev": "run-s build",
-		"build:es5": "yarn build:cjs # *** backwards compatibility - remove in v7 ***",
 		"build:esm": "tsc -p tsconfig.esm.json",
 		"gql": "graphql-codegen --config --watch codegen.yml"
 	},

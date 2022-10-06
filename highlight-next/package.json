@@ -2,13 +2,13 @@
 	"name": "@highlight-run/next",
 	"version": "1.2.0",
 	"description": "Client for interfacing with Highlight in next.js",
-	"main": "dist/src/index.js",
+	"main": "esm/src/index.js",
+	"module": "esm/src/index.js",
+	"type": "module",
 	"scripts": {
-		"build": "run-p build:zane",
-		"build:zane": "tsc -p tsconfig.json",
+		"build": "run-p build:cjs build:esm",
 		"build:cjs": "tsc -p tsconfig.cjs.json",
 		"build:dev": "run-s build",
-		"build:es5": "yarn build:cjs # *** backwards compatibility - remove in v7 ***",
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"author": "",

@@ -46,6 +46,7 @@ export const uploadSourcemaps = async ({
     api_key: apiKey,
   };
 
+  console.log("bout to fetch");
   const res = await fetch("https://pri.highlight.run", {
     method: "post",
     headers: {
@@ -65,6 +66,8 @@ export const uploadSourcemaps = async ({
       console.log(e);
     });
 
+  console.log("done fetch");
+
   if (
     !res ||
     !res.data ||
@@ -76,9 +79,14 @@ export const uploadSourcemaps = async ({
 
   let organizationId = res.data.api_key_to_org_id;
 
+  console.info("wut");
   console.info(`Starting to upload source maps from ${path}`);
+  console.info("zane test");
+  console.info("cwd", cwd());
 
   const fileList = await getAllSourceMapFiles([path]);
+
+  console.info("fileList", fileList);
 
   if (fileList.length === 0) {
     console.error(
@@ -99,8 +107,8 @@ yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
-    undefined,
-    // @ts-expect-error ZANETODO
+    {},
+    // @ts-ignore-error
     uploadSourcemaps
   )
   .option("apiKey", {
@@ -127,6 +135,7 @@ async function getAllSourceMapFiles(paths: string[]) {
   await Promise.all(
     paths.map((path) => {
       const realPath = join(cwd(), path);
+      console.log("realPath", realPath);
 
       if (statSync(realPath).isFile()) {
         map.push({
@@ -137,11 +146,15 @@ async function getAllSourceMapFiles(paths: string[]) {
         return Promise.resolve();
       }
 
+      console.log("zane hi1");
+
       return new Promise<void>((resolve) => {
         glob(
           "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
           async (err, files) => {
+            console.log("zane hi3");
+
             for (const file of files) {
               map.push({
                 path: join(realPath, file),
@@ -149,12 +162,18 @@ async function getAllSourceMapFiles(paths: string[]) {
               });
             }
 
+            console.log("zane hi4");
+
             resolve();
+
+            console.log("zane hi5");
           }
         );
       });
     })
   );
+
+  console.log("zane hi2");
 
   return map;
 }

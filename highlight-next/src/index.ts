@@ -1,2 +1,2 @@
-export { Highlight } from './util/withHighlight'
-export { withHighlightConfig } from './util/withHighlightConfig'
+export { Highlight } from './util/withHighlight.js'
+export { withHighlightConfig } from './util/withHighlightConfig.js'
