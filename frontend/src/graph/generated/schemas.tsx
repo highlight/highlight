@@ -52,7 +52,7 @@ export type Session = {
 	language: Scalars['String']
 	identifier: Scalars['String']
 	identified: Scalars['Boolean']
-	created_at?: Maybe<Scalars['Timestamp']>
+	created_at: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
 	active_length?: Maybe<Scalars['Int']>
 	user_object?: Maybe<Scalars['Any']>
