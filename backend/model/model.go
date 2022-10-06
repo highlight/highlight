@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -1620,34 +1619,6 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
 	}
 	return userProperties, nil
-}
-
-type DiscordChannel struct {
-	Name string
-	ID   string
-}
-
-type DiscordChannels []*DiscordChannel
-
-// Scan scan value into Jsonb, implements sql.Scanner interface
-func (dc *DiscordChannels) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
-	}
-
-	result := json.RawMessage{}
-	return json.Unmarshal(bytes, &result)
-}
-
-// Value return json value, implement driver.Valuer interface
-func (dc DiscordChannels) Value() (driver.Value, error) {
-	bytes, err := json.Marshal(dc)
-	return string(bytes), err
-}
-
-type AlertIntegrations struct {
-	DiscordChannelsToNotify DiscordChannels `gorm:"type:jsonb;default:'[]'" json:"discord_channels_to_notify"`
 }
 
 type Alert struct {
