@@ -17,7 +17,7 @@ import type {
 	Metadata,
 	Metric,
 	SessionDetails,
-} from '../../client/src'
+} from '@highlight-run/client'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 
