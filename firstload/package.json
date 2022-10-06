@@ -10,12 +10,6 @@
 	"module": "dist/indexESM.js",
 	"types": "dist/src/index.d.ts",
 	"license": "MIT",
-	"bundledDependencies": [
-		"@highlight-run/client"
-	],
-	"dependencies": {
-		"@highlight-run/client": "workspace:*"
-	},
 	"devDependencies": {
 		"@babel/preset-env": "^7.19.1",
 		"@babel/preset-typescript": "^7.18.6",
