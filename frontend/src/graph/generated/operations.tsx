@@ -1214,6 +1214,12 @@ export type SessionAlertFragmentFragment = {
 				>
 			>
 		>
+		DiscordChannelsToNotify: Array<
+			{ __typename?: 'DiscordChannel' } & Pick<
+				Types.DiscordChannel,
+				'id' | 'name'
+			>
+		>
 		TrackProperties: Array<
 			Types.Maybe<
 				{ __typename?: 'TrackProperty' } & Pick<
