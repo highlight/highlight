@@ -6464,7 +6464,7 @@ type Session {
 	language: String!
 	identifier: String!
 	identified: Boolean!
-	created_at: Timestamp
+	created_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -37694,11 +37694,14 @@ func (ec *executionContext) _Session_created_at(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Session_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -52741,6 +52744,9 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "length":
 
 			out.Values[i] = ec._Session_length(ctx, field, obj)
