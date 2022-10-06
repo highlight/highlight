@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -56,14 +57,6 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		return nil, err
 	}
 
-	discordChannelsToNotify := []*model.DiscordChannel{}
-	for _, channel := range input.DiscordChannels {
-		discordChannelsToNotify = append(discordChannelsToNotify, &model.DiscordChannel{
-			ID:   channel.ID,
-			Name: channel.Name,
-		})
-	}
-
 	emailsString, err := marshalAlertEmails(input.Emails)
 	if err != nil {
 		return nil, err
@@ -106,7 +99,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		TrackProperties: &trackPropertiesString,
 		ExcludeRules:    excludeRulesString,
 		AlertIntegrations: model.AlertIntegrations{
-			DiscordChannelsToNotify: discordChannelsToNotify,
+			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
 		},
 	}, nil
 }

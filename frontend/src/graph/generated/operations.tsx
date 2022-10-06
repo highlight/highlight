@@ -869,6 +869,12 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
 						>
 					>
 				>
+				DiscordChannelsToNotify: Array<
+					{ __typename?: 'DiscordChannel' } & Pick<
+						Types.DiscordChannel,
+						'id' | 'name'
+					>
+				>
 			}
 	>
 }

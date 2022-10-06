@@ -2763,6 +2763,10 @@ export const UpdateErrorAlertDocument = gql`
 				webhook_channel
 				webhook_channel_id
 			}
+			DiscordChannelsToNotify {
+				id
+				name
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			CountThreshold

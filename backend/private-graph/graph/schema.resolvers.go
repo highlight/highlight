@@ -2047,6 +2047,9 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		EmailsToNotify:    emailsString,
 		LastAdminToEditID: admin.ID,
 		Filters:           mmFilters,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		},
 	}
 
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
@@ -2100,6 +2103,10 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 			return nil, e.Wrap(err, "error marshalling slack channels")
 		}
 		metricMonitor.ChannelsToNotify = channelsString
+	}
+
+	metricMonitor.AlertIntegrations = model.AlertIntegrations{
+		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
 	}
 
 	if emails != nil {
@@ -2186,6 +2193,9 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Frequency:            frequency,
 		},
 		RegexGroups: &regexGroupsString,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		},
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -2263,6 +2273,10 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}
 	if disabled != nil {
 		projectAlert.Disabled = disabled
+	}
+
+	projectAlert.AlertIntegrations = model.AlertIntegrations{
+		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
 	}
 
 	if err := r.DB.Model(&model.ErrorAlert{
