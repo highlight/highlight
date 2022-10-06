@@ -7,7 +7,12 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
+import {
+	DiscordChannel,
+	MetricAggregator,
+	MetricTagFilter,
+} from '@graph/schemas'
+import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
@@ -44,11 +49,14 @@ interface Props {
 	units?: string
 	onUnitsChange: (newUnits: string) => void
 	slackChannels: string[]
+	discordChannels: DiscordChannel[]
 	onSlackChannelsChange: (newChannels: string[]) => void
+	onDiscordChannelsChange: (discordChannels: DiscordChannel[]) => void
 	emails: string[]
 	onEmailsChange: (newEmails: string[]) => void
 	onFormSubmit: (values: any) => void
 	channelSuggestions: any[]
+	discordChannelSuggestions: DiscordChannel[]
 	emailSuggestions: string[]
 	isSlackIntegrated: boolean
 	slackUrl: string
@@ -88,7 +96,10 @@ const MonitorConfiguration = ({
 	units,
 	onUnitsChange,
 	onSlackChannelsChange,
+	onDiscordChannelsChange,
 	slackChannels,
+	discordChannels,
+	discordChannelSuggestions,
 	formDestructiveButtonLabel,
 	onFormDestructiveAction,
 	disabled,
@@ -480,6 +491,13 @@ const MonitorConfiguration = ({
 						)}
 					/>
 				</section>
+
+				<DiscordChannnelsSection
+					options={discordChannelSuggestions}
+					selectedChannels={discordChannels}
+					onChannelsChange={onDiscordChannelsChange}
+					defaultName="the alert"
+				/>
 
 				<section>
 					<h3>Emails to Notify</h3>

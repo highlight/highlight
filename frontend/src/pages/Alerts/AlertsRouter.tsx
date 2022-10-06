@@ -72,6 +72,9 @@ const AlertsRouter = () => {
 							channelSuggestions={
 								data?.slack_channel_suggestion || []
 							}
+							discordChannelSuggestions={
+								data?.discord_channel_suggestions || []
+							}
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false
 							}
@@ -84,6 +87,9 @@ const AlertsRouter = () => {
 						<EditMonitorPage
 							channelSuggestions={
 								data?.slack_channel_suggestion || []
+							}
+							discordChannelSuggestions={
+								data?.discord_channel_suggestions || []
 							}
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false

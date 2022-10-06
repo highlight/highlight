@@ -4,7 +4,11 @@ import {
 	useUpdateMetricMonitorMutation,
 } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations'
-import { MetricAggregator, MetricTagFilter } from '@graph/schemas'
+import {
+	DiscordChannel,
+	MetricAggregator,
+	MetricTagFilter,
+} from '@graph/schemas'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
@@ -17,12 +21,14 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 
 interface Props {
 	channelSuggestions: any[]
+	discordChannelSuggestions: DiscordChannel[]
 	emailSuggestions: string[]
 	isSlackIntegrated: boolean
 }
 
 const EditMonitorPage = ({
 	channelSuggestions,
+	discordChannelSuggestions,
 	isSlackIntegrated,
 	emailSuggestions,
 }: Props) => {
@@ -43,6 +49,7 @@ const EditMonitorPage = ({
 	const [filters, setFilters] = useState<MetricTagFilter[]>([])
 	const [units, setUnits] = useState<string>()
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
+	const [discordChannels, setDiscordChannels] = useState<DiscordChannel[]>([])
 	const [isDisabled, setIsDisabled] = useState<boolean>(false)
 	const [emails, setEmails] = useState<string[]>([])
 	const [updateMonitor] = useUpdateMetricMonitorMutation({
@@ -60,6 +67,7 @@ const EditMonitorPage = ({
 				).webhook_channel,
 				webhook_channel_id,
 			})),
+			discord_channels: discordChannels,
 			threshold,
 			filters,
 			units,
@@ -95,6 +103,7 @@ const EditMonitorPage = ({
 				units,
 				emails_to_notify,
 				disabled,
+				discord_channels_to_notify,
 			} = existingMonitor
 
 			setMetricToMonitorName(metric_to_monitor)
@@ -111,6 +120,7 @@ const EditMonitorPage = ({
 			setAggregator(aggregator)
 			setPeriodMinutes(period || 1)
 			setIsDisabled(disabled)
+			setDiscordChannels(discord_channels_to_notify)
 		}
 
 		if (
@@ -146,6 +156,8 @@ const EditMonitorPage = ({
 						onMonitorNameChange={setMonitorName}
 						onMetricToMonitorNameChange={setMetricToMonitorName}
 						onSlackChannelsChange={setSlackChannels}
+						discordChannels={discordChannels}
+						onDiscordChannelsChange={setDiscordChannels}
 						slackChannels={slackChannels}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
@@ -159,6 +171,7 @@ const EditMonitorPage = ({
 						units={units}
 						onUnitsChange={setUnits}
 						channelSuggestions={channelSuggestions}
+						discordChannelSuggestions={discordChannelSuggestions}
 						onFormSubmit={onFinish}
 						isSlackIntegrated={isSlackIntegrated}
 						slackUrl={slackUrl}
