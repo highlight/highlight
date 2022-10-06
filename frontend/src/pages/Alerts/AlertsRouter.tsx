@@ -12,17 +12,10 @@ import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import {
-	Redirect,
-	Route,
-	Switch,
-	useHistory,
-	useRouteMatch,
-} from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 const AlertsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { path } = useRouteMatch()
 	const [alertsPayload, setAlertsPayload] = useState<
 		GetAlertsPagePayloadQuery | undefined
 	>(undefined)
@@ -30,7 +23,7 @@ const AlertsRouter = () => {
 		variables: { project_id },
 	})
 	const slackUrl = getSlackUrl('Organization', project_id)
-	const history = useHistory<{ errorName: string }>()
+	const location = useLocation()
 
 	useEffect(() => {
 		if (!loading) {
@@ -53,53 +46,52 @@ const AlertsRouter = () => {
 			<LeadAlignLayout maxWidth={1200}>
 				<Breadcrumb
 					getBreadcrumbName={(url) =>
-						getAlertsBreadcrumbNames(history.location.state)(url)
+						getAlertsBreadcrumbNames(location.state)(url)
 					}
 					linkRenderAs="h2"
 				/>
-				<Switch>
-					<Route exact path={path}>
-						<AlertsPage />
-					</Route>
-					<Route exact path={`${path}/new`}>
-						<NewAlertPage />
-					</Route>
-					<Route exact path={`${path}/monitor`}>
-						<Redirect to={`/${project_id}/alerts`} />
-					</Route>
-					<Route exact path={`${path}/new/monitor`}>
-						<NewMonitorPage
-							channelSuggestions={
-								data?.slack_channel_suggestion || []
-							}
-							isSlackIntegrated={
-								data?.is_integrated_with_slack || false
-							}
-							emailSuggestions={(data?.admins || []).map(
-								(wa) => wa.admin!.email,
-							)}
-						/>
-					</Route>
-					<Route exact path={`${path}/monitor/:id`}>
-						<EditMonitorPage
-							channelSuggestions={
-								data?.slack_channel_suggestion || []
-							}
-							isSlackIntegrated={
-								data?.is_integrated_with_slack || false
-							}
-							emailSuggestions={(data?.admins || []).map(
-								(wa) => wa.admin!.email,
-							)}
-						/>
-					</Route>
-					<Route exact path={`${path}/new/:type`}>
-						<NewAlertPage />
-					</Route>
-					<Route path={`${path}/:id`}>
-						<EditAlertsPage />
-					</Route>
-				</Switch>
+				<Routes>
+					<Route path={'*'} element={<AlertsPage />} />
+					<Route path={`new`} element={<NewAlertPage />} />
+					<Route
+						path={`monitor`}
+						element={<Navigate to={`/${project_id}/alerts`} />}
+					/>
+					<Route
+						path={`new/monitor`}
+						element={
+							<NewMonitorPage
+								channelSuggestions={
+									data?.slack_channel_suggestion || []
+								}
+								isSlackIntegrated={
+									data?.is_integrated_with_slack || false
+								}
+								emailSuggestions={(data?.admins || []).map(
+									(wa) => wa.admin!.email,
+								)}
+							/>
+						}
+					/>
+					<Route
+						path={`monitor/:id`}
+						element={
+							<EditMonitorPage
+								channelSuggestions={
+									data?.slack_channel_suggestion || []
+								}
+								isSlackIntegrated={
+									data?.is_integrated_with_slack || false
+								}
+								emailSuggestions={(data?.admins || []).map(
+									(wa) => wa.admin!.email,
+								)}
+							/>
+						}
+					/>
+					<Route path={`new/:type`} element={<NewAlertPage />} />
+					<Route path={`:id`} element={<EditAlertsPage />} />
+				</Routes>
 			</LeadAlignLayout>
 		</AlertsContextProvider>
 	)
