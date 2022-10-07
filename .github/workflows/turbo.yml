@@ -58,7 +58,7 @@ jobs:
 
             - name: Configure yarn npm registry credentials
               run: |
-                  yarn config set npmRegistryServer "https://npm.pkg.github.com"
+                  yarn config set npmRegistryServer "https://registry.npmjs.org"
                   yarn config set npmAuthToken "${NPM_TOKEN}"
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
