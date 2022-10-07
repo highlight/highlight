@@ -33,6 +33,11 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
+            - name: Configure yarn npm registry authentication
+              run: yarn config set _authToken ${NPM_TOKEN}
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Install js dependencies
               run: yarn
 
