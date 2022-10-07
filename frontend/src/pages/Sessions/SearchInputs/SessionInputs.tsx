@@ -11,7 +11,7 @@ export const ViewedSessionsSwitch = () => {
 
 	return (
 		<Checkbox
-			checked={searchParams.hide_viewed}
+			checked={!!searchParams.hide_viewed}
 			onChange={(e) => {
 				setSearchParams((params) => ({
 					...params,
