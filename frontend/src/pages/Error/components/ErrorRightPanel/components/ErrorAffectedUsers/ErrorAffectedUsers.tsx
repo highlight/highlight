@@ -40,7 +40,6 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
 		recentErrors.error_group.metadata_log.length
 	) {
 		numberOfAffectedSessions = recentErrors.error_group.metadata_log.length
-		mostRecentAffectedSession
 
 		const mostRecentAffectedSessionIndex =
 			recentErrors.error_group.metadata_log.reduce((acc, curr, index) => {
