@@ -33,14 +33,6 @@ jobs:
                   node-version: 16
                   cache: 'yarn'
 
-            - name: Configure yarn npm registry authentication
-              run: |
-                  echo 'npmRegistryServer: "https://npm.pkg.github.com"' >> .yarnrc
-                  echo "npmAuthToken: \"${NPM_TOKEN}\"" >> .yarnrc
-                  cat .yarnrc
-              env:
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
             - name: Install js dependencies
               run: yarn
 
@@ -63,6 +55,13 @@ jobs:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+
+            - name: Configure yarn npm registry credentials
+              run: |
+                  echo 'npmRegistryServer: "https://npm.pkg.github.com"' >> .yarnrc.yml
+                  echo "npmAuthToken: \"${NPM_TOKEN}\"" >> .yarnrc.yml
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
               if: github.ref == 'refs/heads/master'
