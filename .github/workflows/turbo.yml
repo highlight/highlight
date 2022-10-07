@@ -64,7 +64,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              run: yarn publish:render
+              run: yarn publish:turbo
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
