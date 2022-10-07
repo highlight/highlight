@@ -31,7 +31,7 @@ function AutoJoinForm({
 	const { loading } = useGetWorkspaceAdminsQuery({
 		variables: { workspace_id },
 		onCompleted: (d) => {
-			let emailOrigins
+			let emailOrigins: string[] = []
 			if (d.workspace?.allowed_auto_join_email_origins) {
 				emailOrigins = JSON.parse(
 					d.workspace.allowed_auto_join_email_origins,
