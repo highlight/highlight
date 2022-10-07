@@ -365,6 +365,11 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	Foo struct {
+		Bar func(childComplexity int) int
+		ID  func(childComplexity int) int
+	}
+
 	HistogramBucket struct {
 		Bucket     func(childComplexity int) int
 		Count      func(childComplexity int) int
@@ -2635,6 +2640,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "Foo.bar":
+		if e.complexity.Foo.Bar == nil {
+			break
+		}
+
+		return e.complexity.Foo.Bar(childComplexity), true
+
+	case "Foo.id":
+		if e.complexity.Foo.ID == nil {
+			break
+		}
+
+		return e.complexity.Foo.ID(childComplexity), true
 
 	case "HistogramBucket.bucket":
 		if e.complexity.HistogramBucket.Bucket == nil {
@@ -6441,6 +6460,11 @@ type Field {
 	name: String!
 	value: String!
 	type: String
+}
+
+type Foo {
+	id: Int64!
+	bar: String!
 }
 
 type Session {
@@ -21352,6 +21376,94 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 func (ec *executionContext) fieldContext_Field_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Field",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Foo_id(ctx context.Context, field graphql.CollectedField, obj *model.Foo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Foo_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Foo_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Foo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Foo_bar(ctx context.Context, field graphql.CollectedField, obj *model.Foo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Foo_bar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bar, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Foo_bar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Foo",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -48853,6 +48965,41 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Field_type(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var fooImplementors = []string{"Foo"}
+
+func (ec *executionContext) _Foo(ctx context.Context, sel ast.SelectionSet, obj *model.Foo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fooImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Foo")
+		case "id":
+
+			out.Values[i] = ec._Foo_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "bar":
+
+			out.Values[i] = ec._Foo_bar(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

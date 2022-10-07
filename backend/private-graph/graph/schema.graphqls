@@ -12,6 +12,11 @@ type Field {
 	type: String
 }
 
+type Foo {
+	id: Int64!
+	bar: String!
+}
+
 type Session {
 	id: ID!
 	secure_id: String!

@@ -208,6 +208,11 @@ type ErrorTrace struct {
 	LinesAfter   *string `json:"linesAfter"`
 }
 
+type Foo struct {
+	ID  int64  `json:"id"`
+	Bar string `json:"bar"`
+}
+
 type HistogramBucket struct {
 	Bucket     float64 `json:"bucket"`
 	RangeStart float64 `json:"range_start"`
