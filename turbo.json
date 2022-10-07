@@ -10,8 +10,8 @@
 			"cache": false
 		},
 		"types": {
-			"inputs": ["./**/*.tsx", "./tsconfig.json"],
-			"outputs": ["./**/*.d.ts"]
+			"inputs": ["src/**/*.tsx", "tsconfig.json"],
+			"outputs": ["dist/**/*.d.ts"]
 		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],

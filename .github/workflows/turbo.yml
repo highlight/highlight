@@ -57,18 +57,16 @@ jobs:
                   aws-region: us-east-2
 
             - name: Configure yarn npm registry credentials
+              if: github.ref == 'refs/heads/master'
               run: |
-                  echo 'npmRegistryServer: "https://npm.pkg.github.com"' >> .yarnrc.yml
-                  echo "npmAuthToken: \"${NPM_TOKEN}\"" >> .yarnrc.yml
+                  yarn config set npmRegistryServer "https://registry.npmjs.org"
+                  yarn config set npmAuthToken "${NPM_TOKEN}"
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
               if: github.ref == 'refs/heads/master'
-              uses: changesets/action@v1
-              with:
-                  publish: yarn publish:all
+              run: yarn publish:turbo
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
