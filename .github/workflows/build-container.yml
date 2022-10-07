@@ -37,12 +37,11 @@ jobs:
                   tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
                   build-args: |
                       REACT_APP_COMMIT_SHA=${{ steps.vars.outputs.sha_short }}
+                      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
                   secrets: |
                       SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
                       SLACK_CLIENT_ID=${{ secrets.SLACK_CLIENT_ID }}
                       SLACK_CLIENT_SECRET=${{ secrets.SLACK_CLIENT_SECRET }}
                       TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
-                      TURBO_TEAM=${{ secrets.TURBO_TEAM }}
-
             - name: Image digest
               run: echo ${{ steps.docker_build.outputs.digest }}
