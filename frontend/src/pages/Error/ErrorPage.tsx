@@ -159,22 +159,19 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
 	useEffect(() => {
 		if (dateFromSearchParams) {
-			const start_date = moment(dateFromSearchParams)
-				.startOf('day')
-				.subtract(1, 'day')
-				.toDate()
-				.toString()
-			const end_date = moment(dateFromSearchParams)
-				.endOf('day')
-				.toDate()
-				.toString()
-
 			setSearchParams(() => ({
 				// We are explicitly clearing any existing search params so the only applied search param is the date range.
 				...EmptyErrorsSearchParams,
 				date_range: {
-					start_date,
-					end_date,
+					start_date: moment(dateFromSearchParams)
+						.startOf('day')
+						.subtract(1, 'day')
+						.toDate()
+						.toString(),
+					end_date: moment(dateFromSearchParams)
+						.endOf('day')
+						.toDate()
+						.toString(),
 				},
 			}))
 			message.success(
