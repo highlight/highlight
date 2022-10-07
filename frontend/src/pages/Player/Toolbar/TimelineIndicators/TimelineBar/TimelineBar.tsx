@@ -94,7 +94,6 @@ const TimelineIndicatorsBar = ({
 		const barLeft = (left * scrollWidth) / 100 - scrollLeft
 
 		const relX = clamp((barLeft / offsetWidth) * 100, 0, 100)
-		console.log(':::', relX)
 
 		let relPos = 2
 		for (const threshold of [66, 33]) {
@@ -143,6 +142,7 @@ const TimelineIndicatorsBar = ({
 			onMouseEnter={() => setIsInsidePopover(true)}
 			onMouseLeave={() => setIsInsidePopover(false)}
 			showArrow={false}
+			destroyTooltipOnHide
 		>
 			<div
 				className={classNames(styles.bar, {
