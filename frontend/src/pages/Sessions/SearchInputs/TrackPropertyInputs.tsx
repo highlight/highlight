@@ -1,3 +1,4 @@
+import { UserPropertyInput } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { OptionsType, OptionTypeBase } from 'react-select'
@@ -6,11 +7,7 @@ import AsyncCreatableSelect from 'react-select/async-creatable'
 import { PropertyOption } from '../../../components/Option/Option'
 import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks'
 import SvgTargetIcon from '../../../static/TargetIcon'
-import {
-	SearchParams,
-	UserProperty,
-	useSearchContext,
-} from '../SearchContext/SearchContext'
+import { SearchParams, useSearchContext } from '../SearchContext/SearchContext'
 import inputStyles from './InputStyles.module.scss'
 import { ContainsLabel } from './SearchInputUtil'
 
@@ -75,7 +72,7 @@ export const TrackPropertyInput = ({
 				isClearable={false}
 				defaultOptions
 				onChange={(options) => {
-					const newOptions: Array<UserProperty> =
+					const newOptions: Array<UserPropertyInput> =
 						options?.map((o) => {
 							if (!o.name) {
 								o.name = 'contains'

@@ -1,4 +1,5 @@
 import { namedOperations } from '@graph/operations'
+import { ErrorSearchParamsInput } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
@@ -8,7 +9,6 @@ import Button from '../../../../../components/Button/Button/Button'
 import { CircularSpinner } from '../../../../../components/Loading/Loading'
 import Modal from '../../../../../components/Modal/Modal'
 import { useDeleteErrorSegmentMutation } from '../../../../../graph/generated/hooks'
-import { ErrorSearchParams } from '../../../ErrorSearchContext/ErrorSearchContext'
 import styles from '../SegmentPicker.module.scss'
 
 const NO_SEGMENT = 'none'
@@ -31,7 +31,7 @@ const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 		segment_id: string
 		project_id: string
 	}>()
-	const history = useHistory<ErrorSearchParams>()
+	const history = useHistory<ErrorSearchParamsInput>()
 	const [deleteSegment, { loading }] = useDeleteErrorSegmentMutation({
 		update(cache) {
 			cache.modify({

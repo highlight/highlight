@@ -10,7 +10,7 @@ import {
 	useGetRecentErrorsQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import { ErrorGroup, Maybe } from '@graph/schemas'
+import { ErrorGroup, ErrorSearchParamsInput, Maybe } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
 import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext'
@@ -49,10 +49,7 @@ import { NumberParam, useQueryParams } from 'use-query-params'
 import Button from '../../components/Button/Button/Button'
 import Tooltip from '../../components/Tooltip/Tooltip'
 import SvgDownloadIcon from '../../static/DownloadIcon'
-import {
-	ErrorSearchContextProvider,
-	ErrorSearchParams,
-} from '../Errors/ErrorSearchContext/ErrorSearchContext'
+import { ErrorSearchContextProvider } from '../Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage'
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard'
 import ErrorBody from './components/ErrorBody/ErrorBody'
@@ -99,18 +96,20 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 	})
 
 	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-		`cachedErrorParams-v2-${
-			segmentName || 'no-selected-segment'
-		}-${project_id}`,
-		{},
-	)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+	const [cachedParams, setCachedParams] =
+		useLocalStorage<ErrorSearchParamsInput>(
+			`cachedErrorParams-v2-${
+				segmentName || 'no-selected-segment'
+			}-${project_id}`,
+			{},
+		)
+	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
 		cachedParams || EmptyErrorsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
-	const [existingParams, setExistingParams] = useState<ErrorSearchParams>({})
+	const [existingParams, setExistingParams] =
+		useState<ErrorSearchParamsInput>({})
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const dateFromSearchParams = new URLSearchParams(location.search).get(
 		SessionPageSearchParams.date,

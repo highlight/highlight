@@ -1,4 +1,4 @@
-import { UserProperty } from '@pages/Sessions/SearchContext/SearchContext'
+import { UserPropertyInput } from '@graph/schemas'
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { decodeDelimitedArray, encodeDelimitedArray } from 'use-query-params'
 
@@ -13,7 +13,7 @@ const FIELD_DELIMITER = '||'
 const PROPERTY_DELIMITER = ','
 
 export const FieldArrayParam = {
-	encode(properties?: UserProperty[]) {
+	encode(properties?: UserPropertyInput[]) {
 		if (!properties) {
 			return undefined
 		}
@@ -26,8 +26,7 @@ export const FieldArrayParam = {
 					return name
 				}
 
-				// @ts-expect-error
-				if ((id === -1 || id === '-1') && name === 'contains') {
+				if (id === '-1' && name === 'contains') {
 					return `${value}`
 				}
 

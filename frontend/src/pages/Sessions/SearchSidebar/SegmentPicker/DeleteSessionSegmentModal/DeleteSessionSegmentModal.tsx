@@ -3,6 +3,7 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { namedOperations } from '@graph/operations'
+import { SearchParamsInput } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
@@ -12,7 +13,6 @@ import Button from '../../../../../components/Button/Button/Button'
 import { CircularSpinner } from '../../../../../components/Loading/Loading'
 import Modal from '../../../../../components/Modal/Modal'
 import { useDeleteSegmentMutation } from '../../../../../graph/generated/hooks'
-import { SearchParams } from '../../../SearchContext/SearchContext'
 import styles from '../SegmentPicker.module.scss'
 
 const NO_SEGMENT = 'none'
@@ -39,7 +39,7 @@ const DeleteSessionSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
-	const history = useHistory<SearchParams>()
+	const history = useHistory<SearchParamsInput>()
 	const [deleteSegment, { loading }] = useDeleteSegmentMutation({
 		update(cache) {
 			cache.modify({

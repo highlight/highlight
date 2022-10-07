@@ -38,7 +38,7 @@ export const LiveSessionsSwitch = () => {
 	return (
 		<Checkbox
 			disabled={isOnLiveSegment}
-			checked={isOnLiveSegment ? true : searchParams.show_live_sessions}
+			checked={isOnLiveSegment ? true : !!searchParams.show_live_sessions}
 			onChange={(e) => {
 				setSearchParams((params) => ({
 					...params,
