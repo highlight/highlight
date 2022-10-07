@@ -64,11 +64,7 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish npm packages
-              if: github.ref == 'refs/heads/master'
-              uses: changesets/action@v1
-              with:
-                  publish: yarn publish:all
+              run: yarn publish:all
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
