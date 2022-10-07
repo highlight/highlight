@@ -35,6 +35,9 @@
 
 .timelineBarPopoverContainer {
 	:global(.ant-popover-inner-content) {
-		padding: 4px !important;
+		padding: 0 !important;
+	}
+	:global(.ant-popover-inner) {
+		overflow: hidden;
 	}
 }

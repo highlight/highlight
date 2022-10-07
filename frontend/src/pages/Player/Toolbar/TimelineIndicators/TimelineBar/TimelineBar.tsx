@@ -1,27 +1,16 @@
-import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
 import { getFullScreenPopoverGetPopupContainer } from '@pages/Player/context/PlayerUIContext'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { getPlayerEventIcon } from '@pages/Player/StreamElement/StreamElement'
-import timelineAnnotationStyles from '@pages/Player/Toolbar/TimelineAnnotation/TimelineAnnotation.module.scss'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
+import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
+import TimelinePopover from '@pages/Player/Toolbar/TimelineIndicators/TimelinePopover/TimelinePopover'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import { clamp } from '@util/numbers'
 import { TooltipPlacement } from 'antd/lib/tooltip'
 import classNames from 'classnames'
 import { useLayoutEffect, useMemo, useState } from 'react'
 
 import styles from './TimelineBar.module.scss'
-
-export interface EventBucket {
-	totalCount: number
-	startTime: number
-	endTime: number
-	identifier: {
-		[props: string]: string[]
-	}
-}
 
 interface IBar {
 	bucket: EventBucket
@@ -39,8 +28,6 @@ const TimelineIndicatorsBar = ({
 	height,
 	viewportRef,
 }: IBar) => {
-	const { setCurrentEvent } = useReplayerContext()
-	const { setShowRightPanel, setShowLeftPanel } = usePlayerConfiguration()
 	const data = useMemo(() => {
 		const selectedEventTypes = EventsForTimeline.filter(
 			(eventType) => bucket.identifier[eventType] !== undefined,
@@ -49,11 +36,9 @@ const TimelineIndicatorsBar = ({
 		const barData = selectedEventTypes
 			.map((eventType) => {
 				const color = `var(${getAnnotationColor(eventType)})`
-				const icon = getPlayerEventIcon(eventType)
 				return {
 					name: getTimelineEventDisplayName(eventType || ''),
 					color,
-					icon,
 					count: bucket.identifier[eventType].length,
 					firstId: bucket.identifier[eventType][0],
 					percent:
@@ -68,140 +53,100 @@ const TimelineIndicatorsBar = ({
 		return barData
 	}, [bucket])
 
-	const [rightTooltipOffset, setRightTooltipOffset] = useState<number>(0)
-	const [placement, setPlacement] = useState<TooltipPlacement>('top')
-	const [relativePosition, setRelativePosition] = useState<number>(left)
+	const [isInsideBar, setIsInsideBar] = useState(false)
+	const [isInsidePopover, setIsInsidePopover] = useState(false)
+	const [isSelected, setIsSelected] = useState(false)
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
 		if (!viewportDiv) {
 			return
-		}
-		const onPointermove = ({ clientX }: MouseEvent) => {
-			const { offsetLeft, offsetWidth } = viewportDiv
-			const relX =
-				((clientX + document.documentElement.scrollLeft - offsetLeft) *
-					100) /
-				offsetWidth
-			let relPos = 0
-			for (const threshold of [66, 33]) {
-				if (relX > threshold) {
-					relPos = threshold + 1
-					break
-				}
-			}
-			setRelativePosition(relPos)
 		}
 
 		const onScroll = () => {
 			setIsSelected(false)
 		}
-		viewportDiv.addEventListener('pointermove', onPointermove)
-		viewportDiv.addEventListener('scroll', onScroll)
-		return () => {
-			viewportDiv.removeEventListener('pointermove', onPointermove)
-			viewportDiv.removeEventListener('scroll', onScroll)
-		}
-	}, [viewportRef])
 
-	useLayoutEffect(() => {
-		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
-			return
-		}
-
-		const offset = (viewportDiv.scrollWidth * (width / 100)) / 8
-		if (relativePosition > 66) {
-			setRightTooltipOffset(offset)
-			setPlacement('topRight')
-		} else if (relativePosition > 33) {
-			setRightTooltipOffset(0)
-			setPlacement('top')
-		} else {
-			setRightTooltipOffset(-offset)
-			setPlacement('topLeft')
-		}
-	}, [relativePosition, viewportRef, width, viewportRef.current?.scrollWidth])
-
-	const popoverContent = useMemo(() => {
-		const rows = []
-		for (const { icon, color, count, name, firstId, eventType } of data) {
-			rows.push(
-				<Button
-					className={classNames(
-						timelineAnnotationStyles.title,
-						styles.eventAggregateTitle,
-					)}
-					trackingId="ViewEventDetail"
-					type="text"
-					key={name}
-					onClick={() => {
-						if (
-							!!firstId &&
-							!(
-								eventType === 'Comments' ||
-								eventType === 'Errors'
-							)
-						) {
-							setCurrentEvent(firstId as string)
-							setShowLeftPanel(false)
-							setShowRightPanel(true)
-						}
-					}}
-				>
-					<span
-						className={timelineAnnotationStyles.iconContainer}
-						style={{
-							background: color,
-							width: 30,
-							height: 30,
-						}}
-					>
-						{icon}
-					</span>
-					{name}
-					{count > 1 && ` x ${count}`}
-				</Button>,
-			)
-		}
-		return rows
-	}, [data, setCurrentEvent, setShowLeftPanel, setShowRightPanel])
-
-	const [isInsideBar, setIsInsideBar] = useState(false)
-	const [isInsidePopover, setIsInsidePopover] = useState(false)
-	const [isSelected, setIsSelected] = useState(false)
-	useLayoutEffect(() => {
-		const hidePopover = () => {
+		const onPointerDown = () => {
 			if (!(isInsideBar || isInsidePopover)) {
 				setIsSelected(false)
 			}
 		}
-		document.addEventListener('pointerdown', hidePopover)
+
+		document.addEventListener('pointerdown', onPointerDown)
+		viewportDiv.addEventListener('scroll', onScroll)
 
 		return () => {
-			document.removeEventListener('pointerdown', hidePopover)
+			document.removeEventListener('pointerdown', onPointerDown)
+			viewportDiv.removeEventListener('scroll', onScroll)
 		}
-	}, [isInsideBar, isInsidePopover])
+	}, [isInsideBar, isInsidePopover, viewportRef, width])
+
+	const tooltipPosition = useMemo(() => {
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return {
+				rightOffset: 0,
+				placement: 'top' as TooltipPlacement,
+			}
+		}
+		const { scrollWidth, scrollLeft, offsetWidth } = viewportDiv
+
+		const barLeft = (left * scrollWidth) / 100 - scrollLeft
+
+		const relX = clamp((barLeft / offsetWidth) * 100, 0, 100)
+		console.log(':::', relX)
+
+		let relPos = 2
+		for (const threshold of [66, 33]) {
+			if (relX >= threshold) {
+				break
+			}
+			relPos -= 1
+		}
+
+		// move by the 8th of the bar width
+		let offset = (scrollWidth * (width / 100)) / 8
+
+		let placement: TooltipPlacement = 'top'
+		if (relPos === 2) {
+			placement = 'topRight'
+		} else if (relPos === 1) {
+			offset = 0
+			placement = 'top'
+		} else {
+			offset *= -1
+			placement = 'topLeft'
+		}
+		return {
+			rightOffset: offset,
+			placement: placement,
+		}
+		// disable checks to update on scroll
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [left, viewportRef, viewportRef.current?.scrollLeft, width])
 
 	return (
 		<Popover
 			getPopupContainer={getFullScreenPopoverGetPopupContainer}
-			content={<>{popoverContent}</>}
+			content={<TimelinePopover bucket={bucket} />}
+			// content={<>{popoverContent}</>}
 			align={{
 				overflow: {
 					adjustY: false,
 					adjustX: false,
 				},
-				offset: [rightTooltipOffset, 0],
+				offset: [tooltipPosition.rightOffset, 4],
 			}}
-			placement={placement}
+			placement={tooltipPosition.placement}
 			overlayClassName={styles.timelineBarPopoverContainer}
 			visible={isSelected}
 			onMouseEnter={() => setIsInsidePopover(true)}
 			onMouseLeave={() => setIsInsidePopover(false)}
+			showArrow={false}
 		>
 			<div
 				className={classNames(styles.bar, {
-					[styles.isShaded]: isInsideBar,
+					[styles.isShaded]: isInsideBar || isSelected,
 				})}
 				style={{
 					width: `${width}%`,

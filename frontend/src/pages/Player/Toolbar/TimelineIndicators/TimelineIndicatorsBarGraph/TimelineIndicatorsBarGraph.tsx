@@ -11,9 +11,7 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
-import TimelineBar, {
-	EventBucket,
-} from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
+import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -24,7 +22,6 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import moment from 'moment'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
@@ -38,6 +35,7 @@ interface Props {
 const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
 const TARGET_BUCKET_WIDTH = 20
+const MIN_BUCKET_WIDTH = 5
 const MINOR_TICK_COUNT = 3
 
 export const TIMELINE_MARGIN = 32
@@ -94,7 +92,7 @@ const TimelineIndicatorsBarGraph = ({
 			})),
 			...errors.map((event) => ({
 				...event,
-				identifier: event.id,
+				identifier: event.error_group_secure_id,
 				eventType: 'Errors',
 			})),
 		]
@@ -133,6 +131,7 @@ const TimelineIndicatorsBarGraph = ({
 		const roundingBucketSize = pickBucketSize(
 			duration,
 			TARGET_BUCKET_WIDTH,
+			MIN_BUCKET_WIDTH,
 			viewportWidth,
 		)
 		const timestep = getBucketSizeInMs(roundingBucketSize)
@@ -142,10 +141,10 @@ const TimelineIndicatorsBarGraph = ({
 
 	const canvasWidth = viewportWidth * camera.zoom
 
-	const visibleDuration = roundedDuration / camera.zoom
 	const bucketSize = pickBucketSize(
-		visibleDuration,
+		roundedDuration / camera.zoom,
 		TARGET_BUCKET_WIDTH,
+		MIN_BUCKET_WIDTH,
 		viewportWidth,
 	)
 	const bucketTimestep = getBucketSizeInMs(bucketSize)
@@ -486,6 +485,7 @@ const TimelineIndicatorsBarGraph = ({
 		let size = pickBucketSize(
 			roundedDuration / camera.zoom,
 			viewportWidth / TARGET_TICK_COUNT,
+			MIN_BUCKET_WIDTH,
 			viewportWidth,
 		)
 		// do Math.ceil to have 1 second as the min tick
@@ -844,29 +844,30 @@ function getBucketSizeInMs({ multiple, tick }: BucketSize) {
 function pickBucketSize(
 	duration: number,
 	targetBucketWidth: number,
+	minBucketWidth: number,
 	viewportWidth: number,
 ): BucketSize {
-	const dur = moment.duration(duration)
-
 	const reverseBucketSizes = Array.from(BUCKET_SIZES).reverse()
 	for (const bucketSize of reverseBucketSizes) {
-		let numIntervals = Number.MAX_VALUE
-		switch (bucketSize.tick) {
-			case TimelineTick.second:
-				numIntervals = dur.asSeconds()
-				break
-			case TimelineTick.minute:
-				numIntervals = dur.asMinutes()
-				break
-		}
-		const bucketCount = Math.ceil(numIntervals / bucketSize.multiple)
+		const bucketCount = Math.ceil(duration / getBucketSizeInMs(bucketSize))
 		const bucketWidth = viewportWidth / bucketCount
 
 		if (bucketWidth <= targetBucketWidth) {
 			return bucketSize
 		}
 	}
-	return reverseBucketSizes.at(-1)!
+	return BUCKET_SIZES[0]
+}
+export interface EventBucket {
+	totalCount: number
+	startTime: number
+	endTime: number
+	identifier: {
+		[props: string]: string[]
+	}
+	timestamp: {
+		[identifier: string]: number
+	}
 }
 
 function buildEventBuckets(
@@ -896,6 +897,7 @@ function buildEventBuckets(
 					[] as string[],
 				]),
 			),
+			timestamp: {},
 		}),
 	)
 
@@ -914,9 +916,8 @@ function buildEventBuckets(
 			0,
 			eventBuckets.length - 1,
 		)
-		if (identifier) {
-			eventBuckets[bucketId].identifier[eventType].push(identifier)
-		}
+		eventBuckets[bucketId].identifier[eventType].push(identifier)
+		eventBuckets[bucketId].timestamp[identifier] = timestamp
 		eventBuckets[bucketId].totalCount++
 	}
 	return eventBuckets.filter((bucket) => bucket.totalCount > 0)

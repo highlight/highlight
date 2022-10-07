@@ -95,6 +95,13 @@ const RightPlayerPanel = React.memo(() => {
 
 export default RightPlayerPanel
 
+export enum RightPlayerPanelTabType {
+	Events = 'Events',
+	Comments = 'Comments',
+	Metadata = 'Metadata',
+}
+
+export const RightPlayerPanelTabsId = 'PlayerRightPanel'
 const RightPlayerPanelTabs = React.memo(() => {
 	const sessionCommentsRef = React.useRef(null)
 	return (
@@ -106,11 +113,11 @@ const RightPlayerPanelTabs = React.memo(() => {
 			className={styles.tabs}
 			tabs={[
 				{
-					key: 'Events',
+					key: RightPlayerPanelTabType.Events,
 					panelContent: <EventStream />,
 				},
 				{
-					key: 'Comments',
+					key: RightPlayerPanelTabType.Comments,
 					panelContent: (
 						<div
 							className={styles.tabContentContainer}
@@ -123,7 +130,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 					),
 				},
 				{
-					key: 'Metadata',
+					key: RightPlayerPanelTabType.Metadata,
 					panelContent: (
 						<div className={styles.tabContentContainer}>
 							<MetadataPanel />
