@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"types": ["@highlight-run/sourcemap-uploader", "@highlight-run/node"],
 		"target": "ES6",
 		"skipLibCheck": true,
 		"allowSyntheticDefaultImports": true,
