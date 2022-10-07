@@ -18,16 +18,17 @@ FROM node:16-alpine as frontend-builder
 # These three 'args' need to be here because they're injected at build time
 # all other env variables are provided in environment.yml.
 ARG REACT_APP_COMMIT_SHA
-ARG TURBO_TEAM
 ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./ ./
 RUN yarn
 RUN --mount=type=secret,id=TURBO_TOKEN \
+  --mount=type=secret,id=TURBO_TEAM \
   export TURBO_TOKEN=$(cat /run/secrets/TURBO_TOKEN) && \
+  export TURBO_TEAM=$(cat /run/secrets/TURBO_TEAM) && \
   export NODE_OPTIONS="--max-old-space-size=7168" && \
-    yarn build:frontend
+  yarn build:frontend
 
 FROM alpine
 RUN apk update && apk add build-base
