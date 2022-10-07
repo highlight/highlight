@@ -26,7 +26,8 @@ export const FieldArrayParam = {
 					return name
 				}
 
-				if (id === '-1' && name === 'contains') {
+				// @ts-expect-error
+				if ((id === -1 || id === '-1') && name === 'contains') {
 					return `${value}`
 				}
 
