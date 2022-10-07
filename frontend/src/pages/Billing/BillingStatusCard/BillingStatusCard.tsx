@@ -3,7 +3,6 @@ import Progress from '@components/Progress/Progress'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { USD } from '@dinero.js/currencies'
 import {
-	Maybe,
 	PlanType,
 	SubscriptionDetails,
 	SubscriptionInterval,
@@ -52,10 +51,10 @@ export const BillingStatusCard = ({
 	subscriptionInterval: SubscriptionInterval
 	allowOverage: boolean
 	loading: boolean
-	billingPeriodEnd: Date
-	nextInvoiceDate: Date
+	billingPeriodEnd: Date | undefined
+	nextInvoiceDate: Date | undefined
 	subscriptionDetails: SubscriptionDetails | undefined
-	trialEndDate: Maybe<Date>
+	trialEndDate: Date | undefined
 }) => {
 	const { isHighlightAdmin } = useAuthContext()
 
@@ -108,7 +107,11 @@ export const BillingStatusCard = ({
 	})
 
 	let total = add(membersSubtotal, overageSubtotal)
-	if (!(nextInvoiceDate < billingPeriodEnd)) {
+	if (
+		nextInvoiceDate &&
+		billingPeriodEnd &&
+		!(nextInvoiceDate < billingPeriodEnd)
+	) {
 		total = add(total, baseSubtotal)
 	}
 
@@ -124,8 +127,14 @@ export const BillingStatusCard = ({
 		total = multiply(total, { amount: 100 - discountPercent, scale: 2 })
 	}
 
-	const nextBillingDate =
-		nextInvoiceDate < billingPeriodEnd ? nextInvoiceDate : billingPeriodEnd
+	let nextBillingDate: Date | undefined
+
+	if (nextInvoiceDate && billingPeriodEnd) {
+		nextBillingDate =
+			nextInvoiceDate < billingPeriodEnd
+				? nextInvoiceDate
+				: billingPeriodEnd
+	}
 
 	return (
 		<div className={styles.fieldsBox}>
