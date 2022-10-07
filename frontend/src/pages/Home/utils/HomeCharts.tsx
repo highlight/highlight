@@ -215,7 +215,6 @@ const DailyChart = ({
 	return (
 		<ResponsiveContainer width="100%" height={275}>
 			<BarChartV2
-				height={275}
 				barSize={12}
 				data={data}
 				barColorMapping={{
