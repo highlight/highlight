@@ -1,3 +1,4 @@
+import { UserPropertyInput as UserPropertyInputType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { Checkbox } from 'antd'
 import { CheckboxChangeEvent } from 'antd/lib/checkbox'
@@ -9,11 +10,7 @@ import { PropertyOption } from '../../../components/Option/Option'
 import Tooltip from '../../../components/Tooltip/Tooltip'
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks'
 import SvgFaceIdIcon from '../../../static/FaceIdIcon'
-import {
-	SearchParams,
-	UserProperty,
-	useSearchContext,
-} from '../SearchContext/SearchContext'
+import { SearchParams, useSearchContext } from '../SearchContext/SearchContext'
 import inputStyles from './InputStyles.module.scss'
 import { ContainsLabel } from './SearchInputUtil'
 
@@ -74,7 +71,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 				isClearable={false}
 				defaultOptions
 				onChange={(options) => {
-					const newOptions: Array<UserProperty> =
+					const newOptions: Array<UserPropertyInputType> =
 						options?.map((o) => {
 							if (!o.name) {
 								o.name = 'contains'

@@ -6844,10 +6844,10 @@ type UserFingerprintCount {
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-	user_properties: [UserPropertyInput]
-	excluded_properties: [UserPropertyInput]
-	track_properties: [UserPropertyInput]
-	excluded_track_properties: [UserPropertyInput]
+	user_properties: [UserPropertyInput!]
+	excluded_properties: [UserPropertyInput!]
+	track_properties: [UserPropertyInput!]
+	excluded_track_properties: [UserPropertyInput!]
 	environments: [String]
 	app_versions: [String]
 	date_range: DateRangeInput
@@ -7023,7 +7023,7 @@ type UserProperty {
 }
 
 input UserPropertyInput {
-	id: ID
+	id: ID!
 	name: String!
 	value: String!
 }
@@ -46354,7 +46354,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
-			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46362,7 +46362,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_properties"))
-			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46370,7 +46370,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
-			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46378,7 +46378,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_track_properties"))
-			it.ExcludedTrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.ExcludedTrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -46714,7 +46714,7 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -59181,7 +59181,7 @@ func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑr
 	return ec._UserProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
+func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInputᚄ(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -59193,20 +59193,12 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 	res := make([]*model.UserPropertyInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) (*model.UserPropertyInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputUserPropertyInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOWorkspace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspace(ctx context.Context, sel ast.SelectionSet, v []*model1.Workspace) graphql.Marshaler {

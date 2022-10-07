@@ -1,21 +1,16 @@
 import { BaseSearchContext } from '@context/BaseSearchContext'
+import { UserPropertyInput } from '@graph/schemas'
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
-export type UserProperty = {
-	id: string
-	name: string
-	value: string
-}
-
 // It seems only the the query property is used by the QueryBuilder, the rest of the
 // properties are for back-compat with saved segments
 export type SearchParams = {
-	user_properties: Array<UserProperty>
-	excluded_properties?: Array<UserProperty>
-	track_properties?: Array<UserProperty>
-	excluded_track_properties?: Array<UserProperty>
+	user_properties: Array<UserPropertyInput>
+	excluded_properties?: Array<UserPropertyInput>
+	track_properties?: Array<UserPropertyInput>
+	excluded_track_properties?: Array<UserPropertyInput>
 	environments?: string[]
 	app_versions?: string[]
 	date_range?: { start_date: Date; end_date: Date }

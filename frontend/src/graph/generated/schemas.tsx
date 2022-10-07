@@ -462,10 +462,10 @@ export type UserFingerprintCount = {
 }
 
 export type SearchParamsInput = {
-	user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
+	user_properties?: Maybe<Array<UserPropertyInput>>
+	excluded_properties?: Maybe<Array<UserPropertyInput>>
+	track_properties?: Maybe<Array<UserPropertyInput>>
+	excluded_track_properties?: Maybe<Array<UserPropertyInput>>
 	environments?: Maybe<Array<Maybe<Scalars['String']>>>
 	app_versions?: Maybe<Array<Maybe<Scalars['String']>>>
 	date_range?: Maybe<DateRangeInput>
@@ -647,7 +647,7 @@ export type UserProperty = {
 }
 
 export type UserPropertyInput = {
-	id?: Maybe<Scalars['ID']>
+	id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['String']
 }
