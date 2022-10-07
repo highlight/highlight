@@ -9,7 +9,7 @@ import {
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
+import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'

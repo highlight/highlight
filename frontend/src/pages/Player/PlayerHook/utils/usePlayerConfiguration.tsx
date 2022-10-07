@@ -1,7 +1,7 @@
 import {
 	RightPlayerPanelTabsId,
 	RightPlayerPanelTabType,
-} from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
+} from '@pages/Player/RightPlayerPanel/constants'
 import useLocalStorage from '@rehooks/local-storage'
 import { useMemo } from 'react'
 

@@ -1,6 +1,7 @@
 import EventStream from '@pages/Player/components/EventStream/EventStream'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
@@ -95,13 +96,6 @@ const RightPlayerPanel = React.memo(() => {
 
 export default RightPlayerPanel
 
-export enum RightPlayerPanelTabType {
-	Events = 'Events',
-	Comments = 'Comments',
-	Metadata = 'Metadata',
-}
-
-export const RightPlayerPanelTabsId = 'PlayerRightPanel'
 const RightPlayerPanelTabs = React.memo(() => {
 	const sessionCommentsRef = React.useRef(null)
 	return (
