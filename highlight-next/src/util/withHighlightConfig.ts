@@ -1,11 +1,4 @@
-import next, {
-	NextApiHandler,
-	NextApiRequest,
-	NextApiResponse,
-	NextConfig,
-} from 'next'
-import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { instrumentServer } from './instrumentServer'
+import { NextConfig } from 'next'
 import { Rewrite } from 'next/dist/lib/load-custom-routes'
 import HighlightWebpackPlugin from './highlightWebpackPlugin.js'
 import { WebpackConfigContext } from 'next/dist/server/config-shared'

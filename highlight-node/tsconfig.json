@@ -13,7 +13,6 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"jsx": "react",
-		"typeRoots": ["../node_modules/@types"],
 		"types": ["node"],
 		"composite": true
 	},
