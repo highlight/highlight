@@ -210,7 +210,6 @@ const MonitorConfiguration = ({
 							}
 						>
 							<LineChart
-								height={235}
 								domain={[
 									graphMin,
 									Math.max(graphMax, threshold),
