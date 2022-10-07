@@ -51,10 +51,10 @@ export const BillingStatusCard = ({
 	subscriptionInterval: SubscriptionInterval
 	allowOverage: boolean
 	loading: boolean
-	billingPeriodEnd: Date | undefined
-	nextInvoiceDate: Date | undefined
+	billingPeriodEnd?: Date
+	nextInvoiceDate?: Date
 	subscriptionDetails: SubscriptionDetails | undefined
-	trialEndDate: Date | undefined
+	trialEndDate?: Date
 }) => {
 	const { isHighlightAdmin } = useAuthContext()
 
