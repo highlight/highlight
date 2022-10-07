@@ -35,8 +35,8 @@ jobs:
 
             - name: Configure yarn npm registry authentication
               run: |
-                  echo 'npmRegistryServer: "https://npm.pkg.github.com"\n' >> .yarnrc
-                  echo "npmAuthToken: \"${NPM_TOKEN}\"\n" >> .yarnrc
+                  echo 'npmRegistryServer: "https://npm.pkg.github.com"' >> .yarnrc
+                  echo "npmAuthToken: \"${NPM_TOKEN}\"" >> .yarnrc
                   cat .yarnrc
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
