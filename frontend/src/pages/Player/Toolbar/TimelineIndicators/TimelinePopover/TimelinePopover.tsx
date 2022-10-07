@@ -1,6 +1,7 @@
 import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
+import { ReactComponent as CollectionIcon } from '@icons/Solid/collection.svg'
 import {
 	EventsForTimeline,
 	EventsForTimelineKeys,
@@ -35,6 +36,13 @@ const TimelinePopover = ({ bucket }: Props) => {
 		setSelectedRightPlayerPanelTab,
 	} = usePlayerConfiguration()
 	const [selectedType, setSelectedType] = useState<string | null>(null)
+	const selectedTypeName = selectedType
+		? getTimelineEventDisplayName(selectedType)
+		: ''
+	const selectedCount = selectedType
+		? bucket.identifier[selectedType].length
+		: 0
+
 	const eventTypes = useMemo(
 		() =>
 			EventsForTimeline.filter(
@@ -48,7 +56,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 	return (
 		<div className={style.timelinePopoverContent}>
 			<div
-				className={style.timelinePopoverHeader}
+				className={classNames(
+					style.timelinePopoverHeader,
+					style.infoPanel,
+				)}
 				onClick={() => {
 					if (selectedType) {
 						setSelectedType(null)
@@ -82,6 +93,25 @@ const TimelinePopover = ({ bucket }: Props) => {
 					</button>
 				)}
 			</div>
+			{!!selectedType ? (
+				<div className={style.infoPanel}>
+					<CollectionIcon
+						className={classNames(
+							style.transitionIcon,
+							style.leftActionIcon,
+						)}
+					/>
+					<span>{selectedTypeName}</span>
+					<div
+						className={classNames(
+							style.rightCounter,
+							style.infoPanelCounter,
+						)}
+					>
+						<span>{selectedCount}</span>
+					</div>
+				</div>
+			) : null}
 			<div className={style.timelinePopoverDetails}>
 				{!selectedType ? (
 					eventTypes.map((eventType) => {

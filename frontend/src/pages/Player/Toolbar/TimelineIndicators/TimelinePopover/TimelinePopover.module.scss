@@ -4,15 +4,22 @@
 	flex-direction: column;
 	justify-content: center;
 	width: 224px;
+	span {
+		font-size: 13px;
+		font-weight: 400;
+		letter-spacing: -0.01em;
+		line-height: 20px;
+	}
 }
 
-.timelinePopoverHeader {
+.infoPanel {
 	align-items: center;
 	border-bottom: 1px solid var(--color-neutral-200);
 	display: flex;
 	height: 36px;
 	justify-content: flex-start;
 	padding: 8px;
+	user-select: none;
 	width: 100%;
 }
 
@@ -32,13 +39,6 @@
 	padding: 0;
 	user-select: none;
 	width: 100%;
-
-	span {
-		font-size: 13px;
-		font-weight: 400;
-		letter-spacing: -0.01em;
-		line-height: 20px;
-	}
 }
 
 .leftActionIcon {
@@ -73,6 +73,19 @@
 	color: var(--color-neutral-300);
 	display: flex;
 	margin-left: auto;
+}
+
+.infoPanelCounter {
+	border: 1px solid var(--color-neutral-200);
+	border-radius: 3px;
+	color: var(--color-neutral-700);
+	height: 16px;
+	padding: 0 4px;
+
+	span {
+		font-size: 12px;
+		line-height: 16px;
+	}
 }
 
 .isHidden {
