@@ -33,7 +33,7 @@ type Session {
 	language: String!
 	identifier: String!
 	identified: Boolean!
-	created_at: Timestamp
+	created_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -349,7 +349,7 @@ type ErrorGroup {
 	fields: [ErrorField]
 	state: ErrorState!
 	environments: String
-	error_frequency: [Int64]!
+	error_frequency: [Int64!]!
 	is_public: Boolean!
 }
 
