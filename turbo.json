@@ -9,16 +9,16 @@
 			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
 		},
-		"types": {
-			"inputs": ["src/**/*.tsx", "tsconfig.json"],
-			"outputs": ["dist/**/*.d.ts"]
+		"typegen": {
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
 		},
 		"build": {
-			"dependsOn": ["codegen", "types", "^prepublish", "^build"],
+			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**"],
 			"env": [
 				"REACT_APP_COMMIT_SHA",
