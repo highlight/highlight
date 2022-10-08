@@ -2,7 +2,8 @@
 	"name": "highlight.run",
 	"version": "4.5.2",
 	"scripts": {
-		"build": "tsc && rollup -c",
+		"build": "yarn typegen && rollup -c",
+		"typegen": "tsc",
 		"dev": "doppler run -- rollup -c -w"
 	},
 	"main": "dist/index.js",
