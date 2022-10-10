@@ -34,8 +34,7 @@ interface Props {
 
 const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
-const TARGET_BUCKET_WIDTH = 20
-const MIN_BUCKET_WIDTH = 5
+const TARGET_BUCKET_WIDTH_PERCENT = 4
 const MINOR_TICK_COUNT = 3
 
 export const TIMELINE_MARGIN = 32
@@ -130,22 +129,18 @@ const TimelineIndicatorsBarGraph = ({
 	const roundedDuration = useMemo(() => {
 		const roundingBucketSize = pickBucketSize(
 			duration,
-			TARGET_BUCKET_WIDTH,
-			MIN_BUCKET_WIDTH,
-			viewportWidth,
+			TARGET_BUCKET_WIDTH_PERCENT,
 		)
 		const timestep = getBucketSizeInMs(roundingBucketSize)
 		const numBuckets = Math.ceil(duration / timestep)
 		return numBuckets * timestep
-	}, [duration, viewportWidth])
+	}, [duration])
 
 	const canvasWidth = viewportWidth * camera.zoom
 
 	const bucketSize = pickBucketSize(
 		roundedDuration / camera.zoom,
-		TARGET_BUCKET_WIDTH,
-		MIN_BUCKET_WIDTH,
-		viewportWidth,
+		TARGET_BUCKET_WIDTH_PERCENT,
 	)
 	const bucketTimestep = getBucketSizeInMs(bucketSize)
 	const bucketPercentWidth = (100 * bucketTimestep) / roundedDuration
@@ -484,9 +479,7 @@ const TimelineIndicatorsBarGraph = ({
 	const ticks = useMemo(() => {
 		let size = pickBucketSize(
 			roundedDuration / camera.zoom,
-			viewportWidth / TARGET_TICK_COUNT,
-			MIN_BUCKET_WIDTH,
-			viewportWidth,
+			100 / TARGET_TICK_COUNT,
 		)
 		// do Math.ceil to have 1 second as the min tick
 		size = { ...size, multiple: Math.ceil(size.multiple) }
@@ -564,7 +557,7 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		}
 		return elms
-	}, [camera.zoom, canvasWidth, isVisible, roundedDuration, viewportWidth])
+	}, [camera.zoom, canvasWidth, isVisible, roundedDuration])
 
 	const shownTime = isDragging ? dragTime : time
 	if (!events.length || state === ReplayerState.Loading || !replayer) {
@@ -843,16 +836,18 @@ function getBucketSizeInMs({ multiple, tick }: BucketSize) {
 
 function pickBucketSize(
 	duration: number,
-	targetBucketWidth: number,
-	minBucketWidth: number,
-	viewportWidth: number,
+	targetBucketWidthPercent: number,
+	eps?: number,
 ): BucketSize {
+	if (!eps) {
+		eps = 0.1
+	}
 	const reverseBucketSizes = Array.from(BUCKET_SIZES).reverse()
 	for (const bucketSize of reverseBucketSizes) {
 		const bucketCount = Math.ceil(duration / getBucketSizeInMs(bucketSize))
-		const bucketWidth = viewportWidth / bucketCount
+		const bucketWidth = 100 / bucketCount
 
-		if (bucketWidth <= targetBucketWidth) {
+		if (bucketWidth <= targetBucketWidthPercent) {
 			return bucketSize
 		}
 	}
