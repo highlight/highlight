@@ -43,7 +43,8 @@
 				"LINEAR_CLIENT_ID",
 				"SLACK_CLIENT_ID",
 				"DD_CLIENT_TOKEN",
-				"DD_RUM_APPLICATION_ID"
+				"DD_RUM_APPLICATION_ID",
+				"PUBLIC_GRAPH_URI"
 			]
 		},
 		"test": {
