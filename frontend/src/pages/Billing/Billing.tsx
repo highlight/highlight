@@ -12,7 +12,12 @@ import {
 	useGetSubscriptionDetailsQuery,
 	useUpdateBillingDetailsMutation,
 } from '@graph/hooks'
-import { AdminRole, PlanType, SubscriptionInterval } from '@graph/schemas'
+import {
+	AdminRole,
+	Maybe,
+	PlanType,
+	SubscriptionInterval,
+} from '@graph/schemas'
 import BellRingingIcon from '@icons/BellRingingIcon'
 import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
@@ -38,6 +43,14 @@ import styles from './Billing.module.scss'
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig'
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
 import { didUpgradePlan } from './utils/utils'
+
+const tryCastDate = (date: Maybe<string> | undefined) => {
+	if (date) {
+		return new Date(date)
+	} else {
+		return undefined
+	}
+}
 
 export const useBillingHook = ({
 	workspace_id,
@@ -308,12 +321,18 @@ const BillingPage = () => {
 					billingData?.billingDetails.plan.interval ??
 					SubscriptionInterval.Monthly
 				}
-				billingPeriodEnd={billingData?.workspace?.billing_period_end}
-				nextInvoiceDate={billingData?.workspace?.next_invoice_date}
+				billingPeriodEnd={tryCastDate(
+					billingData?.workspace?.billing_period_end,
+				)}
+				nextInvoiceDate={tryCastDate(
+					billingData?.workspace?.next_invoice_date,
+				)}
 				allowOverage={allowOverage}
 				loading={billingLoading || subscriptionLoading}
 				subscriptionDetails={subscriptionData?.subscription_details}
-				trialEndDate={billingData?.workspace?.trial_end_date}
+				trialEndDate={tryCastDate(
+					billingData?.workspace?.trial_end_date,
+				)}
 			/>
 		</>
 	)
@@ -424,7 +443,8 @@ const BillingPage = () => {
 								loading={loadingPlanType === billingPlan.type}
 								subscriptionInterval={subscriptionInterval}
 								memberCount={
-									billingData?.billingDetails.membersMeter
+									billingData?.billingDetails.membersMeter ??
+									0
 								}
 							/>
 						),

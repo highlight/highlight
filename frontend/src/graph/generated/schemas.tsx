@@ -52,7 +52,7 @@ export type Session = {
 	language: Scalars['String']
 	identifier: Scalars['String']
 	identified: Scalars['Boolean']
-	created_at?: Maybe<Scalars['Timestamp']>
+	created_at: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
 	active_length?: Maybe<Scalars['Int']>
 	user_object?: Maybe<Scalars['Any']>
@@ -224,6 +224,7 @@ export enum IntegrationType {
 	Zapier = 'Zapier',
 	Front = 'Front',
 	Vercel = 'Vercel',
+	Discord = 'Discord',
 }
 
 export enum ErrorState {
@@ -364,7 +365,7 @@ export type ErrorObject = {
 	columnNumber?: Maybe<Scalars['Int']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
-	timestamp?: Maybe<Scalars['Timestamp']>
+	timestamp: Scalars['Timestamp']
 	payload?: Maybe<Scalars['String']>
 	request_id?: Maybe<Scalars['String']>
 }
@@ -391,7 +392,7 @@ export type ErrorGroup = {
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	state: ErrorState
 	environments?: Maybe<Scalars['String']>
-	error_frequency: Array<Maybe<Scalars['Int64']>>
+	error_frequency: Array<Scalars['Int64']>
 	is_public: Scalars['Boolean']
 }
 

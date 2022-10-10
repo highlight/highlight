@@ -7,7 +7,7 @@ export const timedCall = (
 ) => {
 	const start = window.performance?.now()
 	try {
-		fn()
+		return fn()
 	} finally {
 		const name = `${metric}/duration-ms`
 		const dur = window.performance?.now() - start
@@ -30,7 +30,7 @@ export const timedCallback = <T extends Function>(
 	let lastUpdate = window.performance?.now()
 	return () => {
 		try {
-			fn()
+			return fn()
 		} finally {
 			const name = `${metric}/duration-ms`
 			const now = window.performance?.now()

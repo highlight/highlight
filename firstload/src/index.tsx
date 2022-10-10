@@ -6,23 +6,29 @@ import {
 } from './integrations/amplitude'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
-import {
-	FirstLoadListeners,
-	GenerateSecureID,
+import { GenerateSecureID } from '../../client/src/utils/secure-id'
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
+import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
+import type {
 	Highlight,
 	HighlightClassOptions,
 	HighlightOptions,
 	HighlightPublicInterface,
 	Metadata,
 	Metric,
-	MetricCategory,
 	SessionDetails,
-	getPreviousSessionData,
 } from '@highlight-run/client'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 
 initializeFetchListener()
+
+export enum MetricCategory {
+	Device = 'Device',
+	WebVital = 'WebVital',
+	Frontend = 'Frontend',
+	Backend = 'Backend',
+}
 
 const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, msg)

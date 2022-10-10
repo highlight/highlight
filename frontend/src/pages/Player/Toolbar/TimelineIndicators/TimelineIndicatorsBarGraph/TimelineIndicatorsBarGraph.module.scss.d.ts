@@ -2,6 +2,7 @@ export const bucketMark: string
 export const eventHistogram: string
 export const eventTrack: string
 export const inactivityPeriod: string
+export const inactivityPeriodPlayed: string
 export const liveProgressBar: string
 export const liveShimmer: string
 export const progressBar: string

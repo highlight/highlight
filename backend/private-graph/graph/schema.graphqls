@@ -33,7 +33,7 @@ type Session {
 	language: String!
 	identifier: String!
 	identified: Boolean!
-	created_at: Timestamp
+	created_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -192,6 +192,7 @@ enum IntegrationType {
 	Zapier
 	Front
 	Vercel
+	Discord
 }
 
 enum ErrorState {
@@ -323,7 +324,7 @@ type ErrorObject {
 	columnNumber: Int
 	stack_trace: String!
 	structured_stack_trace: [ErrorTrace]!
-	timestamp: Timestamp
+	timestamp: Timestamp!
 	payload: String
 	request_id: String
 }
@@ -348,7 +349,7 @@ type ErrorGroup {
 	fields: [ErrorField]
 	state: ErrorState!
 	environments: String
-	error_frequency: [Int64]!
+	error_frequency: [Int64!]!
 	is_public: Boolean!
 }
 

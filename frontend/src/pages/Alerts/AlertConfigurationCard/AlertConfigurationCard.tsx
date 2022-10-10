@@ -1,5 +1,6 @@
 import Card from '@components/Card/Card'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
+import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
 import Input from '@components/Input/Input'
 import Switch from '@components/Switch/Switch'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -731,81 +732,91 @@ export const AlertConfigurationCard = ({
 								Pick Slack channels or people to message when an
 								alert is created.
 							</p>
-							<Form.Item shouldUpdate>
-								{() => (
-									<Select
-										className={styles.channelSelect}
-										options={channels}
-										mode="multiple"
-										onSearch={(value) => {
-											setSearchQuery(value)
-										}}
-										filterOption={(searchValue, option) => {
-											return (
-												option?.children
-													?.toString()
-													.toLowerCase()
-													.includes(
-														searchValue.toLowerCase(),
-													) || false
-											)
-										}}
-										placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
-										onChange={onChannelsChange}
-										notFoundContent={
-											<SyncWithSlackButton
-												isSlackIntegrated={
-													isSlackIntegrated
-												}
-												slackUrl={slackUrl}
-												refetchQueries={[
-													namedOperations.Query
-														.GetAlertsPagePayload,
-												]}
-											/>
-										}
-										defaultValue={alert?.ChannelsToNotify?.map(
-											(channel: any) =>
-												channel.webhook_channel_id,
-										)}
-										dropdownRender={(menu) => (
-											<div>
-												{menu}
-												{searchQuery.length === 0 &&
-													channelSuggestions.length >
-														0 && (
-														<>
-															<Divider
-																style={{
-																	margin: '4px 0',
-																}}
-															/>
-															<div
-																className={
-																	styles.addContainer
-																}
-															>
-																<SyncWithSlackButton
-																	isSlackIntegrated={
-																		isSlackIntegrated
-																	}
-																	slackUrl={
-																		slackUrl
-																	}
-																	refetchQueries={[
-																		namedOperations
-																			.Query
-																			.GetAlertsPagePayload,
-																	]}
+							{!isSlackIntegrated ? (
+								<PersonalNotificationButton
+									text="Connect Highlight with Slack"
+									type="Organization"
+								/>
+							) : (
+								<Form.Item shouldUpdate>
+									{() => (
+										<Select
+											className={styles.channelSelect}
+											options={channels}
+											mode="multiple"
+											onSearch={(value) => {
+												setSearchQuery(value)
+											}}
+											filterOption={(
+												searchValue,
+												option,
+											) => {
+												return (
+													option?.children
+														?.toString()
+														.toLowerCase()
+														.includes(
+															searchValue.toLowerCase(),
+														) || false
+												)
+											}}
+											placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
+											onChange={onChannelsChange}
+											notFoundContent={
+												<SyncWithSlackButton
+													isSlackIntegrated={
+														isSlackIntegrated
+													}
+													slackUrl={slackUrl}
+													refetchQueries={[
+														namedOperations.Query
+															.GetAlertsPagePayload,
+													]}
+												/>
+											}
+											defaultValue={alert?.ChannelsToNotify?.map(
+												(channel: any) =>
+													channel.webhook_channel_id,
+											)}
+											dropdownRender={(menu) => (
+												<div>
+													{menu}
+													{searchQuery.length === 0 &&
+														channelSuggestions.length >
+															0 && (
+															<>
+																<Divider
+																	style={{
+																		margin: '4px 0',
+																	}}
 																/>
-															</div>
-														</>
-													)}
-											</div>
-										)}
-									/>
-								)}
-							</Form.Item>
+																<div
+																	className={
+																		styles.addContainer
+																	}
+																>
+																	<SyncWithSlackButton
+																		isSlackIntegrated={
+																			isSlackIntegrated
+																		}
+																		slackUrl={
+																			slackUrl
+																		}
+																		refetchQueries={[
+																			namedOperations
+																				.Query
+																				.GetAlertsPagePayload,
+																		]}
+																	/>
+																</div>
+															</>
+														)}
+												</div>
+											)}
+										/>
+									)}
+								</Form.Item>
+							)}
 						</section>
 
 						<section>

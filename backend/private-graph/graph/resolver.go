@@ -22,6 +22,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -1620,6 +1621,27 @@ func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string)
 	return nil
 }
 
+func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	token, err := discord.OAuth(ctx, code)
+
+	if err != nil {
+		return e.Wrapf(err, "failed to get oauth token when connecting discord to workspace id %d", workspace.ID)
+	}
+
+	guild := token.Extra("guild").(map[string]interface{})
+	guildId := guild["id"].(string)
+
+	if guildId == "" {
+		return e.Wrapf(err, "failed to extra guild id from discord oauth response")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordGuildId: &guildId}).Error; err != nil {
+		return e.Wrap(err, "error updating discord guild id on workspace")
+	}
+
+	return nil
+}
+
 func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
 	exp := time.Unix(oauth.ExpiresAt, 0)
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
@@ -1759,6 +1781,14 @@ func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
 		Select("vercel_access_token", "vercel_team_id").
 		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing Vercel access token and team id")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveDiscordFromWorkspace(workspace *model.Workspace) error {
+	if err := r.DB.Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing discord guild id from workspace model")
 	}
 
 	return nil

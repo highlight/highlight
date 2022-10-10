@@ -4,6 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
@@ -202,7 +203,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 								}
 							}}
 							setIntegrationEnabled={() => {}}
-							setModelOpen={() => {}}
+							setModalOpen={() => {}}
 							action={IntegrationAction.Settings}
 						/>
 					</div>
@@ -210,6 +211,40 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 			</Landing>
 		</ApplicationContextProvider>
 	)
+}
+
+const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
+	const { addDiscordIntegrationToProject } = useDiscordIntegration()
+
+	useEffect(() => {
+		if (!projectId || !code) return
+		const next = `/${projectId}/integrations`
+		;(async () => {
+			try {
+				await addDiscordIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with Discord!', 5)
+			} catch (e: any) {
+				H.consumeError(e)
+				console.error(e)
+				message.error(
+					'Failed to add integration to project. Please try again.',
+				)
+			} finally {
+				history.push(next)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		history,
+		setLoadingState,
+		addDiscordIntegrationToProject,
+		code,
+		projectId,
+	])
+
+	return null
 }
 
 const IntegrationAuthCallbackPage = () => {
@@ -265,6 +300,8 @@ const IntegrationAuthCallbackPage = () => {
 		return <FrontIntegrationCallback code={code} projectId={projectId} />
 	} else if (integrationName.toLowerCase() === 'vercel') {
 		return <VercelIntegrationCallback code={code} />
+	} else if (integrationName.toLowerCase() === 'discord') {
+		return <DiscordIntegrationCallback code={code} projectId={projectId} />
 	}
 
 	return null

@@ -1,8 +1,6 @@
-import Alert from '@components/Alert/Alert'
 import BarChart from '@components/BarChart/BarChart'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import Card from '@components/Card/Card'
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
 import { CircularSpinner } from '@components/Loading/Loading'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
@@ -406,82 +404,17 @@ function AlertsPageLoaded({
 			<AlertSetupModal />
 			<div className={styles.subTitleContainer}>
 				<p>Manage the alerts for your project.</p>
-				{alertsPayload?.is_integrated_with_slack &&
-					alertsAsTableRows.length > 0 && (
-						<ButtonLink
-							trackingId="NewAlert"
-							className={styles.callToAction}
-							to={`/${project_id}/alerts/new`}
-						>
-							New Alert
-						</ButtonLink>
-					)}
+				{alertsAsTableRows.length > 0 && (
+					<ButtonLink
+						trackingId="NewAlert"
+						className={styles.callToAction}
+						to={`/${project_id}/alerts/new`}
+					>
+						New Alert
+					</ButtonLink>
+				)}
 			</div>
-			{!alertsPayload?.is_integrated_with_slack ? (
-				<Alert
-					trackingId="AlertPageSlackBotIntegration"
-					message={
-						!alertsPayload?.is_integrated_with_slack
-							? "Slack isn't connected"
-							: "Can't find a Slack channel or person?"
-					}
-					type={
-						!alertsPayload?.is_integrated_with_slack
-							? 'error'
-							: 'info'
-					}
-					description={
-						<>
-							{!alertsPayload?.is_integrated_with_slack ? (
-								<>
-									<p>
-										Highlight needs to be connected with
-										Slack in order to send you and your team
-										messages.
-									</p>
-									<p>
-										Once connected, you'll be able to get
-										alerts for things like:
-									</p>
-									<ul>
-										<li>Errors thrown</li>
-										<li>New users</li>
-										<li>A new feature is used</li>
-										<li>User submitted feedback</li>
-									</ul>
-									<PersonalNotificationButton
-										text="Connect Highlight with Slack"
-										className={styles.integrationButton}
-										type="Organization"
-									/>
-								</>
-							) : (
-								<>
-									Channels created and people joined after the
-									last Highlight and Slack sync will not show
-									up automatically.
-									<PersonalNotificationButton
-										text="Sync Highlight with Slack"
-										className={styles.integrationButton}
-										type="Organization"
-									/>
-								</>
-							)}
-						</>
-					}
-					closable={false}
-					className={styles.integrationAlert}
-				/>
-			) : (
-				<PersonalNotificationButton
-					text="Connect Highlight with Slack"
-					className={styles.hiddenSlackIntegrationButton}
-					type="Organization"
-				/>
-			)}
-
-			{((alertsPayload && alertsPayload?.is_integrated_with_slack) ||
-				!alertsPayload) && (
+			{alertsPayload && (
 				<Card noPadding style={{ width: 1200 }}>
 					<Table
 						columns={TABLE_COLUMNS}

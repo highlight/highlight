@@ -1,32 +1,33 @@
+import { Avatar } from '@components/Avatar/Avatar'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import Tooltip from '@components/Tooltip/Tooltip'
+import { Session } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
+import SvgEyeOffIcon from '@icons/EyeOffIcon'
 import UserCross from '@icons/UserCross'
 import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
+import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useParams } from '@util/react-router/useParams'
+import { MillisToMinutesAndSecondsVerbose } from '@util/time'
 import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
-import { Avatar } from '@components/Avatar/Avatar'
-import { Maybe, Session } from '@graph/schemas'
-import { MillisToMinutesAndSecondsVerbose } from '@util/time'
-import { LIVE_SEGMENT_ID } from '@pages/Sessions/SearchSidebar/SegmentPicker/SegmentPicker'
+
 import styles from './MinimalSessionCard.module.scss'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
-import SvgEyeOffIcon from '@icons/EyeOffIcon'
 
 interface Props {
-	session: Maybe<Session>
+	session: Session
 	selected: boolean
 	/** Whether MinimalSessionCard is rendered on an error page where we don't have the full session information. */
 	errorVersion?: boolean
@@ -74,18 +75,18 @@ const MinimalSessionCard = React.memo(
 			showDetailedViewOverride
 		const backfilled = sessionIsBackfilled(session as Session | undefined)
 
-		const [viewed, setViewed] = useState(session?.viewed || false)
+		const [viewed, setViewed] = useState(session.viewed || false)
 
 		useEffect(() => {
-			if (session_secure_id === session?.secure_id) {
+			if (session_secure_id === session.secure_id) {
 				setViewed(true)
 			}
-		}, [session?.secure_id, session_secure_id])
+		}, [session.secure_id, session_secure_id])
 
 		const [eventCounts, setEventCounts] = useState(undefined)
 
 		useEffect(() => {
-			if (!!session?.event_counts) {
+			if (!!session.event_counts) {
 				setEventCounts(
 					JSON.parse(session.event_counts).map(
 						(v: number, k: number) => {
@@ -94,12 +95,12 @@ const MinimalSessionCard = React.memo(
 					),
 				)
 			}
-		}, [session?.event_counts, setEventCounts])
+		}, [session.event_counts, setEventCounts])
 
 		useEffect(() => {
 			if (
 				autoPlaySessions &&
-				session_secure_id === session?.secure_id &&
+				session_secure_id === session.secure_id &&
 				ref?.current
 			) {
 				ref.current.scrollIntoView({
@@ -107,7 +108,7 @@ const MinimalSessionCard = React.memo(
 					block: 'center',
 				})
 			}
-		}, [autoPlaySessions, session?.secure_id, session_secure_id])
+		}, [autoPlaySessions, session.secure_id, session_secure_id])
 
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
 
@@ -169,7 +170,7 @@ const MinimalSessionCard = React.memo(
 								<>
 									{!errorVersion && (
 										<div className={styles.topText}>
-											{session?.processed &&
+											{session.processed &&
 											segment_id !== LIVE_SEGMENT_ID ? (
 												<>
 													{formatShortTime(
@@ -185,9 +186,9 @@ const MinimalSessionCard = React.memo(
 														•
 													</span>
 													{(
-														((session?.active_length ||
+														((session.active_length ||
 															1) /
-															(session?.length ||
+															(session.length ||
 																1)) *
 														100
 													).toFixed(0)}
@@ -200,13 +201,13 @@ const MinimalSessionCard = React.memo(
 									)}
 									{errorVersion ? (
 										<div className={styles.topText}>
-											{session?.os_name}
+											{session.os_name}
 										</div>
 									) : (
 										<div className={styles.topText}>
 											{`${
-												session?.city && session?.state
-													? `${session?.city}, ${session?.state}`
+												session.city && session.state
+													? `${session.city}, ${session.state}`
 													: ''
 											}`}
 										</div>
@@ -216,11 +217,11 @@ const MinimalSessionCard = React.memo(
 											text={
 												configuration?.datetimeFormat
 													? formatDatetime(
-															session?.created_at,
+															session.created_at,
 															configuration.datetimeFormat,
 													  )
 													: `${new Date(
-															session?.created_at,
+															session.created_at,
 													  ).toLocaleString(
 															'en-us',
 															{
@@ -234,17 +235,17 @@ const MinimalSessionCard = React.memo(
 										/>
 									</div>
 									<div className={styles.topText}>
-										{`${session?.browser_name}`}
+										{`${session.browser_name}`}
 									</div>
 									{errorVersion && (
 										<div className={styles.topText}>
-											{`${session?.environment}`}
+											{`${session.environment}`}
 										</div>
 									)}
 								</>
 							) : (
 								<div className={styles.topText}>
-									{session?.processed &&
+									{session.processed &&
 									segment_id !== LIVE_SEGMENT_ID
 										? MillisToMinutesAndSecondsVerbose(
 												session.active_length || 0,
@@ -252,7 +253,7 @@ const MinimalSessionCard = React.memo(
 										: !errorVersion
 										? 'Live'
 										: new Date(
-												session?.created_at,
+												session.created_at,
 										  ).toLocaleString('en-us', {
 												day: 'numeric',
 												month: 'long',
@@ -296,9 +297,9 @@ const MinimalSessionCard = React.memo(
 							</Tooltip>
 							<Tooltip
 								title={
-									session?.first_time
+									session.first_time
 										? `This is ${session.identifier}'s first session on your app.`
-										: `This is not ${session?.identifier}'s first session. This icon will be colored for a user's first session on your app.`
+										: `This is not ${session.identifier}'s first session. This icon will be colored for a user's first session on your app.`
 								}
 							>
 								<div>
@@ -307,7 +308,7 @@ const MinimalSessionCard = React.memo(
 										style={
 											{
 												'--primary-color':
-													session?.first_time
+													session.first_time
 														? 'var(--color-red-400)'
 														: 'var(--color-gray-300)',
 											} as React.CSSProperties
@@ -323,7 +324,7 @@ const MinimalSessionCard = React.memo(
 							</Tooltip>
 							<Tooltip
 								title={
-									session?.has_errors
+									session.has_errors
 										? 'This session has errors.'
 										: 'This session does not have any errors.'
 								}
@@ -334,7 +335,7 @@ const MinimalSessionCard = React.memo(
 										style={
 											{
 												'--primary-color':
-													session?.has_errors
+													session.has_errors
 														? '#eb5757'
 														: 'var(--color-gray-300)',
 											} as React.CSSProperties
@@ -346,7 +347,7 @@ const MinimalSessionCard = React.memo(
 							</Tooltip>
 							<Tooltip
 								title={
-									session?.has_rage_clicks
+									session.has_rage_clicks
 										? 'This session has rage clicks.'
 										: 'This session does not have rage clicks.'
 								}
@@ -357,7 +358,7 @@ const MinimalSessionCard = React.memo(
 										style={
 											{
 												'--primary-color':
-													session?.has_rage_clicks
+													session.has_rage_clicks
 														? 'var(--color-red-400)'
 														: 'var(--color-gray-300)',
 											} as React.CSSProperties
@@ -382,7 +383,7 @@ const MinimalSessionCard = React.memo(
 		return (
 			<div
 				className={styles.sessionCardWrapper}
-				key={session?.secure_id}
+				key={session.secure_id}
 				ref={ref}
 			>
 				{linkDisabled ? (
@@ -391,7 +392,7 @@ const MinimalSessionCard = React.memo(
 					<Link
 						target={target}
 						to={`/${projectIdRemapped}/sessions/${
-							session?.secure_id
+							session.secure_id
 						}${urlParams || ''}`}
 					>
 						{innerContent}

@@ -129,7 +129,7 @@ if (!isOnPrem) {
 			service: 'frontend',
 			env: options.environment,
 			version: options.version,
-			sampleRate: 10,
+			sampleRate: 100,
 			sessionReplaySampleRate: 1,
 			trackResources: true,
 			trackLongTasks: true,

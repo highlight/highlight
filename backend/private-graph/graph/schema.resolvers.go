@@ -1846,6 +1846,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		if err := r.AddVercelToWorkspace(workspace, code); err != nil {
 			return false, err
 		}
+	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
+		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
 	} else {
 		return false, e.New("invalid integrationType")
 	}
@@ -1883,6 +1887,10 @@ func (r *mutationResolver) RemoveIntegrationFromProject(ctx context.Context, int
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeVercel {
 		if err := r.RemoveVercelFromWorkspace(workspace); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
+		if err := r.RemoveDiscordFromWorkspace(workspace); err != nil {
 			return false, err
 		}
 	} else {
@@ -4863,6 +4871,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 			return false, err
 		}
 		return workspace.VercelAccessToken != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeDiscord {
+		return workspace.DiscordGuildId != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

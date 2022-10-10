@@ -22,18 +22,20 @@ function AutoJoinForm({
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
 }) {
-	const [emailOrigins, setEmailOrigins] = useState<string[]>([])
-	const [allowedEmailOrigins, setAllowedEmailOrigins] = useState<string[]>([])
+	const [origins, setOrigins] = useState<{
+		emailOrigins: string[]
+		allowedEmailOrigins: string[]
+	}>({ emailOrigins: [], allowedEmailOrigins: [] })
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
 	const { loading } = useGetWorkspaceAdminsQuery({
 		variables: { workspace_id },
 		onCompleted: (d) => {
+			let emailOrigins: string[] = []
 			if (d.workspace?.allowed_auto_join_email_origins) {
-				const emailOrigins = JSON.parse(
+				emailOrigins = JSON.parse(
 					d.workspace.allowed_auto_join_email_origins,
 				)
-				setEmailOrigins(emailOrigins)
 			}
 			const allowedDomains: string[] = []
 			d.admins.forEach((wa) => {
@@ -44,13 +46,16 @@ function AutoJoinForm({
 				)
 					allowedDomains.push(adminDomain)
 			})
-			setAllowedEmailOrigins(allowedDomains)
+			setOrigins({ emailOrigins, allowedEmailOrigins: allowedDomains })
 		},
 	})
 
 	const [updateAllowedEmailOrigins] = useUpdateAllowedEmailOriginsMutation()
 	const onChangeMsg = (domains: string[], msg: string) => {
-		setEmailOrigins(domains)
+		setOrigins((p) => ({
+			emailOrigins: domains,
+			allowedEmailOrigins: p.allowedEmailOrigins,
+		}))
 		if (updateOrigins) {
 			updateOrigins(domains)
 		} else {
@@ -73,7 +78,10 @@ function AutoJoinForm({
 
 	useEffect(() => {
 		if (newWorkspace && adminsEmailDomain.length) {
-			setEmailOrigins([adminsEmailDomain])
+			setOrigins((p) => ({
+				emailOrigins: [adminsEmailDomain],
+				allowedEmailOrigins: p.allowedEmailOrigins,
+			}))
 		}
 	}, [newWorkspace, adminsEmailDomain])
 
@@ -97,7 +105,7 @@ function AutoJoinForm({
 				<Switch
 					trackingId="WorkspaceAutoJoin"
 					label="Enable Auto Join"
-					checked={emailOrigins.length > 0}
+					checked={origins.emailOrigins.length > 0}
 					loading={loading}
 					onChange={(checked) => {
 						if (checked) {
@@ -115,11 +123,15 @@ function AutoJoinForm({
 					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
 					className={styles.select}
 					loading={loading}
-					value={newWorkspace ? [adminsEmailDomain] : emailOrigins}
+					value={
+						newWorkspace
+							? [adminsEmailDomain]
+							: origins.emailOrigins
+					}
 					mode="tags"
 					disabled={newWorkspace}
 					onChange={onChange}
-					options={allowedEmailOrigins.map((emailOrigin) => ({
+					options={origins.allowedEmailOrigins.map((emailOrigin) => ({
 						displayValue: emailOrigin,
 						id: emailOrigin,
 						value: emailOrigin,
