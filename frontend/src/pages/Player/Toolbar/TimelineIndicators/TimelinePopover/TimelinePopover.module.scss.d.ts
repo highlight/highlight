@@ -1,4 +1,5 @@
 export const actionButton: string
+export const eventIdentifier: string
 export const eventTypeIcon: string
 export const eventTypeRow: string
 export const infoPanel: string

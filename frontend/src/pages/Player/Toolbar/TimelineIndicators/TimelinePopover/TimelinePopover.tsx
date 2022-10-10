@@ -16,7 +16,7 @@ import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIn
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -57,6 +57,49 @@ const TimelinePopover = ({ bucket }: Props) => {
 		[bucket.identifier],
 	)
 	const virtuoso = useRef<VirtuosoHandle>(null)
+
+	const onEventInstanceClick = useCallback(
+		(identifier: string) => {
+			const timestamp = bucket.timestamp[identifier]
+
+			setTime(timestamp)
+			if (selectedType === 'Comments') {
+				const urlSearchParams = new URLSearchParams()
+				urlSearchParams.append(
+					PlayerSearchParameters.commentId,
+					identifier,
+				)
+				history.replace(
+					`${
+						history.location.pathname
+					}?${urlSearchParams.toString()}`,
+				)
+				setShowLeftPanel(false)
+				setShowRightPanel(true)
+				setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
+			} else if (selectedType === 'Errors') {
+				setShowDevTools(true)
+				setSelectedDevToolsTab(DevToolTabType.Errors)
+			} else {
+				setShowLeftPanel(false)
+				setShowRightPanel(true)
+				setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
+				setCurrentEvent(identifier)
+			}
+		},
+		[
+			bucket.timestamp,
+			history,
+			selectedType,
+			setCurrentEvent,
+			setSelectedDevToolsTab,
+			setSelectedRightPlayerPanelTab,
+			setShowDevTools,
+			setShowLeftPanel,
+			setShowRightPanel,
+			setTime,
+		],
+	)
 
 	return (
 		<div className={style.timelinePopoverContent}>
@@ -132,6 +175,14 @@ const TimelinePopover = ({ bucket }: Props) => {
 									ev.preventDefault()
 									ev.stopPropagation()
 									setSelectedType(eventType)
+									if (
+										bucket.identifier[eventType].length ===
+										1
+									) {
+										onEventInstanceClick(
+											bucket.identifier[eventType][0],
+										)
+									}
 								}}
 							>
 								<button className={style.actionButton}>
@@ -173,44 +224,13 @@ const TimelinePopover = ({ bucket }: Props) => {
 									selectedType as EventsForTimelineKeys[number],
 								)})`
 								const timestamp = bucket.timestamp[identifier]
-								const onClick = () => {
-									setTime(timestamp)
-									if (selectedType === 'Comments') {
-										const urlSearchParams =
-											new URLSearchParams()
-										urlSearchParams.append(
-											PlayerSearchParameters.commentId,
-											identifier,
-										)
-										history.replace(
-											`${
-												history.location.pathname
-											}?${urlSearchParams.toString()}`,
-										)
-										setShowLeftPanel(false)
-										setShowRightPanel(true)
-										setSelectedRightPlayerPanelTab(
-											RightPlayerPanelTabType.Comments,
-										)
-									} else if (selectedType === 'Errors') {
-										setShowDevTools(true)
-										setSelectedDevToolsTab(
-											DevToolTabType.Errors,
-										)
-									} else {
-										setShowLeftPanel(false)
-										setShowRightPanel(true)
-										setSelectedRightPlayerPanelTab(
-											RightPlayerPanelTabType.Events,
-										)
-										setCurrentEvent(identifier)
-									}
-								}
 								return (
 									<div
 										className={style.eventTypeRow}
 										key={identifier}
-										onClick={onClick}
+										onClick={() =>
+											onEventInstanceClick(identifier)
+										}
 										style={{
 											height: POPOVER_CONTENT_ROW_HEIGHT,
 										}}
@@ -222,7 +242,8 @@ const TimelinePopover = ({ bucket }: Props) => {
 											/>
 											<span
 												className={
-													style.rightActionIcon
+													(style.rightActionIcon,
+													style.eventIdentifier)
 												}
 											>
 												{identifier}

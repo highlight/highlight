@@ -104,3 +104,9 @@
 	margin: 4px;
 	width: 8px;
 }
+
+.eventIdentifier {
+	max-width: 128px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
