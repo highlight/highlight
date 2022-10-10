@@ -16,7 +16,7 @@ import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIn
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -58,48 +58,29 @@ const TimelinePopover = ({ bucket }: Props) => {
 	)
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
-	const onEventInstanceClick = useCallback(
-		(identifier: string) => {
-			const timestamp = bucket.timestamp[identifier]
+	const onEventInstanceClick = (identifier: string) => {
+		const timestamp = bucket.timestamp[identifier]
 
-			setTime(timestamp)
-			if (selectedType === 'Comments') {
-				const urlSearchParams = new URLSearchParams()
-				urlSearchParams.append(
-					PlayerSearchParameters.commentId,
-					identifier,
-				)
-				history.replace(
-					`${
-						history.location.pathname
-					}?${urlSearchParams.toString()}`,
-				)
-				setShowLeftPanel(false)
-				setShowRightPanel(true)
-				setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
-			} else if (selectedType === 'Errors') {
-				setShowDevTools(true)
-				setSelectedDevToolsTab(DevToolTabType.Errors)
-			} else {
-				setShowLeftPanel(false)
-				setShowRightPanel(true)
-				setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
-				setCurrentEvent(identifier)
-			}
-		},
-		[
-			bucket.timestamp,
-			history,
-			selectedType,
-			setCurrentEvent,
-			setSelectedDevToolsTab,
-			setSelectedRightPlayerPanelTab,
-			setShowDevTools,
-			setShowLeftPanel,
-			setShowRightPanel,
-			setTime,
-		],
-	)
+		setTime(timestamp)
+		if (selectedType === 'Comments') {
+			const urlSearchParams = new URLSearchParams()
+			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
+			history.replace(
+				`${history.location.pathname}?${urlSearchParams.toString()}`,
+			)
+			setShowLeftPanel(false)
+			setShowRightPanel(true)
+			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
+		} else if (selectedType === 'Errors') {
+			setShowDevTools(true)
+			setSelectedDevToolsTab(DevToolTabType.Errors)
+		} else {
+			setShowLeftPanel(false)
+			setShowRightPanel(true)
+			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
+			setCurrentEvent(identifier)
+		}
+	}
 
 	return (
 		<div className={style.timelinePopoverContent}>
