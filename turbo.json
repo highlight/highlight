@@ -9,16 +9,24 @@
 			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
 		},
-		"types": {
-			"inputs": ["./**/*.tsx", "./tsconfig.json"],
-			"outputs": ["./**/*.d.ts"]
+		"typegen": {
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": ["dist/**/*.d.ts", "typings/**"]
+		},
+		"@highlight-run/client#typegen": {
+			"dependsOn": ["^prepublish"],
+			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		},
+		"highlight.run#typegen": {
+			"dependsOn": ["@highlight-run/client#typegen"],
+			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
 		},
 		"build": {
-			"dependsOn": ["codegen", "types", "^prepublish", "^build"],
+			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
 			"outputs": ["build/**", "dist/**"],
 			"env": [
 				"REACT_APP_COMMIT_SHA",

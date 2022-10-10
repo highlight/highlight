@@ -40,15 +40,17 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
 		recentErrors.error_group.metadata_log.length
 	) {
 		numberOfAffectedSessions = recentErrors.error_group.metadata_log.length
-		mostRecentAffectedSession
 
 		const mostRecentAffectedSessionIndex =
 			recentErrors.error_group.metadata_log.reduce((acc, curr, index) => {
+				const currentTimestamp = curr?.timestamp
+				const recentTimestamp =
+					recentErrors.error_group?.metadata_log[acc]?.timestamp
+
 				if (
-					recentErrors?.error_group?.metadata_log?.length &&
-					recentErrors.error_group?.metadata_log[acc] &&
-					curr?.timestamp >
-						recentErrors.error_group.metadata_log[acc]?.timestamp
+					currentTimestamp &&
+					recentTimestamp &&
+					currentTimestamp > recentTimestamp
 				) {
 					return index
 				}
@@ -69,6 +71,8 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
 			),
 		)
 	}
+
+	const recentTimestamp = mostRecentAffectedSession?.timestamp
 
 	return (
 		<Card className={styles.card}>
@@ -99,13 +103,14 @@ const ErrorAffectedUsers = ({ loading, state, recentErrors }: Props) => {
 								{numberOfAffectedSessions} Total Session
 								{numberOfAffectedSessions === 1 ? '' : 's'}
 							</p>
-							<p>
-								Recency:{' '}
-								{RelativeTime({
-									datetime:
-										mostRecentAffectedSession?.timestamp,
-								})}
-							</p>
+							{recentTimestamp && (
+								<p>
+									Recency:{' '}
+									{RelativeTime({
+										datetime: recentTimestamp,
+									})}
+								</p>
+							)}
 						</div>
 					</div>
 
