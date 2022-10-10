@@ -246,7 +246,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 													style.eventIdentifier)
 												}
 											>
-												{identifier}
+												{bucket.details[identifier]}
 											</span>
 											<div className={style.rightCounter}>
 												<span>

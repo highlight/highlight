@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
 	getErrorsForTimelineIndicator,
@@ -10,6 +11,7 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
@@ -732,7 +734,7 @@ const TimelineIndicatorsBarGraph = ({
 						width:
 							viewportWidth * camera.zoom + 2 * TIMELINE_MARGIN,
 					}}
-				></div>
+				/>
 				<div className={style.eventHistogram} ref={canvasRef}>
 					<div className={style.eventTrack}>
 						{buckets
@@ -877,6 +879,9 @@ export interface EventBucket {
 	identifier: {
 		[props: string]: string[]
 	}
+	details: {
+		[identifier: string]: string
+	}
 	timestamp: {
 		[identifier: string]: number
 	}
@@ -909,6 +914,7 @@ function buildEventBuckets(
 					[] as string[],
 				]),
 			),
+			details: {},
 			timestamp: {},
 		}),
 	)
@@ -917,11 +923,8 @@ function buildEventBuckets(
 		selectedTimelineAnnotationTypes.includes(eventType),
 	)
 
-	for (const {
-		eventType,
-		relativeIntervalPercentage,
-		identifier,
-	} of filteredEvents) {
+	for (const event of filteredEvents) {
+		const { eventType, relativeIntervalPercentage, identifier } = event
 		const timestamp = ((relativeIntervalPercentage || 0) / 100) * duration
 		const bucketId = clamp(
 			Math.floor(timestamp / timestep),
@@ -929,6 +932,12 @@ function buildEventBuckets(
 			eventBuckets.length - 1,
 		)
 		eventBuckets[bucketId].identifier[eventType].push(identifier)
+		const details = JSON.stringify(
+			getEventRenderDetails(event as HighlightEvent).displayValue,
+		)?.replaceAll(/^\"|\"$/g, '')
+		eventBuckets[bucketId].details[identifier] = !details
+			? identifier
+			: details
 		eventBuckets[bucketId].timestamp[identifier] = timestamp
 		eventBuckets[bucketId].totalCount++
 	}
