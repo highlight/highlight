@@ -240,8 +240,10 @@ export const getBodyThatShouldBeRecorded = (
 		const json = JSON.parse(bodyData)
 
 		Object.keys(json).forEach((header) => {
-			if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
-				json[header] = '[REDACTED]'
+			if (typeof header === 'string') {
+				if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
+					json[header] = '[REDACTED]'
+				}
 			}
 		})
 
