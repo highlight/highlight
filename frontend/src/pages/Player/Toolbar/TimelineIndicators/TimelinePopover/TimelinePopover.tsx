@@ -16,14 +16,18 @@ import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIn
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import style from './TimelinePopover.module.scss'
 
 interface Props {
 	bucket: EventBucket
 }
+
+const POPOVER_CONTENT_MAX_HEIGHT = 250
+const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
@@ -52,6 +56,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			),
 		[bucket.identifier],
 	)
+	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	return (
 		<div className={style.timelinePopoverContent}>
@@ -121,6 +126,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 						return (
 							<div
 								className={style.eventTypeRow}
+								style={{ height: POPOVER_CONTENT_ROW_HEIGHT }}
 								key={eventType}
 								onClick={(ev) => {
 									ev.preventDefault()
@@ -151,73 +157,92 @@ const TimelinePopover = ({ bucket }: Props) => {
 					})
 				) : (
 					<>
-						{bucket.identifier[selectedType].map((identifier) => {
-							const color = `var(${getAnnotationColor(
-								selectedType as EventsForTimelineKeys[number],
-							)})`
-							const timestamp = bucket.timestamp[identifier]
-							const onClick = () => {
-								setTime(timestamp)
-								if (selectedType === 'Comments') {
-									const urlSearchParams =
-										new URLSearchParams()
-									urlSearchParams.append(
-										PlayerSearchParameters.commentId,
-										identifier,
-									)
-									history.replace(
-										`${
-											history.location.pathname
-										}?${urlSearchParams.toString()}`,
-									)
-									setShowLeftPanel(false)
-									setShowRightPanel(true)
-									setSelectedRightPlayerPanelTab(
-										RightPlayerPanelTabType.Comments,
-									)
-								} else if (selectedType === 'Errors') {
-									setShowDevTools(true)
-									setSelectedDevToolsTab(
-										DevToolTabType.Errors,
-									)
-								} else {
-									setShowLeftPanel(false)
-									setShowRightPanel(true)
-									setSelectedRightPlayerPanelTab(
-										RightPlayerPanelTabType.Events,
-									)
-									setCurrentEvent(identifier)
+						<Virtuoso
+							ref={virtuoso}
+							overscan={500}
+							style={{
+								height: Math.min(
+									POPOVER_CONTENT_MAX_HEIGHT,
+									POPOVER_CONTENT_ROW_HEIGHT *
+										bucket.identifier[selectedType].length,
+								),
+							}}
+							data={bucket.identifier[selectedType]}
+							itemContent={(_, identifier: string) => {
+								const color = `var(${getAnnotationColor(
+									selectedType as EventsForTimelineKeys[number],
+								)})`
+								const timestamp = bucket.timestamp[identifier]
+								const onClick = () => {
+									setTime(timestamp)
+									if (selectedType === 'Comments') {
+										const urlSearchParams =
+											new URLSearchParams()
+										urlSearchParams.append(
+											PlayerSearchParameters.commentId,
+											identifier,
+										)
+										history.replace(
+											`${
+												history.location.pathname
+											}?${urlSearchParams.toString()}`,
+										)
+										setShowLeftPanel(false)
+										setShowRightPanel(true)
+										setSelectedRightPlayerPanelTab(
+											RightPlayerPanelTabType.Comments,
+										)
+									} else if (selectedType === 'Errors') {
+										setShowDevTools(true)
+										setSelectedDevToolsTab(
+											DevToolTabType.Errors,
+										)
+									} else {
+										setShowLeftPanel(false)
+										setShowRightPanel(true)
+										setSelectedRightPlayerPanelTab(
+											RightPlayerPanelTabType.Events,
+										)
+										setCurrentEvent(identifier)
+									}
 								}
-							}
-							return (
-								<div
-									className={style.eventTypeRow}
-									key={identifier}
-									onClick={onClick}
-								>
-									<button className={style.actionButton}>
-										<span
-											className={style.eventTypeIcon}
-											style={{ background: color }}
-										/>
-										<span className={style.rightActionIcon}>
-											{identifier}
-										</span>
-										<div className={style.rightCounter}>
-											<span>
-												{formatTimeAsHMS(timestamp)}
-											</span>
-											<ChevronRightIcon
-												className={classNames(
-													style.transitionIcon,
-													style.rightActionIcon,
-												)}
+								return (
+									<div
+										className={style.eventTypeRow}
+										key={identifier}
+										onClick={onClick}
+										style={{
+											height: POPOVER_CONTENT_ROW_HEIGHT,
+										}}
+									>
+										<button className={style.actionButton}>
+											<span
+												className={style.eventTypeIcon}
+												style={{ background: color }}
 											/>
-										</div>
-									</button>
-								</div>
-							)
-						})}
+											<span
+												className={
+													style.rightActionIcon
+												}
+											>
+												{identifier}
+											</span>
+											<div className={style.rightCounter}>
+												<span>
+													{formatTimeAsHMS(timestamp)}
+												</span>
+												<ChevronRightIcon
+													className={classNames(
+														style.transitionIcon,
+														style.rightActionIcon,
+													)}
+												/>
+											</div>
+										</button>
+									</div>
+								)
+							}}
+						/>
 					</>
 				)}
 			</div>

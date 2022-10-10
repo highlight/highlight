@@ -134,7 +134,7 @@ const TimelineIndicatorsBar = ({
 					adjustY: false,
 					adjustX: false,
 				},
-				offset: [tooltipPosition.rightOffset, 4],
+				offset: [tooltipPosition.rightOffset, -14],
 			}}
 			placement={tooltipPosition.placement}
 			overlayClassName={styles.timelineBarPopoverContainer}
