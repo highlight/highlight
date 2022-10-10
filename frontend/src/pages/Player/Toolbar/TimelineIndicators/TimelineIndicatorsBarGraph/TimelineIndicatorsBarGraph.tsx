@@ -34,8 +34,10 @@ interface Props {
 
 const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
-const TARGET_BUCKET_WIDTH_PERCENT = 4
+const TARGET_BUCKET_WIDTH_PERCENT = 6
 const MINOR_TICK_COUNT = 3
+
+const MIN_ZOOM = 1.01
 
 export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
@@ -59,7 +61,6 @@ const TimelineIndicatorsBarGraph = ({
 		isLiveMode,
 	} = useReplayerContext()
 
-	const minZoom = 1
 	// show 10s at max for long sessions
 	const maxZoom = Math.max(duration / 10_000, 2)
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
@@ -123,7 +124,7 @@ const TimelineIndicatorsBarGraph = ({
 		if (!div) {
 			return
 		}
-		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
+		setViewportWidth(Math.round(div.offsetWidth) - 2 * TIMELINE_MARGIN)
 	}, [width])
 
 	const roundedDuration = useMemo(() => {
@@ -177,13 +178,14 @@ const TimelineIndicatorsBarGraph = ({
 		[showPlayerAbsoluteTime, start],
 	)
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
-	useLayoutEffect(() => {
-		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
-			return
-		}
 
-		const zoom = (clientX: number, dz: number) => {
+	const zoom = useCallback(
+		(clientX: number, dz: number) => {
+			const viewportDiv = viewportRef.current
+			if (!viewportDiv) {
+				return
+			}
+
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const { offsetLeft, scrollLeft } = viewportDiv
 
@@ -191,7 +193,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			setCamera((camera) => {
 				setIsRefreshingDOM(true)
-				const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
+				const zoom = clamp(factor * camera.zoom, MIN_ZOOM, maxZoom)
 				const pointA =
 					scrollLeft +
 					clamp(
@@ -210,14 +212,26 @@ const TimelineIndicatorsBarGraph = ({
 
 				return { x, zoom }
 			})
-		}
-		const pan = (deltaX: number) => {
+		},
+		[maxZoom, viewportWidth],
+	)
+
+	const pan = useCallback(
+		(deltaX: number) => {
 			setCamera(({ zoom, x }) => {
 				setIsRefreshingDOM(true)
 				x = clamp(x + deltaX, 0, viewportWidth * zoom - viewportWidth)
 
 				return { zoom, x }
 			})
+		},
+		[viewportWidth],
+	)
+
+	useLayoutEffect(() => {
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return
 		}
 
 		const onWheel = (event: WheelEvent) => {
@@ -245,7 +259,7 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 		}
-	}, [duration, isRefreshingDOM, maxZoom, viewportWidth])
+	}, [duration, isRefreshingDOM, maxZoom, pan, viewportWidth, zoom])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
@@ -427,7 +441,7 @@ const TimelineIndicatorsBarGraph = ({
 			const { left, right } = percent
 			let zoom = clamp(
 				100 / (right - left) / zoomAdjustmentFactor,
-				minZoom,
+				MIN_ZOOM,
 				maxZoom,
 			)
 			const canvasWidth = viewportWidth * zoom
