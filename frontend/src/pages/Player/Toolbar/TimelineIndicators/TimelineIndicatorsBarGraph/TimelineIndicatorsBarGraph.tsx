@@ -286,6 +286,14 @@ const TimelineIndicatorsBarGraph = ({
 	}, [camera, hasActiveScrollbar, viewportWidth])
 
 	useLayoutEffect(() => {
+		if (camera.zoom === 1) {
+			zoom(viewportWidth / 2 + TIMELINE_MARGIN, 1 - MIN_ZOOM)
+		}
+		// run only on the first render
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [viewportWidth, zoom])
+
+	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
 		const timeIndicatorTopDiv = timeIndicatorTopRef.current
 		const timeIndicatorHair = timeIndicatorHairRef.current
@@ -668,21 +676,16 @@ const TimelineIndicatorsBarGraph = ({
 			</div>
 			<div className={style.progressMonitor} ref={progressMonitorRef}>
 				{bucketPercentWidth < 0.5 ? (
-					buckets
-						.map(({ totalCount }, idx) => ({ totalCount, idx }))
-						.filter(({ totalCount }) => totalCount > 0)
-						.map(({ totalCount, idx }) => (
-							<span
-								key={`bucket-mark-${idx}`}
-								className={style.bucketMark}
-								style={{
-									left:
-										(idx / buckets.length) *
-										borderlessWidth,
-									height: `${clamp(totalCount * 8, 0, 100)}%`,
-								}}
-							></span>
-						))
+					buckets.map(({ totalCount, startTime }, idx) => (
+						<span
+							key={`bucket-mark-${idx}`}
+							className={style.bucketMark}
+							style={{
+								left: (startTime / duration) * borderlessWidth,
+								height: `${clamp(totalCount * 8, 0, 100)}%`,
+							}}
+						></span>
+					))
 				) : (
 					<AreaChart
 						width={borderlessWidth}
