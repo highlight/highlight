@@ -13,20 +13,10 @@ import {
 	shouldNetworkRequestBeTraced,
 } from './utils'
 
-export interface HighlightFetchWindow {
-	_originalFetch: (
-		input: RequestInfo | URL,
-		init?: RequestInit | undefined,
-	) => Promise<Response>
-	_highlightFetchPatch: (
-		input: RequestInfo | URL,
-		init?: RequestInit | undefined,
-	) => Promise<Response>
-	/** The implementation for the fetch patch. The implementation can be hot swapped at any time. */
-	_fetchProxy: (
-		input: RequestInfo | URL,
-		init?: RequestInit | undefined,
-	) => Promise<Response>
+export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
+	_originalFetch: WindowOrWorkerGlobalScope['fetch']
+	_highlightFetchPatch: WindowOrWorkerGlobalScope['fetch']
+	_fetchProxy: WindowOrWorkerGlobalScope['fetch']
 }
 
 declare var window: HighlightFetchWindow & Window
