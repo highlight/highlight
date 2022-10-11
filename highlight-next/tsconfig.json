@@ -13,10 +13,9 @@
 		"declarationDir": "dist",
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
-		"jsx": "react",
-		"composite": true
+		"jsx": "react"
 	},
-	"include": ["src"],
+	"include": ["src/**/*"],
 	"references": [
 		{ "path": "../highlight-node" },
 		{ "path": "../sourcemap-uploader" }
