@@ -46,13 +46,6 @@
 				"DD_RUM_APPLICATION_ID"
 			]
 		},
-		"@highlight-run/next#build": {
-			"dependsOn": [
-				"@highlight-run/node#build",
-				"@highlight-run/sourcemap-uploader#build"
-			],
-			"outputs": ["dist/**", "esm/**"]
-		},
 		"test": {
 			"dependsOn": ["prepublish", "build"],
 			"outputs": [],
