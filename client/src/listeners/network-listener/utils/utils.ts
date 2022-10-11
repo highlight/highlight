@@ -130,9 +130,9 @@ const isHighlightNetworkResourceFilter = (
 	name: string | undefined,
 	backendUrl: string,
 ) =>
-	name?.toLocaleLowerCase()?.includes(publicGraphURI ?? 'highlight.run') ||
-	name?.toLocaleLowerCase()?.includes('highlight.run') ||
-	name?.toLocaleLowerCase()?.includes(backendUrl)
+	name.toLocaleLowerCase()?.includes(publicGraphURI ?? 'highlight.run') ||
+	name.toLocaleLowerCase()?.includes('highlight.run') ||
+	name.toLocaleLowerCase()?.includes(backendUrl)
 
 export const shouldNetworkRequestBeRecorded = (
 	url: string,
