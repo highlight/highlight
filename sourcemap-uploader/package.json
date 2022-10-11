@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "Command line tool to upload source maps to Highlight",
   "main": "dist/index.js",
-  "bin": "./esm/index.js",
+  "bin": "./dist/index.js",
   "module": "esm/index.js",
   "exports": "./esm/index.js",
   "types": "dist/index.d.ts",

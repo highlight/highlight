@@ -21,13 +21,17 @@
 			"dependsOn": ["@highlight-run/client#typegen"],
 			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
+		"@highlight-run/next#build": {
+			"dependsOn": ["@highlight-run/node#build"],
+			"outputs": ["dist/**", "esm/**"]
+		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
 		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**"],
+			"outputs": ["build/**", "dist/**", "esm/**"],
 			"env": [
 				"REACT_APP_COMMIT_SHA",
 				"REACT_APP_ENVIRONMENT",
