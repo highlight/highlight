@@ -73,6 +73,8 @@ export const uploadSourcemaps = async ({
 
   let organizationId = res.data.api_key_to_org_id;
 
+  console.info(`Starting to upload source maps from ${path}`);
+
   const fileList = await getAllSourceMapFiles([path]);
 
   if (fileList.length === 0) {

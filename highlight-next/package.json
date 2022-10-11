@@ -4,7 +4,10 @@
 	"description": "Client for interfacing with Highlight in next.js",
 	"main": "dist/src/index.js",
 	"module": "esm/src/index.js",
-	"exports": "./esm/src/index.js",
+	"exports": {
+		"import": "./esm/src/index.js",
+		"require": "./dist/src/index.js"
+	},
 	"type": "module",
 	"scripts": {
 		"build": "run-p build:cjs build:esm",

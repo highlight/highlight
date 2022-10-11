@@ -2,18 +2,20 @@
   "name": "@highlight-run/sourcemap-uploader",
   "version": "0.3.0",
   "description": "Command line tool to upload source maps to Highlight",
-  "main": "dist/index.js",
-  "bin": "./dist/index.js",
-  "module": "esm/index.js",
-  "exports": "./esm/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "bin": "./esm/src/index.js",
+  "module": "esm/src/index.js",
+  "exports": {
+    "import": "./esm/src/index.js",
+    "require": "./dist/src/index.js"
+  },
+  "types": "dist/src/index.d.ts",
   "author": "Highlight",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "format": "yarn prettier --write .",
-    "build": "yarn typegen && run-p build:cjs build:esm",
-    "typegen": "tsc",
+    "build": "run-p build:cjs build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:dev": "run-s build",
     "build:esm": "tsc -p tsconfig.esm.json"

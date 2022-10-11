@@ -6673,7 +6673,7 @@ __metadata:
     typescript: ^4.8.2
     yargs: 17.5.1
   bin:
-    sourcemap-uploader: ./dist/index.js
+    sourcemap-uploader: ./esm/src/index.js
   languageName: unknown
   linkType: soft
 

@@ -5,11 +5,14 @@
 	"main": "dist/index.js",
 	"module": "esm/index.js",
 	"types": "dist/index.d.ts",
-	"exports": "./esm/index.js",
+	"exports": {
+		"import": "./esm/index.js",
+		"require": "./dist/index.js"
+	},
+	"type": "module",
 	"publishConfig": {
 		"access": "public"
 	},
-	"type": "module",
 	"scripts": {
 		"build": "run-p build:cjs build:esm",
 		"build:cjs": "tsc -p tsconfig.cjs.json",
