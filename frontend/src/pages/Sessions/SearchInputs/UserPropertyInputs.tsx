@@ -1,3 +1,5 @@
+import { UserPropertyInput as UserPropertyInputType } from '@graph/schemas'
+import { SearchParamsInput } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { Checkbox } from 'antd'
 import { CheckboxChangeEvent } from 'antd/lib/checkbox'
@@ -9,11 +11,7 @@ import { PropertyOption } from '../../../components/Option/Option'
 import Tooltip from '../../../components/Tooltip/Tooltip'
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks'
 import SvgFaceIdIcon from '../../../static/FaceIdIcon'
-import {
-	SearchParams,
-	UserProperty,
-	useSearchContext,
-} from '../SearchContext/SearchContext'
+import { useSearchContext } from '../SearchContext/SearchContext'
 import inputStyles from './InputStyles.module.scss'
 import { ContainsLabel } from './SearchInputUtil'
 
@@ -74,7 +72,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 				isClearable={false}
 				defaultOptions
 				onChange={(options) => {
-					const newOptions: Array<UserProperty> =
+					const newOptions: Array<UserPropertyInputType> =
 						options?.map((o) => {
 							if (!o.name) {
 								o.name = 'contains'
@@ -83,11 +81,11 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 							return { id: o.id, name: o.name, value: o.value }
 						}) ?? []
 					if (include) {
-						setSearchParams((params: SearchParams) => {
+						setSearchParams((params: SearchParamsInput) => {
 							return { ...params, user_properties: newOptions }
 						})
 					} else {
-						setSearchParams((params: SearchParams) => {
+						setSearchParams((params: SearchParamsInput) => {
 							return {
 								...params,
 								excluded_properties: newOptions,
@@ -137,7 +135,7 @@ export const IdentifiedUsersSwitch = () => {
 	return (
 		<div>
 			<Checkbox
-				checked={searchParams.identified}
+				checked={!!searchParams.identified}
 				onChange={(e: CheckboxChangeEvent) => {
 					setSearchParams((params) => ({
 						...params,
@@ -169,7 +167,7 @@ export const FirstTimeUsersSwitch = () => {
 				placement="left"
 			>
 				<Checkbox
-					checked={searchParams.first_time}
+					checked={!!searchParams.first_time}
 					onChange={(e: CheckboxChangeEvent) => {
 						setSearchParams((params) => ({
 							...params,

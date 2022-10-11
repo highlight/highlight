@@ -1,8 +1,9 @@
+import { ErrorSearchParamsInput } from '@graph/schemas'
+
 import { ErrorState } from '../../graph/generated/schemas'
 import { Complete } from '../../util/types'
-import { ErrorSearchParams } from './ErrorSearchContext/ErrorSearchContext'
 
-export const EmptyErrorsSearchParams: Complete<ErrorSearchParams> = {
+export const EmptyErrorsSearchParams: Complete<ErrorSearchParamsInput> = {
 	browser: undefined,
 	date_range: undefined,
 	event: undefined,

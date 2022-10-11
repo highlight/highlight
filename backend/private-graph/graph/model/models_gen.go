@@ -417,7 +417,7 @@ type UserFingerprintCount struct {
 }
 
 type UserPropertyInput struct {
-	ID    *int   `json:"id"`
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

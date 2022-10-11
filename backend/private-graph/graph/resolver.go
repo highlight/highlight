@@ -501,36 +501,24 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 	}
 	for _, property := range params.UserProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
 	}
 	for _, property := range params.ExcludedProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
 	}
 	for _, property := range params.TrackProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}

@@ -1,8 +1,6 @@
 import { useGetErrorFieldsOpensearchQuery } from '@graph/hooks'
-import {
-	ErrorSearchParams,
-	useErrorSearchContext,
-} from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { ErrorSearchParamsInput } from '@graph/schemas'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import QueryBuilder, {
 	CustomField,
 	deserializeGroup,
@@ -78,7 +76,7 @@ const CUSTOM_FIELDS: CustomField[] = [
 // If there is no query builder param (for segments saved
 // before the query builder was released), create one.
 export const getQueryFromParams = (
-	params: ErrorSearchParams,
+	params: ErrorSearchParamsInput,
 ): QueryBuilderState => {
 	const rules: RuleProps[] = []
 	if (params.date_range) {

@@ -109,8 +109,8 @@ export const SessionCountGraph = ({
 					setSearchParams({
 						...EmptySessionsSearchParams,
 						date_range: {
-							start_date: date.startOf('day').toDate(),
-							end_date: date.endOf('day').toDate(),
+							start_date: date.startOf('day').toDate().toString(),
+							end_date: date.endOf('day').toDate().toString(),
 						},
 					})
 

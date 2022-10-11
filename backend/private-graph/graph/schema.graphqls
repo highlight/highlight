@@ -413,10 +413,10 @@ type UserFingerprintCount {
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-	user_properties: [UserPropertyInput]
-	excluded_properties: [UserPropertyInput]
-	track_properties: [UserPropertyInput]
-	excluded_track_properties: [UserPropertyInput]
+	user_properties: [UserPropertyInput!]
+	excluded_properties: [UserPropertyInput!]
+	track_properties: [UserPropertyInput!]
+	excluded_track_properties: [UserPropertyInput!]
 	environments: [String]
 	app_versions: [String]
 	date_range: DateRangeInput
@@ -592,7 +592,7 @@ type UserProperty {
 }
 
 input UserPropertyInput {
-	id: ID
+	id: ID!
 	name: String!
 	value: String!
 }
