@@ -219,6 +219,13 @@ func (s *Server) HandleValidate(w http.ResponseWriter, r *http.Request) {
 	_ = je.Encode(data)
 }
 
+func (s *Server) HasCookie(r *http.Request) bool {
+	if cookie, err := r.Cookie(CookieName); err == nil {
+		return cookie.Value != ""
+	}
+	return false
+}
+
 // Validate ensures the request is authenticated and configures the context to contain
 // necessary authorization context variables. the function returns the auth token cookie,
 // refreshed if applicable.
