@@ -21,13 +21,6 @@
 			"dependsOn": ["@highlight-run/client#typegen"],
 			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
-		"@highlight-run/next#build": {
-			"dependsOn": [
-				"@highlight-run/node#build",
-				"@highlight-run/sourcemap-uploader#build"
-			],
-			"outputs": ["dist/**", "esm/**"]
-		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
@@ -52,6 +45,13 @@
 				"DD_CLIENT_TOKEN",
 				"DD_RUM_APPLICATION_ID"
 			]
+		},
+		"@highlight-run/next#build": {
+			"dependsOn": [
+				"@highlight-run/node#build",
+				"@highlight-run/sourcemap-uploader#build"
+			],
+			"outputs": ["dist/**", "esm/**"]
 		},
 		"test": {
 			"dependsOn": ["prepublish", "build"],
