@@ -7,7 +7,7 @@
 	"module": "dist/indexESM.js",
 	"types": "dist/src/index.d.ts",
 	"scripts": {
-		"build": "yarn typegen && rollup -c",
+		"build": "yarn types:check && yarn typegen && rollup -c",
 		"typegen": "tsc",
 		"dev": "doppler run -- rollup -c -w",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
