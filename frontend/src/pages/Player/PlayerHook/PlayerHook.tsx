@@ -628,7 +628,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			updateCurrentUrl()
 			loadiFrameResources(replayer, project_id)
 		})
-	}, [replayer, updateCurrentUrl, setViewport])
+	}, [replayer, updateCurrentUrl, setViewport, onevent, project_id])
 
 	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
 	const initReplayer = (newEvents: HighlightEvent[]) => {

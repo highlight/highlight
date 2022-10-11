@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
 	getErrorsForTimelineIndicator,
@@ -10,22 +11,22 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
-import TimelineBar, {
-	EventBucket,
-} from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
+import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import { clamp } from '@util/numbers'
+import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import moment from 'moment'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Area, AreaChart } from 'recharts'
+import { NumberParam, useQueryParams } from 'use-query-params'
 
 import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
@@ -33,18 +34,21 @@ interface Props {
 	width: number
 }
 
-const TARGET_BUCKET_COUNT = 80
-
-const TARGET_TICK_COUNT = 20
-export const TIMELINE_MARGIN = 32
+const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
+const TARGET_BUCKET_WIDTH_PERCENT = 4
+const MINOR_TICK_COUNT = 3
 
+const MIN_ZOOM = 1.01
+
+export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & { eventType: string; identifier: string }
 
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
 }: Props) => {
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const {
 		time,
@@ -59,11 +63,13 @@ const TimelineIndicatorsBarGraph = ({
 		isLiveMode,
 	} = useReplayerContext()
 
-	const minZoom = 1
 	// show 10s at max for long sessions
 	const maxZoom = Math.max(duration / 10_000, 2)
-
-	const { setZoomAreaPercent } = useToolbarItemsContext()
+	const [{ zoomStart, zoomEnd }] = useQueryParams({
+		zoomStart: NumberParam,
+		zoomEnd: NumberParam,
+	})
+	const { zoomAreaPercent, setZoomAreaPercent } = useToolbarItemsContext()
 
 	const events = useMemo(() => {
 		const comments = getCommentsForTimelineIndicator(
@@ -88,7 +94,7 @@ const TimelineIndicatorsBarGraph = ({
 			})),
 			...errors.map((event) => ({
 				...event,
-				identifier: event.id,
+				identifier: event.error_group_secure_id,
 				eventType: 'Errors',
 			})),
 		]
@@ -120,15 +126,27 @@ const TimelineIndicatorsBarGraph = ({
 		if (!div) {
 			return
 		}
-		setViewportWidth(div.offsetWidth - 2 * TIMELINE_MARGIN)
+		setViewportWidth(Math.round(div.offsetWidth) - 2 * TIMELINE_MARGIN)
 	}, [width])
 
+	const roundedDuration = useMemo(() => {
+		const roundingBucketSize = pickBucketSize(
+			duration,
+			TARGET_BUCKET_WIDTH_PERCENT,
+		)
+		const timestep = getBucketSizeInMs(roundingBucketSize)
+		const numBuckets = Math.ceil(duration / timestep)
+		return numBuckets * timestep
+	}, [duration])
+
 	const canvasWidth = viewportWidth * camera.zoom
+
 	const bucketSize = pickBucketSize(
-		duration / camera.zoom,
-		TARGET_BUCKET_COUNT,
+		roundedDuration / camera.zoom,
+		TARGET_BUCKET_WIDTH_PERCENT,
 	)
 	const bucketTimestep = getBucketSizeInMs(bucketSize)
+	const bucketPercentWidth = (100 * bucketTimestep) / roundedDuration
 
 	const buckets = useMemo(
 		() =>
@@ -140,21 +158,9 @@ const TimelineIndicatorsBarGraph = ({
 			),
 		[events, duration, bucketTimestep, selectedTimelineAnnotationTypes],
 	)
+
 	const maxBucketCount = Math.max(
 		...buckets.map((bucket) => bucket.totalCount),
-	)
-
-	const minBucketWidth = (10 / canvasWidth) * 100 // 10px in the zoomed view
-	const bucketPercentWidth = Math.max(
-		(100 * bucketTimestep) / duration,
-		minBucketWidth,
-	)
-
-	const lastBucketPercentWidth = clamp(
-		((duration - bucketTimestep * (buckets.length - 1)) * 100) / duration,
-		minBucketWidth,
-		(1 + TIMELINE_MARGIN / canvasWidth) * 100 -
-			(buckets.length - 1) * bucketPercentWidth,
 	)
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
@@ -174,13 +180,14 @@ const TimelineIndicatorsBarGraph = ({
 		[showPlayerAbsoluteTime, start],
 	)
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
-	useLayoutEffect(() => {
-		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
-			return
-		}
 
-		const zoom = (clientX: number, dz: number) => {
+	const zoom = useCallback(
+		(clientX: number, dz: number) => {
+			const viewportDiv = viewportRef.current
+			if (!viewportDiv) {
+				return
+			}
+
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const { offsetLeft, scrollLeft } = viewportDiv
 
@@ -188,7 +195,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			setCamera((camera) => {
 				setIsRefreshingDOM(true)
-				const zoom = clamp(factor * camera.zoom, minZoom, maxZoom)
+				const zoom = clamp(factor * camera.zoom, MIN_ZOOM, maxZoom)
 				const pointA =
 					scrollLeft +
 					clamp(
@@ -207,14 +214,26 @@ const TimelineIndicatorsBarGraph = ({
 
 				return { x, zoom }
 			})
-		}
-		const pan = (deltaX: number) => {
+		},
+		[maxZoom, viewportWidth],
+	)
+
+	const pan = useCallback(
+		(deltaX: number) => {
 			setCamera(({ zoom, x }) => {
 				setIsRefreshingDOM(true)
 				x = clamp(x + deltaX, 0, viewportWidth * zoom - viewportWidth)
 
 				return { zoom, x }
 			})
+		},
+		[viewportWidth],
+	)
+
+	useLayoutEffect(() => {
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return
 		}
 
 		const onWheel = (event: WheelEvent) => {
@@ -242,7 +261,7 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 		}
-	}, [duration, isRefreshingDOM, maxZoom, viewportWidth])
+	}, [duration, isRefreshingDOM, maxZoom, pan, viewportWidth, zoom])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
@@ -261,20 +280,20 @@ const TimelineIndicatorsBarGraph = ({
 				canvasDiv.style.width = `${canvasWidth}px`
 				timeAxisDiv.style.width = `${canvasWidth}px`
 
-				let x = camera.x
-				if (
-					x > TIMELINE_MARGIN &&
-					x + viewportWidth + TIMELINE_MARGIN + 1 >= canvasWidth
-				) {
-					x += TIMELINE_MARGIN
-				}
-
-				viewportDiv.scrollTo({ left: x })
+				viewportDiv.scrollTo({ left: camera.x })
 				setIsRefreshingDOM(false)
 			}
 		})
 		return () => cancelAnimationFrame(timeout)
 	}, [camera, hasActiveScrollbar, viewportWidth])
+
+	useLayoutEffect(() => {
+		if (camera.zoom === 1) {
+			zoom(viewportWidth / 2 + TIMELINE_MARGIN, 1 - MIN_ZOOM)
+		}
+		// run only on the first render
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [viewportWidth, zoom])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -305,7 +324,7 @@ const TimelineIndicatorsBarGraph = ({
 			)
 
 			const newTime = clamp(
-				Math.round((x * duration) / canvasWidth),
+				Math.round((x * roundedDuration) / canvasWidth),
 				0,
 				duration,
 			)
@@ -406,28 +425,16 @@ const TimelineIndicatorsBarGraph = ({
 
 	// camera.x frame of reference is the canvas; to fix it to the viewport and make
 	// margins insignificant parts of panning/zooming the session, we clamp the values
-	const relativeX = clamp(
+	const relativeLeftX = clamp(
 		camera.x - TIMELINE_MARGIN,
 		0,
 		canvasWidth - viewportWidth,
 	)
-	const leftProgress = (width * relativeX) / canvasWidth
+	const leftProgress = (width * relativeLeftX) / canvasWidth
 
 	// the same reasoning applies to camera.zoom
 	const relativeZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
 	const rightProgress = clamp(leftProgress + width / relativeZoom, 1, width)
-
-	const leftmostBucketIdx = clamp(
-		Math.floor((leftProgress * buckets.length) / width) - 1,
-		0,
-		buckets.length - 1,
-	)
-
-	const rightmostBucketIdx = clamp(
-		Math.ceil((rightProgress / width) * buckets.length) + 1,
-		0,
-		buckets.length - 1,
-	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 
@@ -444,7 +451,7 @@ const TimelineIndicatorsBarGraph = ({
 			const { left, right } = percent
 			let zoom = clamp(
 				100 / (right - left) / zoomAdjustmentFactor,
-				minZoom,
+				MIN_ZOOM,
 				maxZoom,
 			)
 			const canvasWidth = viewportWidth * zoom
@@ -459,37 +466,61 @@ const TimelineIndicatorsBarGraph = ({
 
 			requestAnimationFrame(() => {
 				setCamera({ x, zoom })
+				setZoomAreaPercent({ left, right })
 			})
 		},
-		[maxZoom, viewportWidth, zoomAdjustmentFactor],
+		[maxZoom, setZoomAreaPercent, viewportWidth, zoomAdjustmentFactor],
 	)
 
+	useLayoutEffect(() => {
+		const zoomPercent = {
+			left:
+				zoomStart !== undefined && zoomStart !== null
+					? clamp(zoomStart, 0, 100)
+					: 0,
+			right:
+				zoomEnd !== undefined && zoomEnd !== null
+					? clamp(zoomEnd, 0, 100)
+					: 100,
+		}
+		setZoomAreaPercent(zoomPercent)
+		updateCameraFromZoomArea(zoomPercent)
+		// run once for session secure id
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [session_secure_id])
+
+	const isVisible = useCallback(
+		(time: number) => {
+			const { left, right } = zoomAreaPercent
+			const leftTime = (left * roundedDuration) / 100
+			const rightTime = (right * roundedDuration) / 100
+
+			return leftTime <= time && time <= rightTime
+		},
+		[roundedDuration, zoomAreaPercent],
+	)
 	const ticks = useMemo(() => {
-		let size = pickBucketSize(duration / camera.zoom, TARGET_TICK_COUNT)
+		let size = pickBucketSize(
+			roundedDuration / camera.zoom,
+			100 / TARGET_TICK_COUNT,
+		)
 		// do Math.ceil to have 1 second as the min tick
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
+		const numTicks = Math.ceil(roundedDuration / mainTickInMs)
 
-		const step = (mainTickInMs / duration) * canvasWidth
-		const minorStep = step / 4
-
-		const numTicks = Math.ceil(duration / mainTickInMs)
+		const step = (mainTickInMs / roundedDuration) * canvasWidth
+		const minorStep = step / (MINOR_TICK_COUNT + 1)
 
 		const elms = []
 
-		const isTickRedundant = (idx: number, rem: number) => {
-			const leftTime = (idx + rem) * mainTickInMs
-			if (
-				leftTime > (1 + TIMELINE_MARGIN / canvasWidth) * duration ||
-				leftTime < (leftmostBucketIdx - 1) * bucketTimestep ||
-				leftTime > (rightmostBucketIdx + 1) * bucketTimestep
-			) {
-				return true
-			}
-			return false
-		}
+		const showTick = (idx: number) =>
+			isVisible(idx * mainTickInMs) &&
+			((idx * mainTickInMs) / roundedDuration) * canvasWidth < canvasWidth
+
 		for (let idx = 0; idx <= numTicks; ++idx) {
-			if (isTickRedundant(idx, 0)) {
+			if (!showTick(idx)) {
 				continue
 			}
 			const key = `${idx * size.multiple}${size.tick}`
@@ -527,56 +558,30 @@ const TimelineIndicatorsBarGraph = ({
 				></span>,
 			)
 			if (idx !== numTicks) {
-				if (isTickRedundant(idx, 0.25)) {
-					continue
+				for (
+					let minorIdx = 0;
+					minorIdx < MINOR_TICK_COUNT;
+					++minorIdx
+				) {
+					if (!showTick(idx + minorIdx / MINOR_TICK_COUNT)) {
+						continue
+					}
+					const isMid = minorIdx === Math.floor(MINOR_TICK_COUNT / 2)
+					elms.push(
+						<span
+							className={classNames(style.timeTick, {
+								[style.timeTickMinor]: !isMid,
+								[style.timeTickMid]: isMid,
+							})}
+							key={`tick-minor-${minorIdx}-${key}`}
+							style={{ left: left + (minorIdx + 1) * minorStep }}
+						></span>,
+					)
 				}
-				elms.push(
-					<span
-						className={classNames(
-							style.timeTick,
-							style.timeTickMinor,
-						)}
-						key={`tick-minor-1-${key}`}
-						style={{ left: left + minorStep }}
-					></span>,
-				)
-				if (isTickRedundant(idx, 0.5)) {
-					continue
-				}
-				elms.push(
-					<span
-						className={classNames(
-							style.timeTick,
-							style.timeTickMid,
-						)}
-						key={`tick-mid-${key}`}
-						style={{ left: left + 2 * minorStep }}
-					></span>,
-				)
-				if (isTickRedundant(idx, 0.75)) {
-					continue
-				}
-				elms.push(
-					<span
-						className={classNames(
-							style.timeTick,
-							style.timeTickMinor,
-						)}
-						key={`tick-minor-2-${key}`}
-						style={{ left: left + 3 * minorStep }}
-					></span>,
-				)
 			}
 		}
 		return elms
-	}, [
-		bucketTimestep,
-		camera.zoom,
-		canvasWidth,
-		duration,
-		leftmostBucketIdx,
-		rightmostBucketIdx,
-	])
+	}, [camera.zoom, canvasWidth, isVisible, roundedDuration])
 
 	const shownTime = isDragging ? dragTime : time
 	if (!events.length || state === ReplayerState.Loading || !replayer) {
@@ -673,21 +678,16 @@ const TimelineIndicatorsBarGraph = ({
 			</div>
 			<div className={style.progressMonitor} ref={progressMonitorRef}>
 				{bucketPercentWidth < 0.5 ? (
-					buckets
-						.map(({ totalCount }, idx) => ({ totalCount, idx }))
-						.filter(({ totalCount }) => totalCount > 0)
-						.map(({ totalCount, idx }) => (
-							<span
-								key={`bucket-mark-${idx}`}
-								className={style.bucketMark}
-								style={{
-									left:
-										(idx / buckets.length) *
-										borderlessWidth,
-									height: `${clamp(totalCount * 8, 0, 100)}%`,
-								}}
-							></span>
-						))
+					buckets.map(({ totalCount, startTime }, idx) => (
+						<span
+							key={`bucket-mark-${idx}`}
+							className={style.bucketMark}
+							style={{
+								left: (startTime / duration) * borderlessWidth,
+								height: `${clamp(totalCount * 8, 0, 100)}%`,
+							}}
+						></span>
+					))
 				) : (
 					<AreaChart
 						width={borderlessWidth}
@@ -707,12 +707,14 @@ const TimelineIndicatorsBarGraph = ({
 					containerWidth={borderlessWidth}
 					wrapperRef={progressMonitorRef}
 					update={updateCameraFromZoomArea}
+					minZoomAreaPercent={100 / maxZoom}
 				/>
 			</div>
 			<div className={style.timelineContainer} ref={viewportRef}>
 				<TimeIndicator
 					left={clamp(
-						(shownTime * viewportWidth * camera.zoom) / duration +
+						(shownTime * viewportWidth * camera.zoom) /
+							roundedDuration +
 							TIMELINE_MARGIN,
 						TIMELINE_MARGIN,
 						TIMELINE_MARGIN + viewportWidth * camera.zoom,
@@ -720,7 +722,7 @@ const TimelineIndicatorsBarGraph = ({
 					topRef={timeIndicatorTopRef}
 					hairRef={timeIndicatorHairRef}
 					viewportRef={viewportRef}
-					text={formatTimeOnTop(isDragging ? dragTime : time)}
+					text={formatTimeOnTop(shownTime)}
 					isDragging={isDragging}
 				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>
@@ -732,21 +734,26 @@ const TimelineIndicatorsBarGraph = ({
 						width:
 							viewportWidth * camera.zoom + 2 * TIMELINE_MARGIN,
 					}}
-				></div>
+				/>
 				<div className={style.eventHistogram} ref={canvasRef}>
 					<div className={style.eventTrack}>
 						{buckets
+							.filter(
+								(bucket) =>
+									isVisible(bucket.startTime) ||
+									isVisible(bucket.endTime),
+							)
 							.map((bucket, idx) =>
 								bucket.totalCount > 0 ? (
 									<TimelineBar
 										key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
 										bucket={bucket}
-										width={
-											idx === buckets.length - 1
-												? lastBucketPercentWidth
-												: bucketPercentWidth
+										width={bucketPercentWidth}
+										left={
+											(bucket.startTime /
+												roundedDuration) *
+											100
 										}
-										left={idx * bucketPercentWidth}
 										height={
 											(bucket.totalCount /
 												maxBucketCount) *
@@ -755,11 +762,6 @@ const TimelineIndicatorsBarGraph = ({
 										viewportRef={viewportRef}
 									/>
 								) : null,
-							)
-							.filter(
-								(_, idx) =>
-									idx >= leftmostBucketIdx &&
-									idx <= rightmostBucketIdx,
 							)}
 					</div>
 				</div>
@@ -853,27 +855,32 @@ function getBucketSizeInMs({ multiple, tick }: BucketSize) {
 
 function pickBucketSize(
 	duration: number,
-	targetBucketCount: number,
+	targetBucketWidthPercent: number,
 ): BucketSize {
-	const dur = moment.duration(duration)
+	const reverseBucketSizes = Array.from(BUCKET_SIZES).reverse()
+	for (const bucketSize of reverseBucketSizes) {
+		const bucketCount = Math.ceil(duration / getBucketSizeInMs(bucketSize))
+		const bucketWidth = 100 / bucketCount
 
-	for (const bucketSize of BUCKET_SIZES) {
-		let numIntervals = Number.MAX_VALUE
-		switch (bucketSize.tick) {
-			case TimelineTick.second:
-				numIntervals = dur.asSeconds()
-				break
-			case TimelineTick.minute:
-				numIntervals = dur.asMinutes()
-				break
-		}
-		const bucketCount = Math.ceil(numIntervals / bucketSize.multiple)
-
-		if (bucketCount <= targetBucketCount) {
+		if (bucketWidth <= targetBucketWidthPercent) {
 			return bucketSize
 		}
 	}
-	return BUCKET_SIZES.at(-1)!
+	return BUCKET_SIZES[0]
+}
+export interface EventBucket {
+	totalCount: number
+	startTime: number
+	endTime: number
+	identifier: {
+		[props: string]: string[]
+	}
+	details: {
+		[identifier: string]: string
+	}
+	timestamp: {
+		[identifier: string]: number
+	}
 }
 
 function buildEventBuckets(
@@ -890,17 +897,21 @@ function buildEventBuckets(
 		return []
 	}
 
-	const defaultEventCounts = Object.fromEntries(
-		selectedTimelineAnnotationTypes.map((eventType) => [eventType, 0]),
-	)
-
 	const numBuckets = Math.ceil(duration / timestep)
 	const eventBuckets: EventBucket[] = Array.from(
 		{ length: numBuckets },
 		(_, idx) => ({
-			label: idx,
-			...defaultEventCounts,
 			totalCount: 0,
+			startTime: idx * timestep,
+			endTime: (idx + 1) * timestep,
+			identifier: Object.fromEntries(
+				selectedTimelineAnnotationTypes.map((eventType) => [
+					eventType,
+					[] as string[],
+				]),
+			),
+			details: {},
+			timestamp: {},
 		}),
 	)
 
@@ -908,23 +919,23 @@ function buildEventBuckets(
 		selectedTimelineAnnotationTypes.includes(eventType),
 	)
 
-	for (const {
-		eventType,
-		relativeIntervalPercentage,
-		identifier,
-	} of filteredEvents) {
+	for (const event of filteredEvents) {
+		const { eventType, relativeIntervalPercentage, identifier } = event
+		const timestamp = ((relativeIntervalPercentage || 0) / 100) * duration
 		const bucketId = clamp(
-			Math.ceil(
-				((relativeIntervalPercentage! / 100) * duration) / timestep,
-			) - 1,
+			Math.floor(timestamp / timestep),
 			0,
 			eventBuckets.length - 1,
 		)
-		if (eventBuckets[bucketId][eventType] === 0) {
-			eventBuckets[bucketId][`${eventType}Identifier`] = identifier || ''
-		}
-		;(eventBuckets[bucketId][eventType] as number)++
+		eventBuckets[bucketId].identifier[eventType].push(identifier)
+		const details = JSON.stringify(
+			getEventRenderDetails(event as HighlightEvent).displayValue,
+		)?.replaceAll(/^\"|\"$/g, '')
+		eventBuckets[bucketId].details[identifier] = !details
+			? identifier
+			: details
+		eventBuckets[bucketId].timestamp[identifier] = timestamp
 		eventBuckets[bucketId].totalCount++
 	}
-	return eventBuckets
+	return eventBuckets.filter((bucket) => bucket.totalCount > 0)
 }

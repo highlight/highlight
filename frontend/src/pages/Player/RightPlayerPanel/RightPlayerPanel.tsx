@@ -1,6 +1,7 @@
 import EventStream from '@pages/Player/components/EventStream/EventStream'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
@@ -106,11 +107,11 @@ const RightPlayerPanelTabs = React.memo(() => {
 			className={styles.tabs}
 			tabs={[
 				{
-					key: 'Events',
+					key: RightPlayerPanelTabType.Events,
 					panelContent: <EventStream />,
 				},
 				{
-					key: 'Comments',
+					key: RightPlayerPanelTabType.Comments,
 					panelContent: (
 						<div
 							className={styles.tabContentContainer}
@@ -123,7 +124,7 @@ const RightPlayerPanelTabs = React.memo(() => {
 					),
 				},
 				{
-					key: 'Metadata',
+					key: RightPlayerPanelTabType.Metadata,
 					panelContent: (
 						<div className={styles.tabContentContainer}>
 							<MetadataPanel />
