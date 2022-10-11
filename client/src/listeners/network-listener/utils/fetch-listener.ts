@@ -1,4 +1,4 @@
-import { getBodyThatShouldBeRecorded } from '../utils/xhr-listener'
+import { getBodyThatShouldBeRecorded } from './xhr-listener'
 import { NetworkListenerCallback } from '../network-listener'
 import {
 	RequestResponsePair,
@@ -96,14 +96,23 @@ export const FetchListener = (
 }
 
 export const getFetchRequestProperties = (
-	input: RequestInfo,
+	input: RequestInfo | URL,
 	init?: RequestInit,
 ) => {
 	const method =
 		(init && init.method) ||
-		(typeof input === 'object' && input.method) ||
+		(typeof input === 'object' && 'method' in input && input.method) ||
 		'GET'
-	const url = (typeof input === 'object' && input.url) || (input as string)
+	let url: string
+	if (typeof input === 'object') {
+		if ('url' in input && input.url) {
+			url = input.url
+		} else {
+			url = input.toString()
+		}
+	} else {
+		url = input
+	}
 
 	return {
 		method,
