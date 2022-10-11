@@ -15,16 +15,16 @@ import {
 
 export interface HighlightFetchWindow {
 	_originalFetch: (
-		input: RequestInfo,
+		input: RequestInfo | URL,
 		init?: RequestInit | undefined,
 	) => Promise<Response>
 	_highlightFetchPatch: (
-		input: RequestInfo,
+		input: RequestInfo | URL,
 		init?: RequestInit | undefined,
 	) => Promise<Response>
 	/** The implementation for the fetch patch. The implementation can be hot swapped at any time. */
 	_fetchProxy: (
-		input: RequestInfo,
+		input: RequestInfo | URL,
 		init?: RequestInit | undefined,
 	) => Promise<Response>
 }
