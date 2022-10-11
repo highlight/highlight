@@ -22,7 +22,10 @@
 			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
 		"@highlight-run/next#build": {
-			"dependsOn": ["@highlight-run/node#build"],
+			"dependsOn": [
+				"@highlight-run/node#build",
+				"@highlight-run/sourcemap-uploader#build"
+			],
 			"outputs": ["dist/**", "esm/**"]
 		},
 		"prepublish": {
