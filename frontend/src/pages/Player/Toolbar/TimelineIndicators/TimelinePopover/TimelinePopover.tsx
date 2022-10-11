@@ -14,7 +14,8 @@ import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsCo
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { EventBucket } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
-import { formatTimeAsHMS } from '@util/time'
+import { formatTimeAsHMS, MillisToMinutesAndSeconds } from '@util/time'
+import { message } from 'antd'
 import classNames from 'classnames'
 import { useMemo, useRef, useState } from 'react'
 import { useHistory } from 'react-router-dom'
@@ -58,11 +59,11 @@ const TimelinePopover = ({ bucket }: Props) => {
 	)
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
-	const onEventInstanceClick = (identifier: string) => {
+	const onEventInstanceClick = (type: string, identifier: string) => {
 		const timestamp = bucket.timestamp[identifier]
 
 		setTime(timestamp)
-		if (selectedType === 'Comments') {
+		if (type === 'Comments') {
 			const urlSearchParams = new URLSearchParams()
 			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
 			history.replace(
@@ -71,7 +72,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 			setShowLeftPanel(false)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
-		} else if (selectedType === 'Errors') {
+		} else if (type === 'Errors') {
 			setShowDevTools(true)
 			setSelectedDevToolsTab(DevToolTabType.Errors)
 		} else {
@@ -80,6 +81,11 @@ const TimelinePopover = ({ bucket }: Props) => {
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
 			setCurrentEvent(identifier)
 		}
+		message.success(
+			`Changed player time to show you ${type} at ${MillisToMinutesAndSeconds(
+				timestamp,
+			)}`,
+		)
 	}
 
 	return (
@@ -161,6 +167,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 										1
 									) {
 										onEventInstanceClick(
+											eventType,
 											bucket.identifier[eventType][0],
 										)
 									}
@@ -210,7 +217,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 										className={style.eventTypeRow}
 										key={identifier}
 										onClick={() =>
-											onEventInstanceClick(identifier)
+											onEventInstanceClick(
+												selectedType,
+												identifier,
+											)
 										}
 										style={{
 											height: POPOVER_CONTENT_ROW_HEIGHT,

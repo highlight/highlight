@@ -856,11 +856,7 @@ function getBucketSizeInMs({ multiple, tick }: BucketSize) {
 function pickBucketSize(
 	duration: number,
 	targetBucketWidthPercent: number,
-	eps?: number,
 ): BucketSize {
-	if (!eps) {
-		eps = 0.1
-	}
 	const reverseBucketSizes = Array.from(BUCKET_SIZES).reverse()
 	for (const bucketSize of reverseBucketSizes) {
 		const bucketCount = Math.ceil(duration / getBucketSizeInMs(bucketSize))

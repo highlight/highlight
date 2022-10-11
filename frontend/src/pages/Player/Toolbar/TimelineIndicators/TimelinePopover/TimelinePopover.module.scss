@@ -26,14 +26,17 @@
 .timelinePopoverHeader:hover,
 .eventTypeRow:hover {
 	background-color: var(--color-neutral-50);
+	cursor: pointer;
 	.transitionIcon path {
 		fill: var(--color-neutral-500);
 	}
 }
+
 .actionButton {
 	align-items: center;
 	background: inherit;
 	border: 0;
+	cursor: pointer;
 	display: flex;
 	justify-content: flex-start;
 	padding: 0;

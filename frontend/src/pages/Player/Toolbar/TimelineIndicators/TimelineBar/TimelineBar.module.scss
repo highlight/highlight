@@ -38,6 +38,7 @@
 		padding: 0 !important;
 	}
 	:global(.ant-popover-inner) {
+		border: 1px solid var(--color-neutral-200);
 		overflow: hidden;
 	}
 }
