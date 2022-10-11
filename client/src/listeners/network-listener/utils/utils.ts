@@ -20,34 +20,44 @@ const normalizeUrl = (url: string) => {
 	// Remove trailing forward slashes
 	return urlToMutate.replace(/\/+$/, '')
 }
+
+type GroupedPerformanceTimings = {
+	xmlhttprequest: { [url: string]: PerformanceResourceTiming[] }
+	others: { [url: string]: PerformanceResourceTiming[] }
+	fetch: { [url: string]: PerformanceResourceTiming[] }
+}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
-	performanceTimings: any[],
+	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
 
+	const initialGroupedPerformanceTimings: GroupedPerformanceTimings = {
+		xmlhttprequest: {},
+		others: {},
+		fetch: {},
+	}
+
 	const groupedPerformanceTimings: {
 		[type: string]: { [url: string]: any[] }
-	} = performanceTimings.reduce(
-		(previous, performanceTiming) => {
-			const url = normalizeUrl(performanceTiming.name)
-			if (performanceTiming.initiatorType === type) {
-				previous[type][url] = [
-					...(previous[type][url] || []),
-					performanceTiming,
-				]
-			} else {
-				previous.others[url] = [
-					...(previous.others[url] || []),
-					performanceTiming,
-				]
-			}
-			return previous
-		},
-		{ xmlhttprequest: {}, others: {}, fetch: {} },
-	)
+	} = performanceTimings.reduce((previous, performanceTiming) => {
+		const url = normalizeUrl(performanceTiming.name)
+		if (performanceTiming.initiatorType === type) {
+			previous[type][url] = [
+				...(previous[type][url] || []),
+				performanceTiming,
+			]
+		} else {
+			previous.others[url] = [
+				...(previous.others[url] || []),
+				performanceTiming,
+			]
+		}
+		return previous
+	}, initialGroupedPerformanceTimings)
 
 	let groupedRequestResponsePairs: {
 		[url: string]: RequestResponsePair[]
@@ -105,7 +115,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 					name: this.name,
 					transferSize: this.transferSize,
 					encodedBodySize: this.encodedBodySize,
-					requestResponsePairs: this.requestResponsePair,
+					requestResponsePairs,
 				}
 			}
 			return performanceTiming
