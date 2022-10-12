@@ -7,6 +7,7 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import { Landing } from '@pages/Landing/Landing'
 import LoginForm from '@pages/Login/Login'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
+import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
@@ -20,7 +21,6 @@ import NewMemberPage from '../../pages/NewMember/NewMemberPage'
 import InternalRouter from '../InternalRouter/InternalRouter'
 import { ProjectRouter } from '../OrgRouter/OrgRouter'
 import styles from './AppRouter.module.scss'
-import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()

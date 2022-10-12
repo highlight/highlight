@@ -14,7 +14,15 @@ import ErrorsPage from './ErrorsPage/ErrorsPage'
 import { ResourcePage } from './ResourcePage/ResourcePage'
 
 export const DevToolsWindow = React.memo(
-	({ time, startTime }: { time: number; startTime: number }) => {
+	({
+		time,
+		startTime,
+		width,
+	}: {
+		time: number
+		startTime: number
+		width: number
+	}) => {
 		const { openDevTools, setOpenDevTools } = useDevToolsContext()
 		const { isPlayerFullscreen } = usePlayerUIContext()
 
@@ -52,7 +60,11 @@ export const DevToolsWindow = React.memo(
 				heightPersistenceKey="highlight-devToolsPanelHeight"
 			>
 				{({ panelRef, handleRef }) => (
-					<div className={styles.devToolsWrapper} ref={panelRef}>
+					<div
+						className={styles.devToolsWrapper}
+						ref={panelRef}
+						style={{ width }}
+					>
 						<button
 							className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
 							ref={handleRef}
@@ -127,7 +139,6 @@ function ResizePanel({
 		if (handle && event.composedPath().includes(handle)) {
 			setDragging(true)
 			event.preventDefault()
-			event.stopPropagation()
 		}
 	})
 

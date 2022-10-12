@@ -1,3 +1,7 @@
+import {
+	RightPlayerPanelTabsId,
+	RightPlayerPanelTabType,
+} from '@pages/Player/RightPlayerPanel/constants'
 import useLocalStorage from '@rehooks/local-storage'
 import { useMemo } from 'react'
 
@@ -24,6 +28,11 @@ const usePlayerConfiguration = () => {
 		useLocalStorage<DevToolTabType>(
 			'tabs-DevTools-active-tab',
 			DevToolTabType.Errors,
+		)
+	const [selectedRightPlayerPanelTab, setSelectedRightPlayerPanelTab] =
+		useLocalStorage<RightPlayerPanelTabType>(
+			`tabs-${RightPlayerPanelTabsId}-active-tab`,
+			RightPlayerPanelTabType.Events,
 		)
 	const [_autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
 		'highlightMenuAutoPlayVideo',
@@ -106,6 +115,8 @@ const usePlayerConfiguration = () => {
 		setShowDetailedSessionView,
 		showPlayerAbsoluteTime,
 		setShowPlayerAbsoluteTime,
+		selectedRightPlayerPanelTab,
+		setSelectedRightPlayerPanelTab,
 	}
 }
 

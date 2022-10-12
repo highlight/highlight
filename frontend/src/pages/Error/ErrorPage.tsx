@@ -10,7 +10,7 @@ import {
 	useGetRecentErrorsQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import { ErrorGroup, Maybe } from '@graph/schemas'
+import { ErrorGroup, ErrorSearchParamsInput, Maybe } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
 import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext'
@@ -49,10 +49,7 @@ import { NumberParam, useQueryParams } from 'use-query-params'
 import Button from '../../components/Button/Button/Button'
 import Tooltip from '../../components/Tooltip/Tooltip'
 import SvgDownloadIcon from '../../static/DownloadIcon'
-import {
-	ErrorSearchContextProvider,
-	ErrorSearchParams,
-} from '../Errors/ErrorSearchContext/ErrorSearchContext'
+import { ErrorSearchContextProvider } from '../Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage'
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard'
 import ErrorBody from './components/ErrorBody/ErrorBody'
@@ -99,18 +96,20 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 	})
 
 	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-		`cachedErrorParams-v2-${
-			segmentName || 'no-selected-segment'
-		}-${project_id}`,
-		{},
-	)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+	const [cachedParams, setCachedParams] =
+		useLocalStorage<ErrorSearchParamsInput>(
+			`cachedErrorParams-v2-${
+				segmentName || 'no-selected-segment'
+			}-${project_id}`,
+			{},
+		)
+	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
 		cachedParams || EmptyErrorsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
-	const [existingParams, setExistingParams] = useState<ErrorSearchParams>({})
+	const [existingParams, setExistingParams] =
+		useState<ErrorSearchParamsInput>({})
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const dateFromSearchParams = new URLSearchParams(location.search).get(
 		SessionPageSearchParams.date,
@@ -160,18 +159,19 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 
 	useEffect(() => {
 		if (dateFromSearchParams) {
-			const start_date = moment(dateFromSearchParams)
-			const end_date = moment(dateFromSearchParams)
-
 			setSearchParams(() => ({
 				// We are explicitly clearing any existing search params so the only applied search param is the date range.
 				...EmptyErrorsSearchParams,
 				date_range: {
-					start_date: start_date
+					start_date: moment(dateFromSearchParams)
 						.startOf('day')
-						.subtract(1, 'days')
-						.toDate(),
-					end_date: end_date.endOf('day').toDate(),
+						.subtract(1, 'day')
+						.toDate()
+						.toString(),
+					end_date: moment(dateFromSearchParams)
+						.endOf('day')
+						.toDate()
+						.toString(),
 				},
 			}))
 			message.success(
@@ -539,16 +539,22 @@ const timeFilter = [
 export const ErrorFrequencyGraph: React.FC<
 	React.PropsWithChildren<FrequencyGraphProps>
 > = ({ errorGroup }) => {
-	const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
-		Array(LookbackPeriod).fill(0),
-	)
-	const [totalErrors, setTotalErrors] = useState<number>(0)
+	const [errorFrequency, setErrorFrequency] = useState<{
+		errorDates: Array<ErrorFrequency>
+		totalErrors: number
+	}>({
+		errorDates: Array(LookbackPeriod).fill(0),
+		totalErrors: 0,
+	})
 	const [dateRangeLength, setDateRangeLength] = useState<number>(
 		timeFilter[2].value,
 	)
 
 	useEffect(() => {
-		setErrorDates(Array(dateRangeLength).fill(0))
+		setErrorFrequency({
+			errorDates: Array(dateRangeLength).fill(0),
+			totalErrors: 0,
+		})
 	}, [dateRangeLength])
 
 	useGetDailyErrorFrequencyQuery({
@@ -566,10 +572,13 @@ export const ErrorFrequencyGraph: React.FC<
 					.format('D MMM YYYY'),
 				occurrences: val,
 			}))
-			setTotalErrors(
-				response.dailyErrorFrequency.reduce((acc, val) => acc + val, 0),
-			)
-			setErrorDates(errorData)
+			setErrorFrequency({
+				errorDates: errorData,
+				totalErrors: response.dailyErrorFrequency.reduce(
+					(acc, val) => acc + val,
+					0,
+				),
+			})
 		},
 	})
 
@@ -594,7 +603,7 @@ export const ErrorFrequencyGraph: React.FC<
 					<BarChart
 						width={500}
 						height={300}
-						data={errorDates}
+						data={errorFrequency.errorDates}
 						margin={{
 							top: 5,
 							right: 10,
@@ -616,12 +625,15 @@ export const ErrorFrequencyGraph: React.FC<
 						/>
 						<RechartsTooltip content={<RechartTooltip />} />
 						<Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
-							{errorDates.map((e, i) => (
+							{errorFrequency.errorDates.map((e, i) => (
 								<Cell
 									key={i}
 									fill={
 										e.occurrences >
-										Math.max(totalErrors * 0.1, 10)
+										Math.max(
+											errorFrequency.totalErrors * 0.1,
+											10,
+										)
 											? 'var(--color-red-500)'
 											: 'var(--color-brown)'
 									}
@@ -631,7 +643,7 @@ export const ErrorFrequencyGraph: React.FC<
 					</BarChart>
 				</ResponsiveContainer>
 				<div className={styles.graphLabels}>
-					<div>{`Total Occurrences: ${totalErrors}`}</div>
+					<div>{`Total Occurrences: ${errorFrequency.totalErrors}`}</div>
 				</div>
 			</div>
 		</>

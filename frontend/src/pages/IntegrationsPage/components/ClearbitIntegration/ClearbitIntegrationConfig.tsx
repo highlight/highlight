@@ -3,7 +3,10 @@ import { PlanType } from '@graph/schemas'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import {
+	IntegrationAction,
+	IntegrationConfigProps,
+} from '@pages/IntegrationsPage/components/Integration'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { Redirect, useHistory } from 'react-router-dom'
@@ -12,7 +15,7 @@ import styles from './ClearbitIntegrationConfig.module.scss'
 
 const ClearbitIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const [redirectToBilling, setRedirectToBilling] = React.useState(false)
 	const {
 		isClearbitIntegratedWithWorkspace,
@@ -24,19 +27,22 @@ const ClearbitIntegrationConfig: React.FC<
 	const history = useHistory()
 
 	useEffect(() => {
-		if (isClearbitIntegratedWithWorkspace && !integrationEnabled) {
+		if (
+			isClearbitIntegratedWithWorkspace &&
+			action === IntegrationAction.Setup
+		) {
 			setIntegrationEnabled(true)
-			setModelOpen(false)
+			setModalOpen(false)
 			message.success('Clearbit integration enabled')
 		}
 	}, [
 		isClearbitIntegratedWithWorkspace,
 		setIntegrationEnabled,
-		setModelOpen,
-		integrationEnabled,
+		setModalOpen,
+		action,
 	])
 
-	if (integrationEnabled) {
+	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
@@ -48,7 +54,7 @@ const ClearbitIntegrationConfig: React.FC<
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -60,7 +66,7 @@ const ClearbitIntegrationConfig: React.FC<
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							modifyClearbit({ enabled: false })
 						}}
@@ -97,7 +103,7 @@ const ClearbitIntegrationConfig: React.FC<
 							trackingId={`IntegrationConfigurationCancelUpgrade-Clearbit`}
 							className={styles.modalBtn}
 							onClick={() => {
-								setModelOpen(false)
+								setModalOpen(false)
 								setIntegrationEnabled(false)
 							}}
 						>
@@ -122,7 +128,7 @@ const ClearbitIntegrationConfig: React.FC<
 						trackingId={`IntegrationConfigurationCancel-Clearbit`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 						}}
 					>

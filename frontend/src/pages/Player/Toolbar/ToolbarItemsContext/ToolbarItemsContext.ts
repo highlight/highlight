@@ -9,6 +9,10 @@ export interface ToolbarItem {
 }
 
 type ToolbarItemSetter = (newValue: ToolbarItem) => void
+export interface ZoomAreaPercent {
+	left: number
+	right: number
+}
 
 interface ToolbarItemsContext {
 	devToolsButton: ToolbarItem
@@ -25,10 +29,8 @@ interface ToolbarItemsContext {
 	setAutoPlay: ToolbarItemSetter
 	showPlayerTime: ToolbarItem
 	setShowPlayerTime: ToolbarItemSetter
-	zoomAreaLeft: number
-	setZoomAreaLeft: React.Dispatch<React.SetStateAction<number>>
-	zoomAreaRight: number
-	setZoomAreaRight: React.Dispatch<React.SetStateAction<number>>
+	zoomAreaPercent: ZoomAreaPercent
+	setZoomAreaPercent: React.Dispatch<React.SetStateAction<ZoomAreaPercent>>
 }
 
 export const [useToolbarItemsContext, ToolbarItemsContextProvider] =

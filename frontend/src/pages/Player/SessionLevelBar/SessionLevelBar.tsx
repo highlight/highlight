@@ -1,6 +1,5 @@
 import Dot, { CustomDotColor } from '@components/Dot/Dot'
 import SvgWarningTriangle from '@icons/WarningTriangle'
-import { motion } from 'framer-motion'
 import React from 'react'
 import Skeleton from 'react-loading-skeleton'
 
@@ -11,7 +10,11 @@ import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar'
 import styles from './SessionLevelBar.module.scss'
 import SessionToken from './SessionToken/SessionToken'
 
-const SessionLevelBar = React.memo(() => {
+interface Props {
+	width: number
+}
+
+const SessionLevelBar = React.memo(({ width }: Props) => {
 	const { state, events, session, viewport, currentUrl, isLiveMode } =
 		useReplayerContext()
 
@@ -22,13 +25,8 @@ const SessionLevelBar = React.memo(() => {
 		!session
 
 	return (
-		<motion.div
-			className={styles.container}
-			initial={{ translateY: '-100%' }}
-			animate={{ translateY: '0%' }}
-			exit={{ translateY: '-100%' }}
-		>
-			<div className={styles.sessionLevelBarContainer}>
+		<div className={styles.sessionLevelBarContainer} style={{ width }}>
+			<div className={styles.sessionLevelBarLink}>
 				{isLoading ? (
 					<div className={styles.skeletonContainer}>
 						<Skeleton count={1} width="100%" height="100%" />
@@ -72,7 +70,7 @@ const SessionLevelBar = React.memo(() => {
 				)}
 			</div>
 			<SessionShareButton className={styles.shareButton} />
-		</motion.div>
+		</div>
 	)
 })
 

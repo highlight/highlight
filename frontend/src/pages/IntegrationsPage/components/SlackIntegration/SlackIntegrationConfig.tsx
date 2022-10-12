@@ -2,7 +2,10 @@ import Button from '@components/Button/Button/Button'
 import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import {
+	IntegrationAction,
+	IntegrationConfigProps,
+} from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
@@ -10,13 +13,13 @@ import styles from './SlackIntegrationConfig.module.scss'
 
 const SlackIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot({
 		type: 'Organization',
 	})
 
-	if (integrationEnabled) {
+	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
@@ -28,7 +31,7 @@ const SlackIntegrationConfig: React.FC<
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -40,7 +43,7 @@ const SlackIntegrationConfig: React.FC<
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeSlackIntegrationFromProject(project_id)
 						}}
@@ -64,7 +67,7 @@ const SlackIntegrationConfig: React.FC<
 					trackingId={`IntegrationConfigurationCancel-Slack`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>

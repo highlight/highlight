@@ -1,6 +1,5 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
-	"baseBranch": "origin/master",
 	"pipeline": {
 		"codegen": {
 			"inputs": ["./**/*.gql"],
@@ -10,13 +9,42 @@
 			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
 		},
+		"typegen": {
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": ["dist/**/*.d.ts", "typings/**"]
+		},
+		"@highlight-run/client#typegen": {
+			"dependsOn": ["^prepublish"],
+			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		},
+		"highlight.run#typegen": {
+			"dependsOn": ["@highlight-run/client#typegen"],
+			"outputs": ["dist/**/*.d.ts", "typings/**"]
+		},
 		"prepublish": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
 		},
 		"build": {
-			"dependsOn": ["codegen", "^prepublish", "^build"],
-			"outputs": ["build/**", "dist/**"]
+			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
+			"outputs": ["build/**", "dist/**", "esm/**"],
+			"env": [
+				"REACT_APP_COMMIT_SHA",
+				"REACT_APP_ENVIRONMENT",
+				"REACT_APP_FIREBASE_CONFIG_OBJECT",
+				"REACT_APP_FRONT_INTEGRATION_CLIENT_ID",
+				"REACT_APP_FRONTEND_ORG",
+				"REACT_APP_ONPREM",
+				"REACT_APP_PRIVATE_GRAPH_URI",
+				"REACT_APP_STRIPE_API_PK",
+				"REACT_APP_VERCEL_INTEGRATION_NAME",
+
+				"DISCORD_CLIENT_ID",
+				"LINEAR_CLIENT_ID",
+				"SLACK_CLIENT_ID",
+				"DD_CLIENT_TOKEN",
+				"DD_RUM_APPLICATION_ID"
+			]
 		},
 		"test": {
 			"dependsOn": ["prepublish", "build"],

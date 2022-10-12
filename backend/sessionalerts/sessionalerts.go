@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -45,6 +46,7 @@ func marshalAlertEmails(emails []string) (*string, error) {
 }
 
 func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin *model.Admin, input modelInputs.SessionAlertInput) (*model.SessionAlert, error) {
+
 	envString, err := marshalEnvironments(input.Environments)
 	if err != nil {
 		return nil, err
@@ -59,6 +61,23 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 	if err != nil {
 		return nil, err
 	}
+
+	userPropertiesBytes, err := json.Marshal(input.UserProperties)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing user properties for user properties alert")
+	}
+	userPropertiesString := string(userPropertiesBytes)
+
+	excludeRulesString, err := marshalEnvironments(input.ExcludeRules)
+	if err != nil {
+		return nil, err
+	}
+
+	trackPropertiesBytes, err := json.Marshal(input.TrackProperties)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing track properties")
+	}
+	trackPropertiesString := string(trackPropertiesBytes)
 
 	inputType := string(input.Type)
 
@@ -75,6 +94,12 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			Name:                 &input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
+		},
+		UserProperties:  &userPropertiesString,
+		TrackProperties: &trackPropertiesString,
+		ExcludeRules:    excludeRulesString,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
 		},
 	}, nil
 }

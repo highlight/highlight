@@ -1,7 +1,8 @@
-import { Complete } from '../../util/types'
-import { SearchParams } from './SearchContext/SearchContext'
+import { SearchParamsInput } from '@graph/schemas'
 
-export const EmptySessionsSearchParams: Complete<SearchParams> = {
+import { Complete } from '../../util/types'
+
+export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	user_properties: [],
 	identified: false,
 	browser: undefined,
@@ -20,5 +21,4 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
 	app_versions: [],
 	show_live_sessions: false,
 	query: undefined,
-	city: undefined,
 }

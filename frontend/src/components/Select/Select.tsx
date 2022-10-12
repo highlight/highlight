@@ -42,6 +42,7 @@ type Props = Pick<
 	| 'tagRender'
 	| 'open'
 	| 'dropdownMatchSelectWidth'
+	| 'optionFilterProp'
 > & {
 	options?: OptionType[]
 	hasAccent?: boolean

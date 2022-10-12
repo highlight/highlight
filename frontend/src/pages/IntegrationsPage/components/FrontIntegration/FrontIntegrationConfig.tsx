@@ -2,7 +2,10 @@ import Button from '@components/Button/Button/Button'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import {
+	IntegrationAction,
+	IntegrationConfigProps,
+} from '@pages/IntegrationsPage/components/Integration'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
@@ -13,9 +16,9 @@ import styles from './FrontIntegrationConfig.module.scss'
 const FRONT_CLIENT_ID = import.meta.env.REACT_APP_FRONT_INTEGRATION_CLIENT_ID
 
 const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
-	setModelOpen,
+	setModalOpen: setModalOpen,
 	setIntegrationEnabled,
-	integrationEnabled,
+	action,
 }) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -24,19 +27,22 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		useFrontIntegration()
 
 	useEffect(() => {
-		if (isFrontIntegratedWithProject && !integrationEnabled) {
+		if (
+			isFrontIntegratedWithProject &&
+			action === IntegrationAction.Setup
+		) {
 			setIntegrationEnabled(true)
-			setModelOpen(false)
+			setModalOpen(false)
 			message.success('Front integration enabled')
 		}
 	}, [
 		isFrontIntegratedWithProject,
 		setIntegrationEnabled,
-		setModelOpen,
-		integrationEnabled,
+		setModalOpen,
+		action,
 	])
 
-	if (integrationEnabled) {
+	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
@@ -48,7 +54,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -60,7 +66,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeFrontIntegrationFromProject()
 						}}
@@ -86,7 +92,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					trackingId={`IntegrationConfigurationCancel-Front`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>

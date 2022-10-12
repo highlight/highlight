@@ -33,7 +33,7 @@ type Session {
 	language: String!
 	identifier: String!
 	identified: Boolean!
-	created_at: Timestamp
+	created_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -124,6 +124,11 @@ type Plan {
 	membersLimit: Int
 }
 
+type DiscordChannel {
+	id: String!
+	name: String!
+}
+
 enum PlanType {
 	Free
 	Basic
@@ -161,6 +166,18 @@ type LinearTeam {
 	key: String!
 }
 
+type VercelEnv {
+	id: String!
+	key: String!
+	configurationId: String!
+}
+
+type VercelProject {
+	id: String!
+	name: String!
+	env: [VercelEnv!]!
+}
+
 type SocialLink {
 	type: SocialType!
 	link: String
@@ -179,6 +196,8 @@ enum IntegrationType {
 	Linear
 	Zapier
 	Front
+	Vercel
+	Discord
 }
 
 enum ErrorState {
@@ -310,7 +329,7 @@ type ErrorObject {
 	columnNumber: Int
 	stack_trace: String!
 	structured_stack_trace: [ErrorTrace]!
-	timestamp: Timestamp
+	timestamp: Timestamp!
 	payload: String
 	request_id: String
 }
@@ -335,7 +354,7 @@ type ErrorGroup {
 	fields: [ErrorField]
 	state: ErrorState!
 	environments: String
-	error_frequency: [Int64]!
+	error_frequency: [Int64!]!
 	is_public: Boolean!
 }
 
@@ -399,10 +418,10 @@ type UserFingerprintCount {
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-	user_properties: [UserPropertyInput]
-	excluded_properties: [UserPropertyInput]
-	track_properties: [UserPropertyInput]
-	excluded_track_properties: [UserPropertyInput]
+	user_properties: [UserPropertyInput!]
+	excluded_properties: [UserPropertyInput!]
+	track_properties: [UserPropertyInput!]
+	excluded_track_properties: [UserPropertyInput!]
 	environments: [String]
 	app_versions: [String]
 	date_range: DateRangeInput
@@ -532,10 +551,14 @@ input SessionAlertInput {
 	count_threshold: Int!
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
+	discord_channels: [DiscordChannelInput!]!
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
 	type: SessionAlertType!
+	user_properties: [UserPropertyInput!]!
+	exclude_rules: [String!]!
+	track_properties: [TrackPropertyInput!]!
 }
 
 type ErrorSearchParams {
@@ -575,7 +598,7 @@ type UserProperty {
 }
 
 input UserPropertyInput {
-	id: ID
+	id: ID!
 	name: String!
 	value: String!
 }
@@ -751,11 +774,17 @@ input SanitizedSlackChannelInput {
 	webhook_channel_id: String
 }
 
+input DiscordChannelInput {
+	name: String!
+	id: String!
+}
+
 type ErrorAlert {
 	id: ID!
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -785,6 +814,7 @@ type SessionAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -935,6 +965,7 @@ type MetricMonitor {
 	updated_at: Timestamp!
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
+	discord_channels_to_notify: [DiscordChannel!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int
@@ -950,6 +981,16 @@ type EventChunk {
 	session_id: Int!
 	chunk_index: Int!
 	timestamp: Int64!
+}
+
+input VercelProjectMappingInput {
+	vercel_project_id: String!
+	project_id: ID!
+}
+
+type VercelProjectMapping {
+	vercel_project_id: String!
+	project_id: ID!
 }
 
 type OAuthClient {
@@ -1095,12 +1136,15 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
 		integration_type: IntegrationType!
 		project_id: ID!
 	): Boolean!
+	vercel_projects(project_id: ID!): [VercelProject!]!
+	vercel_project_mappings(project_id: ID!): [VercelProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
 	project(id: ID!): Project
 	workspace(id: ID!): Workspace
@@ -1314,15 +1358,6 @@ type Mutation {
 		slack_channels: [SanitizedSlackChannelInput!]!
 		emails: [String]!
 	): Boolean
-	createRageClickAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		threshold_window: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-	): SessionAlert
 	createMetricMonitor(
 		project_id: ID!
 		name: String!
@@ -1332,6 +1367,7 @@ type Mutation {
 		units: String
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]!
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
@@ -1345,6 +1381,7 @@ type Mutation {
 		units: String
 		metric_to_monitor: String
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
@@ -1355,6 +1392,7 @@ type Mutation {
 		count_threshold: Int!
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]!
 		environments: [String]!
 		regex_groups: [String]!
@@ -1367,6 +1405,7 @@ type Mutation {
 		count_threshold: Int
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]
 		environments: [String]
 		regex_groups: [String]
@@ -1380,104 +1419,20 @@ type Mutation {
 		project_id: ID!
 		disabled: Boolean!
 	): SessionAlert
+	updateErrorAlertIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): ErrorAlert
+	updateMetricMonitorIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): MetricMonitor
 
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert
-
-	updateRageClickAlert(
-		project_id: ID!
-		rage_click_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
-	): SessionAlert
-	updateNewUserAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		count_threshold: Int
-		threshold_window: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		disabled: Boolean
-	): SessionAlert
-	createNewUserAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		threshold_window: Int!
-	): SessionAlert
-	updateTrackPropertiesAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		track_properties: [TrackPropertyInput]
-		threshold_window: Int
-		disabled: Boolean
-	): SessionAlert
-	createTrackPropertiesAlert(
-		project_id: ID!
-		name: String!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		track_properties: [TrackPropertyInput]!
-		threshold_window: Int!
-	): SessionAlert
-	createUserPropertiesAlert(
-		project_id: ID!
-		name: String!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		user_properties: [UserPropertyInput]!
-		threshold_window: Int!
-	): SessionAlert
 	deleteSessionAlert(project_id: ID!, session_alert_id: ID!): SessionAlert
-	updateUserPropertiesAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		user_properties: [UserPropertyInput]
-		threshold_window: Int
-		disabled: Boolean
-	): SessionAlert
-	updateNewSessionAlert(
-		project_id: ID!
-		session_alert_id: ID!
-		name: String
-		count_threshold: Int
-		slack_channels: [SanitizedSlackChannelInput]
-		emails: [String]
-		environments: [String]
-		threshold_window: Int
-		exclude_rules: [String]
-		disabled: Boolean
-	): SessionAlert
-	createNewSessionAlert(
-		project_id: ID!
-		name: String!
-		count_threshold: Int!
-		slack_channels: [SanitizedSlackChannelInput]!
-		emails: [String]!
-		environments: [String]!
-		threshold_window: Int!
-		exclude_rules: [String]!
-	): SessionAlert
 	updateSessionIsPublic(
 		session_secure_id: String!
 		is_public: Boolean!
@@ -1513,6 +1468,10 @@ type Mutation {
 		project_id: ID!
 		query: String!
 		sessionCount: Int!
+	): Boolean!
+	updateVercelProjectMappings(
+		project_id: ID!
+		project_mappings: [VercelProjectMappingInput!]!
 	): Boolean!
 }
 

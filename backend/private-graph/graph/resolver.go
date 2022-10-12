@@ -22,11 +22,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/samber/lo"
 
@@ -499,36 +501,24 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 	}
 	for _, property := range params.UserProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
 	}
 	for _, property := range params.ExcludedProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
 	}
 	for _, property := range params.TrackProperties {
-		var id int
-		if property.ID != nil {
-			id = *property.ID
-		}
 		newProperty := &model.UserProperty{
-			ID:    id,
+			ID:    property.ID,
 			Name:  property.Name,
 			Value: property.Value,
 		}
@@ -1606,6 +1596,40 @@ func (r *Resolver) AddFrontToProject(project *model.Project, code string) error 
 	return r.saveFrontOAuth(project, oauth)
 }
 
+func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string) error {
+	res, err := vercel.GetAccessToken(code)
+	if err != nil {
+		return e.Wrap(err, "error getting Vercel oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Select("vercel_access_token", "vercel_team_id").Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+		return e.Wrap(err, "error updating Vercel access token in workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddDiscordToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	token, err := discord.OAuth(ctx, code)
+
+	if err != nil {
+		return e.Wrapf(err, "failed to get oauth token when connecting discord to workspace id %d", workspace.ID)
+	}
+
+	guild := token.Extra("guild").(map[string]interface{})
+	guildId := guild["id"].(string)
+
+	if guildId == "" {
+		return e.Wrapf(err, "failed to extra guild id from discord oauth response")
+	}
+
+	if err := r.DB.Where(&workspace).Updates(&model.Workspace{DiscordGuildId: &guildId}).Error; err != nil {
+		return e.Wrap(err, "error updating discord guild id on workspace")
+	}
+
+	return nil
+}
+
 func (r *Resolver) saveFrontOAuth(project *model.Project, oauth *front.OAuthToken) error {
 	exp := time.Unix(oauth.ExpiresAt, 0)
 	if err := r.DB.Where(&project).Updates(&model.Project{FrontAccessToken: &oauth.AccessToken,
@@ -1708,6 +1732,51 @@ func (r *Resolver) RemoveZapierFromWorkspace(project *model.Project) error {
 func (r *Resolver) RemoveFrontFromProject(project *model.Project) error {
 	if err := r.DB.Where(&project).Select("front_access_token").Updates(&model.Project{FrontAccessToken: nil}).Error; err != nil {
 		return e.Wrap(err, "error removing front access token in project model")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveVercelFromWorkspace(workspace *model.Workspace) error {
+	if workspace.VercelAccessToken == nil {
+		return e.New("workspace does not have a Vercel access token")
+	}
+
+	projects, err := vercel.GetProjects(*workspace.VercelAccessToken, workspace.VercelTeamID)
+	if err != nil {
+		return err
+	}
+
+	configIdsToRemove := map[string]struct{}{}
+	for _, p := range projects {
+		for _, e := range p.Env {
+			if e.Key == vercel.SourcemapEnvKey {
+				if e.ConfigurationID == "" {
+					continue
+				}
+				configIdsToRemove[e.ConfigurationID] = struct{}{}
+			}
+		}
+	}
+
+	for c := range configIdsToRemove {
+		if err := vercel.RemoveConfiguration(c, *workspace.VercelAccessToken, workspace.VercelTeamID); err != nil {
+			return err
+		}
+	}
+
+	if err := r.DB.Where(workspace).
+		Select("vercel_access_token", "vercel_team_id").
+		Updates(&model.Workspace{VercelAccessToken: nil, VercelTeamID: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing Vercel access token and team id")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveDiscordFromWorkspace(workspace *model.Workspace) error {
+	if err := r.DB.Where(&workspace).Select("discord_guild_id").Updates(&model.Workspace{DiscordGuildId: nil}).Error; err != nil {
+		return e.Wrap(err, "error removing discord guild id from workspace model")
 	}
 
 	return nil
@@ -2649,13 +2718,13 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 
 // MetricOriginalUnits returns the input units for the metric or nil if unitless.
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
-	if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	}
-	if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true}[strings.ToLower(metricName)] {
+		originalUnits = pointy.String("ms")
+	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
-	}
-	if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"body_size": true, "response_size": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("b")
 	}
 	return

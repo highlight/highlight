@@ -1,7 +1,10 @@
 import Button from '@components/Button/Button/Button'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
-import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
+import {
+	IntegrationAction,
+	IntegrationConfigProps,
+} from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import { message } from 'antd'
@@ -11,27 +14,22 @@ import styles from './ZapierIntegrationConfig.module.scss'
 
 const ZapierIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModelOpen, setIntegrationEnabled, integrationEnabled }) => {
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
 	const {
 		generatedJwtToken,
 		removeZapierIntegrationFromProject,
 		isZapierIntegratedWithProject,
-	} = useZapierIntegration({ repoll: !integrationEnabled })
+	} = useZapierIntegration()
 
 	useEffect(() => {
-		if (isZapierIntegratedWithProject && !integrationEnabled) {
+		if (isZapierIntegratedWithProject) {
 			setIntegrationEnabled(true)
-			setModelOpen(false)
+			setModalOpen(false)
 			message.success('Zapier integration enabled')
 		}
-	}, [
-		isZapierIntegratedWithProject,
-		setIntegrationEnabled,
-		setModelOpen,
-		integrationEnabled,
-	])
+	}, [isZapierIntegratedWithProject, setIntegrationEnabled, setModalOpen])
 
-	if (integrationEnabled) {
+	if (action === IntegrationAction.Disconnect) {
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
@@ -43,7 +41,7 @@ const ZapierIntegrationConfig: React.FC<
 						trackingId={`IntegrationDisconnectCancel-Slack`}
 						className={styles.modalBtn}
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
 					>
@@ -55,7 +53,7 @@ const ZapierIntegrationConfig: React.FC<
 						type="primary"
 						danger
 						onClick={() => {
-							setModelOpen(false)
+							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeZapierIntegrationFromProject()
 						}}
@@ -89,7 +87,7 @@ const ZapierIntegrationConfig: React.FC<
 					trackingId={`IntegrationConfigurationCancel-Zapier`}
 					className={styles.modalBtn}
 					onClick={() => {
-						setModelOpen(false)
+						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
 				>

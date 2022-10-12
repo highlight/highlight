@@ -156,6 +156,11 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type DiscordChannelInput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+
 type EnhancedUserDetailsResult struct {
 	ID      *int          `json:"id"`
 	Name    *string       `json:"name"`
@@ -363,10 +368,14 @@ type SessionAlertInput struct {
 	CountThreshold  int                           `json:"count_threshold"`
 	ThresholdWindow int                           `json:"threshold_window"`
 	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels []*DiscordChannelInput        `json:"discord_channels"`
 	Emails          []string                      `json:"emails"`
 	Environments    []string                      `json:"environments"`
 	Disabled        bool                          `json:"disabled"`
 	Type            SessionAlertType              `json:"type"`
+	UserProperties  []*UserPropertyInput          `json:"user_properties"`
+	ExcludeRules    []string                      `json:"exclude_rules"`
+	TrackProperties []*TrackPropertyInput         `json:"track_properties"`
 }
 
 type SessionCommentTagInput struct {
@@ -414,9 +423,31 @@ type UserFingerprintCount struct {
 }
 
 type UserPropertyInput struct {
-	ID    *int   `json:"id"`
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type VercelEnv struct {
+	ID              string `json:"id"`
+	Key             string `json:"key"`
+	ConfigurationID string `json:"configurationId"`
+}
+
+type VercelProject struct {
+	ID   string       `json:"id"`
+	Name string       `json:"name"`
+	Env  []*VercelEnv `json:"env"`
+}
+
+type VercelProjectMapping struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
+}
+
+type VercelProjectMappingInput struct {
+	VercelProjectID string `json:"vercel_project_id"`
+	ProjectID       int    `json:"project_id"`
 }
 
 type DashboardChartType string
@@ -508,10 +539,12 @@ func (e ErrorState) MarshalGQL(w io.Writer) {
 type IntegrationType string
 
 const (
-	IntegrationTypeSlack  IntegrationType = "Slack"
-	IntegrationTypeLinear IntegrationType = "Linear"
-	IntegrationTypeZapier IntegrationType = "Zapier"
-	IntegrationTypeFront  IntegrationType = "Front"
+	IntegrationTypeSlack   IntegrationType = "Slack"
+	IntegrationTypeLinear  IntegrationType = "Linear"
+	IntegrationTypeZapier  IntegrationType = "Zapier"
+	IntegrationTypeFront   IntegrationType = "Front"
+	IntegrationTypeVercel  IntegrationType = "Vercel"
+	IntegrationTypeDiscord IntegrationType = "Discord"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -519,11 +552,13 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeLinear,
 	IntegrationTypeZapier,
 	IntegrationTypeFront,
+	IntegrationTypeVercel,
+	IntegrationTypeDiscord,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord:
 		return true
 	}
 	return false

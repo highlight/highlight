@@ -170,6 +170,7 @@ var Models = []interface{}{
 	&DashboardMetric{},
 	&DashboardMetricFilter{},
 	&DeleteSessionsTask{},
+	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
 }
@@ -229,6 +230,8 @@ type Workspace struct {
 	SlackWebhookChannelID       *string
 	SlackChannels               *string
 	LinearAccessToken           *string
+	VercelAccessToken           *string
+	VercelTeamID                *string
 	Projects                    []Project
 	MigratedFromProjectID       *int // Column can be removed after migration is done
 	HubspotCompanyID            *int
@@ -247,6 +250,7 @@ type Workspace struct {
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
+	DiscordGuildId              *string
 }
 
 type WorkspaceAdmin struct {
@@ -803,6 +807,7 @@ type MetricMonitor struct {
 	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
 	Disabled          *bool                    `gorm:"default:false"`
 	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	AlertIntegrations
 }
 
 func (m *MessagesObject) Contents() string {
@@ -1050,6 +1055,12 @@ type SavedAsset struct {
 	OriginalUrl string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	Date        string `gorm:"uniqueIndex:idx_saved_assets_project_id_original_url_date"`
 	HashVal     string `gorm:"index:idx_project_id_hash_val"`
+}
+
+type VercelIntegrationConfig struct {
+	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
+	ProjectID       int
+	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
 }
 
 type AlertEvent struct {
@@ -1629,6 +1640,7 @@ type ErrorAlert struct {
 	Model
 	Alert
 	RegexGroups *string
+	AlertIntegrations
 }
 
 func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
@@ -1672,6 +1684,7 @@ type SessionAlert struct {
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
+	AlertIntegrations
 }
 
 func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {

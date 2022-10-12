@@ -3,19 +3,29 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
+import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
+import { Landing } from '@pages/Landing/Landing'
+import { ApplicationContextProvider } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect, useMemo } from 'react'
-import { useHistory } from 'react-router-dom'
+import { Redirect, useHistory, useLocation } from 'react-router-dom'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 interface Props {
 	code: string
 	projectId?: string
 	next?: string
 }
+
+export const VercelSettingsModalWidth = 672
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -126,6 +136,117 @@ const FrontIntegrationCallback = ({ code, projectId }: Props) => {
 	return null
 }
 
+const VercelIntegrationCallback = ({ code }: Props) => {
+	const history = useHistory()
+
+	const [{ next }] = useQueryParams({
+		configurationId: StringParam,
+		next: StringParam,
+	})
+
+	const { data } = useGetProjectsAndWorkspacesQuery()
+
+	let projectId = ''
+	if (data?.projects && data.projects[0]) {
+		projectId = data.projects[0].id
+	}
+
+	const { addVercelIntegrationToProject } = useVercelIntegration(projectId)
+
+	useEffect(() => {
+		if (code && projectId) {
+			addVercelIntegrationToProject(code, projectId)
+		}
+	}, [addVercelIntegrationToProject, code, projectId])
+
+	const { search } = useLocation()
+
+	// If there are no projects, redirect to create one
+	if (data?.projects?.length === 0) {
+		return (
+			<Redirect
+				to={`/new?next=${encodeURIComponent(
+					`/callback/vercel${search}`,
+				)}`}
+			/>
+		)
+	}
+
+	return (
+		<ApplicationContextProvider
+			value={{
+				currentProject: undefined,
+				allProjects: data?.projects || [],
+				currentWorkspace: undefined,
+				workspaces: [],
+			}}
+		>
+			<Landing>
+				<div
+					className={`w-[${VercelSettingsModalWidth}px] rounded-md bg-white px-8 py-6`}
+				>
+					<div className="m-4">
+						<h3>Configuring Vercel Integration</h3>
+						<VercelIntegrationSettings
+							onSuccess={() => {
+								if (next) {
+									window.location.href = next
+								} else {
+									history.push(`/${projectId}/integrations`)
+								}
+							}}
+							onCancel={() => {
+								if (next) {
+									window.close()
+								} else {
+									history.push(`/${projectId}/integrations`)
+								}
+							}}
+							setIntegrationEnabled={() => {}}
+							setModalOpen={() => {}}
+							action={IntegrationAction.Settings}
+						/>
+					</div>
+				</div>
+			</Landing>
+		</ApplicationContextProvider>
+	)
+}
+
+const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
+	const { addDiscordIntegrationToProject } = useDiscordIntegration()
+
+	useEffect(() => {
+		if (!projectId || !code) return
+		const next = `/${projectId}/integrations`
+		;(async () => {
+			try {
+				await addDiscordIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with Discord!', 5)
+			} catch (e: any) {
+				H.consumeError(e)
+				console.error(e)
+				message.error(
+					'Failed to add integration to project. Please try again.',
+				)
+			} finally {
+				history.push(next)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		history,
+		setLoadingState,
+		addDiscordIntegrationToProject,
+		code,
+		projectId,
+	])
+
+	return null
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -177,6 +298,10 @@ const IntegrationAuthCallbackPage = () => {
 		)
 	} else if (integrationName.toLowerCase() === 'front') {
 		return <FrontIntegrationCallback code={code} projectId={projectId} />
+	} else if (integrationName.toLowerCase() === 'vercel') {
+		return <VercelIntegrationCallback code={code} />
+	} else if (integrationName.toLowerCase() === 'discord') {
+		return <DiscordIntegrationCallback code={code} projectId={projectId} />
 	}
 
 	return null

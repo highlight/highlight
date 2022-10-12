@@ -4,10 +4,8 @@ import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	useGetErrorGroupQuery,
-	useGetRecentErrorsQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import { CreateModalType } from '@pages/Error/components/ErrorCreateCommentModal/ErrorCreateCommentModal'
 import NoActiveErrorCard from '@pages/Error/components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard'
 import ErrorSearchPanel from '@pages/Error/components/ErrorSearchPanel/ErrorSearchPanel'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
@@ -19,8 +17,10 @@ import {
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
+import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -28,17 +28,13 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useLocalStorage } from 'react-use'
-import { useQueryParams, NumberParam } from 'use-query-params'
 import { useHistory } from 'react-router'
+import { useLocalStorage } from 'react-use'
+import { NumberParam, useQueryParams } from 'use-query-params'
 
 import styles from './ErrorsV2.module.scss'
-import { useIntegrated } from '@util/integrated'
-import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 
-interface Props {}
-
-const ErrorsV2: React.FC<React.PropsWithChildren<Props>> = (props) => {
+const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	const { error_secure_id, project_id } = useParams<{
 		error_secure_id: string
 		project_id: string
@@ -76,16 +72,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren<Props>> = (props) => {
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
 	const [existingParams, setExistingParams] = useState<ErrorSearchParams>({})
-	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const dateFromSearchParams = new URLSearchParams(location.search).get(
 		SessionPageSearchParams.date,
 	)
 	const searchParamsChanged = useRef<Date>()
-	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
-		new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		),
-	)
 
 	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
 		page: NumberParam,
@@ -96,7 +86,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<Props>> = (props) => {
 		const urlParams = new URLSearchParams(location.search)
 
 		const commentId = urlParams.get(PlayerSearchParameters.commentId)
-		setDeepLinkedCommentId(commentId)
 
 		const hasMuted = urlParams.get(PlayerSearchParameters.muted) === '1'
 		if (commentId && hasMuted) {
@@ -158,8 +147,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren<Props>> = (props) => {
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
-	const [showCreateCommentModal, setShowCreateCommentModal] =
-		useState<CreateModalType>(CreateModalType.None)
 	const [page, setPage] = useState<number>()
 
 	useEffect(() => {

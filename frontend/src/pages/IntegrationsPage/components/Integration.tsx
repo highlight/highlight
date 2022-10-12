@@ -1,30 +1,53 @@
+import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
+import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
+import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
 
 import styles from './Integration.module.scss'
 
+export enum IntegrationAction {
+	Setup,
+	Disconnect,
+	Settings,
+}
+
 export interface IntegrationConfigProps {
-	setModelOpen: (newVal: boolean) => void
+	setModalOpen: (newVal: boolean) => void
 	setIntegrationEnabled: (newVal: boolean) => void
-	integrationEnabled: boolean
+	action: IntegrationAction
 }
 
 interface Props {
 	integration: IntegrationType
 	showModalDefault?: boolean
+	showSettingsDefault?: boolean
 }
 
 const Integration = ({
-	integration: { icon, name, description, configurationPage, defaultEnable },
+	integration: {
+		icon,
+		noRoundedIcon,
+		name,
+		description,
+		configurationPage,
+		defaultEnable,
+		hasSettings,
+		modalWidth,
+	},
 	showModalDefault,
+	showSettingsDefault,
 }: Props) => {
 	const [showConfiguration, setShowConfiguration] = useState(
 		showModalDefault && !defaultEnable,
 	)
 	const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+	const [showUpdateSettings, setShowUpdateSettings] = useState(
+		showSettingsDefault || false,
+	)
 	const [integrationEnabled, setIntegrationEnabled] = useState(defaultEnable)
 
 	useEffect(() => {
@@ -35,29 +58,51 @@ const Integration = ({
 		<>
 			<Card className={styles.integration} interactable>
 				<div className={styles.header}>
-					<img src={icon} alt="" className={styles.logo} />
-					<Switch
-						trackingId={`IntegrationConnect-${name}`}
-						label={
-							!showConfiguration && integrationEnabled
-								? 'Connected'
-								: 'Connect'
-						}
-						loading={
-							(showConfiguration && integrationEnabled) ||
-							(showDeleteConfirmation && !integrationEnabled)
-						}
-						size="default"
-						checked={integrationEnabled}
-						onChange={(newValue) => {
-							if (newValue) {
-								setShowConfiguration(true)
-							} else {
-								setShowDeleteConfirmation(true)
-							}
-							setIntegrationEnabled(newValue)
-						}}
+					<img
+						src={icon}
+						alt=""
+						className={classNames(styles.logo, {
+							['rounded-none']: noRoundedIcon,
+						})}
 					/>
+					<div className="flex flex-col gap-2">
+						<Switch
+							trackingId={`IntegrationConnect-${name}`}
+							label={
+								!showConfiguration && integrationEnabled
+									? 'Connected'
+									: 'Connect'
+							}
+							loading={
+								(showConfiguration && integrationEnabled) ||
+								(showDeleteConfirmation && !integrationEnabled)
+							}
+							size="default"
+							checked={integrationEnabled}
+							onChange={(newValue) => {
+								if (newValue) {
+									setShowConfiguration(true)
+								} else {
+									setShowDeleteConfirmation(true)
+								}
+								setIntegrationEnabled(newValue)
+							}}
+						/>
+						{hasSettings && (
+							<div className="flex h-[18px] w-full justify-end">
+								<Button
+									trackingId="IntegrationSettings"
+									iconButton
+									onClick={() => {
+										setShowUpdateSettings(true)
+									}}
+									disabled={!integrationEnabled}
+								>
+									<SettingsIcon />
+								</Button>
+							</div>
+						)}
+					</div>
 				</div>
 				<div>
 					<h2 className={styles.title}>{name}</h2>
@@ -66,35 +111,48 @@ const Integration = ({
 			</Card>
 
 			<Modal
-				visible={showConfiguration || showDeleteConfirmation}
+				visible={
+					showConfiguration ||
+					showDeleteConfirmation ||
+					showUpdateSettings
+				}
 				onCancel={() => {
 					if (showConfiguration) {
 						setShowConfiguration(false)
 						setIntegrationEnabled(false)
-					} else {
+					} else if (showDeleteConfirmation) {
 						setShowDeleteConfirmation(false)
 						setIntegrationEnabled(true)
+					} else {
+						setShowUpdateSettings(false)
 					}
 				}}
 				title={
-					showConfiguration
-						? `Configuring ${name} Integration`
-						: 'Are you sure?'
+					showDeleteConfirmation
+						? 'Are you sure?'
+						: `Configuring ${name} Integration`
 				}
 				destroyOnClose
 				className={styles.modal}
+				width={modalWidth}
 			>
 				{showConfiguration &&
 					configurationPage({
-						setModelOpen: setShowConfiguration,
+						setModalOpen: setShowConfiguration,
 						setIntegrationEnabled,
-						integrationEnabled: false, // show the modal to enable slack integration
+						action: IntegrationAction.Setup,
 					})}
 				{showDeleteConfirmation &&
 					configurationPage({
-						setModelOpen: setShowDeleteConfirmation,
+						setModalOpen: setShowDeleteConfirmation,
 						setIntegrationEnabled,
-						integrationEnabled: true, // show the modal to disable slack integration
+						action: IntegrationAction.Disconnect,
+					})}
+				{showUpdateSettings &&
+					configurationPage({
+						setModalOpen: setShowUpdateSettings,
+						setIntegrationEnabled,
+						action: IntegrationAction.Settings,
 					})}
 			</Modal>
 		</>

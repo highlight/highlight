@@ -52,7 +52,7 @@ export type Session = {
 	language: Scalars['String']
 	identifier: Scalars['String']
 	identified: Scalars['Boolean']
-	created_at?: Maybe<Scalars['Timestamp']>
+	created_at: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
 	active_length?: Maybe<Scalars['Int']>
 	user_object?: Maybe<Scalars['Any']>
@@ -151,6 +151,12 @@ export type Plan = {
 	membersLimit?: Maybe<Scalars['Int']>
 }
 
+export type DiscordChannel = {
+	__typename?: 'DiscordChannel'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export enum PlanType {
 	Free = 'Free',
 	Basic = 'Basic',
@@ -190,6 +196,20 @@ export type LinearTeam = {
 	key: Scalars['String']
 }
 
+export type VercelEnv = {
+	__typename?: 'VercelEnv'
+	id: Scalars['String']
+	key: Scalars['String']
+	configurationId: Scalars['String']
+}
+
+export type VercelProject = {
+	__typename?: 'VercelProject'
+	id: Scalars['String']
+	name: Scalars['String']
+	env: Array<VercelEnv>
+}
+
 export type SocialLink = {
 	__typename?: 'SocialLink'
 	type: SocialType
@@ -209,6 +229,8 @@ export enum IntegrationType {
 	Linear = 'Linear',
 	Zapier = 'Zapier',
 	Front = 'Front',
+	Vercel = 'Vercel',
+	Discord = 'Discord',
 }
 
 export enum ErrorState {
@@ -349,7 +371,7 @@ export type ErrorObject = {
 	columnNumber?: Maybe<Scalars['Int']>
 	stack_trace: Scalars['String']
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
-	timestamp?: Maybe<Scalars['Timestamp']>
+	timestamp: Scalars['Timestamp']
 	payload?: Maybe<Scalars['String']>
 	request_id?: Maybe<Scalars['String']>
 }
@@ -376,7 +398,7 @@ export type ErrorGroup = {
 	fields?: Maybe<Array<Maybe<ErrorField>>>
 	state: ErrorState
 	environments?: Maybe<Scalars['String']>
-	error_frequency: Array<Maybe<Scalars['Int64']>>
+	error_frequency: Array<Scalars['Int64']>
 	is_public: Scalars['Boolean']
 }
 
@@ -446,10 +468,10 @@ export type UserFingerprintCount = {
 }
 
 export type SearchParamsInput = {
-	user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
+	user_properties?: Maybe<Array<UserPropertyInput>>
+	excluded_properties?: Maybe<Array<UserPropertyInput>>
+	track_properties?: Maybe<Array<UserPropertyInput>>
+	excluded_track_properties?: Maybe<Array<UserPropertyInput>>
 	environments?: Maybe<Array<Maybe<Scalars['String']>>>
 	app_versions?: Maybe<Array<Maybe<Scalars['String']>>>
 	date_range?: Maybe<DateRangeInput>
@@ -581,10 +603,14 @@ export type SessionAlertInput = {
 	count_threshold: Scalars['Int']
 	threshold_window: Scalars['Int']
 	slack_channels: Array<SanitizedSlackChannelInput>
+	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
 	environments: Array<Scalars['String']>
 	disabled: Scalars['Boolean']
 	type: SessionAlertType
+	user_properties: Array<UserPropertyInput>
+	exclude_rules: Array<Scalars['String']>
+	track_properties: Array<TrackPropertyInput>
 }
 
 export type ErrorSearchParams = {
@@ -628,7 +654,7 @@ export type UserProperty = {
 }
 
 export type UserPropertyInput = {
-	id?: Maybe<Scalars['ID']>
+	id: Scalars['ID']
 	name: Scalars['String']
 	value: Scalars['String']
 }
@@ -816,12 +842,18 @@ export type SanitizedSlackChannelInput = {
 	webhook_channel_id?: Maybe<Scalars['String']>
 }
 
+export type DiscordChannelInput = {
+	name: Scalars['String']
+	id: Scalars['String']
+}
+
 export type ErrorAlert = {
 	__typename?: 'ErrorAlert'
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
 	Name?: Maybe<Scalars['String']>
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	CountThreshold: Scalars['Int']
@@ -853,6 +885,7 @@ export type SessionAlert = {
 	updated_at: Scalars['Timestamp']
 	Name?: Maybe<Scalars['String']>
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
+	DiscordChannelsToNotify: Array<DiscordChannel>
 	EmailsToNotify: Array<Maybe<Scalars['String']>>
 	ExcludedEnvironments: Array<Maybe<Scalars['String']>>
 	CountThreshold: Scalars['Int']
@@ -1015,6 +1048,7 @@ export type MetricMonitor = {
 	updated_at: Scalars['Timestamp']
 	name: Scalars['String']
 	channels_to_notify: Array<Maybe<SanitizedSlackChannel>>
+	discord_channels_to_notify: Array<DiscordChannel>
 	emails_to_notify: Array<Maybe<Scalars['String']>>
 	aggregator: MetricAggregator
 	period_minutes?: Maybe<Scalars['Int']>
@@ -1031,6 +1065,17 @@ export type EventChunk = {
 	session_id: Scalars['Int']
 	chunk_index: Scalars['Int']
 	timestamp: Scalars['Int64']
+}
+
+export type VercelProjectMappingInput = {
+	vercel_project_id: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type VercelProjectMapping = {
+	__typename?: 'VercelProjectMapping'
+	vercel_project_id: Scalars['String']
+	project_id: Scalars['ID']
 }
 
 export type OAuthClient = {
@@ -1111,9 +1156,12 @@ export type Query = {
 	app_version_suggestion: Array<Maybe<Scalars['String']>>
 	identifier_suggestion: Array<Scalars['String']>
 	slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>
+	discord_channel_suggestions: Array<DiscordChannel>
 	slack_members: Array<Maybe<SanitizedSlackChannel>>
 	generate_zapier_access_token: Scalars['String']
 	is_integrated_with: Scalars['Boolean']
+	vercel_projects: Array<VercelProject>
+	vercel_project_mappings: Array<VercelProjectMapping>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	project?: Maybe<Project>
 	workspace?: Maybe<Workspace>
@@ -1430,6 +1478,10 @@ export type QuerySlack_Channel_SuggestionArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryDiscord_Channel_SuggestionsArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QuerySlack_MembersArgs = {
 	project_id: Scalars['ID']
 }
@@ -1440,6 +1492,14 @@ export type QueryGenerate_Zapier_Access_TokenArgs = {
 
 export type QueryIs_Integrated_WithArgs = {
 	integration_type: IntegrationType
+	project_id: Scalars['ID']
+}
+
+export type QueryVercel_ProjectsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryVercel_Project_MappingsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -1598,7 +1658,6 @@ export type Mutation = {
 	removeIntegrationFromProject: Scalars['Boolean']
 	syncSlackIntegration: SlackSyncResponse
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
-	createRageClickAlert?: Maybe<SessionAlert>
 	createMetricMonitor?: Maybe<MetricMonitor>
 	updateMetricMonitor?: Maybe<MetricMonitor>
 	createErrorAlert?: Maybe<ErrorAlert>
@@ -1606,18 +1665,11 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	updateSessionAlertIsDisabled?: Maybe<SessionAlert>
+	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
+	updateMetricMonitorIsDisabled?: Maybe<MetricMonitor>
 	updateSessionAlert?: Maybe<SessionAlert>
 	createSessionAlert?: Maybe<SessionAlert>
-	updateRageClickAlert?: Maybe<SessionAlert>
-	updateNewUserAlert?: Maybe<SessionAlert>
-	createNewUserAlert?: Maybe<SessionAlert>
-	updateTrackPropertiesAlert?: Maybe<SessionAlert>
-	createTrackPropertiesAlert?: Maybe<SessionAlert>
-	createUserPropertiesAlert?: Maybe<SessionAlert>
 	deleteSessionAlert?: Maybe<SessionAlert>
-	updateUserPropertiesAlert?: Maybe<SessionAlert>
-	updateNewSessionAlert?: Maybe<SessionAlert>
-	createNewSessionAlert?: Maybe<SessionAlert>
 	updateSessionIsPublic?: Maybe<Session>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
 	updateAllowMeterOverage?: Maybe<Workspace>
@@ -1627,6 +1679,7 @@ export type Mutation = {
 	upsertDashboard: Scalars['ID']
 	deleteDashboard: Scalars['Boolean']
 	deleteSessions: Scalars['Boolean']
+	updateVercelProjectMappings: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1893,16 +1946,6 @@ export type MutationCreateDefaultAlertsArgs = {
 	emails: Array<Maybe<Scalars['String']>>
 }
 
-export type MutationCreateRageClickAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	threshold_window: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-}
-
 export type MutationCreateMetricMonitorArgs = {
 	project_id: Scalars['ID']
 	name: Scalars['String']
@@ -1912,6 +1955,7 @@ export type MutationCreateMetricMonitorArgs = {
 	units?: Maybe<Scalars['String']>
 	metric_to_monitor: Scalars['String']
 	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
+	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Maybe<Scalars['String']>>
 	filters?: Maybe<Array<MetricTagFilterInput>>
 }
@@ -1926,6 +1970,7 @@ export type MutationUpdateMetricMonitorArgs = {
 	units?: Maybe<Scalars['String']>
 	metric_to_monitor?: Maybe<Scalars['String']>
 	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
+	discord_channels: Array<DiscordChannelInput>
 	emails?: Maybe<Array<Maybe<Scalars['String']>>>
 	disabled?: Maybe<Scalars['Boolean']>
 	filters?: Maybe<Array<MetricTagFilterInput>>
@@ -1937,6 +1982,7 @@ export type MutationCreateErrorAlertArgs = {
 	count_threshold: Scalars['Int']
 	threshold_window: Scalars['Int']
 	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
+	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Maybe<Scalars['String']>>
 	environments: Array<Maybe<Scalars['String']>>
 	regex_groups: Array<Maybe<Scalars['String']>>
@@ -1950,6 +1996,7 @@ export type MutationUpdateErrorAlertArgs = {
 	count_threshold?: Maybe<Scalars['Int']>
 	threshold_window?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
+	discord_channels: Array<DiscordChannelInput>
 	emails?: Maybe<Array<Maybe<Scalars['String']>>>
 	environments?: Maybe<Array<Maybe<Scalars['String']>>>
 	regex_groups?: Maybe<Array<Maybe<Scalars['String']>>>
@@ -1973,6 +2020,18 @@ export type MutationUpdateSessionAlertIsDisabledArgs = {
 	disabled: Scalars['Boolean']
 }
 
+export type MutationUpdateErrorAlertIsDisabledArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+	disabled: Scalars['Boolean']
+}
+
+export type MutationUpdateMetricMonitorIsDisabledArgs = {
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+	disabled: Scalars['Boolean']
+}
+
 export type MutationUpdateSessionAlertArgs = {
 	id: Scalars['ID']
 	input: SessionAlertInput
@@ -1982,111 +2041,9 @@ export type MutationCreateSessionAlertArgs = {
 	input: SessionAlertInput
 }
 
-export type MutationUpdateRageClickAlertArgs = {
-	project_id: Scalars['ID']
-	rage_click_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationUpdateNewUserAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	threshold_window?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationCreateNewUserAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	threshold_window: Scalars['Int']
-}
-
-export type MutationUpdateTrackPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	track_properties?: Maybe<Array<Maybe<TrackPropertyInput>>>
-	threshold_window?: Maybe<Scalars['Int']>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationCreateTrackPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	track_properties: Array<Maybe<TrackPropertyInput>>
-	threshold_window: Scalars['Int']
-}
-
-export type MutationCreateUserPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	user_properties: Array<Maybe<UserPropertyInput>>
-	threshold_window: Scalars['Int']
-}
-
 export type MutationDeleteSessionAlertArgs = {
 	project_id: Scalars['ID']
 	session_alert_id: Scalars['ID']
-}
-
-export type MutationUpdateUserPropertiesAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>
-	threshold_window?: Maybe<Scalars['Int']>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationUpdateNewSessionAlertArgs = {
-	project_id: Scalars['ID']
-	session_alert_id: Scalars['ID']
-	name?: Maybe<Scalars['String']>
-	count_threshold?: Maybe<Scalars['Int']>
-	slack_channels?: Maybe<Array<Maybe<SanitizedSlackChannelInput>>>
-	emails?: Maybe<Array<Maybe<Scalars['String']>>>
-	environments?: Maybe<Array<Maybe<Scalars['String']>>>
-	threshold_window?: Maybe<Scalars['Int']>
-	exclude_rules?: Maybe<Array<Maybe<Scalars['String']>>>
-	disabled?: Maybe<Scalars['Boolean']>
-}
-
-export type MutationCreateNewSessionAlertArgs = {
-	project_id: Scalars['ID']
-	name: Scalars['String']
-	count_threshold: Scalars['Int']
-	slack_channels: Array<Maybe<SanitizedSlackChannelInput>>
-	emails: Array<Maybe<Scalars['String']>>
-	environments: Array<Maybe<Scalars['String']>>
-	threshold_window: Scalars['Int']
-	exclude_rules: Array<Maybe<Scalars['String']>>
 }
 
 export type MutationUpdateSessionIsPublicArgs = {
@@ -2139,6 +2096,11 @@ export type MutationDeleteSessionsArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	sessionCount: Scalars['Int']
+}
+
+export type MutationUpdateVercelProjectMappingsArgs = {
+	project_id: Scalars['ID']
+	project_mappings: Array<VercelProjectMappingInput>
 }
 
 export type Subscription = {

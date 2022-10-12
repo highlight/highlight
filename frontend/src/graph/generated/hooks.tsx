@@ -56,6 +56,41 @@ export const SessionPayloadFragmentFragmentDoc = gql`
 		last_user_interaction_time
 	}
 `
+export const DiscordChannelFragmentFragmentDoc = gql`
+	fragment DiscordChannelFragment on DiscordChannel {
+		name
+		id
+	}
+`
+export const SessionAlertFragmentFragmentDoc = gql`
+	fragment SessionAlertFragment on SessionAlert {
+		ChannelsToNotify {
+			webhook_channel
+			webhook_channel_id
+		}
+		DiscordChannelsToNotify {
+			...DiscordChannelFragment
+		}
+		CountThreshold
+		DailyFrequency
+		disabled
+		EmailsToNotify
+		ExcludedEnvironments
+		ExcludeRules
+		id
+		LastAdminToEditID
+		Name
+		updated_at
+		ThresholdWindow
+		TrackProperties {
+			id
+			name
+			value
+		}
+		Type
+	}
+	${DiscordChannelFragmentFragmentDoc}
+`
 export const MarkSessionAsViewedDocument = gql`
 	mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 		markSessionAsViewed(secure_id: $secure_id, viewed: $viewed) {
@@ -2298,6 +2333,7 @@ export const CreateErrorAlertDocument = gql`
 		$count_threshold: Int!
 		$threshold_window: Int!
 		$slack_channels: [SanitizedSlackChannelInput]!
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]!
 		$environments: [String]!
 		$regex_groups: [String]!
@@ -2308,6 +2344,7 @@ export const CreateErrorAlertDocument = gql`
 			count_threshold: $count_threshold
 			name: $name
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -2354,6 +2391,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -2392,6 +2430,7 @@ export const CreateMetricMonitorDocument = gql`
 		$periodMinutes: Int
 		$metric_to_monitor: String!
 		$slack_channels: [SanitizedSlackChannelInput]!
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]!
 	) {
 		createMetricMonitor(
@@ -2404,6 +2443,7 @@ export const CreateMetricMonitorDocument = gql`
 			periodMinutes: $periodMinutes
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 		) {
 			id
@@ -2450,6 +2490,7 @@ export type CreateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *   },
  * });
@@ -2486,6 +2527,7 @@ export const UpdateMetricMonitorDocument = gql`
 		$periodMinutes: Int
 		$metric_to_monitor: String
 		$slack_channels: [SanitizedSlackChannelInput]
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]
 		$disabled: Boolean
 	) {
@@ -2500,6 +2542,7 @@ export const UpdateMetricMonitorDocument = gql`
 			periodMinutes: $periodMinutes
 			metric_to_monitor: $metric_to_monitor
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			disabled: $disabled
 		) {
@@ -2548,6 +2591,7 @@ export type UpdateMetricMonitorMutationFn = Apollo.MutationFunction<
  *      periodMinutes: // value for 'periodMinutes'
  *      metric_to_monitor: // value for 'metric_to_monitor'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      disabled: // value for 'disabled'
  *   },
@@ -2685,88 +2729,6 @@ export type UpdateAdminAboutYouDetailsMutationOptions =
 		Types.UpdateAdminAboutYouDetailsMutation,
 		Types.UpdateAdminAboutYouDetailsMutationVariables
 	>
-export const CreateRageClickAlertDocument = gql`
-	mutation CreateRageClickAlert(
-		$project_id: ID!
-		$name: String!
-		$count_threshold: Int!
-		$threshold_window: Int!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-	) {
-		createRageClickAlert(
-			project_id: $project_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type CreateRageClickAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateRageClickAlertMutation,
-	Types.CreateRageClickAlertMutationVariables
->
-
-/**
- * __useCreateRageClickAlertMutation__
- *
- * To run a mutation, you first call `useCreateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateRageClickAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createRageClickAlertMutation, { data, loading, error }] = useCreateRageClickAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      threshold_window: // value for 'threshold_window'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *   },
- * });
- */
-export function useCreateRageClickAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateRageClickAlertMutation,
-		Types.CreateRageClickAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateRageClickAlertMutation,
-		Types.CreateRageClickAlertMutationVariables
-	>(CreateRageClickAlertDocument, baseOptions)
-}
-export type CreateRageClickAlertMutationHookResult = ReturnType<
-	typeof useCreateRageClickAlertMutation
->
-export type CreateRageClickAlertMutationResult =
-	Apollo.MutationResult<Types.CreateRageClickAlertMutation>
-export type CreateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateRageClickAlertMutation,
-	Types.CreateRageClickAlertMutationVariables
->
 export const UpdateErrorAlertDocument = gql`
 	mutation UpdateErrorAlert(
 		$project_id: ID!
@@ -2775,6 +2737,7 @@ export const UpdateErrorAlertDocument = gql`
 		$count_threshold: Int
 		$threshold_window: Int
 		$slack_channels: [SanitizedSlackChannelInput]
+		$discord_channels: [DiscordChannelInput!]!
 		$emails: [String]
 		$environments: [String]
 		$regex_groups: [String]
@@ -2787,6 +2750,7 @@ export const UpdateErrorAlertDocument = gql`
 			name: $name
 			count_threshold: $count_threshold
 			slack_channels: $slack_channels
+			discord_channels: $discord_channels
 			emails: $emails
 			environments: $environments
 			threshold_window: $threshold_window
@@ -2798,6 +2762,10 @@ export const UpdateErrorAlertDocument = gql`
 			ChannelsToNotify {
 				webhook_channel
 				webhook_channel_id
+			}
+			DiscordChannelsToNotify {
+				id
+				name
 			}
 			EmailsToNotify
 			ExcludedEnvironments
@@ -2834,6 +2802,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      count_threshold: // value for 'count_threshold'
  *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
+ *      discord_channels: // value for 'discord_channels'
  *      emails: // value for 'emails'
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
@@ -3034,8 +3003,8 @@ export const UpdateMetricMonitorIsDisabledDocument = gql`
 		$project_id: ID!
 		$disabled: Boolean!
 	) {
-		updateMetricMonitor(
-			metric_monitor_id: $id
+		updateMetricMonitorIsDisabled(
+			id: $id
 			project_id: $project_id
 			disabled: $disabled
 		) {
@@ -3094,8 +3063,8 @@ export const UpdateErrorAlertIsDisabledDocument = gql`
 		$project_id: ID!
 		$disabled: Boolean!
 	) {
-		updateErrorAlert(
-			error_alert_id: $id
+		updateErrorAlertIsDisabled(
+			id: $id
 			project_id: $project_id
 			disabled: $disabled
 		) {
@@ -3276,6 +3245,10 @@ export const UpdateSessionAlertDocument = gql`
 				webhook_channel
 				webhook_channel_id
 			}
+			DiscordChannelsToNotify {
+				id
+				name
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			CountThreshold
@@ -3329,799 +3302,6 @@ export type UpdateSessionAlertMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateSessionAlertMutation,
 	Types.UpdateSessionAlertMutationVariables
 >
-export const CreateNewUserAlertDocument = gql`
-	mutation CreateNewUserAlert(
-		$project_id: ID!
-		$name: String!
-		$count_threshold: Int!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-		$threshold_window: Int!
-	) {
-		createNewUserAlert(
-			project_id: $project_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type CreateNewUserAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateNewUserAlertMutation,
-	Types.CreateNewUserAlertMutationVariables
->
-
-/**
- * __useCreateNewUserAlertMutation__
- *
- * To run a mutation, you first call `useCreateNewUserAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateNewUserAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createNewUserAlertMutation, { data, loading, error }] = useCreateNewUserAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      threshold_window: // value for 'threshold_window'
- *   },
- * });
- */
-export function useCreateNewUserAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateNewUserAlertMutation,
-		Types.CreateNewUserAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateNewUserAlertMutation,
-		Types.CreateNewUserAlertMutationVariables
-	>(CreateNewUserAlertDocument, baseOptions)
-}
-export type CreateNewUserAlertMutationHookResult = ReturnType<
-	typeof useCreateNewUserAlertMutation
->
-export type CreateNewUserAlertMutationResult =
-	Apollo.MutationResult<Types.CreateNewUserAlertMutation>
-export type CreateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateNewUserAlertMutation,
-	Types.CreateNewUserAlertMutationVariables
->
-export const CreateNewSessionAlertDocument = gql`
-	mutation CreateNewSessionAlert(
-		$project_id: ID!
-		$name: String!
-		$count_threshold: Int!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-		$threshold_window: Int!
-		$exclude_rules: [String]!
-	) {
-		createNewSessionAlert(
-			project_id: $project_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-			exclude_rules: $exclude_rules
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			ExcludeRules
-			disabled
-		}
-	}
-`
-export type CreateNewSessionAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateNewSessionAlertMutation,
-	Types.CreateNewSessionAlertMutationVariables
->
-
-/**
- * __useCreateNewSessionAlertMutation__
- *
- * To run a mutation, you first call `useCreateNewSessionAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateNewSessionAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createNewSessionAlertMutation, { data, loading, error }] = useCreateNewSessionAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      threshold_window: // value for 'threshold_window'
- *      exclude_rules: // value for 'exclude_rules'
- *   },
- * });
- */
-export function useCreateNewSessionAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateNewSessionAlertMutation,
-		Types.CreateNewSessionAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateNewSessionAlertMutation,
-		Types.CreateNewSessionAlertMutationVariables
-	>(CreateNewSessionAlertDocument, baseOptions)
-}
-export type CreateNewSessionAlertMutationHookResult = ReturnType<
-	typeof useCreateNewSessionAlertMutation
->
-export type CreateNewSessionAlertMutationResult =
-	Apollo.MutationResult<Types.CreateNewSessionAlertMutation>
-export type CreateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.CreateNewSessionAlertMutation,
-	Types.CreateNewSessionAlertMutationVariables
->
-export const UpdateNewSessionAlertDocument = gql`
-	mutation UpdateNewSessionAlert(
-		$project_id: ID!
-		$session_alert_id: ID!
-		$name: String
-		$count_threshold: Int
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$threshold_window: Int
-		$exclude_rules: [String]
-		$disabled: Boolean
-	) {
-		updateNewSessionAlert(
-			project_id: $project_id
-			session_alert_id: $session_alert_id
-			name: $name
-			count_threshold: $count_threshold
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-			exclude_rules: $exclude_rules
-			disabled: $disabled
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			ExcludeRules
-			disabled
-		}
-	}
-`
-export type UpdateNewSessionAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateNewSessionAlertMutation,
-	Types.UpdateNewSessionAlertMutationVariables
->
-
-/**
- * __useUpdateNewSessionAlertMutation__
- *
- * To run a mutation, you first call `useUpdateNewSessionAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateNewSessionAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateNewSessionAlertMutation, { data, loading, error }] = useUpdateNewSessionAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      session_alert_id: // value for 'session_alert_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      threshold_window: // value for 'threshold_window'
- *      exclude_rules: // value for 'exclude_rules'
- *      disabled: // value for 'disabled'
- *   },
- * });
- */
-export function useUpdateNewSessionAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateNewSessionAlertMutation,
-		Types.UpdateNewSessionAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.UpdateNewSessionAlertMutation,
-		Types.UpdateNewSessionAlertMutationVariables
-	>(UpdateNewSessionAlertDocument, baseOptions)
-}
-export type UpdateNewSessionAlertMutationHookResult = ReturnType<
-	typeof useUpdateNewSessionAlertMutation
->
-export type UpdateNewSessionAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateNewSessionAlertMutation>
-export type UpdateNewSessionAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.UpdateNewSessionAlertMutation,
-	Types.UpdateNewSessionAlertMutationVariables
->
-export const UpdateRageClickAlertDocument = gql`
-	mutation UpdateRageClickAlert(
-		$project_id: ID!
-		$rage_click_alert_id: ID!
-		$name: String
-		$count_threshold: Int
-		$threshold_window: Int
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$disabled: Boolean
-	) {
-		updateRageClickAlert(
-			project_id: $project_id
-			rage_click_alert_id: $rage_click_alert_id
-			name: $name
-			count_threshold: $count_threshold
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-			disabled: $disabled
-		) {
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			disabled
-		}
-	}
-`
-export type UpdateRageClickAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateRageClickAlertMutation,
-	Types.UpdateRageClickAlertMutationVariables
->
-
-/**
- * __useUpdateRageClickAlertMutation__
- *
- * To run a mutation, you first call `useUpdateRageClickAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateRageClickAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateRageClickAlertMutation, { data, loading, error }] = useUpdateRageClickAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      rage_click_alert_id: // value for 'rage_click_alert_id'
- *      name: // value for 'name'
- *      count_threshold: // value for 'count_threshold'
- *      threshold_window: // value for 'threshold_window'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      disabled: // value for 'disabled'
- *   },
- * });
- */
-export function useUpdateRageClickAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateRageClickAlertMutation,
-		Types.UpdateRageClickAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.UpdateRageClickAlertMutation,
-		Types.UpdateRageClickAlertMutationVariables
-	>(UpdateRageClickAlertDocument, baseOptions)
-}
-export type UpdateRageClickAlertMutationHookResult = ReturnType<
-	typeof useUpdateRageClickAlertMutation
->
-export type UpdateRageClickAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateRageClickAlertMutation>
-export type UpdateRageClickAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.UpdateRageClickAlertMutation,
-	Types.UpdateRageClickAlertMutationVariables
->
-export const UpdateNewUserAlertDocument = gql`
-	mutation UpdateNewUserAlert(
-		$project_id: ID!
-		$session_alert_id: ID!
-		$count_threshold: Int
-		$name: String
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$threshold_window: Int
-		$disabled: Boolean
-	) {
-		updateNewUserAlert(
-			project_id: $project_id
-			session_alert_id: $session_alert_id
-			count_threshold: $count_threshold
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			threshold_window: $threshold_window
-			disabled: $disabled
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type UpdateNewUserAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateNewUserAlertMutation,
-	Types.UpdateNewUserAlertMutationVariables
->
-
-/**
- * __useUpdateNewUserAlertMutation__
- *
- * To run a mutation, you first call `useUpdateNewUserAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateNewUserAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateNewUserAlertMutation, { data, loading, error }] = useUpdateNewUserAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      session_alert_id: // value for 'session_alert_id'
- *      count_threshold: // value for 'count_threshold'
- *      name: // value for 'name'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      threshold_window: // value for 'threshold_window'
- *      disabled: // value for 'disabled'
- *   },
- * });
- */
-export function useUpdateNewUserAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateNewUserAlertMutation,
-		Types.UpdateNewUserAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.UpdateNewUserAlertMutation,
-		Types.UpdateNewUserAlertMutationVariables
-	>(UpdateNewUserAlertDocument, baseOptions)
-}
-export type UpdateNewUserAlertMutationHookResult = ReturnType<
-	typeof useUpdateNewUserAlertMutation
->
-export type UpdateNewUserAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateNewUserAlertMutation>
-export type UpdateNewUserAlertMutationOptions = Apollo.BaseMutationOptions<
-	Types.UpdateNewUserAlertMutation,
-	Types.UpdateNewUserAlertMutationVariables
->
-export const CreateTrackPropertiesAlertDocument = gql`
-	mutation CreateTrackPropertiesAlert(
-		$project_id: ID!
-		$name: String!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-		$track_properties: [TrackPropertyInput]!
-		$threshold_window: Int!
-	) {
-		createTrackPropertiesAlert(
-			project_id: $project_id
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			track_properties: $track_properties
-			threshold_window: $threshold_window
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			TrackProperties {
-				id
-				name
-				value
-			}
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type CreateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateTrackPropertiesAlertMutation,
-	Types.CreateTrackPropertiesAlertMutationVariables
->
-
-/**
- * __useCreateTrackPropertiesAlertMutation__
- *
- * To run a mutation, you first call `useCreateTrackPropertiesAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateTrackPropertiesAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createTrackPropertiesAlertMutation, { data, loading, error }] = useCreateTrackPropertiesAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      track_properties: // value for 'track_properties'
- *      threshold_window: // value for 'threshold_window'
- *   },
- * });
- */
-export function useCreateTrackPropertiesAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateTrackPropertiesAlertMutation,
-		Types.CreateTrackPropertiesAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateTrackPropertiesAlertMutation,
-		Types.CreateTrackPropertiesAlertMutationVariables
-	>(CreateTrackPropertiesAlertDocument, baseOptions)
-}
-export type CreateTrackPropertiesAlertMutationHookResult = ReturnType<
-	typeof useCreateTrackPropertiesAlertMutation
->
-export type CreateTrackPropertiesAlertMutationResult =
-	Apollo.MutationResult<Types.CreateTrackPropertiesAlertMutation>
-export type CreateTrackPropertiesAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.CreateTrackPropertiesAlertMutation,
-		Types.CreateTrackPropertiesAlertMutationVariables
-	>
-export const UpdateTrackPropertiesAlertDocument = gql`
-	mutation UpdateTrackPropertiesAlert(
-		$project_id: ID!
-		$session_alert_id: ID!
-		$name: String
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$track_properties: [TrackPropertyInput]
-		$threshold_window: Int
-		$disabled: Boolean
-	) {
-		updateTrackPropertiesAlert(
-			project_id: $project_id
-			session_alert_id: $session_alert_id
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			name: $name
-			track_properties: $track_properties
-			threshold_window: $threshold_window
-			disabled: $disabled
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			TrackProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			CountThreshold
-			LastAdminToEditID
-			Name
-			disabled
-		}
-	}
-`
-export type UpdateTrackPropertiesAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateTrackPropertiesAlertMutation,
-	Types.UpdateTrackPropertiesAlertMutationVariables
->
-
-/**
- * __useUpdateTrackPropertiesAlertMutation__
- *
- * To run a mutation, you first call `useUpdateTrackPropertiesAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateTrackPropertiesAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateTrackPropertiesAlertMutation, { data, loading, error }] = useUpdateTrackPropertiesAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      session_alert_id: // value for 'session_alert_id'
- *      name: // value for 'name'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      track_properties: // value for 'track_properties'
- *      threshold_window: // value for 'threshold_window'
- *      disabled: // value for 'disabled'
- *   },
- * });
- */
-export function useUpdateTrackPropertiesAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateTrackPropertiesAlertMutation,
-		Types.UpdateTrackPropertiesAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.UpdateTrackPropertiesAlertMutation,
-		Types.UpdateTrackPropertiesAlertMutationVariables
-	>(UpdateTrackPropertiesAlertDocument, baseOptions)
-}
-export type UpdateTrackPropertiesAlertMutationHookResult = ReturnType<
-	typeof useUpdateTrackPropertiesAlertMutation
->
-export type UpdateTrackPropertiesAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateTrackPropertiesAlertMutation>
-export type UpdateTrackPropertiesAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.UpdateTrackPropertiesAlertMutation,
-		Types.UpdateTrackPropertiesAlertMutationVariables
-	>
-export const CreateUserPropertiesAlertDocument = gql`
-	mutation CreateUserPropertiesAlert(
-		$project_id: ID!
-		$name: String!
-		$slack_channels: [SanitizedSlackChannelInput]!
-		$emails: [String]!
-		$environments: [String]!
-		$user_properties: [UserPropertyInput]!
-		$threshold_window: Int!
-	) {
-		createUserPropertiesAlert(
-			project_id: $project_id
-			name: $name
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			user_properties: $user_properties
-			threshold_window: $threshold_window
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			UserProperties {
-				id
-				name
-				value
-			}
-			Name
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type CreateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
-	Types.CreateUserPropertiesAlertMutation,
-	Types.CreateUserPropertiesAlertMutationVariables
->
-
-/**
- * __useCreateUserPropertiesAlertMutation__
- *
- * To run a mutation, you first call `useCreateUserPropertiesAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateUserPropertiesAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createUserPropertiesAlertMutation, { data, loading, error }] = useCreateUserPropertiesAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      name: // value for 'name'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      user_properties: // value for 'user_properties'
- *      threshold_window: // value for 'threshold_window'
- *   },
- * });
- */
-export function useCreateUserPropertiesAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.CreateUserPropertiesAlertMutation,
-		Types.CreateUserPropertiesAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.CreateUserPropertiesAlertMutation,
-		Types.CreateUserPropertiesAlertMutationVariables
-	>(CreateUserPropertiesAlertDocument, baseOptions)
-}
-export type CreateUserPropertiesAlertMutationHookResult = ReturnType<
-	typeof useCreateUserPropertiesAlertMutation
->
-export type CreateUserPropertiesAlertMutationResult =
-	Apollo.MutationResult<Types.CreateUserPropertiesAlertMutation>
-export type CreateUserPropertiesAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.CreateUserPropertiesAlertMutation,
-		Types.CreateUserPropertiesAlertMutationVariables
-	>
-export const UpdateUserPropertiesAlertDocument = gql`
-	mutation UpdateUserPropertiesAlert(
-		$project_id: ID!
-		$session_alert_id: ID!
-		$name: String
-		$slack_channels: [SanitizedSlackChannelInput]
-		$emails: [String]
-		$environments: [String]
-		$user_properties: [UserPropertyInput]
-		$threshold_window: Int
-		$disabled: Boolean
-	) {
-		updateUserPropertiesAlert(
-			project_id: $project_id
-			session_alert_id: $session_alert_id
-			slack_channels: $slack_channels
-			emails: $emails
-			environments: $environments
-			name: $name
-			user_properties: $user_properties
-			threshold_window: $threshold_window
-			disabled: $disabled
-		) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			UserProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			CountThreshold
-			Name
-			LastAdminToEditID
-			disabled
-		}
-	}
-`
-export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
-	Types.UpdateUserPropertiesAlertMutation,
-	Types.UpdateUserPropertiesAlertMutationVariables
->
-
-/**
- * __useUpdateUserPropertiesAlertMutation__
- *
- * To run a mutation, you first call `useUpdateUserPropertiesAlertMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateUserPropertiesAlertMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateUserPropertiesAlertMutation, { data, loading, error }] = useUpdateUserPropertiesAlertMutation({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      session_alert_id: // value for 'session_alert_id'
- *      name: // value for 'name'
- *      slack_channels: // value for 'slack_channels'
- *      emails: // value for 'emails'
- *      environments: // value for 'environments'
- *      user_properties: // value for 'user_properties'
- *      threshold_window: // value for 'threshold_window'
- *      disabled: // value for 'disabled'
- *   },
- * });
- */
-export function useUpdateUserPropertiesAlertMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.UpdateUserPropertiesAlertMutation,
-		Types.UpdateUserPropertiesAlertMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.UpdateUserPropertiesAlertMutation,
-		Types.UpdateUserPropertiesAlertMutationVariables
-	>(UpdateUserPropertiesAlertDocument, baseOptions)
-}
-export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<
-	typeof useUpdateUserPropertiesAlertMutation
->
-export type UpdateUserPropertiesAlertMutationResult =
-	Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>
-export type UpdateUserPropertiesAlertMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.UpdateUserPropertiesAlertMutation,
-		Types.UpdateUserPropertiesAlertMutationVariables
-	>
 export const UpdateSessionIsPublicDocument = gql`
 	mutation UpdateSessionIsPublic(
 		$session_secure_id: String!
@@ -4612,6 +3792,60 @@ export type DeleteSessionsMutationResult =
 export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutation,
 	Types.DeleteSessionsMutationVariables
+>
+export const UpdateVercelSettingsDocument = gql`
+	mutation UpdateVercelSettings(
+		$project_id: ID!
+		$project_mappings: [VercelProjectMappingInput!]!
+	) {
+		updateVercelProjectMappings(
+			project_id: $project_id
+			project_mappings: $project_mappings
+		)
+	}
+`
+export type UpdateVercelSettingsMutationFn = Apollo.MutationFunction<
+	Types.UpdateVercelSettingsMutation,
+	Types.UpdateVercelSettingsMutationVariables
+>
+
+/**
+ * __useUpdateVercelSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateVercelSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateVercelSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateVercelSettingsMutation, { data, loading, error }] = useUpdateVercelSettingsMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      project_mappings: // value for 'project_mappings'
+ *   },
+ * });
+ */
+export function useUpdateVercelSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateVercelSettingsMutation,
+		Types.UpdateVercelSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateVercelSettingsMutation,
+		Types.UpdateVercelSettingsMutationVariables
+	>(UpdateVercelSettingsDocument, baseOptions)
+}
+export type UpdateVercelSettingsMutationHookResult = ReturnType<
+	typeof useUpdateVercelSettingsMutation
+>
+export type UpdateVercelSettingsMutationResult =
+	Apollo.MutationResult<Types.UpdateVercelSettingsMutation>
+export type UpdateVercelSettingsMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateVercelSettingsMutation,
+	Types.UpdateVercelSettingsMutationVariables
 >
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
@@ -9839,6 +9073,128 @@ export type GetWorkspaceIsIntegratedWithFrontQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithFrontQuery,
 	Types.GetWorkspaceIsIntegratedWithFrontQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithDiscordDocument = gql`
+	query GetWorkspaceIsIntegratedWithDiscord($project_id: ID!) {
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithDiscordQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithDiscordQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithDiscordQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithDiscordQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithDiscordQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>(GetWorkspaceIsIntegratedWithDiscordDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithDiscordLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+		Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+	>(GetWorkspaceIsIntegratedWithDiscordDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithDiscordQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithDiscordQuery
+>
+export type GetWorkspaceIsIntegratedWithDiscordLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithDiscordLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithDiscordQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithDiscordQuery,
+	Types.GetWorkspaceIsIntegratedWithDiscordQueryVariables
+>
+export const GetWorkspaceIsIntegratedWithVercelDocument = gql`
+	query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
+		is_integrated_with_vercel: is_integrated_with(
+			integration_type: Vercel
+			project_id: $project_id
+		)
+		vercel_projects(project_id: $project_id) {
+			id
+			name
+		}
+		vercel_project_mappings(project_id: $project_id) {
+			vercel_project_id
+			project_id
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithVercelQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithVercelQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithVercelQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithVercelQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithVercelQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithVercelLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithVercelQuery,
+		Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+	>(GetWorkspaceIsIntegratedWithVercelDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithVercelQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithVercelLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithVercelQuery,
+	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
+>
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 		generate_zapier_access_token(project_id: $project_id)
@@ -9954,9 +9310,16 @@ export const GetAlertsPagePayloadDocument = gql`
 			integration_type: Slack
 			project_id: $project_id
 		)
+		is_integrated_with_discord: is_integrated_with(
+			integration_type: Discord
+			project_id: $project_id
+		)
 		slack_channel_suggestion(project_id: $project_id) {
 			webhook_channel
 			webhook_channel_id
+		}
+		discord_channel_suggestions(project_id: $project_id) {
+			...DiscordChannelFragment
 		}
 		admins: workspace_admins_by_project_id(project_id: $project_id) {
 			admin {
@@ -9975,6 +9338,9 @@ export const GetAlertsPagePayloadDocument = gql`
 				webhook_channel
 				webhook_channel_id
 			}
+			DiscordChannelsToNotify {
+				...DiscordChannelFragment
+			}
 			EmailsToNotify
 			ExcludedEnvironments
 			updated_at
@@ -9990,114 +9356,22 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 		}
 		session_feedback_alerts(project_id: $project_id) {
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			updated_at
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			LastAdminToEditID
-			id
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		new_session_alerts(project_id: $project_id) {
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			updated_at
-			LastAdminToEditID
-			Name
-			id
-			Type
-			ExcludeRules
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		rage_click_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			ThresholdWindow
-			updated_at
-			LastAdminToEditID
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		new_user_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			ExcludedEnvironments
-			CountThreshold
-			updated_at
-			LastAdminToEditID
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		track_properties_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			TrackProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			updated_at
-			LastAdminToEditID
-			CountThreshold
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		user_properties_alerts(project_id: $project_id) {
-			id
-			ChannelsToNotify {
-				webhook_channel
-				webhook_channel_id
-			}
-			EmailsToNotify
-			UserProperties {
-				id
-				name
-				value
-			}
-			ExcludedEnvironments
-			updated_at
-			LastAdminToEditID
-			CountThreshold
-			Name
-			Type
-			DailyFrequency
-			disabled
+			...SessionAlertFragment
 		}
 		metric_monitors(project_id: $project_id) {
 			id
@@ -10106,6 +9380,10 @@ export const GetAlertsPagePayloadDocument = gql`
 			channels_to_notify {
 				webhook_channel
 				webhook_channel_id
+			}
+			discord_channels_to_notify {
+				id
+				name
 			}
 			emails_to_notify
 			aggregator
@@ -10122,6 +9400,8 @@ export const GetAlertsPagePayloadDocument = gql`
 			disabled
 		}
 	}
+	${DiscordChannelFragmentFragmentDoc}
+	${SessionAlertFragmentFragmentDoc}
 `
 
 /**

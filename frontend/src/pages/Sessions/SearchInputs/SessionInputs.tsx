@@ -11,7 +11,7 @@ export const ViewedSessionsSwitch = () => {
 
 	return (
 		<Checkbox
-			checked={searchParams.hide_viewed}
+			checked={!!searchParams.hide_viewed}
 			onChange={(e) => {
 				setSearchParams((params) => ({
 					...params,
@@ -38,7 +38,7 @@ export const LiveSessionsSwitch = () => {
 	return (
 		<Checkbox
 			disabled={isOnLiveSegment}
-			checked={isOnLiveSegment ? true : searchParams.show_live_sessions}
+			checked={isOnLiveSegment ? true : !!searchParams.show_live_sessions}
 			onChange={(e) => {
 				setSearchParams((params) => ({
 					...params,

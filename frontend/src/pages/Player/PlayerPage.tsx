@@ -42,11 +42,19 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import { clamp } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Suspense,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -57,6 +65,12 @@ import styles from './PlayerPage.module.scss'
 interface Props {
 	integrated: boolean
 }
+
+export const LEFT_PANEL_WIDTH = 475
+export const RIGHT_PANEL_WIDTH = 350
+
+const CENTER_COLUMN_MARGIN = 16
+const MIN_CENTER_COLUMN_WIDTH = 200
 
 const Player = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
@@ -87,11 +101,8 @@ const Player = ({ integrated }: Props) => {
 		currentUrl,
 	} = player
 	const resources = useResources(session)
-	const {
-		setShowLeftPanel,
-		showLeftPanel: showLeftPanelPreference,
-		showRightPanel,
-	} = usePlayerConfiguration()
+	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
+		usePlayerConfiguration()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -103,6 +114,7 @@ const Player = ({ integrated }: Props) => {
 		  }
 		| undefined
 	>(undefined)
+	const centerColumnRef = useRef<HTMLDivElement>(null)
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
@@ -189,17 +201,27 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
+	const [controllerWidth, setControllerWidth] = useState<number>(0)
+	useLayoutEffect(() => {
+		const div = centerColumnRef.current
+		if (!div) {
+			return
+		}
+
+		const width = Math.max(
+			centerColumnRef.current.offsetWidth - 2 * CENTER_COLUMN_MARGIN,
+			MIN_CENTER_COLUMN_WIDTH,
+		)
+		setControllerWidth(width)
+	}, [centerColumnRef.current?.offsetWidth, setControllerWidth])
+
 	const playerFiller = useMemo(() => {
 		return (
 			<div className={styles.loadingWrapper}>
-				<PlayerSkeleton
-					showingLeftPanel={showLeftPanel}
-					showingRightPanel={showRightPanel}
-					width={playerWrapperRef.current?.clientWidth}
-				/>
+				<PlayerSkeleton width={controllerWidth} />
 			</div>
 		)
-	}, [showLeftPanel, showRightPanel])
+	}, [controllerWidth])
 
 	return (
 		<PlayerUIContextProvider
@@ -347,9 +369,14 @@ const Player = ({ integrated }: Props) => {
 						>
 							<div className={styles.playerContainer}>
 								<div className={styles.rrwebPlayerSection}>
-									<div className={styles.playerCenterColumn}>
+									<div
+										className={styles.playerCenterColumn}
+										ref={centerColumnRef}
+									>
 										{!isPlayerFullscreen && (
-											<SessionLevelBar />
+											<SessionLevelBar
+												width={controllerWidth}
+											/>
 										)}
 										<div
 											className={
@@ -449,7 +476,7 @@ const Player = ({ integrated }: Props) => {
 										<ResourcesContextProvider
 											value={resources}
 										>
-											<Toolbar />
+											<Toolbar width={controllerWidth} />
 										</ResourcesContextProvider>
 									</div>
 
@@ -487,25 +514,8 @@ const Player = ({ integrated }: Props) => {
 	)
 }
 
-const PlayerSkeleton = ({
-	width,
-	showingLeftPanel,
-	showingRightPanel,
-}: {
-	width: number | undefined
-	showingLeftPanel: boolean
-	showingRightPanel: boolean
-}) => {
+const PlayerSkeleton = ({ width }: { width: number }) => {
 	const { showDevTools } = usePlayerConfiguration()
-	let adjustedWidth = width ?? 80
-
-	if (showingLeftPanel) {
-		adjustedWidth -= 475
-	}
-	if (showingRightPanel) {
-		adjustedWidth -= 350
-	}
-	adjustedWidth = Math.min(Math.max(300, adjustedWidth), 600)
 
 	return (
 		<SkeletonTheme
@@ -513,8 +523,16 @@ const PlayerSkeleton = ({
 			highlightColor={'#f5f5f5'}
 		>
 			<Skeleton
-				height={!showDevTools ? adjustedWidth * 0.8 : '200px'}
-				width={adjustedWidth}
+				height={
+					!showDevTools
+						? clamp(
+								width * 0.8,
+								MIN_CENTER_COLUMN_WIDTH,
+								2 * MIN_CENTER_COLUMN_WIDTH,
+						  )
+						: MIN_CENTER_COLUMN_WIDTH
+				}
+				width={width - 2 * CENTER_COLUMN_MARGIN}
 				duration={1}
 			/>
 		</SkeletonTheme>

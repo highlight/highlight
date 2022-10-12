@@ -59,10 +59,13 @@ import styles from './SessionsFeed.module.scss'
 const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 	const { searchParams, setSearchParams, backendSearchQuery } =
 		useSearchContext()
-	const [histogramSeriesList, setHistogramSeriesList] = useState<Series[]>([])
-	const [histogramBucketTimes, setHistogramBucketTimes] = useState<number[]>(
-		[],
-	)
+	const [histogram, setHistogram] = useState<{
+		seriesList: Series[]
+		bucketTimes: number[]
+	}>({
+		seriesList: [],
+		bucketTimes: [],
+	})
 
 	const { loading } = useGetSessionsHistogramQuery({
 		variables: {
@@ -102,8 +105,10 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 					},
 				]
 			}
-			setHistogramSeriesList(seriesList)
-			setHistogramBucketTimes(bucketTimes)
+			setHistogram({
+				seriesList,
+				bucketTimes,
+			})
 		},
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
@@ -126,8 +131,8 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 
 	return (
 		<SearchResultsHistogram
-			seriesList={histogramSeriesList}
-			bucketTimes={histogramBucketTimes}
+			seriesList={histogram.seriesList}
+			bucketTimes={histogram.bucketTimes}
 			bucketSize={backendSearchQuery?.histogramBucketSize}
 			loading={loading}
 			updateTimeRange={updateTimeRange}

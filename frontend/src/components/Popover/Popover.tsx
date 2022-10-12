@@ -10,6 +10,7 @@ import styles from './Popover.module.scss'
 type PopoverProps = Pick<
 	AntDesignPopoverProps,
 	| 'arrowContent'
+	| 'showArrow'
 	| 'content'
 	| 'title'
 	| 'trigger'
@@ -20,6 +21,7 @@ type PopoverProps = Pick<
 	| 'visible'
 	| 'destroyTooltipOnHide'
 	| 'getPopupContainer'
+	| 'overlayClassName'
 > & {
 	isList?: boolean
 	popoverClassName?: string

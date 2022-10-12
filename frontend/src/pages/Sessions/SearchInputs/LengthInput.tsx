@@ -121,16 +121,22 @@ const AdvancedLengthInput = () => {
 		[],
 	)
 
+	let min: number | undefined
+	let max: number | undefined
+	if (searchParams?.length_range?.min) {
+		min = searchParams.length_range.min * 60
+	}
+	if (searchParams?.length_range?.max) {
+		max = searchParams.length_range.max * 60
+	}
+
 	return (
 		<div className={styles.advancedLengthInput}>
 			<div className={styles.group}>
 				<Input
 					type="number"
 					placeholder="Min"
-					defaultValue={
-						searchParams?.length_range?.min &&
-						searchParams.length_range.min * 60
-					}
+					defaultValue={min}
 					onChange={(e) => {
 						e.persist()
 						debouncedStartingDurationChangeHandler(e)
@@ -141,10 +147,7 @@ const AdvancedLengthInput = () => {
 				<Input
 					type="number"
 					placeholder="Max"
-					defaultValue={
-						searchParams?.length_range?.max &&
-						searchParams.length_range.max * 60
-					}
+					defaultValue={max}
 					onChange={(e) => {
 						e.persist()
 						debouncedEndingDurationChangeHandler(e)

@@ -2,10 +2,8 @@ import {
 	useGetFieldsOpensearchQuery,
 	useGetFieldTypesQuery,
 } from '@graph/hooks'
-import {
-	SearchParams,
-	useSearchContext,
-} from '@pages/Sessions/SearchContext/SearchContext'
+import { SearchParamsInput } from '@graph/schemas'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
 	CUSTOM_TYPE,
@@ -133,7 +131,9 @@ const CUSTOM_FIELDS: CustomField[] = [
 
 // If there is no query builder param (for segments saved
 // before the query builder was released), create one.
-export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
+export const getQueryFromParams = (
+	params: SearchParamsInput,
+): QueryBuilderState => {
 	const rules: RuleProps[] = []
 	if (params.user_properties) {
 		rules.push(...propertiesToRules(params.user_properties, 'user', 'is'))
@@ -198,9 +198,6 @@ export const getQueryFromParams = (params: SearchParams): QueryBuilderState => {
 				params.app_versions.map((ver) => ver ?? ''),
 			),
 		)
-	}
-	if (params.city) {
-		rules.push(deserializeGroup('city', 'is', [params.city]))
 	}
 	if (params.device_id) {
 		rules.push(

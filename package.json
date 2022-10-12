@@ -40,13 +40,12 @@
 		"generate": "hygen",
 		"prepare": "husky install && patch-package",
 		"publish:all": "run-p --print-label publish:turbo publish:render",
-		"publish:turbo": "changeset version && changeset publish",
+		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
 		"publish:render": "yarn workspace render publish",
 		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-snapshot",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.24.4",
 		"chalk": "^5.0.1",
 		"cypress": "^10.8.0",
 		"husky": "^8.0.1",
@@ -57,5 +56,20 @@
 		"pretty-quick": "^3.1.3",
 		"turbo": "^1.5.4"
 	},
-	"packageManager": "yarn@3.2.3"
+	"packageManager": "yarn@3.2.3",
+	"resolutions": {
+		"ansi-regex": "3.0.1",
+		"ejs": "3.1.7",
+		"eventsource": "1.1.1",
+		"glob-parent": "5.1.2",
+		"lodash": "4.17.21",
+		"minimist": "1.2.6",
+		"node-fetch": "2.6.7",
+		"normalize-url": "4.5.1",
+		"nth-check": "2.0.1",
+		"object-path": "0.11.8",
+		"prismjs": "1.27.0",
+		"tmpl": "1.0.5",
+		"trim-newlines": "3.0.1"
+	}
 }

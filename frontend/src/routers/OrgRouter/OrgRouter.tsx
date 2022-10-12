@@ -14,11 +14,12 @@ import {
 } from '@context/AppLoadingContext'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
+import { SearchParamsInput } from '@graph/schemas'
+import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import {
 	QueryBuilderInput,
 	SearchContextProvider,
-	SearchParams,
 } from '@pages/Sessions/SearchContext/SearchContext'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
@@ -46,7 +47,6 @@ import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
 import { ApplicationContextProvider } from './ApplicationContext'
 import ApplicationRouter from './ApplicationRouter'
-import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -160,7 +160,7 @@ export const ProjectRouter = () => {
 	const [segmentName, setSegmentName] = useState<string | null>(null)
 	const [showStarredSessions, setShowStarredSessions] =
 		useState<boolean>(false)
-	const [searchParams, setSearchParams] = useState<SearchParams>(
+	const [searchParams, setSearchParams] = useState<SearchParamsInput>(
 		EmptySessionsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
@@ -212,7 +212,7 @@ export const ProjectRouter = () => {
 		page: NumberParam,
 	})
 
-	const [existingParams, setExistingParams] = useState<SearchParams>(
+	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
 		EmptySessionsSearchParams,
 	)
 
@@ -274,7 +274,7 @@ export const ProjectRouter = () => {
 
 	useEffect(() => {
 		if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
-			setSearchParams(searchParamsToUrlParams as SearchParams)
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
 		}
 		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
 			setPage(paginationToUrlParams.page)
