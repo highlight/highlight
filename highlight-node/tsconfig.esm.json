@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.json",
+
+	"compilerOptions": {
+		"module": "es6",
+		"outDir": "esm"
+	},
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
+}

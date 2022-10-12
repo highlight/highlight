@@ -9,8 +9,8 @@ import {
 } from './graph/generated/operations'
 import ErrorStackParser from 'error-stack-parser'
 import { GraphQLClient } from 'graphql-request'
-import { NodeOptions } from './types.js'
-import { ErrorContext } from './errorContext.js'
+import { NodeOptions } from './types'
+import { ErrorContext } from './errorContext'
 
 // Represents a stack frame with added lines of source code
 // before, after, and for the line of the current error
