@@ -1,19 +1,18 @@
 {
 	"name": "@highlight-run/client",
 	"private": true,
-	"version": "1.3.2",
+	"version": "1.3.1",
 	"description": "rollup setup for writing a javascript library and making it available as script or npm package",
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
 	"types": "dist/src/index.d.ts",
 	"scripts": {
-		"build": "yarn types:check && yarn typegen && rollup -c",
+		"build": "yarn typegen && rollup -c",
 		"typegen": "tsc",
 		"dev": "doppler run -- rollup -c -w",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"codegen": "graphql-codegen --config codegen.yml",
-		"test": "jest --passWithNoTests",
-		"types:check": "tsc"
+		"test": "jest --passWithNoTests"
 	},
 	"repository": {
 		"type": "git",
