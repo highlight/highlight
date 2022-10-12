@@ -26,6 +26,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/highlight-run/highlight/backend/apolloio"
+	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -71,6 +72,11 @@ func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentRep
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
+}
+
+// DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
+func (r *errorAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*model.DiscordChannel, error) {
+	return obj.DiscordChannelsToNotify, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -256,6 +262,11 @@ func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels for metric monitors")
 	}
 	return sanitizedChannels, nil
+}
+
+// DiscordChannelsToNotify is the resolver for the discord_channels_to_notify field.
+func (r *metricMonitorResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*model.DiscordChannel, error) {
+	return obj.DiscordChannelsToNotify, nil
 }
 
 // EmailsToNotify is the resolver for the emails_to_notify field.
@@ -1997,7 +2008,7 @@ func (r *mutationResolver) CreateDefaultAlerts(ctx context.Context, projectID in
 }
 
 // CreateMetricMonitor is the resolver for the createMetricMonitor field.
-func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID int, name string, aggregator modelInputs.MetricAggregator, periodMinutes *int, threshold float64, units *string, metricToMonitor string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2036,6 +2047,9 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 		EmailsToNotify:    emailsString,
 		LastAdminToEditID: admin.ID,
 		Filters:           mmFilters,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		},
 	}
 
 	if err := r.DB.Create(newMetricMonitor).Error; err != nil {
@@ -2049,7 +2063,7 @@ func (r *mutationResolver) CreateMetricMonitor(ctx context.Context, projectID in
 }
 
 // UpdateMetricMonitor is the resolver for the updateMetricMonitor field.
-func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
+func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonitorID int, projectID int, name *string, aggregator *modelInputs.MetricAggregator, periodMinutes *int, threshold *float64, units *string, metricToMonitor *string, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, disabled *bool, filters []*modelInputs.MetricTagFilterInput) (*model.MetricMonitor, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2089,6 +2103,10 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 			return nil, e.Wrap(err, "error marshalling slack channels")
 		}
 		metricMonitor.ChannelsToNotify = channelsString
+	}
+
+	metricMonitor.AlertIntegrations = model.AlertIntegrations{
+		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
 	}
 
 	if emails != nil {
@@ -2131,7 +2149,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2175,6 +2193,9 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Frequency:            frequency,
 		},
 		RegexGroups: &regexGroupsString,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
+		},
 	}
 
 	if err := r.DB.Create(newAlert).Error; err != nil {
@@ -2188,7 +2209,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 }
 
 // UpdateErrorAlert is the resolver for the updateErrorAlert field.
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2252,6 +2273,10 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, projectID int, 
 	}
 	if disabled != nil {
 		projectAlert.Disabled = disabled
+	}
+
+	projectAlert.AlertIntegrations = model.AlertIntegrations{
+		DiscordChannelsToNotify: discord.GQLInputToGo(discordChannels),
 	}
 
 	if err := r.DB.Model(&model.ErrorAlert{
@@ -2340,6 +2365,52 @@ func (r *mutationResolver) UpdateSessionAlertIsDisabled(ctx context.Context, id 
 	}
 
 	return sessionAlert, err
+}
+
+// UpdateErrorAlertIsDisabled is the resolver for the updateErrorAlertIsDisabled field.
+func (r *mutationResolver) UpdateErrorAlertIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.ErrorAlert, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	errorAlert := &model.ErrorAlert{
+		Alert: model.Alert{
+			Disabled: &disabled,
+		},
+	}
+
+	if err := r.DB.Model(&model.ErrorAlert{
+		Model: model.Model{
+			ID: id,
+		},
+	}).Where("project_id = ?", projectID).Updates(errorAlert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating disabled field for error alert")
+	}
+
+	return errorAlert, err
+}
+
+// UpdateMetricMonitorIsDisabled is the resolver for the updateMetricMonitorIsDisabled field.
+func (r *mutationResolver) UpdateMetricMonitorIsDisabled(ctx context.Context, id int, projectID int, disabled bool) (*model.MetricMonitor, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in project")
+	}
+
+	metricMonitor := &model.MetricMonitor{
+		Disabled: &disabled,
+	}
+
+	if err := r.DB.Model(&model.MetricMonitor{
+		Model: model.Model{
+			ID: id,
+		},
+	}).Where("project_id = ?", projectID).Updates(metricMonitor).Error; err != nil {
+		return nil, e.Wrap(err, "error updating disabled field for metric monitor")
+	}
+
+	return metricMonitor, err
 }
 
 // UpdateSessionAlert is the resolver for the updateSessionAlert field.
@@ -4780,6 +4851,48 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID in
 	return ret, nil
 }
 
+// DiscordChannelSuggestions is the resolver for the discord_channel_suggestions field.
+func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID int) ([]*model.DiscordChannel, error) {
+	ret := []*model.DiscordChannel{}
+
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return ret, e.Wrap(err, "error getting project")
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return ret, err
+	}
+
+	guildId := workspace.DiscordGuildId
+
+	if guildId == nil {
+		return ret, e.Wrap(err, "discord not enabled for workspace")
+	}
+
+	bot, err := discord.InitBot(*guildId)
+
+	if err != nil {
+		return ret, err
+	}
+
+	channels, err := discord.GetChannels(bot)
+
+	if err != nil {
+		return ret, err
+	}
+
+	for _, ch := range channels {
+		ret = append(ret, &model.DiscordChannel{
+			ID:   ch.ID,
+			Name: ch.Name,
+		})
+	}
+
+	return ret, nil
+}
+
 // SlackMembers is the resolver for the slack_members field.
 func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5832,6 +5945,13 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
+}
+
+// DiscordChannelsToNotify is the resolver for the DiscordChannelsToNotify field.
+func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*model.DiscordChannel, error) {
+	ret := obj.DiscordChannelsToNotify
+
+	return ret, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.

@@ -156,6 +156,11 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type DiscordChannelInput struct {
+	Name string `json:"name"`
+	ID   string `json:"id"`
+}
+
 type EnhancedUserDetailsResult struct {
 	ID      *int          `json:"id"`
 	Name    *string       `json:"name"`
@@ -363,6 +368,7 @@ type SessionAlertInput struct {
 	CountThreshold  int                           `json:"count_threshold"`
 	ThresholdWindow int                           `json:"threshold_window"`
 	SlackChannels   []*SanitizedSlackChannelInput `json:"slack_channels"`
+	DiscordChannels []*DiscordChannelInput        `json:"discord_channels"`
 	Emails          []string                      `json:"emails"`
 	Environments    []string                      `json:"environments"`
 	Disabled        bool                          `json:"disabled"`

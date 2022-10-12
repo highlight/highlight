@@ -14,7 +14,8 @@ import {
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { SessionAlertType } from '@graph/schemas'
+import { DiscordChannel, SessionAlertType } from '@graph/schemas'
+import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
@@ -47,10 +48,12 @@ interface Props {
 	configuration: AlertConfiguration
 	environmentOptions: any[]
 	channelSuggestions: any[]
+	discordChannelSuggestions: DiscordChannel[]
 	slackUrl: string
 	onDeleteHandler?: (alertId: string) => void
 	isCreatingNewAlert?: boolean
 	isSlackIntegrated: boolean
+	isDiscordIntegrated: boolean
 	emailSuggestions: string[]
 }
 
@@ -65,10 +68,12 @@ export const AlertConfigurationCard = ({
 	},
 	environmentOptions,
 	channelSuggestions,
+	discordChannelSuggestions,
 	slackUrl,
 	onDeleteHandler,
 	isCreatingNewAlert = false,
 	isSlackIntegrated,
+	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
 	const [loading, setLoading] = useState(false)
@@ -79,6 +84,10 @@ export const AlertConfigurationCard = ({
 	)
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>([])
+	const [selectedDiscordChannels, setSelectedDiscordChannels] = useState<
+		DiscordChannel[]
+	>(alert?.DiscordChannelsToNotify || [])
+
 	const { currentWorkspace } = useApplicationContext()
 	/** lookbackPeriod units is minutes. */
 	const [lookbackPeriod, setLookbackPeriod] = useState(
@@ -96,6 +105,7 @@ export const AlertConfigurationCard = ({
 			count_threshold: 1,
 			environments: [],
 			slack_channels: [],
+			discord_channels: [],
 			threshold_window: 30,
 			name: 'Error',
 			regex_groups: [],
@@ -138,10 +148,12 @@ export const AlertConfigurationCard = ({
 					webhook_channel_id,
 				})),
 			name: form.getFieldValue('name'),
+			discord_channels: selectedDiscordChannels,
 		}
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		}
+
 		setLoading(true)
 		if (isCreatingNewAlert) {
 			try {
@@ -556,6 +568,11 @@ export const AlertConfigurationCard = ({
 		setFormTouched(true)
 	}
 
+	const onDiscordChannelsChange = (discordChannels: DiscordChannel[]) => {
+		setSelectedDiscordChannels(discordChannels)
+		setFormTouched(true)
+	}
+
 	const onEmailsChange = (emails: string[]) => {
 		form.setFieldsValue({ emails })
 		setEmailsToNotify(emails)
@@ -818,6 +835,15 @@ export const AlertConfigurationCard = ({
 								</Form.Item>
 							)}
 						</section>
+
+						{isDiscordIntegrated && (
+							<DiscordChannnelsSection
+								options={discordChannelSuggestions}
+								selectedChannels={selectedDiscordChannels}
+								defaultName={defaultName}
+								onChannelsChange={onDiscordChannelsChange}
+							/>
+						)}
 
 						<section>
 							<h3>Emails to Notify</h3>

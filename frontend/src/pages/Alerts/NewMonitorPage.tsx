@@ -3,6 +3,7 @@ import { useCreateMetricMonitorMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	DashboardMetricConfig,
+	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
 } from '@graph/schemas'
@@ -19,12 +20,16 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 interface Props {
 	channelSuggestions: any[]
 	emailSuggestions: string[]
+	discordChannelSuggestions: DiscordChannel[]
 	isSlackIntegrated: boolean
+	isDiscordIntegrated: boolean
 }
 
 const NewMonitorPage = ({
 	channelSuggestions,
+	discordChannelSuggestions,
 	isSlackIntegrated,
+	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
 	const { project_id } = useParams<{
@@ -46,6 +51,7 @@ const NewMonitorPage = ({
 		metricConfig?.filters || [],
 	)
 	const [slackChannels, setSlackChannels] = useState<string[]>([])
+	const [discordChannels, setDiscordChannels] = useState<DiscordChannel[]>([])
 	const [emails, setEmails] = useState<string[]>([])
 	const [units, setUnits] = useState<string>(metricConfig?.units || '')
 	const [createMonitor] = useCreateMetricMonitorMutation({
@@ -62,6 +68,7 @@ const NewMonitorPage = ({
 				).webhook_channel,
 				webhook_channel_id,
 			})),
+			discord_channels: discordChannels,
 			threshold,
 			filters,
 			units,
@@ -105,6 +112,8 @@ const NewMonitorPage = ({
 						onMetricToMonitorNameChange={setMetricToMonitorName}
 						onSlackChannelsChange={setSlackChannels}
 						slackChannels={slackChannels}
+						discordChannels={discordChannels}
+						onDiscordChannelsChange={setDiscordChannels}
 						onThresholdChange={setThreshold}
 						onFiltersChange={setFilters}
 						aggregator={aggregator}
@@ -117,8 +126,10 @@ const NewMonitorPage = ({
 						units={units}
 						onUnitsChange={setUnits}
 						channelSuggestions={channelSuggestions}
+						discordChannelSuggestions={discordChannelSuggestions}
 						onFormSubmit={onFinish}
 						isSlackIntegrated={isSlackIntegrated}
+						isDiscordIntegrated={isDiscordIntegrated}
 						slackUrl={slackUrl}
 						onFormCancel={() => {
 							history.push(`/${project_id}/alerts/new`)

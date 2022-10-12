@@ -124,6 +124,11 @@ type Plan {
 	membersLimit: Int
 }
 
+type DiscordChannel {
+	id: String!
+	name: String!
+}
+
 enum PlanType {
 	Free
 	Basic
@@ -546,6 +551,7 @@ input SessionAlertInput {
 	count_threshold: Int!
 	threshold_window: Int!
 	slack_channels: [SanitizedSlackChannelInput!]!
+	discord_channels: [DiscordChannelInput!]!
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
@@ -768,11 +774,17 @@ input SanitizedSlackChannelInput {
 	webhook_channel_id: String
 }
 
+input DiscordChannelInput {
+	name: String!
+	id: String!
+}
+
 type ErrorAlert {
 	id: ID!
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -802,6 +814,7 @@ type SessionAlert {
 	updated_at: Timestamp!
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
+	DiscordChannelsToNotify: [DiscordChannel!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -952,6 +965,7 @@ type MetricMonitor {
 	updated_at: Timestamp!
 	name: String!
 	channels_to_notify: [SanitizedSlackChannel]!
+	discord_channels_to_notify: [DiscordChannel!]!
 	emails_to_notify: [String]!
 	aggregator: MetricAggregator!
 	period_minutes: Int
@@ -1122,6 +1136,7 @@ type Query {
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
 	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
 	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
@@ -1352,6 +1367,7 @@ type Mutation {
 		units: String
 		metric_to_monitor: String!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]!
 		filters: [MetricTagFilterInput!]
 	): MetricMonitor
@@ -1365,6 +1381,7 @@ type Mutation {
 		units: String
 		metric_to_monitor: String
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]
 		disabled: Boolean
 		filters: [MetricTagFilterInput!]
@@ -1375,6 +1392,7 @@ type Mutation {
 		count_threshold: Int!
 		threshold_window: Int!
 		slack_channels: [SanitizedSlackChannelInput]!
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]!
 		environments: [String]!
 		regex_groups: [String]!
@@ -1387,6 +1405,7 @@ type Mutation {
 		count_threshold: Int
 		threshold_window: Int
 		slack_channels: [SanitizedSlackChannelInput]
+		discord_channels: [DiscordChannelInput!]!
 		emails: [String]
 		environments: [String]
 		regex_groups: [String]
@@ -1400,6 +1419,16 @@ type Mutation {
 		project_id: ID!
 		disabled: Boolean!
 	): SessionAlert
+	updateErrorAlertIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): ErrorAlert
+	updateMetricMonitorIsDisabled(
+		id: ID!
+		project_id: ID!
+		disabled: Boolean!
+	): MetricMonitor
 
 	updateSessionAlert(id: ID!, input: SessionAlertInput!): SessionAlert
 	createSessionAlert(input: SessionAlertInput!): SessionAlert

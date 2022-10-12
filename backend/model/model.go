@@ -807,6 +807,7 @@ type MetricMonitor struct {
 	LastAdminToEditID int                      `gorm:"last_admin_to_edit_id"`
 	Disabled          *bool                    `gorm:"default:false"`
 	Filters           []*DashboardMetricFilter `gorm:"foreignKey:MetricMonitorID"`
+	AlertIntegrations
 }
 
 func (m *MessagesObject) Contents() string {
@@ -1639,6 +1640,7 @@ type ErrorAlert struct {
 	Model
 	Alert
 	RegexGroups *string
+	AlertIntegrations
 }
 
 func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
@@ -1682,6 +1684,7 @@ type SessionAlert struct {
 	TrackProperties *string
 	UserProperties  *string
 	ExcludeRules    *string
+	AlertIntegrations
 }
 
 func (obj *SessionAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
