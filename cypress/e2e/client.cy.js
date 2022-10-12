@@ -9,6 +9,10 @@ describe('client recording spec', () => {
 	it('fetch requests are recorded', () => {
 		cy.visit('/')
 		cy.wait('@PushPayload')
+		cy.wait(4000)
+		cy.wait('@PushPayload')
+		// ensure pushPayload buffer is cleared
+
 		// make fetch requests
 		cy.window().then((win) => {
 			win.eval(`fetch(new URL('https://localhost:3000/index.html'))`)
@@ -19,11 +23,25 @@ describe('client recording spec', () => {
 			win.eval(
 				`fetch('https://localhost:3000/index.html', {method: 'POST'})`,
 			)
-		})
+			cy.wait(1000)
+			cy.wait(60000)
 
-		// Ensure client network resources are recorded
-		cy.wait('@PushPayload')
-			.its('request.body.variables.resources')
-			.should('have.deep.property', '.[0].initiatorType', 'fetch')
+			// Ensure client network resources are recorded
+			const pp = cy
+				.wait('@PushPayload')
+				.its('request.body.variables.resources')
+			for (let i = 0; i < 4; i++) {
+				pp.should(
+					'have.deep.property',
+					`resources[${i * 4}].initiatorType`,
+					'fetch',
+				)
+				pp.should(
+					'have.deep.property',
+					`resources[${i * 4}].name`,
+					'https://localhost:3000/index.html',
+				)
+			}
+		})
 	})
 })
