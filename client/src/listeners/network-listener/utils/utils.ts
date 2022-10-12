@@ -115,7 +115,6 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 					name: this.name,
 					transferSize: this.transferSize,
 					encodedBodySize: this.encodedBodySize,
-					requestResponsePairs,
 				}
 			}
 			return performanceTiming
