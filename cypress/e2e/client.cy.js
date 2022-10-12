@@ -8,12 +8,9 @@ describe('client recording spec', () => {
 
 	it('fetch requests are recorded', () => {
 		cy.visit('/')
-		// ensure pushPayload buffer is cleared
-
-		// make fetch requests
 		cy.window().then((win) => {
 			cy.wait('@PushPayload')
-				.its('request.body.variables.resources')
+				.its('request.body.variables')
 				.should('have.property', 'resources')
 
 			win.eval(`fetch(new URL('https://localhost:3000/index.html'))`)
@@ -26,7 +23,7 @@ describe('client recording spec', () => {
 			)
 
 			cy.wait('@PushPayload')
-				.its('request.body.variables.resources')
+				.its('request.body.variables')
 				.should('have.property', 'resources')
 		})
 	})
