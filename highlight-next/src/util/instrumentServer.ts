@@ -1,6 +1,6 @@
 import { default as createNextServer } from 'next'
 import { H } from '@highlight-run/node'
-import { HighlightGlobal } from './withHighlight'
+import { HighlightGlobal } from './withHighlight.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PlainObject<T = any> = { [key: string]: T }

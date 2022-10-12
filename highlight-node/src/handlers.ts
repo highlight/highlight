@@ -1,7 +1,6 @@
 import * as http from 'http'
 import { NodeOptions } from '.'
-import { H } from './sdk'
-import { HIGHLIGHT_REQUEST_HEADER } from './sdk'
+import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 /** JSDoc */
 interface MiddlewareError extends Error {
