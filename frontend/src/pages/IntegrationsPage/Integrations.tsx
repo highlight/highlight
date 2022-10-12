@@ -16,7 +16,8 @@ export interface Integration {
 	configurationPath: string
 	description: string
 	defaultEnable?: boolean
-	icon?: string
+	icon: string
+	noRoundedIcon?: boolean
 	onlyShowForHighlightAdmin?: boolean
 	/**
 	 * The page to configure the integration. This can be rendered in a modal or on a different page.
@@ -85,6 +86,8 @@ export const VERCEL_INTEGRATION: Integration = {
 	configurationPath: 'vercel',
 	description: 'Configuration for your Vercel projects.',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
+	icon: '/images/integrations/vercel-icon-dark.svg',
+	noRoundedIcon: true,
 	hasSettings: true,
 	modalWidth: VercelSettingsModalWidth,
 }
