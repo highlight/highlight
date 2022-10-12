@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	useGetErrorGroupQuery,
@@ -11,6 +12,7 @@ import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
@@ -237,7 +239,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								className={classNames(styles.detailsContainer, {
 									[styles.hidden]: !showLeftPanel,
 								})}
-							></div>
+							>
+								<div className={styles.titleContainer}>
+									{loading ? (
+										<Skeleton
+											count={1}
+											style={{ width: 300, height: 37 }}
+										/>
+									) : (
+										<ErrorTitle
+											errorGroup={data?.error_group}
+										/>
+									)}
+								</div>
+							</div>
 						</>
 					) : errorQueryingErrorGroup ? (
 						<ErrorState

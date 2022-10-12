@@ -1,9 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import BarChart from '@components/BarChart/BarChart'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Series } from '@components/Histogram/Histogram'
 import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
@@ -19,6 +15,7 @@ import {
 	ErrorState,
 	Maybe,
 } from '@graph/schemas'
+import { useProjectId } from '@hooks/useProjectId'
 import ErrorQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
@@ -248,14 +245,11 @@ const ErrorCardV2 = ({
 	errorGroup: Maybe<ErrorGroup>
 	urlParams?: string
 }) => {
-	const { project_id, error_secure_id } = useParams<{
-		project_id: string
+	const projectIdRemapped = useProjectId()
+	const { error_secure_id } = useParams<{
 		error_secure_id?: string
 	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+
 	// Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
 	const [errorDates, setErrorDates] = useState<Array<number>>(
 		Array(6).fill(0),

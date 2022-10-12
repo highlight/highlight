@@ -22,6 +22,10 @@
 	&.hidden {
 		position: absolute;
 	}
+
+	.titleContainer {
+		margin-bottom: var(--size-large);
+	}
 }
 
 .detailsContainer {
