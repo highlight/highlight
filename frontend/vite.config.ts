@@ -84,7 +84,8 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			outDir: 'build',
-			sourcemap: true,
+			// Sourcemaps seem to be broken with vite https://github.com/vitejs/vite/issues/5916
+			// sourcemap: true,
 		},
 		test: {
 			globals: true,
