@@ -38,6 +38,7 @@ export const Highlight =
 					H.consumeEvent(secureSessionId)
 					if (e instanceof Error) {
 						H.consumeError(e, secureSessionId, requestId)
+						H.flush()
 					}
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
@@ -56,6 +57,7 @@ export const Highlight =
 				const { secureSessionId, requestId } = processHighlightHeaders()
 				if (secureSessionId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
+					H.flush()
 				}
 			}
 		}
