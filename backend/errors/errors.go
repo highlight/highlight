@@ -156,6 +156,12 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		stackTraceFileURL = stackTraceFileURL[:queryStringIndex]
 	}
 
+	// Next.js sourcemaps should use a path relative to the _next/ folder
+	nextIdx := strings.Index(stackTraceFilePath, "_next/")
+	if nextIdx != -1 {
+		stackTraceFilePath = stackTraceFilePath[nextIdx+6:]
+	}
+
 	// try to get file from s3
 	minifiedFileBytes, err := storageClient.ReadSourceMapFileFromS3(projectId, version, stackTraceFilePath)
 	if err != nil {
