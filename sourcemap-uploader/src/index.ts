@@ -6,7 +6,7 @@ import { hideBin } from "yargs/helpers";
 import { readFileSync, statSync } from "fs";
 import glob from "glob";
 import AWS from "aws-sdk";
-import fetch from "node-fetch";
+import fetch from "cross-fetch";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
