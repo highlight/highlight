@@ -47,7 +47,6 @@ type SessionEvent = ParsedEvent & {
 	eventType: string
 	identifier: string
 	timestamp: number
-	adjustedTimestamp: number
 }
 
 const TimelineIndicatorsBarGraph = ({
@@ -165,36 +164,42 @@ const TimelineIndicatorsBarGraph = ({
 		roundingTimestep,
 	])
 
-	const timeToViewportProgress = (currTime: number) => {
-		let adjustedTime = currTime
-		if (inactivityPeriods.length > 0) {
-			let idx = 0
-			while (idx < inactivityPeriods.length) {
-				const inactivePeriod = inactivityPeriods[idx]
-				if (currTime > inactivePeriod[0] + inactivePeriod[1]) {
-					adjustedTime +=
-						adjustedInactivityPeriods[idx][1] - inactivePeriod[1]
-					idx++
-				} else {
-					break
+	const timeToViewportProgress = useCallback(
+		(currTime: number) => {
+			let adjustedTime = currTime
+			if (inactivityPeriods.length > 0) {
+				let idx = 0
+				while (idx < inactivityPeriods.length) {
+					const inactivePeriod = inactivityPeriods[idx]
+					if (currTime > inactivePeriod[0] + inactivePeriod[1]) {
+						adjustedTime +=
+							adjustedInactivityPeriods[idx][1] -
+							inactivePeriod[1]
+						idx++
+					} else {
+						break
+					}
+				}
+				if (idx < inactivityPeriods.length) {
+					const inactivePeriod = inactivityPeriods[idx]
+					const adjustedInactivePeriod =
+						adjustedInactivityPeriods[idx]
+					if (
+						currTime >= inactivePeriod[0] &&
+						currTime <= inactivePeriod[0] + inactivePeriod[1]
+					) {
+						const bit = currTime - inactivePeriod[0]
+						const scale =
+							adjustedInactivePeriod[1] / inactivePeriod[1]
+						adjustedTime += bit * scale - bit
+					}
 				}
 			}
-			if (idx < inactivityPeriods.length) {
-				const inactivePeriod = inactivityPeriods[idx]
-				const adjustedInactivePeriod = adjustedInactivityPeriods[idx]
-				if (
-					currTime >= inactivePeriod[0] &&
-					currTime <= inactivePeriod[0] + inactivePeriod[1]
-				) {
-					const bit = currTime - inactivePeriod[0]
-					const scale = adjustedInactivePeriod[1] / inactivePeriod[1]
-					adjustedTime += bit * scale - bit
-				}
-			}
-		}
 
-		return adjustedTime / adjustedDuration
-	}
+			return adjustedTime / adjustedDuration
+		},
+		[adjustedDuration, adjustedInactivityPeriods, inactivityPeriods],
+	)
 	const viewportProgressToTime = useCallback(
 		(progress: number) => {
 			const adjustedTime = progress * adjustedDuration
@@ -261,38 +266,16 @@ const TimelineIndicatorsBarGraph = ({
 						identifier: event.error_group_secure_id,
 						timestamp: toTS(event.relativeIntervalPercentage),
 						eventType: 'Errors',
-						adjustedTimestamp: 0,
 					} as SessionEvent),
 			),
 		]
 
 		combined.sort((a, b) => a.timestamp - b.timestamp)
 
-		let inactivityPeriodIdx = 0
-		let inactivityAdjustment = 0
-		for (const event of combined) {
-			const inactivePeriod = inactivityPeriods[inactivityPeriodIdx]
-			const adjustedInactivePeriod =
-				adjustedInactivityPeriods[inactivityPeriodIdx]
-
-			if (
-				inactivityPeriodIdx !== inactivityPeriods.length &&
-				inactivePeriod[0] + inactivePeriod[1] < event.timestamp
-			) {
-				inactivityAdjustment +=
-					adjustedInactivePeriod[1] - inactivePeriod[1]
-				inactivityPeriodIdx++
-			}
-
-			event.adjustedTimestamp = event.timestamp + inactivityAdjustment
-		}
-
 		return combined
 	}, [
-		adjustedInactivityPeriods,
 		duration,
 		eventsForTimelineIndicator,
-		inactivityPeriods,
 		sessionComments,
 		sessionErrors,
 		start,
@@ -306,12 +289,13 @@ const TimelineIndicatorsBarGraph = ({
 	const bucketPercentWidth = (100 * bucketTimestep) / adjustedDuration
 	const buckets = useMemo(
 		() =>
-			buildEventBuckets(
+			buildViewportEventBuckets(
 				events,
 				adjustedDuration,
 				bucketTimestep,
 				selectedTimelineAnnotationTypes,
 				viewportProgressToTime,
+				timeToViewportProgress,
 			),
 		[
 			events,
@@ -319,7 +303,25 @@ const TimelineIndicatorsBarGraph = ({
 			bucketTimestep,
 			selectedTimelineAnnotationTypes,
 			viewportProgressToTime,
+			timeToViewportProgress,
 		],
+	)
+	const areaChartBuckets = useMemo(() => {
+		const acBucketSize = pickBucketSize(
+			duration / camera.zoom,
+			TARGET_BUCKET_WIDTH_PERCENT,
+		)
+		const acTimestep = getBucketSizeInMs(acBucketSize)
+		return buildAreaChartEventBuckets(
+			events,
+			duration,
+			acTimestep,
+			selectedTimelineAnnotationTypes,
+		)
+	}, [camera.zoom, duration, events, selectedTimelineAnnotationTypes])
+
+	const areaChartMaxBucketCount = Math.max(
+		...areaChartBuckets.map(({ totalCount }) => totalCount),
 	)
 
 	const maxBucketCount = Math.max(
@@ -830,7 +832,7 @@ const TimelineIndicatorsBarGraph = ({
 			</div>
 			<div className={style.progressMonitor} ref={progressMonitorRef}>
 				{bucketPercentWidth < 0.5 ? (
-					buckets
+					areaChartBuckets
 						.filter((bucket) => bucket.totalCount > 0)
 						.map(({ totalCount, startPercent }, idx) => (
 							<span
@@ -838,7 +840,12 @@ const TimelineIndicatorsBarGraph = ({
 								className={style.bucketMark}
 								style={{
 									left: `${startPercent}%`,
-									height: `${clamp(totalCount * 8, 0, 100)}%`,
+									height: `${clamp(
+										(100 * totalCount) /
+											areaChartMaxBucketCount,
+										0,
+										100,
+									)}%`,
 								}}
 							></span>
 						))
@@ -846,7 +853,7 @@ const TimelineIndicatorsBarGraph = ({
 					<AreaChart
 						width={borderlessWidth}
 						height={22}
-						data={buckets}
+						data={areaChartBuckets}
 						margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
 					>
 						<Area
@@ -1034,12 +1041,49 @@ export interface EventBucket {
 	}
 }
 
-function buildEventBuckets(
+function buildAreaChartEventBuckets(
+	events: SessionEvent[],
+	duration: number,
+	timestep: number,
+	selectedTimelineAnnotationTypes: string[],
+): { totalCount: number; startPercent: number }[] {
+	if (
+		!selectedTimelineAnnotationTypes.length ||
+		!events.length ||
+		duration <= 0
+	) {
+		return []
+	}
+
+	const numBuckets = Math.ceil(duration / timestep)
+	const eventBuckets = Array.from({ length: numBuckets }, (_, idx) => ({
+		totalCount: 0,
+		startPercent: (idx / numBuckets) * 100,
+	}))
+
+	const filteredEvents = events.filter(({ eventType }) =>
+		selectedTimelineAnnotationTypes.includes(eventType),
+	)
+
+	for (const event of filteredEvents) {
+		const { timestamp } = event
+		const bucketId = clamp(
+			Math.floor(timestamp / timestep),
+			0,
+			eventBuckets.length - 1,
+		)
+		eventBuckets[bucketId].totalCount++
+	}
+	return eventBuckets
+}
+
+function buildViewportEventBuckets(
 	events: SessionEvent[],
 	viewportDuration: number,
 	timestep: number,
 	selectedTimelineAnnotationTypes: string[],
 	viewportProgressToTime: (progress: number) => number,
+	timeToViewportProgress: (time: number) => number,
 ): EventBucket[] {
 	if (
 		!selectedTimelineAnnotationTypes.length ||
@@ -1077,7 +1121,9 @@ function buildEventBuckets(
 	)
 
 	for (const event of filteredEvents) {
-		const { eventType, adjustedTimestamp, timestamp, identifier } = event
+		const { eventType, timestamp, identifier } = event
+		const adjustedTimestamp =
+			timeToViewportProgress(timestamp) * viewportDuration
 		const bucketId = clamp(
 			Math.floor(adjustedTimestamp / timestep),
 			0,
