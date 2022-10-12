@@ -220,13 +220,11 @@ export class FirstLoadListeners {
 		sThis: FirstLoadListeners,
 		recordingStartTime: number,
 	): Array<any> {
-		let resources: Array<PerformanceResourceTiming> = []
+		let resources: Array<any> = []
 		if (!sThis.disableNetworkRecording) {
 			const documentTimeOrigin = window?.performance?.timeOrigin || 0
 			// get all resources that don't include 'api.highlight.run'
-			resources = performance.getEntriesByType(
-				'resource',
-			) as PerformanceResourceTiming[]
+			resources = performance.getEntriesByType('resource')
 
 			// Subtract session start time from performance.timeOrigin
 			// Subtract diff to the times to do the offsets
