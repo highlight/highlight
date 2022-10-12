@@ -1,6 +1,5 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { instrumentServer } from './instrumentServer.js'
 
 export interface HighlightGlobal {
 	__HIGHLIGHT__?: {
@@ -14,8 +13,6 @@ export const Highlight =
 	(
 		origHandler: NextApiHandler<T>,
 	): ((req: NextApiRequest, res: NextApiResponse<T>) => Promise<T>) => {
-		instrumentServer()
-
 		return async (req, res): Promise<any> => {
 			const processHighlightHeaders = () => {
 				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
