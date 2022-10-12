@@ -1,4 +1,4 @@
-import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
+import { NextApiHandler } from 'next'
 import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
 
 export interface HighlightGlobal {
@@ -9,11 +9,9 @@ export interface HighlightGlobal {
 }
 
 export const Highlight =
-	<T>(options: NodeOptions = {}) =>
-	(
-		origHandler: NextApiHandler<T>,
-	): ((req: NextApiRequest, res: NextApiResponse<T>) => Promise<T>) => {
-		return async (req, res): Promise<any> => {
+	(options: NodeOptions = {}) =>
+	<T>(origHandler: NextApiHandler<T>): NextApiHandler<T> => {
+		return async (req, res) => {
 			const processHighlightHeaders = () => {
 				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
 					const [secureSessionId, requestId] =
@@ -33,7 +31,7 @@ export const Highlight =
 
 			const start = new Date()
 			try {
-				return await origHandler(req, res)
+				return (await origHandler(req, res)) as T
 			} catch (e) {
 				const { secureSessionId, requestId } = processHighlightHeaders()
 				if (secureSessionId && requestId) {
