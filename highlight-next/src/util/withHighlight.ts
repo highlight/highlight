@@ -1,6 +1,6 @@
 import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { instrumentServer } from './instrumentServer'
+import { instrumentServer } from './instrumentServer.js'
 
 export interface HighlightGlobal {
 	__HIGHLIGHT__?: {
