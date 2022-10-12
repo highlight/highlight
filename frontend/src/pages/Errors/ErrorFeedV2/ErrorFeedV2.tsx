@@ -245,7 +245,7 @@ const ErrorCardV2 = ({
 	errorGroup: Maybe<ErrorGroup>
 	urlParams?: string
 }) => {
-	const projectIdRemapped = useProjectId()
+	const { projectId } = useProjectId()
 	const { error_secure_id } = useParams<{
 		error_secure_id?: string
 	}>()
@@ -263,7 +263,7 @@ const ErrorCardV2 = ({
 	return (
 		<div className={styles.errorCardWrapper} key={errorGroup?.secure_id}>
 			<Link
-				to={`/${projectIdRemapped}/errors/${errorGroup?.secure_id}${
+				to={`/${projectId}/errors/${errorGroup?.secure_id}${
 					urlParams || ''
 				}`}
 			>

@@ -182,11 +182,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
 
-	// TODO: Loading state.
-	if (loading) {
-		return null
-	}
-
 	return (
 		<ErrorSearchContextProvider
 			value={{
