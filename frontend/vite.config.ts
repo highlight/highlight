@@ -84,7 +84,8 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			outDir: 'build',
-			// The sourcemap config option seem to be broken with HMR https://github.com/vitejs/vite/issues/5916
+			// Vite sourcemaps are totally broken
+			// https://github.com/highlight-run/highlight/pull/3171
 			sourcemap: mode !== 'development',
 		},
 		test: {
