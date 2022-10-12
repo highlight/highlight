@@ -9,7 +9,7 @@ describe('client recording spec', () => {
 	it('fetch requests are recorded', () => {
 		cy.visit('/')
 		cy.window().then((win) => {
-			cy.wait('@PushPayload')
+			cy.wait('@PushPayload', { timeout: 30 * 1000 })
 				.its('request.body.variables')
 				.should('have.property', 'resources')
 
