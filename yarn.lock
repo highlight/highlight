@@ -6449,12 +6449,12 @@ __metadata:
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@types/node": 17.0.23
     eslint: 8.12.0
-    next: 12.3.1
+    next: ^12.2.6
     npm-run-all: 4.1.5
     tsup: ^6.2.3
     typescript: ^4.8.2
   peerDependencies:
-    next: ">=12.3.1"
+    next: ^12.2.6
   languageName: unknown
   linkType: soft
 
@@ -24200,7 +24200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:12.3.1":
+"next@npm:^12.2.6":
   version: 12.3.1
   resolution: "next@npm:12.3.1"
   dependencies:
