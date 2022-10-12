@@ -1,23 +1,19 @@
 {
 	"compilerOptions": {
-		"types": ["@highlight-run/sourcemap-uploader", "@highlight-run/node"],
-		"target": "ES6",
+		"target": "es5",
+		"lib": ["dom", "dom.iterable", "esnext"],
 		"skipLibCheck": true,
+		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"strict": true,
 		"forceConsistentCasingInFileNames": true,
-		"module": "ES6",
-		"outDir": "dist",
-		"removeComments": true,
+		"module": "esnext",
 		"declaration": true,
 		"declarationDir": "dist",
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"jsx": "react"
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{ "path": "../highlight-node" },
-		{ "path": "../sourcemap-uploader" }
-	]
+	"include": ["src"],
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

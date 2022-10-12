@@ -22,15 +22,7 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
-export const uploadSourcemaps = async ({
-  apiKey,
-  appVersion,
-  path,
-}: {
-  apiKey: string;
-  appVersion: string;
-  path: string;
-}) => {
+export const uploadSourcemaps = async ({ apiKey, appVersion, path }) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
       apiKey = process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY;
@@ -96,8 +88,7 @@ yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
-    {},
-    // @ts-ignore-error
+    () => {},
     uploadSourcemaps
   )
   .option("apiKey", {
@@ -118,8 +109,8 @@ yargs(hideBin(process.argv))
   })
   .help("help").argv;
 
-async function getAllSourceMapFiles(paths: string[]) {
-  const map: { path: string; name: string }[] = [];
+async function getAllSourceMapFiles(paths) {
+  const map = [];
 
   await Promise.all(
     paths.map((path) => {
@@ -134,7 +125,7 @@ async function getAllSourceMapFiles(paths: string[]) {
         return Promise.resolve();
       }
 
-      return new Promise<void>((resolve) => {
+      return new Promise((resolve) => {
         glob(
           "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
@@ -156,12 +147,7 @@ async function getAllSourceMapFiles(paths: string[]) {
   return map;
 }
 
-async function uploadFile(
-  organizationId: string,
-  version: string,
-  filePath: string,
-  fileName: string
-) {
+async function uploadFile(organizationId, version, filePath, fileName) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
@@ -176,7 +162,7 @@ async function uploadFile(
     Body: fileContent,
   };
 
-  s3.upload(params, function (err: Error) {
+  s3.upload(params, function (err) {
     if (err) {
       throw err;
     }

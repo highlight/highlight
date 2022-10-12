@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.json",
+
+	"compilerOptions": {
+		"module": "commonjs",
+		"outDir": "dist"
+	},
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
+}

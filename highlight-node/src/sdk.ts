@@ -1,5 +1,5 @@
 import { Highlight } from '.'
-import { NodeOptions } from './types.js'
+import { NodeOptions } from './types'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
