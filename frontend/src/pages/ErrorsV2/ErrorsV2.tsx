@@ -6,20 +6,17 @@ import {
 	useGetErrorGroupQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import NoActiveErrorCard from '@pages/Error/components/ErrorRightPanel/components/NoActiveErrorCard/NoActiveErrorCard'
-import ErrorSearchPanel from '@pages/Error/components/ErrorSearchPanel/ErrorSearchPanel'
+import { ErrorSearchParamsInput } from '@graph/schemas'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
-import {
-	ErrorSearchContextProvider,
-	ErrorSearchParams,
-} from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
+import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -41,7 +38,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	}>()
 	const { isLoggedIn } = useAuthContext()
 	const { showLeftPanel } = useErrorPageConfiguration()
-	const { showBanner } = useGlobalContext()
 	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 	const integrated = useIntegrated()
 
@@ -60,18 +56,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	const history = useHistory()
 
 	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
-		`cachedErrorParams-v2-${
-			segmentName || 'no-selected-segment'
-		}-${project_id}`,
-		{},
-	)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+	const [cachedParams, setCachedParams] =
+		useLocalStorage<ErrorSearchParamsInput>(
+			`cachedErrorParams-v2-${
+				segmentName || 'no-selected-segment'
+			}-${project_id}`,
+			{},
+		)
+	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
 		cachedParams || EmptyErrorsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
-	const [existingParams, setExistingParams] = useState<ErrorSearchParams>({})
+	const [existingParams, setExistingParams] =
+		useState<ErrorSearchParamsInput>({})
 	const dateFromSearchParams = new URLSearchParams(location.search).get(
 		SessionPageSearchParams.date,
 	)
@@ -118,14 +116,15 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 			const end_date = moment(dateFromSearchParams)
 
 			setSearchParams(() => ({
-				// We are explicitly clearing any existing search params so the only applied search param is the date range.
+				// We are explicitly clearing any existing search params so the only
+				// applied search param is the date range.
 				...EmptyErrorsSearchParams,
 				date_range: {
 					start_date: start_date
 						.startOf('day')
 						.subtract(1, 'days')
-						.toDate(),
-					end_date: end_date.endOf('day').toDate(),
+						.format(),
+					end_date: end_date.endOf('day').format(),
 				},
 			}))
 			message.success(
@@ -204,52 +203,51 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				setSearchResultsLoading,
 			}}
 		>
+			<Helmet>
+				<title>Errors</title>
+			</Helmet>
+
 			<div
-				className={classNames(styles.errorPage, {
-					[styles.withoutLeftPanel]: !showLeftPanel,
-					[styles.empty]: !error_secure_id || errorQueryingErrorGroup,
+				className={classNames(styles.container, {
 					[styles.withErrorState]: errorQueryingErrorGroup,
 				})}
 			>
 				<div
-					className={classNames(styles.errorPageLeftColumn, {
+					className={classNames(styles.searchContainer, {
 						[styles.hidden]: !showLeftPanel,
 					})}
 				>
-					<ErrorSearchPanel />
+					<SearchPanel />
 				</div>
-				<Helmet>
-					<title>Errors</title>
-				</Helmet>
-				{!integrated && <IntegrationCard />}
-				{error_secure_id && !errorQueryingErrorGroup ? (
-					<>
-						<Helmet>
-							<title>
-								Errors:{' '}
-								{getHeaderFromError(
-									data?.error_group?.event ?? [],
-								)}
-							</title>
-						</Helmet>
-						<div
-							className={classNames(
-								styles.errorPageCenterColumn,
-								{
+
+				<div className={styles.detailsContainer}>
+					{!integrated && <IntegrationCard />}
+					{error_secure_id && !errorQueryingErrorGroup ? (
+						<>
+							<Helmet>
+								<title>
+									Errors:{' '}
+									{getHeaderFromError(
+										data?.error_group?.event ?? [],
+									)}
+								</title>
+							</Helmet>
+
+							<div
+								className={classNames(styles.detailsContainer, {
 									[styles.hidden]: !showLeftPanel,
-									[styles.bannerShown]: showBanner,
-								},
-							)}
-						></div>
-					</>
-				) : errorQueryingErrorGroup ? (
-					<ErrorState
-						shownWithHeader
-						message="This error does not exist or has not been made public."
-					/>
-				) : (
-					<NoActiveErrorCard />
-				)}
+								})}
+							></div>
+						</>
+					) : errorQueryingErrorGroup ? (
+						<ErrorState
+							shownWithHeader
+							message="This error does not exist or has not been made public."
+						/>
+					) : (
+						<NoActiveErrorCard />
+					)}
+				</div>
 			</div>
 		</ErrorSearchContextProvider>
 	)
