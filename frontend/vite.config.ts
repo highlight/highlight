@@ -45,8 +45,6 @@ export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '')
 	validateSafeAllowList(env)
 
-	console.log('mode is ' + mode)
-
 	return {
 		plugins: [
 			react({
@@ -86,7 +84,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			outDir: 'build',
-			// Sourcemaps seem to be broken with vite https://github.com/vitejs/vite/issues/5916
+			// The sourcemap config option seem to be broken with HMR https://github.com/vitejs/vite/issues/5916
 			sourcemap: mode !== 'development',
 		},
 		test: {
