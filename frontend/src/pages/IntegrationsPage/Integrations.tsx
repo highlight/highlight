@@ -62,7 +62,6 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	key: 'clearbit',
 	name: 'Clearbit',
 	configurationPath: 'clearbit',
-	onlyShowForHighlightAdmin: true,
 	description: 'Collect enhanced user analytics.',
 	icon: '/images/integrations/clearbit.svg',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
