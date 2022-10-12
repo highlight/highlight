@@ -4,6 +4,7 @@ import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
+import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
 
 import styles from './Integration.module.scss'
@@ -29,6 +30,7 @@ interface Props {
 const Integration = ({
 	integration: {
 		icon,
+		noRoundedIcon,
 		name,
 		description,
 		configurationPage,
@@ -56,7 +58,13 @@ const Integration = ({
 		<>
 			<Card className={styles.integration} interactable>
 				<div className={styles.header}>
-					<img src={icon} alt="" className={styles.logo} />
+					<img
+						src={icon}
+						alt=""
+						className={classNames(styles.logo, {
+							['rounded-none']: noRoundedIcon,
+						})}
+					/>
 					<div className="flex flex-col gap-2">
 						<Switch
 							trackingId={`IntegrationConnect-${name}`}

@@ -301,6 +301,11 @@ export const VercelIntegrationSettings: React.FC<
 	const projectMappings: VercelProjectMappingInput[] = []
 	for (const [projectId, vercelIds] of projectMap.entries()) {
 		for (const vercelId of vercelIds) {
+			// Skip for vercelIds the user no longer has access to
+			// (could be deleted or have had their permissions revoked)
+			if (!allVercelProjects?.map((p) => p.id).includes(vercelId)) {
+				continue
+			}
 			projectMappings.push({
 				project_id: projectId,
 				vercel_project_id: vercelId,
