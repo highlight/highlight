@@ -39,10 +39,9 @@ export const H: HighlightInterface = {
 			opts = h
 		}
 		if (!opts?.secureSessionId) {
-			console.warn(
-				'NodeH.metrics was called without a session id and could not infer it from the handler context.',
+			return console.warn(
+				'H.metrics session could not be inferred the handler context.',
 			)
-			return
 		}
 		for (const m of metrics) {
 			NodeH.recordMetric(
