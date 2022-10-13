@@ -5,6 +5,7 @@ import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
@@ -22,6 +23,7 @@ interface Props {
 const ApplicationRouter = ({ integrated }: Props) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const [newErrorsPage] = useLocalStorage(`highlight-new-errors-page`, false)
 
 	return (
 		<>
@@ -32,7 +34,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					<Player integrated={integrated} />
 				</Route>
 				<Route path="/:project_id/errors/:error_secure_id?" exact>
-					{isHighlightAdmin && integrated ? (
+					{isHighlightAdmin && newErrorsPage ? (
 						<ErrorsV2 />
 					) : (
 						<ErrorPage integrated={integrated} />
