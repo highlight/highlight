@@ -138,7 +138,7 @@ export class Highlight {
 		}
 	}
 
-	flushErrors() {
+	async flushErrors() {
 		if (this.errors.length === 0) {
 			return
 		}
@@ -146,15 +146,14 @@ export class Highlight {
 			errors: this.errors,
 		}
 		this.errors = []
-		this._graphqlSdk
-			.PushBackendPayload(variables)
-			.then(() => {})
-			.catch((e) => {
-				console.log('highlight-node pushErrors error: ', e)
-			})
+		try {
+			await this._graphqlSdk.PushBackendPayload(variables)
+		} catch (e) {
+			console.log('highlight-node pushErrors error: ', e)
+		}
 	}
 
-	flushMetrics() {
+	async flushMetrics() {
 		if (this.metrics.length === 0) {
 			return
 		}
@@ -162,16 +161,14 @@ export class Highlight {
 			metrics: this.metrics,
 		}
 		this.metrics = []
-		this._graphqlSdk
-			.PushMetrics(variables)
-			.then(() => {})
-			.catch((e) => {
-				console.log('highlight-node pushMetrics error: ', e)
-			})
+		try {
+			await this._graphqlSdk.PushMetrics(variables)
+		} catch (e) {
+			console.log('highlight-node pushMetrics error: ', e)
+		}
 	}
 
-	flush() {
-		this.flushErrors()
-		this.flushMetrics()
+	async flush() {
+		await Promise.all([this.flushErrors(), this.flushMetrics()])
 	}
 }
