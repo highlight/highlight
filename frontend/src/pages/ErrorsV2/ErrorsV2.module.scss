@@ -22,10 +22,6 @@
 	&.hidden {
 		position: absolute;
 	}
-
-	.titleContainer {
-		margin-bottom: var(--size-large);
-	}
 }
 
 .detailsContainer {
@@ -33,4 +29,10 @@
 	flex-grow: 1;
 	height: 100%;
 	justify-content: space-around;
+
+	.errorMetrics {
+		display: flex;
+		gap: var(--size-medium);
+		margin-top: var(--size-medium);
+	}
 }

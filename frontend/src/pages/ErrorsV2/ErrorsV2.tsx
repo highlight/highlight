@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import Card from '@components/Card/Card'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { Skeleton } from '@components/Skeleton/Skeleton'
@@ -12,6 +13,7 @@ import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
@@ -235,16 +237,46 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									[styles.hidden]: !showLeftPanel,
 								})}
 							>
-								<div className={styles.titleContainer}>
+								<div>
 									{loading ? (
-										<Skeleton
-											count={1}
-											style={{ width: 300, height: 37 }}
-										/>
+										<>
+											<Skeleton
+												count={1}
+												style={{
+													width: 300,
+													height: 37,
+												}}
+											/>
+
+											<Skeleton
+												count={1}
+												style={{
+													height: '2ch',
+													marginBottom: 0,
+												}}
+											/>
+										</>
 									) : (
-										<ErrorTitle
-											errorGroup={data?.error_group}
-										/>
+										<>
+											<ErrorTitle
+												errorGroup={data?.error_group}
+											/>
+
+											<ErrorBody
+												errorGroup={data?.error_group}
+											/>
+
+											<div
+												className={styles.errorMetrics}
+											>
+												<Card>Affected Users</Card>
+												<Card>Instances</Card>
+												<Card>
+													Last/first occurrence
+												</Card>
+												<Card>Last 30 days</Card>
+											</div>
+										</>
 									)}
 								</div>
 							</div>

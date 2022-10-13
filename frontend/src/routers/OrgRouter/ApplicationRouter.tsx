@@ -23,7 +23,10 @@ interface Props {
 const ApplicationRouter = ({ integrated }: Props) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
-	const [newErrorsPage] = useLocalStorage(`highlight-new-errors-page`, false)
+	const [newErrorsPageEnabled] = useLocalStorage(
+		`highlight-new-errors-page-enabled`,
+		false,
+	)
 
 	return (
 		<>
@@ -34,7 +37,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					<Player integrated={integrated} />
 				</Route>
 				<Route path="/:project_id/errors/:error_secure_id?" exact>
-					{isHighlightAdmin && newErrorsPage ? (
+					{isHighlightAdmin && newErrorsPageEnabled ? (
 						<ErrorsV2 />
 					) : (
 						<ErrorPage integrated={integrated} />
