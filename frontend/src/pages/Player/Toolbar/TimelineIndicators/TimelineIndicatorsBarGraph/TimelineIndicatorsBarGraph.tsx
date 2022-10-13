@@ -24,7 +24,14 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
@@ -54,6 +61,7 @@ const TimelineIndicatorsBarGraph = ({
 	width,
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const {
 		time,
@@ -67,15 +75,11 @@ const TimelineIndicatorsBarGraph = ({
 		sessionIntervals,
 		isLiveMode,
 	} = useReplayerContext()
-
-	// show 10s at max for long sessions
-	const maxZoom = Math.max(duration / 10_000, 2)
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
 		zoomEnd: NumberParam,
 	})
 	const { zoomAreaPercent, setZoomAreaPercent } = useToolbarItemsContext()
-
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
 
 	const viewportRef = useRef<HTMLDivElement>(null)
@@ -102,10 +106,12 @@ const TimelineIndicatorsBarGraph = ({
 				interval.endTime - interval.startTime,
 			])
 	}, [sessionIntervals])
-	const inactiveDuration = inactivityPeriods.reduce(
-		(acc, curr) => acc + curr[1],
-		0,
+
+	const inactiveDuration = useMemo(
+		() => inactivityPeriods.reduce((acc, curr) => acc + curr[1], 0),
+		[inactivityPeriods],
 	)
+
 	const adjustedInactivityPeriods: [number, number][] = useMemo(() => {
 		const activeDuration = duration - inactiveDuration
 		const targetInactiveDuration =
@@ -229,14 +235,12 @@ const TimelineIndicatorsBarGraph = ({
 				...event,
 				eventType: (event as customEvent).data.tag,
 				timestamp: toTS(event.relativeIntervalPercentage),
-				adjustedTimestamp: 0,
 			})),
 			...comments.map((event) => ({
 				...event,
 				identifier: event.id,
 				eventType: 'Comments',
 				timestamp: toTS(event.relativeIntervalPercentage),
-				adjustedTimestamp: 0,
 			})),
 			...errors.map(
 				(event) =>
@@ -259,6 +263,21 @@ const TimelineIndicatorsBarGraph = ({
 		sessionErrors,
 		start,
 	])
+
+	useEffect(() => {
+		const inactiveEvents = []
+		for (const event of events) {
+			for (const inactive of inactivityPeriods) {
+				if (
+					inactive[0] <= event.timestamp &&
+					event.timestamp <= inactive[0] + inactive[1]
+				) {
+					inactiveEvents.push(event)
+				}
+			}
+		}
+		console.log('::: events inside inactivity periods', inactiveEvents)
+	}, [events, inactivityPeriods])
 
 	const bucketSize = pickBucketSize(
 		adjustedDuration / camera.zoom,
@@ -319,6 +338,9 @@ const TimelineIndicatorsBarGraph = ({
 		[showPlayerAbsoluteTime, start],
 	)
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
+
+	// show 10s at max for long sessions
+	const maxZoom = Math.max(adjustedDuration / 10_000, 2)
 
 	const zoom = useCallback(
 		(clientX: number, dz: number) => {
@@ -653,8 +675,8 @@ const TimelineIndicatorsBarGraph = ({
 			const { left, right } = zoomAreaPercent
 			const leftTime = (duration * left) / 100
 			const rightTime = (duration * right) / 100
-			const leftAdjusted = timeToViewportProgress(leftTime) * 100 - 5
-			const rightAdjusted = timeToViewportProgress(rightTime) * 100 + 5
+			const leftAdjusted = timeToViewportProgress(leftTime) * 100
+			const rightAdjusted = timeToViewportProgress(rightTime) * 100
 
 			return percents.reduce(
 				(prev, pct) =>
