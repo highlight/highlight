@@ -219,7 +219,7 @@ export class FirstLoadListeners {
 	static getRecordedNetworkResources(
 		sThis: FirstLoadListeners,
 		recordingStartTime: number,
-	): Array<any> {
+	): Array<PerformanceResourceTiming> {
 		let resources: Array<PerformanceResourceTiming> = []
 		if (!sThis.disableNetworkRecording) {
 			const documentTimeOrigin = window?.performance?.timeOrigin || 0
