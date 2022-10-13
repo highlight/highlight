@@ -17,6 +17,7 @@ export interface HighlightInterface {
 		name: string,
 		value: number,
 		requestId?: string,
+		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
 }
@@ -30,7 +31,7 @@ export const H: HighlightInterface = {
 			console.log('highlight-node init error: ', e)
 		}
 	},
-	isInitialized: () => (highlight_obj ? true : false),
+	isInitialized: () => !!highlight_obj,
 	consumeError: (
 		error: Error,
 		secureSessionId: string,
@@ -54,9 +55,16 @@ export const H: HighlightInterface = {
 		name: string,
 		value: number,
 		requestId?: string,
+		tags?: { name: string; value: string }[],
 	) => {
 		try {
-			highlight_obj.recordMetric(secureSessionId, name, value, requestId)
+			highlight_obj.recordMetric(
+				secureSessionId,
+				name,
+				value,
+				requestId,
+				tags,
+			)
 		} catch (e) {
 			console.log('highlight-node recordMetric error: ', e)
 		}
