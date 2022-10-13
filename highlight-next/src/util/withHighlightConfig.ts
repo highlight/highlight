@@ -13,11 +13,37 @@ interface HighlightConfigOptionsDefault {
 }
 
 export interface HighlightConfigOptions {
+	/**
+	 * Explicitly enable or disable source map uploading during production builds.
+	 * By default, source maps are uploaded if both:
+	 * 1. The NextConfig.productionBrowserSourceMaps is not true
+	 * 2. An API key is set through the apiKey option
+	 * or HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY environment variable
+	 */
 	uploadSourceMaps?: boolean
+	/**
+	 * Configures a rewrite at /highlight-events for proxying Highlight requests.
+	 * @default true
+	 */
 	configureHighlightProxy?: boolean
+	/**
+	 * API key used to link to your Highlight project when uploading source maps.
+	 * This can also be set through the HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY environment variable.
+	 */
 	apiKey?: string
+	/**
+	 * App version used when uploading source maps.
+	 */
 	appVersion?: string
+	/**
+	 * File system root directory containing all your source map files.
+	 * @default '.next/'
+	 */
 	sourceMapsPath?: string
+	/**
+	 * Base path to append to your source map URLs when uploaded to Highlight.
+	 * @default '_next/'
+	 */
 	sourceMapsBasePath?: string
 }
 
