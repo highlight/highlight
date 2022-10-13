@@ -26,10 +26,12 @@ export const uploadSourcemaps = async ({
   apiKey,
   appVersion,
   path,
+  basePath,
 }: {
   apiKey: string;
   appVersion: string;
   path: string;
+  basePath: string;
 }) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
@@ -87,7 +89,7 @@ export const uploadSourcemaps = async ({
 
   await Promise.all(
     fileList.map(({ path, name }) =>
-      uploadFile(organizationId, appVersion, path, name)
+      uploadFile(organizationId, appVersion, path, basePath, name)
     )
   );
 };
@@ -115,6 +117,12 @@ yargs(hideBin(process.argv))
     type: "string",
     default: "/build",
     describe: "Sets the directory of where the sourcemaps are",
+  })
+  .option("basePath", {
+    alias: "bp",
+    type: "string",
+    default: "",
+    describe: "An optional base path for the uploaded sourcemaps",
   })
   .help("help").argv;
 
@@ -160,6 +168,7 @@ async function uploadFile(
   organizationId: string,
   version: string,
   filePath: string,
+  basePath: string,
   fileName: string
 ) {
   const fileContent = readFileSync(filePath);
@@ -168,7 +177,7 @@ async function uploadFile(
   if (version === null || version === undefined || version === "" || !version) {
     version = "unversioned";
   }
-  const bucketPath = `${organizationId}/${version}/${fileName}`;
+  const bucketPath = `${organizationId}/${version}/${basePath}${fileName}`;
 
   const params = {
     Bucket: BUCKET_NAME,
@@ -180,6 +189,6 @@ async function uploadFile(
     if (err) {
       throw err;
     }
-    console.log(`Uploaded ${fileName}`);
+    console.log(`Uploaded ${basePath}${fileName}`);
   });
 }

@@ -1,6 +1,5 @@
-import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
+import { NextApiHandler } from 'next'
 import { H, HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
-import { instrumentServer } from './instrumentServer.js'
 
 export interface HighlightGlobal {
 	__HIGHLIGHT__?: {
@@ -10,13 +9,9 @@ export interface HighlightGlobal {
 }
 
 export const Highlight =
-	<T>(options: NodeOptions = {}) =>
-	(
-		origHandler: NextApiHandler<T>,
-	): ((req: NextApiRequest, res: NextApiResponse<T>) => Promise<T>) => {
-		instrumentServer()
-
-		return async (req, res): Promise<any> => {
+	(options: NodeOptions = {}) =>
+	<T>(origHandler: NextApiHandler<T>): NextApiHandler<T> => {
+		return async (req, res) => {
 			const processHighlightHeaders = () => {
 				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
 					const [secureSessionId, requestId] =
@@ -36,13 +31,14 @@ export const Highlight =
 
 			const start = new Date()
 			try {
-				return await origHandler(req, res)
+				return (await origHandler(req, res)) as T
 			} catch (e) {
 				const { secureSessionId, requestId } = processHighlightHeaders()
 				if (secureSessionId && requestId) {
 					H.consumeEvent(secureSessionId)
 					if (e instanceof Error) {
 						H.consumeError(e, secureSessionId, requestId)
+						await H.flush()
 					}
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
@@ -61,6 +57,7 @@ export const Highlight =
 				const { secureSessionId, requestId } = processHighlightHeaders()
 				if (secureSessionId) {
 					H.recordMetric(secureSessionId, 'latency', delta, requestId)
+					await H.flush()
 				}
 			}
 		}

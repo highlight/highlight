@@ -9,6 +9,7 @@ interface HighlightConfigOptionsDefault {
 	apiKey: string
 	appVersion: string
 	sourceMapsPath: string
+	sourceMapsBasePath: string
 }
 
 export interface HighlightConfigOptions {
@@ -17,6 +18,7 @@ export interface HighlightConfigOptions {
 	apiKey?: string
 	appVersion?: string
 	sourceMapsPath?: string
+	sourceMapsBasePath?: string
 }
 
 const getDefaultOpts = (
@@ -35,6 +37,7 @@ const getDefaultOpts = (
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? '',
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
+		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',
 	}
 }
 
@@ -100,7 +103,8 @@ export const withHighlightConfig = (
 				new HighlightWebpackPlugin(
 					defaultOpts.apiKey,
 					defaultOpts.appVersion,
-					defaultOpts.sourceMapsPath ?? '.next/',
+					defaultOpts.sourceMapsPath,
+					defaultOpts.sourceMapsBasePath,
 				),
 			)
 

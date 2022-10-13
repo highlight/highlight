@@ -1,4 +1,4 @@
-import { getBodyThatShouldBeRecorded } from './xhr-listener'
+import { getBodyThatShouldBeRecorded } from '../utils/xhr-listener'
 import { NetworkListenerCallback } from '../network-listener'
 import {
 	RequestResponsePair,
@@ -13,10 +13,20 @@ import {
 	shouldNetworkRequestBeTraced,
 } from './utils'
 
-export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
-	_originalFetch: WindowOrWorkerGlobalScope['fetch']
-	_highlightFetchPatch: WindowOrWorkerGlobalScope['fetch']
-	_fetchProxy: WindowOrWorkerGlobalScope['fetch']
+export interface HighlightFetchWindow {
+	_originalFetch: (
+		input: RequestInfo,
+		init?: RequestInit | undefined,
+	) => Promise<Response>
+	_highlightFetchPatch: (
+		input: RequestInfo,
+		init?: RequestInit | undefined,
+	) => Promise<Response>
+	/** The implementation for the fetch patch. The implementation can be hot swapped at any time. */
+	_fetchProxy: (
+		input: RequestInfo,
+		init?: RequestInit | undefined,
+	) => Promise<Response>
 }
 
 declare var window: HighlightFetchWindow & Window
@@ -86,23 +96,14 @@ export const FetchListener = (
 }
 
 export const getFetchRequestProperties = (
-	input: RequestInfo | URL,
+	input: RequestInfo,
 	init?: RequestInit,
 ) => {
 	const method =
 		(init && init.method) ||
-		(typeof input === 'object' && 'method' in input && input.method) ||
+		(typeof input === 'object' && input.method) ||
 		'GET'
-	let url: string
-	if (typeof input === 'object') {
-		if ('url' in input && input.url) {
-			url = input.url
-		} else {
-			url = input.toString()
-		}
-	} else {
-		url = input
-	}
+	const url = (typeof input === 'object' && input.url) || (input as string)
 
 	return {
 		method,

@@ -4,11 +4,18 @@ export default class HighlightWebpackPlugin {
 	apiKey: string
 	appVersion: string
 	path: string
+	basePath: string
 
-	constructor(apiKey: string, appVersion: string, path: string) {
+	constructor(
+		apiKey: string,
+		appVersion: string,
+		path: string,
+		basePath: string,
+	) {
 		this.apiKey = apiKey
 		this.appVersion = appVersion
 		this.path = path
+		this.basePath = basePath
 	}
 
 	apply(compiler: any) {
@@ -17,6 +24,7 @@ export default class HighlightWebpackPlugin {
 				apiKey: this.apiKey,
 				appVersion: this.appVersion,
 				path: this.path,
+				basePath: this.basePath,
 			})
 		})
 		return compiler
