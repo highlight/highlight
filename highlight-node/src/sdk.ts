@@ -18,7 +18,7 @@ export interface HighlightInterface {
 		value: number,
 		requestId?: string,
 	) => void
-	flush: () => void
+	flush: () => Promise<void>
 }
 
 var highlight_obj: Highlight
@@ -61,9 +61,9 @@ export const H: HighlightInterface = {
 			console.log('highlight-node recordMetric error: ', e)
 		}
 	},
-	flush: () => {
+	flush: async () => {
 		try {
-			highlight_obj.flush()
+			await highlight_obj.flush()
 		} catch (e) {
 			console.log('highlight-node flush error: ', e)
 		}
