@@ -26,13 +26,16 @@ const getDefaultOpts = (
 	highlightOpts?: HighlightConfigOptions,
 ): HighlightConfigOptionsDefault => {
 	const isProdBuild = process.env.NODE_ENV === 'production'
+	const hasSourcemapApiKey =
+		!!process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY ||
+		!!highlightOpts?.apiKey
 
 	return {
 		uploadSourceMaps:
 			isProdBuild &&
 			(highlightOpts?.uploadSourceMaps ??
 				!config.productionBrowserSourceMaps ??
-				true),
+				hasSourcemapApiKey),
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? '',
