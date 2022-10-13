@@ -364,7 +364,7 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		meter := GetMembersMeter(DB, workspaceID)
 
 		limit := TypeToMemberLimit(backend.PlanType(workspace.PlanTier), workspace.UnlimitedMembers)
-		if workspace.MonthlyMembersLimit != nil {
+		if limit != nil && workspace.MonthlyMembersLimit != nil {
 			limit = workspace.MonthlyMembersLimit
 		}
 
