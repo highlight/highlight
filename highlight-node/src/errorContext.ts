@@ -47,7 +47,7 @@ export class ErrorContext {
 			maxSize: this._sourceContextCacheSizeMB
 				? this._sourceContextCacheSizeMB * 1000 * 1000
 				: undefined,
-			length: (lines: FileLines, key: string): number => {
+			sizeCalculation: (lines: FileLines, key: string): number => {
 				return lines.size
 			},
 		}

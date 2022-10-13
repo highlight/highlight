@@ -6466,14 +6466,14 @@ __metadata:
     "@graphql-codegen/typescript": 2.7.2
     "@graphql-codegen/typescript-graphql-request": 4.5.2
     "@graphql-codegen/typescript-operations": 2.5.2
-    "@types/lru-cache": 5.1.1
+    "@types/lru-cache": ^7.10.10
     "@types/node": 17.0.13
     error-stack-parser: 2.0.7
     graphql: 15
     graphql-request: 3.7.0
     graphql-tag: 2.12.6
     highlight.run: "workspace:*"
-    lru-cache: 7.3.1
+    lru-cache: ^7.14.0
     npm-run-all: 4.1.5
     tsup: ^6.2.3
     typescript: ^4.8.2
@@ -9032,10 +9032,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lru-cache@npm:5.1.1":
-  version: 5.1.1
-  resolution: "@types/lru-cache@npm:5.1.1"
-  checksum: e1d6c0085f61b16ec5b3073ec76ad1be4844ea036561c3f145fc19f71f084b58a6eb600b14128aa95809d057d28f1d147c910186ae51219f58366ffd2ff2e118
+"@types/lru-cache@npm:^7.10.10":
+  version: 7.10.10
+  resolution: "@types/lru-cache@npm:7.10.10"
+  dependencies:
+    lru-cache: "*"
+  checksum: bf0c9a99b3b954adfd1a63621aeea2c7f9412340ac43fad82f2b1ec257df09efa454e6cc7943518659e112b9d650de0e64c5252de9e449576eeb28449e068a1e
   languageName: node
   linkType: hard
 
@@ -23349,10 +23351,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:7.3.1":
-  version: 7.3.1
-  resolution: "lru-cache@npm:7.3.1"
-  checksum: 34bb50c015ffc29fd83545e912f28cea6e03fbf41c497fa220c4f131b990f9ddf95babac98745b416cbc6c0d835254d61668d09b8a4ecb476934546afc9e51bd
+"lru-cache@npm:*, lru-cache@npm:^7.14.0, lru-cache@npm:^7.7.1":
+  version: 7.14.0
+  resolution: "lru-cache@npm:7.14.0"
+  checksum: efdd329f2c1bb790b71d497c6c59272e6bc2d7dd060ba55fc136becd3dd31fc8346edb446275504d94cb60d3c8385dbf5267b79b23789e409b2bdf302d13f0d7
   languageName: node
   linkType: hard
 
@@ -23362,13 +23364,6 @@ __metadata:
   dependencies:
     yallist: ^4.0.0
   checksum: f97f499f898f23e4585742138a22f22526254fdba6d75d41a1c2526b3b6cc5747ef59c5612ba7375f42aca4f8461950e925ba08c991ead0651b4918b7c978297
-  languageName: node
-  linkType: hard
-
-"lru-cache@npm:^7.7.1":
-  version: 7.14.0
-  resolution: "lru-cache@npm:7.14.0"
-  checksum: efdd329f2c1bb790b71d497c6c59272e6bc2d7dd060ba55fc136becd3dd31fc8346edb446275504d94cb60d3c8385dbf5267b79b23789e409b2bdf302d13f0d7
   languageName: node
   linkType: hard
 
