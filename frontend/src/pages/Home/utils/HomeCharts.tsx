@@ -17,7 +17,7 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
 
 import styles from './HomeCharts.module.scss'
@@ -47,7 +47,7 @@ export const SessionCountGraph = ({
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
 	)
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading, refetch } = useGetDailySessionsCountQuery({
 		variables: {
@@ -117,7 +117,7 @@ export const SessionCountGraph = ({
 					message.success(
 						`Showing sessions that were recorded on ${payload.activeLabel}`,
 					)
-					history.push(`/${projectIdRemapped}/sessions`)
+					navigate(`/${projectIdRemapped}/sessions`)
 				}}
 			/>
 		</div>
@@ -139,7 +139,7 @@ export const ErrorCountGraph = ({
 
 	const { timeRange } = useDataTimeRange()
 	const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([])
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetDailyErrorsCountQuery({
 		variables: {
@@ -190,7 +190,7 @@ export const ErrorCountGraph = ({
 				lineColor={'var(--color-orange-400)'}
 				name="Errors"
 				onClickHandler={(payload: any) => {
-					history.push(
+					navigate(
 						`/${projectIdRemapped}/errors?${
 							SessionPageSearchParams.date
 						}=${payload.activePayload[0].payload.date.toDate()}`,

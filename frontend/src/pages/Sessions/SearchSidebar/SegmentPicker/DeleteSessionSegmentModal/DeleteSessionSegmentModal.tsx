@@ -6,12 +6,12 @@ import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import Button from '../../../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../../../components/Loading/Loading'
+import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '../../../../../components/Modal/Modal'
-import { useDeleteSegmentMutation } from '../../../../../graph/generated/hooks'
+import { useDeleteSegmentMutation } from '@graph/hooks'
 import { SearchParams } from '../../../SearchContext/SearchContext'
 import styles from '../SegmentPicker.module.scss'
 
@@ -39,7 +39,7 @@ const DeleteSessionSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
-	const history = useHistory<SearchParams>()
+	const navigate = useNavigate()
 	const [deleteSegment, { loading }] = useDeleteSegmentMutation({
 		update(cache) {
 			cache.modify({
@@ -94,7 +94,7 @@ const DeleteSessionSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 									message.success('Deleted Segment!', 5)
 									hideModalHandler()
 									if (segment_id === segmentToDelete?.id) {
-										history.push(
+										navigate(
 											`/${projectIdRemapped}/sessions`,
 										)
 									}

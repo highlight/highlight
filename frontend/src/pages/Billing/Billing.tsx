@@ -30,7 +30,7 @@ import moment from 'moment'
 import { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import Skeleton from 'react-loading-skeleton'
-import { Route, Switch as RouteSwitch, useLocation } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
@@ -488,20 +488,16 @@ const BillingPage = () => {
 					</div>
 				</Card>
 			)}
-			<RouteSwitch>
+			<Routes>
 				<Route
-					exact
 					path={`/w/:workspace_id(\\d+)/:page_id(current-plan)`}
-				>
-					<BillingDetails />
-				</Route>
+					element={<BillingDetails />}
+				/>
 				<Route
-					exact
 					path={`/w/:workspace_id(\\d+)/:page_id(upgrade-plan)`}
-				>
-					<BillingUpgrade />
-				</Route>
-			</RouteSwitch>
+					element={<BillingUpgrade />}
+				/>
+			</Routes>
 		</>
 	)
 }

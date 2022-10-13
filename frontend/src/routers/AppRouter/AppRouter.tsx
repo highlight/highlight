@@ -15,7 +15,12 @@ import { DefaultWorkspaceRouter } from '@routers/OrgRouter/DefaultWorkspaceRoute
 import { ProjectRedirectionRouter } from '@routers/OrgRouter/OrgRedirectionRouter'
 import { WorkspaceRouter } from '@routers/OrgRouter/WorkspaceRouter'
 import React from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import {
+	BrowserRouter as Router,
+	Route,
+	Routes,
+	Switch,
+} from 'react-router-dom'
 
 import NewMemberPage from '../../pages/NewMember/NewMemberPage'
 import InternalRouter from '../InternalRouter/InternalRouter'
@@ -27,75 +32,93 @@ export const AppRouter = () => {
 
 	return (
 		<div className={styles.appBody}>
-			<Router>
-				<Switch>
-					<Route path="/accounts">
-						<AccountsPage />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/invite/:invite_id">
+			<Routes>
+				<Route path="/accounts" element={<AccountsPage />} />
+				<Route
+					path="/w/:workspace_id(\d+)/invite/:invite_id"
+					element={
 						<Landing>
 							<NewMemberPage />
 						</Landing>
-					</Route>
-					<Route path="/new">
+					}
+				/>
+				<Route
+					path="/new"
+					element={
 						<Landing>
 							<NewProjectPage />
 						</Landing>
-					</Route>
-					<Route path="/oauth/authorize">
+					}
+				/>
+				<Route
+					path="/oauth/authorize"
+					element={
 						<Landing>
 							<OAuthApprovalPage />
 						</Landing>
-					</Route>
-					<Route path="/callback/:integrationName">
-						<IntegrationAuthCallbackPage />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/new">
+					}
+				/>
+				<Route
+					path="/callback/:integrationName"
+					element={<IntegrationAuthCallbackPage />}
+				/>
+				<Route
+					path="/w/:workspace_id(\d+)/new"
+					element={
 						<Landing>
 							<NewProjectPage />
 						</Landing>
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/switch">
+					}
+				/>
+				<Route
+					path="/w/:workspace_id(\d+)/switch"
+					element={
 						<Landing>
 							<SwitchProject />
 						</Landing>
-					</Route>
-					<Route path="/w/:workspace_id(\d+)/about-you">
+					}
+				/>
+				<Route
+					path="/w/:workspace_id(\d+)/about-you"
+					element={
 						<Landing>
 							<RegistrationForm />
 						</Landing>
-					</Route>
-					<Route path="/switch">
+					}
+				/>
+				<Route
+					path="/switch"
+					element={
 						<Landing>
 							<SwitchWorkspace />
 						</Landing>
-					</Route>
-					<Route path="/_internal">
-						<InternalRouter />
-					</Route>
-					<Route path="/:project_id(\d+)">
-						<ProjectRouter />
-					</Route>
-					<Route
-						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
-					>
-						<ProjectRouter />
-					</Route>
-					<Route path="/w/:workspace_id(\d+)">
-						<WorkspaceRouter />
-					</Route>
-					<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
-						<DefaultWorkspaceRouter />
-					</Route>
-					<Route path="/">
-						{isLoggedIn ? (
+					}
+				/>
+				<Route path="/_internal" element={<InternalRouter />} />
+				<Route path="/:project_id(\d+)" element={<ProjectRouter />} />
+				<Route
+					path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})`}
+					element={<ProjectRouter />}
+				/>
+				<Route
+					path="/w/:workspace_id(\d+)"
+					element={<WorkspaceRouter />}
+				/>
+				<Route
+					path="/w/:page_id(team|settings|current-plan|upgrade-plan)"
+					element={<DefaultWorkspaceRouter />}
+				/>
+				<Route
+					path="/"
+					element={
+						isLoggedIn ? (
 							<ProjectRedirectionRouter />
 						) : (
 							<LoginForm />
-						)}
-					</Route>
-				</Switch>
-			</Router>
+						)
+					}
+				/>
+			</Routes>
 		</div>
 	)
 }

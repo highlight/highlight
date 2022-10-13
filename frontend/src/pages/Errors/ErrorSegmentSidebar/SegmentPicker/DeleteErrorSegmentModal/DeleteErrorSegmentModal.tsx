@@ -2,12 +2,12 @@ import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import Button from '../../../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../../../components/Loading/Loading'
+import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '../../../../../components/Modal/Modal'
-import { useDeleteErrorSegmentMutation } from '../../../../../graph/generated/hooks'
+import { useDeleteErrorSegmentMutation } from '@graph/hooks'
 import { ErrorSearchParams } from '../../../ErrorSearchContext/ErrorSearchContext'
 import styles from '../SegmentPicker.module.scss'
 
@@ -31,7 +31,7 @@ const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 		segment_id: string
 		project_id: string
 	}>()
-	const history = useHistory<ErrorSearchParams>()
+	const navigate = useNavigate()
 	const [deleteSegment, { loading }] = useDeleteErrorSegmentMutation({
 		update(cache) {
 			cache.modify({
@@ -86,7 +86,7 @@ const DeleteErrorSegmentModal: React.FC<React.PropsWithChildren<Props>> = ({
 									message.success('Deleted Segment!', 5)
 									hideModalHandler()
 									if (segment_id === segmentToDelete?.id) {
-										history.push(`/${project_id}/errors`)
+										navigate(`/${project_id}/errors`)
 									}
 									if (afterDeleteHandler) {
 										afterDeleteHandler()

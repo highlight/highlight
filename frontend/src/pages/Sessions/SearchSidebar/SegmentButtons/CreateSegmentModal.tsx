@@ -8,13 +8,13 @@ import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/Sess
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import Button from '../../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../../components/Loading/Loading'
+import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '../../../../components/Modal/Modal'
 import ModalBody from '../../../../components/ModalBody/ModalBody'
-import { useCreateSegmentMutation } from '../../../../graph/generated/hooks'
+import { useCreateSegmentMutation } from '@graph/hooks'
 import { useSearchContext } from '../../SearchContext/SearchContext'
 import styles from './SegmentButtons.module.scss'
 
@@ -43,7 +43,7 @@ const CreateSegmentModal = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { searchParams, setExistingParams } = useSearchContext()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -61,7 +61,7 @@ const CreateSegmentModal = ({
 					r.data?.createSegment?.name as string,
 				)
 			} else {
-				history.push(
+				navigate(
 					`/${projectIdRemapped}/sessions/segment/${r.data?.createSegment?.id}`,
 				)
 			}

@@ -3,8 +3,8 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { message } from 'antd'
-import { History } from 'history'
 import { Command } from 'react-command-palette'
+import { NavigateFunction } from 'react-router-dom'
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils'
@@ -22,7 +22,7 @@ const NAVIGATION_COMMANDS = [
 
 export const getNavigationCommands = (
 	project_id: string,
-	history: History,
+	navigate: NavigateFunction,
 ): CommandWithoutId[] => {
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -32,7 +32,7 @@ export const getNavigationCommands = (
 	return NAVIGATION_COMMANDS.map(({ name, route }) => ({
 		category: 'Navigation',
 		command() {
-			history.push(`/${projectIdRemapped}/${route}`)
+			navigate(`/${projectIdRemapped}/${route}`)
 		},
 		name,
 	}))

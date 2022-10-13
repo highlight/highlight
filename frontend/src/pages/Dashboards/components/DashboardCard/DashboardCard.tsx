@@ -40,7 +40,7 @@ import classNames from 'classnames'
 import _ from 'lodash'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './DashboardCard.module.scss'
 import DashboardInnerCard from './DashboardInnerCard/DashboardInnerCard'
@@ -94,7 +94,7 @@ const DashboardCard = ({
 			},
 		})
 
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	return (
 		<>
@@ -192,14 +192,16 @@ const DashboardCard = ({
 												]}
 												onSelect={(mmId) => {
 													if (mmId === -1) {
-														history.push({
-															pathname: `/${project_id}/alerts/new/monitor`,
-															state: {
-																metricConfig,
+														navigate(
+															`/${project_id}/alerts/new/monitor`,
+															{
+																state: {
+																	metricConfig,
+																},
 															},
-														})
+														)
 													} else {
-														history.push(
+														navigate(
 															`/${project_id}/alerts/monitor/${mmId}`,
 														)
 													}

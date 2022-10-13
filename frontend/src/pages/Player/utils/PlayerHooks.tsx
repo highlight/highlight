@@ -18,7 +18,7 @@ import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -73,7 +73,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		session_secure_id: string
 		project_id: string
 	}>()
-	const history = useHistory()
+	const navigate = useNavigate()
 	message.config({
 		maxCount: 1,
 		rtl: false,
@@ -197,7 +197,7 @@ export const usePlayerKeyboardShortcuts = () => {
 					sessionResults.sessions,
 					session_secure_id,
 				)
-				changeSession(project_id, history, nextSession)
+				changeSession(project_id, navigate, nextSession)
 			}
 		},
 		[session_secure_id, sessionResults],
@@ -216,7 +216,7 @@ export const usePlayerKeyboardShortcuts = () => {
 				)
 				changeSession(
 					project_id,
-					history,
+					navigate,
 					nextSession,
 					'Playing the previous session.',
 				)

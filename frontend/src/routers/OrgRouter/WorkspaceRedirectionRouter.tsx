@@ -5,7 +5,7 @@ import {
 import { useGetProjectsQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { Redirect, useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const removeWorkspaceId = (pathname: string) => {
 	// Remove the 'w' token and workspace id from the pathname
@@ -27,7 +27,8 @@ export const WorkspaceRedirectionRouter = () => {
 		data: o_data,
 	} = useGetProjectsQuery()
 
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
 
 	useEffect(() => {
 		setLoadingState(
@@ -47,15 +48,11 @@ export const WorkspaceRedirectionRouter = () => {
 		(p) => p?.workspace_id === workspace_id,
 	)[0]?.id
 
-	return (
-		<Redirect
-			to={
-				firstProjectIdInWorkspace
-					? `/${firstProjectIdInWorkspace}${removeWorkspaceId(
-							history.location.pathname,
-					  )}`
-					: `/w/${workspace_id}/new`
-			}
-		/>
+	navigate(
+		firstProjectIdInWorkspace
+			? `/${firstProjectIdInWorkspace}${removeWorkspaceId(
+					location.pathname,
+			  )}`
+			: `/w/${workspace_id}/new`,
 	)
 }

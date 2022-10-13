@@ -23,7 +23,7 @@ import { H } from 'highlight.run'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 import ButtonLink from '../../components/Button/ButtonLink/ButtonLink'
 import Collapsible from '../../components/Collapsible/Collapsible'
@@ -63,7 +63,7 @@ enum BackendPlatformType {
 }
 
 const SetupPage = ({ integrated }: { integrated: boolean }) => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { admin } = useAuthContext()
 	const { project_id, step = 'client' } = useParams<{
 		project_id: string
@@ -102,7 +102,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Client SDK',
 			path: 'client',
 			action: () => {
-				history.push(`/${project_id}/setup/client`)
+				navigate(`/${project_id}/setup/client`)
 			},
 			loading: !integrated && integrated !== false,
 			completed: integrated,
@@ -111,7 +111,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Backend SDK (Beta)',
 			path: 'backend',
 			action: () => {
-				history.push(`/${project_id}/setup/backend`)
+				navigate(`/${project_id}/setup/backend`)
 			},
 			loading: isBackendIntegratedLoading,
 			completed: isBackendIntegrated,
@@ -120,7 +120,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 			displayName: 'Features/Integrations',
 			path: 'more',
 			action: () => {
-				history.push(`/${project_id}/setup/more`)
+				navigate(`/${project_id}/setup/more`)
 			},
 			loading: isSlackConnectedLoading || isLinearConnectedLoading,
 			completed:
@@ -128,7 +128,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		})
 		setSteps(STEPS)
 	}, [
-		history,
+		navigate,
 		integrated,
 		isBackendIntegrated,
 		isBackendIntegratedLoading,

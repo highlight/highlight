@@ -32,8 +32,8 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
-import { useHistory } from 'react-router'
-import { useLocalStorage } from 'react-use'
+import { useNavigate } from 'react-router'
+import { useLocalStorage, useLocation } from 'react-use'
 import {
 	Bar,
 	BarChart,
@@ -71,7 +71,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		error_secure_id: string
 		project_id: string
 	}>()
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 
 	const { showBanner } = useGlobalContext()
@@ -143,9 +144,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 			}).then(() => {
 				const searchParams = new URLSearchParams(location.search)
 				searchParams.delete(PlayerSearchParameters.muted)
-				history.replace(
-					`${history.location.pathname}?${searchParams.toString()}`,
-				)
+				navigate(`${location.pathname}?${searchParams.toString()}`, {
+					replace: true,
+				})
 
 				message.success('Muted notifications for this comment thread.')
 			})
@@ -177,9 +178,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 			message.success(
 				`Showing errors that were thrown on ${dateFromSearchParams}`,
 			)
-			history.replace({ search: '' })
+			navigate('', { replace: true })
 		}
-	}, [history, dateFromSearchParams, setSearchParams])
+	}, [navigate, dateFromSearchParams, setSearchParams])
 
 	useEffect(() => {
 		if (queryBuilderInput?.type === 'errors') {

@@ -21,11 +21,10 @@ import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 const DashboardsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { path } = useRouteMatch()
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id },
 	})
@@ -107,17 +106,11 @@ const DashboardsRouter = () => {
 			<Helmet>
 				<title>Dashboards</title>
 			</Helmet>
-			<Switch>
-				<Route exact path={`/:project_id/home`}>
-					<HomePageV2 />
-				</Route>
-				<Route exact path={path}>
-					<DashboardsHomePage />
-				</Route>
-				<Route path={`${path}/:id`}>
-					<DashboardPage />
-				</Route>
-			</Switch>
+			<Routes>
+				<Route path={`/home`} element={<HomePageV2 />} />
+				<Route path={'*'} element={<DashboardsHomePage />} />
+				<Route path={`:id`} element={<DashboardPage />} />
+			</Routes>
 		</DashboardsContextProvider>
 	)
 }

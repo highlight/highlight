@@ -10,11 +10,12 @@ import { useGetWorkspaceQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './SwitchProject.module.scss'
 
 const SwitchProject = () => {
+	const navigate = useNavigate()
 	const { workspace_id } = useParams<{
 		workspace_id: string
 	}>()
@@ -48,11 +49,11 @@ const SwitchProject = () => {
 	)
 
 	if (shouldRedirect) {
-		return <Redirect to={`/${selectedProject}/setup`} />
+		navigate(`/${selectedProject}/setup`)
 	}
 
 	if (data?.workspace && data?.workspace?.projects.length < 1) {
-		return <Redirect to={`/w/${workspace_id}/new`} />
+		navigate(`/w/${workspace_id}/new`)
 	}
 
 	return (

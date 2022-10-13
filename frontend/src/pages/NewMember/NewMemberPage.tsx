@@ -7,7 +7,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
-import { Redirect } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -30,6 +30,7 @@ const NewMemberPage = () => {
 	const [addAdmin, { loading: addLoading, error }] = addAdminMutation()
 	const { loading: adminLoading, data: adminData } = useGetAdminQuery()
 	const { setLoadingState } = useAppLoadingContext()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (!adminLoading) {
@@ -38,7 +39,7 @@ const NewMemberPage = () => {
 	}, [adminLoading, setLoadingState])
 
 	if (adminAdded) {
-		return <Redirect to={`/w/${workspace_id}`} />
+		navigate(`/w/${workspace_id}`)
 	}
 
 	return (

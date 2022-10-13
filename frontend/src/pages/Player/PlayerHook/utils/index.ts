@@ -1,15 +1,14 @@
 import { ErrorObject, Session, SessionComment } from '@graph/schemas'
-import { Replayer } from '@highlight-run/rrweb'
-import { EventType } from '@highlight-run/rrweb'
+import { EventType, Replayer } from '@highlight-run/rrweb'
 import {
 	playerMetaData,
 	SessionInterval,
 } from '@highlight-run/rrweb/typings/types'
 import { clamp } from '@util/numbers'
 import { message } from 'antd'
-import * as H from 'history'
 import { useCallback, useState } from 'react'
 import { useLocation } from 'react-router'
+import { NavigateFunction } from 'react-router-dom'
 
 import { MillisToMinutesAndSeconds } from '../../../../util/time'
 import { HighlightEvent } from '../../HighlightEvent'
@@ -605,7 +604,7 @@ export const findPreviousSessionInList = (
 
 export const changeSession = (
 	projectId: string,
-	history: H.History,
+	navigate: NavigateFunction,
 	session: Session | null,
 	successMessageText = 'Playing the next session.',
 ) => {
@@ -616,7 +615,7 @@ export const changeSession = (
 		return
 	}
 
-	history.push(`/${projectIdRemapped}/sessions/${session.secure_id}`)
+	navigate(`/${projectIdRemapped}/sessions/${session.secure_id}`)
 	message.success(successMessageText)
 }
 

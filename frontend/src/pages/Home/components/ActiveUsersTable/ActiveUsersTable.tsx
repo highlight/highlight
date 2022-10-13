@@ -20,7 +20,7 @@ import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -47,7 +47,7 @@ const ActiveUsersTable = ({
 	const { setSearchParams, setSegmentName, setSelectedSegment } =
 		useSearchContext()
 	const { timeRange } = useDataTimeRange()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetTopUsersQuery({
 		variables: {
@@ -101,7 +101,7 @@ const ActiveUsersTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(`/${projectIdRemapped}/sessions`)
+						navigate(`/${projectIdRemapped}/sessions`)
 						setSegmentName(null)
 						setSelectedSegment(undefined)
 						setSearchParams({

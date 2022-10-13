@@ -23,7 +23,8 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
+import { useLocation } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
@@ -131,7 +132,8 @@ export default function LoginForm() {
 	const [password, setPassword] = useState('')
 	const [passwordConfirmation, setPasswordConfirmation] = useState('')
 	const [error, setError] = useState<string | null>(null)
-	const history = useHistory<{ previousPathName?: string }>()
+	const navigate = useNavigate()
+	const location = useLocation()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -178,8 +180,8 @@ export default function LoginForm() {
 
 			// Redirect the user to their initial path instead to creating a new workspace.
 			// We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
-			if (history.location.state?.previousPathName) {
-				history.push(history.location.state.previousPathName)
+			if (location.state?.previousPathName) {
+				navigate(location.state.previousPathName)
 			}
 		}
 	}

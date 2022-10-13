@@ -15,7 +15,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
 import commonStyles from '../../Common.module.scss'
@@ -119,32 +119,40 @@ export const WorkspaceRouter = () => {
 						/>
 					) : (
 						<>
-							<Switch>
-								<Route path="/w/:page_id(team|settings|current-plan|upgrade-plan)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)}
-								</Route>
-								<Route path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)">
-									<WorkspaceTabs />
-								</Route>
+							<Routes>
+								<Route
+									path="/w/:page_id(team|settings|current-plan|upgrade-plan)"
+									element={
+										isLoggedIn ? (
+											<WorkspaceRedirectionRouter />
+										) : (
+											<LoginForm />
+										)
+									}
+								/>
+								<Route
+									path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)"
+									element={<WorkspaceTabs />}
+								/>
 								{/*
 								Probably doesn't belong here, but we wanted to reuse the Header,
 								which requires context of a project or workspace.
 								*/}
-								<Route path="/w/:workspace_id/account">
-									<UserSettings />
-								</Route>
-								<Route path="/w/:workspace_id(\d+)">
-									{isLoggedIn ? (
-										<WorkspaceRedirectionRouter />
-									) : (
-										<LoginForm />
-									)}
-								</Route>
-							</Switch>
+								<Route
+									path="/w/:workspace_id/account"
+									element={<UserSettings />}
+								/>
+								<Route
+									path="/w/:workspace_id(\d+)"
+									element={
+										isLoggedIn ? (
+											<WorkspaceRedirectionRouter />
+										) : (
+											<LoginForm />
+										)
+									}
+								/>
+							</Routes>
 						</>
 					)}
 				</div>

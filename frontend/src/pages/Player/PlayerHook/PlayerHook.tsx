@@ -39,7 +39,7 @@ import useMap from '@util/useMap'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
 import {
@@ -90,7 +90,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		session_secure_id: string
 		project_id: string
 	}>()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const [download] = useQueryParam('download', BooleanParam)
 	const [scale, setScale] = useState(1)
@@ -1028,7 +1028,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (nextSessionInList) {
 				setState(ReplayerState.Paused)
 				setTimeout(() => {
-					history.push(
+					navigate(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
 					resetPlayer(ReplayerState.Empty)
@@ -1037,7 +1037,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [
 		autoPlaySessions,
-		history,
+		navigate,
 		project_id,
 		resetPlayer,
 		sessionResults.sessions,

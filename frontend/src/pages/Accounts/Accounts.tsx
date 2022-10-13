@@ -11,7 +11,7 @@ import moment from 'moment'
 import React, { useEffect } from 'react'
 // @ts-expect-error
 import { specific } from 'react-files-hooks'
-import { Route, Switch, useHistory } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
 	Bar,
 	BarChart,
@@ -207,14 +207,10 @@ export const AccountsPage = () => {
 	}, [setLoadingState])
 
 	return (
-		<Switch>
-			<Route path="/accounts/:account_id">
-				<Account />
-			</Route>
-			<Route path="/accounts">
-				<Accounts />
-			</Route>
-		</Switch>
+		<Routes>
+			<Route path="/accounts/:account_id" element={<Account />} />
+			<Route path="/accounts" element={<Accounts />} />
+		</Routes>
 	)
 }
 
@@ -340,7 +336,7 @@ export const Account = () => {
 export const Accounts = () => {
 	const { download } = specific.useTextDownloader()
 
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
 		{ [key: string]: any }[]
 	>('accountData', [])
@@ -407,7 +403,7 @@ export const Accounts = () => {
 					onRow={(record) => {
 						return {
 							onClick: () => {
-								history.push(`/accounts/${record.id}`)
+								navigate(`/accounts/${record.id}`)
 							},
 						}
 					}}

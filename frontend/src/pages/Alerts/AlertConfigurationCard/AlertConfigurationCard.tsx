@@ -22,8 +22,8 @@ import { Divider, Form, message } from 'antd'
 import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router'
+import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../components/Button/Button/Button'
@@ -89,7 +89,8 @@ export const AlertConfigurationCard = ({
 	const { project_id } = useParams<{ project_id: string }>()
 	const [form] = Form.useForm()
 	const [updateErrorAlert] = useUpdateErrorAlertMutation()
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const [createErrorAlert, {}] = useCreateErrorAlertMutation({
 		variables: {
 			project_id,
@@ -117,8 +118,9 @@ export const AlertConfigurationCard = ({
 	}-excludedIdentifiers`
 
 	useEffect(() => {
-		history.replace(history.location.pathname, {
-			errorName: alert.Name || defaultName,
+		navigate(location.pathname, {
+			state: { errorName: alert.Name || defaultName },
+			replace: true,
 		})
 	}, [alert.Name, defaultName, history])
 

@@ -20,7 +20,7 @@ import { ColumnsType } from 'antd/lib/table'
 import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
@@ -53,7 +53,7 @@ const RageClicksForProjectTable = ({
 	const { setSearchParams, setSegmentName, setSelectedSegment } =
 		useSearchContext()
 	const { timeRange } = useDataTimeRange()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { loading } = useGetRageClicksForProjectQuery({
 		variables: {
@@ -105,7 +105,7 @@ const RageClicksForProjectTable = ({
 					columns={Columns}
 					data={filteredTableData}
 					onClickHandler={(record) => {
-						history.push(
+						navigate(
 							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
 						)
 						setSegmentName(null)

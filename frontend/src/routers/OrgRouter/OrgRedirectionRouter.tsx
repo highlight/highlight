@@ -7,15 +7,16 @@ import {
 	useGetProjectsAndWorkspacesQuery,
 } from '@graph/hooks'
 import React, { useEffect } from 'react'
-import { Redirect, useHistory } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 export const ProjectRedirectionRouter = () => {
+	const navigate = useNavigate()
+	const location = useLocation()
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
 	const { loading: adminAboutYouLoading } = useGetAdminAboutYouQuery({
 		fetchPolicy: 'no-cache',
 	})
 	const { setLoadingState } = useAppLoadingContext()
-	const history = useHistory()
 
 	useEffect(() => {
 		if (loading) {
@@ -36,8 +37,8 @@ export const ProjectRedirectionRouter = () => {
 
 	let redirectTo
 	if (data?.projects?.length) {
-		redirectTo = `/${data!.projects[0]!.id}${history.location.pathname}${
-			history.location.search
+		redirectTo = `/${data!.projects[0]!.id}${location.pathname}${
+			location.search
 		}`
 	} else if (data?.workspaces?.length) {
 		redirectTo = `/w/${data!.workspaces[0]!.id}/new`
@@ -47,5 +48,6 @@ export const ProjectRedirectionRouter = () => {
 
 	// Redirects the user to their default project when the URL does not have an project ID.
 	// For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
-	return <Redirect to={redirectTo} />
+	navigate(redirectTo)
+	return null
 }

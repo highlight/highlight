@@ -8,13 +8,13 @@ import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicks
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Routes, useNavigate, useParams } from 'react-router-dom'
 
 import styles from './ProjectSettings.module.scss'
 
 const ProjectSettings = () => {
-	const match = useRouteMatch()
-
+	const navigate = useNavigate()
+	const params = useParams()
 	return (
 		<>
 			<Helmet>
@@ -24,54 +24,54 @@ const ProjectSettings = () => {
 			<LeadAlignLayout>
 				<h2>Project Settings</h2>
 				<Route
-					path={`${match.path}/:tab?`}
-					render={({ history, match: tabsMatch }) => {
-						return (
-							<div className={styles.tabsContainer}>
-								<Switch>
-									<Tabs
-										activeKeyOverride={
-											tabsMatch.params.tab || 'recording'
-										}
-										onChange={(key) => {
-											history.push(`${match.url}/${key}`)
-										}}
-										noHeaderPadding
-										noPadding
-										id="settingsTabs"
-										tabs={[
-											{
-												key: 'recording',
-												title: 'Recording',
-												panelContent: (
-													<>
-														<ExcludedUsersForm />
-														<RageClicksForm />
-														<NetworkRecordingForm />
-													</>
-												),
-											},
-											{
-												key: 'errors',
-												title: 'Errors',
-												panelContent: (
-													<>
-														<ErrorSettingsForm />
-														<SourcemapSettings />
-													</>
-												),
-											},
-											{
-												key: 'general',
-												title: 'General',
-												panelContent: <DangerForm />,
-											},
-										]}
-									/>
-								</Switch>
-							</div>
-						)
-					}}
+					path={`:tab?`}
+					element={
+						<div className={styles.tabsContainer}>
+							<Routes>
+								<Tabs
+									activeKeyOverride={
+										params.tab || 'recording'
+									}
+									onChange={(key) => {
+										navigate(
+											`${params.project_id}/settings/${key}`,
+										)
+									}}
+									noHeaderPadding
+									noPadding
+									id="settingsTabs"
+									tabs={[
+										{
+											key: 'recording',
+											title: 'Recording',
+											panelContent: (
+												<>
+													<ExcludedUsersForm />
+													<RageClicksForm />
+													<NetworkRecordingForm />
+												</>
+											),
+										},
+										{
+											key: 'errors',
+											title: 'Errors',
+											panelContent: (
+												<>
+													<ErrorSettingsForm />
+													<SourcemapSettings />
+												</>
+											),
+										},
+										{
+											key: 'general',
+											title: 'General',
+											panelContent: <DangerForm />,
+										},
+									]}
+								/>
+							</Routes>
+						</div>
+					}
 				/>
 			</LeadAlignLayout>
 		</>

@@ -24,7 +24,7 @@ import { MillisToMinutesAndSeconds } from '@util/time'
 import { Menu, message } from 'antd'
 import { H } from 'highlight.run'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 interface Props {
 	comment: ParsedSessionComment
@@ -49,7 +49,8 @@ const SessionCommentHeader = ({
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
 		refetchQueries: [namedOperations.Query.GetSessionComments],
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
+	const location = useLocation()
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 
@@ -120,10 +121,9 @@ const SessionCommentHeader = ({
 						comment?.id,
 					)
 
-					history.replace(
-						`${
-							history.location.pathname
-						}?${urlSearchParams.toString()}`,
+					navigate(
+						`${location.pathname}?${urlSearchParams.toString()}`,
+						{ replace: true },
 					)
 
 					let commentTimestamp = comment.timestamp || 0

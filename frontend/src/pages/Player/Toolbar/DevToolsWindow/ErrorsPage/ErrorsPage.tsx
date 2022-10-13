@@ -2,7 +2,7 @@ import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import Input from '../../../../../components/Input/Input'
@@ -12,17 +12,14 @@ import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard'
 import styles from './ErrorsPage.module.scss'
 import { findLastActiveEventIndex } from './utils/utils'
 
-interface ErrorsPageHistoryState {
-	errorCardIndex: number
-}
-
 const ErrorsPage = React.memo(() => {
 	const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1)
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const [isInteractingWithErrors, setIsInteractingWithErrors] =
 		useState(false)
 	const [filterSearchTerm, setFilterSearchTerm] = useState('')
-	const history = useHistory<ErrorsPageHistoryState>()
+	const navigate = useNavigate()
+	const location = useLocation()
 	const {
 		errors: allErrors,
 		state,
@@ -65,17 +62,15 @@ const ErrorsPage = React.memo(() => {
 		if (virtuoso.current) {
 			// Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
 			if (
-				history.location.state?.errorCardIndex !== undefined &&
+				location.state?.errorCardIndex !== undefined &&
 				state === ReplayerState.Playing
 			) {
-				virtuoso.current.scrollToIndex(
-					history.location.state.errorCardIndex,
-				)
+				virtuoso.current.scrollToIndex(location.state.errorCardIndex)
 			} else {
 				virtuoso.current.scrollToIndex(lastActiveErrorIndex)
 			}
 		}
-	}, [history.location.state?.errorCardIndex, lastActiveErrorIndex, state])
+	}, [location.state?.errorCardIndex, lastActiveErrorIndex, state])
 
 	const errorsToRender = useMemo(() => {
 		if (filterSearchTerm === '') {

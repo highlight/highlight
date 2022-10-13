@@ -10,7 +10,7 @@ import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
 import useSessionStorage from 'react-use/lib/useSessionStorage'
 
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg'
@@ -29,7 +29,7 @@ interface OnboardingStep {
 }
 
 const OnboardingBubble = () => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -91,28 +91,28 @@ const OnboardingBubble = () => {
 			STEPS.push({
 				displayName: 'Install the Highlight SDK',
 				action: () => {
-					history.push(`/${project_id}/setup`)
+					navigate(`/${project_id}/setup`)
 				},
 				completed: data.isIntegrated || false,
 			})
 			STEPS.push({
 				displayName: 'Configure Alerts',
 				action: () => {
-					history.push(`/${project_id}/alerts`)
+					navigate(`/${project_id}/alerts`)
 				},
 				completed: !!data.workspace?.slack_channels,
 			})
 			STEPS.push({
 				displayName: 'Invite your team',
 				action: () => {
-					history.push(`/w/${data.workspace?.id}/team`)
+					navigate(`/w/${data.workspace?.id}/team`)
 				},
 				completed: (data.admins?.length || 0) > 1,
 			})
 			STEPS.push({
 				displayName: 'View your first session',
 				action: () => {
-					history.push(`/${project_id}/sessions`)
+					navigate(`/${project_id}/sessions`)
 				},
 				completed: !!data.projectHasViewedASession || false,
 			})
@@ -120,11 +120,11 @@ const OnboardingBubble = () => {
 				displayName: 'Create your first comment',
 				action: () => {
 					if (data.projectHasViewedASession?.secure_id !== '') {
-						history.push(
+						navigate(
 							`/${project_id}/sessions/${data.projectHasViewedASession?.secure_id}`,
 						)
 					} else {
-						history.push(`/${project_id}/sessions`)
+						navigate(`/${project_id}/sessions`)
 					}
 				},
 				completed: !!data.adminHasCreatedComment || false,
@@ -163,7 +163,7 @@ const OnboardingBubble = () => {
 	}, [
 		data,
 		hasStartedOnboarding,
-		history,
+		navigate,
 		project_id,
 		setHasFinishedOnboarding,
 		startPolling,

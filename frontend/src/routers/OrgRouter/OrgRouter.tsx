@@ -30,7 +30,7 @@ import classNames from 'classnames'
 import Firebase from 'firebase/app'
 import _ from 'lodash'
 import React, { useEffect, useState } from 'react'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { Route, Routes, useMatch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 import {
 	ArrayParam,
@@ -216,7 +216,7 @@ export const ProjectRouter = () => {
 		EmptySessionsSearchParams,
 	)
 
-	const sessionsMatch = useRouteMatch('/:project_id/sessions')
+	const sessionsMatch = useMatch('/:project_id/sessions')
 
 	useEffect(() => {
 		const areAnySearchParamsSet = !_.isEqual(
@@ -358,57 +358,67 @@ export const ProjectRouter = () => {
 						setSearchResultsLoading,
 					}}
 				>
-					<Switch>
-						<Route path="/:project_id/front" exact>
-							<FrontPlugin />
-						</Route>
-						<Route>
-							<Header />
-							{(isLoggedIn ||
-								projectIdRemapped ===
-									DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
-								<Sidebar />
-							)}
-							<div
-								className={classNames(
-									commonStyles.bodyWrapper,
-									{
-										[commonStyles.bannerShown]: showBanner,
-									},
-								)}
-							>
-								{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-								{isLoggedIn && joinableWorkspace ? (
-									<ErrorState
-										shownWithHeader
-										joinableWorkspace={joinableWorkspace}
-									/>
-								) : isLoggedIn && (error || !data?.project) ? (
-									<ErrorState
-										title={'Enter this Workspace?'}
-										message={`
+					<Routes>
+						<Route
+							path="/:project_id/front"
+							element={<FrontPlugin />}
+						/>
+						<Route
+							element={
+								<>
+									<Header />
+									{(isLoggedIn ||
+										projectIdRemapped ===
+											DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
+										<Sidebar />
+									)}
+									<div
+										className={classNames(
+											commonStyles.bodyWrapper,
+											{
+												[commonStyles.bannerShown]:
+													showBanner,
+											},
+										)}
+									>
+										{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+										{isLoggedIn && joinableWorkspace ? (
+											<ErrorState
+												shownWithHeader
+												joinableWorkspace={
+													joinableWorkspace
+												}
+											/>
+										) : isLoggedIn &&
+										  (error || !data?.project) ? (
+											<ErrorState
+												title={'Enter this Workspace?'}
+												message={`
                         Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin. 
+                        Request access and we'll shoot an email to your workspace admin.
                         Alternatively, feel free to make an account!
                         `}
-										shownWithHeader
-										showRequestAccess
-									/>
-								) : (
-									<>
-										{isLoggedIn && !hasFinishedOnboarding && (
+												shownWithHeader
+												showRequestAccess
+											/>
+										) : (
 											<>
-												<OnboardingBubble />
+												{isLoggedIn &&
+													!hasFinishedOnboarding && (
+														<>
+															<OnboardingBubble />
+														</>
+													)}
+												<ApplicationRouter
+													integrated={integrated}
+												/>
 											</>
 										)}
-										<ApplicationRouter
-											integrated={integrated}
-										/>
-									</>
-								)}
-							</div>
-						</Route>
-					</Switch>
+									</div>
+								</>
+							}
+						/>
+					</Routes>
 				</SearchContextProvider>
 			</ApplicationContextProvider>
 		</GlobalContextProvider>

@@ -4,13 +4,13 @@ import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQu
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import Button from '../../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../../components/Loading/Loading'
+import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '../../../../components/Modal/Modal'
 import ModalBody from '../../../../components/ModalBody/ModalBody'
-import { useCreateErrorSegmentMutation } from '../../../../graph/generated/hooks'
+import { useCreateErrorSegmentMutation } from '@graph/hooks'
 import { useErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext'
 import styles from './SegmentButtons.module.scss'
 
@@ -36,7 +36,7 @@ const CreateErrorSegmentModal = ({
 	}>()
 
 	const { searchParams, setExistingParams } = useErrorSearchContext()
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -54,7 +54,7 @@ const CreateErrorSegmentModal = ({
 					r.data?.createErrorSegment?.name as string,
 				)
 			} else {
-				history.push(
+				navigate(
 					`/${project_id}/errors/segment/${r.data?.createErrorSegment?.id}`,
 				)
 			}

@@ -7,13 +7,14 @@ import { useParams } from '@util/react-router/useParams'
 import { Skeleton } from 'antd'
 import classNames from 'classnames/bind'
 import React, { useState } from 'react'
-import { Redirect } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../../Common.module.scss'
 import Button from '../../../components/Button/Button/Button'
 import styles from './DangerForm.module.scss'
 
 export const DangerForm = () => {
+	const navigate = useNavigate()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { loading, data } = useGetProjectQuery({
 		variables: { id: project_id },
@@ -30,7 +31,7 @@ export const DangerForm = () => {
 		deleteProject({ variables: { id: project_id } })
 	}
 	if (deleteData?.deleteProject) {
-		return <Redirect to={`/`} />
+		navigate('/')
 	}
 	return (
 		<>

@@ -10,7 +10,7 @@ import CreateDashboardModal from '@pages/Dashboards/components/CreateDashboardMo
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import alertStyles from '../../../Alerts/Alerts.module.scss'
 
@@ -19,7 +19,7 @@ const DashboardsHomePage = () => {
 	const { loading } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id },
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { dashboards, allAdmins } = useDashboardsContext()
 
 	return (
@@ -64,8 +64,7 @@ const DashboardsHomePage = () => {
 						}
 						onRow={(record) => ({
 							onClick: () => {
-								history.push({
-									pathname: `dashboards/${record.id}`,
+								navigate(`dashboards/${record.id}`, {
 									state: {
 										dashboardName: record.name,
 									},

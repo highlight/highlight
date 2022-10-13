@@ -7,7 +7,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useGetErrorGroupQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import Button from '../../../../../../../components/Button/Button/Button'
 import { ErrorObject } from '../../../../../../../graph/generated/schemas'
@@ -26,7 +26,7 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
 	const { data, loading } = useGetErrorGroupQuery({
 		variables: { secure_id: error.error_group_secure_id },
 	})
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { project_id } = useParams<{ project_id: string }>()
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -105,7 +105,7 @@ const ErrorModal = ({ error, showRequestAlert }: Props) => {
 						trackingId="GoToErrorPageFromSessionErrorModal"
 						type="primary"
 						onClick={() => {
-							history.push(
+							navigate(
 								`/${projectIdRemapped}/errors/${error.error_group_secure_id}`,
 							)
 						}}

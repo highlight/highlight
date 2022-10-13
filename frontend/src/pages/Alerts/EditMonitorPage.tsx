@@ -11,7 +11,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 
@@ -32,7 +32,7 @@ const EditMonitorPage = ({
 	}>()
 	const { slackUrl, loading, alertsPayload } = useAlertsContext()
 	const existingMonitor = id ? findMonitor(id, alertsPayload) : undefined
-	const history = useHistory()
+	const navigate = useNavigate()
 	const [metricToMonitorName, setMetricToMonitorName] = useState<string>()
 	const [monitorName, setMonitorName] = useState('')
 	const [aggregator, setAggregator] = useState<MetricAggregator>(
@@ -119,9 +119,9 @@ const EditMonitorPage = ({
 			alertsPayload !== undefined
 		) {
 			message.error("The monitor you tried viewing doesn't exist")
-			history.push(`/${project_id}/alerts`)
+			navigate(`/${project_id}/alerts`)
 		}
-	}, [alertsPayload, existingMonitor, history, loading, project_id])
+	}, [alertsPayload, existingMonitor, navigate, loading, project_id])
 
 	if (!metricToMonitorName) {
 		return null
@@ -166,7 +166,7 @@ const EditMonitorPage = ({
 						onFormDestructiveAction={async () => {
 							await deleteMonitor()
 							message.success('Monitor deleted!')
-							history.push(`/${project_id}/alerts`)
+							navigate(`/${project_id}/alerts`)
 						}}
 						formDestructiveButtonLabel="Delete"
 						emailSuggestions={emailSuggestions}

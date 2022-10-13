@@ -5,7 +5,7 @@ import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense } from 'react'
 import { Helmet } from 'react-helmet'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import styles from './WorkspaceTabs.module.scss'
 
@@ -27,7 +27,7 @@ const getTitle = (tab: SettingsTab): string => {
 }
 
 export const WorkspaceTabs = () => {
-	const history = useHistory()
+	const navigate = useNavigate()
 
 	const { workspace_id, page_id } = useParams<{
 		workspace_id: string
@@ -49,7 +49,7 @@ export const WorkspaceTabs = () => {
 					noHeaderPadding
 					activeKeyOverride={page_id}
 					onChange={(activeKey) =>
-						history.push(`/w/${workspace_id}/${activeKey}`)
+						navigate(`/w/${workspace_id}/${activeKey}`)
 					}
 					tabs={[
 						{

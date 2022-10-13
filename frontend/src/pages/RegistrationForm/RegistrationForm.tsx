@@ -10,7 +10,7 @@ import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -28,6 +28,7 @@ const HEARD_ABOUT_OPTIONS = [
 ]
 
 const RegistrationForm = () => {
+	const navigate = useNavigate()
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 
 	const [teamSize, setTeamSize] = useState<string>('')
@@ -56,7 +57,7 @@ const RegistrationForm = () => {
 
 	// Redirect to the default page for the workspace
 	if (redirect) {
-		return <Redirect to={`/w/${workspace_id}`} />
+		navigate(`/w/${workspace_id}`)
 	}
 
 	const onSubmit = (e: { preventDefault: () => void }) => {

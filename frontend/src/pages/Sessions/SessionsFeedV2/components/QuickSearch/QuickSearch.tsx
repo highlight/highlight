@@ -13,7 +13,7 @@ import classNames from 'classnames'
 import _ from 'lodash'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import AnimateHeight from 'react-animate-height'
-import { useHistory } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { components, Styles } from 'react-select'
 
 import styles from './QuickSearch.module.scss'
@@ -132,7 +132,7 @@ export const styleProps: Styles<any, false> = {
 }
 
 const QuickSearch = () => {
-	const history = useHistory()
+	const navigate = useNavigate()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -297,7 +297,7 @@ const QuickSearch = () => {
 				isAnd: true,
 				rules: [[getQueryFieldKey(field), 'is', field.value]],
 			})
-			history.push(`/${project_id}/errors`)
+			navigate(`/${project_id}/errors`)
 		} else {
 			let verb = 'is'
 			if (CONTAINS_KEYS.has(field.name) || field.value.startsWith('/')) {
@@ -310,7 +310,7 @@ const QuickSearch = () => {
 					rules: [[getQueryFieldKey(field), verb, field.value]],
 				}),
 			}
-			history.push(`/${project_id}/sessions`)
+			navigate(`/${project_id}/sessions`)
 			setExistingParams(searchParams)
 			setSearchParams(searchParams)
 			setSegmentName(null)

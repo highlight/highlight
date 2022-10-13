@@ -2,7 +2,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
 	useGetSessionCommentsQuery,
@@ -69,7 +69,8 @@ const PlayerCommentCanvas = React.memo(
 			replayer?.wrapper?.getBoundingClientRect().height
 
 		const [muteSessionCommentThread] = useMuteSessionCommentThreadMutation()
-		const history = useHistory()
+		const navigate = useNavigate()
+		const location = useLocation()
 
 		useEffect(() => {
 			const searchParams = new URLSearchParams(location.search)
@@ -96,10 +97,9 @@ const PlayerCommentCanvas = React.memo(
 					},
 				}).then(() => {
 					searchParams.delete(PlayerSearchParameters.muted)
-					history.replace(
-						`${
-							history.location.pathname
-						}?${searchParams.toString()}`,
+					navigate(
+						`${location.pathname}?${searchParams.toString()}`,
+						{ replace: true },
 					)
 
 					message.success(

@@ -22,7 +22,7 @@ import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
-import { Redirect, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
@@ -30,6 +30,7 @@ import Button from '../../components/Button/Button/Button'
 import styles from './NewProject.module.scss'
 
 const NewProjectPage = () => {
+	const navigate = useNavigate()
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const [error, setError] = useState<undefined | string>(undefined)
 	const [name, setName] = useState<string>('')
@@ -115,19 +116,15 @@ const NewProjectPage = () => {
 
 	// When a workspace is created, redirect to the 'create project' page
 	if (isWorkspace && workspaceData?.createWorkspace?.id) {
-		return (
-			<Redirect
-				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
-			/>
-		)
+		navigate(`/w/${workspaceData.createWorkspace.id}/new${search}`)
 	}
 
 	// When a project is created, redirect to the 'project setup' page
 	if (projectData?.createProject?.id) {
 		if (!!next) {
-			return <Redirect to={next} />
+			navigate(next)
 		} else {
-			return <Redirect to={`/${projectData.createProject.id}/setup`} />
+			navigate(`/${projectData.createProject.id}/setup`)
 		}
 	}
 
