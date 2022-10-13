@@ -12,6 +12,21 @@ describe('client recording spec', () => {
 			cy.wait('@PushPayload', { timeout: 30 * 1000 })
 				.its('request.body.variables')
 				.should('have.property', 'resources')
+				.then((resources) => {
+					const parsedResources = JSON.parse(resources).resources
+					const firstResourceKeys = Object.keys(
+						parsedResources[0],
+					).sort()
+
+					expect(firstResourceKeys).to.eql([
+						'encodedBodySize',
+						'initiatorType',
+						'name',
+						'responseEnd',
+						'startTime',
+						'transferSize',
+					])
+				})
 
 			win.eval(`fetch(new URL('https://localhost:3000/index.html'))`)
 			win.eval(
@@ -25,6 +40,9 @@ describe('client recording spec', () => {
 			cy.wait('@PushPayload')
 				.its('request.body.variables')
 				.should('have.property', 'resources')
+				.then((resources) => {
+					expect(resources.length).to.eq(0)
+				})
 		})
 	})
 })
