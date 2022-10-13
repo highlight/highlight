@@ -33,24 +33,13 @@ export const Highlight =
 			try {
 				return (await origHandler(req, res)) as T
 			} catch (e) {
-				console.log('handler caught an error', e)
 				const { secureSessionId, requestId } = processHighlightHeaders()
-				console.log(
-					'secureSessionId:',
-					secureSessionId,
-					'requestId:',
-					requestId,
-				)
 				if (secureSessionId && requestId) {
-					console.log('wrapping error')
 					H.consumeEvent(secureSessionId)
 					if (e instanceof Error) {
-						console.log('consuming error')
 						H.consumeError(e, secureSessionId, requestId)
-						console.log('flushing error')
 						await H.flush()
 					}
-					console.log('done wrapping error')
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
