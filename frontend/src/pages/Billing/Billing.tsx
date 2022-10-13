@@ -517,7 +517,7 @@ const BillingPage = () => {
 				</Route>
 				<Route
 					exact
-					path={`/w/:workspace_id(\\d+)/:page_id(upgrade-plan)`}
+					path={`/w/:workspace_id(\\d+)/:page_id(upgrade-plan)/:etc?`}
 				>
 					<BillingUpgrade />
 				</Route>
