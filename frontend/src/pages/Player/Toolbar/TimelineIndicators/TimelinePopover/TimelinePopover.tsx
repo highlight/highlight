@@ -1,7 +1,6 @@
 import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
-import { ReactComponent as CollectionIcon } from '@icons/Solid/collection.svg'
 import {
 	EventsForTimeline,
 	EventsForTimelineKeys,
@@ -130,13 +129,9 @@ const TimelinePopover = ({ bucket }: Props) => {
 			</div>
 			{!!selectedType ? (
 				<div className={style.infoPanel}>
-					<CollectionIcon
-						className={classNames(
-							style.transitionIcon,
-							style.leftActionIcon,
-						)}
-					/>
-					<span>{selectedTypeName}</span>
+					<span className={style.selectedTypeName}>
+						{selectedTypeName}
+					</span>
 					<div
 						className={classNames(
 							style.rightCounter,
