@@ -161,17 +161,13 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 		}
 	}, [isDragging, zoomAreaPercent])
 
-	const left = dragPercent.left
-	const percentWidth = clamp(
-		dragPercent.right - left,
-		minZoomAreaPercent,
-		100,
-	)
+	const { left, right } = dragPercent
+	const percentWidth = clamp(right - left, minZoomAreaPercent, 100)
 	const isWide = (percentWidth * wrapperWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = !isDragging && left === 0 && percentWidth === 100
+	const isHidden = !isDragging && left === 0 && percentWidth > 99.99
 	return (
 		<div
 			style={{
