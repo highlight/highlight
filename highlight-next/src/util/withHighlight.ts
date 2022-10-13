@@ -4,12 +4,18 @@ import {
 	HIGHLIGHT_REQUEST_HEADER,
 	NodeOptions,
 } from '@highlight-run/node'
-import type { Metric } from '@highlight-run/client'
 
 interface RequestMetadata {
 	secureSessionId: string
 	requestId: string
 }
+
+export declare interface Metric {
+	name: string
+	value: number
+	tags?: { name: string; value: string }[]
+}
+
 export interface HighlightGlobal {
 	__HIGHLIGHT__?: RequestMetadata
 }
