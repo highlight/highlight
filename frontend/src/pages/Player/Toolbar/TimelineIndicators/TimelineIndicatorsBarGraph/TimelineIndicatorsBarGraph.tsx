@@ -108,7 +108,6 @@ const TimelineIndicatorsBarGraph = ({
 	)
 	const adjustedInactivityPeriods: [number, number][] = useMemo(() => {
 		const activeDuration = duration - inactiveDuration
-
 		const targetInactiveDuration =
 			(activeDuration * TARGET_INACTIVE_PERCENTAGE) / 100
 
@@ -119,7 +118,10 @@ const TimelineIndicatorsBarGraph = ({
 		let lengthCut = 0
 		const adjusted = inactivityPeriods.map((interval) => {
 			const fracInactive = interval[1] / inactiveDuration
-			const adjustedLength = fracInactive * targetInactiveDuration
+			const adjustedLength = Math.max(
+				fracInactive * targetInactiveDuration,
+				(activeDuration * TARGET_BUCKET_WIDTH_PERCENT) / 100,
+			)
 
 			const adjustedStart = interval[0] + lengthCut
 			lengthCut += adjustedLength - interval[1]
@@ -200,9 +202,14 @@ const TimelineIndicatorsBarGraph = ({
 					}
 				}
 			}
-			return currTime
+			return clamp(currTime, 0, duration)
 		},
-		[adjustedDuration, adjustedInactivityPeriods, inactivityPeriods],
+		[
+			adjustedDuration,
+			adjustedInactivityPeriods,
+			duration,
+			inactivityPeriods,
+		],
 	)
 
 	const events = useMemo(() => {
@@ -294,8 +301,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	const areaChartMaxBucketCount = useMemo(
 		() => Math.max(...areaChartBuckets.map(({ totalCount }) => totalCount)),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[],
+		[areaChartBuckets],
 	)
 
 	const maxBucketCount = Math.max(
@@ -556,7 +562,11 @@ const TimelineIndicatorsBarGraph = ({
 		0,
 		canvasWidth - viewportWidth,
 	)
-	const leftProgress = relativeLeftX / canvasWidth
+	const leftProgress = clamp(
+		relativeLeftX / canvasWidth,
+		0,
+		1 - 1 / camera.zoom,
+	)
 
 	const rightProgress = clamp(
 		leftProgress + 1 / camera.zoom,
@@ -577,10 +587,12 @@ const TimelineIndicatorsBarGraph = ({
 			left,
 			100,
 		)
-		setZoomAreaPercent({
-			left,
-			right,
-		})
+		if (Number.isFinite(left) && Number.isFinite(right)) {
+			setZoomAreaPercent({
+				left,
+				right,
+			})
+		}
 	}, [
 		duration,
 		leftProgress,
@@ -593,34 +605,41 @@ const TimelineIndicatorsBarGraph = ({
 	const updateCameraFromZoomArea = useCallback(
 		(percent: ZoomAreaPercent) => {
 			const { left, right } = percent
-			let zoom = clamp(100 / (right - left), MIN_ZOOM, maxZoom)
+			const leftProgress = timeToViewportProgress((duration * left) / 100)
+			const rightProgress = clamp(
+				timeToViewportProgress((duration * right) / 100),
+				leftProgress + 1 / Number.MAX_VALUE,
+				1,
+			)
+			let zoom = clamp(
+				1 / (rightProgress - leftProgress),
+				MIN_ZOOM,
+				maxZoom,
+			)
 			const canvasWidth = viewportWidth * zoom
-			let x = (left * canvasWidth) / 100 + TIMELINE_MARGIN
+			let x = leftProgress * canvasWidth + TIMELINE_MARGIN
 			if (x === TIMELINE_MARGIN) {
 				x = 0
 			}
-
-			if (x === 0 && zoom <= 1) {
-				zoom = 1
+			if (zoom < MIN_ZOOM) {
+				zoom = MIN_ZOOM
 			}
 
 			requestAnimationFrame(() => {
 				setCamera({ x, zoom })
 			})
 		},
-		[maxZoom, viewportWidth],
+		[duration, maxZoom, timeToViewportProgress, viewportWidth],
 	)
 
 	useLayoutEffect(() => {
+		const left = Number.isFinite(zoomStart) ? clamp(zoomStart!, 0, 100) : 0
+		const right = Number.isFinite(zoomEnd)
+			? clamp(zoomEnd!, left + 1 / Number.MAX_VALUE, 100)
+			: 100
 		const zoomPercent = {
-			left:
-				zoomStart !== undefined && zoomStart !== null
-					? clamp(zoomStart, 0, 100)
-					: 0,
-			right:
-				zoomEnd !== undefined && zoomEnd !== null
-					? clamp(zoomEnd, 0, 100)
-					: 100,
+			left,
+			right,
 		}
 		setZoomAreaPercent(zoomPercent)
 		updateCameraFromZoomArea(zoomPercent)
@@ -634,8 +653,8 @@ const TimelineIndicatorsBarGraph = ({
 			const { left, right } = zoomAreaPercent
 			const leftTime = (duration * left) / 100
 			const rightTime = (duration * right) / 100
-			const leftAdjusted = timeToViewportProgress(leftTime) * 100
-			const rightAdjusted = timeToViewportProgress(rightTime) * 100
+			const leftAdjusted = timeToViewportProgress(leftTime) * 100 - 5
+			const rightAdjusted = timeToViewportProgress(rightTime) * 100 + 5
 
 			return percents.reduce(
 				(prev, pct) =>
@@ -824,7 +843,7 @@ const TimelineIndicatorsBarGraph = ({
 				)}
 			</div>
 			<div className={style.progressMonitor} ref={progressMonitorRef}>
-				{bucketPercentWidth < 0.5 ? (
+				{100 / areaChartBuckets.length < 0.5 ? (
 					areaChartBuckets
 						.filter((bucket) => bucket.totalCount > 0)
 						.map(({ totalCount, startPercent }, idx) => (
