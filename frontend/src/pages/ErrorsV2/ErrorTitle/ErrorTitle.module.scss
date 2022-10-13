@@ -1,6 +1,7 @@
 .header {
 	display: flex;
 	flex-direction: column;
+	margin-top: var(--space-small);
 	row-gap: var(--size-xSmall);
 	width: 100%;
 

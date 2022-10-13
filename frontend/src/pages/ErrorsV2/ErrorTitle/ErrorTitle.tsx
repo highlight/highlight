@@ -10,15 +10,10 @@ interface Props {
 	errorGroup:
 		| Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
 		| undefined
-	showShareButton?: boolean
 	errorObject?: ErrorObject
 }
 
-const ErrorTitle = ({
-	errorGroup,
-	showShareButton = true,
-	errorObject,
-}: Props) => {
+const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 	const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null)
 
 	const event = errorObject?.event ?? errorGroup?.event
@@ -41,13 +36,6 @@ const ErrorTitle = ({
 
 	return (
 		<header className={styles.header}>
-			<div className={styles.topRow}>
-				{!showShareButton ? (
-					<h3>{headerTextAsJson || headerText}</h3>
-				) : (
-					<h2>{headerTextAsJson || headerText}</h2>
-				)}
-			</div>
 			<div className={styles.secondRow}>
 				{errorGroup?.type && (
 					<Tag
@@ -57,6 +45,10 @@ const ErrorTitle = ({
 						{errorGroup.type}
 					</Tag>
 				)}
+			</div>
+
+			<div className={styles.topRow}>
+				<h3>{headerTextAsJson || headerText}</h3>
 			</div>
 		</header>
 	)
