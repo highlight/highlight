@@ -935,6 +935,16 @@ const HtmlInstructions = ({
 const NextBackendInstructions = () => {
 	return (
 		<>
+			<Section title="Vercel Integration" defaultOpen>
+				<p>
+					If your app runs on Vercel, you can{' '}
+					<a href="https://vercel.com/integrations/highlight/new">
+						install the Highlight integration
+					</a>{' '}
+					to automatically update your environment variables with API
+					keys for source map uploading.
+				</p>
+			</Section>
 			<Section title="Installing the SDK" defaultOpen>
 				<p>
 					Install the
@@ -976,8 +986,8 @@ export const withHighlight = Highlight(highlightOptions);`}
 					/>
 				</p>
 				<p>
-					Wrap each of your route handlers in <code>/api/</code> with
-					Highlight
+					Wrap each of your route handlers in <code>/api/</code> using
+					<code>withHighlight</code>
 				</p>
 				<p>
 					<CodeBlock
@@ -989,6 +999,20 @@ const handler = async (req, res) => {
 };
 
 export default withHighlight(handler);`}
+					/>
+				</p>
+				<p>
+					In <code>next.config.js</code>, use{' '}
+					<code>withHighlightConfig</code> to wrap your config.
+				</p>
+				<p>
+					<CodeBlock
+						language="javascript"
+						text={`import { withHighlightConfig } from "@highlight-run/next";
+
+export default withHighlightConfig({
+	// your next.config.js options here
+})`}
 					/>
 				</p>
 			</Section>
