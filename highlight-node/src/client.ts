@@ -142,6 +142,7 @@ export class Highlight {
 		if (this.errors.length === 0) {
 			return
 		}
+		console.log('flushing errors', this.errors.length)
 		const variables: PushBackendPayloadMutationVariables = {
 			errors: this.errors,
 		}
@@ -151,6 +152,7 @@ export class Highlight {
 		} catch (e) {
 			console.log('highlight-node pushErrors error: ', e)
 		}
+		console.log('done flushing errors')
 	}
 
 	async flushMetrics() {
