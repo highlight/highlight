@@ -49,7 +49,7 @@ func GetWorkspaceMeter(DB *gorm.DB, workspaceID int) (int64, error) {
 			FROM daily_session_counts_view
 			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
 			AND date >= (
-				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
 				WHERE id=?)
 			AND date < (
@@ -69,7 +69,7 @@ func GetProjectMeter(DB *gorm.DB, project *model.Project) (int64, error) {
 			FROM daily_session_counts_view
 			WHERE project_id = ?
 			AND date >= (
-				SELECT COALESCE(billing_period_start, date_trunc('month', now(), 'UTC'))
+				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
 				WHERE id=?)
 			AND date < (
