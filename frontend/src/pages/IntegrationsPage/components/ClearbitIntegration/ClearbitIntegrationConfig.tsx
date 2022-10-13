@@ -79,7 +79,7 @@ const ClearbitIntegrationConfig: React.FC<
 		)
 	}
 	if (redirectToBilling) {
-		return <Redirect to={`/w/${workspaceID}/billing`} />
+		return <Redirect to={`/w/${workspaceID}/upgrade-plan`} />
 	}
 
 	return (

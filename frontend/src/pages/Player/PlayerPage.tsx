@@ -295,7 +295,7 @@ const Player = ({ integrated }: Props) => {
 								session quota. To view it, upgrade your plan.
 							</p>
 							<ButtonLink
-								to={`/w/${currentWorkspace?.id}/billing`}
+								to={`/w/${currentWorkspace?.id}/upgrade-plan`}
 								trackingId="PlayerPageUpgradePlan"
 								className={styles.center}
 							>
