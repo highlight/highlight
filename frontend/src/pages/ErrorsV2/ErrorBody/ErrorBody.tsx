@@ -4,8 +4,6 @@ import { getErrorBody } from '@util/errors/errorUtils'
 import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
 
-import styles from './ErrorBody.module.scss'
-
 interface Props {
 	errorGroup?: Maybe<Pick<ErrorGroup, 'event'>>
 }
@@ -15,11 +13,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	const body = getErrorBody(errorGroup?.event)
 
-	return (
-		<div className={styles.errorBody}>
-			<JsonOrTextCard jsonOrText={body} title={'Body'} />
-		</div>
-	)
+	return <JsonOrTextCard jsonOrText={body} title={'Body'} />
 }
 
 export default ErrorBody

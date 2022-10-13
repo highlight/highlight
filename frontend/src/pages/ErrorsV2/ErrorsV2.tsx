@@ -237,7 +237,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									[styles.hidden]: !showLeftPanel,
 								})}
 							>
-								<div>
+								<div className={styles.errorDetails}>
 									{loading ? (
 										<>
 											<Skeleton
