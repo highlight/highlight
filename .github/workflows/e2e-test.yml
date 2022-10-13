@@ -7,11 +7,12 @@ on:
         paths:
             - '**/package.json'
             - '**/yarn.lock'
-            - 'frontend/**'
-            - 'client/**'
-            - 'firstload/**'
             - '.github/workflows/e2e-test.yml'
+            - 'client/**'
             - 'cypress.config.js'
+            - 'cypress/**'
+            - 'firstload/**'
+            - 'frontend/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
