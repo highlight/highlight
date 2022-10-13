@@ -1,10 +1,9 @@
-import { H } from 'highlight.run'
-import { HighlightPublicInterface } from '@highlight-run/client'
+import { stringify } from './utils'
 
-// Don't run tests for now. Need to move code from firstload to client for backend errors.
-// TODO - delete
 describe('utils', () => {
-	it('does it', () => {
-		expect(true).to.eq(true)
+	it('stringify', () => {
+		const result = stringify(1)
+
+		expect(result).to.eq('1')
 	})
 })
