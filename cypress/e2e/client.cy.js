@@ -40,9 +40,6 @@ describe('client recording spec', () => {
 			cy.wait('@PushPayload')
 				.its('request.body.variables')
 				.should('have.property', 'resources')
-				.then((resources) => {
-					expect(resources.length).to.eq(0)
-				})
 		})
 	})
 })
