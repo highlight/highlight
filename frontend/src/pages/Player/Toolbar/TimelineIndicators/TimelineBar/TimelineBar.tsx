@@ -126,7 +126,6 @@ const TimelineIndicatorsBar = ({
 		<Popover
 			getPopupContainer={getFullScreenPopoverGetPopupContainer}
 			content={<TimelinePopover bucket={bucket} />}
-			// content={<>{popoverContent}</>}
 			align={{
 				overflow: {
 					adjustY: false,

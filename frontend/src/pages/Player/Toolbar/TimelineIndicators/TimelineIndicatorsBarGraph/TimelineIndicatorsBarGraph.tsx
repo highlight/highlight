@@ -38,7 +38,7 @@ const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
 const TARGET_BUCKET_WIDTH_PERCENT = 4
 const MINOR_TICK_COUNT = 3
-const INACTIVE_PERCENTAGE = 10
+const TARGET_INACTIVE_PERCENTAGE = 20
 
 const MIN_ZOOM = 1.0
 
@@ -94,13 +94,6 @@ const TimelineIndicatorsBarGraph = ({
 		setViewportWidth(Math.round(div.offsetWidth) - 2 * TIMELINE_MARGIN)
 	}, [width])
 
-	const roundingBucketSize = pickBucketSize(
-		duration,
-		TARGET_BUCKET_WIDTH_PERCENT,
-	)
-
-	const roundingTimestep = getBucketSizeInMs(roundingBucketSize)
-
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
 			.filter((interval) => !interval.active)
@@ -109,37 +102,32 @@ const TimelineIndicatorsBarGraph = ({
 				interval.endTime - interval.startTime,
 			])
 	}, [sessionIntervals])
+	const inactiveDuration = inactivityPeriods.reduce(
+		(acc, curr) => acc + curr[1],
+		0,
+	)
 	const adjustedInactivityPeriods: [number, number][] = useMemo(() => {
-		const inactiveDuration = inactivityPeriods.reduce(
-			(acc, curr) => acc + curr[1],
-			0,
-		)
-
 		const activeDuration = duration - inactiveDuration
 
-		const adjustedInactiveDuration =
-			(INACTIVE_PERCENTAGE * activeDuration) / 100
+		const targetInactiveDuration =
+			(activeDuration * TARGET_INACTIVE_PERCENTAGE) / 100
 
-		if (inactiveDuration < adjustedInactiveDuration) {
+		if (inactiveDuration <= targetInactiveDuration) {
 			return inactivityPeriods
 		}
 
-		let inactivityAdjustment = 0
+		let lengthCut = 0
 		const adjusted = inactivityPeriods.map((interval) => {
-			const relativePeriod = interval[1] / inactiveDuration
-			const adjustedInactivePeriod =
-				Math.ceil(
-					(relativePeriod * adjustedInactiveDuration) /
-						roundingTimestep,
-				) * roundingTimestep
+			const fracInactive = interval[1] / inactiveDuration
+			const adjustedLength = fracInactive * targetInactiveDuration
 
-			const adjustedStart = interval[0] + inactivityAdjustment
-			inactivityAdjustment += adjustedInactivePeriod - interval[1]
+			const adjustedStart = interval[0] + lengthCut
+			lengthCut += adjustedLength - interval[1]
 
-			return [adjustedStart, adjustedInactivePeriod] as [number, number]
+			return [adjustedStart, adjustedLength] as [number, number]
 		})
 		return adjusted
-	}, [duration, inactivityPeriods, roundingTimestep])
+	}, [duration, inactiveDuration, inactivityPeriods])
 
 	const adjustedDuration = useMemo(() => {
 		const adjustedInactiveDuration = adjustedInactivityPeriods.reduce(
@@ -147,22 +135,8 @@ const TimelineIndicatorsBarGraph = ({
 			0,
 		)
 
-		const inactiveDuration = inactivityPeriods.reduce(
-			(acc, curr) => acc + curr[1],
-			0,
-		)
-
-		const roundedActive =
-			Math.ceil((duration - inactiveDuration) / roundingTimestep) *
-			roundingTimestep
-
-		return roundedActive + adjustedInactiveDuration
-	}, [
-		adjustedInactivityPeriods,
-		duration,
-		inactivityPeriods,
-		roundingTimestep,
-	])
+		return duration - inactiveDuration + adjustedInactiveDuration
+	}, [adjustedInactivityPeriods, duration, inactiveDuration])
 
 	const timeToViewportProgress = useCallback(
 		(currTime: number) => {
@@ -170,32 +144,29 @@ const TimelineIndicatorsBarGraph = ({
 			if (inactivityPeriods.length > 0) {
 				let idx = 0
 				while (idx < inactivityPeriods.length) {
-					const inactivePeriod = inactivityPeriods[idx]
-					if (currTime > inactivePeriod[0] + inactivePeriod[1]) {
-						adjustedTime +=
-							adjustedInactivityPeriods[idx][1] -
-							inactivePeriod[1]
+					const inactive = inactivityPeriods[idx]
+					const adjustedInactive = adjustedInactivityPeriods[idx]
+					if (currTime > inactive[0] + inactive[1]) {
+						adjustedTime += adjustedInactive[1] - inactive[1]
 						idx++
 					} else {
 						break
 					}
 				}
 				if (idx < inactivityPeriods.length) {
-					const inactivePeriod = inactivityPeriods[idx]
-					const adjustedInactivePeriod =
-						adjustedInactivityPeriods[idx]
+					const inactive = inactivityPeriods[idx]
+					const adjustedInactive = adjustedInactivityPeriods[idx]
 					if (
-						currTime >= inactivePeriod[0] &&
-						currTime <= inactivePeriod[0] + inactivePeriod[1]
+						currTime >= inactive[0] &&
+						currTime <= inactive[0] + inactive[1]
 					) {
-						const bit = currTime - inactivePeriod[0]
-						const scale =
-							adjustedInactivePeriod[1] / inactivePeriod[1]
-						adjustedTime += bit * scale - bit
+						const seen = currTime - inactive[0]
+						adjustedTime -= seen
+						adjustedTime +=
+							(adjustedInactive[1] * seen) / inactive[1]
 					}
 				}
 			}
-
 			return adjustedTime / adjustedDuration
 		},
 		[adjustedDuration, adjustedInactivityPeriods, inactivityPeriods],
@@ -208,8 +179,9 @@ const TimelineIndicatorsBarGraph = ({
 				let idx = 0
 				while (idx < adjustedInactivityPeriods.length) {
 					const adjusted = adjustedInactivityPeriods[idx]
+					const original = inactivityPeriods[idx]
 					if (adjustedTime > adjusted[0] + adjusted[1]) {
-						currTime += inactivityPeriods[idx][1] - adjusted[1]
+						currTime += original[1] - adjusted[1]
 						idx++
 					} else {
 						break
@@ -320,8 +292,10 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}, [camera.zoom, duration, events, selectedTimelineAnnotationTypes])
 
-	const areaChartMaxBucketCount = Math.max(
-		...areaChartBuckets.map(({ totalCount }) => totalCount),
+	const areaChartMaxBucketCount = useMemo(
+		() => Math.max(...areaChartBuckets.map(({ totalCount }) => totalCount)),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[],
 	)
 
 	const maxBucketCount = Math.max(
@@ -582,37 +556,51 @@ const TimelineIndicatorsBarGraph = ({
 		0,
 		canvasWidth - viewportWidth,
 	)
-	const leftProgress = (width * relativeLeftX) / canvasWidth
+	const leftProgress = relativeLeftX / canvasWidth
 
-	// the same reasoning applies to camera.zoom
-	const relativeZoom = canvasWidth / (viewportWidth + 2 * TIMELINE_MARGIN)
-	const rightProgress = clamp(leftProgress + width / relativeZoom, 1, width)
+	const rightProgress = clamp(
+		leftProgress + 1 / camera.zoom,
+		1 / camera.zoom,
+		1,
+	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 
 	useLayoutEffect(() => {
+		const left = clamp(
+			(viewportProgressToTime(leftProgress) / duration) * 100,
+			0,
+			100,
+		)
+		const right = clamp(
+			(viewportProgressToTime(rightProgress) / duration) * 100,
+			left,
+			100,
+		)
 		setZoomAreaPercent({
-			left: clamp((100 * leftProgress) / width, 0, 100),
-			right: clamp((100 * rightProgress) / width, 0, 100),
+			left,
+			right,
 		})
-	}, [leftProgress, rightProgress, setZoomAreaPercent, width])
+	}, [
+		duration,
+		leftProgress,
+		rightProgress,
+		setZoomAreaPercent,
+		viewportProgressToTime,
+		width,
+	])
 
-	const zoomAdjustmentFactor = relativeZoom / camera.zoom
 	const updateCameraFromZoomArea = useCallback(
 		(percent: ZoomAreaPercent) => {
 			const { left, right } = percent
-			let zoom = clamp(
-				100 / (right - left) / zoomAdjustmentFactor,
-				MIN_ZOOM,
-				maxZoom,
-			)
+			let zoom = clamp(100 / (right - left), MIN_ZOOM, maxZoom)
 			const canvasWidth = viewportWidth * zoom
 			let x = (left * canvasWidth) / 100 + TIMELINE_MARGIN
 			if (x === TIMELINE_MARGIN) {
 				x = 0
 			}
 
-			if (x === 0 && zoom <= 1 / zoomAdjustmentFactor) {
+			if (x === 0 && zoom <= 1) {
 				zoom = 1
 			}
 
@@ -620,7 +608,7 @@ const TimelineIndicatorsBarGraph = ({
 				setCamera({ x, zoom })
 			})
 		},
-		[maxZoom, viewportWidth, zoomAdjustmentFactor],
+		[maxZoom, viewportWidth],
 	)
 
 	useLayoutEffect(() => {
@@ -644,13 +632,18 @@ const TimelineIndicatorsBarGraph = ({
 	const isVisible = useCallback(
 		(...percents: number[]) => {
 			const { left, right } = zoomAreaPercent
+			const leftTime = (duration * left) / 100
+			const rightTime = (duration * right) / 100
+			const leftAdjusted = timeToViewportProgress(leftTime) * 100
+			const rightAdjusted = timeToViewportProgress(rightTime) * 100
 
 			return percents.reduce(
-				(prev, pct) => prev || (left <= pct && pct <= right),
+				(prev, pct) =>
+					prev || (leftAdjusted <= pct && pct <= rightAdjusted),
 				false,
 			)
 		},
-		[zoomAreaPercent],
+		[duration, timeToViewportProgress, zoomAreaPercent],
 	)
 	const ticks = useMemo(() => {
 		let size = pickBucketSize(
@@ -1119,7 +1112,6 @@ function buildViewportEventBuckets(
 	const filteredEvents = events.filter(({ eventType }) =>
 		selectedTimelineAnnotationTypes.includes(eventType),
 	)
-
 	for (const event of filteredEvents) {
 		const { eventType, timestamp, identifier } = event
 		const adjustedTimestamp =
