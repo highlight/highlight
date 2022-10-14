@@ -1,7 +1,7 @@
 {
 	"name": "@highlight-run/client",
 	"private": true,
-	"version": "1.3.3",
+	"version": "1.3.4",
 	"description": "rollup setup for writing a javascript library and making it available as script or npm package",
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
