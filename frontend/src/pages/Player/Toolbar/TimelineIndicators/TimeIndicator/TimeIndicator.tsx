@@ -76,7 +76,9 @@ const TimeIndicator = ({
 	const textWidth = textRef.current?.getBoundingClientRect().width || 0
 	return (
 		<div
-			className={style.timeIndicator}
+			className={classNames(style.timeIndicator, {
+				[style.timeIndicatorMoving]: !isDragging,
+			})}
 			style={{
 				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
 			}}
