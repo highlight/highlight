@@ -17,6 +17,10 @@ func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, gro
 		URL:            getErrorsURL(errorAlert, group),
 	}
 
+	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+		return nil
+	}
+
 	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
 	if err != nil {
 		return err
@@ -79,6 +83,10 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 		AvatarURL:      avatarUrl,
 	}
 
+	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+		return nil
+	}
+
 	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
 	if err != nil {
 		return err
@@ -112,6 +120,10 @@ func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAler
 		VisitedURL:     visitedUrl,
 	}
 
+	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+		return nil
+	}
+
 	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
 	if err != nil {
 		return err
@@ -128,5 +140,8 @@ func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAler
 	}
 
 	return nil
+}
 
+func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {
+	return workspace.DiscordGuildId != nil
 }
