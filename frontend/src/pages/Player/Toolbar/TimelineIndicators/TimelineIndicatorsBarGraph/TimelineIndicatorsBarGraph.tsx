@@ -649,16 +649,12 @@ const TimelineIndicatorsBarGraph = ({
 	)
 	const ticks = useMemo(() => {
 		const size = pickBucketSize(
-			activeDuration / camera.zoom,
+			adjustedDuration / camera.zoom,
 			100 / TARGET_TICK_COUNT,
 		)
 		const mainTickInMs = getBucketSizeInMs(size)
 
-		const virtualCanvasWidth = (canvasWidth * duration) / canvasDuration
-
-		const timestep = (mainTickInMs / duration) * virtualCanvasWidth
 		const numTicks = Math.ceil(duration / mainTickInMs)
-		const minorStep = timestep / (MINOR_TICK_COUNT + 1)
 
 		const tickProps: TimelineTickProps[] = []
 
@@ -666,7 +662,7 @@ const TimelineIndicatorsBarGraph = ({
 		const estimateTextOffset = (text: string) => text.length * 3
 		for (let idx = 0; idx <= numTicks; ++idx) {
 			timestamp = mainTickInMs * idx
-			const left = idx * timestep
+			const left = timeToProgress(timestamp) * canvasWidth
 			let text = formatTimeAsAlphanum(timestamp)
 			if (timestamp === 0) {
 				if (duration > 60_000) {
@@ -718,7 +714,7 @@ const TimelineIndicatorsBarGraph = ({
 							[style.timeTickMinor]: !isMid,
 							[style.timeTickMid]: isMid,
 						}),
-						left: left + (minorIdx + 1) * minorStep,
+						left: timeToProgress(timestamp) * canvasWidth,
 						timestamp,
 					})
 				}
@@ -729,7 +725,6 @@ const TimelineIndicatorsBarGraph = ({
 		const numInactiveTicks: { [idx: number]: number } = {}
 		const belongsToInactive: { [idx: number]: number } = {}
 		if (inactivityPeriods.length > 0) {
-			const adjustment = 0
 			let tickIdx = 0
 			let inactiveIdx = 0
 			while (
@@ -746,7 +741,6 @@ const TimelineIndicatorsBarGraph = ({
 
 				if (left <= right) {
 					if (tick.className.includes(style.timeTickMajor)) {
-						tick.left = timeToProgress(tick.timestamp) * canvasWidth
 						belongsToInactive[tickIdx] = inactiveIdx
 						numInactiveTicks[inactiveIdx] =
 							numInactiveTicks[inactiveIdx] >= 0
@@ -765,8 +759,7 @@ const TimelineIndicatorsBarGraph = ({
 			}
 			for (; tickIdx < tickProps.length; ++tickIdx) {
 				const tick = tickProps[tickIdx]
-				tick.left =
-					timeToProgress(tick.timestamp + adjustment) * canvasWidth
+				tick.left = timeToProgress(tick.timestamp) * canvasWidth
 
 				if (tick.className.includes(style.timeTickMark)) {
 					tick.left -= estimateTextOffset(tick.text || '')
@@ -796,9 +789,8 @@ const TimelineIndicatorsBarGraph = ({
 				</span>
 			))
 	}, [
-		activeDuration,
+		adjustedDuration,
 		camera.zoom,
-		canvasDuration,
 		canvasWidth,
 		duration,
 		inactivityPeriods,

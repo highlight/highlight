@@ -46,9 +46,9 @@ export function formatTimeAsAlphanum(millis: number) {
 	if (parts.h && parts.m === 30 && !parts.s) {
 		return `${parts.h}.5h`
 	}
-	return (
-		(parts.h && !parts.m && !parts.s ? `${parts.h}h` : '') +
-		(parts.m && !parts.s ? `${parts.m}m` : '') +
-		(parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0' : '')
-	)
+	return [
+		parts.h && !parts.m && !parts.s ? `${parts.h}h` : '',
+		parts.m ? `${parts.m}m` : '',
+		parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0' : '',
+	].join(' ')
 }
