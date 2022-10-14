@@ -134,6 +134,8 @@ const TimelineIndicatorsBarGraph = ({
 	const roundingTimestep = getBucketSizeInMs(
 		pickBucketSize(adjustedDuration, TARGET_BUCKET_WIDTH_PERCENT),
 	)
+	// canvasDuration is only used to make bucketing with margins work;
+	// canvasWidth = alpha * canvasDuration for some constant alpha
 	const canvasDuration =
 		Math.ceil(adjustedDuration / roundingTimestep) * roundingTimestep
 
@@ -637,35 +639,35 @@ const TimelineIndicatorsBarGraph = ({
 			const leftPct = clamp(left - marginProgress * 100, 0, 100)
 			const rightPct = clamp(right + marginProgress * 100, 0, 100)
 
-			return percents.reduce(
-				(prev, pct) => prev || (leftPct <= pct && pct <= rightPct),
-				false,
-			)
+			return percents.reduce((prev, pct) => {
+				pct = Math.max(pct, 0)
+				return prev || (leftPct <= pct && pct <= rightPct)
+			}, false)
 		},
 		[viewportWidth, zoomAreaPercent],
 	)
 	const ticks = useMemo(() => {
 		let size = pickBucketSize(
-			activeDuration / camera.zoom,
+			duration / camera.zoom,
 			100 / TARGET_TICK_COUNT,
 		)
 		// do Math.ceil to have 1 second as the min tick
 		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
-		const numTicks = Math.ceil(activeDuration / mainTickInMs)
 
-		const virtualCanvasWidth = canvasWidth
+		const virtualCanvasWidth = (canvasWidth * duration) / canvasDuration
 
-		const step = (mainTickInMs / activeDuration) * virtualCanvasWidth
-		const minorStep = step / (MINOR_TICK_COUNT + 1)
+		const timestep = (mainTickInMs / duration) * virtualCanvasWidth
+		const numTicks = Math.ceil(duration / mainTickInMs)
+		const minorStep = timestep / (MINOR_TICK_COUNT + 1)
 
 		const tickProps: TimelineTickProps[] = []
 
-		let tickTime = 0
+		let timestamp = 0
 		for (let idx = 0; idx <= numTicks; ++idx) {
-			tickTime = mainTickInMs * idx
-			const left = idx * step
-			const text = formatTimeAsAlphanum(tickTime)
+			timestamp = mainTickInMs * idx
+			const left = idx * timestep
+			const text = formatTimeAsAlphanum(timestamp)
 			const fontWeight = text.includes('h')
 				? 500
 				: text.includes('m')
@@ -677,6 +679,7 @@ const TimelineIndicatorsBarGraph = ({
 				left: left - text.length * 3,
 				fontWeight,
 				text,
+				timestamp,
 			})
 
 			const borderLeftWidth = text.includes('h')
@@ -684,10 +687,12 @@ const TimelineIndicatorsBarGraph = ({
 				: text.includes('m')
 				? 0.75
 				: 0.5
+
 			tickProps.push({
 				className: classNames(style.timeTick, style.timeTickMajor),
 				left,
 				borderLeftWidth,
+				timestamp,
 			})
 
 			if (idx !== numTicks) {
@@ -698,22 +703,59 @@ const TimelineIndicatorsBarGraph = ({
 				) {
 					const mid = MINOR_TICK_COUNT / 2
 					const isMid = minorIdx === mid && MINOR_TICK_COUNT % 2 === 1
+					timestamp += mainTickInMs / (MINOR_TICK_COUNT + 1)
 					tickProps.push({
 						className: classNames(style.timeTick, {
 							[style.timeTickMinor]: !isMid,
 							[style.timeTickMid]: isMid,
 						}),
 						left: left + (minorIdx + 1) * minorStep,
+						timestamp,
 					})
 				}
 			}
 		}
 
-		const adjustment = 0
-		for (const tick of tickProps) {
+		const toDelete = new Set<number>()
+		if (inactivityPeriods.length > 0) {
+			const adjustment = 0
+			let tickIdx = 0
+			let inactiveIdx = 0
+			while (
+				tickIdx < tickProps.length &&
+				inactiveIdx < inactivityPeriods.length
+			) {
+				const tick = tickProps[tickIdx]
+				const original = inactivityPeriods[inactiveIdx]
+				const left = Math.max(tick.timestamp, original[0])
+				const right = Math.min(
+					tick.timestamp,
+					original[0] + original[1],
+				)
+
+				if (left <= right) {
+					if (tick.className.includes(style.timeTickMajor)) {
+						tick.left = timeToProgress(tick.timestamp) * canvasWidth
+					} else {
+						toDelete.add(tickIdx)
+					}
+				}
+
+				if (tick.timestamp < original[0] + original[1]) {
+					tickIdx++
+				} else {
+					inactiveIdx++
+				}
+			}
+			for (; tickIdx < tickProps.length; ++tickIdx) {
+				const tick = tickProps[tickIdx]
+				tick.left =
+					timeToProgress(tick.timestamp + adjustment) * canvasWidth
+			}
 		}
 
 		return tickProps
+			.filter((_, idx) => !toDelete.has(idx))
 			.filter(
 				({ left }) =>
 					isVisible((100 * left) / canvasWidth + 1) ||
@@ -724,7 +766,16 @@ const TimelineIndicatorsBarGraph = ({
 					{text}
 				</span>
 			))
-	}, [activeDuration, camera.zoom, canvasWidth, isVisible])
+	}, [
+		adjustedDuration,
+		camera.zoom,
+		canvasDuration,
+		canvasWidth,
+		duration,
+		inactivityPeriods,
+		isVisible,
+		timeToProgress,
+	])
 
 	const shownTime = isDragging ? dragTime : time
 	const canvasProgress = timeToProgress(shownTime)
@@ -1122,6 +1173,7 @@ function buildViewportEventBuckets(
 }
 
 interface TimelineTickProps {
+	timestamp: number
 	left: number
 	className: string
 	text?: string
