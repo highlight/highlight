@@ -5,6 +5,7 @@
 		"target": "ESNext",
 		"module": "esnext",
 		"moduleResolution": "node",
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"jsx": "react-jsx"
 	}
 }

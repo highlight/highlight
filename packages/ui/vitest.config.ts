@@ -1,6 +1,11 @@
 import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 
 export default defineConfig({
-	plugins: [vanillaExtractPlugin()],
+	test: {
+		environment: 'happy-dom',
+		globals: true,
+	},
+	plugins: [react(), vanillaExtractPlugin()],
 })

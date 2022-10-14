@@ -1,6 +1,7 @@
 {
+	"extends": "../../tsconfig",
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
-		"jsx": "react-jsx"
+		"types": ["vitest/globals"]
 	}
 }

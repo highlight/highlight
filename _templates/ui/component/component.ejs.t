@@ -5,7 +5,7 @@ to: packages/ui/src/<%= name %>.tsx
 import React from 'react'
 
 interface Props {
-	variant: 'primary' | 'secondary'
+	variant?: 'primary' | 'secondary'
 }
 
 const <%= name %>: React.FC<React.PropsWithChildren<Props>> = ({ variant }) => {

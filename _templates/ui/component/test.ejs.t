@@ -3,7 +3,8 @@ to: packages/ui/src/<%= name %>.test.tsx
 ---
 
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+
+import <%= name %> from './<%= name %>'
 
 describe('<%= name %>', async () => {
 	it('exists', () => {
