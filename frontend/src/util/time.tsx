@@ -64,5 +64,7 @@ export function formatTimeAsAlphanum(
 			: '',
 		parts.m && (!parts.s || !!showDetails) ? `${parts.m}m` : '',
 		parts.s ? `${parts.s}s` : !parts.h && !parts.m ? `0${zeroUnit}` : '',
-	].join(' ')
+	]
+		.join(' ')
+		.trim()
 }

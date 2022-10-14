@@ -727,6 +727,16 @@ const TimelineIndicatorsBarGraph = ({
 		const numInactiveTicks: { [idx: number]: number } = {}
 		const belongsToInactive: { [idx: number]: number } = {}
 		let isAfterInactivity = false
+
+		const formatAfterInactivity = (tick: TimelineTickProps) => {
+			const oldText = tick.text || ''
+			tick.text = formatTimeAsAlphanum(tick.timestamp, {
+				showDetails: true,
+			})
+			tick.left +=
+				estimateTextOffset(oldText) - estimateTextOffset(tick.text)
+		}
+
 		if (inactivityPeriods.length > 0) {
 			let tickIdx = 0
 			let inactiveIdx = 0
@@ -758,10 +768,8 @@ const TimelineIndicatorsBarGraph = ({
 						isAfterInactivity &&
 						tick.className.includes(style.timeTickMark)
 					) {
-						tick.text = formatTimeAsAlphanum(tick.timestamp, {
-							showDetails: true,
-						})
 						isAfterInactivity = false
+						formatAfterInactivity(tick)
 					}
 				}
 
@@ -775,9 +783,7 @@ const TimelineIndicatorsBarGraph = ({
 				for (; tickIdx < tickProps.length; ++tickIdx) {
 					const tick = tickProps[tickIdx]
 					if (tick.className.includes(style.timeTickMark)) {
-						tick.text = formatTimeAsAlphanum(tick.timestamp, {
-							showDetails: true,
-						})
+						formatAfterInactivity(tick)
 						isAfterInactivity = false
 						break
 					}
