@@ -14,7 +14,7 @@ import (
 func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, group *model.ErrorGroup, workspace *model.Workspace) error {
 	errorAlertPayload := alertintegrations.ErrorAlertPayload{
 		UserIdentifier: sessionObj.Identifier,
-		URL:            getErrorsUrl(errorAlert, group),
+		URL:            getErrorsURL(errorAlert, group),
 	}
 
 	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)

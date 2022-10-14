@@ -23,7 +23,7 @@ type NewSessionAlertPayload struct {
 	VisitedURL     *string
 }
 
-type IAlertIntegration interface {
+type BaseAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
 	PostErrorAlert(channelId string, payload ErrorAlertPayload) error
 	SendNewUserAlert(channelId string, payload NewUserAlertPayload) error

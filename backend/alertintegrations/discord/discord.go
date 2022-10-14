@@ -11,9 +11,10 @@ import (
 type DiscordBot struct {
 	Session *discordgo.Session
 	GuildID string
+	alertintegrations.BaseAlertIntegration
 }
 
-func NewDiscordBot(guildId string) (alertintegrations.IAlertIntegration, error) {
+func NewDiscordBot(guildId string) (*DiscordBot, error) {
 	var (
 		ok               bool
 		DiscordBotSecret string
