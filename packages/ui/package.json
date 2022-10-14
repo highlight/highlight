@@ -5,8 +5,8 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "build-storybook",
-		"g": "hygen",
 		"dev": "start-storybook -p 6006",
+		"g": "hygen",
 		"lint": "eslint",
 		"test": "vitest"
 	},

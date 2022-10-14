@@ -1,5 +1,5 @@
 ---
-to: packages/ui/src/<%= name %>.test.tsx
+to: packages/ui/src/<%= name %>/<%= name %>.test.tsx
 ---
 
 import { render, screen } from '@testing-library/react'
@@ -10,6 +10,6 @@ describe('<%= name %>', async () => {
 	it('exists', () => {
 		render(<<%= name %>>Testing</<%= name %>>)
 
-		screen.findByText('Hello from <%= name %>')
+		screen.findByText('Testing')
 	})
 })
