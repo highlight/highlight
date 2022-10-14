@@ -708,7 +708,7 @@ const TimelineIndicatorsBarGraph = ({
 					minorIdx < MINOR_TICK_COUNT;
 					++minorIdx
 				) {
-					const mid = MINOR_TICK_COUNT / 2
+					const mid = (MINOR_TICK_COUNT - 1) / 2
 					const isMid = minorIdx === mid && MINOR_TICK_COUNT % 2 === 1
 					timestamp += mainTickInMs / (MINOR_TICK_COUNT + 1)
 					tickProps.push({
