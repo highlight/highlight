@@ -1349,9 +1349,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
 				log.Error(e.Wrapf(err, "about to do discord"))
-				// TODO - replace with new session alert
-				err = alerts.SendNewUserAlert(sessionObj, sessionAlert, workspace)
-				if err != nil {
+				if err = alerts.SendNewSessionAlert(sessionObj, sessionAlert, workspace, visitedUrl); err != nil {
 					log.Error(e.Wrapf(err, "error sending alert to discord"))
 				}
 			}
@@ -1879,7 +1877,10 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
-			alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace)
+			if err := alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace); err != nil {
+				log.Error(e.Wrapf(err, "failed sending error alert to integrations (error alert id: %d)", errorAlert.ID))
+			}
+
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
 	})

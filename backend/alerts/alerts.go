@@ -1,9 +1,7 @@
 package alerts
 
 import (
-	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/alertintegrations"
@@ -14,16 +12,9 @@ import (
 )
 
 func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, group *model.ErrorGroup, workspace *model.Workspace) error {
-	frontendURL := os.Getenv("FRONTEND_URI")
-
-	projectId := errorAlert.ProjectID
-	errorGroupId := group.SecureID
-
-	errorUrl := fmt.Sprintf("%s/%d/errors/%s", frontendURL, projectId, errorGroupId)
-
 	errorAlertPayload := alertintegrations.ErrorAlertPayload{
 		UserIdentifier: sessionObj.Identifier,
-		URL:            errorUrl,
+		URL:            getErrorsUrl(errorAlert, group),
 	}
 
 	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
@@ -74,11 +65,6 @@ func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[st
 }
 
 func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, workspace *model.Workspace) error {
-	frontendURL := os.Getenv("FRONTEND_URI")
-
-	projectId := sessionAlert.ProjectID
-
-	url := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, projectId, session.SecureID)
 	sessionUserProperties, err := session.GetUserProperties()
 	if err != nil {
 		return err
@@ -87,7 +73,7 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := alertintegrations.NewUserAlertPayload{
-		SessionURL:     url,
+		SessionURL:     getSessionsURL(sessionAlert, session),
 		UserIdentifier: session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
@@ -108,4 +94,39 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 	}
 
 	return nil
+}
+
+func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAlert, workspace *model.Workspace, visitedUrl *string) error {
+	sessionUserProperties, err := session.GetUserProperties()
+	if err != nil {
+		return err
+	}
+
+	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
+
+	payload := alertintegrations.NewSessionAlertPayload{
+		SessionURL:     getSessionsURL(sessionAlert, session),
+		UserIdentifier: session.Identifier,
+		UserProperties: userProperties,
+		AvatarURL:      avatarUrl,
+		VisitedURL:     visitedUrl,
+	}
+
+	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := sessionAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendNewSessionAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
 }

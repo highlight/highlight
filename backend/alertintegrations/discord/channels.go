@@ -86,3 +86,46 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrati
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
 	return err
 }
+
+func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload alertintegrations.NewSessionAlertPayload) error {
+	embed := &discordgo.MessageEmbed{
+		Type:  "rich",
+		Title: "View Session",
+		URL:   payload.SessionURL,
+	}
+
+	userFields := []*discordgo.MessageEmbedField{}
+
+	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
+		userFields = append(userFields, &discordgo.MessageEmbedField{
+			Name:   "Visited URL",
+			Value:  *payload.VisitedURL,
+			Inline: true,
+		})
+	}
+
+	for key, value := range payload.UserProperties {
+		userFields = append(userFields, &discordgo.MessageEmbedField{
+			Name:   key,
+			Value:  value,
+			Inline: true,
+		})
+	}
+	embed.Fields = userFields
+
+	if payload.AvatarURL != nil {
+		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+			URL: *payload.AvatarURL,
+		}
+	}
+
+	messageSend := discordgo.MessageSend{
+		Content: fmt.Sprintf("Highlight New User Alert: %s", payload.UserIdentifier),
+		Embeds: []*discordgo.MessageEmbed{
+			embed,
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+	return err
+}
