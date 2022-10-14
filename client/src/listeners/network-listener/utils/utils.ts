@@ -27,6 +27,11 @@ type GroupedPerformanceTimings = {
 	fetch: { [url: string]: PerformanceResourceTiming[] }
 }
 
+type PerformanceResourceTimingWithRequestResponsePair =
+	PerformanceResourceTiming & {
+		requestResponsePair: RequestResponsePair
+	}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
@@ -95,16 +100,14 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 		}
 	}
 
-	performanceTimings = []
+	let result: PerformanceResourceTimingWithRequestResponsePair[] = []
 	for (let type in groupedPerformanceTimings) {
 		for (let url in groupedPerformanceTimings[type]) {
-			performanceTimings = performanceTimings.concat(
-				groupedPerformanceTimings[type][url],
-			)
+			result = result.concat(groupedPerformanceTimings[type][url])
 		}
 	}
 
-	return performanceTimings
+	return result
 		.sort((a, b) => a.fetchStart - b.fetchStart)
 		.map((performanceTiming) => {
 			performanceTiming.toJSON = function () {
@@ -115,6 +118,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 					name: this.name,
 					transferSize: this.transferSize,
 					encodedBodySize: this.encodedBodySize,
+					requestResponsePairs: this.requestResponsePair,
 				}
 			}
 			return performanceTiming
