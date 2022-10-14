@@ -976,7 +976,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						// have to re-render on every tick
 						updateLastActiveString(Date.now() - LIVE_MODE_DELAY)
 					}
-					setTimerId(requestAnimationFrame(frameAction))
+					setTimerId(window.setTimeout(frameAction, 400))
 				},
 				[
 					{
