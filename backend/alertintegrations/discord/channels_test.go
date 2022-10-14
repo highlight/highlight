@@ -1,13 +1,15 @@
 package discord
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFilterChannels(t *testing.T) {
+	assert := assert.New(t)
+
 	channel := &discordgo.Channel{
 		ID:      "1024085566784032803",
 		GuildID: "1024085566784032800",
@@ -27,7 +29,5 @@ func TestFilterChannels(t *testing.T) {
 	got := filterChannels(channels)
 	want := []*discordgo.Channel{channel}
 
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v want %v", got, want)
-	}
+	assert.Equal(got, want)
 }
