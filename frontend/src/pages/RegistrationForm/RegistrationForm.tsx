@@ -56,7 +56,7 @@ const RegistrationForm = () => {
 
 	// Redirect to the default page for the workspace
 	if (redirect) {
-		return <Navigate to={`/w/${workspace_id}`} />
+		return <Navigate to={`/w/${workspace_id}`} replace />
 	}
 
 	const onSubmit = (e: { preventDefault: () => void }) => {

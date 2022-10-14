@@ -47,5 +47,5 @@ export const ProjectRedirectionRouter = () => {
 
 	// Redirects the user to their default project when the URL does not have an project ID.
 	// For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
-	return <Navigate to={redirectTo} />
+	return <Navigate to={redirectTo} replace />
 }

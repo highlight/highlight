@@ -49,6 +49,7 @@ export const WorkspaceRedirectionRouter = () => {
 
 	return (
 		<Navigate
+			replace
 			to={
 				firstProjectIdInWorkspace
 					? `/${firstProjectIdInWorkspace}${removeWorkspaceId(

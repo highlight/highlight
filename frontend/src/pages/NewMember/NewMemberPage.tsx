@@ -35,7 +35,7 @@ const NewMemberPage = () => {
 	}, [adminLoading, setLoadingState])
 
 	if (adminAdded) {
-		return <Navigate to={`/w/${workspace_id}`} />
+		return <Navigate to={`/w/${workspace_id}`} replace />
 	}
 
 	return (

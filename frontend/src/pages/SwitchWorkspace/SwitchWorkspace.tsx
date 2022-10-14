@@ -127,9 +127,14 @@ const SwitchWorkspace = () => {
 
 	if (shouldRedirect) {
 		if (actionText === 'Join') {
-			return <Navigate to={`/w/${selectedWorkspace}/switch${search}`} />
+			return (
+				<Navigate
+					to={`/w/${selectedWorkspace}/switch${search}`}
+					replace
+				/>
+			)
 		}
-		return <Navigate to={`/w/${selectedWorkspace}${search}`} />
+		return <Navigate to={`/w/${selectedWorkspace}${search}`} replace />
 	}
 
 	return (

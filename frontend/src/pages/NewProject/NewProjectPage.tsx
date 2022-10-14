@@ -117,6 +117,7 @@ const NewProjectPage = () => {
 	if (isWorkspace && workspaceData?.createWorkspace?.id) {
 		return (
 			<Navigate
+				replace
 				to={`/w/${workspaceData.createWorkspace.id}/new${search}`}
 			/>
 		)
@@ -125,9 +126,14 @@ const NewProjectPage = () => {
 	// When a project is created, redirect to the 'project setup' page
 	if (projectData?.createProject?.id) {
 		if (!!next) {
-			return <Navigate to={next} />
+			return <Navigate to={next} replace />
 		} else {
-			return <Navigate to={`/${projectData.createProject.id}/setup`} />
+			return (
+				<Navigate
+					to={`/${projectData.createProject.id}/setup`}
+					replace
+				/>
+			)
 		}
 	}
 

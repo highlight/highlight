@@ -55,7 +55,9 @@ const AlertsRouter = () => {
 					<Route path={`new`} element={<NewAlertPage />} />
 					<Route
 						path={`monitor`}
-						element={<Navigate to={`/${project_id}/alerts`} />}
+						element={
+							<Navigate to={`/${project_id}/alerts`} replace />
+						}
 					/>
 					<Route
 						path={`new/monitor`}

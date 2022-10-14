@@ -30,7 +30,7 @@ export const DangerForm = () => {
 		deleteProject({ variables: { id: project_id } })
 	}
 	if (deleteData?.deleteProject) {
-		return <Navigate to={'/'} />
+		return <Navigate to={'/'} replace />
 	}
 	return (
 		<>

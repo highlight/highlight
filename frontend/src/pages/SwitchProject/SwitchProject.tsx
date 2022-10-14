@@ -48,11 +48,11 @@ const SwitchProject = () => {
 	)
 
 	if (shouldRedirect) {
-		return <Navigate to={`/${selectedProject}/setup`} />
+		return <Navigate to={`/${selectedProject}/setup`} replace />
 	}
 
 	if (data?.workspace && data?.workspace?.projects.length < 1) {
-		return <Navigate to={`/w/${workspace_id}/new`} />
+		return <Navigate to={`/w/${workspace_id}/new`} replace />
 	}
 
 	return (

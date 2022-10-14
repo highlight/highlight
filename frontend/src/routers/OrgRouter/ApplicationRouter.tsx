@@ -37,15 +37,15 @@ const ApplicationRouter = ({ integrated }: Props) => {
 				/>
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (
-					<Route path="/*" element={<Navigate to="/" />} />
+					<Route path="/*" element={<Navigate to="/" replace />} />
 				)}
 				<Route
 					path="/*"
 					element={
 						integrated ? (
-							<Navigate to={`/${project_id}/home`} />
+							<Navigate to={`/${project_id}/home`} replace />
 						) : (
-							<Navigate to={`/${project_id}/setup`} />
+							<Navigate to={`/${project_id}/setup`} replace />
 						)
 					}
 				/>

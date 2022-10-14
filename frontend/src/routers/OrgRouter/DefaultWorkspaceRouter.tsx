@@ -37,7 +37,7 @@ export const DefaultWorkspaceRouter = () => {
 
 	const firstWorkspace = data.workspaces[0]
 	if (firstWorkspace?.id.length) {
-		return <Navigate to={`/w/${firstWorkspace.id}/${page_id}`} />
+		return <Navigate to={`/w/${firstWorkspace.id}/${page_id}`} replace />
 	}
 	return <LoginForm />
 }
