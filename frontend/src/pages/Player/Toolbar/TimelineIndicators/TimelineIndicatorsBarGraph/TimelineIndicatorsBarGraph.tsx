@@ -667,7 +667,16 @@ const TimelineIndicatorsBarGraph = ({
 		for (let idx = 0; idx <= numTicks; ++idx) {
 			timestamp = mainTickInMs * idx
 			const left = idx * timestep
-			const text = formatTimeAsAlphanum(timestamp)
+			let text = formatTimeAsAlphanum(timestamp)
+			if (timestamp === 0) {
+				if (duration > 60_000) {
+					text += 'm'
+				} else if (duration > 60 * 60_000) {
+					text += 'h'
+				} else {
+					text += 's'
+				}
+			}
 			const fontWeight = text.includes('h')
 				? 500
 				: text.includes('m')
