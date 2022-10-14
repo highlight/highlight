@@ -1,5 +1,5 @@
 ---
-to: packages/ui/src/<%= name %>/<%= name %>.stories.mdx
+to: packages/ui/src/components/<%= name %>/<%= name %>.stories.mdx
 ---
 
 import { Canvas, Meta, Story } from '@storybook/addon-docs';
