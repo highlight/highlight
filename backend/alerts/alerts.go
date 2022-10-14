@@ -61,8 +61,9 @@ func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[st
 
 		if key == "Avatar" {
 			_, err := url.ParseRequestURI(value)
-			if err != nil {
+			if err == nil {
 				avatarURL = &value
+				continue
 			}
 		}
 
