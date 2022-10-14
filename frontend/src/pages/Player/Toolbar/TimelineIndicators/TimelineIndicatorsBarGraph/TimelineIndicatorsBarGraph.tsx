@@ -983,6 +983,22 @@ const TimelineIndicatorsBarGraph = ({
 						width: canvasWidth + 2 * TIMELINE_MARGIN,
 					}}
 				/>
+				{adjustedInactivityPeriods.map((inactive, idx) => {
+					const width = (inactive[1] / canvasDuration) * canvasWidth
+					const left =
+						TIMELINE_MARGIN +
+						(inactive[0] / canvasDuration) * canvasWidth
+					return (
+						<span
+							key={idx}
+							className={style.inactivityPeriodMask}
+							style={{
+								width,
+								left,
+							}}
+						></span>
+					)
+				})}
 				<div className={style.eventHistogram} ref={canvasRef}>
 					<div className={style.eventTrack}>
 						{buckets

@@ -145,3 +145,11 @@
 .timeTickMinor {
 	height: 2px;
 }
+
+.inactivityPeriodMask {
+	background-color: var(--color-neutral-50);
+	bottom: 0;
+	height: 100%;
+	position: absolute;
+	z-index: -1;
+}
