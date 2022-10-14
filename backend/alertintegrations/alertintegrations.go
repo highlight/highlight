@@ -3,9 +3,12 @@ package alertintegrations
 import "github.com/bwmarrin/discordgo"
 
 type ErrorAlertPayload struct {
-	ErrorsCount    int
-	URL            string
+	ErrorCount     int64
+	ErrorTitle     string
+	SessionURL     string
+	ErrorURL       string
 	UserIdentifier string
+	VisitedURL     *string
 }
 
 type NewUserAlertPayload struct {

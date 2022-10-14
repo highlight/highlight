@@ -11,10 +11,19 @@ import (
 	"golang.org/x/text/language"
 )
 
-func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, group *model.ErrorGroup, workspace *model.Workspace) error {
+func SendErrorAlert(session *model.Session, errorAlert *model.ErrorAlert, group *model.ErrorGroup, workspace *model.Workspace, errorCount int64, visitedUrl *string) error {
+	errorTitle := group.Event
+	if len(group.Event) > 50 {
+		errorTitle = group.Event[:50] + "..."
+	}
+
 	errorAlertPayload := alertintegrations.ErrorAlertPayload{
-		UserIdentifier: sessionObj.Identifier,
-		URL:            getErrorsURL(errorAlert, group),
+		ErrorCount:     errorCount,
+		ErrorTitle:     errorTitle,
+		UserIdentifier: session.Identifier,
+		ErrorURL:       getErrorsURL(errorAlert, group),
+		SessionURL:     getSessionsURL(errorAlert.ProjectID, session),
+		VisitedURL:     visitedUrl,
 	}
 
 	if !isWorkspaceIntegratedWithDiscord(*workspace) {
@@ -77,7 +86,7 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := alertintegrations.NewUserAlertPayload{
-		SessionURL:     getSessionsURL(sessionAlert, session),
+		SessionURL:     getSessionsURL(sessionAlert.ProjectID, session),
 		UserIdentifier: session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
@@ -113,7 +122,7 @@ func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAler
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := alertintegrations.NewSessionAlertPayload{
-		SessionURL:     getSessionsURL(sessionAlert, session),
+		SessionURL:     getSessionsURL(sessionAlert.ProjectID, session),
 		UserIdentifier: session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,

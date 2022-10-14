@@ -30,7 +30,7 @@ func TestGetUserPropertiesAndAvatar(t *testing.T) {
 	assert.Equal(*gotAvatarUrl, "https://avatars.githubusercontent.com/u/58678?s=400&u=7c36caa1c654bb31406de7bd33e710fa7ddee9e6&v=4")
 }
 
-func TestGetUserPropertiesAndAvatarInvalidAvatarURL(t *testing.T) {
+func TestGetUserPropertiesAndAvatar_InvalidAvatarURL(t *testing.T) {
 	assert := assert.New(t)
 	userProperties := map[string]string{
 		"Avatar": "invalid_url",

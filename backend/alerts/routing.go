@@ -14,9 +14,7 @@ func getErrorsURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup) st
 	return fmt.Sprintf("%s/%d/errors/%s", frontendURL, projectId, errorGroup.SecureID)
 }
 
-func getSessionsURL(sessionAlert *model.SessionAlert, session *model.Session) string {
-	projectId := sessionAlert.ProjectID
+func getSessionsURL(projectID int, session *model.Session) string {
 	frontendURL := os.Getenv("FRONTEND_URI")
-
-	return fmt.Sprintf("%s/%d/sessions/%s", frontendURL, projectId, session.SecureID)
+	return fmt.Sprintf("%s/%d/sessions/%s", frontendURL, projectID, session.SecureID)
 }

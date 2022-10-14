@@ -32,19 +32,36 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 }
 
 func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
+	userFields := []*discordgo.MessageEmbedField{}
+
+	userFields = append(userFields, &discordgo.MessageEmbedField{
+		Name:   "Session",
+		Value:  payload.SessionURL,
+		Inline: true,
+	})
+
+	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
+		userFields = append(userFields, &discordgo.MessageEmbedField{
+			Name:   "Visited URL",
+			Value:  *payload.VisitedURL,
+			Inline: true,
+		})
+	}
+
+	userFields = append(userFields, &discordgo.MessageEmbedField{
+		Name:   "User",
+		Value:  payload.UserIdentifier,
+		Inline: true,
+	})
+
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorsCount),
+		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorCount),
 		Embeds: []*discordgo.MessageEmbed{
 			{
-				Type:  "rich",
-				Title: "Error Title",
-				URL:   payload.URL,
-				Fields: []*discordgo.MessageEmbedField{
-					{
-						Name:  "User",
-						Value: payload.UserIdentifier,
-					},
-				},
+				Type:   "rich",
+				Title:  payload.ErrorTitle,
+				URL:    payload.ErrorURL,
+				Fields: userFields,
 			},
 		},
 	}

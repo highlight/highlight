@@ -1877,7 +1877,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
-			if err := alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace); err != nil {
+			if err := alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace, numErrors, &visitedUrl); err != nil {
 				log.Error(e.Wrapf(err, "failed sending error alert to integrations (error alert id: %d)", errorAlert.ID))
 			}
 
