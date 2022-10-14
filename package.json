@@ -9,6 +9,7 @@
 		"concurrently": "^6.5.1"
 	},
 	"workspaces": [
+		"packages/*",
 		"client",
 		"experiments/chrome-extension",
 		"experiments/performance",

@@ -1,0 +1,34 @@
+{
+	"name": "@highlight/ui",
+	"private": true,
+	"packageManager": "yarn@3.2.3",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "build-storybook",
+		"g": "hygen",
+		"dev": "vite",
+		"lint": "eslint",
+		"test": "vitest",
+		"storybook": "start-storybook -p 6006"
+	},
+	"dependencies": {
+		"@vanilla-extract/css": "^1.9.1",
+		"@vanilla-extract/sprinkles": "^1.5.0",
+		"react": "^18.2.0",
+		"react-aria": "^3.20.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.19.3",
+		"@mdx-js/react": "^1.6.22",
+		"@testing-library/react": "^13.4.0",
+		"@typescript-eslint/eslint-plugin": "^5.40.0",
+		"@typescript-eslint/parser": "^5.40.0",
+		"babel-loader": "^8.2.5",
+		"eslint": "^8.25.0",
+		"eslint-plugin-jsx-a11y": "^6.6.1",
+		"eslint-plugin-storybook": "^0.6.6",
+		"prettier": "^2.7.1",
+		"vite": "^3.1.8",
+		"vitest": "^0.24.3"
+	}
+}
