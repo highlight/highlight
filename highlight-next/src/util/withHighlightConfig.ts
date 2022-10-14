@@ -96,23 +96,23 @@ export const withHighlightConfig = (
 				destination: 'https://pub.highlight.run',
 			}
 
-			if (Array.isArray(re)) {
+			if (!re || Array.isArray(re)) {
 				return {
 					beforeFiles: defaultOpts.uploadSourceMaps
 						? [sourcemapRewrite]
 						: [],
 					afterFiles: defaultOpts.configureHighlightProxy
-						? re.concat(highlightRewrite)
+						? (re ?? []).concat(highlightRewrite)
 						: [],
 					fallback: [],
 				}
 			} else {
 				return {
 					beforeFiles: defaultOpts.uploadSourceMaps
-						? re.beforeFiles.concat(sourcemapRewrite)
+						? (re.beforeFiles ?? []).concat(sourcemapRewrite)
 						: re.beforeFiles,
 					afterFiles: defaultOpts.configureHighlightProxy
-						? re.afterFiles.concat(highlightRewrite)
+						? (re.afterFiles ?? []).concat(highlightRewrite)
 						: re.afterFiles,
 					fallback: re.fallback,
 				}
