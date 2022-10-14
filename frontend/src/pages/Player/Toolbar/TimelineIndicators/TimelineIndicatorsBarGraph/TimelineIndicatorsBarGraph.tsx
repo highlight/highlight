@@ -31,6 +31,7 @@ interface Props {
 }
 
 const TARGET_TICK_COUNT = 7
+const TICK_ZOOM_DISCOUNT = 1.4
 const CONTAINER_BORDER_WIDTH = 1
 const TARGET_BUCKET_WIDTH_PERCENT = 6.2
 const MINOR_TICK_COUNT = 3
@@ -649,7 +650,7 @@ const TimelineIndicatorsBarGraph = ({
 	)
 	const ticks = useMemo(() => {
 		const size = pickBucketSize(
-			adjustedDuration / camera.zoom,
+			(adjustedDuration * TICK_ZOOM_DISCOUNT) / camera.zoom,
 			100 / TARGET_TICK_COUNT,
 		)
 		const mainTickInMs = getBucketSizeInMs(size)
@@ -663,16 +664,17 @@ const TimelineIndicatorsBarGraph = ({
 		for (let idx = 0; idx <= numTicks; ++idx) {
 			timestamp = mainTickInMs * idx
 			const left = timeToProgress(timestamp) * canvasWidth
-			let text = formatTimeAsAlphanum(timestamp)
+			let zeroUnit = ''
 			if (timestamp === 0) {
 				if (duration > 60_000) {
-					text += 'm'
+					zeroUnit = 'm'
 				} else if (duration > 60 * 60_000) {
-					text += 'h'
+					zeroUnit = 'h'
 				} else {
-					text += 's'
+					zeroUnit = 's'
 				}
 			}
+			const text = formatTimeAsAlphanum(timestamp, { zeroUnit })
 			const fontWeight = text.includes('h')
 				? 500
 				: text.includes('m')
@@ -724,6 +726,7 @@ const TimelineIndicatorsBarGraph = ({
 		const toDelete = new Set<number>()
 		const numInactiveTicks: { [idx: number]: number } = {}
 		const belongsToInactive: { [idx: number]: number } = {}
+		let isAfterInactivity = false
 		if (inactivityPeriods.length > 0) {
 			let tickIdx = 0
 			let inactiveIdx = 0
@@ -749,6 +752,17 @@ const TimelineIndicatorsBarGraph = ({
 					} else {
 						toDelete.add(tickIdx)
 					}
+					isAfterInactivity = true
+				} else {
+					if (
+						isAfterInactivity &&
+						tick.className.includes(style.timeTickMark)
+					) {
+						tick.text = formatTimeAsAlphanum(tick.timestamp, {
+							showDetails: true,
+						})
+						isAfterInactivity = false
+					}
 				}
 
 				if (tick.timestamp < original[0] + original[1]) {
@@ -757,16 +771,19 @@ const TimelineIndicatorsBarGraph = ({
 					inactiveIdx++
 				}
 			}
-			for (; tickIdx < tickProps.length; ++tickIdx) {
-				const tick = tickProps[tickIdx]
-				tick.left = timeToProgress(tick.timestamp) * canvasWidth
-
-				if (tick.className.includes(style.timeTickMark)) {
-					tick.left -= estimateTextOffset(tick.text || '')
+			if (isAfterInactivity) {
+				for (; tickIdx < tickProps.length; ++tickIdx) {
+					const tick = tickProps[tickIdx]
+					if (tick.className.includes(style.timeTickMark)) {
+						tick.text = formatTimeAsAlphanum(tick.timestamp, {
+							showDetails: true,
+						})
+						isAfterInactivity = false
+						break
+					}
 				}
 			}
 		}
-
 		return tickProps
 			.filter(
 				(_, idx) =>
