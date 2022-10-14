@@ -32,11 +32,12 @@ interface Props {
 
 const TARGET_TICK_COUNT = 7
 const CONTAINER_BORDER_WIDTH = 1
-const TARGET_BUCKET_WIDTH_PERCENT = 4
+const TARGET_BUCKET_WIDTH_PERCENT = 6.2
 const MINOR_TICK_COUNT = 3
 const TARGET_INACTIVE_PERCENTAGE = 10
 const ZOOM_SCALING_FACTOR = 100
 const MIN_ZOOM = 1.0
+const INACTIVE_TICK_FREQUENCY = 7
 
 export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & {
@@ -647,12 +648,10 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth, zoomAreaPercent],
 	)
 	const ticks = useMemo(() => {
-		let size = pickBucketSize(
-			duration / camera.zoom,
+		const size = pickBucketSize(
+			activeDuration / camera.zoom,
 			100 / TARGET_TICK_COUNT,
 		)
-		// do Math.ceil to have 1 second as the min tick
-		size = { ...size, multiple: Math.ceil(size.multiple) }
 		const mainTickInMs = getBucketSizeInMs(size)
 
 		const virtualCanvasWidth = (canvasWidth * duration) / canvasDuration
@@ -664,6 +663,7 @@ const TimelineIndicatorsBarGraph = ({
 		const tickProps: TimelineTickProps[] = []
 
 		let timestamp = 0
+		const estimateTextOffset = (text: string) => text.length * 3
 		for (let idx = 0; idx <= numTicks; ++idx) {
 			timestamp = mainTickInMs * idx
 			const left = idx * timestep
@@ -676,7 +676,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			tickProps.push({
 				className: style.timeTickMark,
-				left: left - text.length * 3,
+				left: left - estimateTextOffset(text),
 				fontWeight,
 				text,
 				timestamp,
@@ -717,6 +717,8 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		const toDelete = new Set<number>()
+		const numInactiveTicks: { [idx: number]: number } = {}
+		const belongsToInactive: { [idx: number]: number } = {}
 		if (inactivityPeriods.length > 0) {
 			const adjustment = 0
 			let tickIdx = 0
@@ -736,6 +738,11 @@ const TimelineIndicatorsBarGraph = ({
 				if (left <= right) {
 					if (tick.className.includes(style.timeTickMajor)) {
 						tick.left = timeToProgress(tick.timestamp) * canvasWidth
+						belongsToInactive[tickIdx] = inactiveIdx
+						numInactiveTicks[inactiveIdx] =
+							numInactiveTicks[inactiveIdx] >= 0
+								? numInactiveTicks[inactiveIdx] + 1
+								: 1
 					} else {
 						toDelete.add(tickIdx)
 					}
@@ -751,11 +758,24 @@ const TimelineIndicatorsBarGraph = ({
 				const tick = tickProps[tickIdx]
 				tick.left =
 					timeToProgress(tick.timestamp + adjustment) * canvasWidth
+
+				if (tick.className.includes(style.timeTickMark)) {
+					tick.left -= estimateTextOffset(tick.text || '')
+				}
 			}
 		}
 
 		return tickProps
-			.filter((_, idx) => !toDelete.has(idx))
+			.filter(
+				(_, idx) =>
+					!toDelete.has(idx) &&
+					(belongsToInactive[idx] !== undefined
+						? numInactiveTicks[belongsToInactive[idx]] >
+						  INACTIVE_TICK_FREQUENCY
+							? idx % INACTIVE_TICK_FREQUENCY === 0
+							: true
+						: true),
+			)
 			.filter(
 				({ left }) =>
 					isVisible((100 * left) / canvasWidth + 1) ||
@@ -767,7 +787,7 @@ const TimelineIndicatorsBarGraph = ({
 				</span>
 			))
 	}, [
-		adjustedDuration,
+		activeDuration,
 		camera.zoom,
 		canvasDuration,
 		canvasWidth,
@@ -1110,7 +1130,7 @@ export interface EventBucket {
 
 function buildViewportEventBuckets(
 	events: SessionEvent[],
-	viewportDuration: number,
+	canvasDuration: number,
 	timestep: number,
 	selectedTimelineAnnotationTypes: string[],
 	viewportProgressToTime: (progress: number) => number,
@@ -1119,12 +1139,12 @@ function buildViewportEventBuckets(
 	if (
 		!selectedTimelineAnnotationTypes.length ||
 		!events.length ||
-		viewportDuration <= 0
+		canvasDuration <= 0
 	) {
 		return []
 	}
 
-	const numBuckets = Math.ceil(viewportDuration / timestep)
+	const numBuckets = Math.ceil(canvasDuration / timestep)
 	const eventBuckets: EventBucket[] = Array.from(
 		{ length: numBuckets },
 		(_, idx) => {
@@ -1153,7 +1173,7 @@ function buildViewportEventBuckets(
 	for (const event of filteredEvents) {
 		const { eventType, timestamp, identifier } = event
 		const adjustedTimestamp =
-			timeToViewportProgress(timestamp) * viewportDuration
+			timeToViewportProgress(timestamp) * canvasDuration
 		const bucketId = clamp(
 			Math.floor(adjustedTimestamp / timestep),
 			0,
