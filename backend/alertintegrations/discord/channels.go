@@ -32,7 +32,7 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
-func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) (*discordgo.Message, error) {
+func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
 	messageSend := discordgo.MessageSend{
 		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorsCount),
 		Embeds: []*discordgo.MessageEmbed{
@@ -50,7 +50,8 @@ func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegration
 		},
 	}
 
-	return bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+	return err
 }
 
 func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrations.NewUserAlertPayload) error {

@@ -24,7 +24,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
-	"github.com/highlight-run/highlight/backend/alert-integrations/discord"
+	"github.com/highlight-run/highlight/backend/alertintegrations/discord"
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/apolloio"
 	Email "github.com/highlight-run/highlight/backend/email"
