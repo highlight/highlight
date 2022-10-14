@@ -1,3 +1,5 @@
+const { mergeConfig } = require('vite')
+
 module.exports = {
 	stories: ['../src/**/*.stories.*'],
 	addons: [
@@ -11,5 +13,12 @@ module.exports = {
 	},
 	features: {
 		storyStoreV7: true,
+	},
+	async viteFinal(config) {
+		return mergeConfig(config, {
+			plugins: [
+				require('@vanilla-extract/vite-plugin').vanillaExtractPlugin(),
+			],
+		})
 	},
 }

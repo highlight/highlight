@@ -15,6 +15,6 @@ import <%= name %> from './<%= name %>';
 
 <Canvas>
 	<Story name="default">
-		<<%= name %> />
+		<<%= name %>>Hello!</<%= name %>>
 	</Story>
 </Canvas>

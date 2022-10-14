@@ -1,12 +1,20 @@
 {
 	"root": true,
+	"env": {
+		"browser": true,
+		"node": true
+	},
 	"extends": [
 		"eslint:recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
 		"plugin:@typescript-eslint/recommended",
 		"plugin:jsx-a11y/recommended"
 	],
+	"files": ["**/*.ts", "**/*.tsx"],
 	"parser": "@typescript-eslint/parser",
-	"parserOptions": { "project": ["./tsconfig.json"] },
+	"parserOptions": {
+		"project": ["./tsconfig.json"]
+	},
 	"plugins": ["@typescript-eslint"],
 	"rules": {}
 }
