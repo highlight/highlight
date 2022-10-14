@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/alertintegrations"
 )
 
 func filterChannels(channels []*discordgo.Channel) []*discordgo.Channel {
@@ -31,7 +31,7 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
-func (bot *DiscordBot) PostErrorMessage(channelId string, payload alerts.ErrorAlertPayload) (*discordgo.Message, error) {
+func (bot *DiscordBot) PostErrorMessage(channelId string, payload alertintegrations.ErrorAlertPayload) (*discordgo.Message, error) {
 	messageSend := discordgo.MessageSend{
 		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorsCount),
 		Embeds: []*discordgo.MessageEmbed{

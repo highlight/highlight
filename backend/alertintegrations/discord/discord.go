@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/highlight-run/highlight/backend/alertintegrations"
 	"github.com/pkg/errors"
 )
 
@@ -12,7 +13,7 @@ type DiscordBot struct {
 	GuildID string
 }
 
-func NewDiscordBot(guildId string) (*DiscordBot, error) {
+func NewDiscordBot(guildId string) (alertintegrations.IAlertIntegration, error) {
 	var (
 		ok               bool
 		DiscordBotSecret string

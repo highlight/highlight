@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/highlight-run/highlight/backend/alerts/discord"
+	"github.com/highlight-run/highlight/backend/alertintegrations/discord"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )

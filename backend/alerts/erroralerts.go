@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/highlight-run/highlight/backend/alertintegrations"
 	"github.com/highlight-run/highlight/backend/alertintegrations/discord"
 	"github.com/highlight-run/highlight/backend/model"
 )
@@ -16,7 +17,7 @@ func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, gro
 
 	errorUrl := fmt.Sprintf("%s/%d/errors/%s", frontendURL, projectId, errorGroupId)
 
-	errorAlertPayload := ErrorAlertPayload{
+	errorAlertPayload := alertintegrations.ErrorAlertPayload{
 		UserIdentifier: sessionObj.Identifier,
 		URL:            errorUrl,
 	}
@@ -28,6 +29,12 @@ func SendErrorAlert(sessionObj *model.Session, errorAlert *model.ErrorAlert, gro
 
 	channels := errorAlert.DiscordChannelsToNotify
 	for _, channel := range channels {
-		bot.PostErrorMessage(channel.ID, errorAlertPayload)
+		err = bot.PostErrorAlert(channel.ID, errorAlertPayload)
+
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
