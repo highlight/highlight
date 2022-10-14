@@ -1348,7 +1348,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
-				alerts.SendNewUserAlert(sessionObj, sessionAlert, workspace)
+				log.Error(e.Wrapf(err, "about to do discord"))
+				// TODO - replace with new session alert
+				err = alerts.SendNewUserAlert(sessionObj, sessionAlert, workspace)
+				if err != nil {
+					log.Error(e.Wrapf(err, "error sending alert to discord"))
+				}
 			}
 		})
 	}()
@@ -1674,6 +1679,11 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+			err = alerts.SendNewUserAlert(session, sessionAlert, workspace)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error sending alert to discord"))
+			}
+
 		}
 	}()
 	return nil

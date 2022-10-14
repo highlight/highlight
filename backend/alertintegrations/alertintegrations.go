@@ -10,7 +10,9 @@ type ErrorAlertPayload struct {
 
 type NewUserAlertPayload struct {
 	SessionURL     string
+	UserIdentifier string
 	UserProperties map[string]string
+	AvatarURL      *string
 }
 
 type IAlertIntegration interface {

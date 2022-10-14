@@ -2,7 +2,6 @@ package discord
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alertintegrations"
@@ -55,42 +54,32 @@ func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegration
 }
 
 func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrations.NewUserAlertPayload) error {
-	var thumbnail *discordgo.MessageEmbedThumbnail
+	embed := &discordgo.MessageEmbed{
+		Type:  "rich",
+		Title: "View Session",
+		URL:   payload.SessionURL,
+	}
+
 	userFields := []*discordgo.MessageEmbedField{}
-
 	for key, value := range payload.UserProperties {
-		if key == "" {
-			continue
-		}
-		if value == "" {
-			value = "_empty_"
-		}
-
-		if key == "Avatar" {
-			_, err := url.ParseRequestURI(value)
-			if err != nil {
-				thumbnail = &discordgo.MessageEmbedThumbnail{
-					URL: value,
-				}
-			}
-		}
-
 		userFields = append(userFields, &discordgo.MessageEmbedField{
-			Name:  key,
-			Value: value,
+			Name:   key,
+			Value:  value,
+			Inline: true,
 		})
+	}
+	embed.Fields = userFields
+
+	if payload.AvatarURL != nil {
+		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
+			URL: *payload.AvatarURL,
+		}
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: "Highlight New User Alert",
+		Content: fmt.Sprintf("Highlight New User Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:      "rich",
-				Title:     "View Session",
-				URL:       payload.SessionURL,
-				Fields:    userFields,
-				Thumbnail: thumbnail,
-			},
+			embed,
 		},
 	}
 
