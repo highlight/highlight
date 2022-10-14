@@ -2,11 +2,13 @@
 to: packages/ui/src/<%= name %>.test.tsx
 ---
 
-# TODO: Setup RTL and a basic assertion.
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
-describe('<%= name %>', () => {
+describe('<%= name %>', async () => {
 	it('exists', () => {
-		// Please write some tests here or delete me :)
-		expect(true).toBe(false)
+		render(<<%= name %>>Testing</<%= name %>>)
+
+		screen.findByText('Hello from <%= name %>')
 	})
 })

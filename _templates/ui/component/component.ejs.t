@@ -4,11 +4,13 @@ to: packages/ui/src/<%= name %>.tsx
 
 import React from 'react'
 
-interface Props {}
+interface Props {
+	variant: 'primary' | 'secondary'
+}
 
-const <%= name %>: React.FC<React.PropsWithChildren<Props>> = (props) => {
+const <%= name %>: React.FC<React.PropsWithChildren<Props>> = ({ variant }) => {
 	return (
-		<div>Hello from <%= name %>!</div>
+		<div>Hello from {variant} <%= name %>!</div>
 	)
 }
 
