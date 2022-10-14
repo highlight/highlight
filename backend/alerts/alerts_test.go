@@ -8,9 +8,10 @@ import (
 func TestGetUserPropertiesAndAvatar(t *testing.T) {
 	userProperties := map[string]string{
 		"Key":             "value",
-		"":                "ValueWIthoutKey",
+		"":                "ValueWithoutKey",
 		"KeyWithoutvalue": "",
 		"Camelkey":        "value",
+		"spaces key":      "value",
 		"Avatar":          "https://avatars.githubusercontent.com/u/58678?s=400&u=7c36caa1c654bb31406de7bd33e710fa7ddee9e6&v=4",
 	}
 
@@ -19,13 +20,14 @@ func TestGetUserPropertiesAndAvatar(t *testing.T) {
 		"Key":             "value",
 		"Keywithoutvalue": "_empty_",
 		"Camelkey":        "value",
+		"Spaces Key":      "value",
 	}
-	wantAvatarUrl := "https://avatars.githubusercontent.com/u/58678?s=400&u=7c36caa1c654bb31406de7bd33e710fa7ddee9e6&v=4"
 
 	if !reflect.DeepEqual(gotUserProperties, wantUserProperties) {
 		t.Errorf("got %v want %v", gotUserProperties, wantUserProperties)
 	}
 
+	wantAvatarUrl := "https://avatars.githubusercontent.com/u/58678?s=400&u=7c36caa1c654bb31406de7bd33e710fa7ddee9e6&v=4"
 	if *gotAvatarUrl != wantAvatarUrl {
 		t.Errorf("got %v want %v", *gotAvatarUrl, wantAvatarUrl)
 	}

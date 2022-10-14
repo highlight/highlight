@@ -62,7 +62,8 @@ func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[st
 		if key == "Avatar" {
 			_, err := url.ParseRequestURI(value)
 			if err == nil {
-				avatarURL = &value
+				valueCopy := strings.Clone(value)
+				avatarURL = &valueCopy
 				continue
 			}
 		}
