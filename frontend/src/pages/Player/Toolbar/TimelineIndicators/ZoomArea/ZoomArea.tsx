@@ -167,7 +167,7 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = !isDragging && left === 0 && percentWidth > 99.99
+	const isHidden = !isDragging && percentWidth === 100
 	return (
 		<div
 			style={{

@@ -49,6 +49,6 @@ export function formatTimeAsAlphanum(millis: number) {
 	return (
 		(parts.h && !parts.m && !parts.s ? `${parts.h}h` : '') +
 		(parts.m && !parts.s ? `${parts.m}m` : '') +
-		(parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0s' : '')
+		(parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0' : '')
 	)
 }
