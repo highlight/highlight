@@ -18,21 +18,15 @@ import { Route, Routes, useMatch } from 'react-router-dom'
 
 import NewMemberPage from '../../pages/NewMember/NewMemberPage'
 import InternalRouter from '../InternalRouter/InternalRouter'
-import { ProjectRouter } from '../OrgRouter/OrgRouter'
+import { ProjectRouter } from '../OrgRouter/ProjectRouter'
 import styles from './AppRouter.module.scss'
 
 export const AppRouter = () => {
 	const { isLoggedIn } = useAuthContext()
-	const {
-		params: { project_id },
-	} = useMatch('/:project_id') || {
-		params: { project_id: undefined },
-	}
-	const {
-		params: { workspace_id },
-	} = useMatch('/w/:workspace_id') || {
-		params: { workspace_id: undefined },
-	}
+	const projectMatch = useMatch('/:project_id/*')
+	const projectId = projectMatch?.params.project_id
+	const workspaceMatch = useMatch('/w/:workspace_id/*')
+	const workspaceId = workspaceMatch?.params.workspace_id
 
 	return (
 		<div className={styles.appBody}>
@@ -103,13 +97,13 @@ export const AppRouter = () => {
 					path="/*"
 					element={
 						isLoggedIn ? (
-							workspace_id ? (
-								Number.isInteger(workspace_id) ? (
+							workspaceId ? (
+								Number.isInteger(workspaceId) ? (
 									<WorkspaceRouter />
 								) : (
 									<DefaultWorkspaceRouter />
 								)
-							) : project_id ? (
+							) : projectId ? (
 								<ProjectRouter />
 							) : (
 								<ProjectRedirectionRouter />
