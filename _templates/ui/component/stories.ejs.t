@@ -1,16 +1,17 @@
 ---
-to: packages/ui/src/<%= name %>.docs.mdx
+to: packages/ui/src/<%= name %>.stories.mdx
 ---
 
 import { Canvas, Meta, Story } from '@storybook/addon-docs';
 
 import <%= name %> from './<%= name %>';
 
-
 <Meta
-	title="<%= name %>"
+	title="Components/<%= name %>"
 	component={<%= name %>}
 />
+
+# <%= name %>
 
 <Canvas>
 	<Story name="default">
