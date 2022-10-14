@@ -1348,6 +1348,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+				alerts.SendNewUserAlert(sessionObj, sessionAlert, workspace)
 			}
 		})
 	}()
@@ -1868,7 +1869,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
-			alerts.SendErrorAlert(sessionObj, errorAlert, group)
+			alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace)
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
 	})

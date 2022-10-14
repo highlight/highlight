@@ -2,6 +2,7 @@ package discord
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alertintegrations"
@@ -31,7 +32,7 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
-func (bot *DiscordBot) PostErrorMessage(channelId string, payload alertintegrations.ErrorAlertPayload) (*discordgo.Message, error) {
+func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) (*discordgo.Message, error) {
 	messageSend := discordgo.MessageSend{
 		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorsCount),
 		Embeds: []*discordgo.MessageEmbed{
@@ -50,4 +51,48 @@ func (bot *DiscordBot) PostErrorMessage(channelId string, payload alertintegrati
 	}
 
 	return bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+}
+
+func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrations.NewUserAlertPayload) error {
+	var thumbnail *discordgo.MessageEmbedThumbnail
+	userFields := []*discordgo.MessageEmbedField{}
+
+	for key, value := range payload.UserProperties {
+		if key == "" {
+			continue
+		}
+		if value == "" {
+			value = "_empty_"
+		}
+
+		if key == "Avatar" {
+			_, err := url.ParseRequestURI(value)
+			if err != nil {
+				thumbnail = &discordgo.MessageEmbedThumbnail{
+					URL: value,
+				}
+			}
+		}
+
+		userFields = append(userFields, &discordgo.MessageEmbedField{
+			Name:  key,
+			Value: value,
+		})
+	}
+
+	messageSend := discordgo.MessageSend{
+		Content: "Highlight New User Alert",
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Type:      "rich",
+				Title:     "View Session",
+				URL:       payload.SessionURL,
+				Fields:    userFields,
+				Thumbnail: thumbnail,
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+	return err
 }

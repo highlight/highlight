@@ -8,7 +8,13 @@ type ErrorAlertPayload struct {
 	UserIdentifier string
 }
 
+type NewUserAlertPayload struct {
+	SessionURL     string
+	UserProperties map[string]string
+}
+
 type IAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
 	PostErrorAlert(channelId string, payload ErrorAlertPayload) error
+	SendNewUserAlert(channelId string, payload NewUserAlertPayload) error
 }
