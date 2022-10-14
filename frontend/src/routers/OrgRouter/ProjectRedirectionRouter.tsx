@@ -7,10 +7,9 @@ import {
 	useGetProjectsAndWorkspacesQuery,
 } from '@graph/hooks'
 import React, { useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 
 export const ProjectRedirectionRouter = () => {
-	const navigate = useNavigate()
 	const location = useLocation()
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
 	const { loading: adminAboutYouLoading } = useGetAdminAboutYouQuery({
@@ -48,6 +47,5 @@ export const ProjectRedirectionRouter = () => {
 
 	// Redirects the user to their default project when the URL does not have an project ID.
 	// For example, this allows linking to https://app.highlight.run/sessions for https://app.highlight.run/1/sessions
-	navigate(redirectTo)
-	return null
+	return <Navigate to={redirectTo} />
 }

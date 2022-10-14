@@ -7,10 +7,9 @@ import { useGetWorkspacesQuery } from '@graph/hooks'
 import LoginForm from '@pages/Login/Login'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 export const DefaultWorkspaceRouter = () => {
-	const navigate = useNavigate()
 	const { isLoggedIn } = useAuthContext()
 
 	const { page_id } = useParams<{
@@ -38,7 +37,7 @@ export const DefaultWorkspaceRouter = () => {
 
 	const firstWorkspace = data.workspaces[0]
 	if (firstWorkspace?.id.length) {
-		navigate(`/w/${firstWorkspace.id}/${page_id}`)
+		return <Navigate to={`/w/${firstWorkspace.id}/${page_id}`} />
 	}
 	return <LoginForm />
 }

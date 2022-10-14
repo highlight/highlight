@@ -28,43 +28,42 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			<Routes>
 				{/* These two routes do not require login */}
 				<Route
-					path="/:project_id/sessions/:session_secure_id?"
+					path="/sessions/:session_secure_id?"
 					element={<Player integrated={integrated} />}
 				/>
 				<Route
-					path="/:project_id/errors/:error_secure_id?"
+					path="/errors/:error_secure_id?"
 					element={<ErrorPage integrated={integrated} />}
 				/>
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (
-					<Route
-						path="/:project_id([1-9]+[0-9]*)/*"
-						element={<Navigate to="/" />}
-					/>
+					<Route path="/*" element={<Navigate to="/" />} />
 				)}
 				<Route
-					path="/:project_id/settings"
-					element={<ProjectSettings />}
+					path="/*"
+					element={
+						integrated ? (
+							<Navigate to={`/${project_id}/home`} />
+						) : (
+							<Navigate to={`/${project_id}/setup`} />
+						)
+					}
 				/>
-				<Route path="/:project_id/alerts" element={<AlertsRouter />} />
+				<Route path="/settings" element={<ProjectSettings />} />
+				<Route path="/alerts" element={<AlertsRouter />} />
+				<Route path="/dashboards" element={<DashboardsRouter />} />
+				<Route path="/home" element={<DashboardsRouter />} />
 				<Route
-					path="/:project_id/dashboards"
-					element={<DashboardsRouter />}
-				/>
-				<Route
-					path="/:project_id/home"
-					element={<DashboardsRouter />}
-				/>
-				<Route
-					path="/:project_id/setup"
+					path="/setup"
 					element={<SetupRouter integrated={integrated} />}
 				/>
+				<Route path="/integrations" element={<IntegrationsPage />} />
 				<Route
-					path="/:project_id/integrations/:integration_type?"
+					path="/integrations/:integration_type"
 					element={<IntegrationsPage />}
 				/>
 				<Route
-					path="/:project_id/buttons"
+					path="/buttons"
 					element={
 						<Suspense fallback={null}>
 							<Buttons />
@@ -72,21 +71,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					}
 				/>
 				<Route
-					path="/:project_id/hit-targets"
+					path="/hit-targets"
 					element={
 						<Suspense fallback={null}>
 							<HitTargets />
 						</Suspense>
-					}
-				/>
-				<Route
-					path="/:project_id"
-					element={
-						integrated ? (
-							<Navigate to={`/${project_id}/home`} />
-						) : (
-							<Navigate to={`/${project_id}/setup`} />
-						)
 					}
 				/>
 			</Routes>

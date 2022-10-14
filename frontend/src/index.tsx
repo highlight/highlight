@@ -171,15 +171,15 @@ const App = () => {
 							<Router>
 								<Routes>
 									<Route
-										path="/w/:workspace_id(\d+)/*"
+										path="/w/:workspace_id/*"
 										element={<AuthenticationRoleRouter />}
 									/>
 									<Route
-										path="/:project_id(\d+)/*"
+										path="/:project_id/*"
 										element={<AuthenticationRoleRouter />}
 									/>
 									<Route
-										path="/"
+										path="/*"
 										element={<AuthenticationRoleRouter />}
 									/>
 								</Routes>
@@ -381,15 +381,15 @@ get in contact with us!
 					/>
 					{/* Allow guests to access this route without being asked to log in */}
 					<Route
-						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+						path="/:project_id/sessions/:session_secure_id"
 						element={<AuthAdminRouter />}
 					/>
 					{/* Allow guests to access this route without being asked to log in */}
 					<Route
-						path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
+						path="/:project_id/errors/:error_secure_id"
 						element={<AuthAdminRouter />}
 					/>
-					<Route path="/" element={<LoginForm />} />
+					<Route path="/*" element={<LoginForm />} />
 				</Routes>
 			)}
 		</AuthContextProvider>

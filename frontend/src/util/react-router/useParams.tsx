@@ -14,7 +14,7 @@ export const useParams: typeof ReactRouterUseParams = () => {
 	const matches: ReturnType<typeof ReactRouterUseParams> =
 		ReactRouterUseParams()
 
-	if (matches?.project_id) {
+	if (typeof matches === 'object' && matches?.project_id) {
 		if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
 			return {
 				...matches,

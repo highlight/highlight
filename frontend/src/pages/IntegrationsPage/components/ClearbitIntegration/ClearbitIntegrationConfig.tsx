@@ -9,7 +9,7 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 import styles from './ClearbitIntegrationConfig.module.scss'
 
@@ -79,7 +79,7 @@ const ClearbitIntegrationConfig: React.FC<
 		)
 	}
 	if (redirectToBilling) {
-		navigate(`/w/${workspaceID}/billing`)
+		return <Navigate to={`/w/${workspaceID}/billing`} />
 	}
 
 	return (

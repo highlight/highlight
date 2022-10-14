@@ -64,7 +64,7 @@ export const ProjectRouter = () => {
 			: project_id
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id },
+		variables: { project_id: projectIdRemapped! },
 		skip: !isLoggedIn, // Higher level routers decide when guests are allowed to hit this router
 	})
 
@@ -359,10 +359,7 @@ export const ProjectRouter = () => {
 					}}
 				>
 					<Routes>
-						<Route
-							path="/:project_id/front"
-							element={<FrontPlugin />}
-						/>
+						<Route path="/front" element={<FrontPlugin />} />
 						<Route
 							element={
 								<>

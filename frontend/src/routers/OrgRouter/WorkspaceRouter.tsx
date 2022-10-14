@@ -121,7 +121,7 @@ export const WorkspaceRouter = () => {
 						<>
 							<Routes>
 								<Route
-									path="/w/:page_id(team|settings|current-plan|upgrade-plan)"
+									path="/w/:page_id"
 									element={
 										isLoggedIn ? (
 											<WorkspaceRedirectionRouter />
@@ -131,7 +131,7 @@ export const WorkspaceRouter = () => {
 									}
 								/>
 								<Route
-									path="/w/:workspace_id(\d+)/:page_id(team|settings|current-plan|upgrade-plan)"
+									path="/w/:workspace_id/:page_id"
 									element={<WorkspaceTabs />}
 								/>
 								{/*
@@ -143,7 +143,7 @@ export const WorkspaceRouter = () => {
 									element={<UserSettings />}
 								/>
 								<Route
-									path="/w/:workspace_id(\d+)"
+									path="/w/:workspace_id"
 									element={
 										isLoggedIn ? (
 											<WorkspaceRedirectionRouter />

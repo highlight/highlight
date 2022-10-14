@@ -16,7 +16,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect, useMemo } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 interface Props {
@@ -163,7 +163,13 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 
 	// If there are no projects, redirect to create one
 	if (data?.projects?.length === 0) {
-		navigate(`/new?next=${encodeURIComponent(`/callback/vercel${search}`)}`)
+		return (
+			<Navigate
+				to={`/new?next=${encodeURIComponent(
+					`/callback/vercel${search}`,
+				)}`}
+			/>
+		)
 	}
 
 	return (
