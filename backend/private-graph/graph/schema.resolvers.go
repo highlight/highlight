@@ -1039,8 +1039,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/billing/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -5357,7 +5357,7 @@ func (r *queryResolver) CustomerPortalURL(ctx context.Context, workspaceID int) 
 		return "", e.Wrap(err, "must have ADMIN role to access the Stripe customer portal")
 	}
 
-	returnUrl := fmt.Sprintf("%s/w/%d/billing", frontendUri, workspaceID)
+	returnUrl := fmt.Sprintf("%s/w/%d/current-plan", frontendUri, workspaceID)
 
 	params := &stripe.BillingPortalSessionParams{
 		Customer:  workspace.StripeCustomerID,

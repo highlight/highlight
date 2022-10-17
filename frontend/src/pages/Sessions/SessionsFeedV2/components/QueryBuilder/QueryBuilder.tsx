@@ -11,7 +11,12 @@ import {
 } from '@context/BaseSearchContext'
 import { useGetAppVersionsQuery } from '@graph/hooks'
 import { GetFieldTypesQuery } from '@graph/operations'
-import { Exact, Field } from '@graph/schemas'
+import {
+	ErrorSearchParamsInput,
+	Exact,
+	Field,
+	SearchParamsInput,
+} from '@graph/schemas'
 import Reload from '@icons/Reload'
 import SvgXIcon from '@icons/XIcon'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
@@ -1043,17 +1048,29 @@ export interface QueryBuilderState {
 export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 	const ruleGroups = rules
 		.map((rule) => {
-			if (!rule.field || !rule.op || !rule.val) {
-				return []
+			const ret: QueryBuilderRule = []
+
+			if (!isComplete(rule)) {
+				return ret
 			}
 
-			return [
-				rule.field.value,
-				rule.op,
-				...rule.val.options.map((op) => {
-					return op.value
-				}),
-			]
+			if (rule.field?.value) {
+				ret.push(rule.field.value)
+			}
+
+			if (rule.op) {
+				ret.push(rule.op)
+			}
+
+			if (rule?.val?.options) {
+				ret.push(
+					...rule.val.options.map((op) => {
+						return op.value
+					}),
+				)
+			}
+
+			return ret
 		})
 		.filter((ruleGroup) => !!ruleGroup && ruleGroup.length > 0)
 
@@ -1173,6 +1190,8 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
+type SearchContextTypes = SearchParamsInput | ErrorSearchParamsInput
+
 interface QueryBuilderProps<T> {
 	searchContext: BaseSearchContext<T>
 	timeRangeField: SelectOption
@@ -1183,21 +1202,26 @@ interface QueryBuilderProps<T> {
 	readonly?: boolean
 }
 
-const QueryBuilder = ({
-	searchContext,
-	timeRangeField,
-	customFields,
-	fetchFields,
-	fieldData,
-	getQueryFromParams,
-	readonly,
-}: QueryBuilderProps<any>) => {
+function QueryBuilder<T extends SearchContextTypes>(
+	props: QueryBuilderProps<T>,
+) {
+	const {
+		searchContext,
+		timeRangeField,
+		customFields,
+		fetchFields,
+		fieldData,
+		getQueryFromParams,
+		readonly,
+	} = props
+
 	const {
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
 		searchResultsLoading,
 	} = searchContext
+
 	const { admin } = useAuthContext()
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
@@ -1739,9 +1763,10 @@ const QueryBuilder = ({
 		if (searchParams.query === undefined) {
 			const newState = getQueryFromParams(searchParams)
 			const newQuery = JSON.stringify(newState)
-			setSearchParams({
+			setSearchParams((params) => ({
+				...params,
 				query: newQuery,
-			})
+			}))
 			return
 		}
 
@@ -1759,7 +1784,7 @@ const QueryBuilder = ({
 		// Update if the state has changed
 		if (newState !== qbState) {
 			setQbState(newState)
-			setSearchParams((params: any) => ({
+			setSearchParams((params) => ({
 				...params,
 				query: newState,
 			}))

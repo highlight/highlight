@@ -351,6 +351,13 @@ export class Highlight {
 		}
 		this._backendUrl =
 			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
+
+		// If _backendUrl is a relative URL, convert it to an absolute URL
+		// so that it's usable from a web worker.
+		if (this._backendUrl[0] === '/') {
+			this._backendUrl = new URL(this._backendUrl, document.baseURI).href
+		}
+
 		const client = new GraphQLClient(`${this._backendUrl}`, {
 			headers: {},
 		})

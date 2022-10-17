@@ -257,7 +257,7 @@ const BillingBanner = () => {
 						Upgrade{' '}
 						<Link
 							className={styles.trialLink}
-							to={`/w/${data?.workspace_for_project?.id}/billing`}
+							to={`/w/${data?.workspace_for_project?.id}/current-plan`}
 						>
 							here!
 						</Link>
@@ -365,7 +365,7 @@ const BillingIssuesBanner = () => {
 			Looks like there are some issues with your billing details. 😔{' '}
 			<a
 				target="_blank"
-				href={`/w/${currentWorkspace?.id}/billing`}
+				href={`/w/${currentWorkspace?.id}/current-plan`}
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

@@ -67,6 +67,7 @@ export class Highlight {
 		name: string,
 		value: number,
 		requestId?: string,
+		tags?: { name: string; value: string }[],
 	) {
 		this.metrics.push({
 			session_secure_id: secureSessionId,
@@ -75,6 +76,7 @@ export class Highlight {
 			value: value,
 			category: 'BACKEND',
 			timestamp: new Date().toISOString(),
+			tags: tags,
 		})
 	}
 

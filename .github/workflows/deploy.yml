@@ -58,18 +58,18 @@ jobs:
                   aws-region: us-east-2
             - name: Update Lambda secrets
               env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | del(.KAFKA_SERVERS) | del(.STRIPE_API_KEY) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | del(.KAFKA_SERVERS) | del(.STRIPE_API_KEY) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | del(.KAFKA_SERVERS) | del(.STRIPE_API_KEY) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | del(.KAFKA_SERVERS) | del(.STRIPE_API_KEY) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq 'del(.REACT_APP_STRIPE_API_PK) | del(.REACT_APP_FIREBASE_CONFIG_OBJECT) | del(.AWS_CLOUDFRONT_PRIVATE_KEY) | del(.FIREBASE_SECRET) | del(.AWS_ACCESS_KEY_ID) | del(.AWS_SECRET_ACCESS_KEY) | del(.KAFKA_SERVERS) | del(.STRIPE_API_KEY) | {Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@master
               with:

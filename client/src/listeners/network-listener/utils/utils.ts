@@ -20,34 +20,49 @@ const normalizeUrl = (url: string) => {
 	// Remove trailing forward slashes
 	return urlToMutate.replace(/\/+$/, '')
 }
+
+type GroupedPerformanceTimings = {
+	xmlhttprequest: { [url: string]: PerformanceResourceTiming[] }
+	others: { [url: string]: PerformanceResourceTiming[] }
+	fetch: { [url: string]: PerformanceResourceTiming[] }
+}
+
+type PerformanceResourceTimingWithRequestResponsePair =
+	PerformanceResourceTiming & {
+		requestResponsePair: RequestResponsePair
+	}
+
 export const matchPerformanceTimingsWithRequestResponsePair = (
-	performanceTimings: any[],
+	performanceTimings: PerformanceResourceTiming[],
 	requestResponsePairs: RequestResponsePair[],
 	type: 'xmlhttprequest' | 'fetch',
 ) => {
 	// Request response pairs are sorted by end time; sort performance timings the same way
 	performanceTimings.sort((a, b) => a.responseEnd - b.responseEnd)
 
+	const initialGroupedPerformanceTimings: GroupedPerformanceTimings = {
+		xmlhttprequest: {},
+		others: {},
+		fetch: {},
+	}
+
 	const groupedPerformanceTimings: {
 		[type: string]: { [url: string]: any[] }
-	} = performanceTimings.reduce(
-		(previous, performanceTiming) => {
-			const url = normalizeUrl(performanceTiming.name)
-			if (performanceTiming.initiatorType === type) {
-				previous[type][url] = [
-					...(previous[type][url] || []),
-					performanceTiming,
-				]
-			} else {
-				previous.others[url] = [
-					...(previous.others[url] || []),
-					performanceTiming,
-				]
-			}
-			return previous
-		},
-		{ xmlhttprequest: {}, others: {}, fetch: {} },
-	)
+	} = performanceTimings.reduce((previous, performanceTiming) => {
+		const url = normalizeUrl(performanceTiming.name)
+		if (performanceTiming.initiatorType === type) {
+			previous[type][url] = [
+				...(previous[type][url] || []),
+				performanceTiming,
+			]
+		} else {
+			previous.others[url] = [
+				...(previous.others[url] || []),
+				performanceTiming,
+			]
+		}
+		return previous
+	}, initialGroupedPerformanceTimings)
 
 	let groupedRequestResponsePairs: {
 		[url: string]: RequestResponsePair[]
@@ -85,16 +100,14 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 		}
 	}
 
-	performanceTimings = []
+	let result: PerformanceResourceTimingWithRequestResponsePair[] = []
 	for (let type in groupedPerformanceTimings) {
 		for (let url in groupedPerformanceTimings[type]) {
-			performanceTimings = performanceTimings.concat(
-				groupedPerformanceTimings[type][url],
-			)
+			result = result.concat(groupedPerformanceTimings[type][url])
 		}
 	}
 
-	return performanceTimings
+	return result
 		.sort((a, b) => a.fetchStart - b.fetchStart)
 		.map((performanceTiming) => {
 			performanceTiming.toJSON = function () {
@@ -116,13 +129,10 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
  * Returns true if the name is a Highlight network resource.
  * This is used to filter out Highlight requests/responses from showing up on end application's network resources.
  */
-const isHighlightNetworkResourceFilter = (
-	name: string | undefined,
-	backendUrl: string,
-) =>
-	name?.toLocaleLowerCase()?.includes(publicGraphURI ?? 'highlight.run') ||
-	name?.toLocaleLowerCase()?.includes('highlight.run') ||
-	name?.toLocaleLowerCase()?.includes(backendUrl)
+const isHighlightNetworkResourceFilter = (name: string, backendUrl: string) =>
+	name.toLocaleLowerCase().includes(publicGraphURI ?? 'highlight.run') ||
+	name.toLocaleLowerCase().includes('highlight.run') ||
+	name.toLocaleLowerCase().includes(backendUrl)
 
 export const shouldNetworkRequestBeRecorded = (
 	url: string,

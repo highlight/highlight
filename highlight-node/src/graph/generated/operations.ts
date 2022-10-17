@@ -48,15 +48,19 @@ export type ErrorObjectInput = {
 	url: Scalars['String']
 }
 
+export type MetricTag = {
+	name: Scalars['String']
+	value: Scalars['String']
+}
+
 export type MetricInput = {
-	category?: InputMaybe<Scalars['String']>
+	session_secure_id: Scalars['String']
 	group?: InputMaybe<Scalars['String']>
 	name: Scalars['String']
-	session_secure_id: Scalars['String']
-	timestamp: Scalars['Timestamp']
-	type?: InputMaybe<Scalars['Any']>
-	url?: InputMaybe<Scalars['String']>
 	value: Scalars['Float']
+	category?: InputMaybe<Scalars['String']>
+	timestamp: Scalars['Timestamp']
+	tags?: InputMaybe<Array<MetricTag>>
 }
 
 export type Mutation = {
