@@ -14,7 +14,6 @@ import styles from './TimelineBar.module.scss'
 
 interface IBar {
 	bucket: EventBucket
-	left: number
 	width: number
 	height: number
 	viewportRef: React.RefObject<HTMLElement>
@@ -24,7 +23,6 @@ const MIN_RECTANGLE_HEIGHT = 10
 const TimelineIndicatorsBar = ({
 	bucket,
 	width,
-	left,
 	height,
 	viewportRef,
 }: IBar) => {
@@ -89,11 +87,12 @@ const TimelineIndicatorsBar = ({
 				placement: 'top' as TooltipPlacement,
 			}
 		}
-		const { scrollWidth, scrollLeft, offsetWidth } = viewportDiv
+		const viewportBbox = viewportDiv.getBoundingClientRect()
+		const { scrollWidth, scrollLeft } = viewportDiv
 
-		const barLeft = (left * scrollWidth) / 100 - scrollLeft
+		const barLeft = (bucket.startPercent * scrollWidth) / 100 - scrollLeft
 
-		const relX = clamp((barLeft / offsetWidth) * 100, 0, 100)
+		const relX = clamp((barLeft / viewportBbox.width) * 100, 0, 100)
 
 		let relPos = 2
 		for (const threshold of [66, 33]) {
@@ -122,13 +121,12 @@ const TimelineIndicatorsBar = ({
 		}
 		// disable checks to update on scroll
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [left, viewportRef, viewportRef.current?.scrollLeft, width])
+	}, [viewportRef, viewportRef.current?.scrollLeft, width])
 
 	return (
 		<Popover
 			getPopupContainer={getFullScreenPopoverGetPopupContainer}
 			content={<TimelinePopover bucket={bucket} />}
-			// content={<>{popoverContent}</>}
 			align={{
 				overflow: {
 					adjustY: false,
@@ -150,7 +148,7 @@ const TimelineIndicatorsBar = ({
 				})}
 				style={{
 					width: `${width}%`,
-					left: `${left}%`,
+					left: `${bucket.startPercent}%`,
 				}}
 				onPointerEnter={() => setIsInsideBar(true)}
 				onPointerLeave={() => setIsInsideBar(false)}

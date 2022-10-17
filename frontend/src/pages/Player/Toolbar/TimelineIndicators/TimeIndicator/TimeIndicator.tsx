@@ -31,12 +31,11 @@ const TimeIndicator = ({
 			return
 		}
 
+		const viewportBbox = viewport.getBoundingClientRect()
+
 		const isClose = (event: MouseEvent) => {
 			const { clientX, clientY } = event
-			if (
-				clientX < viewport.offsetLeft ||
-				clientX > viewport.offsetLeft + viewport.offsetWidth
-			) {
+			if (clientX < viewportBbox.left || clientX > viewportBbox.right) {
 				return false
 			}
 			const bbox = topElem.getBoundingClientRect()

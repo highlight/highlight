@@ -17,16 +17,16 @@ function SessionToken({
 	className,
 }: React.PropsWithChildren<Props>): ReactElement {
 	return (
-		<span className={classNames(styles.sessionToken, 'icon', className)}>
+		<div className={classNames(styles.sessionToken, 'icon', className)}>
 			<Tooltip
 				title={tooltipTitle}
 				arrowPointAtCenter
 				placement="bottomRight"
 			>
-				<div className={styles.iconContainer}>{icon}</div>
+				<span className={styles.iconContainer}>{icon}</span>
 			</Tooltip>
-			<p>{children}</p>
-		</span>
+			<span>{children}</span>
+		</div>
 	)
 }
 

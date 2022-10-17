@@ -40,15 +40,31 @@ export function formatTimeAsHMS(millis: number) {
 		: `${parts.h}:${minutesStr}:${secondsStr}`
 }
 
-export function formatTimeAsAlphanum(millis: number) {
+interface TimeAsAplhanumOptions {
+	showDetails?: boolean
+	zeroUnit?: string
+}
+export function formatTimeAsAlphanum(
+	millis: number,
+	options?: TimeAsAplhanumOptions,
+) {
 	const parts = convertMillisToHMS(millis)
+
+	if (!options) {
+		options = {}
+	}
+	const { showDetails, zeroUnit } = options
 
 	if (parts.h && parts.m === 30 && !parts.s) {
 		return `${parts.h}.5h`
 	}
-	return (
-		(parts.h && !parts.m && !parts.s ? `${parts.h}h` : '') +
-		(parts.m && !parts.s ? `${parts.m}m` : '') +
-		(parts.s ? `${parts.s}s` : !parts.h && !parts.m ? '0s' : '')
-	)
+	return [
+		parts.h && ((!parts.m && !parts.s) || !!showDetails)
+			? `${parts.h}h`
+			: '',
+		parts.m && (!parts.s || !!showDetails) ? `${parts.m}m` : '',
+		parts.s ? `${parts.s}s` : !parts.h && !parts.m ? `0${zeroUnit}` : '',
+	]
+		.join(' ')
+		.trim()
 }

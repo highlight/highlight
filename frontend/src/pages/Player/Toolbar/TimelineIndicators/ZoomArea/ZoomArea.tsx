@@ -30,7 +30,9 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 	const wrapperDiv = wrapperRef.current
 	const containerDiv = containerRef.current
 
-	const wrapperWidth = wrapperDiv?.offsetWidth || 1
+	const wrapperBbox = wrapperRef.current?.getBoundingClientRect()
+	const wrapperWidth = wrapperBbox?.width || 1
+	const wrapperLeft = wrapperBbox?.left || 0
 
 	useLayoutEffect(() => {
 		if (!leftDiv || !rightDiv || !wrapperDiv || !containerDiv) {
@@ -39,11 +41,7 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 
 		const getRelativeX = (event: MouseEvent) => {
 			const { clientX } = event
-			return (
-				clientX +
-				document.documentElement.scrollLeft -
-				wrapperDiv.offsetLeft
-			)
+			return clientX + document.documentElement.scrollLeft - wrapperLeft
 		}
 
 		let isLeftDragging = false
@@ -153,7 +151,7 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 			document.removeEventListener('pointerup', onPointerUp)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [containerDiv, leftDiv, rightDiv, wrapperDiv, wrapperWidth])
+	}, [containerDiv, leftDiv, rightDiv, wrapperDiv, wrapperWidth, wrapperLeft])
 
 	useLayoutEffect(() => {
 		if (!isDragging) {
@@ -161,17 +159,13 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 		}
 	}, [isDragging, zoomAreaPercent])
 
-	const left = dragPercent.left
-	const percentWidth = clamp(
-		dragPercent.right - left,
-		minZoomAreaPercent,
-		100,
-	)
+	const { left, right } = dragPercent
+	const percentWidth = clamp(right - left, minZoomAreaPercent, 100)
 	const isWide = (percentWidth * wrapperWidth) / 100 > 2 * ZOOM_AREA_SIDE + 1
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = !isDragging && left === 0 && percentWidth === 100
+	const isHidden = !isDragging && percentWidth === 100
 	return (
 		<div
 			style={{

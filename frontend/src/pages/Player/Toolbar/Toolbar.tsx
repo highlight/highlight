@@ -176,7 +176,6 @@ export const Toolbar = ({ width }: Props) => {
 	// The play button should be disabled if the player has reached the end.
 	const disablePlayButton =
 		time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode
-
 	return (
 		<ToolbarItemsContextProvider value={toolbarItems}>
 			<DevToolsContextProvider
@@ -194,6 +193,7 @@ export const Toolbar = ({ width }: Props) => {
 								selectedTimelineAnnotationTypes
 							}
 							width={width}
+							isTimelineHidden={isLiveMode}
 						/>
 					</>
 				)}
@@ -218,7 +218,7 @@ export const Toolbar = ({ width }: Props) => {
 				className={classNames(styles.toolbarSection, {
 					[styles.devToolsOpen]: showDevTools,
 				})}
-				style={{ width: width }}
+				style={{ width }}
 			>
 				<div className={styles.toolbarLeftSection}>
 					<button
@@ -330,7 +330,7 @@ export const Toolbar = ({ width }: Props) => {
 						<div className={styles.liveUserStatus}>
 							<SessionToken
 								icon={<ActivityIcon />}
-								tooltipTitle="This session is live, but the user is idle."
+								tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
 							>
 								User was last active {lastActiveString}
 							</SessionToken>
