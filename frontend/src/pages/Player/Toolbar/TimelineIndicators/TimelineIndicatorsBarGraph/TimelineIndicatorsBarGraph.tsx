@@ -341,7 +341,8 @@ const TimelineIndicatorsBarGraph = ({
 			}
 
 			const pointerX = clientX + document.documentElement.scrollLeft
-			const { offsetLeft, scrollLeft } = viewportDiv
+			const bbox = viewportDiv.getBoundingClientRect()
+			const { scrollLeft } = viewportDiv
 
 			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
 
@@ -351,7 +352,7 @@ const TimelineIndicatorsBarGraph = ({
 				const pointA =
 					scrollLeft +
 					clamp(
-						pointerX - offsetLeft - TIMELINE_MARGIN,
+						pointerX - bbox.left - TIMELINE_MARGIN,
 						0,
 						viewportWidth,
 					)
@@ -458,11 +459,12 @@ const TimelineIndicatorsBarGraph = ({
 
 		const moveTime = (event: MouseEvent) => {
 			const { clientX } = event
-			const { offsetLeft, scrollLeft, scrollWidth } = viewportDiv
+			const bbox = viewportDiv.getBoundingClientRect()
+			const { scrollLeft, scrollWidth } = viewportDiv
 			const canvasWidth = scrollWidth - 2 * TIMELINE_MARGIN
 			const pointerX = clientX + document.documentElement.scrollLeft
 			const x = clamp(
-				scrollLeft + pointerX - offsetLeft - TIMELINE_MARGIN,
+				scrollLeft + pointerX - bbox.left - TIMELINE_MARGIN,
 				0,
 				canvasWidth,
 			)
