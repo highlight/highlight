@@ -6,7 +6,11 @@ import {
 	getErrorsForTimelineIndicator,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { ParsedEvent, useReplayerContext } from '@pages/Player/ReplayerContext'
+import {
+	ParsedEvent,
+	ReplayerState,
+	useReplayerContext,
+} from '@pages/Player/ReplayerContext'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
@@ -63,6 +67,8 @@ const TimelineIndicatorsBarGraph = ({
 		errors: sessionErrors,
 		sessionIntervals,
 		isLiveMode,
+		canViewSession,
+		state: replayerState,
 	} = useReplayerContext()
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
@@ -963,7 +969,11 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}, [areaChartBuckets, areaChartMaxBucketCount, borderlessWidth])
 
-	if (!events.length) {
+	if (
+		!events.length ||
+		replayerState === ReplayerState.Loading ||
+		!canViewSession
+	) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
