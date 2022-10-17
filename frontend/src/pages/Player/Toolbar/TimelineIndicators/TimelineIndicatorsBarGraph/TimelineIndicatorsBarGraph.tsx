@@ -92,7 +92,8 @@ const TimelineIndicatorsBarGraph = ({
 		if (!div) {
 			return
 		}
-		setViewportWidth(Math.round(div.offsetWidth) - 2 * TIMELINE_MARGIN)
+		const bbox = div.getBoundingClientRect()
+		setViewportWidth(Math.round(bbox.width) - 2 * TIMELINE_MARGIN)
 	}, [width])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {

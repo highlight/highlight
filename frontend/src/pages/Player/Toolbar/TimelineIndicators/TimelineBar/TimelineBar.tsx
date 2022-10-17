@@ -87,11 +87,12 @@ const TimelineIndicatorsBar = ({
 				placement: 'top' as TooltipPlacement,
 			}
 		}
-		const { scrollWidth, scrollLeft, offsetWidth } = viewportDiv
+		const viewportBbox = viewportDiv.getBoundingClientRect()
+		const { scrollWidth, scrollLeft } = viewportDiv
 
 		const barLeft = (bucket.startPercent * scrollWidth) / 100 - scrollLeft
 
-		const relX = clamp((barLeft / offsetWidth) * 100, 0, 100)
+		const relX = clamp((barLeft / viewportBbox.width) * 100, 0, 100)
 
 		let relPos = 2
 		for (const threshold of [66, 33]) {
