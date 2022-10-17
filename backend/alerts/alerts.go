@@ -46,7 +46,7 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 
 	channels := event.ErrorAlert.DiscordChannelsToNotify
 	for _, channel := range channels {
-		err = bot.PostErrorAlert(channel.ID, errorAlertPayload)
+		err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
 
 		if err != nil {
 			return err

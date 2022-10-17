@@ -28,7 +28,7 @@ type NewSessionAlertPayload struct {
 
 type BaseAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
-	PostErrorAlert(channelId string, payload ErrorAlertPayload) error
+	SendErrorAlert(channelId string, payload ErrorAlertPayload) error
 	SendNewUserAlert(channelId string, payload NewUserAlertPayload) error
 	SendNewSessionAlert(channelId string, payload NewSessionAlertPayload) error
 }

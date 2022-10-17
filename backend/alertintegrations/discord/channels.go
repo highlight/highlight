@@ -31,7 +31,7 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
-func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
+func (bot *DiscordBot) SendErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
 	userFields := []*discordgo.MessageEmbedField{}
 
 	userFields = append(userFields, &discordgo.MessageEmbedField{
