@@ -146,3 +146,43 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload alertintegr
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
 	return err
 }
+
+func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alertintegrations.TrackPropertiesAlertPayload) error {
+	matchedEmbed := &discordgo.MessageEmbed{
+		Type:  "rich",
+		Title: "Matched Track Properties",
+	}
+
+	matchedFields := []*discordgo.MessageEmbedField{}
+	for _, field := range payload.MatchedFields {
+		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
+			Name:   field.Key,
+			Value:  field.Value,
+			Inline: true,
+		})
+	}
+	matchedEmbed.Fields = matchedFields
+
+	relatedEmbed := &discordgo.MessageEmbed{
+		Type:  "rich",
+		Title: "Related Track Properties",
+	}
+	relatedFields := []*discordgo.MessageEmbedField{}
+	for _, field := range payload.RelatedFields {
+		relatedFields = append(matchedFields, &discordgo.MessageEmbedField{
+			Name:   field.Key,
+			Value:  field.Value,
+			Inline: true,
+		})
+	}
+	relatedEmbed.Fields = relatedFields
+
+	messageSend := discordgo.MessageSend{
+		Content: fmt.Sprintf("Highlight Track Properties Alert: %s", payload.UserIdentifier),
+		Embeds:  append([]*discordgo.MessageEmbed{}, matchedEmbed, relatedEmbed),
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
+}

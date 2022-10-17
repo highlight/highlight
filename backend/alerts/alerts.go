@@ -173,6 +173,60 @@ func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
 	return nil
 }
 
+type TrackPropertiesAlertEvent struct {
+	Session       *model.Session
+	SessionAlert  *model.SessionAlert
+	Workspace     *model.Workspace
+	MatchedFields []*model.Field
+	RelatedFields []*model.Field
+}
+
+func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
+	// format matched properties
+	mappedMatchedFields := []alertintegrations.Field{}
+	mappedRelatedFields := []alertintegrations.Field{}
+
+	for _, field := range event.MatchedFields {
+		mappedMatchedFields = append(mappedMatchedFields, alertintegrations.Field{
+			Key:   field.Name,
+			Value: field.Value,
+		})
+	}
+	for _, field := range event.RelatedFields {
+		mappedRelatedFields = append(mappedRelatedFields, alertintegrations.Field{
+			Key:   field.Name,
+			Value: field.Value,
+		})
+	}
+
+	payload := alertintegrations.TrackPropertiesAlertPayload{
+		UserIdentifier: event.Session.Identifier,
+		MatchedFields:  mappedMatchedFields,
+		RelatedFields:  mappedRelatedFields,
+	}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.SessionAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendTrackPropertiesAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {
 	return workspace.DiscordGuildId != nil
 }

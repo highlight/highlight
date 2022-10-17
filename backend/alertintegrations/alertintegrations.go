@@ -26,9 +26,21 @@ type NewSessionAlertPayload struct {
 	VisitedURL     *string
 }
 
+type Field struct {
+	Key   string
+	Value string
+}
+
+type TrackPropertiesAlertPayload struct {
+	UserIdentifier string
+	MatchedFields  []Field
+	RelatedFields  []Field
+}
+
 type BaseAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
 	SendErrorAlert(channelId string, payload ErrorAlertPayload) error
 	SendNewUserAlert(channelId string, payload NewUserAlertPayload) error
 	SendNewSessionAlert(channelId string, payload NewSessionAlertPayload) error
+	SendTrackPropertiesAlert(channelId string, payload TrackPropertiesAlertPayload) error
 }
