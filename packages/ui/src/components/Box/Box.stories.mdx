@@ -1,0 +1,20 @@
+import { Canvas, Meta, Props, Story } from '@storybook/addon-docs'
+
+import Box from './Box'
+
+<Meta title="Components/Box" component={Box} />
+
+# Box
+
+<Canvas>
+	<Story name="default">
+		<Box display="flex" alignItems="center">
+			<Box padding="large">Hello!</Box>
+			<Box padding="small" background="purple500" color="white">
+				Hi!
+			</Box>
+		</Box>
+	</Story>
+</Canvas>
+
+<Props of={Box} />

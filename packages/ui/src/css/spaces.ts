@@ -1,5 +1,5 @@
-const space = {
-	none: 0,
+const spaces = {
+	none: '0',
 	xSmall: '4px',
 	small: '8px',
 	medium: '12px',
@@ -8,4 +8,4 @@ const space = {
 	xxLarge: '24px',
 }
 
-export default space
+export default spaces

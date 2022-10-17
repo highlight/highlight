@@ -1,21 +1,35 @@
-import { createTheme } from '@vanilla-extract/css'
+import { createGlobalTheme, createTheme } from '@vanilla-extract/css'
+import colors from './colors'
+import spaces from './spaces'
 
-export const [themeClass, vars] = createTheme({
-	primary: '#1E40AF',
-	secondary: '#DB2777',
-	background: '#EFF6FF',
+export const baseTheme = createGlobalTheme(':root', {
+	body: {
+		lineHeight: '1em',
+	},
 	text: {
-		normal: '#1F2937',
-		dimmed: '#6B7280',
+		bodyFontFamily:
+			'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
+		headerFontFamily:
+			'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
+		monospaceFontFamily: 'Roboto Mono, monospace',
+	},
+	space: spaces,
+})
+
+export const [lightThemeClass, vars] = createTheme({
+	color: {
+		body: colors.white,
+		text: {
+			primary: colors.black,
+		},
 	},
 })
 
-export const [darkThemeClass, darkVars] = createTheme(vars, {
-	primary: '#60A5FA',
-	secondary: '#F472B6',
-	background: '#1F2937',
-	text: {
-		normal: '#F9FAFB',
-		dimmed: '#D1D5DB',
+export const darkThemeClass = createTheme(vars, {
+	color: {
+		body: colors.purple900,
+		text: {
+			primary: colors.white,
+		},
 	},
 })
