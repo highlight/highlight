@@ -271,6 +271,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
 			if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
+				Session:       session,
+				SessionAlert:  sessionAlert,
+				Workspace:     workspace,
 				MatchedFields: matchedFields,
 				RelatedFields: relatedFields,
 			}); err != nil {
