@@ -91,7 +91,7 @@ export const Highlight =
 			const { secureSessionId, requestId } = processHighlightHeaders()
 			const start = new Date()
 			try {
-				await origHandler(req, res)
+				return await origHandler(req, res)
 			} catch (e) {
 				if (secureSessionId && requestId) {
 					NodeH.consumeEvent(secureSessionId)
