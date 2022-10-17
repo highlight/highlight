@@ -1,9 +1,5 @@
 import { style } from '@vanilla-extract/css'
 
-// Copied from the Braid design system reset:
-// https://github.com/seek-oss/braid-design-system/blob/bd30f3aafa647627598f228d34727258536ac015/packages/braid-design-system/lib/css/reset/reset.css.ts
-export const hideFocusRingsDataAttribute = 'hidefocusrings'
-
 export const base = style({
 	margin: 0,
 	padding: 0,
@@ -13,14 +9,8 @@ export const base = style({
 	font: 'inherit',
 	verticalAlign: 'baseline',
 	WebkitTapHighlightColor: 'transparent',
-	selectors: {
-		[`[${hideFocusRingsDataAttribute}] &`]: {
-			outline: 'none',
-		},
-	},
 })
 
-// HTML5 display-role reset for older browsers
 const block = style({
 	display: 'block',
 })
