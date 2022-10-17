@@ -1,7 +1,6 @@
-import { ErrorGroup } from '@graph/schemas'
+import { ErrorGroup, Maybe } from '@graph/schemas'
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
 import { getErrorBody } from '@util/errors/errorUtils'
-import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
 
 interface Props {

@@ -11,7 +11,8 @@ const NoActiveErrorCard = () => {
 
 	useEffect(() => {
 		setShowLeftPanel(true)
-	}, [setShowLeftPanel])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<ElevatedCard
