@@ -1348,9 +1348,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
-				log.Error(e.Wrapf(err, "about to do discord"))
 				if err = alerts.SendNewSessionAlert(sessionObj, sessionAlert, workspace, visitedUrl); err != nil {
-					log.Error(e.Wrapf(err, "error sending alert to discord"))
+					log.Error(err)
 				}
 			}
 		})
@@ -1679,7 +1678,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
 			err = alerts.SendNewUserAlert(session, sessionAlert, workspace)
 			if err != nil {
-				log.Error(e.Wrapf(err, "error sending alert to discord"))
+				log.Error(err)
 			}
 
 		}
@@ -1878,7 +1877,7 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			}
 
 			if err := alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace, numErrors, &visitedUrl); err != nil {
-				log.Error(e.Wrapf(err, "failed sending error alert to integrations (error alert id: %d)", errorAlert.ID))
+				log.Error(err)
 			}
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
