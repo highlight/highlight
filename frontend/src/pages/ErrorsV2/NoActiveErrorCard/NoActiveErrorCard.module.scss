@@ -1,0 +1,10 @@
+.buttonWrapper {
+	column-gap: var(--size-small);
+	display: flex;
+	padding-bottom: var(--size-xxSmall);
+	padding-top: var(--size-xxSmall);
+}
+
+.card {
+	align-self: center;
+}
