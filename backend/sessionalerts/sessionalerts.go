@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/highlight-run/highlight/backend/discord"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -97,5 +98,8 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 		UserProperties:  &userPropertiesString,
 		TrackProperties: &trackPropertiesString,
 		ExcludeRules:    excludeRulesString,
+		AlertIntegrations: model.AlertIntegrations{
+			DiscordChannelsToNotify: discord.GQLInputToGo(input.DiscordChannels),
+		},
 	}, nil
 }

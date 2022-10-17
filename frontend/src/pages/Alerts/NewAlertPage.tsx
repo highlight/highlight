@@ -138,11 +138,17 @@ const NewAlertPage = () => {
 					isSlackIntegrated={
 						alertsPayload?.is_integrated_with_slack || false
 					}
+					isDiscordIntegrated={
+						alertsPayload?.is_integrated_with_discord || false
+					}
 					emailSuggestions={(alertsPayload?.admins || []).map(
 						(wa) => wa.admin!.email,
 					)}
 					channelSuggestions={
 						alertsPayload?.slack_channel_suggestion || []
+					}
+					discordChannelSuggestions={
+						alertsPayload?.discord_channel_suggestions || []
 					}
 					environmentOptions={
 						alertsPayload?.environment_suggestion || []

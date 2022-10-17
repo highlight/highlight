@@ -115,6 +115,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.14.0
 	github.com/aws/aws-sdk-go-v2/service/sso v1.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.2.1 // indirect
+	github.com/bwmarrin/discordgo v0.26.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/dghubble/sling v1.1.0 // indirect
 	github.com/gammazero/deque v0.1.0 // indirect

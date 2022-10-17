@@ -1,7 +1,12 @@
 {
 	"compilerOptions": {
 		"typeRoots": ["../node_modules"],
-		"types": ["@highlight-run/client", "@types/chrome", "@types/node"],
+		"types": [
+			"@highlight-run/client",
+			"@types/chrome",
+			"@types/node",
+			"vitest/globals"
+		],
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"skipLibCheck": true,

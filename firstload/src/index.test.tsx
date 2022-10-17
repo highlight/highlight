@@ -5,12 +5,12 @@ describe('should work outside of the browser in unit test', () => {
 	let highlight: HighlightPublicInterface
 
 	beforeEach(() => {
-		jest.useFakeTimers()
+		vi.useFakeTimers()
 		highlight = H
 	})
 
 	afterEach(() => {
-		jest.useRealTimers()
+		vi.useRealTimers()
 	})
 
 	it('should handle init', () => {

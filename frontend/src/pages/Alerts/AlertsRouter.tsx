@@ -72,8 +72,14 @@ const AlertsRouter = () => {
 							channelSuggestions={
 								data?.slack_channel_suggestion || []
 							}
+							discordChannelSuggestions={
+								data?.discord_channel_suggestions || []
+							}
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false
+							}
+							isDiscordIntegrated={
+								data?.is_integrated_with_discord || false
 							}
 							emailSuggestions={(data?.admins || []).map(
 								(wa) => wa.admin!.email,
@@ -85,8 +91,14 @@ const AlertsRouter = () => {
 							channelSuggestions={
 								data?.slack_channel_suggestion || []
 							}
+							discordChannelSuggestions={
+								data?.discord_channel_suggestions || []
+							}
 							isSlackIntegrated={
 								data?.is_integrated_with_slack || false
+							}
+							isDiscordIntegrated={
+								data?.is_integrated_with_discord || false
 							}
 							emailSuggestions={(data?.admins || []).map(
 								(wa) => wa.admin!.email,

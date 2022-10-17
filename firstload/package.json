@@ -1,10 +1,11 @@
 {
 	"name": "highlight.run",
-	"version": "4.5.2",
+	"version": "4.5.4",
 	"scripts": {
 		"build": "yarn typegen && rollup -c",
-		"typegen": "tsc",
-		"dev": "doppler run -- rollup -c -w"
+		"dev": "doppler run -- rollup -c -w",
+		"test": "vitest",
+		"typegen": "tsc"
 	},
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
@@ -24,6 +25,7 @@
 		"rollup-plugin-terser": "^7.0.2",
 		"rollup-plugin-web-worker-loader": "^1.6.1",
 		"tslib": "^2.4.0",
-		"typescript": "^4.0.3"
+		"typescript": "^4.0.3",
+		"vitest": "^0.23.4"
 	}
 }

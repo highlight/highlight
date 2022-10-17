@@ -84,7 +84,9 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			outDir: 'build',
-			sourcemap: true,
+			// Vite sourcemaps are totally broken
+			// https://github.com/highlight-run/highlight/pull/3171
+			sourcemap: mode !== 'development',
 		},
 		test: {
 			globals: true,

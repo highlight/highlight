@@ -6,7 +6,7 @@ import { hideBin } from "yargs/helpers";
 import { readFileSync, statSync } from "fs";
 import glob from "glob";
 import AWS from "aws-sdk";
-import fetch from "node-fetch";
+import fetch from "cross-fetch";
 
 const VERIFY_API_KEY_QUERY = `
   query ApiKeyToOrgID($api_key: String!) {
@@ -22,7 +22,17 @@ const s3 = new AWS.S3({
   secretAccessKey: "gu/8lcujPd3SEBa2FJHT9Pd4N/5Mm8LA6IbnWBw/",
 });
 
-export const uploadSourcemaps = async ({ apiKey, appVersion, path }) => {
+export const uploadSourcemaps = async ({
+  apiKey,
+  appVersion,
+  path,
+  basePath,
+}: {
+  apiKey: string;
+  appVersion: string;
+  path: string;
+  basePath: string;
+}) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
       apiKey = process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY;
@@ -79,7 +89,7 @@ export const uploadSourcemaps = async ({ apiKey, appVersion, path }) => {
 
   await Promise.all(
     fileList.map(({ path, name }) =>
-      uploadFile(organizationId, appVersion, path, name)
+      uploadFile(organizationId, appVersion, path, basePath, name)
     )
   );
 };
@@ -88,7 +98,8 @@ yargs(hideBin(process.argv))
   .command(
     "upload",
     "Upload Javascript sourcemaps to Highlight",
-    () => {},
+    {},
+    // @ts-ignore-error
     uploadSourcemaps
   )
   .option("apiKey", {
@@ -107,10 +118,16 @@ yargs(hideBin(process.argv))
     default: "/build",
     describe: "Sets the directory of where the sourcemaps are",
   })
+  .option("basePath", {
+    alias: "bp",
+    type: "string",
+    default: "",
+    describe: "An optional base path for the uploaded sourcemaps",
+  })
   .help("help").argv;
 
-async function getAllSourceMapFiles(paths) {
-  const map = [];
+async function getAllSourceMapFiles(paths: string[]) {
+  const map: { path: string; name: string }[] = [];
 
   await Promise.all(
     paths.map((path) => {
@@ -125,7 +142,7 @@ async function getAllSourceMapFiles(paths) {
         return Promise.resolve();
       }
 
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         glob(
           "**/*.js?(.map)",
           { cwd: realPath, nodir: true, ignore: "**/node_modules/**/*" },
@@ -147,14 +164,20 @@ async function getAllSourceMapFiles(paths) {
   return map;
 }
 
-async function uploadFile(organizationId, version, filePath, fileName) {
+async function uploadFile(
+  organizationId: string,
+  version: string,
+  filePath: string,
+  basePath: string,
+  fileName: string
+) {
   const fileContent = readFileSync(filePath);
 
   // Setting up S3 upload parameters
   if (version === null || version === undefined || version === "" || !version) {
     version = "unversioned";
   }
-  const bucketPath = `${organizationId}/${version}/${fileName}`;
+  const bucketPath = `${organizationId}/${version}/${basePath}${fileName}`;
 
   const params = {
     Bucket: BUCKET_NAME,
@@ -162,10 +185,10 @@ async function uploadFile(organizationId, version, filePath, fileName) {
     Body: fileContent,
   };
 
-  s3.upload(params, function (err) {
+  s3.upload(params, function (err: Error) {
     if (err) {
       throw err;
     }
-    console.log(`Uploaded ${fileName}`);
+    console.log(`Uploaded ${basePath}${fileName}`);
   });
 }
