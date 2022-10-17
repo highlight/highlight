@@ -960,6 +960,24 @@ const NextBackendInstructions = () => {
 					language="shell"
 				/>
 			</Section>
+			<Section title="Wrapping your Next Config" defaultOpen>
+				<p>
+					In <code>next.config.js</code>, use{' '}
+					<code>withHighlightConfig</code> to wrap your config. This
+					will automatically configure source map uploading and
+					proxying for Highlight requests.
+				</p>
+				<p>
+					<CodeBlock
+						language="javascript"
+						text={`import { withHighlightConfig } from "@highlight-run/next";
+
+export default withHighlightConfig({
+	// your next.config.js options here
+})`}
+					/>
+				</p>
+			</Section>
 			<Section title="Initializing Highlight on the Backend" defaultOpen>
 				<p>Initialize the SDK by importing Highlight like so: </p>
 				<CodeBlock
@@ -999,20 +1017,6 @@ const handler = async (req, res) => {
 };
 
 export default withHighlight(handler);`}
-					/>
-				</p>
-				<p>
-					In <code>next.config.js</code>, use{' '}
-					<code>withHighlightConfig</code> to wrap your config.
-				</p>
-				<p>
-					<CodeBlock
-						language="javascript"
-						text={`import { withHighlightConfig } from "@highlight-run/next";
-
-export default withHighlightConfig({
-	// your next.config.js options here
-})`}
 					/>
 				</p>
 			</Section>
