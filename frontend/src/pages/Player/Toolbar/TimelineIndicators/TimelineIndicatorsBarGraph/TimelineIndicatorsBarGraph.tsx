@@ -32,6 +32,7 @@ import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
+	isTimelineHidden?: boolean
 }
 
 const TARGET_TICK_COUNT = 7
@@ -54,6 +55,7 @@ type SessionEvent = ParsedEvent & {
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
+	isTimelineHidden,
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
@@ -985,6 +987,17 @@ const TimelineIndicatorsBarGraph = ({
 				<div className={style.timelineContainer} ref={viewportRef}>
 					<Skeleton height={128} />
 				</div>
+			</div>
+		)
+	}
+
+	if (isTimelineHidden) {
+		return (
+			<div
+				className={style.timelineIndicatorsContainer}
+				style={{ width }}
+			>
+				{progressBar}
 			</div>
 		)
 	}
