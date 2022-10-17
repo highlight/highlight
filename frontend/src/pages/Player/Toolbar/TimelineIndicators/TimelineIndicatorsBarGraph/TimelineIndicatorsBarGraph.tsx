@@ -649,10 +649,16 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth, zoomAreaPercent],
 	)
 	const ticks = useMemo(() => {
-		const size = pickBucketSize(
+		let size = pickBucketSize(
 			(adjustedDuration * TICK_ZOOM_DISCOUNT) / camera.zoom,
 			100 / TARGET_TICK_COUNT,
 		)
+
+		size = {
+			...size,
+			multiple: Math.max(size.multiple, 1),
+		}
+
 		const mainTickInMs = getBucketSizeInMs(size)
 
 		const numTicks = Math.ceil(duration / mainTickInMs)
