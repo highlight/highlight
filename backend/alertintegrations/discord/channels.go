@@ -40,10 +40,10 @@ func (bot *DiscordBot) PostErrorAlert(channelId string, payload alertintegration
 		Inline: true,
 	})
 
-	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
+	if payload.VisitedURL != "" {
 		userFields = append(userFields, &discordgo.MessageEmbedField{
 			Name:   "Visited URL",
-			Value:  *payload.VisitedURL,
+			Value:  payload.VisitedURL,
 			Inline: true,
 		})
 	}

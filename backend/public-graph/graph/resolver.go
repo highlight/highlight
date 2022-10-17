@@ -1348,7 +1348,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
-				if err = alerts.SendNewSessionAlert(sessionObj, sessionAlert, workspace, visitedUrl); err != nil {
+				if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
+					Session:      session,
+					SessionAlert: sessionAlert,
+					Workspace:    workspace,
+					VisitedURL:   visitedUrl,
+				}); err != nil {
 					log.Error(err)
 				}
 			}
@@ -1676,8 +1681,11 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
-			err = alerts.SendNewUserAlert(session, sessionAlert, workspace)
-			if err != nil {
+			if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
+				Session:      session,
+				SessionAlert: sessionAlert,
+				Workspace:    workspace,
+			}); err != nil {
 				log.Error(err)
 			}
 
@@ -1876,7 +1884,14 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
-			if err := alerts.SendErrorAlert(sessionObj, errorAlert, group, workspace, numErrors, &visitedUrl); err != nil {
+			if err := alerts.SendErrorAlert(alerts.SendErrorAlertEvent{
+				Session:    sessionObj,
+				ErrorAlert: errorAlert,
+				ErrorGroup: group,
+				Workspace:  workspace,
+				ErrorCount: numErrors,
+				VisitedURL: visitedUrl,
+			}); err != nil {
 				log.Error(err)
 			}
 

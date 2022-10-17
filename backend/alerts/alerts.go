@@ -11,31 +11,40 @@ import (
 	"golang.org/x/text/language"
 )
 
-func SendErrorAlert(session *model.Session, errorAlert *model.ErrorAlert, group *model.ErrorGroup, workspace *model.Workspace, errorCount int64, visitedUrl *string) error {
-	errorTitle := group.Event
-	if len(group.Event) > 50 {
-		errorTitle = group.Event[:50] + "..."
+type SendErrorAlertEvent struct {
+	Session    *model.Session
+	ErrorAlert *model.ErrorAlert
+	ErrorGroup *model.ErrorGroup
+	Workspace  *model.Workspace
+	ErrorCount int64
+	VisitedURL string
+}
+
+func SendErrorAlert(event SendErrorAlertEvent) error {
+	errorTitle := event.ErrorGroup.Event
+	if len(event.ErrorGroup.Event) > 50 {
+		errorTitle = event.ErrorGroup.Event[:50] + "..."
 	}
 
 	errorAlertPayload := alertintegrations.ErrorAlertPayload{
-		ErrorCount:     errorCount,
+		ErrorCount:     event.ErrorCount,
 		ErrorTitle:     errorTitle,
-		UserIdentifier: session.Identifier,
-		ErrorURL:       getErrorsURL(errorAlert, group),
-		SessionURL:     getSessionsURL(errorAlert.ProjectID, session),
-		VisitedURL:     visitedUrl,
+		UserIdentifier: event.Session.Identifier,
+		ErrorURL:       getErrorsURL(event.ErrorAlert, event.ErrorGroup),
+		SessionURL:     getSessionsURL(event.ErrorAlert.ProjectID, event.Session),
+		VisitedURL:     event.VisitedURL,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil
 	}
 
-	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 	if err != nil {
 		return err
 	}
 
-	channels := errorAlert.DiscordChannelsToNotify
+	channels := event.ErrorAlert.DiscordChannelsToNotify
 	for _, channel := range channels {
 		err = bot.PostErrorAlert(channel.ID, errorAlertPayload)
 
@@ -77,8 +86,14 @@ func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[st
 	return userProperties, avatarURL
 }
 
-func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, workspace *model.Workspace) error {
-	sessionUserProperties, err := session.GetUserProperties()
+type SendNewUserAlertEvent struct {
+	Session      *model.Session
+	SessionAlert *model.SessionAlert
+	Workspace    *model.Workspace
+}
+
+func SendNewUserAlert(event SendNewUserAlertEvent) error {
+	sessionUserProperties, err := event.Session.GetUserProperties()
 	if err != nil {
 		return err
 	}
@@ -86,22 +101,22 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := alertintegrations.NewUserAlertPayload{
-		SessionURL:     getSessionsURL(sessionAlert.ProjectID, session),
-		UserIdentifier: session.Identifier,
+		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil
 	}
 
-	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 	if err != nil {
 		return err
 	}
 
-	channels := sessionAlert.DiscordChannelsToNotify
+	channels := event.SessionAlert.DiscordChannelsToNotify
 	for _, channel := range channels {
 		err = bot.SendNewUserAlert(channel.ID, payload)
 
@@ -113,8 +128,15 @@ func SendNewUserAlert(session *model.Session, sessionAlert *model.SessionAlert, 
 	return nil
 }
 
-func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAlert, workspace *model.Workspace, visitedUrl *string) error {
-	sessionUserProperties, err := session.GetUserProperties()
+type SendNewSessionAlertEvent struct {
+	Session      *model.Session
+	SessionAlert *model.SessionAlert
+	Workspace    *model.Workspace
+	VisitedURL   *string
+}
+
+func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
+	sessionUserProperties, err := event.Session.GetUserProperties()
 	if err != nil {
 		return err
 	}
@@ -122,23 +144,23 @@ func SendNewSessionAlert(session *model.Session, sessionAlert *model.SessionAler
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := alertintegrations.NewSessionAlertPayload{
-		SessionURL:     getSessionsURL(sessionAlert.ProjectID, session),
-		UserIdentifier: session.Identifier,
+		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
-		VisitedURL:     visitedUrl,
+		VisitedURL:     event.VisitedURL,
 	}
 
-	if !isWorkspaceIntegratedWithDiscord(*workspace) {
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil
 	}
 
-	bot, err := discord.NewDiscordBot(*workspace.DiscordGuildId)
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
 	if err != nil {
 		return err
 	}
 
-	channels := sessionAlert.DiscordChannelsToNotify
+	channels := event.SessionAlert.DiscordChannelsToNotify
 
 	for _, channel := range channels {
 		err = bot.SendNewSessionAlert(channel.ID, payload)

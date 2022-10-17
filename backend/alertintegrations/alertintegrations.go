@@ -8,7 +8,7 @@ type ErrorAlertPayload struct {
 	SessionURL     string
 	ErrorURL       string
 	UserIdentifier string
-	VisitedURL     *string
+	VisitedURL     string
 }
 
 type NewUserAlertPayload struct {
