@@ -6447,6 +6447,7 @@ __metadata:
   dependencies:
     "@highlight-run/node": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
+    "@trpc/server": ^9.27.4
     "@types/jest": 27.4.1
     "@types/node": 17.0.23
     eslint: 8.12.0
@@ -8713,6 +8714,13 @@ __metadata:
   version: 2.0.0
   resolution: "@tootallnate/once@npm:2.0.0"
   checksum: ad87447820dd3f24825d2d947ebc03072b20a42bfc96cbafec16bff8bbda6c1a81fcb0be56d5b21968560c5359a0af4038a68ba150c3e1694fe4c109a063bed8
+  languageName: node
+  linkType: hard
+
+"@trpc/server@npm:^9.27.4":
+  version: 9.27.4
+  resolution: "@trpc/server@npm:9.27.4"
+  checksum: 7b370bfa0946c6482efec173a239a30087215c991a8b0221a0bb64f6578aa9b056e89a5c2afd85701f6a051d2fc853d7566b1737a2f8605ca9231f81aba6d574
   languageName: node
   linkType: hard
 

@@ -4,6 +4,7 @@ import {
 	HIGHLIGHT_REQUEST_HEADER,
 	NodeOptions,
 } from '@highlight-run/node'
+import { IncomingHttpHeaders } from 'http'
 
 interface RequestMetadata {
 	secureSessionId: string
@@ -55,9 +56,18 @@ export const H: HighlightInterface = {
 	},
 }
 
+declare type HasHeaders = { headers: IncomingHttpHeaders }
+declare type HasStatus = { statusCode: number; statusMessage: string }
+declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
+	req: T,
+	res: S,
+) => unknown | Promise<unknown>
+
 export const Highlight =
 	(options: NodeOptions = {}) =>
-	<T>(origHandler: NextApiHandler<T>): NextApiHandler<T> => {
+	<T extends HasHeaders, S extends HasStatus>(
+		origHandler: ApiHandler<T, S>,
+	): ApiHandler<T, S> => {
 		return async (req, res) => {
 			const processHighlightHeaders = () => {
 				if (req.headers && req.headers[HIGHLIGHT_REQUEST_HEADER]) {
@@ -81,7 +91,7 @@ export const Highlight =
 			const { secureSessionId, requestId } = processHighlightHeaders()
 			const start = new Date()
 			try {
-				return (await origHandler(req, res)) as T
+				return await origHandler(req, res)
 			} catch (e) {
 				if (secureSessionId && requestId) {
 					NodeH.consumeEvent(secureSessionId)
