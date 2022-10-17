@@ -47,14 +47,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, {
-	Suspense,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -114,7 +107,6 @@ const Player = ({ integrated }: Props) => {
 		  }
 		| undefined
 	>(undefined)
-	const centerColumnRef = useRef<HTMLDivElement>(null)
 	const newCommentModalRef = useRef<HTMLDivElement>(null)
 	const [commentModalPosition, setCommentModalPosition] = useState<
 		Coordinates2D | undefined
@@ -201,19 +193,11 @@ const Player = ({ integrated }: Props) => {
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
-	const [controllerWidth, setControllerWidth] = useState<number>(0)
-	useLayoutEffect(() => {
-		const div = centerColumnRef.current
-		if (!div) {
-			return
-		}
-
-		const width = Math.max(
-			centerColumnRef.current.offsetWidth - 2 * CENTER_COLUMN_MARGIN,
-			MIN_CENTER_COLUMN_WIDTH,
-		)
-		setControllerWidth(width)
-	}, [centerColumnRef.current?.offsetWidth, setControllerWidth])
+	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
+	const controllerWidth = Math.max(
+		MIN_CENTER_COLUMN_WIDTH,
+		(centerColumnSize.width || 0) - 2 * CENTER_COLUMN_MARGIN,
+	)
 
 	const playerFiller = useMemo(() => {
 		return (
@@ -369,10 +353,8 @@ const Player = ({ integrated }: Props) => {
 						>
 							<div className={styles.playerContainer}>
 								<div className={styles.rrwebPlayerSection}>
-									<div
-										className={styles.playerCenterColumn}
-										ref={centerColumnRef}
-									>
+									<div className={styles.playerCenterColumn}>
+										{centerColumnResizeListener}
 										{!isPlayerFullscreen && (
 											<SessionLevelBar
 												width={controllerWidth}
