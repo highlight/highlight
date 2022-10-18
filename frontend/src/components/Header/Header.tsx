@@ -169,12 +169,12 @@ const BillingBanner = () => {
 	}
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
-		// If date is Sep 13 in PST timezone, show Product Hunt banner
-		const isSep13 = moment().isBetween(
-			'2022-09-13T07:00:00Z',
-			'2022-09-14T07:00:00Z',
+		// If date is Oct 19 in PST timezone, show Product Hunt banner
+		const isOct19 = moment().isBetween(
+			'2022-10-19T07:00:00Z',
+			'2022-10-20T07:00:00Z',
 		)
-		if (isSep13) {
+		if (isOct19) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -335,7 +335,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/frontend-monitoring-by-highlight"
+				href="https://www.producthunt.com/posts/next-js-integration-in-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
