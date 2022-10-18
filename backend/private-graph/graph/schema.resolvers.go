@@ -2881,7 +2881,7 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			project = p
 		} else {
 			// for projects that already exist.
-			p, err := r.isAdminInProject(ctx, projectId)
+			p, err := r.isAdminInProject(ctx, m.ProjectID)
 			if err != nil {
 				return false, err
 			}
