@@ -7,11 +7,12 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { namedOperations } from '@graph/operations'
 import { VercelProjectMappingInput } from '@graph/schemas'
-import HighlightLogoSmall from '@icons/HighlightLogoSmall'
+import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
-import TrashIcon from '@icons/TrashIcon'
+import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
@@ -317,7 +318,9 @@ export const VercelIntegrationSettings: React.FC<
 			render: (value: string, row: any) => {
 				return (
 					<div className="flex gap-2">
-						<HighlightLogoSmall width={20} height={20} />
+						<div className="h-[20px] w-[20px]">
+							<SvgHighlightLogoOnLight width={20} height={20} />
+						</div>
 						{row.editable ? (
 							<>
 								<Input
@@ -329,9 +332,10 @@ export const VercelIntegrationSettings: React.FC<
 											e.target.value,
 										)
 									}}
-									placeholder="Project e.g. Frontend"
+									placeholder="Project (e.g. Frontend)"
 								></Input>
 								<Button
+									className="rounded-lg"
 									iconButton
 									trackingId={
 										'IntegrationConfiguration-Vercel-DeleteNewProject'
@@ -340,7 +344,7 @@ export const VercelIntegrationSettings: React.FC<
 										onProjectDelete(row.id)
 									}}
 								>
-									<TrashIcon />
+									<SvgTrashIconSolid />
 								</Button>
 							</>
 						) : (
@@ -369,8 +373,10 @@ export const VercelIntegrationSettings: React.FC<
 			const tempProject = tempHighlightProjects.find(
 				(p) => p.id === projectId,
 			)
+
+			// If this project hasn't been created yet, pass undefined as the project id
 			projectMappings.push({
-				project_id: projectId,
+				project_id: tempProject !== undefined ? undefined : projectId,
 				vercel_project_id: vercelId,
 				new_project_name: tempProject?.name,
 			})
@@ -383,6 +389,12 @@ export const VercelIntegrationSettings: React.FC<
 				project_id: projectId,
 				project_mappings: projectMappings,
 			},
+			refetchQueries: [
+				namedOperations.Query.GetProjects,
+				namedOperations.Query.GetProjectDropdownOptions,
+				namedOperations.Query.GetProjectsAndWorkspaces,
+				namedOperations.Query.GetWorkspaceIsIntegratedWithVercel,
+			],
 		})
 			.then(() => {
 				onSuccess && onSuccess()
@@ -409,42 +421,49 @@ export const VercelIntegrationSettings: React.FC<
 						rowHasPadding
 						smallPadding
 					></Table>
-					<Button
-						trackingId={`IntegrationConfiguration-Vercel-NewHighlightProject`}
-						className={classNames('ml-auto m-4', styles.modalBtn)}
-						onClick={() => {
-							const tId = 'new_' + tempId
-							setTempHighlightProjects((cur) =>
-								cur.concat([
-									{
-										name: '',
-										editable: true,
-										id: tId,
-										vercelProjects: [],
-										onUpdateProjectLink: (
-											vercelProjectNames: string[],
-										) => {
-											projectMapSet(
-												tId,
-												vercelProjectNames.map(
-													(n) =>
-														allVercelProjects?.find(
-															(p) => p.name === n,
-														)?.id ?? '',
-												),
-											)
+					<div className="border-0 border-t border-solid border-[#eaeaea]">
+						<Button
+							trackingId={`IntegrationConfiguration-Vercel-NewHighlightProject`}
+							className={classNames(
+								'ml-auto m-4',
+								styles.modalBtn,
+							)}
+							onClick={() => {
+								const tId = 'new_' + tempId
+								setTempHighlightProjects((cur) =>
+									cur.concat([
+										{
+											name: '',
+											editable: true,
+											id: tId,
+											vercelProjects: [],
+											onUpdateProjectLink: (
+												vercelProjectNames: string[],
+											) => {
+												projectMapSet(
+													tId,
+													vercelProjectNames.map(
+														(n) =>
+															allVercelProjects?.find(
+																(p) =>
+																	p.name ===
+																	n,
+															)?.id ?? '',
+													),
+												)
+											},
 										},
-									},
-								]),
-							)
-							setTempId((cur) => cur + 1)
-						}}
-					>
-						Create New Highlight Project +
-					</Button>
+									]),
+								)
+								setTempId((cur) => cur + 1)
+							}}
+						>
+							Create New Highlight Project +
+						</Button>
+					</div>
 				</Card>
 			</div>
-			<footer className="flex justify-end gap-2">
+			<footer className="flex justify-end gap-2 pt-0">
 				<Button
 					trackingId={`IntegrationConfigurationCancel-Vercel`}
 					className={styles.modalBtn}
