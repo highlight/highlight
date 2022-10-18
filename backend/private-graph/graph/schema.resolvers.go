@@ -782,7 +782,7 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 		return false, e.Wrap(err, "error updating admin role")
 	}
 
-	if err := r.DB.Model(&model.WorkspaceAdmin{AdminID: adminID}).Update("Role", newRole).Error; err != nil {
+	if err := r.DB.Model(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Update("Role", newRole).Error; err != nil {
 		return false, e.Wrap(err, "error updating workspace_admin role")
 	}
 
