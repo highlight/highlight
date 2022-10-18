@@ -324,6 +324,7 @@ export const VercelIntegrationSettings: React.FC<
 						{row.editable ? (
 							<>
 								<Input
+									className={styles.projectInput}
 									title={value}
 									value={value}
 									onChange={(e) => {
@@ -332,20 +333,22 @@ export const VercelIntegrationSettings: React.FC<
 											e.target.value,
 										)
 									}}
-									placeholder="Project (e.g. Frontend)"
+									placeholder="e.g. Frontend"
 								></Input>
-								<Button
-									className="rounded-lg"
-									iconButton
-									trackingId={
-										'IntegrationConfiguration-Vercel-DeleteNewProject'
-									}
-									onClick={() => {
-										onProjectDelete(row.id)
-									}}
-								>
-									<SvgTrashIconSolid />
-								</Button>
+								<div className="h-8 w-8">
+									<Button
+										className="rounded-lg"
+										iconButton
+										trackingId={
+											'IntegrationConfiguration-Vercel-DeleteNewProject'
+										}
+										onClick={() => {
+											onProjectDelete(row.id)
+										}}
+									>
+										<SvgTrashIconSolid />
+									</Button>
+								</div>
 							</>
 						) : (
 							<div
@@ -482,7 +485,15 @@ export const VercelIntegrationSettings: React.FC<
 					onClick={onSave}
 					disabled={
 						projectMappings.length === 0 || // If no project mappings
-						tempHighlightProjects.find((p) => !p.name) // If a new project is missing a name
+						tempHighlightProjects.find((p) => !p.name) || // If a new project is missing a name
+						tempHighlightProjects.find((p) => {
+							const vercelProjects = projectMap.get(p.id)
+							// If a new project has no Vercel projects
+							return (
+								vercelProjects === undefined ||
+								vercelProjects.length === 0
+							)
+						})
 					}
 				>
 					<span className={styles.modalBtnText}>
