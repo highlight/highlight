@@ -60,8 +60,7 @@ const getDefaultOpts = (
 		uploadSourceMaps:
 			isProdBuild &&
 			(highlightOpts?.uploadSourceMaps ??
-				!config.productionBrowserSourceMaps ??
-				hasSourcemapApiKey),
+				(!config.productionBrowserSourceMaps && hasSourcemapApiKey)),
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? '',
