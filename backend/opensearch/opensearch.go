@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -556,7 +556,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 		return 0, nil, e.Wrap(err, "failed to search index")
 	}
 
-	res, err := ioutil.ReadAll(searchResponse.Body)
+	res, err := io.ReadAll(searchResponse.Body)
 	if err != nil {
 		return 0, nil, e.Wrap(err, "failed to read search response")
 	}

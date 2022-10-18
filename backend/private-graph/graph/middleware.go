@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -80,9 +80,9 @@ func updateContextWithAuthenticatedUser(ctx context.Context, token string) (cont
 }
 
 func getSourcemapRequestToken(r *http.Request) string {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	// put the body back so that graphql can also read it
-	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 	if err != nil {
 		return ""
 	}

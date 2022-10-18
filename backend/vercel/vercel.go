@@ -3,7 +3,7 @@ package vercel
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -51,7 +51,7 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 		return accessTokenResponse, errors.Wrap(err, "error getting response from Vercel oauth token endpoint")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
 		return accessTokenResponse, errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
@@ -100,7 +100,7 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 		return errors.Wrap(err, "error getting response from Vercel env endpoint")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
 		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
@@ -133,7 +133,7 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 		return errors.Wrap(err, "error getting response from Vercel env endpoint")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 204 {
 		return errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
@@ -177,7 +177,7 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 			return nil, errors.Wrap(err, "error getting response from Vercel projects endpoint")
 		}
 
-		b, err := ioutil.ReadAll(res.Body)
+		b, err := io.ReadAll(res.Body)
 
 		if res.StatusCode != 200 {
 			return nil, errors.New("Vercel API responded with error; status_code=" + res.Status + "; body=" + string(b))
