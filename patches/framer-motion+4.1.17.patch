@@ -1,0 +1,12 @@
+diff --git a/node_modules/framer-motion/types/components/AnimatePresence/index.d.ts b/node_modules/framer-motion/types/components/AnimatePresence/index.d.ts
+index dc2e25e..87bea93 100644
+--- a/node_modules/framer-motion/types/components/AnimatePresence/index.d.ts
++++ b/node_modules/framer-motion/types/components/AnimatePresence/index.d.ts
+@@ -62,4 +62,6 @@ import { AnimatePresenceProps } from "./types";
+  *
+  * @public
+  */
+-export declare const AnimatePresence: React.FunctionComponent<AnimatePresenceProps>;
++export declare const AnimatePresence: React.FunctionComponent<AnimatePresenceProps & {
++  children: React.ReactNode
++}>;
