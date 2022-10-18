@@ -250,7 +250,7 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 		sourceMapURL, sourceMapFileBytes, err = getURLSourcemap(projectId, version, stackTraceFileURL, stackTraceFilePath, stackFileNameIndex, storageClient)
 	}
 	if err != nil {
-		return nil, e.Wrapf(err, "error getting source map for %v", stackTraceFilePath)
+		return nil, err
 	}
 
 	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
