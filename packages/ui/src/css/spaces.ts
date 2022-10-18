@@ -1,12 +1,11 @@
 const spaces = {
 	none: '0',
-	xxSmall: '4px',
-	xSmall: '8px',
-	small: '12px',
-	medium: '16px',
-	large: '20px',
+	xSmall: '4px',
+	small: '8px',
+	medium: '12px',
+	large: '16px',
 	xLarge: '24px',
-	xxLarge: '28px',
+	xxLarge: '32px',
 }
 
 export default spaces

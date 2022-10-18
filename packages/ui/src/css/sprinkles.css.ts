@@ -40,6 +40,13 @@ const responsiveProperties = defineProperties({
 	},
 	defaultCondition: 'mobile',
 	properties: {
+		borderRadius: {
+			default: '4px',
+			large: '6px',
+		},
+		boxShadow: {
+			default: '0 2px 3px rgba(0, 0, 0, 0.1)',
+		},
 		display: ['none', 'flex', 'block', 'inline'],
 		flexDirection: ['row', 'column'],
 		justifyContent: [
@@ -75,8 +82,9 @@ const colorProperties = defineProperties({
 	},
 	defaultCondition: 'lightMode',
 	properties: {
-		color: colors,
 		background: colors,
+		borderColor: colors,
+		color: colors,
 	},
 })
 
