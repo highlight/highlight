@@ -1,6 +1,5 @@
 import clsx, { ClassValue } from 'clsx'
 import React from 'react'
-import { base } from '../../css/reset.css'
 import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
 interface Props extends Sprinkles, React.PropsWithChildren {
@@ -23,7 +22,6 @@ export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
 
 	return React.createElement(as, {
 		className: clsx([
-			base, // TODO: Consider resetting globally
 			sprinkles({
 				background: { darkMode: 'purple900', lightMode: 'white' },
 				color: { darkMode: 'white', lightMode: 'black' },

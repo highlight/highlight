@@ -15,13 +15,6 @@ module.exports = {
 	features: {
 		storyStoreV7: true,
 	},
-	typescript: {
-		reactDocgen: 'react-docgen-typescript',
-		reactDocgenTypescriptOptions: {
-			shouldExtractLiteralValuesFromEnum: true,
-			shouldExtractValuesFromUnion: true,
-		},
-	},
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			plugins: [

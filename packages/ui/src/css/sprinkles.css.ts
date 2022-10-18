@@ -1,4 +1,5 @@
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
+import { borders } from './borders'
 import { breakpoints } from './breakpoints'
 import { vars } from './theme.css'
 
@@ -6,17 +7,17 @@ const responsiveProperties = defineProperties({
 	conditions: {
 		mobile: {},
 		tablet: {
-			'@media': `screen and (min-width: ${vars.breakpoint.tablet})`,
+			'@media': `screen and (min-width: ${breakpoints.tablet})`,
 		},
 		desktop: {
-			'@media': `screen and (min-width: ${vars.breakpoint.desktop})`,
+			'@media': `screen and (min-width: ${breakpoints.desktop})`,
 		},
-		wide: { '@media': `screen and (min-width: ${vars.breakpoint.wide})` },
+		wide: { '@media': `screen and (min-width: ${breakpoints.wide})` },
 	},
 	defaultCondition: 'mobile',
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
-		borderRadius: vars.border.radius,
+		borderRadius: vars.borderRadius,
 		display: ['none', 'flex', 'block', 'inline'],
 		flexDirection: ['row', 'column'],
 		justifyContent: [
@@ -57,7 +58,14 @@ const colorProperties = defineProperties({
 	defaultCondition: 'lightMode',
 	properties: {
 		background: vars.color,
+		border: borders,
+		borderTop: borders,
+		borderRight: borders,
+		borderBottom: borders,
+		borderLeft: borders,
 		borderColor: vars.color,
+		borderStyle: ['hidden', 'solid'],
+		borderWidth: vars.border.width,
 		boxShadow: vars.shadows,
 		color: vars.color,
 	},

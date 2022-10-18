@@ -1,4 +1,5 @@
 import { createGlobalTheme, createTheme } from '@vanilla-extract/css'
+import { borders } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
 import { spaces } from './spaces'
@@ -7,17 +8,11 @@ export const vars = createGlobalTheme(':root', {
 	breakpoint: breakpoints,
 	color: colors,
 	space: spaces,
-	border: {
-		radius: {
-			standard: '4px',
-			large: '8px',
-			xlarge: '12px',
-		},
-		width: {
-			standard: '1px',
-			large: '2px',
-			xLarge: '3px',
-		},
+	border: borders,
+	borderRadius: {
+		standard: '4px',
+		large: '8px',
+		xlarge: '12px',
 	},
 	typography: {
 		family: {

@@ -3700,6 +3700,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/plugin-transform-typescript@npm:^7.3.2":
+  version: 7.19.3
+  resolution: "@babel/plugin-transform-typescript@npm:7.19.3"
+  dependencies:
+    "@babel/helper-create-class-features-plugin": ^7.19.0
+    "@babel/helper-plugin-utils": ^7.19.0
+    "@babel/plugin-syntax-typescript": ^7.18.6
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 094c8c4ad05fee7f1bda243923cadb2b05b58448ea7cf9560e734c7cffd72acfeab3e1e0d2b084eb47a5a950ac316f970b83904b3504c203fa6fe9d8d61526a8
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-transform-unicode-escapes@npm:^7.18.10":
   version: 7.18.10
   resolution: "@babel/plugin-transform-unicode-escapes@npm:7.18.10"
@@ -3937,7 +3950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-typescript@npm:^7.12.7, @babel/preset-typescript@npm:^7.16.0":
+"@babel/preset-typescript@npm:^7.12.7, @babel/preset-typescript@npm:^7.16.0, @babel/preset-typescript@npm:^7.3.3, @babel/preset-typescript@npm:^7.8.3":
   version: 7.18.6
   resolution: "@babel/preset-typescript@npm:7.18.6"
   dependencies:
@@ -7216,6 +7229,7 @@ __metadata:
     "@storybook/addon-interactions": ^6.5.12
     "@storybook/addon-links": ^6.5.12
     "@storybook/builder-vite": ^0.2.4
+    "@storybook/preset-typescript": ^3.0.0
     "@storybook/react": ^6.5.12
     "@storybook/testing-library": ^0.0.13
     "@testing-library/react": ^13.4.0
@@ -10974,12 +10988,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/node-logger@npm:^5.3.17":
+  version: 5.3.22
+  resolution: "@storybook/node-logger@npm:5.3.22"
+  dependencies:
+    "@types/npmlog": ^4.1.2
+    chalk: ^3.0.0
+    core-js: ^3.0.1
+    npmlog: ^4.1.2
+    pretty-hrtime: ^1.0.3
+    regenerator-runtime: ^0.13.3
+  checksum: c55cb15270f1dcb84ec427e643a332af4c3151dcba5dcef55f4164bde2c4f12fe8f3c84728439124ac56f8ceaf1090a5be4b2a2930638b22011f17618660b38d
+  languageName: node
+  linkType: hard
+
 "@storybook/postinstall@npm:6.5.12":
   version: 6.5.12
   resolution: "@storybook/postinstall@npm:6.5.12"
   dependencies:
     core-js: ^3.8.2
   checksum: 0f84be944501d20fb12b554fe46967182fe1824acee40dbcead848c1f29ab3433980ef1cb0cc1c7dffdac7145459f3b38d37b8047d07aa83bee4909aeb27f23a
+  languageName: node
+  linkType: hard
+
+"@storybook/preset-typescript@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@storybook/preset-typescript@npm:3.0.0"
+  dependencies:
+    "@babel/preset-typescript": ^7.8.3
+    "@storybook/node-logger": ^5.3.17
+    "@types/babel__core": ^7.1.6
+    babel-preset-typescript-vue: ^1.0.3
+    fork-ts-checker-webpack-plugin: ^4.1.0
+  peerDependencies:
+    typescript: ">=3.4"
+  checksum: f3f8c6107b38f30ee1d13c4b3bec70e59de42b9e3fd45b880b8828bf7494bebf9c316ccced4d9bec2ac062f7880464fbafb5aca627f95b529a772773c3cac8c5
   languageName: node
   linkType: hard
 
@@ -11780,6 +11823,19 @@ __metadata:
     "@types/babel__template": "*"
     "@types/babel__traverse": "*"
   checksum: 3ea016369666a013564f8d3119ae987b3a3f1bdf31cc90e0d58714eea10d6b89a9fb1f6146290ee239ecc285800b246f18be930625c1d83e79d074842e43ab7d
+  languageName: node
+  linkType: hard
+
+"@types/babel__core@npm:^7.1.6":
+  version: 7.1.19
+  resolution: "@types/babel__core@npm:7.1.19"
+  dependencies:
+    "@babel/parser": ^7.1.0
+    "@babel/types": ^7.0.0
+    "@types/babel__generator": "*"
+    "@types/babel__template": "*"
+    "@types/babel__traverse": "*"
+  checksum: 8c9fa87a1c2224cbec251683a58bebb0d74c497118034166aaa0491a4e2627998a6621fc71f8a60ffd27d9c0c52097defedf7637adc6618d0331c15adb302338
   languageName: node
   linkType: hard
 
@@ -15721,6 +15777,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"babel-preset-typescript-vue@npm:^1.0.3":
+  version: 1.1.1
+  resolution: "babel-preset-typescript-vue@npm:1.1.1"
+  dependencies:
+    "@babel/helper-plugin-utils": ^7.0.0
+    "@babel/plugin-transform-typescript": ^7.3.2
+    "@babel/preset-typescript": ^7.3.3
+    vue-template-compiler: ^2.6.11
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: a99f06614f70418e1996641665e9c5ea3469537316ab68600d4ef6e10967d2362c23007e18ed7c0c416ec930a32f1d90f3347d3504556f37048b11c9e76c24cd
+  languageName: node
+  linkType: hard
+
 "babel-runtime@npm:^6.26.0":
   version: 6.26.0
   resolution: "babel-runtime@npm:6.26.0"
@@ -17907,7 +17977,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.0.4, core-js@npm:^3.6.5, core-js@npm:^3.8.2":
+"core-js@npm:^3.0.1, core-js@npm:^3.0.4, core-js@npm:^3.6.5, core-js@npm:^3.8.2":
   version: 3.25.5
   resolution: "core-js@npm:3.25.5"
   checksum: 208b308c49bc022f90d4349d4c99802a73c9d55053976b3c529f10014c1e37845926defad8c519f2c7f71ea0acf18d2b323ab6aaee34dc85b4c4b3ced0623f3f
@@ -18922,6 +18992,13 @@ __metadata:
   version: 1.11.5
   resolution: "dayjs@npm:1.11.5"
   checksum: e3bbaa7b4883b31be4bf75a181f1447fbb19800c29b332852125aab96baeff3ac232dcba8b88c4ea17d3b636c99dac5fb9d1af4bb6ae26615698bbc4a852dffb
+  languageName: node
+  linkType: hard
+
+"de-indent@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "de-indent@npm:1.0.2"
+  checksum: 8deacc0f4a397a4414a0fc4d0034d2b7782e7cb4eaf34943ea47754e08eccf309a0e71fa6f56cc48de429ede999a42d6b4bca761bf91683be0095422dbf24611
   languageName: node
   linkType: hard
 
@@ -23025,7 +23102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fork-ts-checker-webpack-plugin@npm:^4.1.6":
+"fork-ts-checker-webpack-plugin@npm:^4.1.0, fork-ts-checker-webpack-plugin@npm:^4.1.6":
   version: 4.1.6
   resolution: "fork-ts-checker-webpack-plugin@npm:4.1.6"
   dependencies:
@@ -35925,17 +36002,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"regenerator-runtime@npm:^0.13.3, regenerator-runtime@npm:^0.13.7":
+  version: 0.13.10
+  resolution: "regenerator-runtime@npm:0.13.10"
+  checksum: 09893f5a9e82932642d9a999716b6c626dc53ef2a01307c952ebbf8e011802360163a37c304c18a6c358548be5a72b448e37209954a18696f21e438c81cbb4b9
+  languageName: node
+  linkType: hard
+
 "regenerator-runtime@npm:^0.13.4":
   version: 0.13.7
   resolution: "regenerator-runtime@npm:0.13.7"
   checksum: 52b66e6669152c0b1bccd95c8e11aabbfe67bb97bdf00e223bdf723b0f0052d4da5c02001d4c4bef576bdc5bcdc38a20496d1b5363b65c950c8434ed5071d9e0
-  languageName: node
-  linkType: hard
-
-"regenerator-runtime@npm:^0.13.7":
-  version: 0.13.10
-  resolution: "regenerator-runtime@npm:0.13.10"
-  checksum: 09893f5a9e82932642d9a999716b6c626dc53ef2a01307c952ebbf8e011802360163a37c304c18a6c358548be5a72b448e37209954a18696f21e438c81cbb4b9
   languageName: node
   linkType: hard
 
@@ -41756,6 +41833,16 @@ __metadata:
   version: 1.1.2
   resolution: "vm-browserify@npm:1.1.2"
   checksum: 10a1c50aab54ff8b4c9042c15fc64aefccce8d2fb90c0640403242db0ee7fb269f9b102bdb69cfb435d7ef3180d61fd4fb004a043a12709abaf9056cfd7e039d
+  languageName: node
+  linkType: hard
+
+"vue-template-compiler@npm:^2.6.11":
+  version: 2.7.13
+  resolution: "vue-template-compiler@npm:2.7.13"
+  dependencies:
+    de-indent: ^1.0.2
+    he: ^1.2.0
+  checksum: d16d5416326dbe048559301e13e34437ecd52e9e80eef865c107e548ea48786f73539991aa361d213caeacc5420ee5a9c2d462da7aca9bc6fd439df83019ac19
   languageName: node
   linkType: hard
 
