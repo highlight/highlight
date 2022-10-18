@@ -32,7 +32,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
@@ -2869,10 +2869,25 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 
 	configs := []*model.VercelIntegrationConfig{}
 	for _, m := range projectMappings {
-		project, err := r.isAdminInProject(ctx, m.ProjectID)
-		if err != nil {
-			return false, err
+		var project *model.Project
+
+		if m.NewProjectName != nil && *m.NewProjectName != "" {
+			// for projects that don't exist
+			n := *m.NewProjectName
+			p, err := r.CreateProject(ctx, n, workspaceId)
+			if err != nil {
+				return false, e.Wrap(err, "cannot access Vercel project")
+			}
+			project = p
+		} else {
+			// for projects that already exist.
+			p, err := r.isAdminInProject(ctx, projectId)
+			if err != nil {
+				return false, err
+			}
+			project = p
 		}
+
 		if project.Secret == nil {
 			continue
 		}

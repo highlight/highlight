@@ -985,6 +985,8 @@ type EventChunk {
 
 input VercelProjectMappingInput {
 	vercel_project_id: String!
+	# `new_project_name` only present if the intentiont to create a brand new project
+	new_project_name: String
 	project_id: ID!
 }
 
