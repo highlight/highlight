@@ -12,7 +12,7 @@ export interface Request {
 
 export interface Response {
 	status: number
-	headers: any
+	headers?: { [k: string]: string }
 	body: any
 	/** Number of Bytes transferred over the network. */
 	size?: number

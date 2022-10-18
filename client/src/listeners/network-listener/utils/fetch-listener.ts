@@ -176,7 +176,11 @@ const logRequest = (
 				}
 
 				responsePayload.body = text
-				responsePayload.headers = response.headers
+				responsePayload.headers = {}
+				// response.headers must be used as an iterable via `.entries()` to get headers
+				for (const [key, value] of response.headers.entries()) {
+					responsePayload.headers[key] = value
+				}
 				responsePayload.size = text.length * 8
 			}
 
