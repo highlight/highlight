@@ -319,6 +319,7 @@ export class Highlight {
 		this._firstLoadListeners.stopListening()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		if (this.recordStop) {
+			this.state = 'NotRecording'
 			this.recordStop()
 			this.recordStop = undefined
 		}
@@ -660,7 +661,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			setTimeout(() => {
 				// Skip if we're already recording events
 				if (this.recordStop) {
-					return
+					this.recordStop()
 				}
 				this.recordStop = record({
 					ignoreClass: 'highlight-ignore',
@@ -686,6 +687,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 				})
+				this.state = 'Recording'
 				if (this.recordStop) {
 					this.listeners.push(this.recordStop)
 				}
@@ -735,7 +737,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.sessionData.sessionSecureID
 			) {
 				this.ready = true
-				this.state = 'Recording'
 			}
 		}
 	}
