@@ -137,7 +137,7 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload alertintegr
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight New User Alert: %s", payload.UserIdentifier),
+		Content: fmt.Sprintf("Highlight New Session Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
 		},

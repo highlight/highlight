@@ -136,9 +136,15 @@ type SendNewSessionAlertEvent struct {
 }
 
 func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
-	sessionUserProperties, err := event.Session.GetUserProperties()
-	if err != nil {
-		return err
+	var sessionUserProperties map[string]string
+	var err error
+
+	if event.Session.UserProperties != "" {
+		sessionUserProperties, err = event.Session.GetUserProperties()
+
+		if err != nil {
+			return err
+		}
 	}
 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
