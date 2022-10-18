@@ -37,10 +37,30 @@ type TrackPropertiesAlertPayload struct {
 	RelatedFields  []Field
 }
 
+type UserPropertiesAlertPayload struct {
+	UserIdentifier string
+}
+
+type SessionFeedbackAlertPayload struct {
+}
+
+type RageClicksAlertPayload struct {
+	RageClicksCount int64
+	UserIdentifier  string
+	SessionURL      string
+}
+
+type MetricMonitorAlertPayload struct {
+}
+
 type BaseAlertIntegration interface {
 	GetChannels() ([]*discordgo.Channel, error)
 	SendErrorAlert(channelId string, payload ErrorAlertPayload) error
 	SendNewUserAlert(channelId string, payload NewUserAlertPayload) error
 	SendNewSessionAlert(channelId string, payload NewSessionAlertPayload) error
 	SendTrackPropertiesAlert(channelId string, payload TrackPropertiesAlertPayload) error
+	SendUserPropertiesAlert(channelId string, payload UserPropertiesAlertPayload) error
+	SendSessionFeedbackAlert(channelId string, payload SessionFeedbackAlertPayload) error
+	SendRageClicksAlert(channelId string, payload RageClicksAlertPayload) error
+	SendMetricMonitorAlert(channelId string, payload MetricMonitorAlertPayload) error
 }

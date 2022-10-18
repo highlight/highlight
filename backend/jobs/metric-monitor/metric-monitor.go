@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/timeseries"
@@ -135,6 +136,13 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 
 			if err := metricMonitor.SendSlackAlert(&model.SendSlackAlertForMetricMonitorInput{Message: message, Workspace: &workspace}); err != nil {
 				log.Error("error sending slack alert for metric monitor", err)
+			}
+
+			if err = alerts.SendMetricMonitorAlert(alerts.MetricMonitorAlertEvent{
+				MetricMonitor: metricMonitor,
+				Workspace:     &workspace,
+			}); err != nil {
+				log.Error(err)
 			}
 
 			emailsToNotify, err := model.GetEmailsToNotify(metricMonitor.EmailsToNotify)

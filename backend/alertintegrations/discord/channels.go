@@ -32,23 +32,23 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 }
 
 func (bot *DiscordBot) SendErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
-	userFields := []*discordgo.MessageEmbedField{}
+	fields := []*discordgo.MessageEmbedField{}
 
-	userFields = append(userFields, &discordgo.MessageEmbedField{
+	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Session",
 		Value:  payload.SessionURL,
 		Inline: true,
 	})
 
 	if payload.VisitedURL != "" {
-		userFields = append(userFields, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "Visited URL",
 			Value:  payload.VisitedURL,
 			Inline: true,
 		})
 	}
 
-	userFields = append(userFields, &discordgo.MessageEmbedField{
+	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "User",
 		Value:  payload.UserIdentifier,
 		Inline: true,
@@ -61,7 +61,7 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload alertintegration
 				Type:   "rich",
 				Title:  payload.ErrorTitle,
 				URL:    payload.ErrorURL,
-				Fields: userFields,
+				Fields: fields,
 			},
 		},
 	}
@@ -185,4 +185,46 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
 
 	return err
+}
+
+func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload alertintegrations.UserPropertiesAlertPayload) error {
+	return nil
+}
+
+func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload alertintegrations.SessionFeedbackAlertPayload) error {
+	return nil
+}
+
+func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload alertintegrations.RageClicksAlertPayload) error {
+	fields := []*discordgo.MessageEmbedField{}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Session",
+		Value:  payload.SessionURL,
+		Inline: true,
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "User",
+		Value:  payload.UserIdentifier,
+		Inline: true,
+	})
+
+	messageSend := discordgo.MessageSend{
+		Content: fmt.Sprintf("Highlight Rage Clicks Alert: %d Recent Occurrences", payload.RageClicksCount),
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Type:   "rich",
+				Fields: fields,
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
+}
+
+func (bot *DiscordBot) SendMetricMonitorAlert(channelId string, payload alertintegrations.MetricMonitorAlertPayload) error {
+	return nil
 }

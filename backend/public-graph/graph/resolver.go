@@ -353,6 +353,12 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+			if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
+				SessionAlert: sessionAlert,
+				Workspace:    workspace,
+			}); err != nil {
+				log.Error(err)
+			}
 		}
 	})
 
@@ -1490,7 +1496,17 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
 		})
+
+		if err = alerts.SendSessionFeedbackAlert(alerts.SessionFeedbackAlertEvent{
+			Session:        session,
+			SessionAlert:   sessionFeedbackAlert,
+			SessionComment: feedbackComment,
+			Workspace:      workspace,
+		}); err != nil {
+			log.Error(err)
+		}
 	}
+
 	return nil
 }
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {

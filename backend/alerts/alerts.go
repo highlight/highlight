@@ -227,6 +227,134 @@ func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 	return nil
 }
 
+type UserPropertiesAlertEvent struct {
+	SessionAlert *model.SessionAlert
+	Workspace    *model.Workspace
+}
+
+func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
+	payload := alertintegrations.UserPropertiesAlertPayload{}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.SessionAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendUserPropertiesAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type SessionFeedbackAlertEvent struct {
+	Session        *model.Session
+	SessionAlert   *model.SessionAlert
+	Workspace      *model.Workspace
+	SessionComment *model.SessionComment
+}
+
+func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
+	payload := alertintegrations.SessionFeedbackAlertPayload{}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.SessionAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendSessionFeedbackAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type RageClicksAlertEvent struct {
+	Session         *model.Session
+	SessionAlert    *model.SessionAlert
+	Workspace       *model.Workspace
+	RageClicksCount int64
+}
+
+func SendRageClicksAlert(event RageClicksAlertEvent) error {
+	payload := alertintegrations.RageClicksAlertPayload{
+		RageClicksCount: event.RageClicksCount,
+		SessionURL:      getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		UserIdentifier:  event.Session.Identifier,
+	}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.SessionAlert.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendRageClicksAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type MetricMonitorAlertEvent struct {
+	MetricMonitor *model.MetricMonitor
+	Workspace     *model.Workspace
+}
+
+func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
+	payload := alertintegrations.MetricMonitorAlertPayload{}
+
+	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+		return nil
+	}
+
+	bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := event.MetricMonitor.DiscordChannelsToNotify
+
+	for _, channel := range channels {
+		err = bot.SendMetricMonitorAlert(channel.ID, payload)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func isWorkspaceIntegratedWithDiscord(workspace model.Workspace) bool {
 	return workspace.DiscordGuildId != nil
 }
