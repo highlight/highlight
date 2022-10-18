@@ -2,9 +2,10 @@ package errors
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -43,7 +44,7 @@ var fetch fetcher
 type DiskFetcher struct{}
 
 func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
-	inputBytes, err := ioutil.ReadFile(href)
+	inputBytes, err := os.ReadFile(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error fetching file from disk")
 	}
@@ -69,7 +70,7 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	}
 
 	// unpack file into slice
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, e.Wrap(err, "error reading response body")
 	}

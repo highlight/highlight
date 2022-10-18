@@ -14,16 +14,13 @@ output:
 linters:
     # enable all linters
     enable:
-        - deadcode
         - errcheck
         - gosimple
         - govet
         - ineffassign
         - staticcheck
-        - structcheck
         - typecheck
         - unused
-        - varcheck
         - depguard
 
 # all available settings of specific linters

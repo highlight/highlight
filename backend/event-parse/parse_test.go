@@ -2,7 +2,7 @@ package parse
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -117,7 +117,7 @@ func (u fetcherMock) fetchStylesheetData(href string) ([]byte, error) {
 func TestInjectStyleSheets(t *testing.T) {
 	// Get sample input of events and serialize.
 	fetch = fetcherMock{}
-	inputBytes, err := ioutil.ReadFile("./sample-events/input.json")
+	inputBytes, err := os.ReadFile("./sample-events/input.json")
 	if err != nil {
 		t.Fatalf("error reading: %v", err)
 	}
@@ -139,7 +139,7 @@ func TestInjectStyleSheets(t *testing.T) {
 	}
 
 	// Get wanted output of events and serialize.
-	wantBytes, err := ioutil.ReadFile("./sample-events/output.json")
+	wantBytes, err := os.ReadFile("./sample-events/output.json")
 	if err != nil {
 		t.Fatalf("error reading: %v", err)
 	}

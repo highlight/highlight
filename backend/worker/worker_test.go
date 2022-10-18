@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 	"time"
 
@@ -672,7 +672,7 @@ func TestGetActiveDuration(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.SetOutput(ioutil.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,
@@ -797,7 +797,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.SetOutput(ioutil.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,
