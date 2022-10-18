@@ -262,10 +262,23 @@ type SessionFeedbackAlertEvent struct {
 	SessionAlert   *model.SessionAlert
 	Workspace      *model.Workspace
 	SessionComment *model.SessionComment
+	UserName       *string
+	UserEmail      *string
 }
 
 func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
-	payload := alertintegrations.SessionFeedbackAlertPayload{}
+	identifier := "Someone"
+	if event.UserName != nil {
+		identifier = *event.UserName
+	} else if event.UserEmail != nil {
+		identifier = *event.UserEmail
+	}
+
+	payload := alertintegrations.SessionFeedbackAlertPayload{
+		UserIdentifier:    identifier,
+		SessionCommentURL: getSessionCommentURL(event.SessionAlert.ProjectID, event.Session, event.SessionComment),
+		CommentText:       event.SessionComment.Text,
+	}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil

@@ -42,6 +42,9 @@ type UserPropertiesAlertPayload struct {
 }
 
 type SessionFeedbackAlertPayload struct {
+	SessionCommentURL string
+	UserIdentifier    string
+	CommentText       string
 }
 
 type RageClicksAlertPayload struct {

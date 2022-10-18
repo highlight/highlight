@@ -192,7 +192,31 @@ func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload alertin
 }
 
 func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload alertintegrations.SessionFeedbackAlertPayload) error {
-	return nil
+	fields := []*discordgo.MessageEmbedField{}
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Session",
+		Value:  payload.SessionCommentURL,
+		Inline: true,
+	})
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Comment",
+		Value:  payload.CommentText,
+		Inline: true,
+	})
+
+	messageSend := discordgo.MessageSend{
+		Content: fmt.Sprintf("Highlight Feedback Alert: %s", payload.UserIdentifier),
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Type:   "rich",
+				Fields: fields,
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
 }
 
 func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload alertintegrations.RageClicksAlertPayload) error {

@@ -1502,6 +1502,8 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			SessionAlert:   sessionAlert,
 			SessionComment: feedbackComment,
 			Workspace:      workspace,
+			UserName:       input.UserName,
+			UserEmail:      input.UserEmail,
 		}); err != nil {
 			log.Error(err)
 		}
