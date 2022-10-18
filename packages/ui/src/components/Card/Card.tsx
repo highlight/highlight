@@ -1,21 +1,27 @@
 import React from 'react'
 import spaces from '../../css/spaces'
-import { sprinkles } from '../../css/sprinkles.css'
+import type { Sprinkles } from '../../css/sprinkles.css'
+import Box from '../Box/Box'
 
 interface Props extends React.PropsWithChildren {
+	color: keyof Sprinkles['color']
 	padding: keyof typeof spaces
 }
 
-const Card: React.FC<Props> = ({ children }) => {
+const Card: React.FC<Props> = ({ children, color, padding }) => {
 	return (
-		<div
-			className={sprinkles({
-				background: { lightMode: 'white', darkMode: 'purple900' },
-				color: { lightMode: 'black', darkMode: 'white' },
-			})}
+		<Box
+			p={
+				padding || {
+					mobile: 'small',
+					tablet: 'medium',
+					desktop: 'large',
+				}
+			}
+			color={color}
 		>
 			{children}
-		</div>
+		</Box>
 	)
 }
 

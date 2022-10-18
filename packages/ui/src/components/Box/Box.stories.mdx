@@ -6,8 +6,20 @@ import Box from './Box'
 
 # Box
 
+The box component is the foundational building block of all components in the library. It has props for all properties defined in our `sprinkles`, making it easy to apply common styling properties via familiar shorthands like `py` and `px` for vertical and horizontal padding.
+
 <Canvas>
-	<Story name="default">
+	<Story name="Padding">
+		<Box display="flex" alignItems="center">
+			<Box py="small" px="xxLarge">
+				<code>py="small" px="xxLarge"</code>
+			</Box>
+		</Box>
+	</Story>
+</Canvas>
+
+<Canvas>
+	<Story name="Flex">
 		<Box display="flex" alignItems="center">
 			<Box padding="large">Hello!</Box>
 			<Box padding="small" background="purple500" color="white">
