@@ -288,7 +288,7 @@ const WorkspaceTeam = () => {
 										messageText = `${displayName} has been granted Admin powers 🧙`
 										break
 									case AdminRole.Member:
-										messageText = `${displayName} will no longer have access to billing`
+										messageText = `${displayName} no longer has admin access.`
 										break
 								}
 								message.success(messageText)
