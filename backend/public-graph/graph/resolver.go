@@ -1499,7 +1499,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 
 		if err = alerts.SendSessionFeedbackAlert(alerts.SessionFeedbackAlertEvent{
 			Session:        session,
-			SessionAlert:   sessionFeedbackAlert,
+			SessionAlert:   sessionAlert,
 			SessionComment: feedbackComment,
 			Workspace:      workspace,
 		}); err != nil {
