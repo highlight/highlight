@@ -26,19 +26,21 @@ type NewSessionAlertPayload struct {
 	VisitedURL     *string
 }
 
-type Field struct {
+type Property struct {
 	Key   string
 	Value string
 }
 
 type TrackPropertiesAlertPayload struct {
-	UserIdentifier string
-	MatchedFields  []Field
-	RelatedFields  []Field
+	UserIdentifier    string
+	MatchedProperties []Property
+	RelatedProperties []Property
 }
 
 type UserPropertiesAlertPayload struct {
-	UserIdentifier string
+	UserIdentifier    string
+	SessionURL        string
+	MatchedProperties []Property
 }
 
 type SessionFeedbackAlertPayload struct {

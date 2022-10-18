@@ -183,26 +183,26 @@ type TrackPropertiesAlertEvent struct {
 
 func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 	// format matched properties
-	mappedMatchedFields := []alertintegrations.Field{}
-	mappedRelatedFields := []alertintegrations.Field{}
+	mappedMatchedProperties := []alertintegrations.Property{}
+	mappedRelatedProperties := []alertintegrations.Property{}
 
 	for _, field := range event.MatchedFields {
-		mappedMatchedFields = append(mappedMatchedFields, alertintegrations.Field{
+		mappedMatchedProperties = append(mappedMatchedProperties, alertintegrations.Property{
 			Key:   field.Name,
 			Value: field.Value,
 		})
 	}
 	for _, field := range event.RelatedFields {
-		mappedRelatedFields = append(mappedRelatedFields, alertintegrations.Field{
+		mappedRelatedProperties = append(mappedRelatedProperties, alertintegrations.Property{
 			Key:   field.Name,
 			Value: field.Value,
 		})
 	}
 
 	payload := alertintegrations.TrackPropertiesAlertPayload{
-		UserIdentifier: event.Session.Identifier,
-		MatchedFields:  mappedMatchedFields,
-		RelatedFields:  mappedRelatedFields,
+		UserIdentifier:    event.Session.Identifier,
+		MatchedProperties: mappedMatchedProperties,
+		RelatedProperties: mappedRelatedProperties,
 	}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
@@ -228,12 +228,27 @@ func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 }
 
 type UserPropertiesAlertEvent struct {
-	SessionAlert *model.SessionAlert
-	Workspace    *model.Workspace
+	Session       *model.Session
+	SessionAlert  *model.SessionAlert
+	Workspace     *model.Workspace
+	MatchedFields []*model.Field
 }
 
 func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
-	payload := alertintegrations.UserPropertiesAlertPayload{}
+	mappedProperties := []alertintegrations.Property{}
+
+	for _, field := range event.MatchedFields {
+		mappedProperties = append(mappedProperties, alertintegrations.Property{
+			Key:   field.Name,
+			Value: field.Value,
+		})
+	}
+
+	payload := alertintegrations.UserPropertiesAlertPayload{
+		UserIdentifier:    event.Session.Identifier,
+		SessionURL:        getSessionsURL(event.Session.ProjectID, event.Session),
+		MatchedProperties: mappedProperties,
+	}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil

@@ -154,7 +154,7 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 	}
 
 	matchedFields := []*discordgo.MessageEmbedField{}
-	for _, field := range payload.MatchedFields {
+	for _, field := range payload.MatchedProperties {
 		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
 			Name:   field.Key,
 			Value:  field.Value,
@@ -168,7 +168,7 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 		Title: "Related Track Properties",
 	}
 	relatedFields := []*discordgo.MessageEmbedField{}
-	for _, field := range payload.RelatedFields {
+	for _, field := range payload.RelatedProperties {
 		relatedFields = append(matchedFields, &discordgo.MessageEmbedField{
 			Name:   field.Key,
 			Value:  field.Value,
@@ -194,7 +194,29 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 }
 
 func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload alertintegrations.UserPropertiesAlertPayload) error {
-	return nil
+	matchedFields := []*discordgo.MessageEmbedField{}
+	for _, field := range payload.MatchedProperties {
+		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
+			Name:   field.Key,
+			Value:  field.Value,
+			Inline: true,
+		})
+	}
+
+	messageSend := discordgo.MessageSend{
+		Content: fmt.Sprintf("Highlight User Properties Alert: %s", payload.UserIdentifier),
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Type:   "rich",
+				Title:  "Matched User Properties",
+				Fields: matchedFields,
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
 }
 
 func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload alertintegrations.SessionFeedbackAlertPayload) error {

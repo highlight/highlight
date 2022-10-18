@@ -832,6 +832,7 @@ mutation UpdateSessionAlert($id: ID!, $input: SessionAlertInput!) {
 		Name
 		LastAdminToEditID
 		disabled
+		user_properties
 	}
 }
 
