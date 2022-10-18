@@ -4,7 +4,7 @@ to: packages/ui/src/components/<%= name %>/<%= name %>.test.tsx
 
 import { render, screen } from '@testing-library/react'
 
-import <%= name %> from './<%= name %>'
+import { <%= name %> } from './<%= name %>'
 
 describe('<%= name %>', async () => {
 	it('exists', () => {

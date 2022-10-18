@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 
-import Box from './Box'
+import { Box } from './Box'
 
 describe('Box', async () => {
 	it('exists', () => {

@@ -8,25 +8,29 @@ interface Props extends Sprinkles, React.PropsWithChildren {
 	className?: ClassValue
 }
 
-const Box: React.FC<Props> = ({ as = 'div', children, className, ...rest }) => {
-	const Component = as
-	const userClasses = clsx(className)
+export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
+	const sprinklesProps: Record<string, unknown> = {}
+	const nativeProps: Record<string, unknown> = {}
+	const userClasses = clsx(props.className)
 
-	return (
-		<Component
-			className={clsx([
-				base, // TODO: Consider resetting globally
-				sprinkles({
-					background: { darkMode: 'purple900', lightMode: 'white' },
-					color: { darkMode: 'white', lightMode: 'black' },
-					...rest,
-				}),
-				userClasses,
-			])}
-		>
-			{children}
-		</Component>
-	)
+	for (const key in props) {
+		if (sprinkles.properties.has(key as keyof Sprinkles)) {
+			sprinklesProps[key] = props[key as keyof typeof props]
+		} else {
+			nativeProps[key] = props[key as keyof typeof props]
+		}
+	}
+
+	return React.createElement(as, {
+		className: clsx([
+			base, // TODO: Consider resetting globally
+			sprinkles({
+				background: { darkMode: 'purple900', lightMode: 'white' },
+				color: { darkMode: 'white', lightMode: 'black' },
+				...sprinklesProps,
+			}),
+			userClasses,
+		]),
+		...nativeProps,
+	})
 }
-
-export default Box
