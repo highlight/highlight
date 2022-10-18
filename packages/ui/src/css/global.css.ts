@@ -1,6 +1,6 @@
 import { globalStyle } from '@vanilla-extract/css'
-import { baseTheme } from './sprinkles.css'
+import { vars } from './theme.css'
 
 export const global = globalStyle('html', {
-	fontFamily: baseTheme.bodyFontFamily,
+	fontFamily: vars.typography.family.body,
 })
