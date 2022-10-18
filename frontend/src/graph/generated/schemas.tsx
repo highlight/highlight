@@ -1070,6 +1070,7 @@ export type EventChunk = {
 export type VercelProjectMappingInput = {
 	vercel_project_id: Scalars['String']
 	project_id: Scalars['ID']
+	new_project_name?: Maybe<Scalars['String']>
 }
 
 export type VercelProjectMapping = {

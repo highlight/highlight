@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
+import Input from '@components/Input/Input'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import {
@@ -10,6 +11,7 @@ import { VercelProjectMappingInput } from '@graph/schemas'
 import HighlightLogoSmall from '@icons/HighlightLogoSmall'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
+import TrashIcon from '@icons/TrashIcon'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
@@ -19,7 +21,7 @@ import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import useMap from '@util/useMap'
 import { message } from 'antd'
 import classNames from 'classnames'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import styles from './VercelIntegrationConfig.module.scss'
 
@@ -161,6 +163,36 @@ export const VercelIntegrationSettings: React.FC<
 		string[]
 	>()
 
+	const [tempId, setTempId] = useState(1)
+	const [tempHighlightProjects, setTempHighlightProjects] = useState<any[]>(
+		[],
+	)
+
+	const onProjectNameChange = (id: string, name: string) => {
+		const matchingIndex = tempHighlightProjects.findIndex(
+			(p) => p.id === id,
+		)
+		if (matchingIndex === -1) {
+			return
+		}
+		const cloned = [...tempHighlightProjects]
+		cloned[matchingIndex] = { ...cloned[matchingIndex], name }
+		setTempHighlightProjects(cloned)
+	}
+
+	const onProjectDelete = (id: string) => {
+		const matchingIndex = tempHighlightProjects.findIndex(
+			(p) => p.id === id,
+		)
+		if (matchingIndex === -1) {
+			return
+		}
+		const cloned = [...tempHighlightProjects]
+		cloned.splice(matchingIndex, 1)
+		projectMapSet(id, [])
+		setTempHighlightProjects(cloned)
+	}
+
 	const {
 		allVercelProjects,
 		vercelProjectMappings,
@@ -195,7 +227,7 @@ export const VercelIntegrationSettings: React.FC<
 
 	const highlightProjects: any[] = []
 	if (!!allHighlightProjects) {
-		for (const p of allHighlightProjects) {
+		for (const p of allHighlightProjects.concat(tempHighlightProjects)) {
 			if (!!p) {
 				if (!projectMap.has(p.id)) {
 					projectMapSet(p.id, [])
@@ -282,16 +314,42 @@ export const VercelIntegrationSettings: React.FC<
 			dataIndex: 'name',
 			key: 'name',
 			width: '35%',
-			render: (value: string) => {
+			render: (value: string, row: any) => {
 				return (
 					<div className="flex gap-2">
 						<HighlightLogoSmall width={20} height={20} />
-						<div
-							title={value}
-							className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
-						>
-							{value}
-						</div>
+						{row.editable ? (
+							<>
+								<Input
+									title={value}
+									value={value}
+									onChange={(e) => {
+										onProjectNameChange(
+											row.id,
+											e.target.value,
+										)
+									}}
+								></Input>
+								<Button
+									iconButton
+									trackingId={
+										'IntegrationConfiguration-Vercel-DeleteNewProject'
+									}
+									onClick={() => {
+										onProjectDelete(row.id)
+									}}
+								>
+									<TrashIcon />
+								</Button>
+							</>
+						) : (
+							<div
+								title={value}
+								className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
+							>
+								{value}
+							</div>
+						)}
 					</div>
 				)
 			},
@@ -345,6 +403,39 @@ export const VercelIntegrationSettings: React.FC<
 						rowHasPadding
 						smallPadding
 					></Table>
+					<Button
+						trackingId={`IntegrationConfiguration-Vercel-NewHighlightProject`}
+						className={styles.modalBtn}
+						onClick={() => {
+							const tId = 'new_' + tempId
+							setTempHighlightProjects((cur) =>
+								cur.concat([
+									{
+										name: '',
+										editable: true,
+										id: tId,
+										vercelProjects: [],
+										onUpdateProjectLink: (
+											vercelProjectNames: string[],
+										) => {
+											projectMapSet(
+												tId,
+												vercelProjectNames.map(
+													(n) =>
+														allVercelProjects?.find(
+															(p) => p.name === n,
+														)?.id ?? '',
+												),
+											)
+										},
+									},
+								]),
+							)
+							setTempId((cur) => cur + 1)
+						}}
+					>
+						New Highlight Project
+					</Button>
 				</Card>
 			</div>
 			<footer className="flex justify-end gap-2">

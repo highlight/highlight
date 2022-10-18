@@ -7506,6 +7506,7 @@ type EventChunk {
 input VercelProjectMappingInput {
 	vercel_project_id: String!
 	project_id: ID!
+	new_project_name: String
 }
 
 type VercelProjectMapping {
@@ -47527,7 +47528,7 @@ func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vercel_project_id", "project_id"}
+	fieldsInOrder := [...]string{"vercel_project_id", "project_id", "new_project_name"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -47547,6 +47548,14 @@ func (ec *executionContext) unmarshalInputVercelProjectMappingInput(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
 			it.ProjectID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "new_project_name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("new_project_name"))
+			it.NewProjectName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

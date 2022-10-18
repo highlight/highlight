@@ -986,6 +986,7 @@ type EventChunk {
 input VercelProjectMappingInput {
 	vercel_project_id: String!
 	project_id: ID!
+	new_project_name: String
 }
 
 type VercelProjectMapping {
