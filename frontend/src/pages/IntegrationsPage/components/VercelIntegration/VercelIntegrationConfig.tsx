@@ -283,7 +283,7 @@ export const VercelIntegrationSettings: React.FC<
 			title: 'Vercel',
 			dataIndex: 'vercelProjects',
 			key: 'vercelProjects',
-			width: '55%',
+			width: '45%',
 			render: (_: string, row: any) => {
 				const vercelProjectIds = projectMap.get(row.id)
 				const opts = vercelProjectIds
@@ -313,7 +313,7 @@ export const VercelIntegrationSettings: React.FC<
 			title: 'Highlight',
 			dataIndex: 'name',
 			key: 'name',
-			width: '35%',
+			width: '45%',
 			render: (value: string, row: any) => {
 				return (
 					<div className="flex gap-2">
@@ -329,6 +329,7 @@ export const VercelIntegrationSettings: React.FC<
 											e.target.value,
 										)
 									}}
+									placeholder="Project e.g. Frontend"
 								></Input>
 								<Button
 									iconButton
@@ -364,9 +365,14 @@ export const VercelIntegrationSettings: React.FC<
 			if (!allVercelProjects?.map((p) => p.id).includes(vercelId)) {
 				continue
 			}
+			// If this project hasn't been created yet, get its name
+			const tempProject = tempHighlightProjects.find(
+				(p) => p.id === projectId,
+			)
 			projectMappings.push({
 				project_id: projectId,
 				vercel_project_id: vercelId,
+				new_project_name: tempProject?.name,
 			})
 		}
 	}
@@ -405,7 +411,7 @@ export const VercelIntegrationSettings: React.FC<
 					></Table>
 					<Button
 						trackingId={`IntegrationConfiguration-Vercel-NewHighlightProject`}
-						className={styles.modalBtn}
+						className={classNames('ml-auto m-4', styles.modalBtn)}
 						onClick={() => {
 							const tId = 'new_' + tempId
 							setTempHighlightProjects((cur) =>
@@ -434,7 +440,7 @@ export const VercelIntegrationSettings: React.FC<
 							setTempId((cur) => cur + 1)
 						}}
 					>
-						New Highlight Project
+						Create New Highlight Project +
 					</Button>
 				</Card>
 			</div>
@@ -455,7 +461,10 @@ export const VercelIntegrationSettings: React.FC<
 					type="primary"
 					target="_blank"
 					onClick={onSave}
-					disabled={projectMappings.length === 0}
+					disabled={
+						projectMappings.length === 0 || // If no project mappings
+						tempHighlightProjects.find((p) => !p.name) // If a new project is missing a name
+					}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
