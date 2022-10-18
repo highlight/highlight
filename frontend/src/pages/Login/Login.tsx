@@ -118,7 +118,8 @@ enum LoginFormState {
 export default function LoginForm() {
 	const [signUpParam] = useQueryParam('sign_up', BooleanParam)
 	const [nextParam] = useQueryParam('next', StringParam)
-	const isVercelIntegrationFlow = !!nextParam
+	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
+	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const [formState, setFormState] = useState<LoginFormState>(
 		signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn,
 	)
