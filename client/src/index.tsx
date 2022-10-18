@@ -659,9 +659,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 			setTimeout(() => {
+				// since `record` is sync, doesn't matter whether this is set before or after since it will update atomically
+				this.state = 'Recording'
 				// Skip if we're already recording events
 				if (this.recordStop) {
-					this.recordStop()
+					return
 				}
 				this.recordStop = record({
 					ignoreClass: 'highlight-ignore',
@@ -687,7 +689,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 				})
-				this.state = 'Recording'
 				if (this.recordStop) {
 					this.listeners.push(this.recordStop)
 				}
