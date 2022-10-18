@@ -5,9 +5,9 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 )

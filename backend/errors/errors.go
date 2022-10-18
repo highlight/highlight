@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/go-sourcemap/sourcemap"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/util"

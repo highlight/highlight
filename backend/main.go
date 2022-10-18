@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/oauth"
 	"html/template"
 	"io"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/oauth"
 
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -48,11 +49,11 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	dd "github.com/highlight-run/highlight/backend/datadog"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	log "github.com/sirupsen/logrus"
 	brotli_enc "gopkg.in/kothar/brotli-go.v0/enc"
 
