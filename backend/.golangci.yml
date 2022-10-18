@@ -29,27 +29,26 @@ linters:
 # all available settings of specific linters
 linters-settings:
     gosimple:
-        # Select the Go version to target. The default is '1.13'.
-        go: '1.15'
+        go: '1.19'
 
     staticcheck:
-        # Select the Go version to target. The default is '1.13'.
-        go: '1.15'
+        go: '1.19'
         checks: ['all']
 
     stylecheck:
-        # Select the Go version to target. The default is '1.13'.
-        go: '1.15'
+        go: '1.19'
 
     unused:
-        # Select the Go version to target. The default is '1.13'.
-        go: '1.15'
+        go: '1.19'
 
     depguard:
         list-type: blacklist
         include-go-root: true
         packages:
             - errors
+            - log
+
         packages-with-error-message:
             # specify an error message to output when a blacklisted package is used
             - errors: 'error handling is allowed only by github.com/pkg/errors'
+            - log: 'logging is allowed only by github.com/sirupsen/logrus'
