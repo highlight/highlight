@@ -2,9 +2,10 @@ package worker
 
 import (
 	"io/ioutil"
-	"log"
 	"testing"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/go-test/deep"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
