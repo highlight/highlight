@@ -177,9 +177,15 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 	}
 	relatedEmbed.Fields = relatedFields
 
+	embeds := append([]*discordgo.MessageEmbed{}, matchedEmbed)
+
+	if len(relatedEmbed.Fields) > 0 {
+		embeds = append(embeds, relatedEmbed)
+	}
+
 	messageSend := discordgo.MessageSend{
 		Content: fmt.Sprintf("Highlight Track Properties Alert: %s", payload.UserIdentifier),
-		Embeds:  append([]*discordgo.MessageEmbed{}, matchedEmbed, relatedEmbed),
+		Embeds:  embeds,
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
