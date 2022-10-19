@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/highlight-run/highlight/backend/alertintegrations"
-	"github.com/highlight-run/highlight/backend/alertintegrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/model"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -26,7 +26,7 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 		errorTitle = event.ErrorGroup.Event[:50] + "..."
 	}
 
-	errorAlertPayload := alertintegrations.ErrorAlertPayload{
+	errorAlertPayload := integrations.ErrorAlertPayload{
 		ErrorCount:     event.ErrorCount,
 		ErrorTitle:     errorTitle,
 		UserIdentifier: event.Session.Identifier,
@@ -100,7 +100,7 @@ func SendNewUserAlert(event SendNewUserAlertEvent) error {
 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
-	payload := alertintegrations.NewUserAlertPayload{
+	payload := integrations.NewUserAlertPayload{
 		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
@@ -149,7 +149,7 @@ func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
 
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
-	payload := alertintegrations.NewSessionAlertPayload{
+	payload := integrations.NewSessionAlertPayload{
 		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
@@ -189,23 +189,23 @@ type TrackPropertiesAlertEvent struct {
 
 func SendTrackPropertiesAlert(event TrackPropertiesAlertEvent) error {
 	// format matched properties
-	mappedMatchedProperties := []alertintegrations.Property{}
-	mappedRelatedProperties := []alertintegrations.Property{}
+	mappedMatchedProperties := []integrations.Property{}
+	mappedRelatedProperties := []integrations.Property{}
 
 	for _, field := range event.MatchedFields {
-		mappedMatchedProperties = append(mappedMatchedProperties, alertintegrations.Property{
+		mappedMatchedProperties = append(mappedMatchedProperties, integrations.Property{
 			Key:   field.Name,
 			Value: field.Value,
 		})
 	}
 	for _, field := range event.RelatedFields {
-		mappedRelatedProperties = append(mappedRelatedProperties, alertintegrations.Property{
+		mappedRelatedProperties = append(mappedRelatedProperties, integrations.Property{
 			Key:   field.Name,
 			Value: field.Value,
 		})
 	}
 
-	payload := alertintegrations.TrackPropertiesAlertPayload{
+	payload := integrations.TrackPropertiesAlertPayload{
 		UserIdentifier:    event.Session.Identifier,
 		MatchedProperties: mappedMatchedProperties,
 		RelatedProperties: mappedRelatedProperties,
@@ -241,16 +241,16 @@ type UserPropertiesAlertEvent struct {
 }
 
 func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
-	mappedProperties := []alertintegrations.Property{}
+	mappedProperties := []integrations.Property{}
 
 	for _, field := range event.MatchedFields {
-		mappedProperties = append(mappedProperties, alertintegrations.Property{
+		mappedProperties = append(mappedProperties, integrations.Property{
 			Key:   field.Name,
 			Value: field.Value,
 		})
 	}
 
-	payload := alertintegrations.UserPropertiesAlertPayload{
+	payload := integrations.UserPropertiesAlertPayload{
 		UserIdentifier:    event.Session.Identifier,
 		SessionURL:        getSessionsURL(event.Session.ProjectID, event.Session),
 		MatchedProperties: mappedProperties,
@@ -295,7 +295,7 @@ func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
 		identifier = *event.UserEmail
 	}
 
-	payload := alertintegrations.SessionFeedbackAlertPayload{
+	payload := integrations.SessionFeedbackAlertPayload{
 		UserIdentifier:    identifier,
 		SessionCommentURL: getSessionCommentURL(event.SessionAlert.ProjectID, event.Session, event.SessionComment),
 		CommentText:       event.SessionComment.Text,
@@ -331,7 +331,7 @@ type RageClicksAlertEvent struct {
 }
 
 func SendRageClicksAlert(event RageClicksAlertEvent) error {
-	payload := alertintegrations.RageClicksAlertPayload{
+	payload := integrations.RageClicksAlertPayload{
 		RageClicksCount: event.RageClicksCount,
 		SessionURL:      getSessionsURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier:  event.Session.Identifier,
@@ -365,7 +365,7 @@ type MetricMonitorAlertEvent struct {
 }
 
 func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
-	payload := alertintegrations.MetricMonitorAlertPayload{}
+	payload := integrations.MetricMonitorAlertPayload{}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil

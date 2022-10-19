@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/alertintegrations/discord"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"

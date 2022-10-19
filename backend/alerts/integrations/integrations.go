@@ -1,4 +1,4 @@
-package alertintegrations
+package integrations
 
 import "github.com/bwmarrin/discordgo"
 

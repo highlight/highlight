@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/highlight-run/highlight/backend/alertintegrations"
+	"github.com/highlight-run/highlight/backend/alerts/integrations"
 )
 
 func filterChannels(channels []*discordgo.Channel) []*discordgo.Channel {
@@ -31,7 +31,7 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
-func (bot *DiscordBot) SendErrorAlert(channelId string, payload alertintegrations.ErrorAlertPayload) error {
+func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.ErrorAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
@@ -70,7 +70,7 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload alertintegration
 	return err
 }
 
-func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrations.NewUserAlertPayload) error {
+func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.NewUserAlertPayload) error {
 	embed := &discordgo.MessageEmbed{
 		Type:  "rich",
 		Title: "View Session",
@@ -104,7 +104,7 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload alertintegrati
 	return err
 }
 
-func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload alertintegrations.NewSessionAlertPayload) error {
+func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integrations.NewSessionAlertPayload) error {
 	embed := &discordgo.MessageEmbed{
 		Type:  "rich",
 		Title: "View Session",
@@ -147,7 +147,7 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload alertintegr
 	return err
 }
 
-func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alertintegrations.TrackPropertiesAlertPayload) error {
+func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integrations.TrackPropertiesAlertPayload) error {
 	matchedEmbed := &discordgo.MessageEmbed{
 		Type:  "rich",
 		Title: "Matched Track Properties",
@@ -193,7 +193,7 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload alerti
 	return err
 }
 
-func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload alertintegrations.UserPropertiesAlertPayload) error {
+func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integrations.UserPropertiesAlertPayload) error {
 	matchedFields := []*discordgo.MessageEmbedField{}
 	for _, field := range payload.MatchedProperties {
 		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
@@ -219,7 +219,7 @@ func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload alertin
 	return err
 }
 
-func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload alertintegrations.SessionFeedbackAlertPayload) error {
+func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload integrations.SessionFeedbackAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Session",
@@ -247,7 +247,7 @@ func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload alerti
 	return err
 }
 
-func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload alertintegrations.RageClicksAlertPayload) error {
+func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload integrations.RageClicksAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
@@ -277,6 +277,6 @@ func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload alertintegr
 	return err
 }
 
-func (bot *DiscordBot) SendMetricMonitorAlert(channelId string, payload alertintegrations.MetricMonitorAlertPayload) error {
+func (bot *DiscordBot) SendMetricMonitorAlert(channelId string, payload integrations.MetricMonitorAlertPayload) error {
 	return nil
 }
