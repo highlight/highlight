@@ -70,10 +70,11 @@ func GetChunkedPayloadType(offset int) PayloadType {
 }
 
 type StorageClient struct {
-	S3Client        *s3.Client
-	S3ClientEast2   *s3.Client
-	S3PresignClient *s3.PresignClient
-	URLSigner       *sign.URLSigner
+	S3Client             *s3.Client
+	S3ClientEast2        *s3.Client
+	S3PresignClient      *s3.PresignClient
+	S3PresignClientWest2 *s3.PresignClient
+	URLSigner            *sign.URLSigner
 }
 
 func NewStorageClient() (*StorageClient, error) {
@@ -98,10 +99,11 @@ func NewStorageClient() (*StorageClient, error) {
 	})
 
 	return &StorageClient{
-		S3Client:        client,
-		S3ClientEast2:   clientEast2,
-		S3PresignClient: s3.NewPresignClient(clientEast2),
-		URLSigner:       getURLSigner(),
+		S3Client:             client,
+		S3ClientEast2:        clientEast2,
+		S3PresignClient:      s3.NewPresignClient(clientEast2),
+		S3PresignClientWest2: s3.NewPresignClient(client),
+		URLSigner:            getURLSigner(),
 	}, nil
 }
 
@@ -542,7 +544,7 @@ func (s *StorageClient) GetSourceMapUploadUrl(key string) (string, error) {
 		Key:    pointy.String(key),
 	}
 
-	resp, err := s.S3PresignClient.PresignPutObject(context.TODO(), &input)
+	resp, err := s.S3PresignClientWest2.PresignPutObject(context.TODO(), &input)
 	if err != nil {
 		return "", errors.Wrap(err, "error signing s3 asset URL")
 	}
