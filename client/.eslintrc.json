@@ -1,9 +1,11 @@
 {
 	"extends": ["eslint:recommended"],
+	"plugins": ["vitest"],
 	"env": {
 		"es6": true,
 		"browser": true,
-		"node": true
+		"node": true,
+		"vitest-globals/env": true
 	},
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
