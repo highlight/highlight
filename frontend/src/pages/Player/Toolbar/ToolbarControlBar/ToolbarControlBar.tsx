@@ -228,7 +228,7 @@ const ToolbarControls = () => {
 				content={
 					<>
 						Dev tools
-						<span className={style.popoverCmdShortcut}>⌘ D</span>
+						<span className={style.popoverCmdShortcut}>⌘ /</span>
 					</>
 				}
 			>
@@ -389,7 +389,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						style.moveRight,
 					)}
 				>
-					⌘ D
+					⌘ /
 				</span>
 				<Switch
 					trackingId="DevToolsMenuToggle"

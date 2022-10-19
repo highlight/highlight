@@ -338,7 +338,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	)
 
 	useHotkeys(
-		'cmd+d, ctrl+d',
+		'cmd+/, ctrl+/',
 		(e) => {
 			H.track('PlayerToggleDevToolsKeyboardShortcut')
 			moveFocusToDocument(e)

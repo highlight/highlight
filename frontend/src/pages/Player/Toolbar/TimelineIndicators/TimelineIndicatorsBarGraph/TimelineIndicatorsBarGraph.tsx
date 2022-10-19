@@ -93,7 +93,7 @@ const TimelineIndicatorsBarGraph = ({
 		}
 		const bbox = div.getBoundingClientRect()
 		setViewportWidth(Math.round(bbox.width) - 2 * TIMELINE_MARGIN)
-	}, [width])
+	}, [width, showHistogram])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -414,7 +414,15 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 		}
-	}, [duration, isRefreshingDOM, maxZoom, pan, viewportWidth, zoom])
+	}, [
+		duration,
+		isRefreshingDOM,
+		maxZoom,
+		pan,
+		viewportWidth,
+		zoom,
+		showHistogram,
+	])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
@@ -438,7 +446,7 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		})
 		return () => cancelAnimationFrame(timeout)
-	}, [camera, hasActiveScrollbar, viewportWidth])
+	}, [camera, hasActiveScrollbar, viewportWidth, showHistogram])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -567,7 +575,7 @@ const TimelineIndicatorsBarGraph = ({
 			timeIndicatorTopDiv.style.cursor = 'grab'
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [duration, viewportWidth])
+	}, [duration, viewportWidth, showHistogram])
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 
