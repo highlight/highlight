@@ -2,8 +2,10 @@ import { useAuthContext } from '@authentication/AuthContext'
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
+import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import SetupRouter from '@pages/Setup/SetupRouter/SetupRouter'
+import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import React, { Suspense } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
@@ -20,7 +22,11 @@ interface Props {
 
 const ApplicationRouter = ({ integrated }: Props) => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const [newErrorsPageEnabled] = useLocalStorage(
+		`highlight-new-errors-page-enabled`,
+		false,
+	)
 
 	return (
 		<>
@@ -31,7 +37,11 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					<Player integrated={integrated} />
 				</Route>
 				<Route path="/:project_id/errors/:error_secure_id?" exact>
-					<ErrorPage integrated={integrated} />
+					{isHighlightAdmin && newErrorsPageEnabled ? (
+						<ErrorsV2 />
+					) : (
+						<ErrorPage integrated={integrated} />
+					)}
 				</Route>
 				{/* If not logged in and project id is numeric and nonzero, redirect to login */}
 				{!isLoggedIn && (

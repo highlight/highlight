@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"net/http"
@@ -32,12 +31,12 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/sessionalerts"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -780,6 +779,10 @@ func (r *mutationResolver) ChangeAdminRole(ctx context.Context, workspaceID int,
 
 	if err := r.DB.Model(&model.Admin{Model: model.Model{ID: adminID}}).Update("Role", newRole).Error; err != nil {
 		return false, e.Wrap(err, "error updating admin role")
+	}
+
+	if err := r.DB.Model(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Update("Role", newRole).Error; err != nil {
+		return false, e.Wrap(err, "error updating workspace_admin role")
 	}
 
 	return true, nil
@@ -2865,10 +2868,25 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 
 	configs := []*model.VercelIntegrationConfig{}
 	for _, m := range projectMappings {
-		project, err := r.isAdminInProject(ctx, m.ProjectID)
-		if err != nil {
-			return false, err
+		var project *model.Project
+
+		if m.NewProjectName != nil && *m.NewProjectName != "" {
+			// for projects that don't exist
+			n := *m.NewProjectName
+			p, err := r.CreateProject(ctx, n, workspaceId)
+			if err != nil {
+				return false, e.Wrap(err, "cannot access Vercel project")
+			}
+			project = p
+		} else {
+			// for projects that already exist.
+			p, err := r.isAdminInProject(ctx, *m.ProjectID)
+			if err != nil {
+				return false, err
+			}
+			project = p
 		}
+
 		if project.Secret == nil {
 			continue
 		}
@@ -2878,20 +2896,30 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, e.New("cannot access Vercel project")
 		}
 
-		var matchingEnvId *string
+		var sourceMapEnvId *string
+		var projectEnvId *string
 		for _, e := range vercelProject.Env {
 			if e.Key == vercel.SourcemapEnvKey {
-				matchingEnvId = &e.ID
+				sourceMapEnvId = &e.ID
+			}
+			if e.Key == vercel.ProjectIdEnvVar {
+				projectEnvId = &e.ID
 			}
 		}
 
-		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken, workspace.VercelTeamID, matchingEnvId); err != nil {
+		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken,
+			workspace.VercelTeamID, sourceMapEnvId, vercel.SourcemapEnvKey); err != nil {
+			return false, err
+		}
+
+		if err := vercel.SetEnvVariable(m.VercelProjectID, project.VerboseID(), *workspace.VercelAccessToken,
+			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
 		configs = append(configs, &model.VercelIntegrationConfig{
 			WorkspaceID:     workspaceId,
 			VercelProjectID: m.VercelProjectID,
-			ProjectID:       m.ProjectID,
+			ProjectID:       project.ID,
 		})
 	}
 
@@ -3134,7 +3162,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	if util.IsDevEnv() && sessionSecureID == "repro" {
-		file, err := ioutil.ReadFile("./tmp/events.json")
+		file, err := os.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
 		}
@@ -5342,6 +5370,34 @@ func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int,
 		return nil, e.Wrap(err, "error getting project id from api key")
 	}
 	return &projectId, nil
+}
+
+// GetSourceMapUploadUrls is the resolver for the get_source_map_upload_urls field.
+func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error) {
+	projectId, err := r.APIKeyToOrgID(ctx, apiKey)
+	if err != nil {
+		return nil, err
+	}
+	if projectId == nil {
+		return nil, e.New("invalid API key - project id is nil")
+	}
+
+	// Assert all paths start with this prefix to block cross-project uploads
+	pathPrefix := fmt.Sprintf("%d/", *projectId)
+
+	urls := []string{}
+	for _, path := range paths {
+		if !strings.HasPrefix(path, pathPrefix) {
+			return nil, e.New("invalid path - does not start with project prefix")
+		}
+		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+
+	return urls, nil
 }
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.

@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	e "github.com/pkg/errors"
@@ -33,7 +33,7 @@ func RestRequest(url string, method string, request interface{}, response interf
 		return e.Wrap(err, "error executing request")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return e.Wrap(err, "error reading contacts body")
 	}

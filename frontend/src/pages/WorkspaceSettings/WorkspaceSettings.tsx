@@ -1,5 +1,8 @@
+import Alert from '@components/Alert/Alert'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
+import { AdminRole } from '@graph/schemas'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import { Authorization } from '@util/authorization/authorization'
 import React from 'react'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
@@ -26,7 +29,19 @@ const WorkspaceSettings = () => {
 					Enable auto join to allow anyone with an approved email
 					origin join.
 				</p>
-				<AutoJoinForm />
+				<Authorization
+					allowedRoles={[AdminRole.Admin]}
+					forbiddenFallback={
+						<Alert
+							trackingId="AdminNoAccessToAutoJoinDomains"
+							type="info"
+							message="You don't have access to auto-access domains."
+							description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
+						/>
+					}
+				>
+					<AutoJoinForm />
+				</Authorization>
 			</FieldsBox>
 		</div>
 	)

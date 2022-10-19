@@ -4,11 +4,17 @@
 	flex-direction: column;
 	justify-content: center;
 	width: 224px;
-	span {
+	span:not(.selectedTypeName) {
 		font-size: 13px;
 		font-weight: 400;
 		letter-spacing: -0.01em;
 		line-height: 20px;
+	}
+	span.selectedTypeName {
+		color: var(--color-neutral-800);
+		font-size: 11px;
+		font-weight: 500;
+		line-height: 12px;
 	}
 }
 
@@ -18,7 +24,7 @@
 	display: flex;
 	height: 36px;
 	justify-content: flex-start;
-	padding: 8px;
+	padding: 4px 8px;
 	user-select: none;
 	width: 100%;
 }
@@ -57,7 +63,6 @@
 	display: flex;
 	justify-content: flex-start;
 	padding: 4px 8px;
-	padding-right: 6px;
 	width: 100%;
 }
 
@@ -85,8 +90,8 @@
 	padding: 0 4px;
 
 	span {
-		font-size: 12px;
-		line-height: 16px;
+		font-size: 12px !important;
+		line-height: 16px !important;
 	}
 }
 

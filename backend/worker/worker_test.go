@@ -1,10 +1,11 @@
 package worker
 
 import (
-	"io/ioutil"
-	"log"
+	"io"
 	"testing"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/go-test/deep"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -671,7 +672,7 @@ func TestGetActiveDuration(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.SetOutput(ioutil.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,
@@ -796,7 +797,7 @@ func TestFullSnapshotValidation(t *testing.T) {
 	}
 	for name, tt := range tables {
 		t.Run(name, func(t *testing.T) {
-			log.SetOutput(ioutil.Discard)
+			log.SetOutput(io.Discard)
 			a := MakeEventProcessingAccumulator("fakeSecureID", RageClickSettings{
 				Window: 5 * time.Second,
 				Radius: 8,

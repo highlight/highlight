@@ -13,7 +13,7 @@
 	z-index: 5;
 }
 
-.progressMonitor {
+.sessionMonitor {
 	border-bottom: 1px var(--color-neutral-100) solid;
 	border-top: 1px var(--color-neutral-100) solid;
 	height: 22px;
@@ -144,4 +144,12 @@
 
 .timeTickMinor {
 	height: 2px;
+}
+
+.inactivityPeriodMask {
+	background-color: var(--color-neutral-50);
+	bottom: 0;
+	height: 100%;
+	position: absolute;
+	z-index: -1;
 }

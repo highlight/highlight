@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -53,10 +53,10 @@ import (
 	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -945,7 +945,7 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	if res.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", res.StatusCode))
 	}
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to read body of screenshot render response")
 	}
@@ -1238,7 +1238,7 @@ func getIdForPageFromUrl(parsedUrl *url.URL, page string) (string, error) {
 
 func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		body, err := ioutil.ReadAll(req.Body)
+		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			log.Error(e.Wrap(err, "couldn't read request body"))
 			w.WriteHeader(http.StatusBadRequest)
@@ -1521,7 +1521,7 @@ func (r *Resolver) StripeWebhook(endpointSecret string) func(http.ResponseWriter
 	return func(w http.ResponseWriter, req *http.Request) {
 		const MaxBodyBytes = int64(65536)
 		req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
-		payload, err := ioutil.ReadAll(req.Body)
+		payload, err := io.ReadAll(req.Body)
 		if err != nil {
 			log.Error(e.Wrap(err, "error reading request body"))
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -1837,7 +1837,7 @@ func (r *Resolver) MakeLinearGraphQLRequest(accessToken string, body string) ([]
 		return nil, e.Wrap(err, "error getting response from linear graphql endpoint")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, e.Wrap(err, "error reading response body from linear graphql endpoint")
 	}
@@ -2078,7 +2078,7 @@ func (r *Resolver) GetLinearAccessToken(code string, redirectURL string, clientI
 		return accessTokenResponse, e.Wrap(err, "error getting response from linear oauth token endpoint")
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
 		return accessTokenResponse, e.New("linear API responded with error; status_code=" + res.Status + "; body=" + string(b))

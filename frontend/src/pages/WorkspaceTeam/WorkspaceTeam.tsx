@@ -1,15 +1,27 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import Alert from '@components/Alert/Alert'
+import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'
 import CopyText from '@components/CopyText/CopyText'
 import Input from '@components/Input/Input'
+import { CircularSpinner } from '@components/Loading/Loading'
 import Modal from '@components/Modal/Modal'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
+import {
+	useChangeAdminRoleMutation,
+	useDeleteAdminFromWorkspaceMutation,
+	useGetWorkspaceAdminsQuery,
+	useSendAdminWorkspaceInviteMutation,
+} from '@graph/hooks'
 import { AdminRole } from '@graph/schemas'
 import SvgTrashIcon from '@icons/TrashIcon'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { getWorkspaceInvitationLink } from '@pages/WorkspaceTeam/utils'
-import { useAuthorization } from '@util/authorization/authorization'
+import {
+	Authorization,
+	useAuthorization,
+} from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { useParams } from '@util/react-router/useParams'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
@@ -20,19 +32,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useToggle } from 'react-use'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import { useAuthContext } from '../../authentication/AuthContext'
 import commonStyles from '../../Common.module.scss'
-import { AdminAvatar } from '../../components/Avatar/Avatar'
 import Button from '../../components/Button/Button/Button'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import { CircularSpinner } from '../../components/Loading/Loading'
 import PopConfirm from '../../components/PopConfirm/PopConfirm'
-import {
-	useChangeAdminRoleMutation,
-	useDeleteAdminFromWorkspaceMutation,
-	useGetWorkspaceAdminsQuery,
-	useSendAdminWorkspaceInviteMutation,
-} from '../../graph/generated/hooks'
 import styles from './WorkspaceTeam.module.scss'
 
 const WorkspaceTeam = () => {
@@ -69,7 +72,7 @@ const WorkspaceTeam = () => {
 	})
 	const [changeAdminRole] = useChangeAdminRoleMutation()
 
-	const [autoinvite_email, _] = useQueryParam('autoinvite_email', StringParam)
+	const [autoinvite_email] = useQueryParam('autoinvite_email', StringParam)
 
 	useEffect(() => {
 		if (autoinvite_email) {
@@ -218,12 +221,14 @@ const WorkspaceTeam = () => {
 						)}
 						onCopyTooltipText="Copied invite link to clipboard!"
 					/>
-					<hr className={styles.hr} />
-					<p className={styles.boxSubTitle}>
-						Or you can enable auto join to allow anyone with an
-						approved email origin join.
-					</p>
-					<AutoJoinForm />
+					<Authorization allowedRoles={[AdminRole.Admin]}>
+						<hr className={styles.hr} />
+						<p className={styles.boxSubTitle}>
+							Or you can enable auto join to allow anyone with an
+							approved email origin join.
+						</p>
+						<AutoJoinForm />
+					</Authorization>
 				</Modal>
 				<Button
 					trackingId="WorkspaceTeamInviteMember"
@@ -283,7 +288,7 @@ const WorkspaceTeam = () => {
 										messageText = `${displayName} has been granted Admin powers 🧙`
 										break
 									case AdminRole.Member:
-										messageText = `${displayName} will no longer have access to billing`
+										messageText = `${displayName} no longer has admin access.`
 										break
 								}
 								message.success(messageText)

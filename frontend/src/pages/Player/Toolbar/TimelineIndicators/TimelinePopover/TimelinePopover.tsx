@@ -1,7 +1,6 @@
 import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
-import { ReactComponent as CollectionIcon } from '@icons/Solid/collection.svg'
 import {
 	EventsForTimeline,
 	EventsForTimelineKeys,
@@ -48,15 +47,17 @@ const TimelinePopover = ({ bucket }: Props) => {
 		? bucket.identifier[selectedType].length
 		: 0
 
-	const eventTypes = useMemo(
-		() =>
-			EventsForTimeline.filter(
-				(eventType) =>
-					bucket.identifier[eventType] !== undefined &&
-					bucket.identifier[eventType].length > 0,
-			),
-		[bucket.identifier],
-	)
+	const eventTypes = useMemo(() => {
+		const cats = EventsForTimeline.filter(
+			(eventType) =>
+				bucket.identifier[eventType] !== undefined &&
+				bucket.identifier[eventType].length > 0,
+		)
+		cats.sort(
+			(a, b) => bucket.identifier[b].length - bucket.identifier[a].length,
+		)
+		return cats
+	}, [bucket.identifier])
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	const onEventInstanceClick = (type: string, identifier: string) => {
@@ -105,16 +106,16 @@ const TimelinePopover = ({ bucket }: Props) => {
 			>
 				{!selectedType ? (
 					<button className={style.actionButton}>
-						<CircleRightArrow
-							className={classNames(
-								style.transitionIcon,
-								style.leftActionIcon,
-							)}
-						/>
 						<span>Go to timestamp</span>
 						<span className={style.rightCounter}>
 							{formatTimeAsHMS(bucket.startTime)}
 						</span>
+						<CircleRightArrow
+							className={classNames(
+								style.transitionIcon,
+								style.rightActionIcon,
+							)}
+						/>
 					</button>
 				) : (
 					<button className={style.actionButton}>
@@ -130,13 +131,9 @@ const TimelinePopover = ({ bucket }: Props) => {
 			</div>
 			{!!selectedType ? (
 				<div className={style.infoPanel}>
-					<CollectionIcon
-						className={classNames(
-							style.transitionIcon,
-							style.leftActionIcon,
-						)}
-					/>
-					<span>{selectedTypeName}</span>
+					<span className={style.selectedTypeName}>
+						{selectedTypeName}
+					</span>
 					<div
 						className={classNames(
 							style.rightCounter,
@@ -153,6 +150,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 						const count = bucket.identifier[eventType].length
 						const name = getTimelineEventDisplayName(eventType)
 						const color = `var(${getAnnotationColor(eventType)})`
+						const first = bucket.identifier[eventType][0]
+						const firstHMS = formatTimeAsHMS(
+							bucket.timestamp[first],
+						)
 						return (
 							<div
 								className={style.eventTypeRow}
@@ -161,15 +162,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 								onClick={(ev) => {
 									ev.preventDefault()
 									ev.stopPropagation()
-									setSelectedType(eventType)
-									if (
-										bucket.identifier[eventType].length ===
-										1
-									) {
-										onEventInstanceClick(
-											eventType,
-											bucket.identifier[eventType][0],
-										)
+									if (count === 1) {
+										onEventInstanceClick(eventType, first)
+									} else {
+										setSelectedType(eventType)
 									}
 								}}
 							>
@@ -178,17 +174,38 @@ const TimelinePopover = ({ bucket }: Props) => {
 										className={style.eventTypeIcon}
 										style={{ background: color }}
 									/>
-									<span className={style.rightActionIcon}>
-										{name}
+									<span
+										className={classNames(
+											style.rightActionIcon,
+											style.eventIdentifier,
+										)}
+									>
+										{count > 1
+											? name
+											: bucket.details[first]}
 									</span>
 									<div className={style.rightCounter}>
-										<span>{count}</span>
-										<ChevronRightIcon
-											className={classNames(
-												style.transitionIcon,
-												style.rightActionIcon,
-											)}
-										/>
+										{count > 1 ? (
+											<>
+												<span>{count}</span>
+												<ChevronRightIcon
+													className={classNames(
+														style.transitionIcon,
+														style.rightActionIcon,
+													)}
+												/>
+											</>
+										) : (
+											<>
+												<span>{firstHMS}</span>
+												<CircleRightArrow
+													className={classNames(
+														style.transitionIcon,
+														style.rightActionIcon,
+													)}
+												/>
+											</>
+										)}
 									</div>
 								</button>
 							</div>
@@ -232,10 +249,10 @@ const TimelinePopover = ({ bucket }: Props) => {
 												style={{ background: color }}
 											/>
 											<span
-												className={
-													(style.rightActionIcon,
-													style.eventIdentifier)
-												}
+												className={classNames(
+													style.rightActionIcon,
+													style.eventIdentifier,
+												)}
 											>
 												{bucket.details[identifier]}
 											</span>
@@ -243,7 +260,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 												<span>
 													{formatTimeAsHMS(timestamp)}
 												</span>
-												<ChevronRightIcon
+												<CircleRightArrow
 													className={classNames(
 														style.transitionIcon,
 														style.rightActionIcon,

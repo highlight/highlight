@@ -8,6 +8,7 @@ export const isHidden: string
 export const leftActionIcon: string
 export const rightActionIcon: string
 export const rightCounter: string
+export const selectedTypeName: string
 export const timelinePopoverContent: string
 export const timelinePopoverDetails: string
 export const timelinePopoverHeader: string

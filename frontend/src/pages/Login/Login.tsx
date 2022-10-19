@@ -24,7 +24,7 @@ import React, {
 	useState,
 } from 'react'
 import { useHistory } from 'react-router'
-import { BooleanParam, useQueryParam } from 'use-query-params'
+import { BooleanParam, StringParam, useQueryParam } from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
@@ -117,6 +117,9 @@ enum LoginFormState {
 
 export default function LoginForm() {
 	const [signUpParam] = useQueryParam('sign_up', BooleanParam)
+	const [nextParam] = useQueryParam('next', StringParam)
+	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
+	const isVercelIntegrationFlow = !!nextParam || !!configurationIdParam
 	const [formState, setFormState] = useState<LoginFormState>(
 		signUpParam ? LoginFormState.SignUp : LoginFormState.SignIn,
 	)
@@ -232,6 +235,12 @@ export default function LoginForm() {
 				}}
 			/>
 		)
+	} else if (
+		isLoggedIn &&
+		(formState === LoginFormState.FinishedOnboarding ||
+			isVercelIntegrationFlow) // Do not show the about you page if this is during the Vercel integration flow
+	) {
+		return <AuthAdminRouter />
 	} else if (isLoggedIn && formState === LoginFormState.MissingUserDetails) {
 		return (
 			<AboutYouPage
@@ -240,8 +249,6 @@ export default function LoginForm() {
 				}}
 			/>
 		)
-	} else if (isLoggedIn && formState === LoginFormState.FinishedOnboarding) {
-		return <AuthAdminRouter />
 	}
 
 	function getLoginTitleText() {

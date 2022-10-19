@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,7 +14,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -90,7 +89,7 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 		return nil, errors.Wrap(err, "error fetching styles")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
@@ -299,7 +298,7 @@ func getOrCreateUrls(projectId int, originalUrls []string, s *storage.StorageCli
 			} else if response.ContentLength > 30e6 {
 				hashVal = ErrAssetTooLarge
 			} else {
-				res, err := ioutil.ReadAll(response.Body)
+				res, err := io.ReadAll(response.Body)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to read response body")
 				}

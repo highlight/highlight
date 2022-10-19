@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/mail"
 	"net/url"
@@ -23,12 +23,12 @@ import (
 	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -1028,7 +1028,7 @@ func GetLocationFromIP(ctx context.Context, ip string) (location *Location, err 
 
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -1399,87 +1399,80 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		return e.Wrap(err, "error creating session feedback")
 	}
 
-	var sessionFeedbackAlert model.SessionAlert
-	if err := r.DB.Raw(`
-			SELECT *
-			FROM session_alerts
-			WHERE project_id = ?
-				AND type = ?
-				AND disabled = false
-		`, session.ProjectID, model.AlertType.SESSION_FEEDBACK).Scan(&sessionFeedbackAlert).Error; err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"project_id": session.ProjectID, "secure_session_id": input.SecureID, "comment_id": feedbackComment.ID}).
-			Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
-		return err
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&sessionAlerts).Error; err != nil {
+		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
 	}
 
-	excludedEnvironments, err := sessionFeedbackAlert.GetExcludedEnvironments()
-	if err != nil {
-		log.Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
-		return err
-	}
-	for _, env := range excludedEnvironments {
-		if env != nil && *env == session.Environment {
+	for _, sessionAlert := range sessionAlerts {
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
+			return err
+		}
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == session.Environment {
+				return nil
+			}
+		}
+
+		commentsCount := int64(-1)
+		if sessionAlert.ThresholdWindow == nil {
+			t := 30
+			sessionAlert.ThresholdWindow = &t
+		}
+		if err := r.DB.Raw(`
+	  		SELECT COUNT(*)
+	  		FROM session_comments
+	  		WHERE project_id = ?
+	  			AND type = ?
+	  			AND created_at > ?
+	  	`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
+			time.Now().Add(-time.Duration(*sessionAlert.ThresholdWindow)*time.Minute)).
+			Scan(&commentsCount).Error; err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
+			return err
+		}
+		if commentsCount+1 < int64(sessionAlert.CountThreshold) {
 			return nil
 		}
-	}
 
-	commentsCount := int64(-1)
-	if sessionFeedbackAlert.ThresholdWindow == nil {
-		t := 30
-		sessionFeedbackAlert.ThresholdWindow = &t
-	}
-	if err := r.DB.Raw(`
-			SELECT COUNT(*)
-			FROM session_comments
-			WHERE project_id = ?
-				AND type = ?
-				AND created_at > ?
-		`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
-		time.Now().Add(-time.Duration(*sessionFeedbackAlert.ThresholdWindow)*time.Minute)).
-		Scan(&commentsCount).Error; err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-			Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
-		return err
-	}
-	if commentsCount+1 < int64(sessionFeedbackAlert.CountThreshold) {
-		return nil
-	}
+		var project model.Project
+		if err := r.DB.Raw(`
+	  		SELECT *
+	  		FROM projects
+	  		WHERE id = ?
+	  	`, session.ProjectID).Scan(&project).Error; err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+			return err
+		}
 
-	var project model.Project
-	if err := r.DB.Raw(`
-			SELECT *
-			FROM projects
-			WHERE id = ?
-		`, session.ProjectID).Scan(&project).Error; err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-			Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
-		return err
-	}
+		identifier := "Someone"
+		if input.UserName != nil {
+			identifier = *input.UserName
+		} else if input.UserEmail != nil {
+			identifier = *input.UserEmail
+		}
 
-	identifier := "Someone"
-	if input.UserName != nil {
-		identifier = *input.UserName
-	} else if input.UserEmail != nil {
-		identifier = *input.UserEmail
-	}
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error fetching workspace"))
+		}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
-	if err != nil {
-		log.WithError(err).
-			WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
-			Error(e.Wrap(err, "error fetching workspace"))
+		sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			UserIdentifier:  identifier,
+			CommentID:       &feedbackComment.ID,
+			CommentText:     feedbackComment.Text,
+		})
 	}
-
-	sessionFeedbackAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{
-		Workspace:       workspace,
-		SessionSecureID: session.SecureID,
-		UserIdentifier:  identifier,
-		CommentID:       &feedbackComment.ID,
-		CommentText:     feedbackComment.Text,
-	})
 	return nil
 }
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {

@@ -3,7 +3,7 @@ import publicGraphURI from 'consts:publicGraphURI'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
-const normalizeUrl = (url: string) => {
+export const normalizeUrl = (url: string) => {
 	let urlToMutate = url
 	/**
 	 * Make sure URL includes the protocol and the host.
@@ -26,6 +26,11 @@ type GroupedPerformanceTimings = {
 	others: { [url: string]: PerformanceResourceTiming[] }
 	fetch: { [url: string]: PerformanceResourceTiming[] }
 }
+
+type PerformanceResourceTimingWithRequestResponsePair =
+	PerformanceResourceTiming & {
+		requestResponsePair: RequestResponsePair
+	}
 
 export const matchPerformanceTimingsWithRequestResponsePair = (
 	performanceTimings: PerformanceResourceTiming[],
@@ -95,16 +100,14 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 		}
 	}
 
-	performanceTimings = []
+	let result: PerformanceResourceTimingWithRequestResponsePair[] = []
 	for (let type in groupedPerformanceTimings) {
 		for (let url in groupedPerformanceTimings[type]) {
-			performanceTimings = performanceTimings.concat(
-				groupedPerformanceTimings[type][url],
-			)
+			result = result.concat(groupedPerformanceTimings[type][url])
 		}
 	}
 
-	return performanceTimings
+	return result
 		.sort((a, b) => a.fetchStart - b.fetchStart)
 		.map((performanceTiming) => {
 			performanceTiming.toJSON = function () {
@@ -115,6 +118,7 @@ export const matchPerformanceTimingsWithRequestResponsePair = (
 					name: this.name,
 					transferSize: this.transferSize,
 					encodedBodySize: this.encodedBodySize,
+					requestResponsePairs: this.requestResponsePair,
 				}
 			}
 			return performanceTiming
