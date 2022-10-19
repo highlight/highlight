@@ -4,7 +4,7 @@ import SvgReload from '@icons/Reload'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
-import ToolbarControls from '@pages/Player/Toolbar/ToolbarControls/ToolbarControls'
+import ToolbarControlBar from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar'
 import {
 	AutoPlayToolbarItem,
 	DevToolsToolbarItem,
@@ -180,7 +180,7 @@ export const Toolbar = ({ width }: Props) => {
 	const disablePlayButton =
 		time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode
 
-	const toolbarControllerV1 = histogramOn ? null : (
+	const toolbarControlBarV1 = (
 		<>
 			<div className={styles.toolbarLeftSection}>
 				<button
@@ -414,7 +414,7 @@ export const Toolbar = ({ width }: Props) => {
 				})}
 				style={{ width }}
 			>
-				{histogramOn ? <ToolbarControls /> : toolbarControllerV1}
+				{histogramOn ? <ToolbarControlBar /> : toolbarControlBarV1}
 			</div>
 		</ToolbarItemsContextProvider>
 	)

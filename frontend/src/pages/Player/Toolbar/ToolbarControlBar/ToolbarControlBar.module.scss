@@ -202,3 +202,20 @@
 	line-height: 16px;
 	padding: 0 4px;
 }
+
+.leftSelection {
+	align-items: center;
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	&:hover {
+		> .leftClickActionName {
+			visibility: visible;
+		}
+	}
+}
+.leftClickActionName {
+	color: var(--color-neutral-500);
+	font-size: 11px;
+	visibility: hidden;
+}

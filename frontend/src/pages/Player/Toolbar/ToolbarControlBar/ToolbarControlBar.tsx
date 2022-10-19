@@ -22,12 +22,15 @@ import {
 	getFullScreenPopoverGetPopupContainer,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerPausedStates,
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
+import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
@@ -35,9 +38,10 @@ import classNames from 'classnames'
 import { H } from 'highlight.run'
 import { PropsWithChildren, useState } from 'react'
 
-import style from './ToolbarControls.module.scss'
-
+import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
+import style from './ToolbarControlBar.module.scss'
 const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
+const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
 const ToolbarControls = () => {
 	const {
@@ -337,6 +341,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		setShowPlayerMouseTail,
 		autoPlayVideo,
 		setAutoPlayVideo,
+		selectedTimelineAnnotationTypes,
+		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
 
 	const options = (
@@ -463,6 +469,93 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 		</>
 	)
+
+	const shownEventTypes = EventsForTimeline.filter(
+		(eventType) => !EventTypeToExclude.includes(eventType),
+	)
+	const annotations = shownEventTypes.map((eventType, idx) => {
+		const color = `var(${getAnnotationColor(eventType)})`
+		const name = getTimelineEventDisplayName(eventType)
+		const onChecked = (checked: boolean) => {
+			if (checked) {
+				setSelectedTimelineAnnotationTypes([
+					...selectedTimelineAnnotationTypes,
+					eventType,
+				])
+			} else {
+				setSelectedTimelineAnnotationTypes(
+					selectedTimelineAnnotationTypes.filter(
+						(type) => type !== eventType,
+					),
+				)
+			}
+		}
+
+		let onLeftClickActionName = 'Only'
+		if (selectedTimelineAnnotationTypes.includes(eventType)) {
+			if (selectedTimelineAnnotationTypes.length === 1) {
+				onLeftClickActionName = 'All'
+			}
+		}
+
+		return (
+			<button
+				key={idx}
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+			>
+				<div
+					className={style.leftSelection}
+					onClick={() => {
+						if (
+							selectedTimelineAnnotationTypes.includes(eventType)
+						) {
+							if (
+								selectedTimelineAnnotationTypes.length ===
+								shownEventTypes.length
+							) {
+								setSelectedTimelineAnnotationTypes([eventType])
+							} else if (
+								selectedTimelineAnnotationTypes.length === 1
+							) {
+								setSelectedTimelineAnnotationTypes(
+									shownEventTypes,
+								)
+							} else {
+								setSelectedTimelineAnnotationTypes([eventType])
+							}
+						} else {
+							setSelectedTimelineAnnotationTypes([eventType])
+						}
+					}}
+				>
+					<span
+						className={timelinePopoverStyle.eventTypeIcon}
+						style={{ background: color }}
+					/>
+					<span>{name}</span>
+					<span
+						className={classNames(
+							style.leftClickActionName,
+							style.moveRight,
+						)}
+					>
+						{onLeftClickActionName}
+					</span>
+				</div>
+				<Switch
+					trackingId={`${eventType}AnnotationToggle`}
+					checked={selectedTimelineAnnotationTypes.includes(
+						eventType,
+					)}
+					onChange={onChecked}
+					className={style.moveRight}
+				/>
+			</button>
+		)
+	})
 	return (
 		<div className={style.settingsContainer}>
 			<div
@@ -490,7 +583,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				</button>
 			</div>
 			<div className={style.section}>
-				{showSessionSettings ? options : null}
+				{showSessionSettings ? options : annotations}
 			</div>
 		</div>
 	)
