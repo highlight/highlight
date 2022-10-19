@@ -335,6 +335,14 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 		shortcut: ['right'],
 	},
 	{
+		description: `Toggle the timeline`,
+		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'H'],
+	},
+	{
+		description: `Toggle dev tools`,
+		shortcut: [isOnMac ? '⌘' : 'Ctrl', '/'],
+	},
+	{
 		description: `Play the next session`,
 		shortcut: ['shift', 'N'],
 	},
