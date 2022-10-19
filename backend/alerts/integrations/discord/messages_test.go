@@ -20,7 +20,7 @@ type DiscordChannelsTestSuite struct {
 
 func TestDiscordChannelsTestSuite(t *testing.T) {
 	t.Skip(`
-	  This test only exists for quickly Discord messages to a channel. It sends real data to a real channel.
+	  This test only exists for quickly sending Discord messages to a channel. It sends real data to a real channel.
 		In order to run this locally, adjust the values below (by setting up Discord locally) and comment this t.Skip line
 	`)
 	suite.Run(t, new(DiscordChannelsTestSuite))
