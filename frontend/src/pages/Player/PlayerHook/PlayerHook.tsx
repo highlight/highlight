@@ -75,7 +75,7 @@ const EMPTY_SESSION_METADATA = {
 	totalTime: 0,
 }
 const CHUNKING_DISABLED_PROJECTS: string[] = []
-const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
+const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021', '1321']
 
 export enum SessionViewability {
 	VIEWABLE,
