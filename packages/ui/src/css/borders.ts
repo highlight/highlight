@@ -1,31 +1,38 @@
-import { Sprinkles } from './sprinkles.css'
+import { Props } from '../components/Box/Box'
 import { vars } from './theme.css'
 
-const borderWidths = {
-	small: '1px',
-	medium: '2px',
-	large: '4px',
-}
+type BorderKeys =
+	| 'black'
+	| 'blackMedium'
+	| 'blackLarge'
+	| 'neutral'
+	| 'neutralMedium'
+	| 'neutralLarge'
+	| 'purple'
+	| 'purpleMedium'
+	| 'purpleLarge'
+
+type Borders = Record<BorderKeys, string>
 
 // Tried to create dynamically but lost types with the `${color}${width}` keys.
-export const borders = {
-	black: `${vars.color.black} solid ${borderWidths.small}`,
-	blackMedium: `${vars.color.black} solid ${borderWidths.medium}`,
-	blackLarge: `${vars.color.black} solid ${borderWidths.large}`,
+export const borders: Borders = {
+	black: `${vars.color.black} solid ${vars.borderWidth.small}`,
+	blackMedium: `${vars.color.black} solid ${vars.borderWidth.medium}`,
+	blackLarge: `${vars.color.black} solid ${vars.borderWidth.large}`,
 
-	neutral: `${vars.color.neutral200} solid ${borderWidths.small}`,
-	neutralMedium: `${vars.color.neutral200} solid ${borderWidths.medium}`,
-	neutralLarge: `${vars.color.neutral200} solid ${borderWidths.large}`,
+	neutral: `${vars.color.neutral200} solid ${vars.borderWidth.small}`,
+	neutralMedium: `${vars.color.neutral200} solid ${vars.borderWidth.medium}`,
+	neutralLarge: `${vars.color.neutral200} solid ${vars.borderWidth.large}`,
 
-	purple: `${vars.color.purple700} solid ${borderWidths.small}`,
-	purpleMedium: `${vars.color.purple700} solid ${borderWidths.medium}`,
-	purpleLarge: `${vars.color.purple700} solid ${borderWidths.large}`,
+	purple: `${vars.color.purple700} solid ${vars.borderWidth.small}`,
+	purpleMedium: `${vars.color.purple700} solid ${vars.borderWidth.medium}`,
+	purpleLarge: `${vars.color.purple700} solid ${vars.borderWidth.large}`,
 }
 
-export type BorderProps = {
-	border?: Sprinkles['border']
-	borderTop?: Sprinkles['borderTop']
-	borderRight?: Sprinkles['borderRight']
-	borderBottom?: Sprinkles['borderBottom']
-	borderLeft?: Sprinkles['borderLeft']
+export interface BorderProps {
+	border?: Props['border']
+	borderTop?: Props['border']
+	borderRight?: Props['border']
+	borderBottom?: Props['border']
+	borderLeft?: Props['border']
 }

@@ -1,18 +1,25 @@
-import { createGlobalTheme, createTheme } from '@vanilla-extract/css'
 import { borders } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
 import { spaces } from './spaces'
 
-export const vars = createGlobalTheme(':root', {
+export const vars = {
 	breakpoint: breakpoints,
 	color: colors,
 	space: spaces,
 	border: borders,
 	borderRadius: {
-		standard: '4px',
-		large: '8px',
-		xlarge: '12px',
+		small: '4px',
+		medium: '8px',
+		large: '12px',
+	},
+	borderWidth: {
+		small: '1px',
+		medium: '2px',
+		large: '4px',
+	},
+	borderStyle: {
+		standard: 'solid',
 	},
 	typography: {
 		family: {
@@ -77,22 +84,4 @@ export const vars = createGlobalTheme(':root', {
 		medium: '0 2px 4px 0px rgba(28,28,28,.1), 0 8px 8px -4px rgba(28,28,28,.1), 0 12px 12px -8px rgba(28,28,28,.2)',
 		large: '0 2px 4px 0px rgba(28,28,28,.1), 0 12px 12px -4px rgba(28,28,28,.1), 0 20px 20px -12px rgba(28,28,28,.2)',
 	},
-})
-
-export const [lightThemeClass, lightVars] = createTheme({
-	color: {
-		body: colors.white,
-		text: {
-			primary: colors.black,
-		},
-	},
-})
-
-export const darkThemeClass = createTheme(lightVars, {
-	color: {
-		body: colors.purple900,
-		text: {
-			primary: colors.white,
-		},
-	},
-})
+}

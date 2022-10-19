@@ -1,6 +1,7 @@
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
 import { breakpoints } from './breakpoints'
+import { colors } from './colors'
 import { vars } from './theme.css'
 
 const responsiveProperties = defineProperties({
@@ -63,9 +64,9 @@ const colorProperties = defineProperties({
 		borderRight: borders,
 		borderBottom: borders,
 		borderLeft: borders,
-		borderColor: vars.color,
+		borderColor: colors,
 		borderStyle: ['hidden', 'solid'],
-		borderWidth: vars.border.width,
+		borderWidth: vars.borderWidth,
 		boxShadow: vars.shadows,
 		color: vars.color,
 	},

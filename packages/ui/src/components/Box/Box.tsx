@@ -2,7 +2,7 @@ import clsx, { ClassValue } from 'clsx'
 import React from 'react'
 import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
-interface Props extends Sprinkles, React.PropsWithChildren {
+export interface Props extends Sprinkles, React.PropsWithChildren {
 	as?: React.ElementType
 	className?: ClassValue
 }

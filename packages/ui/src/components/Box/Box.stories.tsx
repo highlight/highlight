@@ -7,3 +7,9 @@ export default {
 	title: 'Box',
 	component: Box,
 } as ComponentMeta<typeof Box>
+
+export const Basic = (
+	<Box background="purple700" color="white">
+		Hello! 👋
+	</Box>
+)

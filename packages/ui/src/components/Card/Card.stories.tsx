@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { ComponentMeta, ComponentStory } from '@storybook/react'
 
 import { Card } from './Card'
 
@@ -8,12 +8,13 @@ export default {
 	component: Card,
 } as ComponentMeta<typeof Card>
 
-export const Padding = () => <Card padding="xxLarge">Card w/ Padding</Card>
+export const Padding: ComponentStory<typeof Card> = () => (
+	<Card padding="xxLarge">Card w/ Padding</Card>
+)
 export const Border = () => (
 	<>
 		<Card
-			background="neutral50"
-			border="black"
+			border="neutral"
 			borderRadius="large"
 			color="purple100"
 			padding="medium"
@@ -21,9 +22,11 @@ export const Border = () => (
 			Card w/ Padding + Border
 		</Card>
 
+		<br />
+
 		<Card
 			background="neutral50"
-			borderLeft="neutral"
+			border="neutralLarge"
 			color="purple100"
 			padding="medium"
 		>

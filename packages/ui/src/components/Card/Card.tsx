@@ -1,9 +1,9 @@
 import React from 'react'
 import { BorderProps } from '../../css/borders'
 import { Sprinkles } from '../../css/sprinkles.css'
-import { Box } from '../Box/Box'
+import { Box, Props as BoxProps } from '../Box/Box'
 
-interface Props extends React.PropsWithChildren, BorderProps {
+export interface Props extends React.PropsWithChildren, BorderProps {
 	background?: Sprinkles['background']
 	borderRadius?: Sprinkles['borderRadius']
 	color?: Sprinkles['color']

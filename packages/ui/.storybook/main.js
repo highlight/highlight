@@ -12,9 +12,14 @@ module.exports = {
 	core: {
 		builder: '@storybook/builder-vite',
 	},
-	features: {
-		storyStoreV7: true,
+	typescript: {
+		reactDocgenTypescriptOptions: {
+			shouldExtractLiteralValuesFromEnum: true,
+			shouldExtractValuesFromUnion: true,
+			shouldRemoveUndefinedFromOptional: true,
+		},
 	},
+
 	async viteFinal(config) {
 		return mergeConfig(config, {
 			plugins: [
