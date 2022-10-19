@@ -2,7 +2,7 @@ import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
-import { vars } from './theme.css'
+import { vars } from './vars.css'
 
 const responsiveProperties = defineProperties({
 	conditions: {
