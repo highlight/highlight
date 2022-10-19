@@ -390,7 +390,6 @@ export const Toolbar = ({ width }: Props) => {
 							selectedTimelineAnnotationTypes
 						}
 						width={width}
-						isTimelineHidden={isLiveMode}
 					/>
 				) : (
 					<>

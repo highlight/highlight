@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -32,7 +33,6 @@ import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
-	isTimelineHidden?: boolean
 }
 
 const TARGET_TICK_COUNT = 7
@@ -55,11 +55,11 @@ type SessionEvent = ParsedEvent & {
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
-	isTimelineHidden,
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { showPlayerAbsoluteTime, showHistogram } = usePlayerConfiguration()
+	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -994,7 +994,7 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	if (isTimelineHidden) {
+	if (isLiveMode || !showHistogram) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
