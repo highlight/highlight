@@ -2896,14 +2896,24 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, e.New("cannot access Vercel project")
 		}
 
-		var matchingEnvId *string
+		var sourceMapEnvId *string
+		var projectEnvId *string
 		for _, e := range vercelProject.Env {
 			if e.Key == vercel.SourcemapEnvKey {
-				matchingEnvId = &e.ID
+				sourceMapEnvId = &e.ID
+			}
+			if e.Key == vercel.ProjectIdEnvVar {
+				projectEnvId = &e.ID
 			}
 		}
 
-		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken, workspace.VercelTeamID, matchingEnvId); err != nil {
+		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken,
+			workspace.VercelTeamID, sourceMapEnvId, vercel.SourcemapEnvKey); err != nil {
+			return false, err
+		}
+
+		if err := vercel.SetEnvVariable(m.VercelProjectID, project.VerboseID(), *workspace.VercelAccessToken,
+			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
 		configs = append(configs, &model.VercelIntegrationConfig{
