@@ -20,14 +20,6 @@ const GET_SOURCE_MAP_URLS_QUERY = `
   }
 `;
 
-const BUCKET_NAME = "source-maps-test";
-
-// These secrets are for the "S3SourceMapUploaderTest" role.
-const s3 = new AWS.S3({
-  accessKeyId: "AKIASRAMI2JGSNAT247I",
-  secretAccessKey: "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",
-});
-
 export const uploadSourcemaps = async ({
   apiKey,
   appVersion,
@@ -105,7 +97,7 @@ export const uploadSourcemaps = async ({
     body: JSON.stringify({
       query: GET_SOURCE_MAP_URLS_QUERY,
       variables: {
-        apiKey,
+        api_key: apiKey,
         paths: s3Keys,
       },
     }),
@@ -220,7 +212,6 @@ function getS3Key(
 }
 
 async function uploadFile(filePath: string, uploadUrl: string) {
-  console.log(uploadUrl);
   const fileContent = readFileSync(filePath);
   await fetch(uploadUrl, { method: "put", body: fileContent });
   console.log(`Uploaded ${filePath}`);
