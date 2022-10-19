@@ -4,14 +4,12 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/pkg/errors"
 )
 
 type DiscordBot struct {
 	Session *discordgo.Session
 	GuildID string
-	integrations.BaseAlertIntegration
 }
 
 func NewDiscordBot(guildId string) (*DiscordBot, error) {

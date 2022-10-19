@@ -2,6 +2,7 @@ package discord
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
@@ -34,12 +35,6 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.ErrorAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Session",
-		Value:  payload.SessionURL,
-		Inline: true,
-	})
-
 	if payload.VisitedURL != "" {
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "Visited URL",
@@ -54,14 +49,44 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 		Inline: true,
 	})
 
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Error count",
+		Value:  strconv.FormatInt(payload.ErrorCount, 10),
+		Inline: true,
+	})
+
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight Error Alert: %d Recent Occurrences", payload.ErrorCount),
+		Content: "**Highlight Error Alert**",
 		Embeds: []*discordgo.MessageEmbed{
 			{
 				Type:   "rich",
 				Title:  payload.ErrorTitle,
 				URL:    payload.ErrorURL,
 				Fields: fields,
+			},
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Session",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionURL,
+					},
+					discordgo.Button{
+						Label:    "Resolve Error",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.ErrorResolveURL,
+					},
+					discordgo.Button{
+						Label:    "Ignore Error",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.ErrorResolveURL,
+					},
+				},
 			},
 		},
 	}
@@ -72,9 +97,7 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 
 func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.NewUserAlertPayload) error {
 	embed := &discordgo.MessageEmbed{
-		Type:  "rich",
-		Title: "View Session",
-		URL:   payload.SessionURL,
+		Type: "rich",
 	}
 
 	userFields := []*discordgo.MessageEmbedField{}
@@ -94,9 +117,21 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.N
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight New User Alert: %s", payload.UserIdentifier),
+		Content: fmt.Sprintf("**Highlight New User Alert: %s**", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Session",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionURL,
+					},
+				},
+			},
 		},
 	}
 
@@ -106,9 +141,7 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.N
 
 func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integrations.NewSessionAlertPayload) error {
 	embed := &discordgo.MessageEmbed{
-		Type:  "rich",
-		Title: "View Session",
-		URL:   payload.SessionURL,
+		Type: "rich",
 	}
 
 	userFields := []*discordgo.MessageEmbedField{}
@@ -140,6 +173,18 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integration
 		Content: fmt.Sprintf("Highlight New Session Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Session",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionURL,
+					},
+				},
+			},
 		},
 	}
 

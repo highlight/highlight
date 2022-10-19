@@ -27,12 +27,14 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 	}
 
 	errorAlertPayload := integrations.ErrorAlertPayload{
-		ErrorCount:     event.ErrorCount,
-		ErrorTitle:     errorTitle,
-		UserIdentifier: event.Session.Identifier,
-		ErrorURL:       getErrorsURL(event.ErrorAlert, event.ErrorGroup),
-		SessionURL:     getSessionsURL(event.ErrorAlert.ProjectID, event.Session),
-		VisitedURL:     event.VisitedURL,
+		ErrorCount:      event.ErrorCount,
+		ErrorTitle:      errorTitle,
+		UserIdentifier:  event.Session.Identifier,
+		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup),
+		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup),
+		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup),
+		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
+		VisitedURL:      event.VisitedURL,
 	}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
@@ -101,7 +103,7 @@ func SendNewUserAlert(event SendNewUserAlertEvent) error {
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := integrations.NewUserAlertPayload{
-		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		SessionURL:     getSessionURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
@@ -150,7 +152,7 @@ func SendNewSessionAlert(event SendNewSessionAlertEvent) error {
 	userProperties, avatarUrl := getUserPropertiesAndAvatar(sessionUserProperties)
 
 	payload := integrations.NewSessionAlertPayload{
-		SessionURL:     getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		SessionURL:     getSessionURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier: event.Session.Identifier,
 		UserProperties: userProperties,
 		AvatarURL:      avatarUrl,
@@ -252,7 +254,7 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 
 	payload := integrations.UserPropertiesAlertPayload{
 		UserIdentifier:    event.Session.Identifier,
-		SessionURL:        getSessionsURL(event.Session.ProjectID, event.Session),
+		SessionURL:        getSessionURL(event.Session.ProjectID, event.Session),
 		MatchedProperties: mappedProperties,
 	}
 
@@ -333,7 +335,7 @@ type RageClicksAlertEvent struct {
 func SendRageClicksAlert(event RageClicksAlertEvent) error {
 	payload := integrations.RageClicksAlertPayload{
 		RageClicksCount: event.RageClicksCount,
-		SessionURL:      getSessionsURL(event.SessionAlert.ProjectID, event.Session),
+		SessionURL:      getSessionURL(event.SessionAlert.ProjectID, event.Session),
 		UserIdentifier:  event.Session.Identifier,
 	}
 
