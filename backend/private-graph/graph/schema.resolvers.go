@@ -5362,17 +5362,26 @@ func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int,
 	return &projectId, nil
 }
 
-// GetSourceMapUploadURL is the resolver for the get_source_map_upload_url field.
-func (r *queryResolver) GetSourceMapUploadURL(ctx context.Context, apiKey string, path string) (string, error) {
+// GetSourceMapUploadUrls is the resolver for the get_source_map_upload_urls field.
+func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error) {
 	projectId, err := r.APIKeyToOrgID(ctx, apiKey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if projectId == nil {
-		return "", e.New("invalid API key - project id is nil")
+		return nil, e.New("invalid API key - project id is nil")
 	}
 
-	return r.StorageClient.GetSourceMapUploadUrl(path)
+	urls := []string{}
+	for _, path := range paths {
+		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+
+	return urls, nil
 }
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.

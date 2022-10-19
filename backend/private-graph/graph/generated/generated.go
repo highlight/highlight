@@ -579,7 +579,7 @@ type ComplexityRoot struct {
 		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
-		GetSourceMapUploadURL        func(childComplexity int, apiKey string, path string) int
+		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
 		IdentifierSuggestion         func(childComplexity int, projectID int, query string) int
 		IsBackendIntegrated          func(childComplexity int, projectID int) int
 		IsIntegrated                 func(childComplexity int, projectID int) int
@@ -1130,7 +1130,7 @@ type QueryResolver interface {
 	Segments(ctx context.Context, projectID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, projectID int) ([]*model1.ErrorSegment, error)
 	APIKeyToOrgID(ctx context.Context, apiKey string) (*int, error)
-	GetSourceMapUploadURL(ctx context.Context, apiKey string, path string) (string, error)
+	GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error)
 	CustomerPortalURL(ctx context.Context, workspaceID int) (string, error)
 	SubscriptionDetails(ctx context.Context, workspaceID int) (*model.SubscriptionDetails, error)
 	DashboardDefinitions(ctx context.Context, projectID int) ([]*model.DashboardDefinition, error)
@@ -4300,17 +4300,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GenerateZapierAccessToken(childComplexity, args["project_id"].(int)), true
 
-	case "Query.get_source_map_upload_url":
-		if e.complexity.Query.GetSourceMapUploadURL == nil {
+	case "Query.get_source_map_upload_urls":
+		if e.complexity.Query.GetSourceMapUploadUrls == nil {
 			break
 		}
 
-		args, err := ec.field_Query_get_source_map_upload_url_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_get_source_map_upload_urls_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetSourceMapUploadURL(childComplexity, args["api_key"].(string), args["path"].(string)), true
+		return e.complexity.Query.GetSourceMapUploadUrls(childComplexity, args["api_key"].(string), args["paths"].([]string)), true
 
 	case "Query.identifier_suggestion":
 		if e.complexity.Query.IdentifierSuggestion == nil {
@@ -7692,7 +7692,7 @@ type Query {
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
 	api_key_to_org_id(api_key: String!): ID
-	get_source_map_upload_url(api_key: String!, path: String!): String!
+	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
@@ -11257,7 +11257,7 @@ func (ec *executionContext) field_Query_generate_zapier_access_token_args(ctx co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_get_source_map_upload_url_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_get_source_map_upload_urls_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -11269,15 +11269,15 @@ func (ec *executionContext) field_Query_get_source_map_upload_url_args(ctx conte
 		}
 	}
 	args["api_key"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["path"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("path"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 []string
+	if tmp, ok := rawArgs["paths"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("paths"))
+		arg1, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["path"] = arg1
+	args["paths"] = arg1
 	return args, nil
 }
 
@@ -34632,8 +34632,8 @@ func (ec *executionContext) fieldContext_Query_api_key_to_org_id(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_get_source_map_upload_url(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_get_source_map_upload_url(ctx, field)
+func (ec *executionContext) _Query_get_source_map_upload_urls(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_get_source_map_upload_urls(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -34646,7 +34646,7 @@ func (ec *executionContext) _Query_get_source_map_upload_url(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetSourceMapUploadURL(rctx, fc.Args["api_key"].(string), fc.Args["path"].(string))
+		return ec.resolvers.Query().GetSourceMapUploadUrls(rctx, fc.Args["api_key"].(string), fc.Args["paths"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34658,12 +34658,12 @@ func (ec *executionContext) _Query_get_source_map_upload_url(ctx context.Context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_get_source_map_upload_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_get_source_map_upload_urls(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -34680,7 +34680,7 @@ func (ec *executionContext) fieldContext_Query_get_source_map_upload_url(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_get_source_map_upload_url_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_get_source_map_upload_urls_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -52837,7 +52837,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "get_source_map_upload_url":
+		case "get_source_map_upload_urls":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -52846,7 +52846,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_get_source_map_upload_url(ctx, field)
+				res = ec._Query_get_source_map_upload_urls(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

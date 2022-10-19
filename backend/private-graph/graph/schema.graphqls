@@ -1158,7 +1158,7 @@ type Query {
 	segments(project_id: ID!): [Segment]
 	error_segments(project_id: ID!): [ErrorSegment]
 	api_key_to_org_id(api_key: String!): ID
-	get_source_map_upload_url(api_key: String!, path: String!): String!
+	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
 	subscription_details(workspace_id: ID!): SubscriptionDetails!
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!

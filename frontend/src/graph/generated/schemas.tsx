@@ -1174,7 +1174,7 @@ export type Query = {
 	segments?: Maybe<Array<Maybe<Segment>>>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	api_key_to_org_id?: Maybe<Scalars['ID']>
-	get_source_map_upload_url: Scalars['String']
+	get_source_map_upload_urls: Array<Scalars['String']>
 	customer_portal_url: Scalars['String']
 	subscription_details: SubscriptionDetails
 	dashboard_definitions: Array<Maybe<DashboardDefinition>>
@@ -1545,9 +1545,9 @@ export type QueryApi_Key_To_Org_IdArgs = {
 	api_key: Scalars['String']
 }
 
-export type QueryGet_Source_Map_Upload_UrlArgs = {
+export type QueryGet_Source_Map_Upload_UrlsArgs = {
 	api_key: Scalars['String']
-	path: Scalars['String']
+	paths: Array<Scalars['String']>
 }
 
 export type QueryCustomer_Portal_UrlArgs = {
