@@ -68,6 +68,10 @@ export const usePlayerKeyboardShortcuts = () => {
 		showLeftPanel,
 		showRightPanel,
 		setShowRightPanel,
+		setShowDevTools,
+		showDevTools,
+		setShowHistogram,
+		showHistogram,
 	} = usePlayerConfiguration()
 	const { session_secure_id, project_id } = useParams<{
 		session_secure_id: string
@@ -320,6 +324,28 @@ export const usePlayerKeyboardShortcuts = () => {
 			setShowRightPanel(!showRightPanel)
 		},
 		[showRightPanel],
+	)
+
+	useHotkeys(
+		'cmd+h, ctrl+h',
+		(e) => {
+			H.track('PlayerToggleTimelineKeyboardShortcut')
+			moveFocusToDocument(e)
+
+			setShowHistogram(!showHistogram)
+		},
+		[showHistogram],
+	)
+
+	useHotkeys(
+		'cmd+d, ctrl+d',
+		(e) => {
+			H.track('PlayerToggleDevToolsKeyboardShortcut')
+			moveFocusToDocument(e)
+
+			setShowDevTools(!showDevTools)
+		},
+		[showDevTools],
 	)
 }
 

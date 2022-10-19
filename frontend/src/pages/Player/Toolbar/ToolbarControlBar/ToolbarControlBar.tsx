@@ -281,6 +281,7 @@ const ToolbarControls = () => {
 					setShowSettings(visible)
 				}}
 				visible={showSettings}
+				destroyTooltipOnHide
 			>
 				<Button className={style.button} trackingId="PlayerSettings">
 					<CogIcon />
