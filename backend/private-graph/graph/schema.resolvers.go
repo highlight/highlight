@@ -2896,14 +2896,24 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 			return false, e.New("cannot access Vercel project")
 		}
 
-		var matchingEnvId *string
+		var sourceMapEnvId *string
+		var projectEnvId *string
 		for _, e := range vercelProject.Env {
 			if e.Key == vercel.SourcemapEnvKey {
-				matchingEnvId = &e.ID
+				sourceMapEnvId = &e.ID
+			}
+			if e.Key == vercel.ProjectIdEnvVar {
+				projectEnvId = &e.ID
 			}
 		}
 
-		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken, workspace.VercelTeamID, matchingEnvId); err != nil {
+		if err := vercel.SetEnvVariable(m.VercelProjectID, *project.Secret, *workspace.VercelAccessToken,
+			workspace.VercelTeamID, sourceMapEnvId, vercel.SourcemapEnvKey); err != nil {
+			return false, err
+		}
+
+		if err := vercel.SetEnvVariable(m.VercelProjectID, project.VerboseID(), *workspace.VercelAccessToken,
+			workspace.VercelTeamID, projectEnvId, vercel.ProjectIdEnvVar); err != nil {
 			return false, err
 		}
 		configs = append(configs, &model.VercelIntegrationConfig{
@@ -5360,6 +5370,34 @@ func (r *queryResolver) APIKeyToOrgID(ctx context.Context, apiKey string) (*int,
 		return nil, e.Wrap(err, "error getting project id from api key")
 	}
 	return &projectId, nil
+}
+
+// GetSourceMapUploadUrls is the resolver for the get_source_map_upload_urls field.
+func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey string, paths []string) ([]string, error) {
+	projectId, err := r.APIKeyToOrgID(ctx, apiKey)
+	if err != nil {
+		return nil, err
+	}
+	if projectId == nil {
+		return nil, e.New("invalid API key - project id is nil")
+	}
+
+	// Assert all paths start with this prefix to block cross-project uploads
+	pathPrefix := fmt.Sprintf("%d/", *projectId)
+
+	urls := []string{}
+	for _, path := range paths {
+		if !strings.HasPrefix(path, pathPrefix) {
+			return nil, e.New("invalid path - does not start with project prefix")
+		}
+		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
+		if err != nil {
+			return nil, err
+		}
+		urls = append(urls, url)
+	}
+
+	return urls, nil
 }
 
 // CustomerPortalURL is the resolver for the customer_portal_url field.

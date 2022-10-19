@@ -3,7 +3,7 @@ import publicGraphURI from 'consts:publicGraphURI'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 
-const normalizeUrl = (url: string) => {
+export const normalizeUrl = (url: string) => {
 	let urlToMutate = url
 	/**
 	 * Make sure URL includes the protocol and the host.

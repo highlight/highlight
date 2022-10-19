@@ -18,6 +18,7 @@ var (
 	VercelClientId     = os.Getenv("VERCEL_CLIENT_ID")
 	VercelClientSecret = os.Getenv("VERCEL_CLIENT_SECRET")
 	SourcemapEnvKey    = "HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY"
+	ProjectIdEnvVar    = "NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID"
 	VercelApiBaseUrl   = "https://api.vercel.com"
 )
 
@@ -68,7 +69,7 @@ func GetAccessToken(code string) (VercelAccessTokenResponse, error) {
 	return accessTokenResponse, nil
 }
 
-func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId *string, envId *string) error {
+func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId *string, envId *string, key string) error {
 	client := &http.Client{}
 
 	teamIdParam := ""
@@ -76,7 +77,12 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 		teamIdParam = "?teamId=" + *teamId
 	}
 
-	body := fmt.Sprintf(`{"type":"encrypted","value":"%s","target":["production"],"key":"%s"}`, apiKey, SourcemapEnvKey)
+	supportedEnvs := `["production"]`
+	if key == ProjectIdEnvVar {
+		supportedEnvs = `["production", "preview", "development"]`
+	}
+
+	body := fmt.Sprintf(`{"type":"encrypted","value":"%s","target":%s,"key":"%s"}`, apiKey, supportedEnvs, key)
 
 	method := "POST"
 	envIdStr := ""

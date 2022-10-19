@@ -536,6 +536,20 @@ func (s *StorageClient) GetDirectDownloadURL(projectId int, sessionId int, paylo
 	return &signedURL, nil
 }
 
+func (s *StorageClient) GetSourceMapUploadUrl(key string) (string, error) {
+	input := s3.PutObjectInput{
+		Bucket: &S3SourceMapBucketName,
+		Key:    pointy.String(key),
+	}
+
+	resp, err := s.S3PresignClient.PresignPutObject(context.TODO(), &input)
+	if err != nil {
+		return "", errors.Wrap(err, "error signing s3 asset URL")
+	}
+
+	return resp.URL, nil
+}
+
 func (s *StorageClient) UploadAsset(uuid string, contentType string, reader io.Reader) error {
 	_, err := s.S3ClientEast2.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: pointy.String(S3ResourcesBucketName),
