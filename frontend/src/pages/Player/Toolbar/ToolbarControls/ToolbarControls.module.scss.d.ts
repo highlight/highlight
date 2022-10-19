@@ -2,6 +2,7 @@ export const activeButton: string
 export const button: string
 export const buttonPopoverOverlay: string
 export const controlContainer: string
+export const currentTime: string
 export const minorButton: string
 export const moveRight: string
 export const popoverCmdShortcut: string

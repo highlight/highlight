@@ -1,6 +1,5 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -59,7 +58,6 @@ const TimelineIndicatorsBarGraph = ({
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
 	const { showPlayerAbsoluteTime, showHistogram } = usePlayerConfiguration()
-	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -72,6 +70,7 @@ const TimelineIndicatorsBarGraph = ({
 		canViewSession,
 		state: replayerState,
 	} = useReplayerContext()
+
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
 		zoomEnd: NumberParam,

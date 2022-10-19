@@ -1,5 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import { ReactComponent as ArrowsExpandIcon } from '@icons/Solid/arrows-expand.svg'
 import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
 import { ReactComponent as CogIcon } from '@icons/Solid/cog.svg'
@@ -17,6 +18,9 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import { clamp } from '@util/numbers'
+import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import { MillisToMinutesAndSeconds } from '@util/time'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
 import { PropsWithChildren, useState } from 'react'
@@ -53,6 +57,7 @@ const ToolbarControls = () => {
 		setPlayerSpeed,
 		skipInactive,
 		setSkipInactive,
+		showPlayerAbsoluteTime,
 	} = usePlayerConfiguration()
 
 	const isHistogramVisible = !isLiveMode && showHistogram
@@ -137,7 +142,36 @@ const ToolbarControls = () => {
 					Live
 				</Button>
 			)}
-
+			{!isLiveMode && (
+				<span className={style.currentTime}>
+					{disableControls ? (
+						<Skeleton count={1} width="60.13px" />
+					) : showPlayerAbsoluteTime ? (
+						<>
+							{playerTimeToSessionAbsoluteTime({
+								sessionStartTime: sessionStartDateTime,
+								relativeTime: time,
+							})}
+							&nbsp;/&nbsp;
+							{playerTimeToSessionAbsoluteTime({
+								sessionStartTime: sessionStartDateTime,
+								relativeTime: sessionDuration,
+							})}
+						</>
+					) : (
+						<>
+							{MillisToMinutesAndSeconds(
+								//     Sometimes the replayer will report a higher time when the player has ended.
+								clamp(time, 0, sessionDuration),
+							)}
+							<>
+								&nbsp;/&nbsp;
+								{MillisToMinutesAndSeconds(sessionDuration)}
+							</>
+						</>
+					)}
+				</span>
+			)}
 			<Button
 				className={classNames(
 					style.button,
