@@ -2,6 +2,7 @@ import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
+import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ArrowsExpandIcon } from '@icons/Solid/arrows-expand.svg'
 import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
@@ -29,6 +30,7 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
@@ -56,6 +58,7 @@ const ToolbarControls = () => {
 		session,
 		sessionStartDateTime,
 		sessionMetadata,
+		lastActiveString,
 	} = useReplayerContext()
 	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 
@@ -154,142 +157,179 @@ const ToolbarControls = () => {
 					Live
 				</Button>
 			)}
+			{isLiveMode && lastActiveString && (
+				<SessionToken
+					className={style.liveUserStatus}
+					icon={<ActivityIcon />}
+					tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
+				>
+					User was last active {lastActiveString}
+				</SessionToken>
+			)}
 			{!isLiveMode && (
-				<span className={style.currentTime}>
-					{disableControls ? (
-						<Skeleton count={1} width="60.13px" />
-					) : showPlayerAbsoluteTime ? (
-						<>
-							{playerTimeToSessionAbsoluteTime({
-								sessionStartTime: sessionStartDateTime,
-								relativeTime: time,
-							})}
-							&nbsp;/&nbsp;
-							{playerTimeToSessionAbsoluteTime({
-								sessionStartTime: sessionStartDateTime,
-								relativeTime: sessionDuration,
-							})}
-						</>
-					) : (
-						<>
-							{MillisToMinutesAndSeconds(
-								//     Sometimes the replayer will report a higher time when the player has ended.
-								clamp(time, 0, sessionDuration),
-							)}
+				<>
+					<span className={style.currentTime}>
+						{disableControls ? (
+							<Skeleton count={1} width="60.13px" />
+						) : showPlayerAbsoluteTime ? (
 							<>
+								{playerTimeToSessionAbsoluteTime({
+									sessionStartTime: sessionStartDateTime,
+									relativeTime: time,
+								})}
 								&nbsp;/&nbsp;
-								{MillisToMinutesAndSeconds(sessionDuration)}
+								{playerTimeToSessionAbsoluteTime({
+									sessionStartTime: sessionStartDateTime,
+									relativeTime: sessionDuration,
+								})}
 							</>
-						</>
-					)}
-				</span>
+						) : (
+							<>
+								{MillisToMinutesAndSeconds(
+									//     Sometimes the replayer will report a higher time when the player has ended.
+									clamp(time, 0, sessionDuration),
+								)}
+								<>
+									&nbsp;/&nbsp;
+									{MillisToMinutesAndSeconds(sessionDuration)}
+								</>
+							</>
+						)}
+					</span>
+					<Button
+						className={classNames(
+							style.button,
+							style.moveRight,
+							style.smallButton,
+						)}
+						trackingId="PlaybackSpeedControl"
+						onClick={() => {
+							const idx =
+								(playerSpeedIdx + 1) %
+								PLAYBACK_SPEED_OPTIONS.length
+							setPlayerSpeedIdx(idx)
+							setPlayerSpeed(PLAYBACK_SPEED_OPTIONS[idx])
+						}}
+						disabled={disableControls}
+					>
+						{playerSpeed}x
+					</Button>
+
+					<ExplanatoryPopover
+						content={
+							<>
+								Timeline
+								<span className={style.popoverCmdShortcut}>
+									⌘ H
+								</span>
+							</>
+						}
+					>
+						<Button
+							className={classNames(
+								style.button,
+								style.minorButton,
+								{
+									[style.activeButton]: isHistogramVisible,
+								},
+							)}
+							trackingId="HistogramToggle"
+							onClick={() => {
+								setShowHistogram(!showHistogram)
+							}}
+							disabled={isLiveMode || disableControls}
+						>
+							<ChartBarIcon />
+						</Button>
+					</ExplanatoryPopover>
+
+					<ExplanatoryPopover
+						content={
+							<>
+								Dev tools
+								<span className={style.popoverCmdShortcut}>
+									⌘ /
+								</span>
+							</>
+						}
+					>
+						<Button
+							className={classNames(
+								style.button,
+								style.minorButton,
+								{
+									[style.activeButton]: showDevTools,
+								},
+							)}
+							trackingId="DevToolsToggle"
+							onClick={() => {
+								setShowDevTools(!showDevTools)
+							}}
+							disabled={disableControls || isPlayerFullscreen}
+						>
+							<TerminalIcon />
+						</Button>
+					</ExplanatoryPopover>
+
+					<ExplanatoryPopover content={<>Skip inactive</>}>
+						<Button
+							className={classNames(
+								style.button,
+								style.minorButton,
+								{
+									[style.activeButton]:
+										!disableControls && skipInactive,
+								},
+							)}
+							trackingId="SkipInactiveToggle"
+							disabled={disableControls}
+							onClick={() => {
+								setSkipInactive(!skipInactive)
+							}}
+						>
+							<FastForwardIcon />
+						</Button>
+					</ExplanatoryPopover>
+
+					<Popover
+						getPopupContainer={
+							getFullScreenPopoverGetPopupContainer
+						}
+						content={
+							<ControlSettings
+								setShowSettingsPopover={setShowSettings}
+							/>
+						}
+						overlayClassName={style.settingsPopoverOverlay}
+						placement="topRight"
+						trigger="click"
+						showArrow={false}
+						align={{
+							overflow: {
+								adjustY: false,
+								adjustX: false,
+							},
+							offset: [0, 8],
+						}}
+						onVisibleChange={(visible) => {
+							setShowSettings(visible)
+						}}
+						visible={showSettings}
+						destroyTooltipOnHide
+					>
+						<Button
+							className={style.button}
+							trackingId="PlayerSettings"
+						>
+							<CogIcon />
+						</Button>
+					</Popover>
+				</>
 			)}
 			<Button
-				className={classNames(
-					style.button,
-					style.moveRight,
-					style.smallButton,
-				)}
-				trackingId="PlaybackSpeedControl"
-				onClick={() => {
-					const idx =
-						(playerSpeedIdx + 1) % PLAYBACK_SPEED_OPTIONS.length
-					setPlayerSpeedIdx(idx)
-					setPlayerSpeed(PLAYBACK_SPEED_OPTIONS[idx])
-				}}
-				disabled={disableControls}
-			>
-				{playerSpeed}x
-			</Button>
-
-			<ExplanatoryPopover
-				content={
-					<>
-						Timeline
-						<span className={style.popoverCmdShortcut}>⌘ H</span>
-					</>
-				}
-			>
-				<Button
-					className={classNames(style.button, style.minorButton, {
-						[style.activeButton]: isHistogramVisible,
-					})}
-					trackingId="HistogramToggle"
-					onClick={() => {
-						setShowHistogram(!showHistogram)
-					}}
-					disabled={isLiveMode || disableControls}
-				>
-					<ChartBarIcon />
-				</Button>
-			</ExplanatoryPopover>
-
-			<ExplanatoryPopover
-				content={
-					<>
-						Dev tools
-						<span className={style.popoverCmdShortcut}>⌘ /</span>
-					</>
-				}
-			>
-				<Button
-					className={classNames(style.button, style.minorButton, {
-						[style.activeButton]: showDevTools,
-					})}
-					trackingId="DevToolsToggle"
-					onClick={() => {
-						setShowDevTools(!showDevTools)
-					}}
-					disabled={disableControls || isPlayerFullscreen}
-				>
-					<TerminalIcon />
-				</Button>
-			</ExplanatoryPopover>
-
-			<ExplanatoryPopover content={<>Skip inactive</>}>
-				<Button
-					className={classNames(style.button, style.minorButton, {
-						[style.activeButton]: !disableControls && skipInactive,
-					})}
-					trackingId="SkipInactiveToggle"
-					disabled={disableControls}
-					onClick={() => {
-						setSkipInactive(!skipInactive)
-					}}
-				>
-					<FastForwardIcon />
-				</Button>
-			</ExplanatoryPopover>
-
-			<Popover
-				getPopupContainer={getFullScreenPopoverGetPopupContainer}
-				content={
-					<ControlSettings setShowSettingsPopover={setShowSettings} />
-				}
-				overlayClassName={style.settingsPopoverOverlay}
-				placement="topRight"
-				trigger="click"
-				showArrow={false}
-				align={{
-					overflow: {
-						adjustY: false,
-						adjustX: false,
-					},
-					offset: [0, 8],
-				}}
-				onVisibleChange={(visible) => {
-					setShowSettings(visible)
-				}}
-				visible={showSettings}
-				destroyTooltipOnHide
-			>
-				<Button className={style.button} trackingId="PlayerSettings">
-					<CogIcon />
-				</Button>
-			</Popover>
-
-			<Button
-				className={style.button}
+				className={classNames(style.button, {
+					[style.moveRight]: isLiveMode,
+				})}
 				trackingId="PlayerFullscreen"
 				onClick={() => {
 					setIsPlayerFullscreen((prev) => !prev)

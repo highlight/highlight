@@ -216,8 +216,13 @@
 		}
 	}
 }
+
 .leftClickActionName {
 	color: var(--color-neutral-500);
 	font-size: 11px;
 	visibility: hidden;
+}
+
+.liveUserStatus {
+	user-select: none;
 }

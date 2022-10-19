@@ -5,6 +5,7 @@ export const controlContainer: string
 export const currentTime: string
 export const leftClickActionName: string
 export const leftSelection: string
+export const liveUserStatus: string
 export const minorButton: string
 export const moveRight: string
 export const popoverCmdShortcut: string
