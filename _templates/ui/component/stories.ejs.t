@@ -2,19 +2,14 @@
 to: packages/ui/src/components/<%= name %>/<%= name %>.stories.mdx
 ---
 
-import { Canvas, Meta, Story } from '@storybook/addon-docs';
+import React from 'react'
+import { ComponentMeta } from '@storybook/react'
 
-import <%= name %> from './<%= name %>';
+import { <%= name %> } from './<%= name %>'
 
-<Meta
-	title="Components/<%= name %>"
-	component={<%= name %>}
-/>
+export default {
+	title: '<%= name %>',
+	component: <%= name %>,
+} as ComponentMeta<typeof <%= name %>>
 
-# <%= name %>
-
-<Canvas>
-	<Story name="default">
-		<<%= name %>>Hello!</<%= name %>>
-	</Story>
-</Canvas>
+export const Basic = () => <<%= name %>>Hello! 👋</<%= name %>>

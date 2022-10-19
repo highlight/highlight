@@ -19,7 +19,6 @@ module.exports = {
 		reactDocgenTypescriptOptions: {
 			shouldExtractLiteralValuesFromEnum: true,
 			shouldExtractValuesFromUnion: true,
-			shouldRemoveUndefinedFromOptional: true,
 		},
 	},
 
