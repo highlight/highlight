@@ -32,6 +32,10 @@
 			}
 		}
 	}
+	// disable click animations from antd
+	&::after {
+		display: none !important;
+	}
 }
 
 .button:hover,
@@ -59,6 +63,7 @@
 			padding: 0 !important;
 		}
 	}
+
 	:global(.ant-popover-inner) {
 		border: 1px solid var(--color-neutral-200);
 		overflow: hidden;
@@ -128,4 +133,72 @@
 .currentTime {
 	color: var(--color-neutral-500);
 	font-size: 13px;
+}
+
+.settingsPopoverOverlay {
+	:global(.ant-popover-inner-content) {
+		padding: 0 !important;
+		> div {
+			padding: 0 !important;
+		}
+	}
+
+	:global(.ant-popover-inner) {
+		border: 1px solid var(--color-neutral-200);
+		overflow: hidden;
+	}
+}
+
+.settingsContainer {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 224px;
+
+	> .section:first-child {
+		border-bottom: 1px solid var(--color-neutral-200);
+	}
+}
+
+.section {
+	padding: 4px 0;
+	width: 100%;
+}
+
+.settingsButton {
+	align-items: center;
+	background-color: inherit;
+	border: 0;
+	display: flex;
+	font-size: 13px;
+	gap: 4px;
+	height: 20px;
+	padding: 4px 8px;
+	user-select: none;
+	width: 100%;
+	&:hover {
+		cursor: pointer;
+	}
+	> svg {
+		height: 16px;
+		width: 16px;
+		path {
+			fill: var(--color-neutral-300);
+		}
+	}
+}
+
+.settingsOption {
+	height: 28px;
+}
+
+.settingsOptionShortcut {
+	border: 1px solid var(--color-neutral-200);
+	border-radius: 3px;
+	font-size: 12px;
+	font-weight: 400;
+	height: 16px;
+	line-height: 16px;
+	padding: 0 4px;
 }

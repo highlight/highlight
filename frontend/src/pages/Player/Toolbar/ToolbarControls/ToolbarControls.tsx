@@ -1,17 +1,27 @@
 import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
+import Switch from '@components/Switch/Switch'
+import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ArrowsExpandIcon } from '@icons/Solid/arrows-expand.svg'
 import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
+import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
+import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
 import { ReactComponent as CogIcon } from '@icons/Solid/cog.svg'
+import { ReactComponent as CrossIcon } from '@icons/Solid/cross.svg'
+import { ReactComponent as CursorClickIcon } from '@icons/Solid/cursor-click.svg'
 import { ReactComponent as FastForwardIcon } from '@icons/Solid/fast-forward.svg'
 import { ReactComponent as PauseIcon } from '@icons/Solid/pause.svg'
 import { ReactComponent as PlayIcon } from '@icons/Solid/play.svg'
+import { ReactComponent as PlayCircleIcon } from '@icons/Solid/play-circle.svg'
 import { ReactComponent as RestartIcon } from '@icons/Solid/restart.svg'
 import { ReactComponent as SkipLeftIcon } from '@icons/Solid/skip-left.svg'
 import { ReactComponent as SkipRightIcon } from '@icons/Solid/skip-right.svg'
 import { ReactComponent as TerminalIcon } from '@icons/Solid/terminal.svg'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	getFullScreenPopoverGetPopupContainer,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerPausedStates,
@@ -31,17 +41,14 @@ const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 
 const ToolbarControls = () => {
 	const {
-		replayer,
 		setTime,
 		time,
 		state,
 		play,
 		pause,
 		canViewSession,
-		isPlayerReady,
 		isLiveMode,
 		setIsLiveMode,
-		lastActiveString,
 		session,
 		sessionStartDateTime,
 		sessionMetadata,
@@ -72,6 +79,8 @@ const ToolbarControls = () => {
 
 	const disableControls = state === ReplayerState.Loading || !canViewSession
 	const showLiveToggle = session?.processed === false && !disableControls
+
+	const [showSettings, setShowSettings] = useState(false)
 
 	return (
 		<div className={style.controlContainer}>
@@ -192,8 +201,8 @@ const ToolbarControls = () => {
 			<ExplanatoryPopover
 				content={
 					<>
-						Histogram
-						<span className={style.popoverCmdShortcut}>⌘ T</span>
+						Timeline
+						<span className={style.popoverCmdShortcut}>⌘ H</span>
 					</>
 				}
 			>
@@ -248,13 +257,31 @@ const ToolbarControls = () => {
 				</Button>
 			</ExplanatoryPopover>
 
-			<Button
-				className={style.button}
-				trackingId="PlayerSettings"
-				onClick={() => {}}
+			<Popover
+				getPopupContainer={getFullScreenPopoverGetPopupContainer}
+				content={
+					<ControlSettings setShowSettingsPopover={setShowSettings} />
+				}
+				overlayClassName={style.settingsPopoverOverlay}
+				placement="topRight"
+				trigger={['click']}
+				showArrow={false}
+				align={{
+					overflow: {
+						adjustY: false,
+						adjustX: false,
+					},
+					offset: [0, 8],
+				}}
+				onVisibleChange={(visible) => {
+					setShowSettings(visible)
+				}}
+				visible={showSettings}
 			>
-				<CogIcon />
-			</Button>
+				<Button className={style.button} trackingId="PlayerSettings">
+					<CogIcon />
+				</Button>
+			</Popover>
 
 			<Button
 				className={style.button}
@@ -293,4 +320,180 @@ const ExplanatoryPopover = ({
 		</Popover>
 	)
 }
+
+interface ControlSettingsProps {
+	setShowSettingsPopover: (shouldShow: boolean) => void
+}
+const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
+	const [showSessionSettings, setShowSessionSettings] = useState(true)
+	const {
+		showHistogram,
+		setShowHistogram,
+		showDevTools,
+		setShowDevTools,
+		skipInactive,
+		setSkipInactive,
+		showPlayerMouseTail,
+		setShowPlayerMouseTail,
+		autoPlayVideo,
+		setAutoPlayVideo,
+	} = usePlayerConfiguration()
+
+	const options = (
+		<>
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setShowHistogram(!showHistogram)}
+			>
+				<ChartBarIcon />
+				Timeline
+				<span
+					className={classNames(
+						style.settingsOptionShortcut,
+						style.moveRight,
+					)}
+				>
+					⌘ H
+				</span>
+				<Switch
+					trackingId="HistogramMenuToggle"
+					checked={showHistogram}
+					onChange={(checked: boolean) => {
+						setShowHistogram(checked)
+					}}
+				/>
+			</button>
+
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setShowDevTools(!showDevTools)}
+			>
+				<TerminalIcon />
+				Dev tools
+				<span
+					className={classNames(
+						style.settingsOptionShortcut,
+						style.moveRight,
+					)}
+				>
+					⌘ D
+				</span>
+				<Switch
+					trackingId="DevToolsMenuToggle"
+					checked={showDevTools}
+					onChange={(checked: boolean) => {
+						setShowDevTools(checked)
+					}}
+				/>
+			</button>
+
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
+			>
+				<CursorClickIcon />
+				Mouse trail
+				<Switch
+					trackingId="MouseTrailMenuToggle"
+					checked={showPlayerMouseTail}
+					onChange={(checked: boolean) => {
+						setShowPlayerMouseTail(checked)
+					}}
+					className={style.moveRight}
+				/>
+			</button>
+
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setSkipInactive(!skipInactive)}
+			>
+				<FastForwardIcon />
+				Skip inactive
+				<Switch
+					trackingId="SkipInactiveMenuToggle"
+					checked={skipInactive}
+					onChange={(checked: boolean) => {
+						setSkipInactive(checked)
+					}}
+					className={style.moveRight}
+				/>
+			</button>
+
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
+			>
+				<PlayCircleIcon />
+				Autoplay
+				<Switch
+					trackingId="AutoplayVideoMenuToggle"
+					checked={autoPlayVideo}
+					onChange={(checked: boolean) => {
+						setAutoPlayVideo(checked)
+					}}
+					className={style.moveRight}
+				/>
+			</button>
+
+			<button
+				className={classNames(
+					style.settingsButton,
+					style.settingsOption,
+				)}
+				onClick={() => setShowSessionSettings(false)}
+			>
+				<AnnotationIcon />
+				Annotations
+				<ChevronRightIcon className={style.moveRight} />
+			</button>
+		</>
+	)
+	return (
+		<div className={style.settingsContainer}>
+			<div
+				className={style.section}
+				onClick={() => {
+					if (showSessionSettings) {
+						setShowSettingsPopover(false)
+					} else {
+						setShowSessionSettings(true)
+					}
+				}}
+			>
+				<button className={style.settingsButton}>
+					{showSessionSettings ? (
+						<>
+							<CrossIcon />
+							<span>Close</span>{' '}
+						</>
+					) : (
+						<>
+							<ChevronLeftIcon />
+							<span>Back to session settings</span>
+						</>
+					)}
+				</button>
+			</div>
+			<div className={style.section}>
+				{showSessionSettings ? options : null}
+			</div>
+		</div>
+	)
+}
+
 export default ToolbarControls
