@@ -1,11 +1,12 @@
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 
 import { Card } from './Card'
 
-describe('Card', async () => {
-	it('exists', () => {
+describe('Card', () => {
+	it('exists', async () => {
 		render(<Card>Testing</Card>)
 
-		screen.findByText('Testing')
+		await screen.findByText('Testing')
 	})
 })

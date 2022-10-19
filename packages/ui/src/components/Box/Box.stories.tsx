@@ -8,8 +8,14 @@ export default {
 	component: Box,
 } as ComponentMeta<typeof Box>
 
-export const Basic = (
-	<Box background="purple700" color="white">
+export const Basic = () => (
+	<Box
+		background="purple700"
+		color="white"
+		padding="xxLarge"
+		borderRadius="medium"
+		border="neutralLarge"
+	>
 		Hello! 👋
 	</Box>
 )

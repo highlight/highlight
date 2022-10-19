@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import { ComponentMeta } from '@storybook/react'
 
 import { Card } from './Card'
 
@@ -10,7 +10,7 @@ export default {
 
 export const Default = () => <Card>A Standard Card</Card>
 
-export const Sizes: ComponentStory<typeof Card> = () => (
+export const Sizes = () => (
 	<>
 		<Card size="small">Card w/ Padding</Card>
 		<br />

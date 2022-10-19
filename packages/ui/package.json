@@ -7,7 +7,7 @@
 		"build": "build-storybook",
 		"dev": "start-storybook -p 6006",
 		"g": "hygen",
-		"lint": "eslint",
+		"lint": "eslint ./src",
 		"test": "vitest"
 	},
 	"dependencies": {
@@ -36,7 +36,9 @@
 		"@vanilla-extract/vite-plugin": "^3.6.1",
 		"babel-loader": "^8.2.5",
 		"eslint": "^8.25.0",
+		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-jsx-a11y": "^6.6.1",
+		"eslint-plugin-react": "^7.31.10",
 		"eslint-plugin-storybook": "^0.6.6",
 		"vite": "^3.1.8",
 		"vitest": "^0.24.3"

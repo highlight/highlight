@@ -2,14 +2,15 @@
 to: packages/ui/src/components/<%= name %>/<%= name %>.test.tsx
 ---
 
+import React from 'react'
 import { render, screen } from '@testing-library/react'
 
 import { <%= name %> } from './<%= name %>'
 
-describe('<%= name %>', async () => {
-	it('exists', () => {
+describe('<%= name %>', () => {
+	it('exists', async () => {
 		render(<<%= name %>>Testing</<%= name %>>)
 
-		screen.findByText('Testing')
+		await screen.findByText('Testing')
 	})
 })
