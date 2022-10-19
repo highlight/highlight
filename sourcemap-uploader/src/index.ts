@@ -14,6 +14,12 @@ const VERIFY_API_KEY_QUERY = `
   }
 `;
 
+const GET_SOURCE_MAP_URLS_QUERY = `
+  query GetSourceMapUploadUrls($api_key: String!, $paths: [String!]!) {
+    get_source_map_upload_urls(api_key: $api_key, paths: $paths)
+  }
+`;
+
 const BUCKET_NAME = "source-maps-test";
 
 // These secrets are for the "S3SourceMapUploaderTest" role.
@@ -87,10 +93,46 @@ export const uploadSourcemaps = async ({
     return;
   }
 
+  const s3Keys = fileList.map(({ name }) =>
+    getS3Key(organizationId, appVersion, basePath, name)
+  );
+
+  const urlRes = await fetch("https://pri.highlight.run", {
+    method: "post",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query: GET_SOURCE_MAP_URLS_QUERY,
+      variables: {
+        apiKey,
+        paths: s3Keys,
+      },
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+
+  if (
+    !urlRes ||
+    !urlRes.data ||
+    !urlRes.data.get_source_map_upload_urls ||
+    urlRes.data.get_source_map_upload_urls.length === 0
+  ) {
+    console.error("Error: Unable to generate source map upload urls.", urlRes);
+    console.info("Failed to upload source maps. Please see reason above.");
+    return;
+  }
+
+  const uploadUrls = urlRes.data.get_source_map_upload_urls;
+
   await Promise.all(
-    fileList.map(({ path, name }) =>
-      uploadFile(organizationId, appVersion, path, basePath, name)
-    )
+    fileList.map(({ path }, idx) => uploadFile(path, uploadUrls[idx]))
   );
 };
 
@@ -164,31 +206,22 @@ async function getAllSourceMapFiles(paths: string[]) {
   return map;
 }
 
-async function uploadFile(
+function getS3Key(
   organizationId: string,
   version: string,
-  filePath: string,
   basePath: string,
   fileName: string
 ) {
-  const fileContent = readFileSync(filePath);
-
   // Setting up S3 upload parameters
   if (version === null || version === undefined || version === "" || !version) {
     version = "unversioned";
   }
-  const bucketPath = `${organizationId}/${version}/${basePath}${fileName}`;
+  return `${organizationId}/${version}/${basePath}${fileName}`;
+}
 
-  const params = {
-    Bucket: BUCKET_NAME,
-    Key: bucketPath,
-    Body: fileContent,
-  };
-
-  s3.upload(params, function (err: Error) {
-    if (err) {
-      throw err;
-    }
-    console.log(`Uploaded ${basePath}${fileName}`);
-  });
+async function uploadFile(filePath: string, uploadUrl: string) {
+  console.log(uploadUrl);
+  const fileContent = readFileSync(filePath);
+  await fetch(uploadUrl, { method: "put", body: fileContent });
+  console.log(`Uploaded ${filePath}`);
 }
