@@ -1,14 +1,10 @@
 import React from 'react'
-import { BorderProps } from '../../css/borders'
 import { Sprinkles } from '../../css/sprinkles.css'
-import { Box, Props as BoxProps } from '../Box/Box'
+import { Box } from '../Box/Box'
 
-export interface Props extends React.PropsWithChildren, BorderProps {
-	background?: Sprinkles['background']
-	borderRadius?: Sprinkles['borderRadius']
-	color?: Sprinkles['color']
-	padding?: Sprinkles['padding']
-}
+import * as styles from './styles.css'
+
+export type Props = React.PropsWithChildren & styles.Variants
 
 export const Card: React.FC<Props> = ({ children, ...rest }) => {
 	const defaultProps: Partial<Sprinkles> = {
@@ -23,7 +19,7 @@ export const Card: React.FC<Props> = ({ children, ...rest }) => {
 	}
 
 	return (
-		<Box {...defaultProps} {...rest}>
+		<Box {...defaultProps} className={styles.variants({ ...rest })}>
 			{children}
 		</Box>
 	)

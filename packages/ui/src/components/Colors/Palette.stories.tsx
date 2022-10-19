@@ -2,15 +2,21 @@ import React from 'react'
 import { ComponentMeta } from '@storybook/react'
 
 import { colors } from '../../css/colors'
-import { Card } from '../Card/Card'
+import { Box } from '../Box/Box'
 
 export const Palette = () => (
 	<>
 		{Object.keys(colors).map((name) => {
 			return (
-				<Card background={name} padding="large">
-					{name}
-				</Card>
+				<>
+					<Box
+						background={name as keyof typeof colors}
+						padding="large"
+					>
+						{name}
+					</Box>
+					<br />
+				</>
 			)
 		})}
 	</>
