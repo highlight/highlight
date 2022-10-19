@@ -5372,8 +5372,14 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 		return nil, e.New("invalid API key - project id is nil")
 	}
 
+	// Assert all paths start with this prefix to block cross-project uploads
+	pathPrefix := fmt.Sprintf("%d/", *projectId)
+
 	urls := []string{}
 	for _, path := range paths {
+		if !strings.HasPrefix(path, pathPrefix) {
+			return nil, e.New("invalid path - does not start with project prefix")
+		}
 		url, err := r.StorageClient.GetSourceMapUploadUrl(path)
 		if err != nil {
 			return nil, err
