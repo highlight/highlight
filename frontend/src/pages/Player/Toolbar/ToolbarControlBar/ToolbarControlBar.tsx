@@ -268,7 +268,7 @@ const ToolbarControls = () => {
 				}
 				overlayClassName={style.settingsPopoverOverlay}
 				placement="topRight"
-				trigger={['click']}
+				trigger="click"
 				showArrow={false}
 				align={{
 					overflow: {
