@@ -22,6 +22,16 @@
 			fill: var(--color-neutral-800);
 		}
 	}
+	&:disabled {
+		background: var(--color-white) !important;
+		border: 0;
+		cursor: not-allowed;
+		> svg {
+			path {
+				fill: var(--color-neutral-300);
+			}
+		}
+	}
 }
 
 .button:hover,

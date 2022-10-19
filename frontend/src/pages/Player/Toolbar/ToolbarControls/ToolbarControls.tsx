@@ -62,8 +62,6 @@ const ToolbarControls = () => {
 
 	const isHistogramVisible = !isLiveMode && showHistogram
 
-	const disableControls = state === ReplayerState.Loading || !canViewSession
-
 	const [playerSpeedIdx, setPlayerSpeedIdx] = useState<number>(
 		Math.max(PLAYBACK_SPEED_OPTIONS.indexOf(playerSpeed), 0),
 	)
@@ -72,6 +70,7 @@ const ToolbarControls = () => {
 	const sessionDuration = sessionMetadata.totalTime ?? 0
 	const disablePlayButton = time >= sessionDuration && !isLiveMode
 
+	const disableControls = state === ReplayerState.Loading || !canViewSession
 	const showLiveToggle = session?.processed === false && !disableControls
 
 	return (
@@ -237,9 +236,10 @@ const ToolbarControls = () => {
 			<ExplanatoryPopover content={<>Skip inactive</>}>
 				<Button
 					className={classNames(style.button, style.minorButton, {
-						[style.activeButton]: skipInactive,
+						[style.activeButton]: !disableControls && skipInactive,
 					})}
 					trackingId="SkipInactiveToggle"
+					disabled={disableControls}
 					onClick={() => {
 						setSkipInactive(!skipInactive)
 					}}
