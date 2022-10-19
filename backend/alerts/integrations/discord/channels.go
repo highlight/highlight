@@ -32,6 +32,13 @@ func (bot *DiscordBot) GetChannels() ([]*discordgo.Channel, error) {
 	return filterChannels(channels), nil
 }
 
+func newMessageEmbed() *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Color: 0x6c37f4,
+	}
+
+}
+
 func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.ErrorAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 
@@ -39,13 +46,13 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "Visited URL",
 			Value:  payload.VisitedURL,
-			Inline: true,
+			Inline: false,
 		})
 	}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "User",
-		Value:  payload.UserIdentifier,
+		Name:   "Error",
+		Value:  payload.ErrorTitle,
 		Inline: true,
 	})
 
@@ -55,15 +62,14 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 		Inline: true,
 	})
 
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Error Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
+
 	messageSend := discordgo.MessageSend{
-		Content: "**Highlight Error Alert**",
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:   "rich",
-				Title:  payload.ErrorTitle,
-				URL:    payload.ErrorURL,
-				Fields: fields,
-			},
+			embed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
@@ -73,6 +79,12 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 						Style:    discordgo.LinkButton,
 						Disabled: false,
 						URL:      payload.SessionURL,
+					},
+					discordgo.Button{
+						Label:    "View Error",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.ErrorURL,
 					},
 					discordgo.Button{
 						Label:    "Resolve Error",
@@ -96,19 +108,19 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 }
 
 func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.NewUserAlertPayload) error {
-	embed := &discordgo.MessageEmbed{
-		Type: "rich",
-	}
-
-	userFields := []*discordgo.MessageEmbedField{}
+	fields := []*discordgo.MessageEmbedField{}
 	for key, value := range payload.UserProperties {
-		userFields = append(userFields, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   key,
 			Value:  value,
 			Inline: true,
 		})
 	}
-	embed.Fields = userFields
+
+	embed := newMessageEmbed()
+	embed.Title = "Highlight New User Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
 
 	if payload.AvatarURL != nil {
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
@@ -117,7 +129,6 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.N
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("**Highlight New User Alert: %s**", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
 		},
@@ -140,28 +151,28 @@ func (bot *DiscordBot) SendNewUserAlert(channelId string, payload integrations.N
 }
 
 func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integrations.NewSessionAlertPayload) error {
-	embed := &discordgo.MessageEmbed{
-		Type: "rich",
-	}
-
-	userFields := []*discordgo.MessageEmbedField{}
+	fields := []*discordgo.MessageEmbedField{}
 
 	if payload.VisitedURL != nil && *payload.VisitedURL != "" {
-		userFields = append(userFields, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   "Visited URL",
 			Value:  *payload.VisitedURL,
-			Inline: true,
+			Inline: false,
 		})
 	}
 
 	for key, value := range payload.UserProperties {
-		userFields = append(userFields, &discordgo.MessageEmbedField{
+		fields = append(fields, &discordgo.MessageEmbedField{
 			Name:   key,
 			Value:  value,
 			Inline: true,
 		})
 	}
-	embed.Fields = userFields
+
+	embed := newMessageEmbed()
+	embed.Title = "Highlight New Session Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
 
 	if payload.AvatarURL != nil {
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
@@ -170,7 +181,6 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integration
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight New Session Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
 		},
@@ -193,10 +203,9 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integration
 }
 
 func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integrations.TrackPropertiesAlertPayload) error {
-	matchedEmbed := &discordgo.MessageEmbed{
-		Type:  "rich",
-		Title: "Matched Track Properties",
-	}
+	mainEmbed := newMessageEmbed()
+	mainEmbed.Title = "Highlight Track Properties Alert"
+	mainEmbed.Description = payload.UserIdentifier
 
 	matchedFields := []*discordgo.MessageEmbedField{}
 	for _, field := range payload.MatchedProperties {
@@ -206,12 +215,11 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integr
 			Inline: true,
 		})
 	}
+
+	matchedEmbed := newMessageEmbed()
+	matchedEmbed.Title = "Matched Track Properties"
 	matchedEmbed.Fields = matchedFields
 
-	relatedEmbed := &discordgo.MessageEmbed{
-		Type:  "rich",
-		Title: "Related Track Properties",
-	}
 	relatedFields := []*discordgo.MessageEmbedField{}
 	for _, field := range payload.RelatedProperties {
 		relatedFields = append(matchedFields, &discordgo.MessageEmbedField{
@@ -220,17 +228,19 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integr
 			Inline: true,
 		})
 	}
-	relatedEmbed.Fields = relatedFields
 
-	embeds := append([]*discordgo.MessageEmbed{}, matchedEmbed)
+	embeds := append([]*discordgo.MessageEmbed{}, mainEmbed, matchedEmbed)
 
-	if len(relatedEmbed.Fields) > 0 {
+	if len(relatedFields) > 0 {
+		relatedEmbed := newMessageEmbed()
+		relatedEmbed.Title = "Related Track Properties"
+		relatedEmbed.Fields = relatedFields
+
 		embeds = append(embeds, relatedEmbed)
 	}
 
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight Track Properties Alert: %s", payload.UserIdentifier),
-		Embeds:  embeds,
+		Embeds: embeds,
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
@@ -239,6 +249,10 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integr
 }
 
 func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integrations.UserPropertiesAlertPayload) error {
+	mainEmbed := newMessageEmbed()
+	mainEmbed.Title = "Highlight User Properties Alert"
+	mainEmbed.Description = payload.UserIdentifier
+
 	matchedFields := []*discordgo.MessageEmbedField{}
 	for _, field := range payload.MatchedProperties {
 		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
@@ -248,14 +262,13 @@ func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integra
 		})
 	}
 
+	matchedEmbed := newMessageEmbed()
+	matchedEmbed.Title = "Matched User Properties"
+	matchedEmbed.Fields = matchedFields
+
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight User Properties Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:   "rich",
-				Title:  "Matched User Properties",
-				Fields: matchedFields,
-			},
+			mainEmbed, matchedEmbed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
@@ -279,23 +292,19 @@ func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integra
 func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload integrations.SessionFeedbackAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Session",
-		Value:  payload.SessionCommentURL,
-		Inline: true,
-	})
-	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Comment",
 		Value:  payload.CommentText,
 		Inline: true,
 	})
 
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Feedback Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
+
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight Feedback Alert: %s", payload.UserIdentifier),
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:   "rich",
-				Fields: fields,
-			},
+			embed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
@@ -331,13 +340,14 @@ func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload integration
 		Inline: true,
 	})
 
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Rage Clicks Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
+
 	messageSend := discordgo.MessageSend{
-		Content: "**Highlight Rage Clicks Alert**",
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:   "rich",
-				Fields: fields,
-			},
+			embed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
@@ -373,14 +383,14 @@ func (bot *DiscordBot) SendMetricMonitorAlert(channelId string, payload integrat
 		Inline: true,
 	})
 
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Metric Monitor Alert"
+	embed.Description = fmt.Sprintf("*%s* is currently %s %s over the threshold.", payload.MetricToMonitor, payload.DiffOverValue, payload.UnitsFormat)
+	embed.Fields = fields
+
 	messageSend := discordgo.MessageSend{
-		Content: "**Highlight Metric Monitor Alert**",
 		Embeds: []*discordgo.MessageEmbed{
-			{
-				Type:   "rich",
-				Fields: fields,
-				Title:  fmt.Sprintf("*%s* is currently %s %s over the threshold.", payload.MetricToMonitor, payload.DiffOverValue, payload.UnitsFormat),
-			},
+			embed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
