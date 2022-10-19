@@ -58,6 +58,12 @@ type RageClicksAlertPayload struct {
 }
 
 type MetricMonitorAlertPayload struct {
+	MetricToMonitor string
+	UnitsFormat     string
+	DiffOverValue   string
+	Value           string
+	Threshold       string
+	MonitorURL      string
 }
 
 type BaseAlertIntegration interface {

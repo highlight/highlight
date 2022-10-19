@@ -18,9 +18,17 @@ type DiscordChannelsTestSuite struct {
 	bot       *DiscordBot
 }
 
+func TestDiscordChannelsTestSuite(t *testing.T) {
+	t.Skip(`
+	  This test only exists for quickly Discord messages to a channel. It sends real data to a real channel.
+		In order to run this locally, adjust the values below (by setting up Discord locally) and comment this t.Skip line
+	`)
+	suite.Run(t, new(DiscordChannelsTestSuite))
+}
+
 func (suite *DiscordChannelsTestSuite) SetupTest() {
-	guildID := "GUILD_ID"
-	discordBotSecret := "DISCORD_BOT_SECRET"
+	guildID := "<REPLACE_WITH_GUILD_ID>"
+	discordBotSecret := "<REPLACE_WITH_DISCORD_BOT_SECRET>"
 
 	os.Setenv("DISCORD_BOT_SECRET", discordBotSecret)
 
@@ -30,7 +38,7 @@ func (suite *DiscordChannelsTestSuite) SetupTest() {
 		return
 	}
 
-	suite.ChannelID = "CHANNEL_ID"
+	suite.ChannelID = "<REPLACE_WITH_CHANNEL_ID>"
 	suite.bot = bot
 }
 
@@ -47,7 +55,7 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 	})
 
 	if err != nil {
-		fmt.Printf("Failed to send error alert")
+		log.Error("Failed to send error alert")
 		log.Error(err)
 	}
 
@@ -86,14 +94,102 @@ func (suite *DiscordChannelsTestSuite) TestSendNewSessionAlert() {
 	})
 
 	if err != nil {
-		fmt.Printf("Failed to send new session alert")
+		log.Error("Failed to send new session alert")
 		log.Error(err)
 	}
 
 	suite.True(true)
 }
 
-func TestDiscordChannelsTestSuite(t *testing.T) {
-	t.Skip("Skipping testing in CI environment")
-	suite.Run(t, new(DiscordChannelsTestSuite))
+func (suite *DiscordChannelsTestSuite) TestSendTrackPropertiesAlert() {
+	err := suite.bot.SendTrackPropertiesAlert(suite.ChannelID, integrations.TrackPropertiesAlertPayload{
+		UserIdentifier: "chilly@mcwilly.com",
+		MatchedProperties: []integrations.Property{
+			{
+				Key:   "Editor",
+				Value: "vim",
+			},
+		},
+		RelatedProperties: []integrations.Property{
+			{
+				Key:   "editor",
+				Value: "vim",
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error("Failed to send new track properties alert")
+		log.Error(err)
+	}
+
+	suite.True(true)
+}
+
+func (suite *DiscordChannelsTestSuite) TestSendUserPropertiesAlert() {
+	err := suite.bot.SendUserPropertiesAlert(suite.ChannelID, integrations.UserPropertiesAlertPayload{
+		SessionURL:     "https://localhost:3000/1/sessions/uJgf8EvTHPbwCfnFMcWx3tnjW7sc?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30%20days",
+		UserIdentifier: "chilly@mcwilly.com",
+		MatchedProperties: []integrations.Property{
+			{
+				Key:   "Editor",
+				Value: "vim",
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error("Failed to send new user properties alert")
+		log.Error(err)
+	}
+
+	suite.True(true)
+}
+
+func (suite *DiscordChannelsTestSuite) TestSessionFeedbackAlert() {
+	err := suite.bot.SendSessionFeedbackAlert(suite.ChannelID, integrations.SessionFeedbackAlertPayload{
+		SessionCommentURL: "https://localhost:3000/1/sessions/yggihGDgdPlBwpgVFtwuTM9nMvpn?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30+days&ts=0&commentId=34",
+		UserIdentifier:    "chilly@mcwilly.com",
+		CommentText:       "Hey, what is up!",
+	})
+
+	if err != nil {
+		fmt.Printf("Failed to send new session feedback alert")
+		log.Error(err)
+	}
+
+	suite.True(true)
+}
+
+func (suite *DiscordChannelsTestSuite) TestRageClicksAlert() {
+	err := suite.bot.SendRageClicksAlert(suite.ChannelID, integrations.RageClicksAlertPayload{
+		RageClicksCount: 100,
+		UserIdentifier:  "chilly@mcwilly.com",
+		SessionURL:      "https://localhost:3000/1/sessions/uJgf8EvTHPbwCfnFMcWx3tnjW7sc?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30%20days",
+	})
+
+	if err != nil {
+		log.Error("Failed to send new session feedback alert")
+		log.Error(err)
+	}
+
+	suite.True(true)
+}
+
+func (suite *DiscordChannelsTestSuite) TestMetricMonitorAlert() {
+	err := suite.bot.SendMetricMonitorAlert(suite.ChannelID, integrations.MetricMonitorAlertPayload{
+		MetricToMonitor: "latency",
+		MonitorURL:      "https://localhost:3000/1/alerts/monitor/43",
+		UnitsFormat:     "ms",
+		DiffOverValue:   "171",
+		Value:           "1171",
+		Threshold:       "1000",
+	})
+
+	if err != nil {
+		log.Error("Failed to send metric monitor alert")
+		log.Error(err)
+	}
+
+	suite.True(true)
 }

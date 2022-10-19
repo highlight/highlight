@@ -257,6 +257,18 @@ func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integra
 				Fields: matchedFields,
 			},
 		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Session",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionURL,
+					},
+				},
+			},
+		},
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
@@ -285,6 +297,18 @@ func (bot *DiscordBot) SendSessionFeedbackAlert(channelId string, payload integr
 				Fields: fields,
 			},
 		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Comment",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionCommentURL,
+					},
+				},
+			},
+		},
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
@@ -296,23 +320,35 @@ func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload integration
 	fields := []*discordgo.MessageEmbedField{}
 
 	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Session",
-		Value:  payload.SessionURL,
-		Inline: true,
-	})
-
-	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "User",
 		Value:  payload.UserIdentifier,
 		Inline: true,
 	})
 
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Rage click count",
+		Value:  strconv.FormatInt(payload.RageClicksCount, 10),
+		Inline: true,
+	})
+
 	messageSend := discordgo.MessageSend{
-		Content: fmt.Sprintf("Highlight Rage Clicks Alert: %d Recent Occurrences", payload.RageClicksCount),
+		Content: "**Highlight Rage Clicks Alert**",
 		Embeds: []*discordgo.MessageEmbed{
 			{
 				Type:   "rich",
 				Fields: fields,
+			},
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Session",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.SessionURL,
+					},
+				},
 			},
 		},
 	}
@@ -323,5 +359,44 @@ func (bot *DiscordBot) SendRageClicksAlert(channelId string, payload integration
 }
 
 func (bot *DiscordBot) SendMetricMonitorAlert(channelId string, payload integrations.MetricMonitorAlertPayload) error {
-	return nil
+	fields := []*discordgo.MessageEmbedField{}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Value",
+		Value:  fmt.Sprintf("%s %s", payload.Value, payload.UnitsFormat),
+		Inline: true,
+	})
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:   "Threshold",
+		Value:  fmt.Sprintf("%s %s", payload.Threshold, payload.UnitsFormat),
+		Inline: true,
+	})
+
+	messageSend := discordgo.MessageSend{
+		Content: "**Highlight Metric Monitor Alert**",
+		Embeds: []*discordgo.MessageEmbed{
+			{
+				Type:   "rich",
+				Fields: fields,
+				Title:  fmt.Sprintf("*%s* is currently %s %s over the threshold.", payload.MetricToMonitor, payload.DiffOverValue, payload.UnitsFormat),
+			},
+		},
+		Components: []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label:    "View Monitor",
+						Style:    discordgo.LinkButton,
+						Disabled: false,
+						URL:      payload.MonitorURL,
+					},
+				},
+			},
+		},
+	}
+
+	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
+
+	return err
 }

@@ -141,6 +141,10 @@ func processMetricMonitors(DB *gorm.DB, TDB timeseries.DB, MailClient *sendgrid.
 			if err = alerts.SendMetricMonitorAlert(alerts.MetricMonitorAlertEvent{
 				MetricMonitor: metricMonitor,
 				Workspace:     &workspace,
+				UnitsFormat:   unitsStr,
+				DiffOverValue: diffRepr,
+				Value:         valueRepr,
+				Threshold:     thresholdRepr,
 			}); err != nil {
 				log.Error(err)
 			}

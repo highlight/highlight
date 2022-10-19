@@ -38,3 +38,8 @@ func getSessionCommentURL(projectID int, session *model.Session, sessionComment 
 
 	return fmt.Sprintf("%s/commentId=%d", sessionURL, sessionComment.ID)
 }
+
+func getMonitorURL(metricMonitor *model.MetricMonitor) string {
+	frontendURL := os.Getenv("FRONTEND_URI")
+	return fmt.Sprintf("%s/%d/alerts/monitors/%d", frontendURL, metricMonitor.ProjectID, metricMonitor.ID)
+}

@@ -364,10 +364,21 @@ func SendRageClicksAlert(event RageClicksAlertEvent) error {
 type MetricMonitorAlertEvent struct {
 	MetricMonitor *model.MetricMonitor
 	Workspace     *model.Workspace
+	UnitsFormat   string
+	DiffOverValue string
+	Value         string
+	Threshold     string
 }
 
 func SendMetricMonitorAlert(event MetricMonitorAlertEvent) error {
-	payload := integrations.MetricMonitorAlertPayload{}
+	payload := integrations.MetricMonitorAlertPayload{
+		MetricToMonitor: event.MetricMonitor.MetricToMonitor,
+		MonitorURL:      getMonitorURL(event.MetricMonitor),
+		UnitsFormat:     event.UnitsFormat,
+		DiffOverValue:   event.DiffOverValue,
+		Value:           event.Value,
+		Threshold:       event.Value,
+	}
 
 	if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
 		return nil
