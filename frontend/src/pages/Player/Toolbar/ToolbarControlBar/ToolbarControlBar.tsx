@@ -230,14 +230,15 @@ const ToolbarControls = () => {
 								style.button,
 								style.minorButton,
 								{
-									[style.activeButton]: isHistogramVisible,
+									[style.activeButton]:
+										!disableControls && isHistogramVisible,
 								},
 							)}
 							trackingId="HistogramToggle"
 							onClick={() => {
 								setShowHistogram(!showHistogram)
 							}}
-							disabled={isLiveMode || disableControls}
+							disabled={disableControls}
 						>
 							<ChartBarIcon />
 						</Button>
@@ -258,14 +259,15 @@ const ToolbarControls = () => {
 								style.button,
 								style.minorButton,
 								{
-									[style.activeButton]: showDevTools,
+									[style.activeButton]:
+										!disableControls && showDevTools,
 								},
 							)}
 							trackingId="DevToolsToggle"
 							onClick={() => {
 								setShowDevTools(!showDevTools)
 							}}
-							disabled={disableControls || isPlayerFullscreen}
+							disabled={disableControls}
 						>
 							<TerminalIcon />
 						</Button>
@@ -320,6 +322,7 @@ const ToolbarControls = () => {
 						<Button
 							className={style.button}
 							trackingId="PlayerSettings"
+							disabled={disableControls}
 						>
 							<CogIcon />
 						</Button>
