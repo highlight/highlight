@@ -3,6 +3,7 @@ package discord
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
@@ -12,7 +13,6 @@ func newMessageEmbed() *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Color: 0x6c37f4,
 	}
-
 }
 
 func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.ErrorAlertPayload) error {
@@ -62,6 +62,10 @@ func (bot *DiscordBot) SendErrorAlert(channelId string, payload integrations.Err
 						Disabled: false,
 						URL:      payload.ErrorURL,
 					},
+				},
+			},
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
 					discordgo.Button{
 						Label:    "Resolve Error",
 						Style:    discordgo.LinkButton,
@@ -179,44 +183,39 @@ func (bot *DiscordBot) SendNewSessionAlert(channelId string, payload integration
 }
 
 func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integrations.TrackPropertiesAlertPayload) error {
-	mainEmbed := newMessageEmbed()
-	mainEmbed.Title = "Highlight Track Properties Alert"
-	mainEmbed.Description = payload.UserIdentifier
-
-	matchedFields := []*discordgo.MessageEmbedField{}
+	matchedValue := []string{}
 	for _, field := range payload.MatchedProperties {
-		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
-			Name:   field.Key,
-			Value:  field.Value,
-			Inline: true,
+		matchedValue = append(matchedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
+	}
+
+	fields := append([]*discordgo.MessageEmbedField{}, &discordgo.MessageEmbedField{
+		Name:   "Matched Track Properties",
+		Value:  strings.Join(matchedValue, "\n"),
+		Inline: false,
+	})
+
+	if len(payload.RelatedProperties) > 0 {
+		relatedValue := []string{}
+		for _, field := range payload.RelatedProperties {
+			relatedValue = append(relatedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
+		}
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:   "Related Track Properties",
+			Value:  strings.Join(relatedValue, "\n"),
+			Inline: false,
 		})
 	}
 
-	matchedEmbed := newMessageEmbed()
-	matchedEmbed.Title = "Matched Track Properties"
-	matchedEmbed.Fields = matchedFields
-
-	relatedFields := []*discordgo.MessageEmbedField{}
-	for _, field := range payload.RelatedProperties {
-		relatedFields = append(matchedFields, &discordgo.MessageEmbedField{
-			Name:   field.Key,
-			Value:  field.Value,
-			Inline: true,
-		})
-	}
-
-	embeds := append([]*discordgo.MessageEmbed{}, mainEmbed, matchedEmbed)
-
-	if len(relatedFields) > 0 {
-		relatedEmbed := newMessageEmbed()
-		relatedEmbed.Title = "Related Track Properties"
-		relatedEmbed.Fields = relatedFields
-
-		embeds = append(embeds, relatedEmbed)
-	}
+	embed := newMessageEmbed()
+	embed.Title = "Highlight Track Properties Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
 
 	messageSend := discordgo.MessageSend{
-		Embeds: embeds,
+		Embeds: []*discordgo.MessageEmbed{
+			embed,
+		},
 	}
 
 	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
@@ -225,26 +224,25 @@ func (bot *DiscordBot) SendTrackPropertiesAlert(channelId string, payload integr
 }
 
 func (bot *DiscordBot) SendUserPropertiesAlert(channelId string, payload integrations.UserPropertiesAlertPayload) error {
-	mainEmbed := newMessageEmbed()
-	mainEmbed.Title = "Highlight User Properties Alert"
-	mainEmbed.Description = payload.UserIdentifier
-
-	matchedFields := []*discordgo.MessageEmbedField{}
+	matchedValue := []string{}
 	for _, field := range payload.MatchedProperties {
-		matchedFields = append(matchedFields, &discordgo.MessageEmbedField{
-			Name:   field.Key,
-			Value:  field.Value,
-			Inline: true,
-		})
+		matchedValue = append(matchedValue, fmt.Sprintf("**%s**: %s", field.Key, field.Value))
 	}
 
-	matchedEmbed := newMessageEmbed()
-	matchedEmbed.Title = "Matched User Properties"
-	matchedEmbed.Fields = matchedFields
+	fields := append([]*discordgo.MessageEmbedField{}, &discordgo.MessageEmbedField{
+		Name:   "Matched User Properties",
+		Value:  strings.Join(matchedValue, "\n"),
+		Inline: false,
+	})
+
+	embed := newMessageEmbed()
+	embed.Title = "Highlight User Properties Alert"
+	embed.Description = payload.UserIdentifier
+	embed.Fields = fields
 
 	messageSend := discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
-			mainEmbed, matchedEmbed,
+			embed,
 		},
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
