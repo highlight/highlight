@@ -319,7 +319,6 @@ export class Highlight {
 		this._firstLoadListeners.stopListening()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		if (this.recordStop) {
-			this.state = 'NotRecording'
 			this.recordStop()
 			this.recordStop = undefined
 		}
@@ -659,8 +658,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 			emit.bind(this)
 			setTimeout(() => {
-				// since `record` is sync, doesn't matter whether this is set before or after since it will update atomically
-				this.state = 'Recording'
 				// Skip if we're already recording events
 				if (this.recordStop) {
 					return
@@ -738,6 +735,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.sessionData.sessionSecureID
 			) {
 				this.ready = true
+				this.state = 'Recording'
 			}
 		}
 	}
