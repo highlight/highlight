@@ -45,6 +45,11 @@ import style from './ToolbarControlBar.module.scss'
 const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
+const isOnMac = window.navigator.platform.includes('Mac')
+
+const showTimelineShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}H`
+const showDevToolsShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}/`
+
 const ToolbarControls = () => {
 	const {
 		setTime,
@@ -60,7 +65,7 @@ const ToolbarControls = () => {
 		sessionMetadata,
 		lastActiveString,
 	} = useReplayerContext()
-	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
+	const { setIsPlayerFullscreen } = usePlayerUIContext()
 
 	const {
 		showHistogram,
@@ -220,7 +225,7 @@ const ToolbarControls = () => {
 							<>
 								Timeline
 								<span className={style.popoverCmdShortcut}>
-									⌘ H
+									{showTimelineShortcut}
 								</span>
 							</>
 						}
@@ -249,7 +254,7 @@ const ToolbarControls = () => {
 							<>
 								Dev tools
 								<span className={style.popoverCmdShortcut}>
-									⌘ /
+									{showDevToolsShortcut}
 								</span>
 							</>
 						}
@@ -406,7 +411,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						style.moveRight,
 					)}
 				>
-					⌘ H
+					{showTimelineShortcut}
 				</span>
 				<Switch
 					trackingId="HistogramMenuToggle"
@@ -432,7 +437,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						style.moveRight,
 					)}
 				>
-					⌘ /
+					{showDevToolsShortcut}
 				</span>
 				<Switch
 					trackingId="DevToolsMenuToggle"
