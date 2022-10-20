@@ -1,0 +1,46 @@
+{
+	"name": "@highlight/ui",
+	"private": true,
+	"packageManager": "yarn@3.2.3",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "build-storybook",
+		"dev": "start-storybook -p 6006 --no-manager-cache",
+		"g": "hygen",
+		"lint": "eslint ./src",
+		"test": "vitest"
+	},
+	"dependencies": {
+		"@vanilla-extract/css": "^1.9.1",
+		"@vanilla-extract/recipes": "^0.2.5",
+		"@vanilla-extract/sprinkles": "^1.5.0",
+		"clsx": "^1.2.1",
+		"react": "^18.2.0",
+		"react-aria": "^3.20.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.19.3",
+		"@mdx-js/react": "^1.6.22",
+		"@storybook/addon-actions": "^6.5.12",
+		"@storybook/addon-docs": "^6.5.12",
+		"@storybook/addon-essentials": "^6.5.12",
+		"@storybook/addon-interactions": "^6.5.12",
+		"@storybook/addon-links": "^6.5.12",
+		"@storybook/builder-vite": "^0.2.4",
+		"@storybook/preset-typescript": "^3.0.0",
+		"@storybook/react": "^6.5.12",
+		"@storybook/testing-library": "^0.0.13",
+		"@testing-library/react": "^13.4.0",
+		"@typescript-eslint/eslint-plugin": "^5.40.0",
+		"@typescript-eslint/parser": "^5.40.0",
+		"@vanilla-extract/vite-plugin": "^3.6.1",
+		"babel-loader": "^8.2.5",
+		"eslint": "^8.25.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-jsx-a11y": "^6.6.1",
+		"eslint-plugin-react": "^7.31.10",
+		"eslint-plugin-storybook": "^0.6.6",
+		"vite": "^3.1.8",
+		"vitest": "^0.24.3"
+	}
+}
