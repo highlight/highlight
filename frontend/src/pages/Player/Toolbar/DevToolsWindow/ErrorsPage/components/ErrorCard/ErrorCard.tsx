@@ -56,24 +56,22 @@ const ErrorCard = React.memo(
 				})}
 				onClick={setSelectedError}
 			>
-				<div
-					className={styles.currentIndicatorWrapper}
-					style={{
-						visibility:
-							state === ErrorCardState.Active
-								? 'visible'
-								: 'hidden',
-					}}
-				>
-					<div className={styles.currentIndicator} />
-				</div>
 				<div className={styles.content}>
 					<div className={styles.header}>
 						<Tag
 							infoTooltipText="This is where the error was thrown."
 							backgroundColor="var(--color-orange-300)"
 						>
-							{error.type}
+							<div
+								className={styles.currentIndicator}
+								style={{
+									visibility:
+										state === ErrorCardState.Active
+											? 'visible'
+											: 'hidden',
+								}}
+							/>
+							<span>{error.type}</span>
 						</Tag>
 						<p>
 							<TextHighlighter

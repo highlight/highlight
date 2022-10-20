@@ -73,18 +73,6 @@ $right-padding: 12px;
 	position: relative;
 }
 
-// calc(total width - padding left - padding right - TYPE - NAME )
-$canvas-width: calc(100% - 5px - 50px - 50px - 50%);
-
-.canvasNetworkWrapper {
-	background-attachment: fixed;
-	height: 100%;
-	margin-left: calc(5px + 50px + 50% + 50px);
-	position: absolute;
-	width: $canvas-width;
-	z-index: 99;
-}
-
 .networkStreamWrapper {
 	background-color: var(--color-primary-background);
 	display: flex;
