@@ -12,11 +12,11 @@ export const Default = () => <Card>A Standard Card</Card>
 
 export const Sizes = () => (
 	<>
-		<Card size="small">Card w/ Padding</Card>
+		<Card size="small">Card w/ Small Padding</Card>
 		<br />
-		<Card size="medium">Card w/ Padding</Card>
+		<Card size="medium">Card w/ Medium Padding</Card>
 		<br />
-		<Card size="large">Card w/ Padding</Card>
+		<Card size="large">Card w/ Large Padding</Card>
 	</>
 )
 
