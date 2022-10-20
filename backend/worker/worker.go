@@ -1211,25 +1211,17 @@ func (w *Worker) RefreshMaterializedViews() {
 		log.Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	var g errgroup.Group
-	for _, c := range counts {
-		c := c
-		g.Go(func() error {
-			if !util.IsDevOrTestEnv() {
-				if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
-					Name:     "highlight_session_count",
-					Property: "highlight_session_count",
-					Value:    c.Count,
-				}}); err != nil {
-					return e.Wrap(err, "error updating highlight session count in hubspot")
-				}
+	if !util.IsDevOrTestEnv() {
+		for _, c := range counts {
+			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
+				Name:     "highlight_session_count",
+				Property: "highlight_session_count",
+				Value:    c.Count,
+			}}); err != nil {
+				log.Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
-			return nil
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
+			time.Sleep(150 * time.Millisecond)
+		}
 	}
 }
 
