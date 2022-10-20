@@ -1,5 +1,5 @@
 ---
-to: packages/ui/src/components/<%= name %>/<%= name %>.stories.mdx
+to: packages/ui/src/components/<%= name %>/<%= name %>.stories.tsx
 ---
 
 import React from 'react'

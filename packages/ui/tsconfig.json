@@ -2,6 +2,9 @@
 	"extends": "../../tsconfig",
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
-		"types": ["vitest/globals"]
+		"types": ["vitest/globals"],
+		"paths": {
+			"@components": ["./src/components/"]
+		}
 	}
 }

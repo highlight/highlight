@@ -8,7 +8,6 @@
 		"plugin:react/recommended",
 		"plugin:@typescript-eslint/eslint-recommended",
 		"plugin:@typescript-eslint/recommended",
-		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		"plugin:jsx-a11y/recommended",
 		"prettier"
 	],
@@ -16,10 +15,8 @@
 	"parserOptions": {
 		"project": ["./tsconfig.json"]
 	},
-	"plugins": ["@typescript-eslint"],
-	"rules": {
-		"@typescript-eslint/no-unsafe-assignment": "warn"
-	},
+	"plugins": ["@typescript-eslint", "react"],
+	"rules": {},
 	"settings": {
 		"react": {
 			"version": "detect"
