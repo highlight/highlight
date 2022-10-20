@@ -1213,6 +1213,10 @@ func (w *Worker) RefreshMaterializedViews() {
 	for _, c := range counts {
 		c := c
 		g.Go(func() error {
+			// This is to prevent us from being rate limited by Hubspot
+			// See HIG-3072
+			time.Sleep(150 * time.Millisecond)
+
 			if !util.IsDevOrTestEnv() {
 				if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
 					Name:     "highlight_session_count",
