@@ -87,7 +87,7 @@ const ToolbarControls = () => {
 
 	const isPaused = ReplayerPausedStates.includes(state)
 	const sessionDuration = sessionMetadata.totalTime ?? 0
-	const disablePlayButton = time >= sessionDuration && !isLiveMode
+	const isPlaybackComplete = time >= sessionDuration && !isLiveMode
 
 	const disableControls = state === ReplayerState.Loading || !canViewSession
 	const showLiveToggle = session?.processed === false && !disableControls
@@ -114,7 +114,7 @@ const ToolbarControls = () => {
 				trackingId="PlayerPlayPause"
 				onClick={() => {
 					H.track('Player Play/Pause Button')
-					if (disablePlayButton) {
+					if (isPlaybackComplete) {
 						pause(time)
 						const newTime = 0
 						play(newTime)
@@ -126,7 +126,7 @@ const ToolbarControls = () => {
 				}}
 				disabled={disableControls}
 			>
-				{isPaused && disablePlayButton ? (
+				{isPaused && isPlaybackComplete ? (
 					<RestartIcon />
 				) : isPaused && !isLiveMode ? (
 					<PlayIcon />
