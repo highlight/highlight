@@ -2,7 +2,7 @@ name: Deploy to AWS
 on:
     push:
         branches:
-            - 'master'
+            - 'eric/hig-3005-datadog-version-tags-are-totally-random'
         paths:
             - 'backend/**'
             - 'deploy/**'
