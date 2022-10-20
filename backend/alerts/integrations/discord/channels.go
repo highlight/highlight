@@ -18,7 +18,7 @@ func filterChannels(channels []*discordgo.Channel) []*discordgo.Channel {
 	return ret
 }
 
-func GetChannels(bot *HighlightBot) ([]*discordgo.Channel, error) {
+func (bot *Bot) GetChannels() ([]*discordgo.Channel, error) {
 	channels, err := bot.Session.GuildChannels(bot.GuildID)
 
 	if err != nil {

@@ -32,7 +32,6 @@ import style from './TimelineIndicatorsBarGraph.module.scss'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
-	isTimelineHidden?: boolean
 }
 
 const TARGET_TICK_COUNT = 7
@@ -55,11 +54,10 @@ type SessionEvent = ParsedEvent & {
 const TimelineIndicatorsBarGraph = ({
 	selectedTimelineAnnotationTypes,
 	width,
-	isTimelineHidden,
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { showPlayerAbsoluteTime, showHistogram } = usePlayerConfiguration()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -72,6 +70,7 @@ const TimelineIndicatorsBarGraph = ({
 		canViewSession,
 		state: replayerState,
 	} = useReplayerContext()
+
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
 		zoomEnd: NumberParam,
@@ -94,7 +93,7 @@ const TimelineIndicatorsBarGraph = ({
 		}
 		const bbox = div.getBoundingClientRect()
 		setViewportWidth(Math.round(bbox.width) - 2 * TIMELINE_MARGIN)
-	}, [width])
+	}, [width, showHistogram])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -415,7 +414,15 @@ const TimelineIndicatorsBarGraph = ({
 		return () => {
 			viewportDiv.removeEventListener('wheel', onWheel)
 		}
-	}, [duration, isRefreshingDOM, maxZoom, pan, viewportWidth, zoom])
+	}, [
+		duration,
+		isRefreshingDOM,
+		maxZoom,
+		pan,
+		viewportWidth,
+		zoom,
+		showHistogram,
+	])
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
@@ -439,7 +446,7 @@ const TimelineIndicatorsBarGraph = ({
 			}
 		})
 		return () => cancelAnimationFrame(timeout)
-	}, [camera, hasActiveScrollbar, viewportWidth])
+	}, [camera, hasActiveScrollbar, viewportWidth, showHistogram])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
@@ -568,7 +575,7 @@ const TimelineIndicatorsBarGraph = ({
 			timeIndicatorTopDiv.style.cursor = 'grab'
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [duration, viewportWidth])
+	}, [duration, viewportWidth, showHistogram])
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 
@@ -994,7 +1001,7 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	if (isTimelineHidden) {
+	if (isLiveMode || !showHistogram) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}

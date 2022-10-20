@@ -4,6 +4,7 @@ import SvgReload from '@icons/Reload'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
+import ToolbarControlBar from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar'
 import {
 	AutoPlayToolbarItem,
 	DevToolsToolbarItem,
@@ -98,7 +99,9 @@ export const Toolbar = ({ width }: Props) => {
 		sessionStartDateTime,
 		sessionMetadata,
 	} = useReplayerContext()
+
 	usePlayerKeyboardShortcuts()
+
 	const {
 		playerSpeed,
 		showDevTools,
@@ -176,6 +179,201 @@ export const Toolbar = ({ width }: Props) => {
 	// The play button should be disabled if the player has reached the end.
 	const disablePlayButton =
 		time >= (sessionMetadata.totalTime ?? 0) && !isLiveMode
+
+	const toolbarControlBarV1 = (
+		<>
+			<div className={styles.toolbarLeftSection}>
+				<button
+					className={classNames(styles.undoSection, styles.button)}
+					onClick={() => {
+						H.track('PlayerSkipToPreviousSession')
+						const prevTime = Math.max(time - 5000, 0)
+						setTime(prevTime)
+					}}
+				>
+					<SvgSkipBackIcon
+						fill="inherit"
+						className={classNames(
+							styles.skipButtonStyle,
+							styles.icon,
+						)}
+					/>
+				</button>
+
+				<button
+					className={classNames(styles.playSection, styles.button)}
+					disabled={disableControls}
+					onClick={() => {
+						H.track('Player Play/Pause Button')
+						if (disablePlayButton) {
+							pause(time)
+							const newTime = 0
+							setTime(newTime)
+							play(newTime)
+						} else if (isPaused && !isLiveMode) {
+							play(time)
+						} else {
+							pause(time)
+						}
+					}}
+				>
+					{isPaused && time >= max && !isLiveMode ? (
+						<SvgReload
+							fill="inherit"
+							className={classNames(
+								styles.playButtonStyle,
+								styles.icon,
+							)}
+						/>
+					) : isPaused && !isLiveMode ? (
+						<SvgPlayIcon
+							fill="inherit"
+							className={classNames(
+								styles.playButtonStyle,
+								styles.icon,
+							)}
+						/>
+					) : (
+						<SvgPauseIcon
+							fill="inherit"
+							className={classNames(
+								styles.playButtonStyle,
+								styles.icon,
+							)}
+						/>
+					)}
+				</button>
+
+				<button
+					className={classNames(styles.redoSection, styles.button)}
+					onClick={() => {
+						H.track('PlayerSkipToNextSession')
+
+						const nextTime = Math.min(time + 5000, max)
+						setTime(nextTime)
+					}}
+				>
+					<SvgSkipForwardIcon
+						fill="inherit"
+						className={classNames(
+							styles.skipButtonStyle,
+							styles.icon,
+						)}
+					/>
+				</button>
+
+				{session?.processed === false && !disableControls && (
+					<Button
+						trackingId="LiveModeButton"
+						className={styles.liveButton}
+					>
+						<Switch
+							checked={isLiveMode}
+							onChange={(checked: boolean) => {
+								setIsLiveMode(checked)
+							}}
+							label="Live Mode"
+							trackingId="LiveModeSwitch"
+							red={true}
+						/>
+					</Button>
+				)}
+
+				{isLiveMode && lastActiveString && (
+					<div className={styles.liveUserStatus}>
+						<SessionToken
+							icon={<ActivityIcon />}
+							tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
+						>
+							User was last active {lastActiveString}
+						</SessionToken>
+					</div>
+				)}
+
+				{!isLiveMode && (
+					<div className={styles.timeSection}>
+						{disableControls ? (
+							<Skeleton count={1} width="60.13px" />
+						) : showPlayerAbsoluteTime ? (
+							<>
+								{playerTimeToSessionAbsoluteTime({
+									sessionStartTime: sessionStartDateTime,
+									relativeTime: time,
+								})}
+								&nbsp;/&nbsp;
+								{playerTimeToSessionAbsoluteTime({
+									sessionStartTime: sessionStartDateTime,
+									relativeTime: max,
+								})}
+							</>
+						) : (
+							<>
+								{MillisToMinutesAndSeconds(
+									//     Sometimes the replayer will report a higher time when the player has ended.
+									Math.min(Math.max(time, 0), max),
+								)}
+								<>
+									&nbsp;/&nbsp;
+									{MillisToMinutesAndSeconds(max)}
+								</>
+							</>
+						)}
+					</div>
+				)}
+			</div>
+			<div className={styles.toolbarPinnedSettings}>
+				{!isLiveMode && (
+					<>
+						<ToolbarMenu loading={disableControls} />
+						<DevToolsToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<MouseTrailToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<AutoPlayToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<SkipInactiveToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<TimelineAnnotationsToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<PlaybackSpeedControlToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+						<PlayerTimeToolbarItem
+							loading={disableControls}
+							renderContext="toolbar"
+						/>
+					</>
+				)}
+			</div>
+			<div className={styles.toolbarRightSection}>
+				<Button
+					trackingId="PlayerFullScreenButton"
+					className={styles.settingsButton}
+					onClick={() => {
+						setIsPlayerFullscreen((previousValue) => !previousValue)
+					}}
+				>
+					{isPlayerFullscreen ? (
+						<SvgMinimize2Icon className={styles.devToolsIcon} />
+					) : (
+						<SvgFullscreenIcon className={styles.devToolsIcon} />
+					)}
+				</Button>
+			</div>
+		</>
+	)
+
 	return (
 		<ToolbarItemsContextProvider value={toolbarItems}>
 			<DevToolsContextProvider
@@ -186,18 +384,14 @@ export const Toolbar = ({ width }: Props) => {
 					setDevToolsTab: setSelectedDevToolsTab,
 				}}
 			>
-				{histogramOn && (
-					<>
-						<TimelineIndicatorsBarGraph
-							selectedTimelineAnnotationTypes={
-								selectedTimelineAnnotationTypes
-							}
-							width={width}
-							isTimelineHidden={isLiveMode}
-						/>
-					</>
-				)}
-				{!histogramOn && (
+				{histogramOn ? (
+					<TimelineIndicatorsBarGraph
+						selectedTimelineAnnotationTypes={
+							selectedTimelineAnnotationTypes
+						}
+						width={width}
+					/>
+				) : (
 					<>
 						<TimelineIndicators width={width} />
 						<Slider width={width} />
@@ -220,208 +414,7 @@ export const Toolbar = ({ width }: Props) => {
 				})}
 				style={{ width }}
 			>
-				<div className={styles.toolbarLeftSection}>
-					<button
-						className={classNames(
-							styles.undoSection,
-							styles.button,
-						)}
-						onClick={() => {
-							H.track('PlayerSkipToPreviousSession')
-							const prevTime = Math.max(time - 5000, 0)
-							setTime(prevTime)
-						}}
-					>
-						<SvgSkipBackIcon
-							fill="inherit"
-							className={classNames(
-								styles.skipButtonStyle,
-								styles.icon,
-							)}
-						/>
-					</button>
-
-					<button
-						className={classNames(
-							styles.playSection,
-							styles.button,
-						)}
-						disabled={disableControls}
-						onClick={() => {
-							H.track('Player Play/Pause Button')
-							if (disablePlayButton) {
-								pause(time)
-								const newTime = 0
-								setTime(newTime)
-								play(newTime)
-							} else if (isPaused && !isLiveMode) {
-								play(time)
-							} else {
-								pause(time)
-							}
-						}}
-					>
-						{isPaused && time >= max && !isLiveMode ? (
-							<SvgReload
-								fill="inherit"
-								className={classNames(
-									styles.playButtonStyle,
-									styles.icon,
-								)}
-							/>
-						) : isPaused && !isLiveMode ? (
-							<SvgPlayIcon
-								fill="inherit"
-								className={classNames(
-									styles.playButtonStyle,
-									styles.icon,
-								)}
-							/>
-						) : (
-							<SvgPauseIcon
-								fill="inherit"
-								className={classNames(
-									styles.playButtonStyle,
-									styles.icon,
-								)}
-							/>
-						)}
-					</button>
-
-					<button
-						className={classNames(
-							styles.redoSection,
-							styles.button,
-						)}
-						onClick={() => {
-							H.track('PlayerSkipToNextSession')
-
-							const nextTime = Math.min(time + 5000, max)
-							setTime(nextTime)
-						}}
-					>
-						<SvgSkipForwardIcon
-							fill="inherit"
-							className={classNames(
-								styles.skipButtonStyle,
-								styles.icon,
-							)}
-						/>
-					</button>
-
-					{session?.processed === false && !disableControls && (
-						<Button
-							trackingId="LiveModeButton"
-							className={styles.liveButton}
-						>
-							<Switch
-								checked={isLiveMode}
-								onChange={(checked: boolean) => {
-									setIsLiveMode(checked)
-								}}
-								label="Live Mode"
-								trackingId="LiveModeSwitch"
-								red={true}
-							/>
-						</Button>
-					)}
-
-					{isLiveMode && lastActiveString && (
-						<div className={styles.liveUserStatus}>
-							<SessionToken
-								icon={<ActivityIcon />}
-								tooltipTitle={`This session is live, but the user was last active ${lastActiveString}.`}
-							>
-								User was last active {lastActiveString}
-							</SessionToken>
-						</div>
-					)}
-
-					{!isLiveMode && (
-						<div className={styles.timeSection}>
-							{disableControls ? (
-								<Skeleton count={1} width="60.13px" />
-							) : showPlayerAbsoluteTime ? (
-								<>
-									{playerTimeToSessionAbsoluteTime({
-										sessionStartTime: sessionStartDateTime,
-										relativeTime: time,
-									})}
-									&nbsp;/&nbsp;
-									{playerTimeToSessionAbsoluteTime({
-										sessionStartTime: sessionStartDateTime,
-										relativeTime: max,
-									})}
-								</>
-							) : (
-								<>
-									{MillisToMinutesAndSeconds(
-										//     Sometimes the replayer will report a higher time when the player has ended.
-										Math.min(Math.max(time, 0), max),
-									)}
-									<>
-										&nbsp;/&nbsp;
-										{MillisToMinutesAndSeconds(max)}
-									</>
-								</>
-							)}
-						</div>
-					)}
-				</div>
-				<div className={styles.toolbarPinnedSettings}>
-					{!isLiveMode && (
-						<>
-							<ToolbarMenu loading={disableControls} />
-							<DevToolsToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<MouseTrailToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<AutoPlayToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<SkipInactiveToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<TimelineAnnotationsToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<PlaybackSpeedControlToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-							<PlayerTimeToolbarItem
-								loading={disableControls}
-								renderContext="toolbar"
-							/>
-						</>
-					)}
-				</div>
-				<div className={styles.toolbarRightSection}>
-					<Button
-						trackingId="PlayerFullScreenButton"
-						className={styles.settingsButton}
-						onClick={() => {
-							setIsPlayerFullscreen(
-								(previousValue) => !previousValue,
-							)
-						}}
-					>
-						{isPlayerFullscreen ? (
-							<SvgMinimize2Icon className={styles.devToolsIcon} />
-						) : (
-							<SvgFullscreenIcon
-								className={styles.devToolsIcon}
-							/>
-						)}
-					</Button>
-				</div>
+				{histogramOn ? <ToolbarControlBar /> : toolbarControlBarV1}
 			</div>
 		</ToolbarItemsContextProvider>
 	)

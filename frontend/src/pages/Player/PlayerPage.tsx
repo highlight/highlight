@@ -63,7 +63,7 @@ export const LEFT_PANEL_WIDTH = 475
 export const RIGHT_PANEL_WIDTH = 350
 
 const CENTER_COLUMN_MARGIN = 16
-const MIN_CENTER_COLUMN_WIDTH = 200
+const MIN_CENTER_COLUMN_WIDTH = 428
 
 const Player = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()

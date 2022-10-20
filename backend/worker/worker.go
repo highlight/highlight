@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/alerts"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/leonelquinteros/hubspot"
@@ -941,6 +942,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				log.Error(e.Wrapf(err, "couldn't notify zapier on session alert (id: %d)", sessionAlert.ID))
 			}
 			sessionAlert.SendAlerts(w.Resolver.DB, w.Resolver.MailClient, &slackAlertPayload)
+
+			if err = alerts.SendRageClicksAlert(alerts.RageClicksAlertEvent{
+				Session:         s,
+				SessionAlert:    sessionAlert,
+				Workspace:       workspace,
+				RageClicksCount: count64,
+			}); err != nil {
+				log.Error(err)
+			}
 		}
 		return nil
 	})
