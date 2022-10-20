@@ -6,7 +6,7 @@ import {
 import { SampleBuggyButton } from '@highlight-run/react'
 import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas'
 import { H } from 'highlight.run'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import commonStyles from '../../Common.module.scss'
 import styles from './Buttons.module.scss'
@@ -32,6 +32,37 @@ export const Buttons = () => {
 		variables: { project_id: '1' },
 	})
 
+	useEffect(() => {
+		const interval = window.setInterval(() => {
+			const element = document.querySelector(`#shadowDOM`)!
+			const shadow =
+				element.shadowRoot || element.attachShadow({ mode: 'open' })
+			shadow.innerHTML = element.innerHTML
+			const id = `id-${Math.random() * 1000}`
+			shadow.querySelector(
+				'#shadowNumber',
+			)!.innerHTML = `<span id="${id}">special ${id}</span>`
+
+			let nestedShadow: ShadowRoot = shadow
+			for (let i = 0; i < 16; i++) {
+				nestedShadow = nestedShadow
+					.appendChild(document.createElement('div'))
+					.attachShadow({ mode: 'open' })
+				nestedShadow.innerHTML = `<a href="https://highlight.io/docs"> blog</a>`
+				const a = nestedShadow.appendChild(document.createElement('a'))
+				a.id = `id-${Math.random() * 1000}`
+				a.href = 'https://highlight.io/docs'
+				a.title = 'yo'
+				a.target = '_blank'
+				a.rel = 'noopener noreferrer'
+				a.innerText = `link #${i}`
+			}
+		}, 1000)
+		return () => {
+			window.clearInterval(interval)
+		}
+	}, [])
+
 	return (
 		<div className={styles.container}>
 			<div className={styles.buttonBody}>
@@ -53,6 +84,16 @@ export const Buttons = () => {
 					<img src={'/images/logo.png'} height={16} alt={'ignored'} />
 				</div>
 			</div>
+			<section id={'shadowDOM'} className={'foo'} title={'yo'}>
+				This is the shadow DOM.
+				<div>
+					hey
+					<span>
+						world<button>yo</button>
+					</span>
+					<span id={'shadowNumber'}>123</span>
+				</div>
+			</section>
 			<div className={styles.buttonBody}>
 				<div>
 					<button
