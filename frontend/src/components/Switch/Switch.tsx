@@ -10,7 +10,7 @@ type Props = Pick<
 	SwitchProps,
 	'checked' | 'onChange' | 'loading' | 'className' | 'size' | 'disabled'
 > & {
-	label: string | React.ReactNode
+	label?: string | React.ReactNode
 	/** Renders the label before the switch. */
 	labelFirst?: boolean
 	/** Renders the label and the switch with space-between. */
@@ -32,7 +32,7 @@ const Switch = ({
 	size = 'small',
 	...props
 }: Props) => {
-	const labelToRender = <span>{label}</span>
+	const labelToRender = !!label ? <span>{label}</span> : null
 	return (
 		<label
 			className={classNames(styles.label, className, {

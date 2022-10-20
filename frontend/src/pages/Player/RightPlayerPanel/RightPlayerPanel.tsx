@@ -18,6 +18,8 @@ import { useReplayerContext } from '../ReplayerContext'
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
 import styles from './RightPlayerPanel.module.scss'
 
+const RIGHT_PANEL_VIEWPORT_THRESHOLD = 1400
+
 const RightPlayerPanel = React.memo(() => {
 	const {
 		showRightPanel: showRightPanelPreference,
@@ -34,7 +36,11 @@ const RightPlayerPanel = React.memo(() => {
 	const { width } = useWindowSize()
 
 	useEffect(() => {
-		if (showRightPanel && showLeftPanel && width <= 1300) {
+		if (
+			showRightPanel &&
+			showLeftPanel &&
+			width <= RIGHT_PANEL_VIEWPORT_THRESHOLD
+		) {
 			setShowRightPanel(false)
 		}
 	}, [setShowRightPanel, showLeftPanel, showRightPanel, width])
@@ -70,7 +76,7 @@ const RightPlayerPanel = React.memo(() => {
 					isOpen={showRightPanel}
 					onClick={() => {
 						const isOpen = !showRightPanel
-						if (isOpen && width <= 1300) {
+						if (isOpen && width <= RIGHT_PANEL_VIEWPORT_THRESHOLD) {
 							setShowLeftPanel(false)
 						}
 						setShowRightPanel(isOpen)
