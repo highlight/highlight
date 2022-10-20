@@ -131,7 +131,7 @@ jobs:
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
               run: |
-                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
+                  docker build --build-arg=REACT_APP_COMMIT_SHA=${{ github.sha }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f deploy/Dockerfile.prod .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             # Edit and deploy private-graph
             - name: Replace image label for private-graph task

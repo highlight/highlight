@@ -16,8 +16,9 @@ var (
 func Start(rt util.Runtime) error {
 	statsdHost := os.Getenv("DD_STATSD_HOST")
 	apmHost := os.Getenv("DD_APM_HOST")
+	version := os.Getenv("REACT_APP_COMMIT_SHA")
 	serviceTagKey, serviceTagValue := "service", string(rt)+"-service"
-	serviceVersionTagKey, serviceVersionTagValue := "version", util.GenerateRandomString(8)
+	serviceVersionTagKey, serviceVersionTagValue := "version", version
 
 	tracer.Start(
 		tracer.WithAgentAddr(apmHost),
