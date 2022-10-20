@@ -10,4 +10,5 @@ RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.ke
     apk add doppler
 ARG REACT_APP_COMMIT_SHA
 ENV REACT_APP_COMMIT_SHA=${REACT_APP_COMMIT_SHA}
+RUN echo "REACT_APP_COMMIT_SHA: $REACT_APP_COMMIT_SHA"
 CMD ["doppler", "run", "--", "/bin/backend", "-runtime=private-graph"]
