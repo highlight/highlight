@@ -7,12 +7,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DiscordBot struct {
+type Bot struct {
 	Session *discordgo.Session
 	GuildID string
 }
 
-func NewDiscordBot(guildId string) (*DiscordBot, error) {
+func NewDiscordBot(guildId string) (*Bot, error) {
 	var (
 		ok               bool
 		DiscordBotSecret string
@@ -27,7 +27,7 @@ func NewDiscordBot(guildId string) (*DiscordBot, error) {
 		return nil, errors.Wrap(err, "error creating Discord session")
 	}
 
-	return &DiscordBot{
+	return &Bot{
 		Session: session,
 		GuildID: guildId,
 	}, nil

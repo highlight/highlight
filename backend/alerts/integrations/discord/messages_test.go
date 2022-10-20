@@ -15,7 +15,7 @@ import (
 type DiscordChannelsTestSuite struct {
 	suite.Suite
 	ChannelID string
-	bot       *DiscordBot
+	bot       *Bot
 }
 
 func TestDiscordChannelsTestSuite(t *testing.T) {
