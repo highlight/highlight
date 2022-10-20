@@ -3,11 +3,18 @@
  * @param currentTimestamp Milliseconds.
  * @param events Assumed to be sorted based on time in ascending order.
  */
+interface Event {
+	timestamp: number | string
+}
 export const findLastActiveEventIndex = (
 	currentTimestamp: number,
 	sessionStartTime: number,
-	events: any[],
+	events: Event[],
 ): number => {
+	if (!events.length) {
+		return -1
+	}
+
 	let start = 0
 	let end = events.length - 1
 
