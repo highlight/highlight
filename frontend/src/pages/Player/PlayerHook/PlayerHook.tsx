@@ -18,8 +18,10 @@ import {
 	SessionResults,
 } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
+	metaEvent,
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
@@ -163,6 +165,22 @@ export const usePlayer = (): ReplayerContextInterface => {
 		EMPTY_SESSION_METADATA,
 	)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
+
+	useEffect(() => {
+		if (!viewport) {
+			const metas = events.filter(
+				(event) => event.type === EventType.Meta,
+			)
+			if (metas.length > 0) {
+				const meta = metas[0] as metaEvent
+				setViewport({
+					width: meta.data.width,
+					height: meta.data.height,
+				})
+			}
+		}
+	}, [events, viewport])
+
 	// Incremented whenever events are received in live mode. This is subscribed
 	// to for knowing when new live events are available to add to the player.
 	const [liveEventCount, setLiveEventCount] = useState<number>(0)
