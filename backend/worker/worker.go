@@ -847,7 +847,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if len(visitFields) > 1 {
+	if len(visitFields) >= 1 {
 		sessionProperties := map[string]string{
 			"landing_page": visitFields[0].Value,
 			"exit_page":    visitFields[len(visitFields)-1].Value,
