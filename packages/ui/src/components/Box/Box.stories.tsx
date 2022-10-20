@@ -4,7 +4,7 @@ import type { ComponentMeta } from '@storybook/react'
 import { Box } from './Box'
 
 export default {
-	title: 'Box',
+	title: 'Components/Box',
 	component: Box,
 } as ComponentMeta<typeof Box>
 

@@ -1,5 +1,5 @@
 import { Props } from '../components/Box/Box'
-import { vars } from './vars.css'
+import { vars } from './vars'
 
 type BorderKeys =
 	| 'black'

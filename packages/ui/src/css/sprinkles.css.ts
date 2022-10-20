@@ -1,8 +1,9 @@
+import { globalStyle } from '@vanilla-extract/css'
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
-import { vars } from './vars.css'
+import { vars } from './vars'
 
 const responsiveProperties = defineProperties({
 	conditions: {
@@ -69,9 +70,16 @@ const colorProperties = defineProperties({
 		borderWidth: vars.borderWidth,
 		boxShadow: vars.shadows,
 		color: vars.color,
+		textTransform: ['none', 'capitalize', 'uppercase', 'lowercase'],
 	},
 })
 
 export const sprinkles = createSprinkles(responsiveProperties, colorProperties)
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]
+
+// Probably not the right place for this, but needs to be defined somewhere for
+// the global styles to be injected.
+globalStyle('body', {
+	fontFamily: vars.typography.family.body,
+})

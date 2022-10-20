@@ -5,7 +5,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "build-storybook",
-		"dev": "start-storybook -p 6006",
+		"dev": "start-storybook -p 6006 --no-manager-cache",
 		"g": "hygen",
 		"lint": "eslint ./src",
 		"test": "vitest"

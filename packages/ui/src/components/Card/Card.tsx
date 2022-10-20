@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Sprinkles } from '../../css/sprinkles.css'
-import { Box } from '@components'
+import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
 

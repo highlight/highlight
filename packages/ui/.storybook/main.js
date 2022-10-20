@@ -1,7 +1,7 @@
 const { mergeConfig } = require('vite')
 
 module.exports = {
-	stories: ['../src/**/*.stories.tsx'],
+	stories: ['../src/**/*.stories.mdx', '../src/**/*.stories.tsx'],
 	addons: [
 		'@storybook/addon-links',
 		'@storybook/addon-essentials',
@@ -16,6 +16,7 @@ module.exports = {
 		storyStoreV7: true,
 	},
 	typescript: {
+		extends: ['../tsconfig.json'],
 		reactDocgenTypescriptOptions: {
 			shouldExtractLiteralValuesFromEnum: true,
 			shouldExtractValuesFromUnion: true,

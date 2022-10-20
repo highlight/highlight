@@ -6,4 +6,10 @@ export const parameters = {
 			date: /Date$/,
 		},
 	},
+	options: {
+		storySort: {
+			// controls the ordering of the left menu
+			order: ['Guides', 'Foundations', 'Components'],
+		},
+	},
 }

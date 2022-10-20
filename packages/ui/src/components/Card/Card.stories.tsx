@@ -4,7 +4,7 @@ import type { ComponentMeta } from '@storybook/react'
 import { Card } from './Card'
 
 export default {
-	title: 'Card',
+	title: 'Components/Card',
 	component: Card,
 } as ComponentMeta<typeof Card>
 

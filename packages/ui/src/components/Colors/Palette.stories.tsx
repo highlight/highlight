@@ -12,6 +12,7 @@ export const Palette = () => (
 					<Box
 						background={name as keyof typeof colors}
 						padding="large"
+						textTransform="capitalize"
 					>
 						{name}
 					</Box>
@@ -23,6 +24,6 @@ export const Palette = () => (
 )
 
 export default {
-	title: 'Colors',
+	title: 'Foundations/Colors',
 	component: Palette,
 } as ComponentMeta<typeof Palette>
