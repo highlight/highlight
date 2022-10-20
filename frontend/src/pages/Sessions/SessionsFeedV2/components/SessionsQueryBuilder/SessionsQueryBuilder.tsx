@@ -16,7 +16,6 @@ import QueryBuilder, {
 	RuleProps,
 	SelectOption,
 	serializeRules,
-	SESSION_TYPE,
 	TIME_OPERATORS,
 	VIEWED_BY_OPERATORS,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
@@ -52,27 +51,6 @@ const CUSTOM_FIELDS: CustomField[] = [
 		options: {
 			operators: RANGE_OPERATORS,
 			type: 'long',
-		},
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'landing_page',
-		options: {
-			type: 'text',
-		},
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'exit_page',
-		options: {
-			type: 'text',
-		},
-	},
-	{
-		type: SESSION_TYPE,
-		name: 'country',
-		options: {
-			type: 'text',
 		},
 	},
 	{
