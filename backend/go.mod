@@ -56,7 +56,7 @@ require (
 	github.com/urfave/cli/v2 v2.8.1
 	github.com/vektah/gqlparser/v2 v2.4.6
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.31.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.39.1
@@ -68,6 +68,7 @@ require (
 require (
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 // indirect
 	github.com/DataDog/datadog-go/v5 v5.0.2 // indirect
+	github.com/GaijinEntertainment/go-exhaustruct v1.0.0 // indirect
 	github.com/PaesslerAG/gval v1.2.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.22 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.16 // indirect
@@ -154,12 +155,12 @@ require (
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
-	golang.org/x/tools v0.1.10 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	google.golang.org/grpc v1.40.0 // indirect

@@ -22,6 +22,7 @@ linters:
         - typecheck
         - unused
         - depguard
+        - exhaustruct
 
 # all available settings of specific linters
 linters-settings:
@@ -37,6 +38,10 @@ linters-settings:
 
     unused:
         go: '1.19'
+
+    exhaustruct:
+        include:
+            - 'backend/alerts'
 
     depguard:
         list-type: blacklist

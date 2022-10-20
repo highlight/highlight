@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/highlight-run/highlight/backend/alerts"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/samber/lo"
 
@@ -269,6 +270,15 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
+			if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
+				Session:       session,
+				SessionAlert:  sessionAlert,
+				Workspace:     workspace,
+				MatchedFields: matchedFields,
+				RelatedFields: relatedFields,
+			}); err != nil {
+				log.Error(err)
+			}
 		}
 	})
 
@@ -343,6 +353,14 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+			if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
+				SessionAlert:  sessionAlert,
+				Session:       session,
+				Workspace:     workspace,
+				MatchedFields: matchedFields,
+			}); err != nil {
+				log.Error(err)
+			}
 		}
 	})
 
@@ -1347,6 +1365,14 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				}
 
 				sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+				if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
+					Session:      session,
+					SessionAlert: sessionAlert,
+					Workspace:    workspace,
+					VisitedURL:   visitedUrl,
+				}); err != nil {
+					log.Error(err)
+				}
 			}
 		})
 	}()
@@ -1472,7 +1498,19 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
 		})
+
+		if err = alerts.SendSessionFeedbackAlert(alerts.SessionFeedbackAlertEvent{
+			Session:        session,
+			SessionAlert:   sessionAlert,
+			SessionComment: feedbackComment,
+			Workspace:      workspace,
+			UserName:       input.UserName,
+			UserEmail:      input.UserEmail,
+		}); err != nil {
+			log.Error(err)
+		}
 	}
+
 	return nil
 }
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {
@@ -1672,6 +1710,14 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 			}
 
 			sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+			if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
+				Session:      session,
+				SessionAlert: sessionAlert,
+				Workspace:    workspace,
+			}); err != nil {
+				log.Error(err)
+			}
+
 		}
 	}()
 	return nil
@@ -1865,6 +1911,17 @@ func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, grou
 			log.Infof("sending error alert to zapier. id=ErrorAlert_%d", errorAlert.ID)
 			if err := r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("ErrorAlert_%d", errorAlert.ID), hookPayload); err != nil {
 				log.Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
+			}
+
+			if err := alerts.SendErrorAlert(alerts.SendErrorAlertEvent{
+				Session:    sessionObj,
+				ErrorAlert: errorAlert,
+				ErrorGroup: group,
+				Workspace:  workspace,
+				ErrorCount: numErrors,
+				VisitedURL: visitedUrl,
+			}); err != nil {
+				log.Error(err)
 			}
 
 			errorAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})

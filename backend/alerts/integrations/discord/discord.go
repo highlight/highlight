@@ -7,12 +7,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type HighlightBot struct {
+type Bot struct {
 	Session *discordgo.Session
 	GuildID string
 }
 
-func InitBot(guildId string) (*HighlightBot, error) {
+func NewDiscordBot(guildId string) (*Bot, error) {
 	var (
 		ok               bool
 		DiscordBotSecret string
@@ -27,7 +27,7 @@ func InitBot(guildId string) (*HighlightBot, error) {
 		return nil, errors.Wrap(err, "error creating Discord session")
 	}
 
-	return &HighlightBot{
+	return &Bot{
 		Session: session,
 		GuildID: guildId,
 	}, nil

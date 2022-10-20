@@ -24,8 +24,9 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/apolloio"
-	"github.com/highlight-run/highlight/backend/discord"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -35,8 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/sessionalerts"
-	"github.com/highlight-run/highlight/backend/storage"
+	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -2425,7 +2425,7 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, id int, input
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+	sessionAlert, err := alerts.BuildSessionAlert(project, workspace, admin, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")
@@ -2454,7 +2454,7 @@ func (r *mutationResolver) CreateSessionAlert(ctx context.Context, input modelIn
 		return nil, e.Wrap(err, "admin is not in project")
 	}
 
-	sessionAlert, err := sessionalerts.BuildSessionAlert(project, workspace, admin, input)
+	sessionAlert, err := alerts.BuildSessionAlert(project, workspace, admin, input)
 
 	if err != nil {
 		return nil, e.Wrap(err, "failed to build session feedback alert")
@@ -4899,13 +4899,13 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 		return ret, e.Wrap(err, "discord not enabled for workspace")
 	}
 
-	bot, err := discord.InitBot(*guildId)
+	bot, err := discord.NewDiscordBot(*guildId)
 
 	if err != nil {
 		return ret, err
 	}
 
-	channels, err := discord.GetChannels(bot)
+	channels, err := bot.GetChannels()
 
 	if err != nil {
 		return ret, err
