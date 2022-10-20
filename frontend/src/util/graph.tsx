@@ -131,5 +131,5 @@ export const client = new ApolloClient({
 	),
 	cache,
 	assumeImmutableResults: true,
-	connectToDevTools: import.meta.env.REACT_APP_ENVIRONMENT === 'dev',
+	connectToDevTools: import.meta.env.DEV,
 })
