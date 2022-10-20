@@ -65,6 +65,8 @@ $right-padding: 12px;
 }
 
 .networkTableWrapper {
+	display: flex;
+	flex-direction: column;
 	height: calc(100% - var(--player-toolbar-height));
 	margin-left: 1px;
 	overflow-y: hidden;

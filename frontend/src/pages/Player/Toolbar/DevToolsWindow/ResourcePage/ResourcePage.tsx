@@ -340,7 +340,6 @@ export const ResourcePage = React.memo(
 						</div>
 					) : (
 						<>
-							<TimingCanvas />
 							<div className={styles.networkTopBar}>
 								<div className={styles.networkColumn}>
 									Status
@@ -470,17 +469,6 @@ export const ResourcePage = React.memo(
 		)
 	},
 )
-
-const TimingCanvas = () => {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
-
-	return (
-		<canvas
-			ref={canvasRef}
-			className={styles.canvasNetworkWrapper}
-		></canvas>
-	)
-}
 
 export type NetworkResource = NetworkResourceWithID & {
 	requestResponsePairs?: RequestResponsePair
