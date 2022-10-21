@@ -1,0 +1,3 @@
+storybook-static/*
+*.d.ts
+dist

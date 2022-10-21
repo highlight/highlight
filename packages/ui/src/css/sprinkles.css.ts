@@ -42,7 +42,7 @@ const responsiveProperties = defineProperties({
 		marginRight: vars.space,
 	},
 	shorthands: {
-		// border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+		align: ['alignItems'],
 		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
 		px: ['paddingLeft', 'paddingRight'],
 		py: ['paddingTop', 'paddingBottom'],
@@ -71,6 +71,14 @@ const colorProperties = defineProperties({
 		boxShadow: vars.shadows,
 		color: vars.color,
 		textTransform: ['none', 'capitalize', 'uppercase', 'lowercase'],
+	},
+	shorthands: {
+		border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+		bt: ['borderTop'],
+		br: ['borderRight'],
+		bb: ['borderBottom'],
+		bl: ['borderLeft'],
+		shadow: ['boxShadow'],
 	},
 })
 

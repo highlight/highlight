@@ -21,14 +21,7 @@ export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
 	}
 
 	return React.createElement(as, {
-		className: clsx([
-			sprinkles({
-				background: { darkMode: 'purple900', lightMode: 'white' },
-				color: { darkMode: 'white', lightMode: 'black' },
-				...sprinklesProps,
-			}),
-			userClasses,
-		]),
+		className: clsx([sprinkles(sprinklesProps), userClasses]),
 		...nativeProps,
 	})
 }

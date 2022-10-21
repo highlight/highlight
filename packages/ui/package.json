@@ -1,11 +1,13 @@
 {
-	"name": "@highlight/ui",
+	"name": "@highlight-run/ui",
 	"private": true,
 	"packageManager": "yarn@3.2.3",
-	"main": "dist/index.js",
+	"main": "./src/index.ts",
+	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "build-storybook",
-		"dev": "start-storybook -p 6006 --no-manager-cache",
+		"build": "tsc --build",
+		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
+		"docs:build": "build-storybook",
 		"g": "hygen",
 		"lint": "eslint ./src",
 		"test": "vitest"
@@ -40,7 +42,9 @@
 		"eslint-plugin-jsx-a11y": "^6.6.1",
 		"eslint-plugin-react": "^7.31.10",
 		"eslint-plugin-storybook": "^0.6.6",
+		"typescript": "^4.8.4",
 		"vite": "^3.1.8",
+		"vite-plugin-dts": "^1.6.6",
 		"vitest": "^0.24.3"
 	}
 }
