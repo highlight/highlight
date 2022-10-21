@@ -626,6 +626,7 @@ const TimelineIndicatorsBarGraph = ({
 			if (x <= TIMELINE_MARGIN) {
 				x = 0
 			}
+
 			if (zoom <= MIN_ZOOM * zoomAdjustment) {
 				zoom = MIN_ZOOM
 			}
