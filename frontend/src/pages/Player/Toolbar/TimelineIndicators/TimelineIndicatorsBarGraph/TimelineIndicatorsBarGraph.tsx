@@ -981,22 +981,48 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}, [areaChartBuckets, areaChartMaxBucketCount, borderlessWidth])
 
-	if (
+	const showSkeleton =
 		!events.length ||
 		replayerState === ReplayerState.Loading ||
 		!canViewSession
-	) {
+
+	if (showSkeleton) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
 				style={{ width }}
 			>
-				<div className={style.sessionMonitor}>
-					<Skeleton height={38} />
+				<div
+					className={style.progressBarContainer}
+					style={{
+						background: 'none',
+						overflow: 'hidden',
+					}}
+				>
+					<Skeleton
+						style={{
+							height: 20,
+							top: -10,
+							position: 'absolute',
+						}}
+					/>
 				</div>
-				<div className={style.timelineContainer} ref={viewportRef}>
-					<Skeleton height={128} />
-				</div>
+				{isLiveMode || !showHistogram ? null : (
+					<>
+						<div
+							className={style.sessionMonitor}
+							ref={sessionMonitorRef}
+						>
+							<Skeleton height={22} />
+						</div>
+						<div
+							className={style.timelineContainer}
+							ref={viewportRef}
+						>
+							<Skeleton height={'100%'} />
+						</div>
+					</>
+				)}
 			</div>
 		)
 	}
