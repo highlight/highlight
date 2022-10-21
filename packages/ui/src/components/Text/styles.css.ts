@@ -1,6 +1,7 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
+import { h } from 'vitest/dist/index-40e0cb97'
 
 const steradianFontMetrics = {
 	ascent: 1000,
@@ -96,22 +97,22 @@ export const largeBold = createStyleObject({
 	fontMetrics: steradianFontMetrics,
 })
 
-export const headingRegular = createStyleObject({
+export const h4 = createStyleObject({
 	fontSize: 20,
 	lineGap: 8,
 	fontMetrics: steradianFontMetrics,
 })
-export const headingMedium = createStyleObject({
+export const h3 = createStyleObject({
 	fontSize: 24,
 	lineGap: 8,
 	fontMetrics: steradianFontMetrics,
 })
-export const headingBold = createStyleObject({
+export const h2 = createStyleObject({
 	fontSize: 30,
 	lineGap: 6,
 	fontMetrics: steradianFontMetrics,
 })
-export const headingBlack = createStyleObject({
+export const h1 = createStyleObject({
 	fontSize: 36,
 	lineGap: 6,
 	fontMetrics: steradianFontMetrics,
@@ -127,25 +128,25 @@ const plexo = createStyleObject({
 export const variants = recipe({
 	variants: {
 		font: {
-			xxSmallRegular: xxSmallRegular,
-			xxSmallSemibold: xxSmallMedium,
-			xxSmallBold: xxSmallBold,
-			xSmallRegular: xSmallRegular,
-			xSmallSemibold: xSmallMedium,
-			xSmallBold: xSmallBold,
-			smallRegular: smallRegular,
-			smallSemibold: smallMedium,
-			smallBold: smallBold,
-			mediumRegular: mediumRegular,
-			mediumSemibold: mediumMedium,
-			mediumBold: mediumBold,
-			largeRegular: largeRegular,
-			largeSemibold: largeMedium,
-			largeBold: largeBold,
-			h1: headingBlack,
-			h2: headingBold,
-			h3: headingMedium,
-			h4: headingRegular,
+			xxSmallRegular: { ...xxSmallRegular, fontWeight: 300 },
+			xxSmallSemibold: { ...xxSmallMedium, fontWeight: 400 },
+			xxSmallBold: { ...xxSmallBold, fontWeight: 500 },
+			xSmallRegular: { ...xSmallRegular, fontWeight: 300 },
+			xSmallSemibold: { ...xSmallMedium, fontWeight: 400 },
+			xSmallBold: { ...xSmallBold, fontWeight: 500 },
+			smallRegular: { ...smallRegular, fontWeight: 300 },
+			smallSemibold: { ...smallMedium, fontWeight: 400 },
+			smallBold: { ...smallBold, fontWeight: 500 },
+			mediumRegular: { ...mediumRegular, fontWeight: 300 },
+			mediumSemibold: { ...mediumMedium, fontWeight: 400 },
+			mediumBold: { ...mediumBold, fontWeight: 500 },
+			largeRegular: { ...largeRegular, fontWeight: 300 },
+			largeSemibold: { ...largeMedium, fontWeight: 400 },
+			largeBold: { ...largeBold, fontWeight: 500 },
+			h1: { ...h1, fontWeight: 700 },
+			h2: { ...h2, fontWeight: 700 },
+			h3: { ...h3, fontWeight: 500 },
+			h4: { ...h4, fontWeight: 500 },
 			mono: plexo,
 		},
 	},
