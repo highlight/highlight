@@ -21,7 +21,15 @@ const responsiveProperties = defineProperties({
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
 		display: ['none', 'flex', 'block', 'inline'],
+		gap: vars.space,
+		flex: {
+			stretch: '1 1 0',
+		},
 		flexDirection: ['row', 'column'],
+		fontWeight: vars.typography.fontWeight,
+		lineHeight: {
+			'1': '1em',
+		},
 		justifyContent: [
 			'stretch',
 			'flex-start',

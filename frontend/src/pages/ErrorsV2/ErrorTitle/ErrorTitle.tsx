@@ -1,10 +1,8 @@
-import Tag from '@components/Tag/Tag'
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas'
+import { Box, Text } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
-
-import styles from './ErrorTitle.module.scss'
 
 interface Props {
 	errorGroup:
@@ -35,22 +33,25 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 	}, [event, headerText])
 
 	return (
-		<header className={styles.header}>
-			<div className={styles.secondRow}>
-				{errorGroup?.type && (
-					<Tag
-						infoTooltipText="This is where the error was thrown."
-						backgroundColor="var(--color-orange-300)"
-					>
-						{errorGroup.type}
-					</Tag>
-				)}
-			</div>
+		<Box>
+			<Text font="h2">{headerTextAsJson || headerText}</Text>
+		</Box>
+		// <header className={styles.header}>
+		// 	<div className={styles.secondRow}>
+		// 		{errorGroup?.type && (
+		// 			<Tag
+		// 				infoTooltipText="This is where the error was thrown."
+		// 				backgroundColor="var(--color-orange-300)"
+		// 			>
+		// 				{errorGroup.type}
+		// 			</Tag>
+		// 		)}
+		// 	</div>
 
-			<div className={styles.topRow}>
-				<h3>{headerTextAsJson || headerText}</h3>
-			</div>
-		</header>
+		// 	<div className={styles.topRow}>
+		// 		<h3>{headerTextAsJson || headerText}</h3>
+		// 	</div>
+		// </header>
 	)
 }
 

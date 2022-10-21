@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Card from '@components/Card/Card'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { Skeleton } from '@components/Skeleton/Skeleton'
@@ -265,17 +264,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											<ErrorBody
 												errorGroup={data?.error_group}
 											/>
-
-											<div
-												className={styles.errorMetrics}
-											>
-												<Card>Affected Users</Card>
-												<Card>Instances</Card>
-												<Card>
-													Last/first occurrence
-												</Card>
-												<Card>Last 30 days</Card>
-											</div>
 										</>
 									)}
 								</div>

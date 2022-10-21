@@ -4,11 +4,9 @@
 	"packageManager": "yarn@3.2.3",
 	"type": "module",
 	"main": "./src/index.ts",
-	"module": "./dist/ui.umd.cjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
 		"build": "vite build",
-		"dev": "vite",
 		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
 		"docs:build": "build-storybook",
 		"g": "hygen",
@@ -25,6 +23,8 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.19.3",
+		"@capsizecss/core": "^3.0.0",
+		"@capsizecss/metrics": "^0.3.0",
 		"@mdx-js/react": "^1.6.22",
 		"@storybook/addon-actions": "^6.5.12",
 		"@storybook/addon-docs": "^6.5.12",

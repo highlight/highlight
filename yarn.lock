@@ -4340,6 +4340,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@capsizecss/core@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@capsizecss/core@npm:3.0.0"
+  checksum: a3332919860573f24d14107bf070d4d9da304b5e22c461bbd3c0b14912a4c6cca6d9a3a6a02b2d8d19858eb709d1efa7eae8ff3c6d58440d40faa19b9b27debe
+  languageName: node
+  linkType: hard
+
+"@capsizecss/metrics@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@capsizecss/metrics@npm:0.3.0"
+  checksum: 3e655bfe879812b2adefb5db97f2bcf9ba07fa5b7ae6cafe84c402eefc0b1b773aa40efa2bfc121cfb1a94a7d11c0a17d14e5cfaa52d36d7789a1f87b578919a
+  languageName: node
+  linkType: hard
+
 "@cnakazawa/watch@npm:^1.0.3":
   version: 1.0.4
   resolution: "@cnakazawa/watch@npm:1.0.4"
@@ -7228,6 +7242,8 @@ __metadata:
   resolution: "@highlight-run/ui@workspace:packages/ui"
   dependencies:
     "@babel/core": ^7.19.3
+    "@capsizecss/core": ^3.0.0
+    "@capsizecss/metrics": ^0.3.0
     "@mdx-js/react": ^1.6.22
     "@storybook/addon-actions": ^6.5.12
     "@storybook/addon-docs": ^6.5.12

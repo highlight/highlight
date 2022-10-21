@@ -9,6 +9,7 @@ export const vars = {
 	space: spaces,
 	border: borders,
 	borderRadius: {
+		xSmall: '3px',
 		small: '4px',
 		medium: '8px',
 		large: '12px',
