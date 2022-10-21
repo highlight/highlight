@@ -327,7 +327,7 @@ export const usePlayerKeyboardShortcuts = () => {
 	)
 
 	useHotkeys(
-		'cmd+h, ctrl+h',
+		'cmd+e, ctrl+e',
 		(e) => {
 			H.track('PlayerToggleTimelineKeyboardShortcut')
 			moveFocusToDocument(e)
