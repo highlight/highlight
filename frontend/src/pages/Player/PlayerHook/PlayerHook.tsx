@@ -166,6 +166,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
 
+	// Initializes the simulated viewport size with a value from the first meta event
+	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
+	// can be empty, which is a poor UX.
 	useEffect(() => {
 		if (!viewport) {
 			const metas = events.filter(
