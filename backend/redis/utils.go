@@ -112,7 +112,7 @@ func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId 
 	return vals, nil
 }
 
-func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
+func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor, bool) {
 	// Session is live if the cursor is not the default
 	isLive := cursor != model.EventsCursor{}
 
@@ -126,11 +126,15 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		Max: "+inf",
 	}).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving events from Redis"), nil
+		return nil, errors.Wrap(err, "error retrieving events from Redis"), nil, false
 	}
 
+	endsWithBeacon := false
 	for idx, z := range vals {
 		intScore := int(z.Score)
+		if idx != len(vals)-1 {
+			endsWithBeacon = z.Score != float64(intScore)
+		}
 		// Beacon events have decimals, skip them if it's live mode or not the last event
 		if z.Score != float64(intScore) && (isLive || idx != len(vals)-1) {
 			continue
@@ -147,7 +151,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 
 	eventsObjects := []model.EventsObject{}
 	if len(keys) == 0 {
-		return eventsObjects, nil, &cursor
+		return eventsObjects, nil, &cursor, endsWithBeacon
 	}
 
 	maxScore := keys[len(keys)-1]
@@ -168,25 +172,25 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 	}
 
 	nextCursor := model.EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int(maxScore)}
-	return eventsObjects, nil, &nextCursor
+	return eventsObjects, nil, &nextCursor, endsWithBeacon
 }
 
-func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]interface{}, error, *model.EventsCursor) {
+func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]interface{}, error, *model.EventsCursor, bool) {
 	allEvents := make([]interface{}, 0)
 
-	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, events)
+	eventsObjects, err, newCursor, endsWithBeacon := r.GetEventObjects(ctx, s, cursor, events)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting events objects"), nil
+		return nil, errors.Wrap(err, "error getting events objects"), nil, false
 	}
 
 	if len(eventsObjects) == 0 {
-		return allEvents, nil, &cursor
+		return allEvents, nil, &cursor, false
 	}
 
 	for _, obj := range eventsObjects {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(obj.Events), &subEvents); err != nil {
-			return nil, errors.Wrap(err, "error decoding event data"), nil
+			return nil, errors.Wrap(err, "error decoding event data"), nil, false
 		}
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
@@ -195,7 +199,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 		allEvents = allEvents[cursor.EventIndex:]
 	}
 
-	return allEvents, nil, newCursor
+	return allEvents, nil, newCursor, endsWithBeacon
 }
 
 func (r *Client) AddEventPayload(ctx context.Context, sessionID int, score float64, payload string) error {

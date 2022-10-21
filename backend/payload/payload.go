@@ -194,6 +194,7 @@ type PayloadManager struct {
 	MessagesCompressed  *CompressedJSONArrayWriter
 	EventsChunked       *CompressedJSONArrayWriter
 	ChunkIndex          int
+	EndsWithBeacon      bool
 	files               map[FileType]*FileInfo
 }
 

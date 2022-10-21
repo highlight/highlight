@@ -595,6 +595,7 @@ type Session struct {
 
 	Chunked          *bool
 	ProcessWithRedis bool
+	EndsWithBeacon   bool
 }
 
 type EventChunk struct {

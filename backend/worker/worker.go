@@ -174,6 +174,7 @@ func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadMan
 			return errors.Wrap(err, "error retrieving events objects")
 		}
 
+		lastBeacon := false
 		for eventRows.Next() {
 			eventObject := model.EventsObject{}
 			err := w.Resolver.DB.ScanRows(eventRows, &eventObject)
@@ -186,6 +187,7 @@ func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadMan
 			if err := manager.EventsCompressed.WriteObject(&eventObject, &payload.EventsUnmarshalled{}); err != nil {
 				return errors.Wrap(err, "error writing compressed event row")
 			}
+			lastBeacon = eventObject.IsBeacon
 			numberOfRows += 1
 			if writeChunks {
 				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
@@ -193,6 +195,7 @@ func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadMan
 				}
 			}
 		}
+		manager.EndsWithBeacon = lastBeacon
 
 		return nil
 
@@ -215,11 +218,12 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 		return errors.Wrap(err, "error retrieving events objects from S3")
 	}
 
-	eventsObjects, err, _ := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
+	eventsObjects, err, _, endsWithBeacon := w.Resolver.Redis.GetEventObjects(ctx, s, model.EventsCursor{}, s3Events)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving events objects from Redis")
 	}
 
+	manager.EndsWithBeacon = endsWithBeacon
 	for _, eventObject := range eventsObjects {
 		if err := eventsWriter.Write(&eventObject); err != nil {
 			return errors.Wrap(err, "error writing event row")
@@ -831,6 +835,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
+			EndsWithBeacon:      payloadManager.EndsWithBeacon,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
