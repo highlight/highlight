@@ -1,5 +1,7 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
+import { useWindowEvent } from '@hooks/useWindowEvent'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -383,13 +385,10 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
-	useLayoutEffect(() => {
-		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
-			return
-		}
-
-		const onWheel = (event: WheelEvent) => {
+	useHTMLElementEvent(
+		viewportRef.current,
+		'wheel',
+		(event: WheelEvent) => {
 			event.preventDefault()
 			event.stopPropagation()
 
@@ -405,24 +404,9 @@ const TimelineIndicatorsBarGraph = ({
 			} else {
 				pan(deltaX)
 			}
-		}
-
-		viewportDiv.addEventListener('wheel', onWheel, {
-			passive: false,
-		})
-
-		return () => {
-			viewportDiv.removeEventListener('wheel', onWheel)
-		}
-	}, [
-		duration,
-		isRefreshingDOM,
-		maxZoom,
-		pan,
-		viewportWidth,
-		zoom,
-		showHistogram,
-	])
+		},
+		{ passive: false },
+	)
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
@@ -448,24 +432,24 @@ const TimelineIndicatorsBarGraph = ({
 		return () => cancelAnimationFrame(timeout)
 	}, [camera, hasActiveScrollbar, viewportWidth, showHistogram])
 
-	useLayoutEffect(() => {
-		const viewportDiv = viewportRef.current
+	const onDrag = useCallback(() => {
+		setIsDragging(true)
 		const timeIndicatorTopDiv = timeIndicatorTopRef.current
-		const timeIndicatorHair = timeIndicatorHairRef.current
-		const timeIndicatorTop = timeIndicatorTopRef.current
-		if (
-			!viewportDiv ||
-			!timeIndicatorTopDiv ||
-			!timeIndicatorHair ||
-			!timeIndicatorTop
-		) {
+		if (!timeIndicatorTopDiv) {
 			return
 		}
+		timeIndicatorTopDiv.style.cursor = 'grabbing'
+	}, [])
 
-		let isOnScrollbar = false
-		let shouldDrag = false
+	useHTMLElementEvent(timeIndicatorHairRef.current, 'pointerdown', onDrag)
+	useHTMLElementEvent(timeIndicatorTopRef.current, 'pointerdown', onDrag)
 
-		const moveTime = (event: MouseEvent) => {
+	const moveTime = useCallback(
+		(event: MouseEvent) => {
+			const viewportDiv = viewportRef.current
+			if (!viewportDiv) {
+				return 0
+			}
 			const { clientX } = event
 			const bbox = viewportDiv.getBoundingClientRect()
 			const { scrollLeft, scrollWidth } = viewportDiv
@@ -482,23 +466,16 @@ const TimelineIndicatorsBarGraph = ({
 				0,
 				duration,
 			)
-			if (!shouldDrag) {
-				setTime(newTime)
-			} else {
-				setDragTime(newTime)
-			}
 			return newTime
-		}
+		},
+		[duration, progressToTime],
+	)
 
-		const onDrag = () => {
-			shouldDrag = true
-			setIsDragging(true)
-			timeIndicatorTopDiv.style.cursor = 'grabbing'
-		}
-
-		const onPointerdown = (event: MouseEvent) => {
+	const onPointerdown = useCallback(
+		(event: MouseEvent) => {
 			const timeAxisDiv = timeAxisRef.current
-			if (!timeAxisDiv) {
+			const viewportDiv = viewportRef.current
+			if (!timeAxisDiv || !viewportDiv) {
 				return
 			}
 			const { offsetHeight: timeAxisHeight } = timeAxisDiv
@@ -511,71 +488,71 @@ const TimelineIndicatorsBarGraph = ({
 
 			if (pointerY <= timeAxisBottom) {
 				onDrag()
-				moveTime(event)
+				setDragTime(moveTime(event))
 			}
 			if (pointerY > histogramBottom) {
-				isOnScrollbar = true
-				setHasActiveScrollbar(isOnScrollbar)
+				setHasActiveScrollbar(true)
 			}
-		}
+		},
+		[moveTime, onDrag],
+	)
 
-		const onPointerup = (event: MouseEvent) => {
+	useHTMLElementEvent(viewportRef.current, 'pointerdown', onPointerdown)
+
+	const onPointerup = useCallback(
+		(event: MouseEvent) => {
+			const timeIndicatorTopDiv = timeIndicatorTopRef.current
+			if (!timeIndicatorTopDiv) {
+				return
+			}
 			timeIndicatorTopDiv.style.cursor = 'grab'
 
-			if (shouldDrag) {
-				shouldDrag = false
-				setIsDragging(false)
-				moveTime(event)
-			}
+			setIsDragging((isDragging) => {
+				if (isDragging) {
+					const newTime = moveTime(event)
+					setDragTime(newTime)
+					setTime(newTime)
+				}
+				return false
+			})
 
-			isOnScrollbar = false
 			setHasActiveScrollbar(false)
-		}
+		},
+		[moveTime, setTime],
+	)
 
-		const onPointermove = (event: MouseEvent) => {
-			if (shouldDrag) {
-				event.preventDefault()
-				moveTime(event)
-			}
-		}
+	useWindowEvent('pointerup', onPointerup)
 
-		const onScroll = (event: Event) => {
+	const onPointermove = useCallback(
+		(event: MouseEvent) => {
 			event.preventDefault()
-			if (isOnScrollbar) {
-				requestAnimationFrame(() =>
-					setCamera(({ zoom }) => ({
-						x: Math.min(
-							viewportDiv.scrollLeft,
-							viewportDiv.scrollWidth -
-								viewportWidth -
-								2 * TIMELINE_MARGIN +
-								1,
-						),
-						zoom,
-					})),
-				)
-			}
-		}
+			setDragTime(moveTime(event))
+		},
+		[moveTime],
+	)
+	useWindowEvent('pointermove', onPointermove, { passive: false })
 
-		viewportDiv.addEventListener('pointerdown', onPointerdown)
-		timeIndicatorHair.addEventListener('pointerdown', onDrag)
-		timeIndicatorTop.addEventListener('pointerdown', onDrag)
-		viewportDiv.addEventListener('scroll', onScroll, { passive: false })
-		document.addEventListener('pointerup', onPointerup)
-		document.addEventListener('pointermove', onPointermove, {
-			passive: false,
-		})
-		return () => {
-			viewportDiv.removeEventListener('pointerdown', onPointerdown)
-			timeIndicatorHair.removeEventListener('pointerdown', onDrag)
-			timeIndicatorTop.removeEventListener('pointerdown', onDrag)
-			viewportDiv.removeEventListener('scroll', onScroll)
-			document.removeEventListener('pointerup', onPointerup)
-			document.removeEventListener('pointermove', onPointermove)
-			timeIndicatorTopDiv.style.cursor = 'grab'
+	const onScroll = useCallback((event: Event) => {
+		event.preventDefault()
+		const viewportDiv = viewportRef.current
+		if (!viewportDiv) {
+			return
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [duration, viewportWidth, showHistogram])
+		requestAnimationFrame(() =>
+			setCamera(({ zoom }) => ({
+				x: Math.min(
+					viewportDiv.scrollLeft,
+					viewportDiv.scrollWidth -
+						viewportDiv.getBoundingClientRect().width,
+				),
+				zoom,
+			})),
+		)
+	}, [])
+
+	useHTMLElementEvent(viewportRef.current, 'scroll', onScroll, {
+		passive: false,
+	})
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 
