@@ -15,12 +15,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<Box border="neutral" borderRadius="medium">
 			<Box display="flex" alignItems="stretch">
-				<Box
-					borderRight="neutral"
-					borderBottom="neutral"
-					p="medium"
-					flex="stretchItems"
-				>
+				<Box borderRight="neutral" borderBottom="neutral" p="medium">
 					<div>Users</div>
 				</Box>
 				<Box borderRight="neutral" borderBottom="neutral" p="medium">
