@@ -71,12 +71,6 @@ const Player = ({ integrated }: Props) => {
 		session_secure_id: string
 	}>()
 
-	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
-		variables: {
-			session_secure_id,
-		},
-	})
-
 	const [resizeListener, sizes] = useResizeAware()
 
 	const player = usePlayer()
@@ -92,6 +86,14 @@ const Player = ({ integrated }: Props) => {
 		isLoadingEvents,
 		currentUrl,
 	} = player
+
+	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
+		variables: {
+			session_secure_id,
+		},
+		skip: sessionViewability !== SessionViewability.ERROR,
+	})
+
 	const resources = useResources(session)
 	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
 		usePlayerConfiguration()
