@@ -201,7 +201,8 @@ const Player = ({ integrated }: Props) => {
 	)
 
 	const playerFiller = useMemo(() => {
-		const playerHeight = playerWrapperRef.current?.clientHeight
+		const playerHeight =
+			playerWrapperRef.current?.getBoundingClientRect().height
 		const height = playerHeight
 			? playerHeight - 2 * CENTER_COLUMN_MARGIN
 			: 0
