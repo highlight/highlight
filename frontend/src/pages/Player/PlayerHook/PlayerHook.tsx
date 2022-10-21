@@ -198,10 +198,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [events, viewport])
 
 	useEffect(() => {
-		if (!currentUrl) {
+		if (!currentUrl && events.length > 0) {
 			updateCurrentUrl()
 		}
-	}, [currentUrl, updateCurrentUrl])
+	}, [currentUrl, events, updateCurrentUrl])
 
 	// Incremented whenever events are received in live mode. This is subscribed
 	// to for knowing when new live events are available to add to the player.
