@@ -11,8 +11,10 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
+	metaEvent,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
@@ -539,6 +541,38 @@ export const usePlayer = (): ReplayerContextInterface => {
 		chunkEventsSet,
 		chunkEvents,
 	])
+
+	useEffect(() => {
+		if (state.replayer && state.session?.secure_id !== session_secure_id) {
+			dispatch({
+				type: PlayerActionType.updateCurrentUrl,
+				currentTime:
+					state.replayer.getCurrentTime() +
+					state.replayer.getMetaData().startTime,
+			})
+		}
+	}, [state.session?.secure_id, session_secure_id, state.replayer])
+
+	// Initializes the simulated viewport size and currentUrl with values from the first meta event
+	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
+	// can be empty, which is a poor UX.
+	useEffect(() => {
+		if (!state.viewport) {
+			const metas = state.events.filter(
+				(event) => event.type === EventType.Meta,
+			)
+			if (metas.length > 0) {
+				const meta = metas[0] as metaEvent
+				dispatch({
+					type: PlayerActionType.updateViewport,
+					viewport: {
+						width: meta.data.width,
+						height: meta.data.height,
+					},
+				})
+			}
+		}
+	}, [state.events, state.viewport])
 
 	useEffect(() => {
 		const searchParamsObject = new URLSearchParams(location.search)

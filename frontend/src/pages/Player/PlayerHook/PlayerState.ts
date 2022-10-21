@@ -449,12 +449,11 @@ export const PlayerReducer = (
 			s.viewport = action.viewport
 			break
 		case PlayerActionType.updateCurrentUrl:
-			if (s.replayer) {
-				s.currentUrl = findLatestUrl(
-					getAllUrlEvents(s.events),
-					action.currentTime,
-				)
-			}
+			if (!s.replayer) break
+			s.currentUrl = findLatestUrl(
+				getAllUrlEvents(s.events),
+				action.currentTime,
+			)
 			break
 		// Handle data in playback mode.
 		case PlayerActionType.onChunkLoaded:
