@@ -4,9 +4,9 @@
 	"scripts": {
 		"build": "yarn typegen && rollup -c",
 		"dev": "doppler run -- rollup -c -w",
+		"enforce-size": "bundlesize",
 		"test": "vitest",
-		"typegen": "tsc",
-		"enforce-size": "bundlesize"
+		"typegen": "tsc"
 	},
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",

@@ -8,11 +8,12 @@
 	"types": "dist/src/index.d.ts",
 	"scripts": {
 		"build": "yarn types:check && yarn typegen && rollup -c",
-		"typegen": "tsc",
+		"codegen": "graphql-codegen --config codegen.yml",
 		"dev": "doppler run -- rollup -c -w",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
-		"codegen": "graphql-codegen --config codegen.yml",
+		"enforce-size": "bundlesize",
 		"test": "vitest",
+		"typegen": "tsc",
 		"types:check": "tsc"
 	},
 	"repository": {
