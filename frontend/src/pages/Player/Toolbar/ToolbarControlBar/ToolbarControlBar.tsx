@@ -65,7 +65,7 @@ const ToolbarControls = () => {
 		sessionMetadata,
 		lastActiveString,
 	} = useReplayerContext()
-	const { setIsPlayerFullscreen } = usePlayerUIContext()
+	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 
 	const {
 		showHistogram,
@@ -272,7 +272,7 @@ const ToolbarControls = () => {
 							onClick={() => {
 								setShowDevTools(!showDevTools)
 							}}
-							disabled={disableControls}
+							disabled={isPlayerFullscreen || disableControls}
 						>
 							<TerminalIcon />
 						</Button>

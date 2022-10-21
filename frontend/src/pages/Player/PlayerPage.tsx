@@ -42,7 +42,6 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
-import { clamp } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
@@ -72,12 +71,6 @@ const Player = ({ integrated }: Props) => {
 		session_secure_id: string
 	}>()
 
-	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
-		variables: {
-			session_secure_id,
-		},
-	})
-
 	const [resizeListener, sizes] = useResizeAware()
 
 	const player = usePlayer()
@@ -93,6 +86,14 @@ const Player = ({ integrated }: Props) => {
 		isLoadingEvents,
 		currentUrl,
 	} = player
+
+	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
+		variables: {
+			session_secure_id,
+		},
+		skip: sessionViewability !== SessionViewability.ERROR,
+	})
+
 	const resources = useResources(session)
 	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
 		usePlayerConfiguration()
@@ -200,9 +201,14 @@ const Player = ({ integrated }: Props) => {
 	)
 
 	const playerFiller = useMemo(() => {
+		const playerHeight =
+			playerWrapperRef.current?.getBoundingClientRect().height
+		const height = playerHeight
+			? playerHeight - 2 * CENTER_COLUMN_MARGIN
+			: 0
 		return (
 			<div className={styles.loadingWrapper}>
-				<PlayerSkeleton width={controllerWidth} />
+				<PlayerSkeleton width={controllerWidth} height={height} />
 			</div>
 		)
 	}, [controllerWidth])
@@ -496,24 +502,20 @@ const Player = ({ integrated }: Props) => {
 	)
 }
 
-const PlayerSkeleton = ({ width }: { width: number }) => {
-	const { showDevTools } = usePlayerConfiguration()
-
+const PlayerSkeleton = ({
+	width,
+	height,
+}: {
+	width: number
+	height: number
+}) => {
 	return (
 		<SkeletonTheme
 			baseColor={'var(--text-primary-inverted)'}
 			highlightColor={'#f5f5f5'}
 		>
 			<Skeleton
-				height={
-					!showDevTools
-						? clamp(
-								width * 0.8,
-								MIN_CENTER_COLUMN_WIDTH,
-								2 * MIN_CENTER_COLUMN_WIDTH,
-						  )
-						: MIN_CENTER_COLUMN_WIDTH
-				}
+				height={height}
 				width={width - 2 * CENTER_COLUMN_MARGIN}
 				duration={1}
 			/>
