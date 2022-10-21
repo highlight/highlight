@@ -8,6 +8,10 @@ import {
 	useResourcesContext,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
+import {
+	ActiveEvent,
+	findLastActiveEventIndex,
+} from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import useLocalStorage from '@rehooks/local-storage'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
@@ -88,14 +92,19 @@ export const ResourcePage = React.memo(
 
 		const resourcesToRender = useMemo(() => {
 			const current =
-				(parsedResources?.filter((r) => {
-					if (currentOption === 'All') {
-						return true
-					} else if (currentOption === r.initiatorType) {
-						return true
-					}
-					return false
-				}) as NetworkResource[]) ?? []
+				(parsedResources
+					?.filter((r) => {
+						if (currentOption === 'All') {
+							return true
+						} else if (currentOption === r.initiatorType) {
+							return true
+						}
+						return false
+					})
+					.map((event) => ({
+						...event,
+						timestamp: event.startTime + startTime,
+					})) as NetworkResource[]) ?? []
 
 			if (filterSearchTerm !== '') {
 				return current.filter((resource) => {
@@ -110,27 +119,15 @@ export const ResourcePage = React.memo(
 			}
 
 			return current
-		}, [currentOption, filterSearchTerm, parsedResources])
+		}, [currentOption, filterSearchTerm, parsedResources, startTime])
 
-		const currentResource = useMemo(() => {
-			if (resourcesToRender?.length) {
-				let msgIndex = 0
-				const relativeTime = time - startTime
-				let msgDiff: number = Math.abs(
-					relativeTime - resourcesToRender[0].startTime,
-				)
-				for (let i = 0; i < resourcesToRender.length; i++) {
-					const currentDiff: number = Math.abs(
-						relativeTime - resourcesToRender[i].startTime,
-					)
-					if (currentDiff < msgDiff) {
-						msgIndex = i
-						msgDiff = currentDiff
-					}
-				}
-				return msgIndex
-			}
-			return 0
+		const currentResourceIdx = useMemo(() => {
+			const index = findLastActiveEventIndex(
+				Math.round(time - startTime),
+				startTime,
+				resourcesToRender,
+			)
+			return index
 		}, [resourcesToRender, startTime, time])
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,16 +215,21 @@ export const ResourcePage = React.memo(
 				!isInteractingWithResources &&
 				state === ReplayerState.Playing
 			) {
-				scrollFunction(currentResource)
+				scrollFunction(currentResourceIdx)
 			}
-		}, [currentResource, scrollFunction, isInteractingWithResources, state])
+		}, [
+			currentResourceIdx,
+			scrollFunction,
+			isInteractingWithResources,
+			state,
+		])
 
 		useEffect(() => {
 			// scroll network events on player timeline click
 			if (state === ReplayerState.Paused) {
-				scrollFunction(currentResource)
+				scrollFunction(currentResourceIdx)
 			}
-		}, [currentResource, scrollFunction, state, time])
+		}, [currentResourceIdx, scrollFunction, state, time])
 
 		// Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
 		useEffect(() => {
@@ -370,8 +372,9 @@ export const ResourcePage = React.memo(
 														networkRange={
 															networkRange
 														}
-														currentResource={
-															currentResource
+														isCurrentResource={
+															currentResourceIdx ===
+															index
 														}
 														searchTerm={
 															filterSearchTerm
@@ -439,16 +442,17 @@ export const ResourcePage = React.memo(
 	},
 )
 
-export type NetworkResource = NetworkResourceWithID & {
-	requestResponsePairs?: RequestResponsePair
-	errors?: ErrorObject[]
-	offsetStartTime?: number
-}
+export type NetworkResource = NetworkResourceWithID &
+	ActiveEvent & {
+		requestResponsePairs?: RequestResponsePair
+		errors?: ErrorObject[]
+		offsetStartTime?: number
+	}
 
 interface ResourceRowProps {
 	resource: NetworkResource
 	networkRange: number
-	currentResource: number
+	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
 	networkRequestAndResponseRecordingEnabled: boolean
@@ -460,15 +464,13 @@ interface ResourceRowProps {
 const ResourceRow = ({
 	resource,
 	networkRange,
-	currentResource,
+	isCurrentResource,
 	searchTerm,
 	onClickHandler,
 	networkRequestAndResponseRecordingEnabled,
 	playerStartTime,
-	playerRelTime,
 	hasError,
 }: ResourceRowProps) => {
-	const ActiveNetworkRequestRangeMillis = 1000
 	const { detailedPanel } = usePlayerUIContext()
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
 	const actualPercent = Math.max(
@@ -476,14 +478,6 @@ const ResourceRow = ({
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
-	const isCurrentResource =
-		resource.id === currentResource ||
-		(resource?.responseEnd
-			? playerRelTime >= resource.startTime &&
-			  playerRelTime <= resource.responseEnd
-			: playerRelTime >= resource.startTime &&
-			  playerRelTime <=
-					resource.startTime + ActiveNetworkRequestRangeMillis)
 
 	return (
 		<div key={resource.id.toString()} onClick={onClickHandler}>

@@ -17,7 +17,6 @@ interface ErrorsPageHistoryState {
 }
 
 const ErrorsPage = React.memo(() => {
-	const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1)
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const [isInteractingWithErrors, setIsInteractingWithErrors] =
 		useState(false)
@@ -37,18 +36,18 @@ const ErrorsPage = React.memo(() => {
 	const loading = state === ReplayerState.Loading
 
 	/** Only errors recorded after this feature was released will have the timestamp. */
+
 	const hasTimestamp =
 		!loading && allErrors?.every((error) => !!error.timestamp)
-
-	useLayoutEffect(() => {
+	const lastActiveErrorIndex = useMemo(() => {
 		if (hasTimestamp) {
-			const index = findLastActiveEventIndex(
+			return findLastActiveEventIndex(
 				time,
 				sessionMetadata.startTime,
 				allErrors,
 			)
-			setLastActiveErrorIndex(index)
 		}
+		return -1
 	}, [allErrors, hasTimestamp, sessionMetadata.startTime, time])
 
 	useLayoutEffect(() => {

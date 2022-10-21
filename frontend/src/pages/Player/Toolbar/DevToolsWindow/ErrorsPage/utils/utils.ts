@@ -1,15 +1,18 @@
-/**
- * Finds the event closest to the currentTimestamp in the previous time.
- * @param currentTimestamp Milliseconds.
- * @param events Assumed to be sorted based on time in ascending order.
- */
-interface Event {
+export interface ActiveEvent {
 	timestamp: number | string
 }
+
+/**
+ * Finds the event closest to the currentTimestamp in the previous time.
+ * @param currentTimestamp Milliseconds from the start of the session
+ * @param sessionStartTime: Absolute start of the session
+ * @param events Assumed to be sorted based on time in ascending order.
+ */
+
 export const findLastActiveEventIndex = (
 	currentTimestamp: number,
 	sessionStartTime: number,
-	events: Event[],
+	events: ActiveEvent[],
 ): number => {
 	if (!events.length) {
 		return -1
