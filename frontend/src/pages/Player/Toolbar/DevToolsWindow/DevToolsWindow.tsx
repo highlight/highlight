@@ -1,6 +1,8 @@
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
+import { useWindowSize } from '@hooks/useWindowSize'
 import PerformancePage from '@pages/Player/Toolbar/DevToolsWindow/PerformancePage/PerformancePage'
+import { clamp } from '@util/numbers'
 import React, { useCallback } from 'react'
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs'
@@ -13,6 +15,7 @@ import styles from './DevToolsWindow.module.scss'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
 import { ResourcePage } from './ResourcePage/ResourcePage'
 
+const DEV_TOOLS_MIN_HEIGHT = 200
 export const DevToolsWindow = React.memo(
 	({
 		time,
@@ -26,9 +29,9 @@ export const DevToolsWindow = React.memo(
 		const { openDevTools, setOpenDevTools } = useDevToolsContext()
 		const { isPlayerFullscreen } = usePlayerUIContext()
 
-		if (!openDevTools || isPlayerFullscreen) {
-			return null
-		}
+		const { height } = useWindowSize()
+		const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
+		const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
 
 		const TABS: TabItem[] = [
 			{
@@ -53,10 +56,15 @@ export const DevToolsWindow = React.memo(
 			},
 		]
 
+		if (!openDevTools || isPlayerFullscreen) {
+			return null
+		}
+
 		return (
 			<ResizePanel
-				defaultHeight={500}
-				minHeight={200}
+				defaultHeight={defaultHeight}
+				minHeight={DEV_TOOLS_MIN_HEIGHT}
+				maxHeight={maxHeight}
 				heightPersistenceKey="highlight-devToolsPanelHeight"
 			>
 				{({ panelRef, handleRef }) => (
@@ -99,6 +107,7 @@ function ResizePanel({
 	children,
 	defaultHeight,
 	minHeight,
+	maxHeight,
 	heightPersistenceKey,
 }: {
 	children: (props: {
@@ -107,6 +116,7 @@ function ResizePanel({
 	}) => React.ReactNode
 	defaultHeight?: number
 	minHeight?: number
+	maxHeight: number
 	heightPersistenceKey?: string
 }) {
 	const [panel, setPanel] = React.useState<HTMLElement | null>()
@@ -147,9 +157,10 @@ function ResizePanel({
 		(event) => {
 			if (dragging && panel) {
 				const panelRect = panel.getBoundingClientRect()
-				const newHeight = Math.max(
-					minHeight || 0,
+				const newHeight = clamp(
 					panelRect.height - event.movementY,
+					minHeight || 0,
+					maxHeight,
 				)
 
 				panel.style.height = `${newHeight}px`
@@ -164,7 +175,7 @@ function ResizePanel({
 				event.stopPropagation()
 			}
 		},
-		{ passive: true },
+		{ passive: false },
 	)
 
 	useWindowEvent('pointerup', (event) => {
