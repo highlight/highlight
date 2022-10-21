@@ -49,7 +49,7 @@ const ErrorCard = React.memo(
 			return data === 'null' ? '' : data
 		}, [error.payload])
 		return (
-			<button
+			<div
 				key={error.id}
 				className={classNames(styles.errorCard, {
 					[styles.active]: detailedPanel?.id === error.id,
@@ -147,7 +147,7 @@ const ErrorCard = React.memo(
 						)}
 					</div>
 				</div>
-			</button>
+			</div>
 		)
 	},
 )
