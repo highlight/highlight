@@ -91,21 +91,16 @@ const ErrorCard = React.memo(
 										error.timestamp,
 									)
 									const startTime = sessionMetadata.startTime
-									if (startTime) {
-										const dateTimeSessionStart = new Date(
-											startTime,
-										)
-										const deltaMilliseconds =
-											dateTimeErrorCreated.getTime() -
-											dateTimeSessionStart.getTime()
-										setTime(deltaMilliseconds)
+									const deltaMilliseconds =
+										dateTimeErrorCreated.getTime() -
+										startTime
+									setTime(deltaMilliseconds)
 
-										message.success(
-											`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-												deltaMilliseconds,
-											)}.`,
-										)
-									}
+									message.success(
+										`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+											deltaMilliseconds,
+										)}.`,
+									)
 								}}
 								label="Goto"
 							/>

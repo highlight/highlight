@@ -21,17 +21,15 @@ export const findLastActiveEventIndex = (
 	while (start <= end) {
 		const mid = Math.floor(start + (end - start) / 2)
 		const event = events[mid]
-		const timestamp = new Date(event.timestamp).getTime() - sessionStartTime
-		if (timestamp === currentTimestamp) {
+		const eventTimestamp =
+			new Date(event.timestamp).getTime() - sessionStartTime
+		if (eventTimestamp === currentTimestamp) {
 			return mid
-		} else if (timestamp < currentTimestamp) {
+		} else if (eventTimestamp < currentTimestamp) {
 			start = mid + 1
 		} else {
 			end = mid - 1
 		}
 	}
-	const idx = Math.min(start, events.length - 1)
-	const event = events[idx]
-	const timestamp = new Date(event.timestamp).getTime() - sessionStartTime
-	return timestamp <= currentTimestamp ? idx : -1
+	return Math.min(end, events.length - 1)
 }

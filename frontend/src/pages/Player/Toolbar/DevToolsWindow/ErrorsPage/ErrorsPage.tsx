@@ -1,13 +1,7 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
-import React, {
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -46,8 +40,8 @@ const ErrorsPage = React.memo(() => {
 	const hasTimestamp =
 		!loading && allErrors?.every((error) => !!error.timestamp)
 
-	useEffect(() => {
-		if (hasTimestamp && sessionMetadata.startTime) {
+	useLayoutEffect(() => {
+		if (hasTimestamp) {
 			const index = findLastActiveEventIndex(
 				time,
 				sessionMetadata.startTime,

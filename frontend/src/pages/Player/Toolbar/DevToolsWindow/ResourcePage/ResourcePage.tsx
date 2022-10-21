@@ -63,6 +63,7 @@ export const ResourcePage = React.memo(
 		} = useResourcesContext()
 		useEffect(() => {
 			loadResources()
+			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [])
 
 		const options = useMemo(() => {
