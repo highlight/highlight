@@ -167,17 +167,26 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [events, setEvents] = useState<HighlightEvent[]>([])
 
 	const updateCurrentUrl = useCallback(() => {
+		setCurrentUrl(undefined)
 		if (!replayer) {
 			return
 		}
 
-		setCurrentUrl(
-			findLatestUrl(
-				getAllUrlEvents(events),
-				replayer.getCurrentTime() + replayer.getMetaData().startTime,
-			),
-		)
-	}, [setCurrentUrl, events, replayer])
+		if (events.length > 0 && session?.secure_id === session_secure_id) {
+			setCurrentUrl(
+				findLatestUrl(
+					getAllUrlEvents(events),
+					replayer.getCurrentTime() +
+						replayer.getMetaData().startTime,
+				),
+			)
+		}
+	}, [replayer, session?.secure_id, session_secure_id, events])
+	useEffect(() => {
+		if (session?.secure_id !== session_secure_id) {
+			updateCurrentUrl()
+		}
+	}, [session?.secure_id, session_secure_id, updateCurrentUrl])
 
 	// Initializes the simulated viewport size and currentUrl with values from the first meta event
 	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
@@ -196,12 +205,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 		}
 	}, [events, viewport])
-
-	useEffect(() => {
-		if (!currentUrl && events.length > 0) {
-			updateCurrentUrl()
-		}
-	}, [currentUrl, events, updateCurrentUrl])
 
 	// Incremented whenever events are received in live mode. This is subscribed
 	// to for knowing when new live events are available to add to the player.

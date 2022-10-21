@@ -26,7 +26,14 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
 import classNames from 'classnames'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
@@ -71,6 +78,7 @@ const TimelineIndicatorsBarGraph = ({
 		isLiveMode,
 		canViewSession,
 		state: replayerState,
+		session,
 	} = useReplayerContext()
 
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
@@ -410,7 +418,12 @@ const TimelineIndicatorsBarGraph = ({
 
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
-	const [dragTime, setDragTime] = useState<number>(time)
+	const [dragTime, setDragTime] = useState<number>(0)
+	useEffect(() => {
+		if (session_secure_id !== session?.secure_id) {
+			setTime(0)
+		}
+	}, [session?.secure_id, session_secure_id, setTime])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
