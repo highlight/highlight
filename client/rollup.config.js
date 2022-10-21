@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import { terser } from 'rollup-plugin-terser'
 import esbuild from 'rollup-plugin-esbuild'
 import webWorkerLoader from 'rollup-plugin-web-worker-loader'
 import pkg from './package.json'
@@ -13,7 +12,7 @@ import consts from 'rollup-plugin-consts'
 import replace from '@rollup/plugin-replace'
 
 const development = process.env.ENVIRONMENT === 'dev'
-const sourceMap = development
+const sourceMap = true
 const minify = !development
 
 const output = {
@@ -70,13 +69,7 @@ if (development) {
 		input: './src/index.tsx',
 		external: ['web-worker:./workers/highlight-client-worker'],
 		treeshake: 'smallest',
-		plugins: [
-			...basePlugins,
-			terser({
-				mangle: minify,
-			}),
-			filesize(),
-		],
+		plugins: [...basePlugins, filesize()],
 	}
 	for (const x of [
 		{
