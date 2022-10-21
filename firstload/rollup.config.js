@@ -4,7 +4,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import { terser } from 'rollup-plugin-terser'
 import esbuild from 'rollup-plugin-esbuild'
 import webWorkerLoader from 'rollup-plugin-web-worker-loader'
 import pkg from './package.json'
@@ -12,7 +11,7 @@ import consts from 'rollup-plugin-consts'
 import replace from '@rollup/plugin-replace'
 
 const development = process.env.ENVIRONMENT === 'dev'
-const sourceMap = development
+const sourceMap = true
 const minify = !development
 
 const input = {
@@ -52,7 +51,7 @@ if (development) {
 		output: {
 			dir: './dist',
 			format: 'esm',
-			sourcemap: true,
+			sourcemap: sourceMap,
 		},
 		plugins: [...basePlugins, filesize()],
 	})
@@ -64,7 +63,6 @@ if (development) {
 				file: pkg.main,
 				format: 'umd',
 				name: 'highlightLib',
-				sourcemap: sourceMap,
 			},
 		},
 		{
@@ -75,7 +73,6 @@ if (development) {
 			output: {
 				dir: './dist',
 				format: 'esm',
-				sourcemap: sourceMap,
 			},
 		},
 	]) {
@@ -83,15 +80,10 @@ if (development) {
 			input: x.input,
 			output: {
 				...x.output,
+				sourcemap: sourceMap,
 			},
 			treeshake: 'smallest',
-			plugins: [
-				...basePlugins,
-				terser({
-					mangle: minify,
-				}),
-				filesize(),
-			],
+			plugins: [...basePlugins, filesize()],
 		})
 	}
 }
