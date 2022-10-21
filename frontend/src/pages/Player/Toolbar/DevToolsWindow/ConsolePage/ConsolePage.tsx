@@ -1,7 +1,7 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { useGetMessagesQuery, useGetSessionQuery } from '@graph/hooks'
+import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
 import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSeconds } from '@util/time'
@@ -29,7 +29,6 @@ interface ParsedMessage extends ConsoleMessage {
 export const ConsolePage = React.memo(({ time }: { time: number }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1)
 	const [filterSearchTerm, setFilterSearchTerm] = useState('')
-	const [options, setOptions] = useState<Array<string>>([])
 	const { pause, sessionMetadata, state, session } = useReplayerContext()
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ParsedMessage>
@@ -54,11 +53,6 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 		}
 	}, [queryLoading, skipQuery])
 
-	const { refetch: refetchSession } = useGetSessionQuery({
-		fetchPolicy: 'no-cache',
-		skip: true,
-	})
-
 	// If sessionSecureId is set and equals the current session's (ensures effect is run once)
 	// and resources url is defined, fetch using resources url
 	useEffect(() => {
@@ -67,17 +61,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 			!!session?.messages_url
 		) {
 			setLoading(true)
-			refetchSession({
-				secure_id: session_secure_id,
-			})
-				.then((result) => {
-					const newUrl = result.data.session?.messages_url
-					if (newUrl) {
-						return fetch(newUrl)
-					} else {
-						throw new Error('resources_url not defined')
-					}
-				})
+			fetch(session.messages_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setParsedMessages(
@@ -97,20 +81,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 				})
 				.finally(() => setLoading(false))
 		}
-	}, [
-		session?.messages_url,
-		session?.secure_id,
-		refetchSession,
-		session_secure_id,
-	])
-
-	const virtuoso = useRef<VirtuosoHandle>(null)
-
-	useEffect(() => {
-		const base = parsedMessages?.map((o) => o.type) ?? []
-		const uniqueSet = new Set(base)
-		setOptions(['All', ...Array.from(uniqueSet)])
-	}, [parsedMessages])
+	}, [session?.messages_url, session?.secure_id, session_secure_id])
 
 	useEffect(() => {
 		setParsedMessages(
@@ -121,7 +92,13 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 				}
 			}) ?? [],
 		)
-	}, [data])
+	}, [data?.messages])
+
+	const options = useMemo(() => {
+		const base = parsedMessages?.map((o) => o.type) ?? []
+		const uniqueSet = new Set(base)
+		return ['All', ...Array.from(uniqueSet)]
+	}, [parsedMessages])
 
 	// Logic for scrolling to current entry.
 	useEffect(() => {
@@ -143,17 +120,17 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 		}
 	}, [currentMessage, time, parsedMessages])
 
-	const currentMessages = parsedMessages?.filter((m) => {
-		// if the console type is 'all', let all messages through. otherwise, filter.
-		if (consoleType === 'All') {
-			return true
-		} else if (m.type === consoleType) {
-			return true
-		}
-		return false
-	})
-
 	const messagesToRender = useMemo(() => {
+		const currentMessages = parsedMessages?.filter((m) => {
+			// if the console type is 'all', let all messages through. otherwise, filter.
+			if (consoleType === 'All') {
+				return true
+			} else if (m.type === consoleType) {
+				return true
+			}
+			return false
+		})
+
 		if (!currentMessages) {
 			return []
 		}
@@ -183,8 +160,9 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 		}
 
 		return currentMessages.filter((message) => message?.value?.length)
-	}, [currentMessages, filterSearchTerm])
+	}, [consoleType, filterSearchTerm, parsedMessages])
 
+	const virtuoso = useRef<VirtuosoHandle>(null)
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const scrollFunction = useCallback(
 		_.debounce((index: number, state) => {
