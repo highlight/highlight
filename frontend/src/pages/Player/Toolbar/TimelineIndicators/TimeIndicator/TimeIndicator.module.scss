@@ -23,8 +23,7 @@
 	cursor: grab;
 	height: 14px;
 	position: sticky;
-	top: 11px;
-	user-select: none;
+	top: 12px;
 	width: 10px;
 }
 
@@ -37,4 +36,5 @@
 	font-weight: 400;
 	padding: 2px 8px;
 	position: fixed;
+	user-select: none;
 }

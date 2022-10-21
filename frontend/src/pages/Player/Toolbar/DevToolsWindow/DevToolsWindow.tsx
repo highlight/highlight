@@ -152,31 +152,24 @@ function ResizePanel({
 		}
 	})
 
-	useWindowEvent(
-		'pointermove',
-		(event) => {
-			if (dragging && panel) {
-				const panelRect = panel.getBoundingClientRect()
-				const newHeight = clamp(
-					panelRect.height - event.movementY,
-					minHeight || 0,
-					maxHeight,
-				)
+	useWindowEvent('pointermove', (event) => {
+		if (dragging && panel) {
+			const panelRect = panel.getBoundingClientRect()
+			const newHeight = clamp(
+				panelRect.height - event.movementY,
+				minHeight || 0,
+				maxHeight,
+			)
 
-				panel.style.height = `${newHeight}px`
-				if (heightPersistenceKey) {
-					localStorage.setItem(
-						heightPersistenceKey,
-						String(newHeight),
-					)
-				}
-
-				event.preventDefault()
-				event.stopPropagation()
+			panel.style.height = `${newHeight}px`
+			if (heightPersistenceKey) {
+				localStorage.setItem(heightPersistenceKey, String(newHeight))
 			}
-		},
-		{ passive: false },
-	)
+
+			event.preventDefault()
+			event.stopPropagation()
+		}
+	})
 
 	useWindowEvent('pointerup', (event) => {
 		setDragging(false)

@@ -454,8 +454,12 @@ const TimelineIndicatorsBarGraph = ({
 		timeIndicatorTopDiv.style.cursor = 'grabbing'
 	}, [])
 
-	useHTMLElementEvent(timeIndicatorHairRef.current, 'pointerdown', onDrag)
-	useHTMLElementEvent(timeIndicatorTopRef.current, 'pointerdown', onDrag)
+	useHTMLElementEvent(timeIndicatorHairRef.current, 'pointerdown', onDrag, {
+		passive: true,
+	})
+	useHTMLElementEvent(timeIndicatorTopRef.current, 'pointerdown', onDrag, {
+		passive: true,
+	})
 
 	const moveTime = useCallback(
 		(event: MouseEvent) => {
@@ -510,7 +514,9 @@ const TimelineIndicatorsBarGraph = ({
 		[moveTime, onDrag],
 	)
 
-	useHTMLElementEvent(viewportRef.current, 'pointerdown', onPointerdown)
+	useHTMLElementEvent(viewportRef.current, 'pointerdown', onPointerdown, {
+		passive: true,
+	})
 
 	const onPointerup = useCallback(
 		(event: MouseEvent) => {
@@ -534,16 +540,15 @@ const TimelineIndicatorsBarGraph = ({
 		[moveTime, setTime],
 	)
 
-	useWindowEvent('pointerup', onPointerup)
+	useWindowEvent('pointerup', onPointerup, { passive: true })
 
 	const onPointermove = useCallback(
 		(event: MouseEvent) => {
-			event.preventDefault()
 			setDragTime(moveTime(event))
 		},
 		[moveTime],
 	)
-	useWindowEvent('pointermove', onPointermove, { passive: false })
+	useWindowEvent('pointermove', onPointermove, { passive: true })
 
 	const onScroll = useCallback((event: Event) => {
 		event.preventDefault()

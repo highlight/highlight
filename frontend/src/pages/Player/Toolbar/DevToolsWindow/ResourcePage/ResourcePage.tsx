@@ -136,13 +136,15 @@ export const ResourcePage = React.memo(
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		const scrollFunction = useCallback(
 			_.debounce((index: number) => {
-				if (virtuoso.current) {
-					virtuoso.current.scrollToIndex({
-						index,
-						align: 'center',
-						behavior: 'smooth',
-					})
-				}
+				requestAnimationFrame(() => {
+					if (virtuoso.current) {
+						virtuoso.current.scrollToIndex({
+							index,
+							align: 'center',
+							behavior: 'smooth',
+						})
+					}
+				})
 			}, 1000 / 60),
 			[],
 		)
@@ -248,8 +250,10 @@ export const ResourcePage = React.memo(
 
 					setCurrentActiveIndex(nextIndex)
 					if (panelIsOpen) {
-						setResourcePanel(resourcesToRender[nextIndex])
-						virtuoso.current?.scrollToIndex(nextIndex - 1)
+						requestAnimationFrame(() => {
+							setResourcePanel(resourcesToRender[nextIndex])
+							virtuoso.current?.scrollToIndex(nextIndex - 1)
+						})
 					}
 				}
 			}

@@ -10,6 +10,7 @@ interface Props {
 	isDragging?: boolean
 }
 const TIME_INDICATOR_ACTIVATION_RADIUS = 15
+const TIME_INDICATOR_TOP_WIDTH = 12
 const TimeIndicator = ({
 	left,
 	topRef,
@@ -68,14 +69,13 @@ const TimeIndicator = ({
 	}, [hairRef, isDragging, topRef, viewportRef])
 
 	const origin = topRef.current?.getBoundingClientRect()
-	const pinWidth = origin?.width || 0
 
 	const textWidth = textRef.current?.getBoundingClientRect().width || 0
 	return (
 		<div
 			className={style.timeIndicator}
 			style={{
-				left: left - pinWidth / 2,
+				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
 			}}
 			ref={indicatorRef}
 		>
@@ -84,7 +84,10 @@ const TimeIndicator = ({
 				ref={textRef}
 				style={{
 					top: (origin?.top || 0) - 1.8 * (origin?.height || 0),
-					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
+					left:
+						(origin?.left || 0) +
+						TIME_INDICATOR_TOP_WIDTH / 2 -
+						textWidth / 2,
 					visibility: isTextVisible ? 'visible' : 'hidden',
 				}}
 			>
