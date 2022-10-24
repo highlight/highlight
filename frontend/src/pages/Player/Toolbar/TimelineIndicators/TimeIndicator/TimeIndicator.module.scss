@@ -11,9 +11,14 @@
 .timeIndicatorHair {
 	border-left: 2px var(--color-neutral-900) solid;
 	cursor: ew-resize;
-	height: 79px;
+	height: 80px;
 	position: absolute;
-	top: 60px;
+	top: 59px;
+}
+
+.hidden {
+	height: 0;
+	visibility: none;
 }
 
 .timeIndicatorTop {
@@ -21,10 +26,10 @@
 	border: 1px solid var(--color-white);
 	border-radius: 1px 1px 12px 12px;
 	cursor: grab;
-	height: 14px;
+	height: 12px;
 	position: sticky;
 	top: 12px;
-	width: 10px;
+	width: 8px;
 }
 
 .timeIndicatorText {

@@ -102,7 +102,8 @@ const TimelineIndicatorsBarGraph = ({
 			return
 		}
 		const bbox = div.getBoundingClientRect()
-		setViewportWidth(Math.round(bbox.width) - 2 * TIMELINE_MARGIN)
+		const width = Math.max(Math.round(bbox.width) - 2 * TIMELINE_MARGIN, 0)
+		setViewportWidth(width)
 	}, [width, showHistogram])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
@@ -187,7 +188,7 @@ const TimelineIndicatorsBarGraph = ({
 					}
 				}
 			}
-			return canvasTime / canvasDuration
+			return clamp(canvasTime / canvasDuration, 0, 1)
 		},
 		[adjustedInactivityPeriods, canvasDuration, inactivityPeriods],
 	)
@@ -572,8 +573,6 @@ const TimelineIndicatorsBarGraph = ({
 		passive: false,
 	})
 
-	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
-
 	const canvasWidth = viewportWidth * camera.zoom
 	const zoomAdjustment = 1 + (2 * TIMELINE_MARGIN) / viewportWidth
 	useLayoutEffect(() => {
@@ -845,6 +844,7 @@ const TimelineIndicatorsBarGraph = ({
 	const canvasProgress = timeToProgress(shownTime)
 	const sessionProgress = (canvasProgress * canvasDuration) / adjustedDuration
 
+	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	const progressBar = useMemo(() => {
 		return (
 			<div className={style.progressBarContainer}>
@@ -1011,19 +1011,16 @@ const TimelineIndicatorsBarGraph = ({
 						>
 							<Skeleton height={22} />
 						</div>
-						<div
-							className={style.timelineContainer}
-							ref={viewportRef}
-						>
-							<Skeleton height={'100%'} />
-						</div>
 					</>
 				)}
+				<div className={style.timelineContainer} ref={viewportRef}>
+					<Skeleton height={'100%'} />
+				</div>
 			</div>
 		)
 	}
 
-	if (isLiveMode || !showHistogram) {
+	if (isLiveMode) {
 		return (
 			<div
 				className={style.timelineIndicatorsContainer}
@@ -1037,7 +1034,12 @@ const TimelineIndicatorsBarGraph = ({
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			{progressBar}
-			<div className={style.sessionMonitor} ref={sessionMonitorRef}>
+			<div
+				className={classNames(style.sessionMonitor, {
+					[style.hidden]: !showHistogram,
+				})}
+				ref={sessionMonitorRef}
+			>
 				{sessionMonitor}
 				<ZoomArea
 					containerWidth={borderlessWidth}
@@ -1046,7 +1048,12 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
-			<div className={style.timelineContainer} ref={viewportRef}>
+			<div
+				className={classNames(style.timelineContainer, {
+					[style.hideOverflow]: !showHistogram,
+				})}
+				ref={viewportRef}
+			>
 				<TimeIndicator
 					left={clamp(
 						canvasWidth * canvasProgress + TIMELINE_MARGIN,
@@ -1058,12 +1065,15 @@ const TimelineIndicatorsBarGraph = ({
 					viewportRef={viewportRef}
 					text={formatTimeOnTop(shownTime)}
 					isDragging={isDragging}
+					showHistogram={showHistogram}
 				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>
 					{ticks}
 				</div>
 				<div
-					className={style.separator}
+					className={classNames(style.separator, {
+						[style.hidden]: !showHistogram,
+					})}
 					style={{
 						width: canvasWidth + 2 * TIMELINE_MARGIN,
 					}}
@@ -1076,7 +1086,7 @@ const TimelineIndicatorsBarGraph = ({
 					return (
 						<span
 							key={idx}
-							className={style.inactivityPeriodMask}
+							className={classNames(style.inactivityPeriodMask)}
 							style={{
 								width,
 								left,
@@ -1084,7 +1094,12 @@ const TimelineIndicatorsBarGraph = ({
 						></span>
 					)
 				})}
-				<div className={style.eventHistogram} ref={canvasRef}>
+				<div
+					className={classNames(style.eventHistogram, {
+						[style.hidden]: !showHistogram,
+					})}
+					ref={canvasRef}
+				>
 					<div className={style.eventTrack}>
 						{buckets
 							.filter(
