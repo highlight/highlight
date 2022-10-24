@@ -32,7 +32,7 @@ import log from '@util/log'
 import { timedCallback } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
-import useMap from '@util/useMap'
+import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
 import moment from 'moment'
@@ -124,12 +124,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const timerId = useRef<number>(0)
 
 	const [
-		chunkEvents,
+		chunkEventsRef,
 		chunkEventsSet,
 		chunkEventsSetMulti,
 		,
 		chunkEventsReset,
-	] = useMap<number, HighlightEvent[]>()
+	] = useMapRef<number, HighlightEvent[]>()
 	const [state, dispatch] = useReducer(PlayerReducer, {
 		...PlayerInitialState,
 		isLoggedIn,
@@ -286,13 +286,24 @@ export const usePlayer = (): ReplayerContextInterface => {
 				: startIdx
 
 			const toSet: [number, HighlightEvent[] | undefined][] = []
-			getChunksToRemove(chunkEvents, startIdx, endIdx).forEach((idx) =>
-				toSet.push([idx, undefined]),
+			getChunksToRemove(chunkEventsRef.current, startIdx, endIdx).forEach(
+				(idx) => toSet.push([idx, undefined]),
 			)
 			const promises = []
+			log(
+				'PlayerHook.ts',
+				'checking chunk loaded status range',
+				startIdx,
+				endIdx,
+			)
 			for (let i = startIdx; i <= endIdx; i++) {
-				log('PlayerHook.ts', 'hasChunk', i, chunkEvents.has(i))
-				if (!chunkEvents.has(i)) {
+				log(
+					'PlayerHook.ts',
+					'hasChunk',
+					i,
+					chunkEventsRef.current.has(i),
+				)
+				if (!chunkEventsRef.current.has(i)) {
 					log('PlayerHook.ts', 'set events for chunk', i)
 					chunkEventsSet(i, [])
 
@@ -327,22 +338,29 @@ export const usePlayer = (): ReplayerContextInterface => {
 							}
 						})(i),
 					)
+					log('PlayerHook.ts', 'pushed promise for chunk', i)
 				}
 			}
 			for (const [i, data] of await Promise.all(promises)) {
 				toSet.push([i, toHighlightEvents(data)])
 			}
 			if (promises.length) {
-				await chunkEventsSetMulti(toSet)
+				chunkEventsSetMulti(toSet)
 				dispatch({
 					type: PlayerActionType.onChunksLoad,
+					showPlayerMouseTail,
+					sortedChunks: [...chunkEventsRef.current.entries()].sort(
+						(a, b) => a[0] - b[0],
+					),
 					time: startTime,
 				})
 			}
 			return promises.length
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
-			chunkEvents,
+			showPlayerMouseTail,
+			chunkEventsRef.current,
 			chunkEventsSet,
 			chunkEventsSetMulti,
 			fetchEventChunkURL,
@@ -424,7 +442,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const seek = useCallback(
 		(time: number) => {
-			dispatch({ type: PlayerActionType.Seek, time, noAction: true })
+			dispatch({ type: PlayerActionType.setTime, time })
 			log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
 			ensureChunksLoaded(time).then(() =>
 				dispatch({ type: PlayerActionType.Seek, time }),
@@ -516,7 +534,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
 							chunkEventsSet(0, [
-								...(chunkEvents.get(0) ?? []),
+								...(chunkEventsRef.current.get(0) ?? []),
 								...toHighlightEvents(newEvents),
 							])
 							dispatch({
@@ -542,13 +560,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
+		chunkEventsRef.current,
 		state.isLiveMode,
 		sessionPayload?.events,
 		state.replayerState,
 		subscribeToSessionPayload,
 		session_secure_id,
 		chunkEventsSet,
-		chunkEvents,
 	])
 
 	useEffect(() => {
@@ -638,14 +656,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [download, sessionData?.session?.direct_download_url, session_secure_id])
 
 	useEffect(() => {
-		dispatch({
-			type: PlayerActionType.onChunkLoaded,
-			chunkEvents,
-			showPlayerMouseTail,
-		})
-	}, [chunkEvents, showPlayerMouseTail])
-
-	useEffect(() => {
 		if (
 			!sessionPayload ||
 			!sessionIntervals ||
@@ -653,22 +663,27 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!timelineIndicatorEvents
 		)
 			return
+		// If events are returned by getSessionPayloadQuery, set the events payload
+		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
+			chunkEventsSetMulti([
+				[0, toHighlightEvents(sessionPayload?.events)],
+			])
+			dispatch({
+				type: PlayerActionType.onChunksLoad,
+				showPlayerMouseTail,
+				sortedChunks: [...chunkEventsRef.current.entries()].sort(
+					(a, b) => a[0] - b[0],
+				),
+				time: 0,
+			})
+		}
 		dispatch({
 			type: PlayerActionType.onSessionPayloadLoaded,
 			sessionPayload,
 			sessionIntervals,
 			eventChunksData,
-			sortedChunks: [...chunkEvents.entries()].sort(
-				(a, b) => a[0] - b[0],
-			),
 			timelineIndicatorEvents,
 		})
-		// If events are returned by getSessionPayloadQuery, set the events payload
-		if (!!sessionPayload?.events && chunkEvents.size === 0) {
-			chunkEventsSetMulti([
-				[0, toHighlightEvents(sessionPayload?.events)],
-			])
-		}
 		if (state.replayerState <= ReplayerState.Loading) {
 			pause()
 		}
@@ -687,26 +702,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		sessionIntervals,
 		eventChunksData,
 		timelineIndicatorEvents,
-		chunkEvents,
 		chunkEventsSetMulti,
 	])
-
-	useEffect(() => {
-		if (state.fetchEvents) {
-			state.fetchEvents
-				.then((response) => response.json())
-				.then((data) => {
-					chunkEventsSet(0, toHighlightEvents(data || []))
-				})
-				.catch((e) => {
-					chunkEventsSet(0, [])
-					H.consumeError(
-						e,
-						'Error direct downloading session payload',
-					)
-				})
-		}
-	}, [chunkEventsSet, state.fetchEvents])
 
 	useEffect(() => {
 		if (state.replayer) {

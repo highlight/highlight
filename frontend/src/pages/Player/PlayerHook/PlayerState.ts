@@ -88,7 +88,6 @@ interface PlayerState {
 	events: HighlightEvent[]
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
 	eventsLoaded: boolean
-	fetchEvents?: Promise<Response>
 	fetchEventChunkURL: FetchEventChunkURLFn
 	getSessionPayloadQuery: LazyQueryExecFunction<
 		GetSessionPayloadQuery,
@@ -131,9 +130,9 @@ export enum PlayerActionType {
 	Pause,
 	Play,
 	Seek,
+	setTime,
 	addLiveEvents,
 	loadSession,
-	onChunkLoaded,
 	startChunksLoad,
 	onChunksLoad,
 	onFrame,
@@ -154,9 +153,9 @@ type PlayerAction =
 	| Play
 	| Pause
 	| Seek
+	| setTime
 	| addLiveEvents
 	| loadSession
-	| onChunkLoaded
 	| startChunksLoad
 	| onChunksLoad
 	| onFrame
@@ -185,8 +184,11 @@ interface Pause {
 interface Seek {
 	type: PlayerActionType.Seek
 	time: number
-	// if set, will not apply a replayer action (will only set the time)
-	noAction?: boolean
+}
+
+interface setTime {
+	type: PlayerActionType.setTime
+	time: number
 }
 
 interface addLiveEvents {
@@ -221,18 +223,14 @@ interface updateCurrentUrl {
 	currentTime: number
 }
 
-interface onChunkLoaded {
-	type: PlayerActionType.onChunkLoaded
-	chunkEvents: Omit<Map<number, HighlightEvent[]>, 'set' | 'clear' | 'delete'>
-	showPlayerMouseTail: boolean
-}
-
 interface startChunksLoad {
 	type: PlayerActionType.startChunksLoad
 }
 
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
+	sortedChunks: [number, HighlightEvent[]][]
+	showPlayerMouseTail: boolean
 	time: number
 }
 
@@ -243,7 +241,6 @@ interface onFrame {
 
 interface onSessionPayloadLoaded {
 	type: PlayerActionType.onSessionPayloadLoaded
-	sortedChunks: [number, HighlightEvent[]][]
 	sessionPayload?: GetSessionPayloadQuery
 	sessionIntervals?: GetSessionIntervalsQuery
 	eventChunksData?: GetEventChunksQuery
@@ -324,16 +321,32 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.Play:
-			s = replayerAction(s, ReplayerState.Playing, action.time)
+			s = replayerAction(
+				PlayerActionType.Play,
+				s,
+				ReplayerState.Playing,
+				action.time,
+			)
 			break
 		case PlayerActionType.Pause:
 			s.isLiveMode = false
-			s = replayerAction(s, ReplayerState.Paused, action.time)
+			s = replayerAction(
+				PlayerActionType.Pause,
+				s,
+				ReplayerState.Paused,
+				action.time,
+			)
 			break
 		case PlayerActionType.Seek:
+			s = replayerAction(
+				PlayerActionType.Seek,
+				s,
+				s.replayerState,
+				action.time,
+			)
+			break
+		case PlayerActionType.setTime:
 			s.time = action.time
-			if (action?.noAction) break
-			s = replayerAction(s, s.replayerState, s.time)
 			break
 		case PlayerActionType.addLiveEvents:
 			s.liveEventCount += 1
@@ -432,19 +445,31 @@ export const PlayerReducer = (
 				action.currentTime,
 			)
 			break
-		// Handle data in playback mode.
-		case PlayerActionType.onChunkLoaded:
-			const nextEvents: HighlightEvent[] = []
-			for (const v of action.chunkEvents.values()) {
+		case PlayerActionType.startChunksLoad:
+			s.isLoadingEvents = true
+			s.replayerStateBeforeLoad = s.replayerState
+			// important to pause at the actual current time,
+			// rather than the future time for which chunks are loaded.
+			// because we are setting time temporarily for the purpose of pausing while loading,
+			// we do not want to set the state time value.
+			s = replayerAction(
+				PlayerActionType.startChunksLoad,
+				s,
+				ReplayerState.Paused,
+				s.replayer?.getCurrentTime() ?? 0,
+				true,
+			)
+			break
+		case PlayerActionType.onChunksLoad:
+			s.events = []
+			for (const [, v] of action.sortedChunks) {
 				for (const val of v) {
-					nextEvents.push(val)
+					s.events.push(val)
 				}
 			}
 
-			if (!nextEvents || nextEvents.length === 0) break
-
 			s.isLiveMode = s.session?.processed === false
-			if (nextEvents.length < 2) {
+			if (s.events.length < 2) {
 				if (!(s.session?.processed === false)) {
 					s.sessionViewability = SessionViewability.EMPTY_SESSION
 				}
@@ -455,20 +480,18 @@ export const PlayerReducer = (
 			// Add an id field to each event so it can be referenced.
 
 			if (s.replayer === undefined) {
-				s = initReplayer(s, action, nextEvents)
+				s = initReplayer(s, action, s.events)
+			} else {
+				s.replayer.replaceEvents(s.events)
 			}
-
-			s.events = nextEvents
-			break
-		case PlayerActionType.startChunksLoad:
-			s.isLoadingEvents = true
-			s.replayerStateBeforeLoad = s.replayerState
-			s = replayerAction(s, ReplayerState.Paused, s.time)
-			break
-		case PlayerActionType.onChunksLoad:
 			s.isLoadingEvents = false
 			s.time = action.time
-			s = replayerAction(s, s.replayerStateBeforeLoad, s.time)
+			s = replayerAction(
+				PlayerActionType.onChunksLoad,
+				s,
+				s.replayerStateBeforeLoad,
+				s.time,
+			)
 			break
 		case PlayerActionType.onFrame:
 			if (s.replayerState !== ReplayerState.Playing) break
@@ -504,16 +527,6 @@ export const PlayerReducer = (
 					.session_comments as SessionComment[]
 			}
 			s.eventChunksData = action.eventChunksData!
-			if (!s.replayer) break
-			const allEvents: HighlightEvent[] = []
-			for (const [, v] of action.sortedChunks) {
-				for (const val of v) {
-					allEvents.push(val)
-				}
-			}
-			if (allEvents.length) {
-				s.replayer.replaceEvents(allEvents)
-			}
 
 			// Preprocess session interval data from backend
 			const parsedSessionIntervalsData: SessionInterval[] =
@@ -533,7 +546,7 @@ export const PlayerReducer = (
 								}
 							},
 					  )
-					: s.replayer.getActivityIntervals()
+					: []
 			const sm: playerMetaData = parsedSessionIntervalsData
 				? {
 						startTime: new Date(
@@ -554,7 +567,7 @@ export const PlayerReducer = (
 								parsedSessionIntervalsData[0].startTime,
 							).getTime(),
 				  }
-				: s.replayer.getMetaData()
+				: EMPTY_SESSION_METADATA
 
 			const sessionIntervals = getSessionIntervals(
 				sm,
@@ -569,7 +582,7 @@ export const PlayerReducer = (
 							action.timelineIndicatorEvents
 								.timeline_indicator_events,
 					  )
-					: allEvents
+					: []
 			const si = getCommentsInSessionIntervalsRelative(
 				addEventsToSessionIntervals(
 					addErrorsToSessionIntervals(
@@ -742,7 +755,7 @@ const handleSetStateAction = <T>(s: T, a: SetStateAction<T>) => {
 
 const initReplayer = (
 	s: PlayerState,
-	action: onChunkLoaded,
+	action: onChunksLoad,
 	events: HighlightEvent[],
 ) => {
 	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
@@ -786,18 +799,30 @@ const initReplayer = (
 }
 
 const replayerAction = (
+	source: PlayerActionType,
 	s: PlayerState,
 	desiredState: ReplayerState,
 	time: number,
+	skipSetTime?: boolean,
 ) => {
+	log(
+		'PlayerState.ts',
+		'ReplayerAction',
+		PlayerActionType[source],
+		ReplayerState[desiredState],
+		time,
+	)
 	if (!s.replayer) return s
-	log('PlayerState.ts', 'ReplayerAction', ReplayerState[desiredState], time)
 	if (desiredState === ReplayerState.Paused) {
 		s.replayer.pause(time)
 	} else if (desiredState === ReplayerState.Playing) {
 		s.replayer.play(time)
+	} else {
+		return s
 	}
 	s.replayerState = desiredState
-	s.time = time
+	if (!skipSetTime) {
+		s.time = time
+	}
 	return s
 }
