@@ -401,7 +401,7 @@ const TimelineIndicatorsBarGraph = ({
 			event.preventDefault()
 			event.stopPropagation()
 
-			if (isRefreshingDOM) {
+			if (isRefreshingDOM || !showHistogram) {
 				return
 			}
 
@@ -445,6 +445,12 @@ const TimelineIndicatorsBarGraph = ({
 		})
 		return () => cancelAnimationFrame(timeout)
 	}, [camera, hasActiveScrollbar, viewportWidth, showHistogram])
+
+	useEffect(() => {
+		if (!showHistogram) {
+			setCamera({ x: 0, zoom: 1 })
+		}
+	}, [showHistogram])
 
 	const onDrag = useCallback(() => {
 		setIsDragging(true)
