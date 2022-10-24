@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { RefObject, useLayoutEffect, useRef, useState } from 'react'
 
 import style from './TimeIndicator.module.scss'
@@ -8,8 +9,10 @@ interface Props {
 	viewportRef: RefObject<HTMLElement>
 	text?: string
 	isDragging?: boolean
+	showHistogram?: boolean
 }
 const TIME_INDICATOR_ACTIVATION_RADIUS = 15
+const TIME_INDICATOR_TOP_WIDTH = 10
 const TimeIndicator = ({
 	left,
 	topRef,
@@ -17,6 +20,7 @@ const TimeIndicator = ({
 	text,
 	isDragging,
 	viewportRef,
+	showHistogram,
 }: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
@@ -68,14 +72,13 @@ const TimeIndicator = ({
 	}, [hairRef, isDragging, topRef, viewportRef])
 
 	const origin = topRef.current?.getBoundingClientRect()
-	const pinWidth = origin?.width || 0
 
 	const textWidth = textRef.current?.getBoundingClientRect().width || 0
 	return (
 		<div
 			className={style.timeIndicator}
 			style={{
-				left: left - pinWidth / 2,
+				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
 			}}
 			ref={indicatorRef}
 		>
@@ -83,15 +86,23 @@ const TimeIndicator = ({
 				className={style.timeIndicatorText}
 				ref={textRef}
 				style={{
-					top: (origin?.top || 0) - 1.8 * (origin?.height || 0),
-					left: (origin?.left || 0) + pinWidth / 2 - textWidth / 2,
+					top: (origin?.top || 0) - 2.1 * (origin?.height || 0),
+					left:
+						(origin?.left || 0) +
+						TIME_INDICATOR_TOP_WIDTH / 2 -
+						textWidth / 2,
 					visibility: isTextVisible ? 'visible' : 'hidden',
 				}}
 			>
 				{text}
 			</span>
 			<span className={style.timeIndicatorTop} ref={topRef} />
-			<span className={style.timeIndicatorHair} ref={hairRef}></span>
+			<span
+				className={classNames(style.timeIndicatorHair, {
+					[style.hidden]: !showHistogram,
+				})}
+				ref={hairRef}
+			></span>
 		</div>
 	)
 }

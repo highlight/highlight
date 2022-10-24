@@ -114,22 +114,6 @@ const ZoomArea = ({ wrapperRef, update, minZoomAreaPercent }: Props) => {
 
 		const onPointerUp = () => {
 			if (isLeftDragging || isRightDragging || isPanning) {
-				const left = clamp(
-					(100 * containerDiv.offsetLeft) / wrapperWidth,
-					0,
-					100 - minZoomAreaPercent,
-				)
-				update({
-					left,
-					right: clamp(
-						(100 *
-							(containerDiv.offsetLeft +
-								containerDiv.offsetWidth)) /
-							wrapperWidth,
-						left + minZoomAreaPercent,
-						100,
-					),
-				})
 				isLeftDragging = false
 				isRightDragging = false
 				isPanning = false

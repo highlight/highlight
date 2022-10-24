@@ -1,4 +1,3 @@
-export const canvasNetworkWrapper: string
 export const current: string
 export const currentIndicator: string
 export const failedResource: string

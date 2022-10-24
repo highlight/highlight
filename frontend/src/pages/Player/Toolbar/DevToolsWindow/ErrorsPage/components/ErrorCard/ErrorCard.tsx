@@ -49,31 +49,29 @@ const ErrorCard = React.memo(
 			return data === 'null' ? '' : data
 		}, [error.payload])
 		return (
-			<button
+			<div
 				key={error.id}
 				className={classNames(styles.errorCard, {
 					[styles.active]: detailedPanel?.id === error.id,
 				})}
 				onClick={setSelectedError}
 			>
-				<div
-					className={styles.currentIndicatorWrapper}
-					style={{
-						visibility:
-							state === ErrorCardState.Active
-								? 'visible'
-								: 'hidden',
-					}}
-				>
-					<div className={styles.currentIndicator} />
-				</div>
 				<div className={styles.content}>
 					<div className={styles.header}>
 						<Tag
 							infoTooltipText="This is where the error was thrown."
 							backgroundColor="var(--color-orange-300)"
 						>
-							{error.type}
+							<div
+								className={styles.currentIndicator}
+								style={{
+									visibility:
+										state === ErrorCardState.Active
+											? 'visible'
+											: 'hidden',
+								}}
+							/>
+							<span>{error.type}</span>
 						</Tag>
 						<p>
 							<TextHighlighter
@@ -93,21 +91,16 @@ const ErrorCard = React.memo(
 										error.timestamp,
 									)
 									const startTime = sessionMetadata.startTime
-									if (startTime) {
-										const dateTimeSessionStart = new Date(
-											startTime,
-										)
-										const deltaMilliseconds =
-											dateTimeErrorCreated.getTime() -
-											dateTimeSessionStart.getTime()
-										setTime(deltaMilliseconds)
+									const deltaMilliseconds =
+										dateTimeErrorCreated.getTime() -
+										startTime
+									setTime(deltaMilliseconds)
 
-										message.success(
-											`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-												deltaMilliseconds,
-											)}.`,
-										)
-									}
+									message.success(
+										`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
+											deltaMilliseconds,
+										)}.`,
+									)
 								}}
 								label="Goto"
 							/>
@@ -149,7 +142,7 @@ const ErrorCard = React.memo(
 						)}
 					</div>
 				</div>
-			</button>
+			</div>
 		)
 	},
 )

@@ -9,7 +9,7 @@ import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
 import { H } from 'highlight.run'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation } from 'react-router'
 
@@ -336,7 +336,7 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	},
 	{
 		description: `Toggle the timeline`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'H'],
+		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'E'],
 	},
 	{
 		description: `Toggle dev tools`,
