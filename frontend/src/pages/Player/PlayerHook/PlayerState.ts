@@ -110,6 +110,7 @@ interface PlayerState {
 	rageClicks: RageClick[]
 	replayer: Replayer | undefined
 	replayerState: ReplayerState
+	replayerStateBeforeLoad: ReplayerState
 	scale: number
 	session: Session | undefined
 	sessionComments: SessionComment[]
@@ -232,6 +233,7 @@ interface startChunksLoad {
 
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
+	time: number
 }
 
 interface onFrame {
@@ -300,6 +302,7 @@ export const PlayerInitialState = {
 	rageClicks: [],
 	replayer: undefined,
 	replayerState: ReplayerState.Empty,
+	replayerStateBeforeLoad: ReplayerState.Empty,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -321,26 +324,16 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.Play:
-			s.time = action.time
-			s.replayerState = ReplayerState.Playing
-			s.replayer?.play(s.time)
+			s = replayerAction(s, ReplayerState.Playing, action.time)
 			break
 		case PlayerActionType.Pause:
 			s.isLiveMode = false
-			s.replayerState = ReplayerState.Paused
-			if (action.time !== undefined) {
-				s.time = action.time
-			}
-			s.replayer?.pause(s.time)
+			s = replayerAction(s, ReplayerState.Paused, action.time)
 			break
 		case PlayerActionType.Seek:
 			s.time = action.time
 			if (action?.noAction) break
-			if (s.replayerState === ReplayerState.Playing) {
-				s.replayer?.play(s.time)
-			} else if (s.replayerState === ReplayerState.Paused) {
-				s.replayer?.pause(s.time)
-			}
+			s = replayerAction(s, s.replayerState, s.time)
 			break
 		case PlayerActionType.addLiveEvents:
 			s.liveEventCount += 1
@@ -395,22 +388,6 @@ export const PlayerReducer = (
 							skip_events: true,
 						},
 					}).catch(console.error)
-
-					if (
-						action.data.session?.chunked &&
-						!CHUNKING_DISABLED_PROJECTS.includes(s.project_id)
-					) {
-						s.fetchEvents = s
-							.fetchEventChunkURL({
-								secure_id: s.session_secure_id,
-								index: 0,
-							})
-							.then((response) =>
-								fetch(response.data.event_chunk_url),
-							)
-					} else {
-						s.fetchEvents = fetch(directDownloadUrl)
-					}
 				} else {
 					s.getSessionPayloadQuery({
 						variables: {
@@ -485,12 +462,16 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.startChunksLoad:
 			s.isLoadingEvents = true
-			s.replayer?.pause()
+			s.replayerStateBeforeLoad = s.replayerState
+			s = replayerAction(s, ReplayerState.Paused, s.time)
 			break
 		case PlayerActionType.onChunksLoad:
 			s.isLoadingEvents = false
+			s.time = action.time
+			s = replayerAction(s, s.replayerStateBeforeLoad, s.time)
 			break
 		case PlayerActionType.onFrame:
+			if (s.replayerState !== ReplayerState.Playing) break
 			s.time = action.time
 			if (s.time >= s.sessionMetadata.totalTime) {
 				s.replayerState = s.isLiveMode
@@ -724,17 +705,29 @@ export const PlayerReducer = (
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
 	) {
-		log('PlayerStateUpdate', PlayerActionType[action.type], {
-			initialState: state,
-			finalState: s,
-			action,
-		})
+		log(
+			'PlayerState.ts',
+			'PlayerStateUpdate',
+			PlayerActionType[action.type],
+			s.time,
+			{
+				initialState: state,
+				finalState: s,
+				action,
+			},
+		)
 	} else {
-		log('PlayerStateTransition', PlayerActionType[action.type], {
-			initialState: state,
-			finalState: s,
-			action,
-		})
+		log(
+			'PlayerState.ts',
+			'PlayerStateTransition',
+			PlayerActionType[action.type],
+			s.time,
+			{
+				initialState: state,
+				finalState: s,
+				action,
+			},
+		)
 	}
 	return s
 }
@@ -789,5 +782,22 @@ const initReplayer = (
 	if (s.isLiveMode) {
 		s.replayer.startLive(events[0].timestamp)
 	}
+	return s
+}
+
+const replayerAction = (
+	s: PlayerState,
+	desiredState: ReplayerState,
+	time: number,
+) => {
+	if (!s.replayer) return s
+	log('PlayerState.ts', 'ReplayerAction', ReplayerState[desiredState], time)
+	if (desiredState === ReplayerState.Paused) {
+		s.replayer.pause(time)
+	} else if (desiredState === ReplayerState.Playing) {
+		s.replayer.play(time)
+	}
+	s.replayerState = desiredState
+	s.time = time
 	return s
 }
