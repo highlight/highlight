@@ -203,7 +203,7 @@ const Player = ({ integrated }: Props) => {
 	const playerFiller = useMemo(() => {
 		const playerHeight =
 			playerWrapperRef.current?.getBoundingClientRect().height
-		const height = Math.min(((playerHeight ?? 0) * 3) / 5)
+		const height = ((playerHeight ?? 0) * 3) / 5
 		return (
 			<div className={styles.loadingWrapper}>
 				<PlayerSkeleton width={controllerWidth} height={height} />
