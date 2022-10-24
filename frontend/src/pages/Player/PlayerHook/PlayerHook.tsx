@@ -29,7 +29,7 @@ import {
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
 import log from '@util/log'
-import { timedCallback } from '@util/perf/instrument'
+import { timedCall, timedCallback } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
@@ -375,42 +375,47 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const play = useCallback(
 		(time?: number) => {
-			let newTime = time ?? 0
-			if (state.isLiveMode) {
-				// Return if no events
-				if (state.events.length === 0) {
+			timedCall('player/play', () => {
+				let newTime = time ?? 0
+				if (state.isLiveMode) {
+					// Return if no events
+					if (state.events.length === 0) {
+						return
+					}
+
+					const desiredTime =
+						Date.now() - LIVE_MODE_DELAY - state.events[0].timestamp
+					// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+					// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+					// the last UI the user idled in is displayed.
+					if (
+						desiredTime - newTime > 5000 ||
+						state.replayerState != ReplayerState.Playing
+					) {
+						newTime = Math.min(
+							desiredTime,
+							state.sessionEndTime - 1,
+						)
+					} else {
+						return
+					}
+				}
+				// Don't play the session if the player is already at the end of the session.
+				if (newTime >= state.sessionEndTime) {
 					return
 				}
 
-				const desiredTime =
-					Date.now() - LIVE_MODE_DELAY - state.events[0].timestamp
-				// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
-				// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
-				// the last UI the user idled in is displayed.
-				if (
-					desiredTime - newTime > 5000 ||
-					state.replayerState != ReplayerState.Playing
-				) {
-					newTime = Math.min(desiredTime, state.sessionEndTime - 1)
-				} else {
-					return
-				}
-			}
-			// Don't play the session if the player is already at the end of the session.
-			if (newTime >= state.sessionEndTime) {
-				return
-			}
+				log('PlayerHook.ts', 'calling ensureChunksLoaded from play')
+				ensureChunksLoaded(newTime, undefined).then(() =>
+					dispatch({ type: PlayerActionType.Play, time: newTime }),
+				)
 
-			log('PlayerHook.ts', 'calling ensureChunksLoaded from play')
-			ensureChunksLoaded(newTime, undefined).then(() =>
-				dispatch({ type: PlayerActionType.Play, time: newTime }),
-			)
-
-			// Log how long it took to move to the new time.
-			const timelineChangeTime = timerEnd('timelineChangeTime')
-			datadogLogs.logger.info('Timeline Change Time', {
-				duration: timelineChangeTime,
-				sessionId: state.session_secure_id,
+				// Log how long it took to move to the new time.
+				const timelineChangeTime = timerEnd('timelineChangeTime')
+				datadogLogs.logger.info('Timeline Change Time', {
+					duration: timelineChangeTime,
+					sessionId: state.session_secure_id,
+				})
 			})
 		},
 		[
@@ -425,16 +430,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const pause = useCallback(
 		(time?: number) => {
-			log('PlayerHook.ts', 'calling ensureChunksLoaded from pause')
-			ensureChunksLoaded(time ?? 0, undefined).then(() =>
-				dispatch({ type: PlayerActionType.Pause, time: time ?? 0 }),
-			)
+			timedCall('player/pause', () => {
+				log('PlayerHook.ts', 'calling ensureChunksLoaded from pause')
+				ensureChunksLoaded(time ?? 0, undefined).then(() =>
+					dispatch({ type: PlayerActionType.Pause, time: time ?? 0 }),
+				)
 
-			// Log how long it took to move to the new time.
-			const timelineChangeTime = timerEnd('timelineChangeTime')
-			datadogLogs.logger.info('Timeline Change Time', {
-				duration: timelineChangeTime,
-				sessionId: state.session_secure_id,
+				// Log how long it took to move to the new time.
+				const timelineChangeTime = timerEnd('timelineChangeTime')
+				datadogLogs.logger.info('Timeline Change Time', {
+					duration: timelineChangeTime,
+					sessionId: state.session_secure_id,
+				})
 			})
 		},
 		[ensureChunksLoaded, state.session_secure_id],
@@ -442,11 +449,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const seek = useCallback(
 		(time: number) => {
-			dispatch({ type: PlayerActionType.setTime, time })
-			log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
-			ensureChunksLoaded(time).then(() =>
-				dispatch({ type: PlayerActionType.Seek, time }),
-			)
+			timedCall('player/seek', () => {
+				dispatch({ type: PlayerActionType.setTime, time })
+				log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
+				ensureChunksLoaded(time).then(() =>
+					dispatch({ type: PlayerActionType.Seek, time }),
+				)
+			})
 		},
 		[ensureChunksLoaded],
 	)
