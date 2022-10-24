@@ -4,6 +4,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
@@ -238,6 +239,40 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 		history,
 		setLoadingState,
 		addDiscordIntegrationToProject,
+		code,
+		projectId,
+	])
+
+	return null
+}
+
+const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
+	const history = useHistory()
+	const { setLoadingState } = useAppLoadingContext()
+	const { addVercelIntegrationToProject } = useClickUpIntegration()
+
+	useEffect(() => {
+		if (!projectId || !code) return
+		const next = `/${projectId}/integrations`
+		;(async () => {
+			try {
+				await addClickUpIntegrationToProject(code, projectId)
+				message.success('Highlight is now synced with ClickUp!', 5)
+			} catch (e: any) {
+				H.consumeError(e)
+				console.error(e)
+				message.error(
+					'Failed to add integration to project. Please try again.',
+				)
+			} finally {
+				history.push(next)
+				setLoadingState(AppLoadingState.LOADED)
+			}
+		})()
+	}, [
+		history,
+		setLoadingState,
+		addFrontIntegrationToProject,
 		code,
 		projectId,
 	])

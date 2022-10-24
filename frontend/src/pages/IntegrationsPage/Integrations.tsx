@@ -1,5 +1,6 @@
 import { VercelSettingsModalWidth } from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import ClearbitIntegrationConfig from '@pages/IntegrationsPage/components/ClearbitIntegration/ClearbitIntegrationConfig'
+import ClickUpIntegrationConfig from '@pages/IntegrationsPage/components/ClickUpIntegration/ClickUpIntegrationConfig'
 import DiscordIntegrationConfig from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import FrontIntegrationConfig from '@pages/IntegrationsPage/components/FrontIntegration/FrontIntegrationConfig'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
@@ -103,6 +104,16 @@ export const DISCORD_INTEGRATION: Integration = {
 	hasSettings: false,
 }
 
+export const CLICKUP_INTEGRATION: Integration = {
+	key: 'clickup',
+	name: 'ClickUp',
+	configurationPath: 'clickup',
+	description: 'Create ClickUp tasks from your Highlight comments.',
+	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
+	icon: '/images/integrations/clickup.svg',
+	hasSettings: true,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -111,6 +122,7 @@ const INTEGRATIONS: Integration[] = [
 	FRONT_INTEGRATION,
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
+	CLICKUP_INTEGRATION,
 ]
 
 export default INTEGRATIONS

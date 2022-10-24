@@ -546,6 +546,7 @@ const (
 	IntegrationTypeFront   IntegrationType = "Front"
 	IntegrationTypeVercel  IntegrationType = "Vercel"
 	IntegrationTypeDiscord IntegrationType = "Discord"
+	IntegrationTypeClickUp IntegrationType = "ClickUp"
 )
 
 var AllIntegrationType = []IntegrationType{
@@ -555,11 +556,12 @@ var AllIntegrationType = []IntegrationType{
 	IntegrationTypeFront,
 	IntegrationTypeVercel,
 	IntegrationTypeDiscord,
+	IntegrationTypeClickUp,
 }
 
 func (e IntegrationType) IsValid() bool {
 	switch e {
-	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord:
+	case IntegrationTypeSlack, IntegrationTypeLinear, IntegrationTypeZapier, IntegrationTypeFront, IntegrationTypeVercel, IntegrationTypeDiscord, IntegrationTypeClickUp:
 		return true
 	}
 	return false

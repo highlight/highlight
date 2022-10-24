@@ -231,6 +231,7 @@ export enum IntegrationType {
 	Front = 'Front',
 	Vercel = 'Vercel',
 	Discord = 'Discord',
+	ClickUp = 'ClickUp',
 }
 
 export enum ErrorState {

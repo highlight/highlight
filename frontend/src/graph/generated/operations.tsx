@@ -3177,6 +3177,14 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 	>
 }
 
+export type GetWorkspaceIsIntegratedWithClickUpQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceIsIntegratedWithClickUpQuery = {
+	__typename?: 'Query'
+} & { is_integrated_with_clickup: Types.Query['is_integrated_with'] }
+
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -3615,6 +3623,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
+		GetWorkspaceIsIntegratedWithClickUp:
+			'GetWorkspaceIsIntegratedWithClickUp' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,

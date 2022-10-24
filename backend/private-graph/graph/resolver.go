@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
+	"github.com/highlight-run/highlight/backend/clickup"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
@@ -1603,6 +1604,19 @@ func (r *Resolver) AddVercelToWorkspace(workspace *model.Workspace, code string)
 	}
 
 	if err := r.DB.Where(&workspace).Select("vercel_access_token", "vercel_team_id").Updates(&model.Workspace{VercelAccessToken: &res.AccessToken, VercelTeamID: res.TeamID}).Error; err != nil {
+		return e.Wrap(err, "error updating Vercel access token in workspace")
+	}
+
+	return nil
+}
+
+func (r *Resolver) AddClickUpToWorkspace(ctx context.Context, workspace *model.Workspace, code string) error {
+	res, err := clickup.GetAccessToken(ctx, code)
+	if err != nil {
+		return e.Wrap(err, "error getting Vercel oauth access token")
+	}
+
+	if err := r.DB.Where(&workspace).Select("clickup_access_token").Updates(&model.Workspace{ClickUpAccessToken: &res.AccessToken}).Error; err != nil {
 		return e.Wrap(err, "error updating Vercel access token in workspace")
 	}
 

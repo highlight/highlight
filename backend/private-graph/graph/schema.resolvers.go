@@ -36,7 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -1862,6 +1862,10 @@ func (r *mutationResolver) AddIntegrationToProject(ctx context.Context, integrat
 		}
 	} else if *integrationType == modelInputs.IntegrationTypeDiscord {
 		if err := r.AddDiscordToWorkspace(ctx, workspace, code); err != nil {
+			return false, err
+		}
+	} else if *integrationType == modelInputs.IntegrationTypeClickUp {
+		if err := r.AddClickUpToWorkspace(ctx, workspace, code); err != nil {
 			return false, err
 		}
 	} else {
@@ -5014,6 +5018,8 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 		return workspace.VercelAccessToken != nil, nil
 	} else if integrationType == modelInputs.IntegrationTypeDiscord {
 		return workspace.DiscordGuildId != nil, nil
+	} else if integrationType == modelInputs.IntegrationTypeClickUp {
+		return workspace.ClickUpAccessToken != nil, nil
 	}
 
 	return false, e.New("invalid integrationType")

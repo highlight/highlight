@@ -9195,6 +9195,63 @@ export type GetWorkspaceIsIntegratedWithVercelQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceIsIntegratedWithVercelQuery,
 	Types.GetWorkspaceIsIntegratedWithVercelQueryVariables
 >
+export const GetWorkspaceIsIntegratedWithClickUpDocument = gql`
+	query GetWorkspaceIsIntegratedWithClickUp($project_id: ID!) {
+		is_integrated_with_clickup: is_integrated_with(
+			integration_type: ClickUp
+			project_id: $project_id
+		)
+	}
+`
+
+/**
+ * __useGetWorkspaceIsIntegratedWithClickUpQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceIsIntegratedWithClickUpQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceIsIntegratedWithClickUpQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceIsIntegratedWithClickUpQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceIsIntegratedWithClickUpQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithClickUpQuery,
+		Types.GetWorkspaceIsIntegratedWithClickUpQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceIsIntegratedWithClickUpQuery,
+		Types.GetWorkspaceIsIntegratedWithClickUpQueryVariables
+	>(GetWorkspaceIsIntegratedWithClickUpDocument, baseOptions)
+}
+export function useGetWorkspaceIsIntegratedWithClickUpLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceIsIntegratedWithClickUpQuery,
+		Types.GetWorkspaceIsIntegratedWithClickUpQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceIsIntegratedWithClickUpQuery,
+		Types.GetWorkspaceIsIntegratedWithClickUpQueryVariables
+	>(GetWorkspaceIsIntegratedWithClickUpDocument, baseOptions)
+}
+export type GetWorkspaceIsIntegratedWithClickUpQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithClickUpQuery
+>
+export type GetWorkspaceIsIntegratedWithClickUpLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceIsIntegratedWithClickUpLazyQuery
+>
+export type GetWorkspaceIsIntegratedWithClickUpQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceIsIntegratedWithClickUpQuery,
+	Types.GetWorkspaceIsIntegratedWithClickUpQueryVariables
+>
 export const GenerateNewZapierAccessTokenJwtDocument = gql`
 	query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
 		generate_zapier_access_token(project_id: $project_id)

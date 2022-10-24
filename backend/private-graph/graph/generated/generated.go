@@ -6732,6 +6732,7 @@ enum IntegrationType {
 	Front
 	Vercel
 	Discord
+	ClickUp
 }
 
 enum ErrorState {
