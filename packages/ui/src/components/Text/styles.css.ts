@@ -1,6 +1,13 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
+import { globalStyle } from '@vanilla-extract/css'
+
+export const bodyFontFamily =
+	'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol'
+export const headingFontFamily =
+	'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif'
+export const monospaceFontFamily = 'Roboto Mono, monospace'
 
 const steradianFontMetrics = {
 	ascent: 1000,
@@ -103,17 +110,17 @@ export const h4 = createStyleObject({
 })
 export const h3 = createStyleObject({
 	fontSize: 24,
-	lineGap: 8,
+	lineGap: 10,
 	fontMetrics: steradianFontMetrics,
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
-	lineGap: 6,
+	lineGap: 12,
 	fontMetrics: steradianFontMetrics,
 })
 export const h1 = createStyleObject({
 	fontSize: 36,
-	lineGap: 6,
+	lineGap: 14,
 	fontMetrics: steradianFontMetrics,
 })
 
@@ -127,26 +134,102 @@ const plexo = createStyleObject({
 export const variants = recipe({
 	variants: {
 		variant: {
-			xxSmallRegular: { ...xxSmallRegular, fontWeight: 300 },
-			xxSmallSemibold: { ...xxSmallMedium, fontWeight: 400 },
-			xxSmallBold: { ...xxSmallBold, fontWeight: 500 },
-			xSmallRegular: { ...xSmallRegular, fontWeight: 300 },
-			xSmallSemibold: { ...xSmallMedium, fontWeight: 400 },
-			xSmallBold: { ...xSmallBold, fontWeight: 500 },
-			smallRegular: { ...smallRegular, fontWeight: 300 },
-			smallSemibold: { ...smallMedium, fontWeight: 400 },
-			smallBold: { ...smallBold, fontWeight: 500 },
-			mediumRegular: { ...mediumRegular, fontWeight: 300 },
-			mediumSemibold: { ...mediumMedium, fontWeight: 400 },
-			mediumBold: { ...mediumBold, fontWeight: 500 },
-			largeRegular: { ...largeRegular, fontWeight: 300 },
-			largeSemibold: { ...largeMedium, fontWeight: 400 },
-			largeBold: { ...largeBold, fontWeight: 500 },
-			h1: { ...h1, fontWeight: 700 },
-			h2: { ...h2, fontWeight: 700 },
-			h3: { ...h3, fontWeight: 500 },
-			h4: { ...h4, fontWeight: 500 },
-			mono: plexo,
+			xxSmallRegular: {
+				...xxSmallRegular,
+				fontFamily: bodyFontFamily,
+				fontWeight: 300,
+			},
+			xxSmallSemibold: {
+				...xxSmallMedium,
+				fontFamily: bodyFontFamily,
+				fontWeight: 400,
+			},
+			xxSmallBold: {
+				...xxSmallBold,
+				fontFamily: bodyFontFamily,
+				fontWeight: 500,
+			},
+			xSmallRegular: {
+				...xSmallRegular,
+				fontFamily: bodyFontFamily,
+				fontWeight: 300,
+			},
+			xSmallSemibold: {
+				...xSmallMedium,
+				fontFamily: bodyFontFamily,
+				fontWeight: 400,
+			},
+			xSmallBold: {
+				...xSmallBold,
+				fontFamily: bodyFontFamily,
+				fontWeight: 500,
+			},
+			smallRegular: {
+				...smallRegular,
+				fontFamily: bodyFontFamily,
+				fontWeight: 300,
+			},
+			smallSemibold: {
+				...smallMedium,
+				fontFamily: bodyFontFamily,
+				fontWeight: 400,
+			},
+			smallBold: {
+				...smallBold,
+				fontFamily: bodyFontFamily,
+				fontWeight: 500,
+			},
+			mediumRegular: {
+				...mediumRegular,
+				fontFamily: bodyFontFamily,
+				fontWeight: 300,
+			},
+			mediumSemibold: {
+				...mediumMedium,
+				fontFamily: bodyFontFamily,
+				fontWeight: 400,
+			},
+			mediumBold: {
+				...mediumBold,
+				fontFamily: bodyFontFamily,
+				fontWeight: 500,
+			},
+			largeRegular: {
+				...largeRegular,
+				fontFamily: bodyFontFamily,
+				fontWeight: 300,
+			},
+			largeSemibold: {
+				...largeMedium,
+				fontFamily: bodyFontFamily,
+				fontWeight: 400,
+			},
+			largeBold: {
+				...largeBold,
+				fontFamily: bodyFontFamily,
+				fontWeight: 500,
+			},
+			h1: {
+				...h1,
+				fontFamily: headingFontFamily,
+				fontWeight: 700,
+			},
+			h2: {
+				...h2,
+				fontFamily: headingFontFamily,
+				fontWeight: 700,
+			},
+			h3: {
+				...h3,
+				fontFamily: headingFontFamily,
+				fontWeight: 500,
+			},
+			h4: {
+				...h4,
+				fontFamily: headingFontFamily,
+				fontWeight: 500,
+			},
+			mono: { ...plexo, fontFamily: monospaceFontFamily },
 		},
 	},
 
@@ -156,3 +239,9 @@ export const variants = recipe({
 })
 
 export type Variants = RecipeVariants<typeof variants>
+
+// Not the right place for this, but needs to be defined somewhere for the
+// global styles to be injected.
+globalStyle('body', {
+	fontFamily: bodyFontFamily,
+})
