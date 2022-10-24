@@ -1,5 +1,5 @@
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
@@ -26,27 +26,21 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							alignItems="center"
 						>
 							<Box
+								color="neutral300"
 								display="flex"
 								alignItems="center"
 								gap="xSmall"
 							>
 								<FaUsers />
-								<span>Users</span>
+								<Text>Users</Text>
 							</Box>
-							<Box color="purple700" as="a">
-								Metrics {'>'}
-							</Box>
+							<Text color="purple700">Metrics {'>'}</Text>
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Box
-								as="span"
-								fontSize="medium"
-								fontWeight="medium"
-								color="neutral800"
-							>
+							<Text color="black" variant="largeBold">
 								25
-							</Box>
+							</Text>
 							<Tag>
 								<>+23.7% since Sep 15</>
 							</Tag>
@@ -62,12 +56,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							alignItems="center"
 						>
 							<Box
+								color="neutral300"
 								display="flex"
 								alignItems="center"
 								gap="xSmall"
 							>
 								<BsGridFill />
-								<span>Instances</span>
+								<Text>Instances</Text>
 							</Box>
 							<Box color="purple700" as="a">
 								Latest {'>'}
@@ -75,14 +70,9 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Box
-								as="span"
-								fontSize="medium"
-								fontWeight="medium"
-								color="neutral800"
-							>
+							<Text color="black" variant="largeBold">
 								32
-							</Box>
+							</Text>
 							<Tag>
 								<>+23.7% since Sep 15</>
 							</Tag>
@@ -91,34 +81,24 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 				<Stat>
 					<>
-						<Box display="flex" alignItems="center" gap="xSmall">
+						<Box
+							color="neutral300"
+							display="flex"
+							alignItems="center"
+							gap="xSmall"
+						>
 							<FaUsers />
-							<span>Users</span>
+							<Text>Users</Text>
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Box
-								as="span"
-								fontSize="medium"
-								fontWeight="medium"
-								color="neutral800"
-							>
+							<Text color="black" variant="largeBold">
 								25
-							</Box>
-							<Box
-								as="span"
-								fontSize="medium"
-								fontWeight="medium"
-							>
-								/
-							</Box>
-							<Box
-								as="span"
-								fontSize="medium"
-								fontWeight="medium"
-							>
-								Sep 13
-							</Box>
+							</Text>
+							<Text color="neutral500" variant="largeBold">
+								{' '}
+								/ Sep 13
+							</Text>
 						</Box>
 					</>
 				</Stat>
@@ -132,16 +112,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							alignItems="center"
 						>
 							<Box
+								color="neutral300"
 								display="flex"
 								alignItems="center"
 								gap="xSmall"
 							>
 								<FaUsers />
-								<span>Last 30 days</span>
+								<Text>Last 30 days</Text>
 							</Box>
-							<Box color="purple700" as="a">
-								Metrics {'>'}
-							</Box>
+							<Text color="purple700">Metrics {'>'}</Text>
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
@@ -164,25 +143,19 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
-		color="neutral500"
 		px="medium"
 		py="small"
 		flex="stretch"
 	>
-		{children}
+		<Box display="flex" flexDirection="column" gap="small">
+			{children}
+		</Box>
 	</Box>
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box
-		as="span"
-		background="neutral100"
-		borderRadius="small"
-		p="xSmall"
-		display="flex"
-		lineHeight="1"
-	>
-		{children}
+	<Box as="span" background="neutral100" borderRadius="small" p="xSmall">
+		<Text color="black">{children}</Text>
 	</Box>
 )
 

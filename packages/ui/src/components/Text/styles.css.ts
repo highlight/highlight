@@ -1,7 +1,6 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
-import { h } from 'vitest/dist/index-40e0cb97'
 
 const steradianFontMetrics = {
 	ascent: 1000,
@@ -127,7 +126,7 @@ const plexo = createStyleObject({
 
 export const variants = recipe({
 	variants: {
-		font: {
+		variant: {
 			xxSmallRegular: { ...xxSmallRegular, fontWeight: 300 },
 			xxSmallSemibold: { ...xxSmallMedium, fontWeight: 400 },
 			xxSmallBold: { ...xxSmallBold, fontWeight: 500 },
@@ -152,7 +151,7 @@ export const variants = recipe({
 	},
 
 	defaultVariants: {
-		font: 'smallRegular',
+		variant: 'smallRegular',
 	},
 })
 

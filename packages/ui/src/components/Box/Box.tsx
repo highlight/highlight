@@ -4,7 +4,7 @@ import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
 export interface Props extends Sprinkles, React.PropsWithChildren {
 	as?: React.ElementType
-	className?: ClassValue
+	className?: ClassValue | ClassValue[]
 }
 
 export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
