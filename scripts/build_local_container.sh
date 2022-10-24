@@ -8,4 +8,4 @@ SLACK_CLIENT_SECRET=$SLACK_CLIENT_SECRET
 TURBO_TOKEN=$TURBO_TOKEN
 REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 TURBO_TEAM=$TURBO_TEAM
-" -t highlight_local -f Dockerfile.local.frontend .
+" -t highlight_local -f Dockerfile.local .
