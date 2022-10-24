@@ -64,9 +64,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<BsGridFill />
 								<Text>Instances</Text>
 							</Box>
-							<Box color="purple700" as="a">
-								Latest {'>'}
-							</Box>
+							<Text color="purple700">Latest {'>'}</Text>
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
@@ -129,8 +127,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					</>
 				</Stat>
 			</Box>
-			<Box p="medium">
-				<code>{body}</code>
+			<Box p="large">
+				<Text variant="mono">{body}</Text>
 			</Box>
 		</Box>
 	)
@@ -143,8 +141,8 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
-		px="medium"
-		py="small"
+		px="large"
+		py="medium"
 		flex="stretch"
 	>
 		<Box display="flex" flexDirection="column" gap="small">

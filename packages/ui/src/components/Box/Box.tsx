@@ -4,13 +4,15 @@ import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
 export interface Props extends Sprinkles, React.PropsWithChildren {
 	as?: React.ElementType
-	className?: ClassValue | ClassValue[]
+	// Can't use className because it does some conversion on its values and
+	// breaks values like arrays, which would otherwise be valid values for clsx.
+	cssClass?: ClassValue | ClassValue[]
 }
 
 export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
 	const sprinklesProps: Record<string, unknown> = {}
 	const nativeProps: Record<string, unknown> = {}
-	const userClasses = clsx(props.className)
+	const userClasses = clsx(props.cssClass)
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {
