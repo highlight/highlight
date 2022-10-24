@@ -50,6 +50,9 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
+// assuming 60 fps
+const FRAME_MS = 1000 / 60
+
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { session_secure_id, project_id } = useParams<{
@@ -164,7 +167,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			for (const interval of state.sessionIntervals) {
 				if (time >= interval.startTime && time < interval.endTime) {
 					if (!interval.active) {
-						return interval.endTime
+						// skip forward 5 frames after the inactivity to prevent
+						// the player from rounding back into the inactive region
+						return interval.endTime + 5 * FRAME_MS
 					} else {
 						return undefined
 					}
@@ -373,9 +378,22 @@ export const usePlayer = (): ReplayerContextInterface => {
 		],
 	)
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const onFrame = useCallback(
+		_.throttle((state: any, timeOffset: number) => {
+			onFrame.cancel()
+			dispatch({
+				type: PlayerActionType.onFrame,
+				time: state.replayer.getCurrentTime() + timeOffset,
+			})
+		}, FRAME_MS * 6),
+		[],
+	)
+
 	const play = useCallback(
 		(time?: number) => {
 			timedCall('player/play', () => {
+				onFrame.flush()
 				let newTime = time ?? 0
 				if (state.isLiveMode) {
 					// Return if no events
@@ -406,9 +424,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from play')
-				ensureChunksLoaded(newTime, undefined).then(() =>
-					dispatch({ type: PlayerActionType.Play, time: newTime }),
-				)
+				ensureChunksLoaded(newTime, undefined).then(() => {
+					onFrame.cancel()
+					dispatch({ type: PlayerActionType.Play, time: newTime })
+				})
 
 				// Log how long it took to move to the new time.
 				const timelineChangeTime = timerEnd('timelineChangeTime')
@@ -420,6 +439,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[
 			ensureChunksLoaded,
+			onFrame,
 			state.events,
 			state.isLiveMode,
 			state.replayerState,
@@ -431,10 +451,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const pause = useCallback(
 		(time?: number) => {
 			timedCall('player/pause', () => {
+				onFrame.flush()
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from pause')
-				ensureChunksLoaded(time ?? 0, undefined).then(() =>
-					dispatch({ type: PlayerActionType.Pause, time: time ?? 0 }),
-				)
+				ensureChunksLoaded(time ?? 0, undefined).then(() => {
+					onFrame.cancel()
+					dispatch({ type: PlayerActionType.Pause, time: time ?? 0 })
+				})
 
 				// Log how long it took to move to the new time.
 				const timelineChangeTime = timerEnd('timelineChangeTime')
@@ -444,31 +466,22 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 			})
 		},
-		[ensureChunksLoaded, state.session_secure_id],
+		[ensureChunksLoaded, onFrame, state.session_secure_id],
 	)
 
 	const seek = useCallback(
 		(time: number) => {
 			timedCall('player/seek', () => {
+				onFrame.flush()
 				dispatch({ type: PlayerActionType.setTime, time })
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
-				ensureChunksLoaded(time).then(() =>
-					dispatch({ type: PlayerActionType.Seek, time }),
-				)
+				ensureChunksLoaded(time).then(() => {
+					onFrame.cancel()
+					dispatch({ type: PlayerActionType.Seek, time })
+				})
 			})
 		},
-		[ensureChunksLoaded],
-	)
-
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const onFrame = useCallback(
-		_.throttle((state: any, timeOffset: number) => {
-			dispatch({
-				type: PlayerActionType.onFrame,
-				time: state.replayer.getCurrentTime() + timeOffset,
-			})
-		}, 16.67 * 6),
-		[],
+		[ensureChunksLoaded, onFrame],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
