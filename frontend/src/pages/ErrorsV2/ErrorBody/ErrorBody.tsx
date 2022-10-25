@@ -128,7 +128,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box p="large">
-				<Text family="monospace">{body}</Text>
+				<Text size="monospace">{body}</Text>
 			</Box>
 		</Box>
 	)
