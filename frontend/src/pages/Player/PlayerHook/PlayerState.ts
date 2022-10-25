@@ -51,6 +51,7 @@ import {
 } from '@pages/Player/SessionLevelBar/utils/utils'
 import log from '@util/log'
 import { H } from 'highlight.run'
+import moment from 'moment/moment'
 import { SetStateAction } from 'react'
 
 const EMPTY_SESSION_METADATA = {
@@ -236,7 +237,6 @@ interface onChunksLoad {
 
 interface onFrame {
 	type: PlayerActionType.onFrame
-	time: number
 }
 
 interface onSessionPayloadLoaded {
@@ -494,8 +494,34 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onFrame:
+			if (!s.replayer) break
+			// The player may start later than the session if earlier events are unloaded
+			const offset =
+				s.replayer.getMetaData().startTime - s.sessionMetadata.startTime
+			const time = s.replayer.getCurrentTime() + offset
+			// Compute the string rather than number here, so that dependencies don't
+			// have to re-render on every tick
+			const activeTime = time - LIVE_MODE_DELAY
+			if (
+				s.isLiveMode &&
+				s.lastActiveTimestamp != 0 &&
+				s.lastActiveTimestamp < activeTime - 5000
+			) {
+				if (state.lastActiveTimestamp > activeTime - 1000 * 60) {
+					s.lastActiveString = 'less than a minute ago'
+				} else {
+					s.lastActiveString = moment(state.lastActiveTimestamp).from(
+						activeTime,
+					)
+				}
+			} else {
+				if (state.lastActiveString !== null) {
+					s.lastActiveString = null
+				}
+			}
+
 			if (s.replayerState !== ReplayerState.Playing) break
-			s.time = action.time
+			s.time = time
 			if (s.time >= s.sessionMetadata.totalTime) {
 				s.replayerState = s.isLiveMode
 					? ReplayerState.Paused // Waiting for more data

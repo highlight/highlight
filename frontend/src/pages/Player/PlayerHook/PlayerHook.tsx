@@ -35,8 +35,7 @@ import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
 import _ from 'lodash'
-import moment from 'moment'
-import { useCallback, useEffect, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
@@ -124,7 +123,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	})
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
-	const timerId = useRef<number>(0)
+	const animationFrameID = useRef<number>(0)
 
 	const [
 		chunkEventsRef,
@@ -178,38 +177,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return undefined
 		},
 		[state.sessionIntervals],
-	)
-
-	const updateLastActiveString = useCallback(
-		(currentTime: number) => {
-			if (
-				state.isLiveMode &&
-				state.lastActiveTimestamp != 0 &&
-				state.lastActiveTimestamp < currentTime - 5000
-			) {
-				if (state.lastActiveTimestamp > currentTime - 1000 * 60) {
-					dispatch({
-						type: PlayerActionType.setLastActiveString,
-						lastActiveString: 'less than a minute ago',
-					})
-				} else {
-					dispatch({
-						type: PlayerActionType.setLastActiveString,
-						lastActiveString: moment(
-							state.lastActiveTimestamp,
-						).from(currentTime),
-					})
-				}
-			} else {
-				if (state.lastActiveString !== null) {
-					dispatch({
-						type: PlayerActionType.setLastActiveString,
-						lastActiveString: null,
-					})
-				}
-			}
-		},
-		[state.lastActiveString, state.isLiveMode, state.lastActiveTimestamp],
 	)
 
 	const getChunkIdx = useCallback(
@@ -378,22 +345,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 		],
 	)
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const onFrame = useCallback(
-		_.throttle((state: any, timeOffset: number) => {
-			onFrame.cancel()
-			dispatch({
-				type: PlayerActionType.onFrame,
-				time: state.replayer.getCurrentTime() + timeOffset,
-			})
-		}, FRAME_MS * 6),
+	const onFrame = useMemo(
+		() =>
+			_.throttle(() => {
+				dispatch({
+					type: PlayerActionType.onFrame,
+				})
+			}, FRAME_MS * 6),
 		[],
 	)
 
 	const play = useCallback(
 		(time?: number) => {
 			timedCall('player/play', () => {
-				onFrame.flush()
 				let newTime = time ?? 0
 				if (state.isLiveMode) {
 					// Return if no events
@@ -425,7 +389,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from play')
 				ensureChunksLoaded(newTime, undefined).then(() => {
-					onFrame.cancel()
 					dispatch({ type: PlayerActionType.Play, time: newTime })
 				})
 
@@ -439,7 +402,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[
 			ensureChunksLoaded,
-			onFrame,
 			state.events,
 			state.isLiveMode,
 			state.replayerState,
@@ -451,10 +413,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const pause = useCallback(
 		(time?: number) => {
 			timedCall('player/pause', () => {
-				onFrame.flush()
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from pause')
 				ensureChunksLoaded(time ?? 0, undefined).then(() => {
-					onFrame.cancel()
 					dispatch({ type: PlayerActionType.Pause, time: time ?? 0 })
 				})
 
@@ -466,22 +426,20 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 			})
 		},
-		[ensureChunksLoaded, onFrame, state.session_secure_id],
+		[ensureChunksLoaded, state.session_secure_id],
 	)
 
 	const seek = useCallback(
 		(time: number) => {
 			timedCall('player/seek', () => {
-				onFrame.flush()
 				dispatch({ type: PlayerActionType.setTime, time })
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
 				ensureChunksLoaded(time).then(() => {
-					onFrame.cancel()
 					dispatch({ type: PlayerActionType.Seek, time })
 				})
 			})
 		},
-		[ensureChunksLoaded, onFrame],
+		[ensureChunksLoaded],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -738,53 +696,44 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (
 			(state.replayerState === ReplayerState.Playing ||
 				state.isLiveMode) &&
-			!timerId.current
+			!animationFrameID.current
 		) {
 			const frameAction = timedCallback<FrameRequestCallback>(
 				`player/update`,
 				() => {
 					if (state.replayer) {
 						// The player may start later than the session if earlier events are unloaded
-						onFrame(
-							state,
-							state.replayer.getMetaData().startTime -
-								state.sessionMetadata.startTime,
-						)
-						// Compute the string rather than number here, so that dependencies don't
-						// have to re-render on every tick
-						updateLastActiveString(Date.now() - LIVE_MODE_DELAY)
+						onFrame()
 					}
-					timerId.current = requestAnimationFrame(frameAction)
+					animationFrameID.current =
+						requestAnimationFrame(frameAction)
 				},
 				[
 					{
 						name: 'session_secure_id',
 						value: session_secure_id || '',
 					},
-					{ name: 'state', value: state.toString() },
+					{ name: 'state', value: state.replayerState.toString() },
 					{
 						name: 'live',
 						value: state.isLiveMode ? 'true' : 'false',
 					},
 				],
 			)
-
-			timerId.current = requestAnimationFrame(frameAction)
+			animationFrameID.current = requestAnimationFrame(frameAction)
 		} else if (
-			timerId.current &&
+			animationFrameID.current &&
 			!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
 		) {
-			window.cancelAnimationFrame(timerId.current)
-			timerId.current = 0
+			window.cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
 		}
 	}, [
-		state.replayerState,
-		state.replayer,
-		state.isLiveMode,
-		state,
-		session_secure_id,
-		updateLastActiveString,
 		onFrame,
+		session_secure_id,
+		state.isLiveMode,
+		state.replayer,
+		state.replayerState,
 	])
 
 	useEffect(() => {
