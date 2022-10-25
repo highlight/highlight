@@ -9,6 +9,7 @@ export const vars = {
 	space: spaces,
 	border: borders,
 	borderRadius: {
+		xSmall: '3px',
 		small: '4px',
 		medium: '8px',
 		large: '12px',
@@ -20,57 +21,6 @@ export const vars = {
 	},
 	borderStyle: {
 		standard: 'solid',
-	},
-	typography: {
-		family: {
-			body: 'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
-			header: 'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
-			monospace: 'Roboto Mono, monospace',
-		},
-		fontMetrics: {
-			capHeight: '1443',
-			ascent: '1950',
-			descent: '-494',
-			lineGap: '0',
-			unitsPerEm: '2048',
-		},
-		fontWeight: {
-			standard: '400',
-			medium: '500',
-			strong: '700',
-		},
-		heading: {
-			weight: {
-				weak: 'standard',
-				standard: 'strong',
-			},
-			h1: {
-				fontSize: '52px',
-			},
-			h2: {
-				fontSize: '38px',
-			},
-			h3: {
-				fontSize: '22px',
-			},
-			h4: {
-				fontSize: '18px',
-			},
-		},
-		text: {
-			xsmall: {
-				fontSize: '14px',
-			},
-			small: {
-				fontSize: '16px',
-			},
-			standard: {
-				fontSize: '18px',
-			},
-			large: {
-				fontSize: '22px',
-			},
-		},
 	},
 	transforms: {
 		touchable: 'scale(0.97)',

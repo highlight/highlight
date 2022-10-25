@@ -1,3 +1,4 @@
+import { IncomingHttpHeaders, request } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 
@@ -6,6 +7,9 @@ export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 export interface HighlightInterface {
 	init: (options: NodeOptions) => void
 	isInitialized: () => boolean
+	parseHeaders: (
+		headers: IncomingHttpHeaders,
+	) => { secureSessionId: string; requestId: string } | undefined
 	consumeError: (
 		error: Error,
 		secureSessionId: string,
@@ -75,5 +79,21 @@ export const H: HighlightInterface = {
 		} catch (e) {
 			console.log('highlight-node flush error: ', e)
 		}
+	},
+	parseHeaders: (
+		headers: IncomingHttpHeaders,
+	): { secureSessionId: string; requestId: string } | undefined => {
+		try {
+			if (headers && headers[HIGHLIGHT_REQUEST_HEADER]) {
+				const [secureSessionId, requestId] =
+					`${headers[HIGHLIGHT_REQUEST_HEADER]}`.split('/')
+				if (!!secureSessionId && !!requestId) {
+					return { secureSessionId, requestId }
+				}
+			}
+		} catch (e) {
+			console.log('highlight-node parseHeaders error: ', e)
+		}
+		return undefined
 	},
 }

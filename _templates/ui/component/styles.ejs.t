@@ -1,5 +1,5 @@
 ---
-to: packages/ui/src/components/<%= name %>/<%= name %>.css.ts
+to: packages/ui/src/components/<%= name %>/styles.css.ts
 ---
 
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
