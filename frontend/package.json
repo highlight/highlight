@@ -108,7 +108,7 @@
 		]
 	},
 	"devDependencies": {
-		"@graphql-codegen/cli": "^1.20.1",
+		"@graphql-codegen/cli": "^2.13.7",
 		"@graphql-codegen/import-types-preset": "^1.18.1",
 		"@graphql-codegen/named-operations-object": "^2.1.0",
 		"@graphql-codegen/typescript": "^1.20.2",
