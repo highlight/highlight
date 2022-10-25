@@ -2389,7 +2389,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 	return strings.Contains(acceptEncodingString, "br")
 }
 
-func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
+func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor, bool) {
 	if s.ProcessWithRedis {
 		isLive := cursor != model.EventsCursor{}
 		s3Events := map[int]string{}
@@ -2397,7 +2397,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 			var err error
 			s3Events, err = r.StorageClient.GetRawEventsFromS3(ctx, s.ID, s.ProjectID)
 			if err != nil {
-				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil
+				return nil, errors.Wrap(err, "error retrieving events objects from S3"), nil, false
 			}
 		}
 		return r.Redis.GetEvents(ctx, s, cursor, s3Events)
@@ -2408,9 +2408,9 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadSessionsFromS3(s.ID, s.ProjectID)
 		if err != nil {
-			return nil, err, nil
+			return nil, err, nil, false
 		}
-		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}
+		return ret[cursor.EventIndex:], nil, &model.EventsCursor{EventIndex: len(ret), EventObjectIndex: nil}, s.EndsWithBeacon
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.eventsObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -2420,7 +2420,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 		offset = *cursor.EventObjectIndex
 	}
 	if err := r.DB.Table("events_objects_partitioned").Order("created_at asc").Where(&model.EventsObject{SessionID: s.ID, IsBeacon: false}).Offset(offset).Find(&eventObjs).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from events"), nil
+		return nil, e.Wrap(err, "error reading from events"), nil, false
 	}
 	eventsQuerySpan.Finish()
 	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -2429,7 +2429,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, e.Wrap(err, "error decoding event data"), nil
+			return nil, e.Wrap(err, "error decoding event data"), nil, false
 		}
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
@@ -2439,7 +2439,7 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 	}
 	nextCursor := model.EventsCursor{EventIndex: cursor.EventIndex + len(events), EventObjectIndex: pointy.Int(offset + len(eventObjs))}
 	eventsParseSpan.Finish()
-	return events, nil, &nextCursor
+	return events, nil, &nextCursor, eventObjs[len(eventObjs)-1].IsBeacon
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackChannel, int, error) {

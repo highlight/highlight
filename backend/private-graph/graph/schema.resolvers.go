@@ -3177,7 +3177,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	events, err, _, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
 }
 
@@ -6183,7 +6183,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 				log.Error(e.Wrap(err, "error fetching session for subscription"))
 				return
 			}
-			events, err, nextCursor := r.getEvents(ctx, session, cursor)
+			events, err, nextCursor, _ := r.getEvents(ctx, session, cursor)
 			if err != nil {
 				log.Error(e.Wrap(err, "error fetching events incrementally"))
 				return
