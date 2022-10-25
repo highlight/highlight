@@ -15,4 +15,16 @@ export const colors = {
 	purple500: '#6C37F4',
 	purple700: '#5420D1',
 	purple900: '#0D0225',
+
+	blue100: '#D6F0FF',
+	blue300: '#96D5F8',
+	blue500: '#23B6E2',
+	blue700: '#0B75AA',
+
+	green100: '#EBFF5E',
+	green500: '#8DC31A',
+
+	red500: '#FF5377',
+	orange500: '#FF9457',
+	teal500: '#36E79B',
 }

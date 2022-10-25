@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 /// <reference types="vitest/globals" />
+import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'url'
@@ -52,6 +53,7 @@ export default defineConfig(({ mode }) => {
 					plugins: ['babel-plugin-react-wrapped-display-name'],
 				},
 			}),
+			vanillaExtractPlugin(),
 			tsconfigPaths(),
 			svgr(),
 			vitePluginImp({

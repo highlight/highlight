@@ -1,4 +1,3 @@
-import { globalStyle } from '@vanilla-extract/css'
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
 import { breakpoints } from './breakpoints'
@@ -21,6 +20,10 @@ const responsiveProperties = defineProperties({
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
 		display: ['none', 'flex', 'block', 'inline'],
+		gap: vars.space,
+		flex: {
+			stretch: '1 1 0',
+		},
 		flexDirection: ['row', 'column'],
 		justifyContent: [
 			'stretch',
@@ -29,6 +32,14 @@ const responsiveProperties = defineProperties({
 			'flex-end',
 			'space-around',
 			'space-between',
+		],
+		textTransform: [
+			'none',
+			'capitalize',
+			'uppercase',
+			'lowercase',
+			'full-width',
+			'full-size-kana',
 		],
 		padding: vars.space,
 		paddingTop: vars.space,
@@ -42,7 +53,7 @@ const responsiveProperties = defineProperties({
 		marginRight: vars.space,
 	},
 	shorthands: {
-		// border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+		align: ['alignItems'],
 		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
 		px: ['paddingLeft', 'paddingRight'],
 		py: ['paddingTop', 'paddingBottom'],
@@ -72,14 +83,16 @@ const colorProperties = defineProperties({
 		color: vars.color,
 		textTransform: ['none', 'capitalize', 'uppercase', 'lowercase'],
 	},
+	shorthands: {
+		border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+		bt: ['borderTop'],
+		br: ['borderRight'],
+		bb: ['borderBottom'],
+		bl: ['borderLeft'],
+		shadow: ['boxShadow'],
+	},
 })
 
 export const sprinkles = createSprinkles(responsiveProperties, colorProperties)
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]
-
-// Probably not the right place for this, but needs to be defined somewhere for
-// the global styles to be injected.
-globalStyle('body', {
-	fontFamily: vars.typography.family.body,
-})
