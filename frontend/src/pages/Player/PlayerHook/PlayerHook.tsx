@@ -198,6 +198,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				Map<number, HighlightEvent[]>,
 				'set' | 'clear' | 'delete'
 			>,
+			currentIdx: number,
 			startIdx: number,
 			endIdx: number,
 		): number[] => {
@@ -223,18 +224,20 @@ export const usePlayer = (): ReplayerContextInterface => {
 			// If there are more than the max chunks loaded, try removing
 			// the earliest. If we're currently playing the earliest chunk,
 			// remove the latest instead.
-			const toRemove: number[] = []
+			const toRemove = new Set<number>([])
 			for (let i = startIdx; i <= endIdx; i++) {
 				if (count > MAX_CHUNK_COUNT - 1) {
 					if (minIdx !== undefined && i !== minIdx) {
-						toRemove.push(minIdx)
+						toRemove.add(minIdx)
 					} else if (maxIdx !== undefined) {
-						toRemove.push(maxIdx)
+						toRemove.add(maxIdx)
 					}
 				}
 			}
+			toRemove.delete(currentIdx)
 
-			return toRemove
+			log('getChunksToRemove', { currentIdx, startIdx, endIdx, toRemove })
+			return Array.from(toRemove)
 		},
 		[],
 	)
@@ -242,7 +245,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Ensure all chunks between startTs and endTs are loaded. If a callback
 	// is passed in, invoke it once the chunks are loaded.
 	const ensureChunksLoaded = useCallback(
-		async (startTime: number, endTime?: number) => {
+		async (startTime: number, endTime?: number, action?: ReplayerState) => {
 			if (
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
@@ -250,6 +253,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
+			const currentIdx = getChunkIdx(
+				state.sessionMetadata.startTime +
+					(state.replayer?.getCurrentTime() ?? 0),
+			)
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
@@ -258,9 +265,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				: startIdx
 
 			const toSet: [number, HighlightEvent[] | undefined][] = []
-			getChunksToRemove(chunkEventsRef.current, startIdx, endIdx).forEach(
-				(idx) => toSet.push([idx, undefined]),
-			)
+			getChunksToRemove(
+				chunkEventsRef.current,
+				currentIdx,
+				startIdx,
+				endIdx,
+			).forEach((idx) => toSet.push([idx, undefined]))
 			const promises = []
 			log(
 				'PlayerHook.ts',
@@ -316,15 +326,29 @@ export const usePlayer = (): ReplayerContextInterface => {
 			for (const [i, data] of await Promise.all(promises)) {
 				toSet.push([i, toHighlightEvents(data)])
 			}
-			if (promises.length) {
+			if (toSet.length || action) {
 				chunkEventsSetMulti(toSet)
+				const events = []
+				for (const [, v] of [...chunkEventsRef.current.entries()].sort(
+					(a, b) => a[0] - b[0],
+				)) {
+					for (const val of v) {
+						events.push(val)
+					}
+				}
+				log('PlayerHook.ts', 'ensureChunksLoaded setting events', {
+					chunks: chunkEventsRef.current,
+					events,
+				})
+				if (state.replayer) {
+					state.replayer?.replaceEvents(events)
+				}
 				dispatch({
 					type: PlayerActionType.onChunksLoad,
 					showPlayerMouseTail,
-					sortedChunks: [...chunkEventsRef.current.entries()].sort(
-						(a, b) => a[0] - b[0],
-					),
+					events,
 					time: startTime,
+					action,
 				})
 			}
 			return promises.length
@@ -390,9 +414,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from play')
-				ensureChunksLoaded(newTime, undefined).then(() => {
-					dispatch({ type: PlayerActionType.Play, time: newTime })
-				})
+				ensureChunksLoaded(
+					newTime,
+					undefined,
+					ReplayerState.Playing,
+				).then()
 
 				// Log how long it took to move to the new time.
 				const timelineChangeTime = timerEnd('timelineChangeTime')
@@ -416,9 +442,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 		(time?: number) => {
 			timedCall('player/pause', () => {
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from pause')
-				ensureChunksLoaded(time ?? 0, undefined).then(() => {
-					dispatch({ type: PlayerActionType.Pause, time: time ?? 0 })
-				})
+				ensureChunksLoaded(
+					time ?? 0,
+					undefined,
+					ReplayerState.Paused,
+				).then()
 
 				// Log how long it took to move to the new time.
 				const timelineChangeTime = timerEnd('timelineChangeTime')
@@ -436,12 +464,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 			timedCall('player/seek', () => {
 				dispatch({ type: PlayerActionType.setTime, time })
 				log('PlayerHook.ts', 'calling ensureChunksLoaded from seek')
-				ensureChunksLoaded(time).then(() => {
-					dispatch({ type: PlayerActionType.Seek, time })
-				})
+				ensureChunksLoaded(time, undefined, state.replayerState).then()
 			})
 		},
-		[ensureChunksLoaded],
+		[ensureChunksLoaded, state.replayerState],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -651,15 +677,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
-			chunkEventsSetMulti([
-				[0, toHighlightEvents(sessionPayload?.events)],
-			])
+			const events = toHighlightEvents(sessionPayload?.events)
+			chunkEventsSetMulti([[0, events]])
+			if (state.replayer) {
+				state.replayer?.replaceEvents(events)
+			}
 			dispatch({
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
-				sortedChunks: [...chunkEventsRef.current.entries()].sort(
-					(a, b) => a[0] - b[0],
-				),
+				events,
 				time: 0,
 			})
 		}

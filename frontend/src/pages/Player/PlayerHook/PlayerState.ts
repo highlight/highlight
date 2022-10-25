@@ -232,9 +232,10 @@ interface startChunksLoad {
 
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
-	sortedChunks: [number, HighlightEvent[]][]
+	events: HighlightEvent[]
 	showPlayerMouseTail: boolean
 	time: number
+	action?: ReplayerState
 }
 
 interface onFrame {
@@ -470,13 +471,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			s.events = []
-			for (const [, v] of action.sortedChunks) {
-				for (const val of v) {
-					s.events.push(val)
-				}
-			}
-
+			s.events = action.events
 			s.isLiveMode = s.session?.processed === false
 			if (s.events.length < 2) {
 				if (!(s.session?.processed === false)) {
@@ -495,12 +490,16 @@ export const PlayerReducer = (
 			}
 			s.isLoadingEvents = false
 			s.time = action.time
-			s = replayerAction(
-				PlayerActionType.onChunksLoad,
-				s,
-				s.replayerStateBeforeLoad,
-				s.time,
-			)
+			try {
+				s = replayerAction(
+					PlayerActionType.onChunksLoad,
+					s,
+					action.action || s.replayerStateBeforeLoad,
+					s.time,
+				)
+			} catch (e: any) {
+				log('PlayerState.ts', 'onChunksLoad exception', e)
+			}
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
