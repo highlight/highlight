@@ -18,6 +18,10 @@ export const Text: React.FC<Props> = ({
 	transform,
 	...props
 }) => {
+	if (props.size === 'monospace') {
+		props.weight = 'semibold'
+	}
+
 	return (
 		<Box
 			as={as}

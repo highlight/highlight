@@ -1,5 +1,5 @@
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Heading } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
@@ -34,7 +34,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 
 	return (
 		<Box my="xLarge">
-			<Text variant="h2">{headerTextAsJson || headerText}</Text>
+			<Heading size="h2">{headerTextAsJson || headerText}</Heading>
 		</Box>
 	)
 }
