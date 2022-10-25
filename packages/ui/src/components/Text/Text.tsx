@@ -8,13 +8,23 @@ type Props = React.PropsWithChildren &
 	styles.Variants & {
 		as?: BoxProps['as']
 		color?: BoxProps['color']
+		transform?: BoxProps['textTransform']
 	}
 
-export const Text: React.FC<Props> = ({ as, children, color, ...props }) => {
+export const Text: React.FC<Props> = ({
+	as,
+	children,
+	color,
+	transform,
+	...props
+}) => {
 	return (
 		<Box
 			as={as}
-			cssClass={[styles.variants({ ...props }), sprinkles({ color })]}
+			cssClass={[
+				styles.variants({ ...props }),
+				sprinkles({ color, textTransform: transform }),
+			]}
 		>
 			{children}
 		</Box>
