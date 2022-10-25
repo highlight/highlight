@@ -145,8 +145,16 @@ const HIGHLIGHT_URL = 'app.highlight.run'
  * 4 minutes AND the cumulative payload size since the last
  * snapshot is > 10MB.
  */
-const MIN_SNAPSHOT_BYTES = 10e6
-const MIN_SNAPSHOT_TIME = 4 * 60 * 1000
+const SNAPSHOT_SETTINGS = {
+	normal: {
+		bytes: 10e6,
+		time: 4 * 60 * 1000,
+	},
+	canvas: {
+		bytes: 16e6,
+		time: 5000,
+	},
+}
 
 // Debounce duplicate visibility events
 const VISIBILITY_DEBOUNCE_MS = 100
@@ -1183,11 +1191,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		// ensure the snapshot is at the beginning of the next payload
 		if (!isBeacon) {
 			const now = new Date().getTime()
-			// After MIN_SNAPSHOT_BYTES and MIN_SNAPSHOT_TIME have passed,
+			// After snapshot thresholds have been met,
 			// take a full snapshot and reset the counters
+			const { bytes, time } = this.enableCanvasRecording
+				? SNAPSHOT_SETTINGS.canvas
+				: SNAPSHOT_SETTINGS.normal
 			if (
-				this._eventBytesSinceSnapshot >= MIN_SNAPSHOT_BYTES &&
-				now - this._lastSnapshotTime >= MIN_SNAPSHOT_TIME
+				this._eventBytesSinceSnapshot >= bytes &&
+				now - this._lastSnapshotTime >= time
 			) {
 				record.takeFullSnapshot()
 				this._eventBytesSinceSnapshot = 0
