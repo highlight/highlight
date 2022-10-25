@@ -7,10 +7,10 @@ import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
 
-interface Props extends React.PropsWithChildren, styles.Variants {}
+type Props = React.PropsWithChildren & styles.Variants & {}
 
 export const <%= name %>: React.FC<Props> = ({ children, ...props }) => {
 	return (
-		<Box className={styles.variants({ ...props })}>{children}</Box>
+		<Box cssClass={styles.variants({ ...props })}>{children}</Box>
 	)
 }
