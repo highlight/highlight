@@ -1,24 +1,27 @@
 FROM golang:alpine as backend-builder
+ARG SENDGRID_API_KEY
+ENV SENDGRID_API_KEY=${SENDGRID_API_KEY}
+ARG SLACK_CLIENT_ID
+ENV SLACK_CLIENT_ID=${SLACK_CLIENT_ID}
+ARG SLACK_CLIENT_SECRET
+ENV SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET}
+ARG TURBO_TOKEN
+ENV TURBO_TOKEN=${TURBO_TOKEN}
+
 RUN apk update && apk add git build-base
 RUN mkdir /build-backend
 WORKDIR /build-backend
 COPY ./backend .
 RUN go mod download
-RUN --mount=type=secret,id=SENDGRID_API_KEY \
-  --mount=type=secret,id=SLACK_CLIENT_ID \
-  --mount=type=secret,id=SLACK_CLIENT_SECRET \
-  export SENDGRID_API_KEY=$(cat /run/secrets/SENDGRID_API_KEY) && \
-  export SLACK_CLIENT_ID=$(cat /run/secrets/SLACK_CLIENT_ID) && \
-  export SLACK_CLIENT_SECRET=$(cat /run/secrets/SLACK_CLIENT_SECRET) && \
-  GOOS=linux GOARCH=amd64 go build \
+RUN GOOS=linux GOARCH=amd64 go build \
   -ldflags="-w -s -X main.SENDGRID_API_KEY=$SENDGRID_API_KEY -X github.com/highlight-run/highlight/backend/private-graph/graph.SLACK_CLIENT_ID=$SLACK_CLIENT_ID -X github.com/highlight-run/highlight/backend/private-graph/graph.SLACK_CLIENT_SECRET=$SLACK_CLIENT_SECRET" \
   -o /bin/backend
 
 FROM node:16-alpine as frontend-builder
-# These three 'args' need to be here because they're injected at build time
-# all other env variables are provided in environment.yml.
 ARG REACT_APP_COMMIT_SHA
+ENV REACT_APP_COMMIT_SHA=${REACT_APP_COMMIT_SHA}
 ARG TURBO_TEAM
+ENV TURBO_TEAM=${TURBO_TEAM}
 ENV REACT_APP_ONPREM=true
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
@@ -39,9 +42,7 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
   PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 RUN yarn
-RUN --mount=type=secret,id=TURBO_TOKEN \
-  export TURBO_TOKEN=$(cat /run/secrets/TURBO_TOKEN) && \
-  export NODE_OPTIONS="--max-old-space-size=7168" && \
+RUN export NODE_OPTIONS="--max-old-space-size=7168" && \
   yarn build:frontend
 
 FROM alpine

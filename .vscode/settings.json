@@ -76,5 +76,8 @@
 	},
 	"[sql]": {
 		"editor.defaultFormatter": "mtxr.sqltools"
+	},
+	"[shellscript]": {
+		"editor.defaultFormatter": "foxundermoon.shell-format"
 	}
 }
