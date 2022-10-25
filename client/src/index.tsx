@@ -154,7 +154,7 @@ const SNAPSHOT_SETTINGS = {
 		bytes: 16e6,
 		time: 5000,
 	},
-}
+} as const
 
 // Debounce duplicate visibility events
 const VISIBILITY_DEBOUNCE_MS = 100
