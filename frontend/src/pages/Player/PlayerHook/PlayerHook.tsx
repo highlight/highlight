@@ -381,6 +381,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 					} else {
 						return
 					}
+					dispatch({ type: PlayerActionType.Play, time: newTime })
+					return
 				}
 				// Don't play the session if the player is already at the end of the session.
 				if (newTime >= state.sessionEndTime) {
@@ -501,7 +503,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!unsubscribeSessionPayloadFn.current &&
 			subscribeToSessionPayload
 		) {
-			const unsubscribe = subscribeToSessionPayload({
+			unsubscribeSessionPayloadFn.current = subscribeToSessionPayload({
 				document: OnSessionPayloadAppendedDocument,
 				variables: {
 					session_secure_id,
@@ -513,12 +515,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 						// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
-							chunkEventsSet(0, [
+							const events = [
 								...(chunkEventsRef.current.get(0) ?? []),
 								...toHighlightEvents(newEvents),
-							])
+							]
+							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
+								events: events,
+								lastActiveTimestamp: new Date(
+									// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
+									subscriptionData.data!.session_payload_appended.last_user_interaction_time,
+								).getTime(),
 							})
 						}
 					}
@@ -526,13 +534,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			unsubscribeSessionPayloadFn.current = () => unsubscribe
 			if (state.replayerState === ReplayerState.Paused) {
 				play(state.time)
 			}
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
-			unsubscribeSessionPayloadFn.current = () => null
+			unsubscribeSessionPayloadFn.current = undefined
 			if (state.replayerState === ReplayerState.Playing) {
 				pause()
 			}
@@ -540,7 +547,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		chunkEventsRef.current,
 		state.isLiveMode,
 		sessionPayload?.events,
 		state.replayerState,
@@ -672,10 +678,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.sessionMetadata.startTime,
 			state.errors,
 		)
-		if (state.isLiveMode && state.replayerState > ReplayerState.Loading) {
-			// Resynchronize player timestamp after each batch of events
-			play(state.time)
-		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		sessionPayload,
@@ -737,6 +739,17 @@ export const usePlayer = (): ReplayerContextInterface => {
 	])
 
 	useEffect(() => {
+		if (
+			state.replayerState !== ReplayerState.Playing &&
+			!state.isLiveMode &&
+			animationFrameID.current
+		) {
+			cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
+		}
+	}, [state.replayerState, state.isLiveMode])
+
+	useEffect(() => {
 		setPlayerTimeToPersistance(state.time)
 	}, [setPlayerTimeToPersistance, state.time])
 
@@ -779,7 +792,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (state.sessionMetadata.startTime !== 0) {
 			// If the player is in an inactive interval, skip to the end of it
 			let inactivityEnd: number | undefined
-			if (skipInactive && state.replayerState === ReplayerState.Playing) {
+			if (
+				!state.isLiveMode &&
+				skipInactive &&
+				state.replayerState === ReplayerState.Playing
+			) {
 				inactivityEnd = getInactivityEnd(state.time)
 				if (inactivityEnd !== undefined) {
 					return play(inactivityEnd)
@@ -800,6 +817,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skipInactive,
 		getInactivityEnd,
 		play,
+		state.isLiveMode,
 	])
 
 	return {

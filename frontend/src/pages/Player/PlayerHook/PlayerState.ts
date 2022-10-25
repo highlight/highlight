@@ -194,6 +194,8 @@ interface setTime {
 
 interface addLiveEvents {
 	type: PlayerActionType.addLiveEvents
+	lastActiveTimestamp: number
+	events: HighlightEvent[]
 }
 
 interface loadSession {
@@ -349,11 +351,18 @@ export const PlayerReducer = (
 			s.time = action.time
 			break
 		case PlayerActionType.addLiveEvents:
+			s.isLiveMode = s.session?.processed === false
 			s.liveEventCount += 1
-			s.lastActiveTimestamp = new Date(
-				// @ts-ignore The typedef for subscriptionData is incorrect
-				subscriptionData.data!.session_payload_appended.last_user_interaction_time,
-			).getTime()
+			s.lastActiveTimestamp = action.lastActiveTimestamp
+			s.events = action.events
+			s.replayer?.replaceEvents(s.events)
+			replayerAction(
+				PlayerActionType.addLiveEvents,
+				s,
+				ReplayerState.Playing,
+				s.events[s.events.length - 1].timestamp -
+					s.sessionMetadata.startTime,
+			)
 			break
 		case PlayerActionType.loadSession:
 			s.fetchEventChunkURL = action.fetchEventChunkURL
@@ -573,6 +582,7 @@ export const PlayerReducer = (
 							},
 					  )
 					: []
+			if (!parsedSessionIntervalsData.length) break
 			const sm: playerMetaData = parsedSessionIntervalsData
 				? {
 						startTime: new Date(
