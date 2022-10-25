@@ -38,7 +38,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" variant="largeBold">
+							<Text color="black" size="large">
 								25
 							</Text>
 							<Tag>
@@ -68,7 +68,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" variant="largeBold">
+							<Text color="black" size="large">
 								32
 							</Text>
 							<Tag>
@@ -90,10 +90,10 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" variant="largeBold">
+							<Text color="black" size="large">
 								25
 							</Text>
-							<Text color="neutral500" variant="largeBold">
+							<Text color="neutral500" size="large">
 								{' '}
 								/ Sep 13
 							</Text>
@@ -128,7 +128,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box p="large">
-				<Text variant="mono">{body}</Text>
+				<Text family="monospace">{body}</Text>
 			</Box>
 		</Box>
 	)

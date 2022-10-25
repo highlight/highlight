@@ -47,20 +47,27 @@ const plexo = createStyleObject({
 })
 
 const family = {
-	body: 'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
-	heading:
-		'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
-	monospace:
-		'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
+	body: {
+		fontFamily:
+			'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
+	},
+	heading: {
+		fontFamily:
+			'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
+	},
+	monospace: {
+		fontFamily:
+			'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
+	},
 } as const
 
 const size = {
-	xxSmall: { ...xxSmall, fontFamily: family.body },
-	xSmall: { ...xSmall, fontFamily: family.body },
-	small: { ...small, fontFamily: family.body },
-	medium: { ...medium, fontFamily: family.body },
-	large: { ...large, fontFamily: family.body },
-	mono: { ...plexo, fontFamily: family.monospace },
+	xxSmall: { ...xxSmall, ...family.body },
+	xSmall: { ...xSmall, ...family.body },
+	small: { ...small, ...family.body },
+	medium: { ...medium, ...family.body },
+	large: { ...large, ...family.body },
+	monospace: { ...plexo, ...family.monospace },
 } as const
 
 const weight = {
@@ -69,7 +76,7 @@ const weight = {
 	bold: { fontWeight: '500' },
 } as const
 
-export const typography = {
+export const typographyStyles = {
 	family,
 	size,
 	weight,
@@ -77,8 +84,8 @@ export const typography = {
 
 export const variants = recipe({
 	variants: {
-		size: typography.size,
-		weight: typography.weight,
+		size: typographyStyles.size,
+		weight: typographyStyles.weight,
 	},
 
 	defaultVariants: {
@@ -92,5 +99,5 @@ export type Variants = RecipeVariants<typeof variants>
 // Not the right place for this, but needs to be defined somewhere for the
 // global styles to be injected.
 globalStyle('body', {
-	fontFamily: typography.family.body,
+	...typographyStyles.family.body,
 })

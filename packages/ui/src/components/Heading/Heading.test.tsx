@@ -5,7 +5,7 @@ import { Heading } from './Heading'
 
 describe('Heading', () => {
 	it('exists', async () => {
-		render(<Heading>Testing</Heading>)
+		render(<Heading as="h1">Testing</Heading>)
 
 		await screen.findByText('Testing')
 	})

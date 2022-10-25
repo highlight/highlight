@@ -3,7 +3,7 @@ import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
 
-interface Props extends React.PropsWithChildren {
+type Props = React.PropsWithChildren & {
 	size: 'h1' | 'h2' | 'h3' | 'h4'
 }
 

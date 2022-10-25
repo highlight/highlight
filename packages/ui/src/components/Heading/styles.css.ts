@@ -1,7 +1,7 @@
 import { createStyleObject } from '@capsizecss/core'
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
-import { steradianFontMetrics, typography } from '../Text/styles.css'
+import { steradianFontMetrics, typographyStyles } from '../Text/styles.css'
 
 // Headings
 export const h4 = createStyleObject({
@@ -30,10 +30,10 @@ export const variants = recipe({
 
 	variants: {
 		size: {
-			h4: { ...h4, fontFamily: typography.family.heading },
-			h3: { ...h3, fontFamily: typography.family.heading },
-			h2: { ...h2, fontFamily: typography.family.heading },
-			h1: { ...h1, fontFamily: typography.family.heading },
+			h4: { ...h4, ...typographyStyles.family.heading },
+			h3: { ...h3, ...typographyStyles.family.heading },
+			h2: { ...h2, ...typographyStyles.family.heading },
+			h1: { ...h1, ...typographyStyles.family.heading },
 		},
 	},
 })

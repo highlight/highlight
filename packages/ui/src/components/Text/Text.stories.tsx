@@ -2,7 +2,7 @@ import React from 'react'
 import { ComponentMeta } from '@storybook/react'
 
 import { Text } from './Text'
-import { typography } from './styles.css'
+import { typographyStyles } from './styles.css'
 import { Box } from '../Box/Box'
 
 export default {
@@ -11,11 +11,11 @@ export default {
 } as ComponentMeta<typeof Text>
 
 export const Sizes = () => {
-	return Object.keys(typography.size).map(
-		(size: keyof typeof typography.size) => (
+	return Object.keys(typographyStyles.size).map(
+		(size: keyof typeof typographyStyles.size) => (
 			<Box marginBottom="xxLarge" key={size}>
-				{Object.keys(typography.weight).map(
-					(weight: keyof typeof typography.weight) => (
+				{Object.keys(typographyStyles.weight).map(
+					(weight: keyof typeof typographyStyles.weight) => (
 						<Box marginBottom="large" key={weight}>
 							<Text
 								size={size}
@@ -61,5 +61,7 @@ export const Elements = () => (
 		<Text as="sub">sub</Text>
 		<br />
 		<Text as="sup">sup</Text>
+		<br />
+		<Text as="code">code</Text>
 	</>
 )
