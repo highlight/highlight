@@ -42,7 +42,7 @@ export const Badge: React.FC<Props> = ({
 		default:
 			textColor = 'neutral700'
 	}
-	console.log(':::', rest.theme)
+
 	return (
 		<Box
 			display="flex"
