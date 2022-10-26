@@ -8,10 +8,10 @@ import React from 'react'
 
 // time since search params last changed that should trigger a page reset, ms
 export const RESET_PAGE_MS = 1000
-export const PAGE_SIZE = 10
+export const DEFAULT_PAGE_SIZE = 10
 export const STARTING_PAGE = 1
 const OPENSEARCH_MAX_RESULTS = 10000
-const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1
+const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / DEFAULT_PAGE_SIZE) - 1
 
 enum PageDirection {
 	Forward,
@@ -22,12 +22,18 @@ export const Pagination = ({
 	page,
 	setPage,
 	totalPages,
+	pageSize,
 }: {
 	page?: number
 	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
-	totalPages: React.MutableRefObject<number>
+	totalPages: number
+	pageSize?: number
 }) => {
-	const maxPage = Math.min(MAX_PAGES, totalPages.current)
+	if (!pageSize) {
+		pageSize = DEFAULT_PAGE_SIZE
+	}
+
+	const maxPage = Math.min(MAX_PAGES, totalPages)
 	const changePage = (dir: PageDirection) => {
 		if (dir === PageDirection.Forward) {
 			if ((page || STARTING_PAGE) < maxPage) {
@@ -57,8 +63,8 @@ export const Pagination = ({
 						<AntdPagination
 							showSizeChanger={false}
 							size={'small'}
-							pageSize={PAGE_SIZE}
-							total={PAGE_SIZE * maxPage}
+							pageSize={DEFAULT_PAGE_SIZE}
+							total={DEFAULT_PAGE_SIZE * maxPage}
 							current={page || STARTING_PAGE}
 							onChange={setPage}
 						/>

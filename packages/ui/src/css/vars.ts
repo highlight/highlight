@@ -11,6 +11,7 @@ export const vars = {
 	borderRadius: {
 		xSmall: '3px',
 		small: '4px',
+		tiny: '6px',
 		medium: '8px',
 		large: '12px',
 	},

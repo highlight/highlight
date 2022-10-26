@@ -20,15 +20,13 @@ import ErrorQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors'
-import {
-	serializeAbsoluteTimeRange,
-	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import useLocalStorage from '@rehooks/local-storage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
+import { serializeAbsoluteTimeRange } from '@util/time'
 import classNames from 'classnames/bind'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -233,7 +231,12 @@ export const ErrorFeedV2 = () => {
 					)}
 				</div>
 			</div>
-			<Pagination page={page} setPage={setPage} totalPages={totalPages} />
+			<Pagination
+				page={page}
+				setPage={setPage}
+				totalPages={totalPages.current}
+				pageSize={PAGE_SIZE}
+			/>
 		</>
 	)
 }

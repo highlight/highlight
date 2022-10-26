@@ -1,0 +1,19 @@
+.filtersContainer {
+	align-items: center;
+	column-gap: var(--size-small);
+	display: flex;
+	flex-shrink: 1;
+	flex-wrap: wrap;
+	row-gap: var(--size-small);
+}
+
+.pagination {
+	> div {
+		margin: 0;
+	}
+}
+
+.content {
+	overflow-x: hidden;
+	overflow-y: auto;
+}

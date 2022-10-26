@@ -1,11 +1,8 @@
 .container {
 	background: var(--color-primary-background);
-	border: 1px solid var(--color-gray-300);
-	border-radius: var(--border-radius);
 	display: flex;
-	height: 62px;
+	height: 36px;
 	margin: 0 auto;
-	padding: var(--size-xSmall) var(--size-medium);
 	position: relative;
 	width: 100%;
 	z-index: 2;

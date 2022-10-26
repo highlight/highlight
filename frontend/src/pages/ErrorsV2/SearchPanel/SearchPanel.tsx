@@ -1,6 +1,5 @@
-import { ErrorFeedV2 } from '@pages/Errors/ErrorFeedV2/ErrorFeedV2'
+import ErrorFeed from '@pages/ErrorsV2/ErrorFeed/ErrorFeed'
 import classNames from 'classnames'
-import React from 'react'
 
 import useErrorPageConfiguration from '../../Error/utils/ErrorPageUIConfiguration'
 import PanelToggleButton from '../../Player/components/PanelToggleButton/PanelToggleButton'
@@ -15,7 +14,7 @@ const SearchPanel = () => {
 				[styles.hidden]: !showLeftPanel,
 			})}
 		>
-			{showLeftPanel && <ErrorFeedV2 />}
+			{showLeftPanel && <ErrorFeed />}
 			<PanelToggleButton
 				direction="left"
 				className={classNames(styles.panelToggleButton, {
