@@ -1,11 +1,15 @@
 import BarChart from '@components/BarChart/BarChart'
-import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, Text } from '@highlight-run/ui'
+import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
+import { Badge, Box, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { ReactComponent as CheckCircleIcon } from '@icons/Solid/check-circle.svg'
+import { ReactComponent as StopCircleIcon } from '@icons/Solid/stop-circle.svg'
 import { ReactComponent as UsersIcon } from '@icons/Solid/users.svg'
+import { ReactComponent as ViewGridIcon } from '@icons/Solid/view-grid.svg'
+import { ReactComponent as XCircleIcon } from '@icons/Solid/x-circle.svg'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import style from './ErrorFeedCard.module.scss'
@@ -39,6 +43,17 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 	// TODO: replace this with an aggregate count from openSearch
 	const errorCount = frequencies.reduce((acc, curr) => acc + curr, 0)
 	const userCount = 5
+
+	const stateIcon = useMemo(() => {
+		switch (errorGroup?.state) {
+			case ErrorState.Open:
+				return <StopCircleIcon className={style.icon} />
+			case ErrorState.Resolved:
+				return <CheckCircleIcon className={style.icon} />
+			default:
+				return <XCircleIcon className={style.icon} />
+		}
+	}, [errorGroup?.state])
 
 	return (
 		<Link
@@ -74,47 +89,34 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						gap="tiny"
 						justifyContent="space-between"
 					>
-						<Box display="flex" gap="tiny">
-							<Box
-								border="neutral"
-								borderRadius="xSmall"
-								px="xSmall"
-								py="xxSmall"
-								display="flex"
-								alignItems="center"
-								gap="xxSmall"
-								cssClass={style.badge}
-							>
-								<UsersIcon className={style.icon} />
-								<Text
-									size="xSmall"
-									weight="semibold"
-									color="neutral700"
-									as="span"
-								>
-									{errorCount}
-								</Text>
-							</Box>
-							<Box
-								border="neutral"
-								borderRadius="xSmall"
-								px="xSmall"
-								py="xxSmall"
-								display="flex"
-								alignItems="center"
-								gap="xxSmall"
-								cssClass={style.badge}
-							>
-								<UsersIcon className={style.icon} />
-								<Text
-									size="xSmall"
-									weight="semibold"
-									color="neutral700"
-									as="span"
-								>
-									{userCount}
-								</Text>
-							</Box>
+						<Box display="flex" gap="tiny" alignItems="center">
+							<Badge
+								iconStart={<UsersIcon className={style.icon} />}
+								label={`${userCount}`}
+							/>
+							<Badge
+								iconStart={
+									<ViewGridIcon className={style.icon} />
+								}
+								label={`${errorCount}`}
+							/>
+							{errorGroup?.state ? (
+								<>
+									<span className={style.separator} />
+									<Badge
+										theme={
+											errorGroup?.state ===
+											ErrorState.Resolved
+												? 'green'
+												: errorGroup?.state ===
+												  ErrorState.Ignored
+												? 'grey'
+												: 'outlineGrey'
+										}
+										iconStart={stateIcon}
+									/>
+								</>
+							) : null}
 						</Box>
 						<Box>
 							<Text
