@@ -52,7 +52,6 @@ export const Badge: React.FC<Props> = ({
 			cssClass={[styles.variants({ ...rest })]}
 		>
 			{iconStart}
-
 			{label && (
 				<Text
 					weight="semibold"
