@@ -24,6 +24,8 @@ export const Themes = () => {
 		<>
 			<Badge theme="green" label="Green" />
 			<br />
+			<Badge theme="white" label="White" />
+			<br />
 			<Badge theme="outlineGrey" label="Outline Grey" />
 			<br />
 			<Badge theme="grey" label="Grey" />

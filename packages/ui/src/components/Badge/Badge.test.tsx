@@ -5,7 +5,7 @@ import { Badge } from './Badge'
 
 describe('Bage', () => {
 	it('exists', async () => {
-		render(<Badge>Testing</Badge>)
+		render(<Badge label="Testing" />)
 
 		await screen.findByText('Testing')
 	})
