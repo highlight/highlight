@@ -242,6 +242,31 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[],
 	)
 
+	const dispatchAction = useCallback(
+		(time: number, action?: ReplayerState) => {
+			const events = []
+			for (const [, v] of [...chunkEventsRef.current.entries()].sort(
+				(a, b) => a[0] - b[0],
+			)) {
+				for (const val of v) {
+					events.push(val)
+				}
+			}
+			log('PlayerHook.ts', 'ensureChunksLoaded setting events', {
+				chunks: chunkEventsRef.current,
+				events,
+			})
+			dispatch({
+				type: PlayerActionType.onChunksLoad,
+				showPlayerMouseTail,
+				events,
+				time,
+				action,
+			})
+		},
+		[showPlayerMouseTail],
+	)
+
 	// Ensure all chunks between startTs and endTs are loaded. If a callback
 	// is passed in, invoke it once the chunks are loaded.
 	const ensureChunksLoaded = useCallback(
@@ -250,6 +275,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
 			) {
+				if (action) dispatchAction(startTime, action)
 				return
 			}
 
@@ -328,34 +354,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 			if (toSet.length || action) {
 				chunkEventsSetMulti(toSet)
-				const events = []
-				for (const [, v] of [...chunkEventsRef.current.entries()].sort(
-					(a, b) => a[0] - b[0],
-				)) {
-					for (const val of v) {
-						events.push(val)
-					}
-				}
-				log('PlayerHook.ts', 'ensureChunksLoaded setting events', {
-					chunks: chunkEventsRef.current,
-					events,
-				})
-				if (state.replayer) {
-					state.replayer?.replaceEvents(events)
-				}
-				dispatch({
-					type: PlayerActionType.onChunksLoad,
-					showPlayerMouseTail,
-					events,
-					time: startTime,
-					action,
-				})
+				dispatchAction(startTime, action)
 			}
 			return promises.length
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
-			showPlayerMouseTail,
+			dispatchAction,
 			chunkEventsRef.current,
 			chunkEventsSet,
 			chunkEventsSetMulti,
@@ -529,6 +533,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!unsubscribeSessionPayloadFn.current &&
 			subscribeToSessionPayload
 		) {
+			log('PlayerHook.tsx', 'live mode subscribing')
 			unsubscribeSessionPayloadFn.current = subscribeToSessionPayload({
 				document: OnSessionPayloadAppendedDocument,
 				variables: {
@@ -536,19 +541,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 					initial_events_count: sessionPayload.events.length,
 				},
 				updateQuery: (prev, { subscriptionData }) => {
+					log('PlayerHook.tsx', 'live mode update', {
+						subscriptionData,
+					})
 					if (subscriptionData.data) {
 						const sd = subscriptionData.data
 						// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
-							const events = [
-								...(chunkEventsRef.current.get(0) ?? []),
-								...toHighlightEvents(newEvents),
-							]
+							const events = toHighlightEvents(newEvents)
 							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
-								events: events,
+								events: chunkEventsRef.current.get(0) ?? [],
 								lastActiveTimestamp: new Date(
 									// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 									subscriptionData.data!.session_payload_appended.last_user_interaction_time,
@@ -566,9 +571,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
 			unsubscribeSessionPayloadFn.current = undefined
-			if (state.replayerState === ReplayerState.Playing) {
-				pause()
-			}
 		}
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -679,14 +681,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
 			const events = toHighlightEvents(sessionPayload?.events)
 			chunkEventsSetMulti([[0, events]])
-			if (state.replayer) {
-				state.replayer?.replaceEvents(events)
-			}
 			dispatch({
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
 				events,
 				time: 0,
+				action: ReplayerState.Paused,
 			})
 		}
 		dispatch({
@@ -815,7 +815,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
-		if (state.sessionMetadata.startTime !== 0) {
+		if (state.session?.processed && state.sessionMetadata.startTime !== 0) {
 			// If the player is in an inactive interval, skip to the end of it
 			let inactivityEnd: number | undefined
 			if (
@@ -839,6 +839,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.time,
 		ensureChunksLoaded,
 		state.sessionMetadata.startTime,
+		state.session?.processed,
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,
@@ -866,8 +867,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.replayerState !== ReplayerState.Empty &&
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
-		setIsLiveMode: (isLiveMode) =>
-			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode }),
+		setIsLiveMode: (isLiveMode) => {
+			if (isLiveMode) play()
+			else pause()
+			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
+		},
 		playerProgress: state.replayer
 			? state.time / state.sessionMetadata.totalTime
 			: null,

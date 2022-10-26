@@ -726,6 +726,7 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
+			s.replayer?.startLive(s.events[0].timestamp)
 			break
 		case PlayerActionType.setViewingUnauthorizedSession:
 			s.viewingUnauthorizedSession = handleSetStateAction(
