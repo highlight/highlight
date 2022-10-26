@@ -669,12 +669,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [download, sessionData?.session?.direct_download_url, session_secure_id])
 
 	useEffect(() => {
-		if (
-			!sessionPayload ||
-			!sessionIntervals ||
-			!eventChunksData ||
-			!timelineIndicatorEvents
-		)
+		if (!sessionPayload || !sessionIntervals || !timelineIndicatorEvents)
 			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
@@ -692,7 +687,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			type: PlayerActionType.onSessionPayloadLoaded,
 			sessionPayload,
 			sessionIntervals,
-			eventChunksData,
 			timelineIndicatorEvents,
 		})
 		if (state.replayerState <= ReplayerState.Loading) {
@@ -707,7 +701,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [
 		sessionPayload,
 		sessionIntervals,
-		eventChunksData,
 		timelineIndicatorEvents,
 		chunkEventsSetMulti,
 	])
@@ -867,6 +860,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
+			dispatch({
+				type: PlayerActionType.addLiveEvents,
+				events: chunkEventsRef.current.get(0) ?? [],
+				lastActiveTimestamp: state.lastActiveTimestamp,
+			})
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},
 		playerProgress: state.replayer

@@ -1,7 +1,6 @@
 import { ApolloQueryResult, LazyQueryExecFunction } from '@apollo/client'
 import { MarkSessionAsViewedMutationFn } from '@graph/hooks'
 import {
-	GetEventChunksQuery,
 	GetEventChunkUrlQuery,
 	GetSessionIntervalsQuery,
 	GetSessionPayloadQuery,
@@ -85,7 +84,6 @@ interface PlayerState {
 	currentEvent: string
 	currentUrl: string | undefined
 	errors: ErrorObject[]
-	eventChunksData: GetEventChunksQuery | undefined
 	events: HighlightEvent[]
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
 	eventsLoaded: boolean
@@ -105,6 +103,11 @@ interface PlayerState {
 	// to for knowing when new live events are available to add to the player.
 	liveEventCount: number
 	markSessionAsViewed: MarkSessionAsViewedMutationFn
+	onSessionPayloadLoadedPayload?: {
+		sessionIntervals: GetSessionIntervalsQuery | undefined
+		sessionPayload: GetSessionPayloadQuery | undefined
+		timelineIndicatorEvents: GetTimelineIndicatorEventsQuery | undefined
+	}
 	performancePayloads: Array<HighlightPerformancePayload>
 	project_id: string
 	rageClicks: RageClick[]
@@ -246,7 +249,6 @@ interface onSessionPayloadLoaded {
 	type: PlayerActionType.onSessionPayloadLoaded
 	sessionPayload?: GetSessionPayloadQuery
 	sessionIntervals?: GetSessionIntervalsQuery
-	eventChunksData?: GetEventChunksQuery
 	timelineIndicatorEvents?: GetTimelineIndicatorEventsQuery
 }
 
@@ -285,7 +287,6 @@ export const PlayerInitialState = {
 	currentEvent: '',
 	currentUrl: undefined,
 	errors: [],
-	eventChunksData: undefined,
 	events: [],
 	eventsDataLoaded: false,
 	eventsForTimelineIndicator: [],
@@ -485,6 +486,9 @@ export const PlayerReducer = (
 			}
 			if (s.replayer === undefined) {
 				s = initReplayer(s, action, s.events)
+				if (s.onSessionPayloadLoadedPayload) {
+					s = processSessionMetadata(s)
+				}
 			} else {
 				s.replayer.replaceEvents(s.events)
 			}
@@ -551,167 +555,16 @@ export const PlayerReducer = (
 			}
 			break
 		case PlayerActionType.onSessionPayloadLoaded:
-			if (action.sessionPayload?.errors) {
-				s.errors = action.sessionPayload.errors as ErrorObject[]
+			s.onSessionPayloadLoadedPayload = {
+				sessionIntervals: action.sessionIntervals,
+				sessionPayload: action.sessionPayload,
+				timelineIndicatorEvents: action.timelineIndicatorEvents,
 			}
-			if (action.sessionPayload?.session_comments) {
-				s.sessionComments = action.sessionPayload
-					.session_comments as SessionComment[]
+			// onChunksLoad has fired and the replayer is created
+			if (s.replayer) {
+				s = processSessionMetadata(s)
 			}
-			s.eventChunksData = action.eventChunksData!
-
-			// Preprocess session interval data from backend
-			const parsedSessionIntervalsData: SessionInterval[] =
-				action.sessionIntervals &&
-				action.sessionIntervals.session_intervals.length > 0
-					? action.sessionIntervals.session_intervals.map(
-							(interval) => {
-								return {
-									startTime: new Date(
-										interval.start_time,
-									).getTime(),
-									endTime: new Date(
-										interval.end_time,
-									).getTime(),
-									duration: interval.duration,
-									active: interval.active,
-								}
-							},
-					  )
-					: []
-			if (!parsedSessionIntervalsData.length) break
-			const sm: playerMetaData = parsedSessionIntervalsData
-				? {
-						startTime: new Date(
-							parsedSessionIntervalsData[0].startTime,
-						).getTime(),
-						endTime: new Date(
-							parsedSessionIntervalsData[
-								parsedSessionIntervalsData.length - 1
-							].endTime,
-						).getTime(),
-						totalTime:
-							new Date(
-								parsedSessionIntervalsData[
-									parsedSessionIntervalsData.length - 1
-								].endTime,
-							).getTime() -
-							new Date(
-								parsedSessionIntervalsData[0].startTime,
-							).getTime(),
-				  }
-				: EMPTY_SESSION_METADATA
-
-			const sessionIntervals = getSessionIntervals(
-				sm,
-				parsedSessionIntervalsData,
-			)
-
-			const parsedTimelineIndicatorEvents =
-				action.timelineIndicatorEvents &&
-				action.timelineIndicatorEvents.timeline_indicator_events
-					.length > 0
-					? toHighlightEvents(
-							action.timelineIndicatorEvents
-								.timeline_indicator_events,
-					  )
-					: []
-			const si = getCommentsInSessionIntervalsRelative(
-				addEventsToSessionIntervals(
-					addErrorsToSessionIntervals(
-						sessionIntervals,
-						s.errors,
-						sm.startTime,
-					),
-					parsedTimelineIndicatorEvents,
-					sm.startTime,
-				),
-				s.sessionComments,
-				sm.startTime,
-			)
-			s.sessionIntervals = si
-			s.eventsForTimelineIndicator = getEventsForTimelineIndicator(
-				parsedTimelineIndicatorEvents,
-				sm.startTime,
-				sm.totalTime,
-			)
-			s.sessionEndTime = sm.endTime
-
-			if (action.sessionPayload?.rage_clicks) {
-				const allClickEvents: (ParsedHighlightEvent & {
-					sessionIndex: number
-				})[] = []
-
-				sessionIntervals.forEach((interval, sessionIndex) => {
-					interval.sessionEvents.forEach((event) => {
-						if (event.type === 5 && event.data.tag === 'Click') {
-							allClickEvents.push({
-								...event,
-								sessionIndex,
-							})
-						}
-					})
-				})
-
-				const rageClicksWithRelativePositions: RageClick[] = []
-
-				action.sessionPayload.rage_clicks.forEach((rageClick) => {
-					const rageClickStartUnixTimestamp = new Date(
-						rageClick.start_timestamp,
-					).getTime()
-					const rageClickEndUnixTimestamp = new Date(
-						rageClick.end_timestamp,
-					).getTime()
-					/**
-					 * We have this tolerance because time reporting for milliseconds precision is slightly off.
-					 */
-					const DIFFERENCE_TOLERANCE = 100
-
-					const matchingStartClickEvent = allClickEvents.find(
-						(clickEvent) => {
-							if (
-								Math.abs(
-									clickEvent.timestamp -
-										rageClickStartUnixTimestamp,
-								) < DIFFERENCE_TOLERANCE
-							) {
-								return true
-							}
-						},
-					)
-					const matchingEndClickEvent = allClickEvents.find(
-						(clickEvent) => {
-							if (
-								Math.abs(
-									clickEvent.timestamp -
-										rageClickEndUnixTimestamp,
-								) < DIFFERENCE_TOLERANCE
-							) {
-								return true
-							}
-						},
-					)
-
-					if (matchingStartClickEvent && matchingEndClickEvent) {
-						rageClicksWithRelativePositions.push({
-							endTimestamp: rageClick.end_timestamp,
-							startTimestamp: rageClick.start_timestamp,
-							totalClicks: rageClick.total_clicks,
-							startPercentage:
-								matchingStartClickEvent.relativeIntervalPercentage,
-							endPercentage:
-								matchingEndClickEvent.relativeIntervalPercentage,
-							sessionIntervalIndex:
-								matchingStartClickEvent.sessionIndex,
-						} as RageClick)
-					}
-				})
-
-				s.rageClicks = rageClicksWithRelativePositions
-				s.sessionIntervals = sessionIntervals
-			}
-			s.sessionMetadata = sm
-			s.eventsLoaded = true
+			// otherwise, onChunksLoad will process session metadata if this happens first
 			break
 		case PlayerActionType.setScale:
 			s.scale = handleSetStateAction(s.scale, action.scale)
@@ -857,5 +710,176 @@ const replayerAction = (
 	if (!skipSetTime) {
 		s.time = time
 	}
+	return s
+}
+
+const processSessionMetadata = (s: PlayerState): PlayerState => {
+	if (!s.onSessionPayloadLoadedPayload) {
+		console.error(
+			'PlayerState.ts',
+			'processSessionMetadata called without onSessionPayloadLoaded payload set',
+		)
+		return s
+	}
+	if (!s.replayer) {
+		console.error(
+			'PlayerState.ts',
+			'processSessionMetadata called without replayer initialized',
+		)
+		return s
+	}
+	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
+		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
+			.errors as ErrorObject[]
+	}
+	if (s.onSessionPayloadLoadedPayload.sessionPayload?.session_comments) {
+		s.sessionComments = s.onSessionPayloadLoadedPayload.sessionPayload
+			.session_comments as SessionComment[]
+	}
+
+	// Preprocess session interval data from backend
+	const parsedSessionIntervalsData: SessionInterval[] =
+		s.onSessionPayloadLoadedPayload.sessionIntervals &&
+		s.onSessionPayloadLoadedPayload.sessionIntervals.session_intervals
+			.length > 0
+			? s.onSessionPayloadLoadedPayload.sessionIntervals.session_intervals.map(
+					(interval) => {
+						return {
+							startTime: new Date(interval.start_time).getTime(),
+							endTime: new Date(interval.end_time).getTime(),
+							duration: interval.duration,
+							active: interval.active,
+						}
+					},
+			  )
+			: s.replayer.getActivityIntervals()
+	const sm: playerMetaData = parsedSessionIntervalsData
+		? {
+				startTime: new Date(
+					parsedSessionIntervalsData[0].startTime,
+				).getTime(),
+				endTime: new Date(
+					parsedSessionIntervalsData[
+						parsedSessionIntervalsData.length - 1
+					].endTime,
+				).getTime(),
+				totalTime:
+					new Date(
+						parsedSessionIntervalsData[
+							parsedSessionIntervalsData.length - 1
+						].endTime,
+					).getTime() -
+					new Date(parsedSessionIntervalsData[0].startTime).getTime(),
+		  }
+		: s.replayer.getMetaData()
+
+	const sessionIntervals = getSessionIntervals(sm, parsedSessionIntervalsData)
+
+	const parsedTimelineIndicatorEvents =
+		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents &&
+		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
+			.timeline_indicator_events.length > 0
+			? toHighlightEvents(
+					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
+						.timeline_indicator_events,
+			  )
+			: s.events
+	s.sessionIntervals = getCommentsInSessionIntervalsRelative(
+		addEventsToSessionIntervals(
+			addErrorsToSessionIntervals(
+				sessionIntervals,
+				s.errors,
+				sm.startTime,
+			),
+			parsedTimelineIndicatorEvents,
+			sm.startTime,
+		),
+		s.sessionComments,
+		sm.startTime,
+	)
+	s.eventsForTimelineIndicator = getEventsForTimelineIndicator(
+		parsedTimelineIndicatorEvents,
+		sm.startTime,
+		sm.totalTime,
+	)
+	s.sessionEndTime = sm.endTime
+
+	if (s.onSessionPayloadLoadedPayload.sessionPayload?.rage_clicks) {
+		const allClickEvents: (ParsedHighlightEvent & {
+			sessionIndex: number
+		})[] = []
+
+		sessionIntervals.forEach((interval, sessionIndex) => {
+			interval.sessionEvents.forEach((event) => {
+				if (event.type === 5 && event.data.tag === 'Click') {
+					allClickEvents.push({
+						...event,
+						sessionIndex,
+					})
+				}
+			})
+		})
+
+		const rageClicksWithRelativePositions: RageClick[] = []
+
+		s.onSessionPayloadLoadedPayload.sessionPayload.rage_clicks.forEach(
+			(rageClick) => {
+				const rageClickStartUnixTimestamp = new Date(
+					rageClick.start_timestamp,
+				).getTime()
+				const rageClickEndUnixTimestamp = new Date(
+					rageClick.end_timestamp,
+				).getTime()
+				/**
+				 * We have this tolerance because time reporting for milliseconds precision is slightly off.
+				 */
+				const DIFFERENCE_TOLERANCE = 100
+
+				const matchingStartClickEvent = allClickEvents.find(
+					(clickEvent) => {
+						if (
+							Math.abs(
+								clickEvent.timestamp -
+									rageClickStartUnixTimestamp,
+							) < DIFFERENCE_TOLERANCE
+						) {
+							return true
+						}
+					},
+				)
+				const matchingEndClickEvent = allClickEvents.find(
+					(clickEvent) => {
+						if (
+							Math.abs(
+								clickEvent.timestamp -
+									rageClickEndUnixTimestamp,
+							) < DIFFERENCE_TOLERANCE
+						) {
+							return true
+						}
+					},
+				)
+
+				if (matchingStartClickEvent && matchingEndClickEvent) {
+					rageClicksWithRelativePositions.push({
+						endTimestamp: rageClick.end_timestamp,
+						startTimestamp: rageClick.start_timestamp,
+						totalClicks: rageClick.total_clicks,
+						startPercentage:
+							matchingStartClickEvent.relativeIntervalPercentage,
+						endPercentage:
+							matchingEndClickEvent.relativeIntervalPercentage,
+						sessionIntervalIndex:
+							matchingStartClickEvent.sessionIndex,
+					} as RageClick)
+				}
+			},
+		)
+
+		s.rageClicks = rageClicksWithRelativePositions
+		s.sessionIntervals = sessionIntervals
+	}
+	s.sessionMetadata = sm
+	s.eventsLoaded = true
 	return s
 }
