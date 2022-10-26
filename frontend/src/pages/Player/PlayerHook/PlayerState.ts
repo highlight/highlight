@@ -473,16 +473,16 @@ export const PlayerReducer = (
 		case PlayerActionType.onChunksLoad:
 			s.events = action.events
 			s.isLiveMode = s.session?.processed === false
-			if (s.events.length < 2) {
-				if (!(s.session?.processed === false)) {
-					s.sessionViewability = SessionViewability.EMPTY_SESSION
-				}
-				break
+			if (
+				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
+			) {
+				s.sessionViewability = SessionViewability.VIEWABLE
 			}
 
-			s.sessionViewability = SessionViewability.VIEWABLE
-			// Add an id field to each event so it can be referenced.
-
+			// if session has no events, abort
+			if (s.events.length < 2) {
+				break
+			}
 			if (s.replayer === undefined) {
 				s = initReplayer(s, action, s.events)
 			} else {
@@ -726,7 +726,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
-			s.replayer?.startLive(s.events[0].timestamp)
 			break
 		case PlayerActionType.setViewingUnauthorizedSession:
 			s.viewingUnauthorizedSession = handleSetStateAction(

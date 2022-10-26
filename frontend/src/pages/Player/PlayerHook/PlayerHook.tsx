@@ -267,8 +267,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[showPlayerMouseTail],
 	)
 
-	// Ensure all chunks between startTs and endTs are loaded. If a callback
-	// is passed in, invoke it once the chunks are loaded.
+	// Ensure all chunks between startTs and endTs are loaded.
 	const ensureChunksLoaded = useCallback(
 		async (startTime: number, endTime?: number, action?: ReplayerState) => {
 			if (
@@ -565,12 +564,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			if (state.replayerState === ReplayerState.Paused) {
-				play(state.time)
-			}
+			const time = state.events?.pop()?.timestamp ?? state.time
+			play(time)
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
 			unsubscribeSessionPayloadFn.current = undefined
+			pause()
 		}
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -868,8 +867,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			if (isLiveMode) play()
-			else pause()
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},
 		playerProgress: state.replayer
