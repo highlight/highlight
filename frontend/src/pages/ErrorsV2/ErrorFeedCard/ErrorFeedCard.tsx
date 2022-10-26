@@ -49,7 +49,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 			case ErrorState.Open:
 				return <StopCircleIcon className={style.icon} />
 			case ErrorState.Resolved:
-				return <CheckCircleIcon className={style.icon} />
+				return <CheckCircleIcon className={style.resolvedIcon} />
 			default:
 				return <XCircleIcon className={style.icon} />
 		}

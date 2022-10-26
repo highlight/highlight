@@ -15,6 +15,7 @@ import {
 	ErrorState,
 	Maybe,
 } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorQueryBuilder, {
 	TIME_RANGE_FIELD,
@@ -106,13 +107,15 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 	)
 
 	return (
-		<SearchResultsHistogram
-			seriesList={histogram.seriesList}
-			bucketTimes={histogram.bucketTimes}
-			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
-			updateTimeRange={updateTimeRange}
-		/>
+		<Box paddingTop="medium">
+			<SearchResultsHistogram
+				seriesList={histogram.seriesList}
+				bucketTimes={histogram.bucketTimes}
+				bucketSize={backendSearchQuery?.histogramBucketSize}
+				loading={loading}
+				updateTimeRange={updateTimeRange}
+			/>
+		</Box>
 	)
 }
 
