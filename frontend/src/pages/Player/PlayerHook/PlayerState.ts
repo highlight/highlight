@@ -515,17 +515,15 @@ export const PlayerReducer = (
 				s.lastActiveTimestamp != 0 &&
 				s.lastActiveTimestamp < activeTime - 5000
 			) {
-				if (state.lastActiveTimestamp > activeTime - 1000 * 60) {
+				if (s.lastActiveTimestamp > activeTime - 1000 * 60) {
 					s.lastActiveString = 'less than a minute ago'
 				} else {
-					s.lastActiveString = moment(state.lastActiveTimestamp).from(
+					s.lastActiveString = moment(s.lastActiveTimestamp).from(
 						activeTime,
 					)
 				}
-			} else {
-				if (state.lastActiveString !== null) {
-					s.lastActiveString = null
-				}
+			} else if (s.lastActiveString !== null) {
+				s.lastActiveString = null
 			}
 
 			if (s.replayerState !== ReplayerState.Playing) break
