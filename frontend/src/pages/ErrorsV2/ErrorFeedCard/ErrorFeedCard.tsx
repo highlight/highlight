@@ -100,23 +100,18 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								}
 								label={`${errorCount}`}
 							/>
-							{errorGroup?.state ? (
-								<>
-									<span className={style.separator} />
-									<Badge
-										theme={
-											errorGroup?.state ===
-											ErrorState.Resolved
-												? 'green'
-												: errorGroup?.state ===
-												  ErrorState.Ignored
-												? 'grey'
-												: 'outlineGrey'
-										}
-										iconStart={stateIcon}
-									/>
-								</>
-							) : null}
+							<span className={style.separator} />
+							<Badge
+								theme={
+									errorGroup?.state === ErrorState.Resolved
+										? 'green'
+										: errorGroup?.state ===
+										  ErrorState.Ignored
+										? 'grey'
+										: 'outlineGrey'
+								}
+								iconStart={stateIcon}
+							/>
 						</Box>
 						<Box>
 							<Text
