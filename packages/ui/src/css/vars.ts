@@ -11,6 +11,7 @@ export const vars = {
 	borderRadius: {
 		'3': '3px',
 		'4': '4px',
+		'5': '5px',
 		'6': '6px',
 		'8': '8px',
 		'12': '12px',

@@ -23,6 +23,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { useParams } from '@util/react-router/useParams'
+import { serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox } from 'antd'
 import classNames from 'classnames'
 import _ from 'lodash'
@@ -276,15 +277,6 @@ export const updateQueriedTimeRange = (
 
 export const isAbsoluteTimeRange = (value?: string): boolean => {
 	return !!value && value.includes('_')
-}
-
-export const serializeAbsoluteTimeRange = (
-	start: Date | undefined,
-	end: Date | undefined,
-) => {
-	const startIso = moment(start).toISOString()
-	const endIso = moment(end).toISOString()
-	return `${startIso}_${endIso}`
 }
 
 export const getAbsoluteStartTime = (value?: string): string | null => {

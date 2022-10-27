@@ -9,7 +9,6 @@ import {
 } from '@graph/hooks'
 import { ErrorSearchParamsInput } from '@graph/schemas'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -40,7 +39,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		project_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
-	const { showLeftPanel } = useErrorPageConfiguration()
 	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 	const integrated = useIntegrated()
 
@@ -210,13 +208,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 					[styles.withErrorState]: errorQueryingErrorGroup,
 				})}
 			>
-				<div
-					className={classNames(styles.searchContainer, {
-						[styles.hidden]: !showLeftPanel,
-					})}
-				>
-					<SearchPanel />
-				</div>
+				<SearchPanel />
 
 				<div className={styles.detailsContainer}>
 					{!integrated && <IntegrationCard />}
@@ -232,9 +224,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 							</Helmet>
 
 							<div
-								className={classNames(styles.detailsContainer, {
-									[styles.hidden]: !showLeftPanel,
-								})}
+								className={classNames(styles.detailsContainer)}
 							>
 								<div className={styles.errorDetails}>
 									{loading ? (

@@ -15,20 +15,19 @@ import {
 	ErrorState,
 	Maybe,
 } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors'
-import {
-	serializeAbsoluteTimeRange,
-	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
+import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import useLocalStorage from '@rehooks/local-storage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
+import { serializeAbsoluteTimeRange } from '@util/time'
 import classNames from 'classnames/bind'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -108,13 +107,15 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 	)
 
 	return (
-		<SearchResultsHistogram
-			seriesList={histogram.seriesList}
-			bucketTimes={histogram.bucketTimes}
-			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
-			updateTimeRange={updateTimeRange}
-		/>
+		<Box paddingTop="medium">
+			<SearchResultsHistogram
+				seriesList={histogram.seriesList}
+				bucketTimes={histogram.bucketTimes}
+				bucketSize={backendSearchQuery?.histogramBucketSize}
+				loading={loading}
+				updateTimeRange={updateTimeRange}
+			/>
+		</Box>
 	)
 }
 
@@ -233,7 +234,12 @@ export const ErrorFeedV2 = () => {
 					)}
 				</div>
 			</div>
-			<Pagination page={page} setPage={setPage} totalPages={totalPages} />
+			<Pagination
+				page={page}
+				setPage={setPage}
+				totalPages={totalPages.current}
+				pageSize={PAGE_SIZE}
+			/>
 		</>
 	)
 }

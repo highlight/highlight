@@ -157,7 +157,7 @@ const Histogram = React.memo(
 
 		return (
 			<div className={styles.container}>
-				<div className={styles.graphContainer}>
+				<div>
 					<AutoSizer>
 						{({ height, width }) => (
 							<BarChart

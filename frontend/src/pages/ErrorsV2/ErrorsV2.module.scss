@@ -14,21 +14,12 @@
 	}
 }
 
-.searchContainer {
-	height: 100%;
-	margin-top: calc((-1 * var(--top-padding)) + var(--header-height));
-	width: var(--left-panel-width);
-
-	&.hidden {
-		position: absolute;
-	}
-}
-
 .detailsContainer {
+	align-items: space-around;
 	display: flex;
+	flex-direction: column;
 	flex-grow: 1;
 	height: 100%;
-	justify-content: space-around;
 
 	.errorDetails {
 		padding: var(--size-medium) var(--size-large);

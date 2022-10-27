@@ -180,21 +180,17 @@ export const SearchResultsHistogram = ({
 		},
 		[seriesList],
 	)
-	return (
-		<div className={styles.histogramWrapper}>
-			{loading ? (
-				<Skeleton style={{ height: '100%', lineHeight: 'inherit' }} />
-			) : (
-				<Histogram
-					onAreaChanged={onAreaChanged}
-					onBucketClicked={onBucketClicked}
-					seriesList={seriesList}
-					timeFormatter={timeFormatter}
-					bucketTimes={bucketTimes}
-					tooltipContent={tooltipContent}
-					tooltipDelayMs={500}
-				/>
-			)}
-		</div>
+	return loading ? (
+		<Skeleton style={{ height: '36px', lineHeight: 'inherit' }} />
+	) : (
+		<Histogram
+			onAreaChanged={onAreaChanged}
+			onBucketClicked={onBucketClicked}
+			seriesList={seriesList}
+			timeFormatter={timeFormatter}
+			bucketTimes={bucketTimes}
+			tooltipContent={tooltipContent}
+			tooltipDelayMs={500}
+		/>
 	)
 }
