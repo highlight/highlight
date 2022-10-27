@@ -14,9 +14,10 @@ import {
 	SessionComment,
 	SessionResults,
 } from '@graph/schemas'
-import { Replayer } from '@highlight-run/rrweb'
+import { EventType, Replayer } from '@highlight-run/rrweb'
 import {
 	customEvent,
+	metaEvent,
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
@@ -51,7 +52,7 @@ import {
 import log from '@util/log'
 import { H } from 'highlight.run'
 import moment from 'moment/moment'
-import { SetStateAction } from 'react'
+import { MutableRefObject, SetStateAction } from 'react'
 
 const EMPTY_SESSION_METADATA = {
 	startTime: 0,
@@ -81,10 +82,12 @@ type FetchEventChunkURLFn = (
 
 interface PlayerState {
 	browserExtensionScriptURLs: string[]
+	chunkEventsRef: MutableRefObject<
+		Omit<Map<number, HighlightEvent[]>, 'clear' | 'set' | 'delete'>
+	>
 	currentEvent: string
 	currentUrl: string | undefined
 	errors: ErrorObject[]
-	events: HighlightEvent[]
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
 	eventsLoaded: boolean
 	fetchEventChunkURL: FetchEventChunkURLFn
@@ -198,7 +201,6 @@ interface setTime {
 interface addLiveEvents {
 	type: PlayerActionType.addLiveEvents
 	lastActiveTimestamp: number
-	events: HighlightEvent[]
 }
 
 interface loadSession {
@@ -235,7 +237,6 @@ interface startChunksLoad {
 
 interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
-	events: HighlightEvent[]
 	showPlayerMouseTail: boolean
 	time: number
 	action?: ReplayerState
@@ -287,7 +288,6 @@ export const PlayerInitialState = {
 	currentEvent: '',
 	currentUrl: undefined,
 	errors: [],
-	events: [],
 	eventsDataLoaded: false,
 	eventsForTimelineIndicator: [],
 	eventsLoaded: false,
@@ -322,12 +322,15 @@ export const PlayerReducer = (
 	state: PlayerState,
 	action: PlayerAction,
 ): PlayerState => {
+	const events = getEvents(state.chunkEventsRef.current)
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
 			if (s.isLiveMode) {
 				const desiredTime =
-					Date.now() - LIVE_MODE_DELAY - state.events[0].timestamp
+					Date.now() -
+					LIVE_MODE_DELAY -
+					getEvents(s.chunkEventsRef.current)[0].timestamp
 				// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
 				// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
 				// the last UI the user idled in is displayed.
@@ -374,13 +377,12 @@ export const PlayerReducer = (
 			s.isLiveMode = !s.session?.processed
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
-			s.events = action.events
-			s.replayer?.replaceEvents(s.events)
+			s.replayer?.replaceEvents(events)
 			replayerAction(
 				PlayerActionType.addLiveEvents,
 				s,
 				ReplayerState.Playing,
-				s.events[s.events.length - 1].timestamp -
+				events[events.length - 1].timestamp -
 					s.sessionMetadata.startTime,
 			)
 			break
@@ -470,7 +472,7 @@ export const PlayerReducer = (
 		case PlayerActionType.updateCurrentUrl:
 			if (!s.replayer) break
 			s.currentUrl = findLatestUrl(
-				getAllUrlEvents(s.events),
+				getAllUrlEvents(getEvents(s.chunkEventsRef.current)),
 				action.currentTime,
 			)
 			break
@@ -490,7 +492,6 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			s.events = action.events
 			s.isLiveMode = s.session?.processed === false
 			if (
 				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
@@ -499,16 +500,16 @@ export const PlayerReducer = (
 			}
 
 			// if session has no events, abort
-			if (s.events.length < 2) {
+			if (events.length < 2) {
 				break
 			}
 			if (s.replayer === undefined) {
-				s = initReplayer(s, action, s.events)
+				s = initReplayer(s, action, events)
 				if (s.onSessionPayloadLoadedPayload) {
 					s = processSessionMetadata(s)
 				}
 			} else {
-				s.replayer.replaceEvents(s.events)
+				s.replayer.replaceEvents(events)
 			}
 			s.isLoadingEvents = false
 			s.time = action.time
@@ -618,7 +619,6 @@ export const PlayerReducer = (
 	if (
 		new Set<PlayerActionType>([
 			PlayerActionType.onFrame,
-			PlayerActionType.updateViewport,
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
 	) {
@@ -699,6 +699,19 @@ const initReplayer = (
 	if (s.isLiveMode) {
 		s.replayer.startLive(events[0].timestamp)
 	}
+
+	// Initializes the simulated viewport size and currentUrl with values from the first meta event
+	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
+	// can be empty, which is a poor UX.
+	const metas = events.filter((event) => event.type === EventType.Meta)
+	if (metas.length > 0) {
+		const meta = metas[0] as metaEvent
+		s.viewport = {
+			width: meta.data.width,
+			height: meta.data.height,
+		}
+	}
+
 	return s
 }
 
@@ -801,7 +814,7 @@ const processSessionMetadata = (s: PlayerState): PlayerState => {
 					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
 						.timeline_indicator_events,
 			  )
-			: s.events
+			: getEvents(s.chunkEventsRef.current)
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(
 		addEventsToSessionIntervals(
 			addErrorsToSessionIntervals(
@@ -900,4 +913,21 @@ const processSessionMetadata = (s: PlayerState): PlayerState => {
 	s.sessionMetadata = sm
 	s.eventsLoaded = true
 	return s
+}
+
+export const getEvents = (
+	chunkEvents: Omit<
+		Map<number, HighlightEvent[]>,
+		'clear' | 'set' | 'delete'
+	>,
+) => {
+	const events = []
+	for (const [, v] of [...chunkEvents.entries()].sort(
+		(a, b) => a[0] - b[0],
+	)) {
+		for (const val of v) {
+			events.push(val)
+		}
+	}
+	return events
 }

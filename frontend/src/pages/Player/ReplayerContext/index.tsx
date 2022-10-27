@@ -77,7 +77,6 @@ export interface ReplayerContextInterface {
 	play: (time?: number) => void
 	pause: (time?: number) => void
 	setScale: React.Dispatch<React.SetStateAction<number>>
-	events: Array<HighlightEvent>
 	performancePayloads: HighlightPerformancePayload[]
 	jankPayloads: HighlightJankPayload[]
 	errors: ErrorObject[]

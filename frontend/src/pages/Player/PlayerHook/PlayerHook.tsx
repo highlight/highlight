@@ -11,10 +11,8 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
-import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
-	metaEvent,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
@@ -133,6 +131,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	] = useMapRef<number, HighlightEvent[]>()
 	const [state, dispatch] = useReducer(PlayerReducer, {
 		...PlayerInitialState,
+		chunkEventsRef,
 		isLoggedIn,
 		isHighlightAdmin,
 		markSessionAsViewed,
@@ -243,22 +242,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const dispatchAction = useCallback(
 		(time: number, action?: ReplayerState) => {
-			const events = []
-			for (const [, v] of [...chunkEventsRef.current.entries()].sort(
-				(a, b) => a[0] - b[0],
-			)) {
-				for (const val of v) {
-					events.push(val)
-				}
-			}
-			log('PlayerHook.ts', 'ensureChunksLoaded setting events', {
-				chunks: chunkEventsRef.current,
-				events,
-			})
 			dispatch({
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
-				events,
 				time,
 				action,
 			})
@@ -407,7 +393,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[
 			ensureChunksLoaded,
-			state.events,
 			state.isLiveMode,
 			state.replayerState,
 			state.sessionEndTime,
@@ -526,7 +511,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
-								events: chunkEventsRef.current.get(0) ?? [],
 								lastActiveTimestamp: new Date(
 									// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 									subscriptionData.data!.session_payload_appended.last_user_interaction_time,
@@ -538,8 +522,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			const time = state.events?.pop()?.timestamp ?? state.time
-			play(time)
+			play(state.time)
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
 			unsubscribeSessionPayloadFn.current = undefined
@@ -566,27 +549,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 		}
 	}, [state.session?.secure_id, session_secure_id, state.replayer])
-
-	// Initializes the simulated viewport size and currentUrl with values from the first meta event
-	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
-	// can be empty, which is a poor UX.
-	useEffect(() => {
-		if (!state.viewport) {
-			const metas = state.events.filter(
-				(event) => event.type === EventType.Meta,
-			)
-			if (metas.length > 0) {
-				const meta = metas[0] as metaEvent
-				dispatch({
-					type: PlayerActionType.updateViewport,
-					viewport: {
-						width: meta.data.width,
-						height: meta.data.height,
-					},
-				})
-			}
-		}
-	}, [state.events, state.viewport])
 
 	useEffect(() => {
 		const searchParamsObject = new URLSearchParams(location.search)
@@ -647,12 +609,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
-			const events = toHighlightEvents(sessionPayload?.events)
-			chunkEventsSetMulti([[0, events]])
+			chunkEventsSetMulti([
+				[0, toHighlightEvents(sessionPayload?.events)],
+			])
 			dispatch({
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
-				events,
 				time: 0,
 				action: ReplayerState.Paused,
 			})
@@ -836,7 +798,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		setIsLiveMode: (isLiveMode) => {
 			dispatch({
 				type: PlayerActionType.addLiveEvents,
-				events: chunkEventsRef.current.get(0) ?? [],
 				lastActiveTimestamp: state.lastActiveTimestamp,
 			})
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
@@ -844,8 +805,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		playerProgress: state.replayer
 			? state.time / state.sessionMetadata.totalTime
 			: null,
-		sessionStartDateTime:
-			state.events.length > 0 ? state.events[0].timestamp : 0,
+		sessionStartDateTime: state.sessionMetadata.startTime,
 		setViewingUnauthorizedSession: (viewingUnauthorizedSession) =>
 			dispatch({
 				type: PlayerActionType.setViewingUnauthorizedSession,
