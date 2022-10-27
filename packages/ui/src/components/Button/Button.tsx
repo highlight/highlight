@@ -1,29 +1,29 @@
 import React from 'react'
-import { Box } from '../Box/Box'
+import { useButton, AriaButtonProps } from 'react-aria'
 
 import * as styles from './styles.css'
 
-type Props = React.PropsWithChildren &
-	styles.Variants & {
-		disabled?: boolean
+type Props = styles.Variants &
+	AriaButtonProps & {
+		title?: string
 		type?: 'button' | 'submit'
-		onClick?: () => void
+		onPress?: () => void
 	}
 
-export const Button: React.FC<Props> = ({
-	children,
-	disabled = false,
-	type = 'button',
-	...props
-}) => {
+export const Button: React.FC<Props> = (props) => {
+	const ref = React.useRef()
+	const { buttonProps } = useButton(props, ref)
+
 	return (
-		<Box
-			as="button"
-			disabled={disabled}
-			type={type}
-			cssClass={styles.variants({ ...props })}
+		<button
+			ref={ref}
+			className={styles.variants({
+				variant: props.variant,
+				size: props.size,
+			})}
+			{...buttonProps}
 		>
-			{children}
-		</Box>
+			{props.children}
+		</button>
 	)
 }

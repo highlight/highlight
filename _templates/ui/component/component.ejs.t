@@ -11,6 +11,6 @@ type Props = React.PropsWithChildren & styles.Variants & {}
 
 export const <%= name %>: React.FC<Props> = ({ children, ...props }) => {
 	return (
-		<Box cssClass={styles.variants({ ...props })}>{children}</Box>
+		<Box cssclass={styles.variants({ ...props })}>{children}</Box>
 	)
 }

@@ -9,11 +9,11 @@ export const vars = {
 	space: spaces,
 	border: borders,
 	borderRadius: {
-		xSmall: '3px',
-		small: '4px',
-		medium: '6px',
-		large: '8px',
-		xLarge: '12px',
+		'3': '3px',
+		'4': '4px',
+		'6': '6px',
+		'8': '8px',
+		'12': '12px',
 		round: '999px',
 	},
 	borderWidth: {

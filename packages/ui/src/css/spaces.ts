@@ -1,5 +1,5 @@
 export const spaces = {
-	'0': '0px',
+	'0': '0',
 	'2': '2px',
 	'4': '4px',
 	'6': '6px',
@@ -9,5 +9,6 @@ export const spaces = {
 	'16': '16px',
 	'20': '20px',
 	'24': '24px',
+	'28': '28px',
 	'32': '32px',
-} as const
+}

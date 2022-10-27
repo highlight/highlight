@@ -9,14 +9,9 @@ export default {
 	component: Button,
 } as ComponentMeta<typeof Button>
 
-export const Types = () => (
+export const Variants = () => (
 	<>
-		<Box
-			display="flex"
-			gap="small"
-			alignItems="center"
-			marginBottom="xxLarge"
-		>
+		<Box display="flex" gap="6" alignItems="center" marginBottom="24">
 			<Button variant="primary" size="xSmall">
 				Primary (xSmall)
 			</Button>
@@ -32,17 +27,12 @@ export const Types = () => (
 			<Button variant="primary" size="xLarge">
 				Primary (xLarge)
 			</Button>
-			<Button variant="primary" size="xLarge" disabled>
+			<Button variant="primary" size="xLarge" isDisabled>
 				Primary (disabled)
 			</Button>
 		</Box>
 
-		<Box
-			display="flex"
-			gap="small"
-			alignItems="center"
-			marginBottom="large"
-		>
+		<Box display="flex" gap="6" alignItems="center" marginBottom="10">
 			<Button variant="white" size="xSmall">
 				White (xSmall)
 			</Button>
@@ -58,17 +48,12 @@ export const Types = () => (
 			<Button variant="white" size="xLarge">
 				White (xLarge)
 			</Button>
-			<Button variant="white" size="xLarge" disabled>
+			<Button variant="white" size="xLarge" isDisabled>
 				White (disabled)
 			</Button>
 		</Box>
 
-		<Box
-			display="flex"
-			gap="small"
-			alignItems="center"
-			marginBottom="large"
-		>
+		<Box display="flex" gap="6" alignItems="center" marginBottom="10">
 			<Button variant="grey" size="xSmall">
 				Grey (xSmall)
 			</Button>
@@ -84,7 +69,7 @@ export const Types = () => (
 			<Button variant="grey" size="xLarge">
 				Grey (xLarge)
 			</Button>
-			<Button variant="grey" size="xLarge" disabled>
+			<Button variant="grey" size="xLarge" isDisabled>
 				Grey (disabled)
 			</Button>
 		</Box>

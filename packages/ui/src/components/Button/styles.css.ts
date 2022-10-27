@@ -3,11 +3,17 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { typographyStyles } from '../Text/styles.css'
 
+const shadows = {
+	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
+	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
+} as const
+
 export const variants = recipe({
 	base: [
 		sprinkles({
+			alignItems: 'center',
 			border: 'none',
-			display: 'inline-block',
+			display: 'inline-flex',
 		}),
 		{
 			lineHeight: '1em',
@@ -43,8 +49,7 @@ export const variants = recipe({
 			primary: {
 				background: vars.color.purple500,
 				color: vars.color.white,
-				// TODO: Variablize this value
-				boxShadow: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
+				boxShadow: shadows.primary,
 				selectors: {
 					'&:hover': {
 						background: vars.color.purple700,
@@ -70,8 +75,7 @@ export const variants = recipe({
 			grey: {
 				background: vars.color.neutral100,
 				color: vars.color.neutral800,
-				// TODO: Variablize this value
-				boxShadow: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
+				boxShadow: shadows.grey,
 				selectors: {
 					'&:hover': {
 						background: vars.color.neutral200,
@@ -85,37 +89,42 @@ export const variants = recipe({
 		size: {
 			xSmall: [
 				sprinkles({
-					borderRadius: 'medium',
-					padding: 'medium',
+					borderRadius: '6',
+					px: '6',
 				}),
+				{ height: 24 },
 				typographyStyles.size.xSmall,
 			],
 			small: [
 				sprinkles({
-					borderRadius: 'medium',
-					padding: 'medium',
+					borderRadius: '6',
+					px: '6',
 				}),
+				{ height: 28 },
 				typographyStyles.size.small,
 			],
 			medium: [
 				sprinkles({
-					borderRadius: 'medium',
-					padding: 'large',
+					borderRadius: '6',
+					px: '8',
 				}),
+				{ height: 32 },
 				typographyStyles.size.small,
 			],
 			large: [
 				sprinkles({
-					borderRadius: 'medium',
-					padding: 'large',
+					borderRadius: '6',
+					px: '10',
 				}),
+				{ height: 36 },
 				typographyStyles.size.small,
 			],
 			xLarge: [
 				sprinkles({
-					borderRadius: 'large',
-					padding: 'xLarge',
+					borderRadius: '8',
+					px: '12',
 				}),
+				{ height: 40 },
 				typographyStyles.size.large,
 			],
 		},

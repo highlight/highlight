@@ -19,7 +19,7 @@ export const variants = recipe({
 			black: sprinkles({ border: 'black' }),
 		},
 		rounded: {
-			true: sprinkles({ borderRadius: 'medium' }),
+			true: sprinkles({ borderRadius: '6' }),
 			false: {},
 		},
 	},

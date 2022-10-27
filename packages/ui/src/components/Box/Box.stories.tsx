@@ -12,7 +12,7 @@ export const Basic = () => (
 	<Box
 		background="purple700"
 		color="white"
-		padding="xxLarge"
+		padding="24"
 		borderRadius="medium"
 		border="neutralLarge"
 	>

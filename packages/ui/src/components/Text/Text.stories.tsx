@@ -13,10 +13,10 @@ export default {
 export const Sizes = () => {
 	return Object.keys(typographyStyles.size).map(
 		(size: keyof typeof typographyStyles.size) => (
-			<Box marginBottom="xxLarge" key={size}>
+			<Box marginBottom="24" key={size}>
 				{Object.keys(typographyStyles.weight).map(
 					(weight: keyof typeof typographyStyles.weight) => (
-						<Box marginBottom="large" key={weight}>
+						<Box marginBottom="10" key={weight}>
 							<Text
 								size={size}
 								weight={weight}
