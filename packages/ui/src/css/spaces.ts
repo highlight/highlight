@@ -11,4 +11,4 @@ export const spaces = {
 	'24': '24px',
 	'28': '28px',
 	'32': '32px',
-}
+} as const
