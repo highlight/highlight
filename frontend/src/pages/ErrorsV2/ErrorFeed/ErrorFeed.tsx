@@ -27,7 +27,7 @@ import { useParams } from '@util/react-router/useParams'
 import { serializeAbsoluteTimeRange } from '@util/time'
 import { useCallback, useEffect, useState } from 'react'
 
-import style from './ErrorFeed.module.scss'
+import * as style from './ErrorFeed.css'
 
 const PAGE_SIZE = 10
 
@@ -131,7 +131,6 @@ const ErrorFeed = () => {
 				)}
 			</Box>
 			<Box
-				cssClass={style.pagination}
 				borderTop="neutral"
 				paddingTop="small"
 				paddingBottom="medium"
@@ -141,6 +140,7 @@ const ErrorFeed = () => {
 					page={page}
 					setPage={setPage}
 					totalPages={totalPages}
+					className={style.pagination}
 				/>
 			</Box>
 		</>
