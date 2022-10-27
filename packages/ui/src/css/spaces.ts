@@ -1,10 +1,13 @@
 export const spaces = {
-	none: '0',
-	xxSmall: '2px',
-	xSmall: '4px',
-	small: '8px',
-	medium: '12px',
-	large: '16px',
-	xLarge: '24px',
-	xxLarge: '32px',
-}
+	'0': '0px',
+	'2': '2px',
+	'4': '4px',
+	'6': '6px',
+	'8': '8px',
+	'10': '10px',
+	'12': '12px',
+	'16': '16px',
+	'20': '20px',
+	'24': '24px',
+	'32': '32px',
+} as const

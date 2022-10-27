@@ -1,7 +1,7 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
-import { globalStyle } from '@vanilla-extract/css'
+import { globalFontFace, globalStyle } from '@vanilla-extract/css'
 
 // Generated at https://seek-oss.github.io/capsize/.
 export const steradianFontMetrics = {
@@ -46,14 +46,14 @@ const plexo = createStyleObject({
 	fontMetrics: plexoFontMetrics,
 })
 
+const mainFontFamily = 'Steradian'
+
 const family = {
 	body: {
-		fontFamily:
-			'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
+		fontFamily: `${mainFontFamily}, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol`,
 	},
 	heading: {
-		fontFamily:
-			'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
+		fontFamily: `${mainFontFamily}, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif`,
 	},
 	monospace: {
 		fontFamily:
@@ -100,4 +100,19 @@ export type Variants = RecipeVariants<typeof variants>
 // global styles to be injected.
 globalStyle('body', {
 	...typographyStyles.family.body,
+})
+
+globalFontFace(mainFontFamily, {
+	src: '../../fonts/SteradianLight.woff2',
+	...typographyStyles.weight.regular,
+})
+
+globalFontFace(mainFontFamily, {
+	src: '../../fonts/SteradianRegular.woff2',
+	...typographyStyles.weight.semibold,
+})
+
+globalFontFace(mainFontFamily, {
+	src: '../../fonts/SteradianBold.woff2',
+	...typographyStyles.weight.bold,
 })

@@ -29,7 +29,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<FaUsers />
 								<Text>Users</Text>
@@ -37,7 +37,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Text color="purple700">Metrics {'>'}</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
+						<Box display="flex" gap="4" alignItems="center">
 							<Text color="black" size="large">
 								25
 							</Text>
@@ -59,7 +59,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<BsGridFill />
 								<Text>Instances</Text>
@@ -67,7 +67,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Text color="purple700">Latest {'>'}</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
+						<Box display="flex" gap="4" alignItems="center">
 							<Text color="black" size="large">
 								32
 							</Text>
@@ -83,13 +83,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							color="neutral300"
 							display="flex"
 							alignItems="center"
-							gap="xSmall"
+							gap="4"
 						>
 							<FaUsers />
 							<Text>Users</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
+						<Box display="flex" gap="4" alignItems="center">
 							<Text color="black" size="large">
 								25
 							</Text>
@@ -113,7 +113,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<FaUsers />
 								<Text>Last 30 days</Text>
@@ -121,13 +121,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							<Text color="purple700">Metrics {'>'}</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
+						<Box display="flex" gap="4" alignItems="center">
 							TODO: Histogram
 						</Box>
 					</>
 				</Stat>
 			</Box>
-			<Box p="large">
+			<Box p="10">
 				<Text size="monospace">{body}</Text>
 			</Box>
 		</Box>
@@ -141,18 +141,18 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
-		px="large"
-		py="medium"
+		px="10"
+		py="8"
 		flex="stretch"
 	>
-		<Box display="flex" flexDirection="column" gap="small">
+		<Box display="flex" flexDirection="column" gap="6">
 			{children}
 		</Box>
 	</Box>
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" background="neutral100" borderRadius="small" p="xSmall">
+	<Box as="span" background="neutral100" borderRadius="small" p="4">
 		<Text color="black">{children}</Text>
 	</Box>
 )

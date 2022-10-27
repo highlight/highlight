@@ -19,7 +19,14 @@ const responsiveProperties = defineProperties({
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
-		display: ['none', 'flex', 'block', 'inline'],
+		display: [
+			'none',
+			'flex',
+			'block',
+			'inline',
+			'inline-block',
+			'inline-flex',
+		],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
