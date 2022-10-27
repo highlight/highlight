@@ -15,7 +15,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const body = getErrorBody(errorGroup?.event)
 
 	return (
-		<Box border="neutral" borderRadius="medium">
+		<Box border="neutral" borderRadius="6">
 			<Box display="flex">
 				<Stat>
 					<>
@@ -152,7 +152,7 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" background="neutral100" borderRadius="small" p="4">
+	<Box as="span" background="neutral100" borderRadius="4" p="4">
 		<Text color="black">{children}</Text>
 	</Box>
 )

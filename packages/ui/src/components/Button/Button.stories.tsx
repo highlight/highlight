@@ -27,7 +27,7 @@ export const Variants = () => (
 			<Button variant="primary" size="xLarge">
 				Primary (xLarge)
 			</Button>
-			<Button variant="primary" size="xLarge" isDisabled>
+			<Button variant="primary" size="xLarge" disabled>
 				Primary (disabled)
 			</Button>
 		</Box>
@@ -48,7 +48,7 @@ export const Variants = () => (
 			<Button variant="white" size="xLarge">
 				White (xLarge)
 			</Button>
-			<Button variant="white" size="xLarge" isDisabled>
+			<Button variant="white" size="xLarge" disabled>
 				White (disabled)
 			</Button>
 		</Box>
@@ -69,7 +69,7 @@ export const Variants = () => (
 			<Button variant="grey" size="xLarge">
 				Grey (xLarge)
 			</Button>
-			<Button variant="grey" size="xLarge" isDisabled>
+			<Button variant="grey" size="xLarge" disabled>
 				Grey (disabled)
 			</Button>
 		</Box>

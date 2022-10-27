@@ -13,7 +13,7 @@ export const Basic = () => (
 		background="purple700"
 		color="white"
 		padding="24"
-		borderRadius="medium"
+		borderRadius="6"
 		border="neutralLarge"
 	>
 		Hello! 👋
