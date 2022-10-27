@@ -49,8 +49,8 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
-// assuming 60 fps
-const FRAME_MS = 1000 / 60
+// assuming 120 fps
+const FRAME_MS = 1000 / 120
 
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
@@ -166,9 +166,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			for (const interval of state.sessionIntervals) {
 				if (time >= interval.startTime && time < interval.endTime) {
 					if (!interval.active) {
-						// skip forward 5 frames after the inactivity to prevent
+						// skip forward some frames after the inactivity to prevent
 						// the player from rounding back into the inactive region
-						return interval.endTime + 5 * FRAME_MS
+						return interval.endTime + 10 * FRAME_MS
 					} else {
 						return undefined
 					}
@@ -378,7 +378,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				dispatch({
 					type: PlayerActionType.onFrame,
 				})
-			}, FRAME_MS * 6),
+			}, FRAME_MS * 10),
 		[],
 	)
 
@@ -408,7 +408,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					} else {
 						return
 					}
-					dispatch({ type: PlayerActionType.Play, time: newTime })
+					dispatch({ type: PlayerActionType.play, time: newTime })
 					return
 				}
 				// Don't play the session if the player is already at the end of the session.

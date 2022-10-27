@@ -131,62 +131,62 @@ interface PlayerState {
 }
 
 export enum PlayerActionType {
-	Pause,
-	Play,
-	Seek,
-	setTime,
 	addLiveEvents,
 	loadSession,
-	startChunksLoad,
 	onChunksLoad,
+	onEvent,
 	onFrame,
 	onSessionPayloadLoaded,
-	onEvent,
+	pause,
+	play,
 	reset,
+	seek,
 	setCurrentEvent,
 	setIsLiveMode,
 	setLastActiveString,
 	setScale,
 	setSessionResults,
+	setTime,
 	setViewingUnauthorizedSession,
+	startChunksLoad,
 	updateCurrentUrl,
 	updateViewport,
 }
 
 type PlayerAction =
-	| Play
-	| Pause
-	| Seek
-	| setTime
 	| addLiveEvents
 	| loadSession
-	| startChunksLoad
 	| onChunksLoad
+	| onEvent
 	| onFrame
 	| onSessionPayloadLoaded
-	| onEvent
+	| pause
+	| play
 	| reset
+	| seek
 	| setCurrentEvent
+	| setIsLiveMode
 	| setLastActiveString
 	| setScale
 	| setSessionResults
-	| setIsLiveMode
+	| setTime
 	| setViewingUnauthorizedSession
+	| startChunksLoad
 	| updateCurrentUrl
 	| updateViewport
 
-interface Play {
-	type: PlayerActionType.Play
+interface play {
+	type: PlayerActionType.play
 	time: number
 }
 
-interface Pause {
-	type: PlayerActionType.Pause
+interface pause {
+	type: PlayerActionType.pause
 	time: number
 }
 
-interface Seek {
-	type: PlayerActionType.Seek
+interface seek {
+	type: PlayerActionType.seek
 	time: number
 }
 
@@ -324,26 +324,26 @@ export const PlayerReducer = (
 ): PlayerState => {
 	let s = { ...state }
 	switch (action.type) {
-		case PlayerActionType.Play:
+		case PlayerActionType.play:
 			s = replayerAction(
-				PlayerActionType.Play,
+				PlayerActionType.play,
 				s,
 				ReplayerState.Playing,
 				action.time,
 			)
 			break
-		case PlayerActionType.Pause:
+		case PlayerActionType.pause:
 			s.isLiveMode = false
 			s = replayerAction(
-				PlayerActionType.Pause,
+				PlayerActionType.pause,
 				s,
 				ReplayerState.Paused,
 				action.time,
 			)
 			break
-		case PlayerActionType.Seek:
+		case PlayerActionType.seek:
 			s = replayerAction(
-				PlayerActionType.Seek,
+				PlayerActionType.seek,
 				s,
 				s.replayerState,
 				action.time,
@@ -353,7 +353,7 @@ export const PlayerReducer = (
 			s.time = action.time
 			break
 		case PlayerActionType.addLiveEvents:
-			s.isLiveMode = s.session?.processed === false
+			s.isLiveMode = !s.session?.processed
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.events = action.events
