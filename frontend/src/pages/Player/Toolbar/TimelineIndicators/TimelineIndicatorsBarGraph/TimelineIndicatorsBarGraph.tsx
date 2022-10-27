@@ -50,7 +50,6 @@ const TARGET_BUCKET_WIDTH_PERCENT = 4
 const MINOR_TICK_COUNT = 3
 const TARGET_INACTIVE_PERCENTAGE = 10
 const ZOOM_SCALING_FACTOR = 100
-const ZOOM_TIMEOUT_MS = 1000
 const MIN_ZOOM = 1.0
 const INACTIVE_TICK_FREQUENCY = 7
 
@@ -416,14 +415,15 @@ const TimelineIndicatorsBarGraph = ({
 			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
 
 			// track zooming occurring. since there is no information about
-			// zooming stopping, we assume zooming has stopped after a time delay
+			// zooming stopping, we assume zooming has stopped
+			// when we stop getting the event
 			if (zoomTimeout.current) {
 				window.clearTimeout(zoomTimeout.current)
 			}
 			zoomTimeout.current = window.setTimeout(() => {
 				setIsZooming(false)
 				zoomTimeout.current = 0
-			}, ZOOM_TIMEOUT_MS)
+			}, 1)
 
 			if (ctrlKey || metaKey) {
 				const dz = deltaY / ZOOM_SCALING_FACTOR
