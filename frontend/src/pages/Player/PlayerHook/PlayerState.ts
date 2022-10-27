@@ -354,7 +354,6 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.pause:
-			s.isLiveMode = false
 			s = replayerAction(
 				PlayerActionType.pause,
 				s,
@@ -734,8 +733,10 @@ const replayerAction = (
 	)
 	if (!s.replayer) return s
 	if (desiredState === ReplayerState.Paused) {
+		s.isLiveMode = false
 		s.replayer.pause(time)
 	} else if (desiredState === ReplayerState.Playing) {
+		s.isLiveMode = !s.session?.processed
 		s.replayer.play(time)
 	} else {
 		return s

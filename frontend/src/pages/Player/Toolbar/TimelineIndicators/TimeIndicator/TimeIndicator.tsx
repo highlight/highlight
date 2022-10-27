@@ -9,6 +9,7 @@ interface Props {
 	viewportRef: RefObject<HTMLElement>
 	text?: string
 	isDragging?: boolean
+	isZooming?: boolean
 	showHistogram?: boolean
 }
 const TIME_INDICATOR_ACTIVATION_RADIUS = 15
@@ -19,6 +20,7 @@ const TimeIndicator = ({
 	hairRef,
 	text,
 	isDragging,
+	isZooming,
 	viewportRef,
 	showHistogram,
 }: Props) => {
@@ -77,7 +79,7 @@ const TimeIndicator = ({
 	return (
 		<div
 			className={classNames(style.timeIndicator, {
-				[style.timeIndicatorMoving]: !isDragging,
+				[style.timeIndicatorMoving]: !isDragging && !isZooming,
 			})}
 			style={{
 				left: left - TIME_INDICATOR_TOP_WIDTH / 2,

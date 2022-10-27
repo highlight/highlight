@@ -50,6 +50,7 @@ const TARGET_BUCKET_WIDTH_PERCENT = 4
 const MINOR_TICK_COUNT = 3
 const TARGET_INACTIVE_PERCENTAGE = 10
 const ZOOM_SCALING_FACTOR = 100
+const ZOOM_TIMEOUT_MS = 1000
 const MIN_ZOOM = 1.0
 const INACTIVE_TICK_FREQUENCY = 7
 
@@ -86,16 +87,23 @@ const TimelineIndicatorsBarGraph = ({
 		zoomEnd: NumberParam,
 	})
 	const { zoomAreaPercent, setZoomAreaPercent } = useToolbarItemsContext()
+
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
-
-	const viewportRef = useRef<HTMLDivElement>(null)
-	const canvasRef = useRef<HTMLDivElement>(null)
-	const timeAxisRef = useRef<HTMLDivElement>(null)
-	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
-	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
-	const sessionMonitorRef = useRef<HTMLDivElement>(null)
-
+	const [dragTime, setDragTime] = useState<number>(0)
+	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
+	const [isDragging, setIsDragging] = useState<boolean>(false)
+	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
+	const [isZooming, setIsZooming] = useState<boolean>(false)
 	const [viewportWidth, setViewportWidth] = useState(0)
+
+	const canvasRef = useRef<HTMLDivElement>(null)
+	const sessionMonitorRef = useRef<HTMLDivElement>(null)
+	const timeAxisRef = useRef<HTMLDivElement>(null)
+	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
+	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
+	const viewportRef = useRef<HTMLDivElement>(null)
+	const zoomTimeout = useRef<number>(0)
+
 	useLayoutEffect(() => {
 		const div = viewportRef.current
 		if (!div) {
@@ -339,7 +347,6 @@ const TimelineIndicatorsBarGraph = ({
 				: formatTimeAsHMS(t),
 		[showPlayerAbsoluteTime, start],
 	)
-	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
 
 	// show 10s at max for long sessions
 	const maxZoom = Math.max(adjustedDuration / 10_000, 2)
@@ -407,6 +414,16 @@ const TimelineIndicatorsBarGraph = ({
 
 			const { clientX, deltaY, deltaX, ctrlKey, metaKey } = event
 
+			// track zooming occurring. since there is no information about
+			// zooming stopping, we assume zooming has stopped after a time delay
+			if (zoomTimeout.current) {
+				window.clearTimeout(zoomTimeout.current)
+			}
+			zoomTimeout.current = window.setTimeout(() => {
+				setIsZooming(false)
+				zoomTimeout.current = 0
+			}, ZOOM_TIMEOUT_MS)
+
 			if (ctrlKey || metaKey) {
 				const dz = deltaY / ZOOM_SCALING_FACTOR
 				zoom(clientX, dz)
@@ -417,9 +434,6 @@ const TimelineIndicatorsBarGraph = ({
 		{ passive: false },
 	)
 
-	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
-	const [isDragging, setIsDragging] = useState<boolean>(false)
-	const [dragTime, setDragTime] = useState<number>(0)
 	useEffect(() => {
 		if (session_secure_id !== session?.secure_id) {
 			setTime(0)
@@ -1071,6 +1085,7 @@ const TimelineIndicatorsBarGraph = ({
 					viewportRef={viewportRef}
 					text={formatTimeOnTop(shownTime)}
 					isDragging={isDragging}
+					isZooming={isZooming}
 					showHistogram={showHistogram}
 				/>
 				<div className={style.timeAxis} ref={timeAxisRef}>
