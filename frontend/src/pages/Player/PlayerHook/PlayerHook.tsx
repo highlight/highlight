@@ -71,8 +71,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [
 		getSessionPayloadQuery,
 		{ data: sessionPayload, subscribeToMore: subscribeToSessionPayload },
-	] = useGetSessionPayloadLazyQuery({})
+	] = useGetSessionPayloadLazyQuery({
+		fetchPolicy: 'no-cache',
+	})
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
+		fetchPolicy: 'no-cache',
 		skip: true,
 	})
 	const { data: sessionIntervals } = useGetSessionIntervalsQuery({
@@ -116,6 +119,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 		}, [fetchEventChunkURL]),
 		skip: !session_secure_id,
+		fetchPolicy: 'network-only',
 	})
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
