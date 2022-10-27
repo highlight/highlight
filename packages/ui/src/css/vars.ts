@@ -11,8 +11,11 @@ export const vars = {
 	borderRadius: {
 		xSmall: '3px',
 		small: '4px',
+		xTiny: '5px',
+		tiny: '6px',
 		medium: '8px',
 		large: '12px',
+		round: '999px',
 	},
 	borderWidth: {
 		small: '1px',

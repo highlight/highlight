@@ -51,6 +51,8 @@ const responsiveProperties = defineProperties({
 		marginBottom: vars.space,
 		marginLeft: vars.space,
 		marginRight: vars.space,
+		height: vars.space,
+		width: { fit: 'fit-content', ...vars.space },
 	},
 	shorthands: {
 		align: ['alignItems'],

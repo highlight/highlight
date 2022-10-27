@@ -9,10 +9,10 @@ export interface Props extends Sprinkles, React.PropsWithChildren {
 	cssClass?: ClassValue | ClassValue[]
 }
 
-export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
+export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
 	const sprinklesProps: Record<string, unknown> = {}
 	const nativeProps: Record<string, unknown> = {}
-	const userClasses = clsx(props.cssClass)
+	const userClasses = clsx(cssClass)
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {
