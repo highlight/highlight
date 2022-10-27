@@ -505,7 +505,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 						// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 						const newEvents = sd!.session_payload_appended.events!
 						if (newEvents.length) {
-							const events = toHighlightEvents(newEvents)
+							const events = [
+								...(chunkEventsRef.current.get(0) || []),
+								...toHighlightEvents(newEvents),
+							]
 							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
