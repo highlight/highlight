@@ -58,7 +58,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const history = useHistory()
 	const [download] = useQueryParam('download', BooleanParam)
 
-	/** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
 	const {
 		setPlayerTime: setPlayerTimeToPersistance,
 		autoPlaySessions,
@@ -343,15 +342,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return promises.length
 		},
 		[
-			dispatchAction,
-			chunkEventsRef.current,
+			chunkEventsRef,
 			chunkEventsSet,
 			chunkEventsSetMulti,
+			dispatchAction,
 			fetchEventChunkURL,
 			getChunkIdx,
 			getChunksToRemove,
 			project_id,
 			session_secure_id,
+			state.replayer,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
 		],
@@ -370,7 +370,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const play = useCallback(
 		(time?: number) => {
 			timedCall('player/play', () => {
-				let newTime = time ?? 0
+				const newTime = time ?? 0
 				// Don't play the session if the player is already at the end of the session.
 				if (newTime >= state.sessionEndTime) {
 					return
@@ -391,13 +391,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 			})
 		},
-		[
-			ensureChunksLoaded,
-			state.isLiveMode,
-			state.replayerState,
-			state.sessionEndTime,
-			state.session_secure_id,
-		],
+		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
 
 	const pause = useCallback(
