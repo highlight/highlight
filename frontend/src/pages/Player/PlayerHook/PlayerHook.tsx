@@ -75,27 +75,28 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [
 		getSessionPayloadQuery,
 		{ data: sessionPayload, subscribeToMore: subscribeToSessionPayload },
-	] = useGetSessionPayloadLazyQuery({
-		fetchPolicy: 'no-cache',
-	})
+	] = useGetSessionPayloadLazyQuery({})
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
-		fetchPolicy: 'no-cache',
 		skip: true,
 	})
 	const { data: sessionIntervals } = useGetSessionIntervalsQuery({
 		variables: {
 			session_secure_id: session_secure_id,
 		},
+		skip: !session_secure_id,
 	})
 	const { data: eventChunksData } = useGetEventChunksQuery({
 		variables: { secure_id: session_secure_id },
-		skip: CHUNKING_DISABLED_PROJECTS.includes(project_id),
+		skip:
+			!session_secure_id ||
+			CHUNKING_DISABLED_PROJECTS.includes(project_id),
 	})
 	const { data: timelineIndicatorEvents } =
 		useGetTimelineIndicatorEventsQuery({
 			variables: {
 				session_secure_id: session_secure_id,
 			},
+			skip: !session_secure_id,
 		})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
@@ -119,7 +120,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 		}, [fetchEventChunkURL]),
 		skip: !session_secure_id,
-		fetchPolicy: 'network-only',
 	})
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
