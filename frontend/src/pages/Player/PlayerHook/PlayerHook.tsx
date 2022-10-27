@@ -222,17 +222,23 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 
-			// If there are more than the max chunks loaded, try removing
-			// the earliest. If we're currently playing the earliest chunk,
-			// remove the latest instead.
 			const toRemove = new Set<number>([])
-			for (let i = startIdx; i <= endIdx; i++) {
-				if (count > MAX_CHUNK_COUNT - 1) {
-					if (minIdx !== undefined && i !== minIdx) {
-						toRemove.add(minIdx)
-					} else if (maxIdx !== undefined) {
-						toRemove.add(maxIdx)
-					}
+			if (
+				minIdx !== undefined &&
+				maxIdx !== undefined &&
+				count > MAX_CHUNK_COUNT
+			) {
+				const countToRemove = count - MAX_CHUNK_COUNT
+				let removedIdx = minIdx
+				if (currentIdx < minIdx + countToRemove) {
+					removedIdx = endIdx - countToRemove + 1
+				}
+				for (
+					let idx = removedIdx;
+					idx < removedIdx + countToRemove;
+					++idx
+				) {
+					toRemove.add(idx)
 				}
 			}
 			toRemove.delete(currentIdx)
