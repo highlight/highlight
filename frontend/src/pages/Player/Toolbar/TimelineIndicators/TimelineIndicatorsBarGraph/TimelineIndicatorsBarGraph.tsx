@@ -364,6 +364,7 @@ const TimelineIndicatorsBarGraph = ({
 
 			const factor = dz < 0 ? 1 - dz : 1 / (1 + dz)
 
+			setIsZooming(true)
 			setCamera((camera) => {
 				setIsRefreshingDOM(true)
 				const zoom = clamp(factor * camera.zoom, MIN_ZOOM, maxZoom)
