@@ -22,13 +22,13 @@ export const Sizes = () => {
 export const Themes = () => {
 	return (
 		<>
-			<Badge theme="green" label="Green" />
+			<Badge variant="green" label="Green" />
 			<br />
-			<Badge theme="white" label="White" />
+			<Badge variant="white" label="White" />
 			<br />
-			<Badge theme="outlineGrey" label="Outline Grey" />
+			<Badge variant="outlineGrey" label="Outline Grey" />
 			<br />
-			<Badge theme="grey" label="Grey" />
+			<Badge variant="grey" label="Grey" />
 		</>
 	)
 }

@@ -102,7 +102,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							/>
 							<span className={style.separator} />
 							<Badge
-								theme={
+								variant={
 									errorGroup?.state === ErrorState.Resolved
 										? 'green'
 										: errorGroup?.state ===

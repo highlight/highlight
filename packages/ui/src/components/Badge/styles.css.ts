@@ -23,7 +23,7 @@ export const variants = recipe({
 				py: 'xxSmall',
 			}),
 		},
-		theme: {
+		variant: {
 			white: sprinkles({ background: 'white', border: 'neutral' }),
 			grey: sprinkles({ background: 'neutral100' }),
 			outlineGrey: sprinkles({
@@ -37,7 +37,7 @@ export const variants = recipe({
 
 	defaultVariants: {
 		size: 'small',
-		theme: 'white',
+		variant: 'white',
 	},
 })
 

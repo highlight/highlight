@@ -26,7 +26,7 @@ export const Badge: React.FC<Props> = ({
 	}
 
 	let textColor: TextProps['color']
-	switch (rest.theme) {
+	switch (rest.variant) {
 		case 'green':
 			textColor = 'white'
 			break

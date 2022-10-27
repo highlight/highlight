@@ -4,6 +4,7 @@ import Tooltip from '@components/Tooltip/Tooltip'
 import SvgFastForwardIcon from '@icons/FastForwardIcon'
 import SvgRewindIcon from '@icons/RewindIcon'
 import { Pagination as AntdPagination } from 'antd'
+import clsx from 'clsx'
 import React from 'react'
 
 // time since search params last changed that should trigger a page reset, ms
@@ -23,11 +24,13 @@ export const Pagination = ({
 	setPage,
 	totalPages,
 	pageSize,
+	className,
 }: {
 	page?: number
 	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
 	totalPages: number
 	pageSize?: number
+	className?: string
 }) => {
 	if (!pageSize) {
 		pageSize = DEFAULT_PAGE_SIZE
@@ -48,7 +51,7 @@ export const Pagination = ({
 	if (!maxPage) return null
 	return (
 		<>
-			<div className={styles.pageButtonsRow}>
+			<div className={clsx([styles.pageButtonsRow, className])}>
 				<Tooltip
 					mouseEnterDelay={0.3}
 					placement={'top'}
