@@ -11,13 +11,13 @@ export type Props = Sprinkles &
 		// breaks values like arrays, which would otherwise be valid values for
 		// clsx. Also got warnings about using camelCase for the prop name so made
 		// it all lowercase.
-		cssclass?: ClassValue | ClassValue[]
+		cssClass?: ClassValue | ClassValue[]
 	}
 
 export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
 	const sprinklesProps: Record<string, unknown> = {}
 	const nativeProps: Record<string, unknown> = {}
-	const userClasses = clsx(props.cssclass)
+	const userClasses = clsx(props.cssClass)
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {

@@ -9,7 +9,7 @@ type Props = React.PropsWithChildren & {
 
 export const Heading: React.FC<Props> = ({ children, size }) => {
 	return (
-		<Box as={size} cssclass={styles.variants({ size })}>
+		<Box as={size} cssClass={styles.variants({ size })}>
 			{children}
 		</Box>
 	)

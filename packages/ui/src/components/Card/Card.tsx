@@ -19,7 +19,7 @@ export const Card: React.FC<Props> = ({ children, ...rest }) => {
 	}
 
 	return (
-		<Box {...defaultProps} cssclass={styles.variants({ ...rest })} p="24">
+		<Box {...defaultProps} cssClass={styles.variants({ ...rest })} p="24">
 			{children}
 		</Box>
 	)

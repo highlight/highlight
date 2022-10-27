@@ -25,7 +25,7 @@ export const Text: React.FC<Props> = ({
 	return (
 		<Box
 			as={as}
-			cssclass={[
+			cssClass={[
 				styles.variants({ ...props }),
 				sprinkles({ color, textTransform: transform }),
 			]}

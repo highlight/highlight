@@ -48,7 +48,7 @@ export const Badge: React.FC<Props> = ({
 			display="flex"
 			alignItems="center"
 			gap="2"
-			cssclass={[styles.variants({ ...rest })]}
+			cssClass={[styles.variants({ ...rest })]}
 		>
 			{iconStart}
 			{label && (
