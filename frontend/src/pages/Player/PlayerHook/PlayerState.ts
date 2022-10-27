@@ -325,6 +325,24 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
+			if (s.isLiveMode) {
+				const desiredTime =
+					Date.now() - LIVE_MODE_DELAY - state.events[0].timestamp
+				// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
+				// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
+				// the last UI the user idled in is displayed.
+				if (
+					desiredTime - action.time > 5000 ||
+					state.replayerState != ReplayerState.Playing
+				) {
+					action.time = Math.min(
+						desiredTime,
+						state.sessionEndTime - 1,
+					)
+				} else {
+					break
+				}
+			}
 			s = replayerAction(
 				PlayerActionType.play,
 				s,

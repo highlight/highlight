@@ -20,7 +20,6 @@ import {
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
-	LIVE_MODE_DELAY,
 	LOOKAHEAD_MS,
 	MAX_CHUNK_COUNT,
 	PlayerActionType,
@@ -386,31 +385,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		(time?: number) => {
 			timedCall('player/play', () => {
 				let newTime = time ?? 0
-				if (state.isLiveMode) {
-					// Return if no events
-					if (state.events.length === 0) {
-						return
-					}
-
-					const desiredTime =
-						Date.now() - LIVE_MODE_DELAY - state.events[0].timestamp
-					// Only jump forwards if the user is more than 5s behind the target, to prevent unnecessary jittering.
-					// If we don't have events from that recently (e.g. user is idle), set it to the time of the last event so that
-					// the last UI the user idled in is displayed.
-					if (
-						desiredTime - newTime > 5000 ||
-						state.replayerState != ReplayerState.Playing
-					) {
-						newTime = Math.min(
-							desiredTime,
-							state.sessionEndTime - 1,
-						)
-					} else {
-						return
-					}
-					dispatch({ type: PlayerActionType.play, time: newTime })
-					return
-				}
 				// Don't play the session if the player is already at the end of the session.
 				if (newTime >= state.sessionEndTime) {
 					return
