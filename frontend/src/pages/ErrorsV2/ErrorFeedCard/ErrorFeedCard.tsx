@@ -100,7 +100,13 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								}
 								label={`${errorCount}`}
 							/>
-							<span className={style.separator} />
+							<Box
+								width="xSmall"
+								height="xSmall"
+								background="neutral200"
+								borderRadius="round"
+								as="span"
+							/>
 							<Badge
 								variant={
 									errorGroup?.state === ErrorState.Resolved

@@ -15,6 +15,7 @@ export const vars = {
 		tiny: '6px',
 		medium: '8px',
 		large: '12px',
+		round: '999px',
 	},
 	borderWidth: {
 		small: '1px',
