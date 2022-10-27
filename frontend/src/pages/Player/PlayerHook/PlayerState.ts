@@ -373,7 +373,7 @@ export const PlayerReducer = (
 			s.time = action.time
 			break
 		case PlayerActionType.addLiveEvents:
-			s.isLiveMode = !s.session?.processed
+			s.isLiveMode = true
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.replayer?.replaceEvents(events)
@@ -494,7 +494,6 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			s.isLiveMode = s.session?.processed === false
 			if (
 				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 			) {
@@ -506,7 +505,7 @@ export const PlayerReducer = (
 				break
 			}
 			if (s.replayer === undefined) {
-				s = initReplayer(s, action, events)
+				s = initReplayer(s, events, action.showPlayerMouseTail)
 				if (s.onSessionPayloadLoadedPayload) {
 					s = processSessionMetadata(s)
 				}
@@ -598,6 +597,7 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
+			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
 			break
 		case PlayerActionType.setViewingUnauthorizedSession:
 			s.viewingUnauthorizedSession = handleSetStateAction(
@@ -661,8 +661,8 @@ const handleSetStateAction = <T>(s: T, a: SetStateAction<T>) => {
 
 const initReplayer = (
 	s: PlayerState,
-	action: onChunksLoad,
 	events: HighlightEvent[],
+	showPlayerMouseTail: boolean,
 ) => {
 	// Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
 	const playerMountingRoot = document.getElementById('player') as HTMLElement
@@ -683,7 +683,7 @@ const initReplayer = (
 	s.replayer = new Replayer(events, {
 		root: playerMountingRoot,
 		triggerFocus: false,
-		mouseTail: action.showPlayerMouseTail,
+		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
 		useVirtualDom: false,
@@ -736,7 +736,6 @@ const replayerAction = (
 		s.isLiveMode = false
 		s.replayer.pause(time)
 	} else if (desiredState === ReplayerState.Playing) {
-		s.isLiveMode = !s.session?.processed
 		s.replayer.play(time)
 	} else {
 		return s
