@@ -25787,8 +25787,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "highlight@workspace:."
   dependencies:
-    "@aws-sdk/client-s3": ^3.198.0
-    "@types/yargs": ^17.0.13
     chalk: ^5.0.1
     concurrently: ^6.5.1
     cypress: ^10.8.0
@@ -25798,10 +25796,7 @@ __metadata:
     patch-package: ^6.4.7
     prettier: ^2.7.1
     pretty-quick: ^3.1.3
-    semver: ^7.3.8
-    ts-node: ^10.9.1
     turbo: ^1.5.4
-    yargs: ^17.6.0
   languageName: unknown
   linkType: soft
 
@@ -38754,6 +38749,18 @@ __metadata:
   checksum: e8ab486ba2310055aeabd84d8f76f1c9e729669942a4b1bdd675131333076ac9ee6655fb41c2507de3be93865e120cf3641e5ff636090f9e2458170827e650c7
   languageName: node
   linkType: hard
+
+"scripts@workspace:scripts":
+  version: 0.0.0-use.local
+  resolution: "scripts@workspace:scripts"
+  dependencies:
+    "@aws-sdk/client-s3": ^3.198.0
+    "@types/yargs": ^17.0.13
+    semver: ^7.3.8
+    ts-node: ^10.9.1
+    yargs: ^17.6.0
+  languageName: unknown
+  linkType: soft
 
 "scroll-into-view-if-needed@npm:^2.2.25":
   version: 2.2.26
