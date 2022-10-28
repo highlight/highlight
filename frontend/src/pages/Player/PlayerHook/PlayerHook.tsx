@@ -272,10 +272,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
-			const currentIdx = getChunkIdx(
-				state.sessionMetadata.startTime +
-					(state.replayer?.getCurrentTime() ?? 0),
-			)
+			const toSet: [number, HighlightEvent[] | undefined][] = []
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
@@ -283,13 +280,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
 
-			const toSet: [number, HighlightEvent[] | undefined][] = []
+			// TODO(vkorolik) HIG-3149 - breaks seeking in long sessions
+			/*
+			const currentIdx = getChunkIdx(
+				state.sessionMetadata.startTime +
+					(state.replayer?.getCurrentTime() ?? 0),
+			)
 			getChunksToRemove(
 				chunkEventsRef.current,
 				currentIdx,
 				startIdx,
 				endIdx,
 			).forEach((idx) => toSet.push([idx, undefined]))
+			*/
 			const promises = []
 			log(
 				'PlayerHook.ts',
@@ -358,10 +361,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 			dispatchAction,
 			fetchEventChunkURL,
 			getChunkIdx,
-			getChunksToRemove,
 			project_id,
 			session_secure_id,
-			state.replayer,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
 		],
