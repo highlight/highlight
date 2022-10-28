@@ -107,7 +107,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 	)
 
 	return (
-		<Box paddingTop="medium">
+		<Box paddingTop="8">
 			<SearchResultsHistogram
 				seriesList={histogram.seriesList}
 				bucketTimes={histogram.bucketTimes}

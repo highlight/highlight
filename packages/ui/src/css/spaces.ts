@@ -1,3 +1,9 @@
+// TODO: The keys of this object are converted to numbers when we create the
+// type declarations. We could use numbers as keys, but then our props need to
+// be passed as numbers (gap={4} instead of gap="4"), which breaks intellisense.
+//
+// TODO: Check out internal packages as an alternative that eliminates the need
+// to build the referenced project: https://turbo.build/blog/you-might-not-need-typescript-project-references
 export const spaces = {
 	'0': '0',
 	'2': '2px',

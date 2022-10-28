@@ -62,13 +62,13 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 			}`}
 		>
 			<Box
-				paddingTop="small"
-				paddingBottom="narrow"
-				px="medium"
-				borderRadius="tiny"
+				paddingTop="8"
+				paddingBottom="10"
+				px="12"
+				borderRadius="6"
 				display="flex"
 				flexDirection="column"
-				gap="xSmall"
+				gap="4"
 				cssClass={[
 					style.errorCard,
 					{
@@ -82,14 +82,14 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						{body}
 					</Text>
 				</Box>
-				<Box display="flex" gap="medium" justifyContent="space-between">
+				<Box display="flex" gap="12" justifyContent="space-between">
 					<Box
 						display="flex"
 						flexDirection="column"
-						gap="tiny"
+						gap="6"
 						justifyContent="space-between"
 					>
-						<Box display="flex" gap="tiny" alignItems="center">
+						<Box display="flex" gap="6" alignItems="center">
 							<Badge
 								iconStart={<UsersIcon className={style.icon} />}
 								label={`${userCount}`}
@@ -101,8 +101,8 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								label={`${errorCount}`}
 							/>
 							<Box
-								width="xSmall"
-								height="xSmall"
+								width="4"
+								height="4"
 								background="neutral200"
 								borderRadius="round"
 								as="span"
@@ -130,11 +130,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							</Text>
 						</Box>
 					</Box>
-					<Box
-						paddingTop="xxSmall"
-						display="flex"
-						alignItems="flex-end"
-					>
+					<Box paddingTop="2" display="flex" alignItems="flex-end">
 						<BarChart data={frequencies} height={34} width={51} />
 					</Box>
 				</Box>

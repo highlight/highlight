@@ -324,7 +324,7 @@ export const SessionFeed = React.memo(() => {
 				<SessionsQueryBuilder />
 			</div>
 			{isHighlightAdmin && (loading || sessionResults.totalCount > 0) && (
-				<Box paddingTop="large" paddingBottom="tiny" px="medium">
+				<Box paddingTop="16" paddingBottom="6" px="8">
 					{histogram}
 				</Box>
 			)}
