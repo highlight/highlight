@@ -155,6 +155,25 @@ export type RemoveIntegrationFromProjectMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'removeIntegrationFromProject'>
 
+export type AddIntegrationToWorkspaceMutationVariables = Types.Exact<{
+	integration_type?: Types.Maybe<Types.IntegrationType>
+	workspace_id: Types.Scalars['ID']
+	code: Types.Scalars['String']
+}>
+
+export type AddIntegrationToWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'addIntegrationToWorkspace'>
+
+export type RemoveIntegrationFromWorkspaceMutationVariables = Types.Exact<{
+	integration_type?: Types.Maybe<Types.IntegrationType>
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type RemoveIntegrationFromWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'removeIntegrationFromWorkspace'>
+
 export type UpdateAllowedEmailOriginsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 	allowed_auto_join_email_origins: Types.Scalars['String']
@@ -1137,6 +1156,18 @@ export type UpdateVercelSettingsMutationVariables = Types.Exact<{
 export type UpdateVercelSettingsMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'updateVercelProjectMappings'
+>
+
+export type UpdateClickUpSettingsMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	project_mappings:
+		| Array<Types.ClickUpProjectMappingInput>
+		| Types.ClickUpProjectMappingInput
+}>
+
+export type UpdateClickUpSettingsMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateClickUpProjectMappings'
 >
 
 export type SessionPayloadFragmentFragment = {
@@ -3177,13 +3208,56 @@ export type GetWorkspaceIsIntegratedWithVercelQuery = {
 	>
 }
 
-export type GetWorkspaceIsIntegratedWithClickUpQueryVariables = Types.Exact<{
+export type GetClickUpIntegrationSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetClickUpIntegrationSettingsQuery = { __typename?: 'Query' } & {
+	is_integrated: Types.Query['is_workspace_integrated_with']
+} & {
+	clickup_teams: Array<
+		{ __typename?: 'ClickUpTeam' } & Pick<
+			Types.ClickUpTeam,
+			'id' | 'name'
+		> & {
+				spaces: Array<
+					{ __typename?: 'ClickUpSpace' } & Pick<
+						Types.ClickUpSpace,
+						'id' | 'name'
+					>
+				>
+			}
+	>
+	project_mappings: Array<
+		{ __typename?: 'ClickUpProjectMapping' } & Pick<
+			Types.ClickUpProjectMapping,
+			'project_id' | 'clickup_space_id'
+		>
+	>
+}
+
+export type GetClickUpFoldersQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
 
-export type GetWorkspaceIsIntegratedWithClickUpQuery = {
-	__typename?: 'Query'
-} & { is_integrated_with_clickup: Types.Query['is_integrated_with'] }
+export type GetClickUpFoldersQuery = { __typename?: 'Query' } & {
+	clickup_folders: Array<
+		{ __typename?: 'ClickUpFolder' } & Pick<
+			Types.ClickUpFolder,
+			'id' | 'name'
+		> & {
+				lists: Array<
+					{ __typename?: 'ClickUpList' } & Pick<
+						Types.ClickUpList,
+						'id' | 'name'
+					>
+				>
+			}
+	>
+	clickup_folderless_lists: Array<
+		{ __typename?: 'ClickUpList' } & Pick<Types.ClickUpList, 'id' | 'name'>
+	>
+}
 
 export type GenerateNewZapierAccessTokenJwtQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -3623,8 +3697,8 @@ export const namedOperations = {
 			'GetWorkspaceIsIntegratedWithDiscord' as const,
 		GetWorkspaceIsIntegratedWithVercel:
 			'GetWorkspaceIsIntegratedWithVercel' as const,
-		GetWorkspaceIsIntegratedWithClickUp:
-			'GetWorkspaceIsIntegratedWithClickUp' as const,
+		GetClickUpIntegrationSettings: 'GetClickUpIntegrationSettings' as const,
+		GetClickUpFolders: 'GetClickUpFolders' as const,
 		GenerateNewZapierAccessTokenJwt:
 			'GenerateNewZapierAccessTokenJwt' as const,
 		GetIdentifierSuggestions: 'GetIdentifierSuggestions' as const,
@@ -3658,6 +3732,9 @@ export const namedOperations = {
 		OpenSlackConversation: 'OpenSlackConversation' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
+		AddIntegrationToWorkspace: 'AddIntegrationToWorkspace' as const,
+		RemoveIntegrationFromWorkspace:
+			'RemoveIntegrationFromWorkspace' as const,
 		UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,
 		CreateProject: 'CreateProject' as const,
 		SubmitRegistrationForm: 'SubmitRegistrationForm' as const,
@@ -3704,6 +3781,7 @@ export const namedOperations = {
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
+		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

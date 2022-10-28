@@ -2,9 +2,14 @@ package clickup
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -12,12 +17,12 @@ import (
 var (
 	ClickUpClientId     = os.Getenv("CLICKUP_CLIENT_ID")
 	ClickUpClientSecret = os.Getenv("CLICKUP_CLIENT_SECRET")
-	ClickUpApiBaseUrl   = "https://api.clickup.com/api"
+	ClickUpApiBaseUrl   = "https://api.clickup.com/api/v2"
 )
 
 var clickUpEndpoint = oauth2.Endpoint{
-	AuthURL:   fmt.Sprintf("%s/oauth2/authorize", ClickUpApiBaseUrl),
-	TokenURL:  fmt.Sprintf("%s/oauth2/token", ClickUpApiBaseUrl),
+	AuthURL:   fmt.Sprintf("%s/oauth/authorize", ClickUpApiBaseUrl),
+	TokenURL:  fmt.Sprintf("%s/oauth/token", ClickUpApiBaseUrl),
 	AuthStyle: oauth2.AuthStyleInParams,
 }
 
@@ -57,4 +62,125 @@ func GetAccessToken(ctx context.Context, code string) (*oauth2.Token, error) {
 		return nil, err
 	}
 	return conf.Exchange(ctx, code)
+}
+
+func doClickUpRequest(method string, accessToken string, relativeUrl string, body string) ([]byte, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", ClickUpApiBaseUrl, relativeUrl), strings.NewReader(body))
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating api request to ClickUp")
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting response from ClickUp Teams endpoint")
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if res.StatusCode != 200 {
+		return nil, errors.New("ClickUp API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading response body from ClickUp Teams endpoint")
+	}
+
+	return b, nil
+}
+
+func GetFolders(accessToken string, spaceId string) ([]*model.ClickUpFolder, error) {
+	b, err := doClickUpRequest("GET", accessToken, fmt.Sprintf("/space/%s/folder", spaceId), "")
+	if err != nil {
+		return nil, err
+	}
+
+	var foldersResponse struct {
+		Folders []*model.ClickUpFolder `json:"folders"`
+	}
+	err = json.Unmarshal(b, &foldersResponse)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshaling ClickUp folders response")
+	}
+
+	return foldersResponse.Folders, nil
+}
+
+func GetFolderlessLists(accessToken string, spaceId string) ([]*model.ClickUpList, error) {
+	b, err := doClickUpRequest("GET", accessToken, fmt.Sprintf("/space/%s/list", spaceId), "")
+	if err != nil {
+		return nil, err
+	}
+
+	var listsResponse struct {
+		Lists []*model.ClickUpList `json:"lists"`
+	}
+	err = json.Unmarshal(b, &listsResponse)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshaling ClickUp lists response")
+	}
+
+	return listsResponse.Lists, nil
+}
+
+func GetSpaces(accessToken string, teamId string) ([]*model.ClickUpSpace, error) {
+	b, err := doClickUpRequest("GET", accessToken, fmt.Sprintf("/team/%s/space", teamId), "")
+	if err != nil {
+		return nil, err
+	}
+
+	var spacesResponse struct {
+		Spaces []*model.ClickUpSpace `json:"spaces"`
+	}
+	err = json.Unmarshal(b, &spacesResponse)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshaling ClickUp spaces response")
+	}
+
+	return spacesResponse.Spaces, nil
+}
+
+func GetTeams(accessToken string) ([]*model.ClickUpTeam, error) {
+	b, err := doClickUpRequest("GET", accessToken, "/team", "")
+	if err != nil {
+		return nil, err
+	}
+
+	var teamsResponse struct {
+		Teams []*model.ClickUpTeam `json:"teams"`
+	}
+	err = json.Unmarshal(b, &teamsResponse)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshaling ClickUp teams response")
+	}
+
+	return teamsResponse.Teams, nil
+}
+
+func CreateTask(accessToken string, listId string, name string, description string) (*model.ClickUpTask, error) {
+	taskInput := struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}{Name: name, Description: description}
+	b, err := json.Marshal(taskInput)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err = doClickUpRequest("POST", accessToken, fmt.Sprintf("/list/%s/task", listId), string(b))
+	if err != nil {
+		return nil, err
+	}
+
+	var task *model.ClickUpTask
+	err = json.Unmarshal(b, &task)
+	if err != nil {
+		return nil, errors.Wrap(err, "error unmarshaling ClickUp task")
+	}
+
+	return task, nil
 }

@@ -26,14 +26,18 @@ import {
 } from '@graph/schemas'
 import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import INTEGRATIONS, { Integration } from '@pages/IntegrationsPage/Integrations'
+import ISSUE_TRACKER_INTEGRATIONS, {
+	IssueTrackerIntegration,
+} from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
-import useLocalStorage from '@rehooks/local-storage'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { titleCaseString } from '@util/string'
 import { Form, message } from 'antd'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
@@ -79,6 +83,7 @@ export const NewCommentForm = ({
 	const [createComment] = useCreateSessionCommentMutation()
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
 		variables: { project_id },
@@ -98,15 +103,11 @@ export const NewCommentForm = ({
 	)
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
-
-	const [selectedlinearTeamId, setLinearTeamId] = useLocalStorage(
-		'highlight-linear-default-team',
-		'',
-	)
+	const [containerId, setContainerId] = useState('')
 
 	const integrationMap = useMemo(() => {
-		const ret: { [key: string]: Integration } = {}
-		for (const integration of INTEGRATIONS) {
+		const ret: { [key: string]: IssueTrackerIntegration } = {}
+		for (const integration of ISSUE_TRACKER_INTEGRATIONS) {
 			ret[integration.key] = integration
 		}
 		return ret
@@ -175,7 +176,7 @@ export const NewCommentForm = ({
 						? [selectedIssueService]
 						: [],
 					issue_title: selectedIssueService ? issueTitle : null,
-					issue_team_id: selectedlinearTeamId || undefined,
+					issue_team_id: containerId || undefined,
 					issue_description: selectedIssueService
 						? issueDescription
 						: null,
@@ -238,7 +239,7 @@ export const NewCommentForm = ({
 					time: commentTime / 1000,
 					author_name: admin?.name || admin?.email || 'Someone',
 					tags: getTags(tags, commentTagsData),
-					issue_team_id: selectedlinearTeamId || undefined,
+					issue_team_id: containerId || undefined,
 					integrations: selectedIssueService
 						? [selectedIssueService]
 						: [],
@@ -388,7 +389,11 @@ export const NewCommentForm = ({
 		[admin, adminSuggestions],
 	)
 
-	const { isLinearIntegratedWithProject, teams } = useLinearIntegration()
+	const { isLinearIntegratedWithProject } = useLinearIntegration()
+
+	const {
+		settings: { isIntegrated: isClickupIntegrated },
+	} = useClickUpIntegration(currentWorkspace?.id)
 
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []
@@ -407,28 +412,23 @@ export const NewCommentForm = ({
 				value: 'Linear',
 			})
 		}
-		return integrations
-	}, [isLinearIntegratedWithProject, integrationMap])
-
-	const linearTeamsOptions = useMemo(() => {
-		return (
-			teams?.map((team) => ({
-				value: team.team_id,
-				id: team.team_id,
+		if (isClickupIntegrated) {
+			integrations.push({
 				displayValue: (
-					<>
-						{team.name} ({team.key})
-					</>
+					<span>
+						<img
+							className={styles.integrationIcon}
+							src={integrationMap['clickup']?.icon}
+						/>
+						Create a ClickUp task
+					</span>
 				),
-			})) || []
-		)
-	}, [teams])
-
-	useEffect(() => {
-		if (selectedlinearTeamId === '' && linearTeamsOptions.length > 0) {
-			setLinearTeamId(linearTeamsOptions[0].value)
+				id: 'clickup',
+				value: 'ClickUp',
+			})
 		}
-	}, [selectedlinearTeamId, linearTeamsOptions, setLinearTeamId])
+		return integrations
+	}, [isLinearIntegratedWithProject, isClickupIntegrated, integrationMap])
 
 	useEffect(() => {
 		const idx = modalHeader?.toLowerCase().indexOf('issue') || -1
@@ -436,6 +436,9 @@ export const NewCommentForm = ({
 			setSelectedIssueService(IntegrationType.Linear)
 		}
 	}, [modalHeader, isLinearIntegratedWithProject])
+
+	const integrationName = issueServiceDetail?.name ?? ''
+	const issueLabel = issueServiceDetail?.issueLabel ?? ''
 
 	return (
 		<Form
@@ -463,7 +466,7 @@ export const NewCommentForm = ({
 								section !== CommentFormSection.CommentForm,
 						})}
 					>
-						<h3>{modalHeader ?? 'Add a  Comment'}</h3>
+						<h3>{modalHeader ?? 'Add a Comment'}</h3>
 						<div className={styles.commentInputContainer}>
 							<CommentTextBody
 								newInput
@@ -516,42 +519,31 @@ export const NewCommentForm = ({
 								)}
 								src={issueServiceDetail?.icon}
 							/>
-							Create a new {issueServiceDetail?.name} issue
+							Create a new {integrationName} {issueLabel}
 						</h3>
-						{/*
-                            TODO: make this work with other issue providers (when added)
-                            Since Linear is the only issue integration we have right now,
-                            this works fine. But, different issue providers will have different ideas
-                            of what teams are so there should be different select dropdowns for those.
-                        */}
-						<Form.Item label={`${issueServiceDetail?.name} Team`}>
-							<Select
-								aria-label={`${issueServiceDetail?.name} Team`}
-								placeholder={
-									'Choose a team to create the issue in'
-								}
-								options={linearTeamsOptions}
-								onChange={setLinearTeamId}
-								value={selectedlinearTeamId}
-								notFoundContent={<p>No teams found</p>}
-							/>
-						</Form.Item>
+						{issueServiceDetail?.containerSelection({
+							setSelectionId: setContainerId,
+						})}
 						<Form.Item
 							name="issueTitle"
 							initialValue={defaultIssueTitle}
-							label="Issue Title"
+							label={`${titleCaseString(issueLabel)} Title`}
 						>
 							<Input
-								placeholder="Issue Title"
+								placeholder={`${titleCaseString(
+									issueLabel,
+								)} Title`}
 								className={styles.textBoxStyles}
 							/>
 						</Form.Item>
 						<Form.Item
 							name="issueDescription"
-							label="Issue Description"
+							label={`${titleCaseString(issueLabel)} Description`}
 						>
 							<TextArea
-								placeholder="Issue Description"
+								placeholder={`${titleCaseString(
+									issueLabel,
+								)} Description`}
 								rows={3}
 								className={styles.textBoxStyles}
 							/>

@@ -3,6 +3,7 @@ import { useSlackBot } from '@components/Header/components/PersonalNotificationB
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
@@ -10,6 +11,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
@@ -49,6 +51,15 @@ const IntegrationsPage = () => {
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
 		useDiscordIntegration()
 
+	const { currentWorkspace } = useApplicationContext()
+	const workspaceId = currentWorkspace!.id
+	const {
+		settings: {
+			isIntegrated: isClickUpIntegratedWithProject,
+			loading: loadingClickUp,
+		},
+	} = useClickUpIntegration(workspaceId)
+
 	const loading =
 		loadingLinear ||
 		loadingSlack ||
@@ -56,7 +67,8 @@ const IntegrationsPage = () => {
 		loadingClearbit ||
 		loadingFront ||
 		loadingVercel ||
-		loadingDiscord
+		loadingDiscord ||
+		loadingClickUp
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((inter) =>
@@ -71,7 +83,8 @@ const IntegrationsPage = () => {
 					isClearbitIntegratedWithWorkspace) ||
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
-				(inter.key === 'discord' && isDiscordIntegratedWithProject),
+				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
+				(inter.key === 'clickup' && isClickUpIntegratedWithProject),
 		}))
 	}, [
 		isSlackConnectedToWorkspace,
@@ -82,6 +95,7 @@ const IntegrationsPage = () => {
 		isHighlightAdmin,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
+		isClickUpIntegratedWithProject,
 	])
 
 	return (

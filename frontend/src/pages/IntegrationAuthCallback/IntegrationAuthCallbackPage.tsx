@@ -23,6 +23,7 @@ import { StringParam, useQueryParams } from 'use-query-params'
 interface Props {
 	code: string
 	projectId?: string
+	workspaceId?: string
 	next?: string
 }
 
@@ -246,18 +247,25 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 	return null
 }
 
-const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
+const WorkspaceIntegrationCallback = ({
+	code,
+	projectId,
+	name,
+	addIntegration,
+}: Props & {
+	name: string
+	addIntegration: (code: string) => Promise<unknown>
+}) => {
 	const history = useHistory()
 	const { setLoadingState } = useAppLoadingContext()
-	const { addVercelIntegrationToProject } = useClickUpIntegration()
 
 	useEffect(() => {
-		if (!projectId || !code) return
+		if (!addIntegration || !code) return
 		const next = `/${projectId}/integrations`
 		;(async () => {
 			try {
-				await addClickUpIntegrationToProject(code, projectId)
-				message.success('Highlight is now synced with ClickUp!', 5)
+				await addIntegration(code)
+				message.success(`Highlight is now synced with ${name}!`, 5)
 			} catch (e: any) {
 				H.consumeError(e)
 				console.error(e)
@@ -269,15 +277,25 @@ const ClickUpIntegrationCallback = ({ code, projectId }: Props) => {
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
-	}, [
-		history,
-		setLoadingState,
-		addFrontIntegrationToProject,
-		code,
-		projectId,
-	])
+	}, [history, setLoadingState, code, projectId, addIntegration, name])
 
 	return null
+}
+
+const ClickUpIntegrationCallback = ({
+	code,
+	projectId,
+	workspaceId,
+}: Props) => {
+	const { addIntegration } = useClickUpIntegration(workspaceId)
+	return (
+		<WorkspaceIntegrationCallback
+			code={code}
+			name="ClickUp"
+			addIntegration={addIntegration}
+			projectId={projectId}
+		/>
+	)
 }
 
 const IntegrationAuthCallbackPage = () => {
@@ -290,12 +308,13 @@ const IntegrationAuthCallbackPage = () => {
 		setLoadingState(AppLoadingState.EXTENDED_LOADING)
 	}, [setLoadingState])
 
-	const { code, projectId, next } = useMemo(() => {
+	const { code, projectId, next, workspaceId } = useMemo(() => {
 		const urlParams = new URLSearchParams(window.location.search)
 		const code = urlParams.get('code')!
 		const state = urlParams.get('state') || ''
 		let projectId: string | undefined = undefined
 		let next: string | undefined = undefined
+		let workspaceId: string | undefined = undefined
 		if (state) {
 			let parsedState: any
 			try {
@@ -305,36 +324,51 @@ const IntegrationAuthCallbackPage = () => {
 			}
 			projectId = parsedState['project_id']
 			next = parsedState['next']
+			workspaceId = parsedState['workspace_id']
 		}
 		return {
 			code,
 			projectId,
 			next,
+			workspaceId,
 		}
 	}, [])
 
-	if (integrationName.toLowerCase() === 'slack') {
-		return (
-			<SlackIntegrationCallback
-				code={code}
-				projectId={projectId}
-				next={next}
-			/>
-		)
-	} else if (integrationName.toLowerCase() === 'linear') {
-		return (
-			<LinearIntegrationCallback
-				code={code}
-				projectId={projectId}
-				next={next}
-			/>
-		)
-	} else if (integrationName.toLowerCase() === 'front') {
-		return <FrontIntegrationCallback code={code} projectId={projectId} />
-	} else if (integrationName.toLowerCase() === 'vercel') {
-		return <VercelIntegrationCallback code={code} />
-	} else if (integrationName.toLowerCase() === 'discord') {
-		return <DiscordIntegrationCallback code={code} projectId={projectId} />
+	switch (integrationName.toLowerCase()) {
+		case 'slack':
+			return (
+				<SlackIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
+			)
+		case 'linear':
+			return (
+				<LinearIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
+			)
+		case 'front':
+			return (
+				<FrontIntegrationCallback code={code} projectId={projectId} />
+			)
+		case 'vercel':
+			return <VercelIntegrationCallback code={code} />
+		case 'discord':
+			return (
+				<DiscordIntegrationCallback code={code} projectId={projectId} />
+			)
+		case 'clickup':
+			return (
+				<ClickUpIntegrationCallback
+					code={code}
+					projectId={projectId}
+					workspaceId={workspaceId}
+				/>
+			)
 	}
 
 	return null

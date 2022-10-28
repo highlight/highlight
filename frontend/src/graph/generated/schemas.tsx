@@ -210,6 +210,38 @@ export type VercelProject = {
 	env: Array<VercelEnv>
 }
 
+export type ClickUpSpace = {
+	__typename?: 'ClickUpSpace'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type ClickUpTeam = {
+	__typename?: 'ClickUpTeam'
+	id: Scalars['String']
+	name: Scalars['String']
+	spaces: Array<ClickUpSpace>
+}
+
+export type ClickUpFolder = {
+	__typename?: 'ClickUpFolder'
+	id: Scalars['String']
+	name: Scalars['String']
+	lists: Array<ClickUpList>
+}
+
+export type ClickUpList = {
+	__typename?: 'ClickUpList'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
+export type ClickUpTask = {
+	__typename?: 'ClickUpTask'
+	id: Scalars['String']
+	name: Scalars['String']
+}
+
 export type SocialLink = {
 	__typename?: 'SocialLink'
 	type: SocialType
@@ -1074,10 +1106,21 @@ export type VercelProjectMappingInput = {
 	project_id?: Maybe<Scalars['ID']>
 }
 
+export type ClickUpProjectMappingInput = {
+	project_id: Scalars['ID']
+	clickup_space_id: Scalars['String']
+}
+
 export type VercelProjectMapping = {
 	__typename?: 'VercelProjectMapping'
 	vercel_project_id: Scalars['String']
 	project_id: Scalars['ID']
+}
+
+export type ClickUpProjectMapping = {
+	__typename?: 'ClickUpProjectMapping'
+	project_id: Scalars['ID']
+	clickup_space_id: Scalars['String']
 }
 
 export type OAuthClient = {
@@ -1162,8 +1205,13 @@ export type Query = {
 	slack_members: Array<Maybe<SanitizedSlackChannel>>
 	generate_zapier_access_token: Scalars['String']
 	is_integrated_with: Scalars['Boolean']
+	is_workspace_integrated_with: Scalars['Boolean']
 	vercel_projects: Array<VercelProject>
 	vercel_project_mappings: Array<VercelProjectMapping>
+	clickup_teams: Array<ClickUpTeam>
+	clickup_project_mappings: Array<ClickUpProjectMapping>
+	clickup_folders: Array<ClickUpFolder>
+	clickup_folderless_lists: Array<ClickUpList>
 	linear_teams?: Maybe<Array<LinearTeam>>
 	project?: Maybe<Project>
 	workspace?: Maybe<Workspace>
@@ -1498,11 +1546,32 @@ export type QueryIs_Integrated_WithArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryIs_Workspace_Integrated_WithArgs = {
+	integration_type: IntegrationType
+	workspace_id: Scalars['ID']
+}
+
 export type QueryVercel_ProjectsArgs = {
 	project_id: Scalars['ID']
 }
 
 export type QueryVercel_Project_MappingsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryClickup_TeamsArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryClickup_Project_MappingsArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryClickup_FoldersArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryClickup_Folderless_ListsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -1664,6 +1733,8 @@ export type Mutation = {
 	openSlackConversation?: Maybe<Scalars['Boolean']>
 	addIntegrationToProject: Scalars['Boolean']
 	removeIntegrationFromProject: Scalars['Boolean']
+	addIntegrationToWorkspace: Scalars['Boolean']
+	removeIntegrationFromWorkspace: Scalars['Boolean']
 	syncSlackIntegration: SlackSyncResponse
 	createDefaultAlerts?: Maybe<Scalars['Boolean']>
 	createMetricMonitor?: Maybe<MetricMonitor>
@@ -1688,6 +1759,7 @@ export type Mutation = {
 	deleteDashboard: Scalars['Boolean']
 	deleteSessions: Scalars['Boolean']
 	updateVercelProjectMappings: Scalars['Boolean']
+	updateClickUpProjectMappings: Scalars['Boolean']
 }
 
 export type MutationUpdateAdminAboutYouDetailsArgs = {
@@ -1943,6 +2015,17 @@ export type MutationRemoveIntegrationFromProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationAddIntegrationToWorkspaceArgs = {
+	integration_type?: Maybe<IntegrationType>
+	workspace_id: Scalars['ID']
+	code: Scalars['String']
+}
+
+export type MutationRemoveIntegrationFromWorkspaceArgs = {
+	integration_type?: Maybe<IntegrationType>
+	workspace_id: Scalars['ID']
+}
+
 export type MutationSyncSlackIntegrationArgs = {
 	project_id: Scalars['ID']
 }
@@ -2109,6 +2192,11 @@ export type MutationDeleteSessionsArgs = {
 export type MutationUpdateVercelProjectMappingsArgs = {
 	project_id: Scalars['ID']
 	project_mappings: Array<VercelProjectMappingInput>
+}
+
+export type MutationUpdateClickUpProjectMappingsArgs = {
+	workspace_id: Scalars['ID']
+	project_mappings: Array<ClickUpProjectMappingInput>
 }
 
 export type Subscription = {

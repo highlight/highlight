@@ -173,6 +173,7 @@ var Models = []interface{}{
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
+	&ClickupSettings{},
 }
 
 func init() {
@@ -251,7 +252,7 @@ type Workspace struct {
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
 	DiscordGuildId              *string
-	ClickUpAccessToken          *string
+	ClickupAccessToken          *string
 }
 
 type WorkspaceAdmin struct {
@@ -1062,6 +1063,12 @@ type VercelIntegrationConfig struct {
 	WorkspaceID     int `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id;index"`
 	ProjectID       int
 	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
+}
+
+type ClickupSettings struct {
+	WorkspaceID    int
+	ProjectID      int `gorm:"uniqueIndex"`
+	ClickupSpaceID string
 }
 
 type AlertEvent struct {

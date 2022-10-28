@@ -1383,11 +1383,38 @@ query GetWorkspaceIsIntegratedWithVercel($project_id: ID!) {
 	}
 }
 
-query GetWorkspaceIsIntegratedWithClickUp($project_id: ID!) {
-	is_integrated_with_clickup: is_integrated_with(
+query GetClickUpIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
 		integration_type: ClickUp
-		project_id: $project_id
+		workspace_id: $workspace_id
 	)
+	clickup_teams(workspace_id: $workspace_id) {
+		id
+		name
+		spaces {
+			id
+			name
+		}
+	}
+	project_mappings: clickup_project_mappings(workspace_id: $workspace_id) {
+		project_id
+		clickup_space_id
+	}
+}
+
+query GetClickUpFolders($project_id: ID!) {
+	clickup_folders(project_id: $project_id) {
+		id
+		name
+		lists {
+			id
+			name
+		}
+	}
+	clickup_folderless_lists(project_id: $project_id) {
+		id
+		name
+	}
 }
 
 query GenerateNewZapierAccessTokenJwt($project_id: ID!) {
