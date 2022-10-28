@@ -505,7 +505,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			play(state.time)
+			play()
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
 			unsubscribeSessionPayloadFn.current = undefined

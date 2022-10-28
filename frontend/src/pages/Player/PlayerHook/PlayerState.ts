@@ -64,8 +64,6 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 30000
 export const MAX_CHUNK_COUNT = 5
-// Play sessions at a 7s delay to give time for events to be buffered in advance of playback.
-export const LIVE_MODE_DELAY = 7000
 
 export enum SessionViewability {
 	VIEWABLE,
@@ -328,7 +326,7 @@ export const PlayerReducer = (
 		case PlayerActionType.play:
 			if (s.isLiveMode) {
 				// live mode play time is the current time
-				action.time = Date.now() - LIVE_MODE_DELAY - events[0].timestamp
+				action.time = Date.now() - events[0].timestamp
 			}
 			s = replayerAction(
 				PlayerActionType.play,
@@ -338,6 +336,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.pause:
+			s.isLiveMode = false
 			s = replayerAction(
 				PlayerActionType.pause,
 				s,
@@ -514,17 +513,16 @@ export const PlayerReducer = (
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
-			const activeTime = time - LIVE_MODE_DELAY
 			if (
 				s.isLiveMode &&
 				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < activeTime - 5000
+				s.lastActiveTimestamp < time - 5000
 			) {
-				if (s.lastActiveTimestamp > activeTime - 1000 * 60) {
+				if (s.lastActiveTimestamp > time - 1000 * 60) {
 					s.lastActiveString = 'less than a minute ago'
 				} else {
 					s.lastActiveString = moment(s.lastActiveTimestamp).from(
-						activeTime,
+						time,
 					)
 				}
 			} else if (s.lastActiveString !== null) {
@@ -714,7 +712,6 @@ const replayerAction = (
 	)
 	if (!s.replayer) return s
 	if (desiredState === ReplayerState.Paused) {
-		s.isLiveMode = false
 		s.replayer.pause(toReplayerTime(s.replayer, s.sessionMetadata, time))
 	} else if (desiredState === ReplayerState.Playing) {
 		s.replayer.play(toReplayerTime(s.replayer, s.sessionMetadata, time))
