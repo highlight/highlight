@@ -9,8 +9,8 @@ export const variants = recipe({
 		},
 		size: {
 			small: sprinkles({ padding: '6' }),
-			medium: sprinkles({ padding: '8' }),
-			large: sprinkles({ padding: '10' }),
+			medium: sprinkles({ padding: '12' }),
+			large: sprinkles({ padding: '16' }),
 		},
 		border: {
 			none: {},

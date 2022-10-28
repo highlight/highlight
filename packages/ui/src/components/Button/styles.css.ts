@@ -8,6 +8,28 @@ const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
 
+export const iconVariants = recipe({
+	base: {
+		alignItems: 'center',
+		display: 'inline-flex',
+		justifyContent: 'center',
+	},
+
+	variants: {
+		size: {
+			xSmall: { height: 16, width: 16, ...typographyStyles.size.xSmall },
+			small: { height: 16, width: 16, ...typographyStyles.size.small },
+			medium: { height: 16, width: 16, ...typographyStyles.size.small },
+			large: { height: 16, width: 16, ...typographyStyles.size.small },
+			xLarge: { height: 16, width: 16, ...typographyStyles.size.large },
+		},
+	},
+
+	defaultVariants: {
+		size: 'small',
+	},
+})
+
 export const variants = recipe({
 	base: [
 		sprinkles({
@@ -18,7 +40,6 @@ export const variants = recipe({
 		{
 			lineHeight: '1em',
 			width: 'auto',
-			...typographyStyles.family.body,
 		},
 		{
 			selectors: {
@@ -88,44 +109,24 @@ export const variants = recipe({
 		},
 		size: {
 			xSmall: [
-				sprinkles({
-					borderRadius: '6',
-					px: '6',
-				}),
+				sprinkles({ borderRadius: '6', gap: '4', px: '6' }),
 				{ height: 24 },
-				typographyStyles.size.xSmall,
 			],
 			small: [
-				sprinkles({
-					borderRadius: '6',
-					px: '6',
-				}),
+				sprinkles({ borderRadius: '6', gap: '4', px: '6' }),
 				{ height: 28 },
-				typographyStyles.size.small,
 			],
 			medium: [
-				sprinkles({
-					borderRadius: '6',
-					px: '8',
-				}),
+				sprinkles({ borderRadius: '6', gap: '6', px: '8' }),
 				{ height: 32 },
-				typographyStyles.size.small,
 			],
 			large: [
-				sprinkles({
-					borderRadius: '6',
-					px: '10',
-				}),
+				sprinkles({ borderRadius: '6', gap: '6', px: '10' }),
 				{ height: 36 },
-				typographyStyles.size.small,
 			],
 			xLarge: [
-				sprinkles({
-					borderRadius: '8',
-					px: '12',
-				}),
+				sprinkles({ borderRadius: '8', gap: '8', px: '12' }),
 				{ height: 40 },
-				typographyStyles.size.large,
 			],
 		},
 	},

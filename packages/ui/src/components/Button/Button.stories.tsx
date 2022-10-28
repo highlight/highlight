@@ -3,6 +3,8 @@ import { ComponentMeta } from '@storybook/react'
 
 import { Button } from './Button'
 import { Box } from '../Box/Box'
+import { IconShare } from '../icons/IconShare'
+import { IconCaretDown, IconCreateFile } from '../icons'
 
 export default {
 	title: 'Components/Button',
@@ -74,4 +76,42 @@ export const Variants = () => (
 			</Button>
 		</Box>
 	</>
+)
+
+export const Icons = () => (
+	<Box display="flex" gap="6" marginBottom="32">
+		<Button iconLeft={<IconShare />} size="xSmall">
+			Button with Icon
+		</Button>
+		<Button variant="grey" iconRight={<IconCaretDown />} size="small">
+			Button with Icon
+		</Button>
+		<Button
+			variant="white"
+			iconLeft={<IconCreateFile />}
+			iconRight={<IconCaretDown />}
+			size="medium"
+		>
+			Button with Icon
+		</Button>
+		<Button iconLeft={<IconShare />} size="large">
+			Button with Icon
+		</Button>
+		<Button
+			variant="grey"
+			iconLeft={<IconCaretDown />}
+			iconRight={<IconCreateFile />}
+			size="xLarge"
+		>
+			Button with Icon
+		</Button>
+		<Button
+			variant="white"
+			iconRight={<IconCreateFile />}
+			size="xLarge"
+			disabled
+		>
+			Button with Icon
+		</Button>
+	</Box>
 )

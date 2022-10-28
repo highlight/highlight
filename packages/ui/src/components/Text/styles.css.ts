@@ -1,7 +1,7 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
-import { globalFontFace, globalStyle } from '@vanilla-extract/css'
+import { globalStyle } from '@vanilla-extract/css'
 
 // Generated at https://seek-oss.github.io/capsize/.
 export const steradianFontMetrics = {
@@ -58,6 +58,7 @@ const family = {
 	monospace: {
 		fontFamily:
 			'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
+		...plexo,
 	},
 } as const
 
@@ -67,7 +68,6 @@ const size = {
 	small: { ...small, ...family.body },
 	medium: { ...medium, ...family.body },
 	large: { ...large, ...family.body },
-	monospace: { ...plexo, ...family.monospace },
 } as const
 
 const weight = {
@@ -84,11 +84,13 @@ export const typographyStyles = {
 
 export const variants = recipe({
 	variants: {
+		family: typographyStyles.family,
 		size: typographyStyles.size,
 		weight: typographyStyles.weight,
 	},
 
 	defaultVariants: {
+		family: 'body',
 		size: 'small',
 		weight: 'regular',
 	},
@@ -100,19 +102,4 @@ export type Variants = RecipeVariants<typeof variants>
 // global styles to be injected.
 globalStyle('body', {
 	...typographyStyles.family.body,
-})
-
-globalFontFace(mainFontFamily, {
-	src: '../../fonts/SteradianLight.woff2',
-	...typographyStyles.weight.regular,
-})
-
-globalFontFace(mainFontFamily, {
-	src: '../../fonts/SteradianRegular.woff2',
-	...typographyStyles.weight.semibold,
-})
-
-globalFontFace(mainFontFamily, {
-	src: '../../fonts/SteradianBold.woff2',
-	...typographyStyles.weight.bold,
 })

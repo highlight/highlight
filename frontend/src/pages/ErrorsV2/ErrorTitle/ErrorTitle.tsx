@@ -1,6 +1,13 @@
-import Button from '@components/Button/Button/Button'
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas'
-import { Box, Heading, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Button,
+	Heading,
+	IconCaretDown,
+	IconCreateFile,
+	IconShare,
+	Text,
+} from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
@@ -71,29 +78,31 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					<Box display="flex" gap="8">
 						<Button
 							size="small"
-							trackingId="test"
-							onClick={() => null}
+							variant="grey"
+							iconRight={<IconCaretDown />}
 						>
 							Open
 						</Button>
 						<Button
 							size="small"
-							trackingId="test"
-							onClick={() => null}
+							variant="grey"
+							iconRight={<IconShare />}
 						>
 							Share
 						</Button>
 						<Button
 							size="small"
-							trackingId="test"
-							onClick={() => null}
+							variant="white"
+							iconLeft={<IconCreateFile />}
 						>
 							Create Issue
 						</Button>
 					</Box>
 				</Box>
 			</Box>
-			<Heading size="h2">{headerTextAsJson || headerText}</Heading>
+			<Heading size="h2" paddingBottom="16">
+				{headerTextAsJson || headerText}
+			</Heading>
 		</Box>
 	)
 }
