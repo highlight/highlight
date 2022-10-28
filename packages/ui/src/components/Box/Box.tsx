@@ -18,9 +18,9 @@ export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {
-			sprinklesProps[key] = props[key]
+			sprinklesProps[key] = props[key as keyof typeof props]
 		} else {
-			nativeProps[key] = props[key]
+			nativeProps[key] = props[key as keyof typeof props]
 		}
 	}
 

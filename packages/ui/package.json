@@ -4,7 +4,7 @@
 	"packageManager": "yarn@3.2.3",
 	"type": "module",
 	"main": "./src/index.ts",
-	"types": "./dist/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"build": "vite build",
 		"docs:dev": "start-storybook -p 6006 --no-manager-cache",
