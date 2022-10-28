@@ -169,7 +169,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					if (!interval.active) {
 						// skip forward some frames after the inactivity to prevent
 						// the player from rounding back into the inactive region
-						return interval.endTime + 30 * FRAME_MS
+						return interval.endTime + 120 * FRAME_MS
 					} else {
 						return undefined
 					}
