@@ -212,8 +212,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			}
 
 			chunksIndexesWithData.sort()
+			const midChunkIdx =
+				chunksIndexesWithData[
+					Math.floor(chunksIndexesWithData.length / 2)
+				]
 			// if we are on the left side of the chunks, remove the ones from the right
-			if (currentIdx <= chunksIndexesWithData[0]) {
+			if (currentIdx <= midChunkIdx) {
 				chunksIndexesWithData.reverse()
 			}
 
@@ -505,7 +509,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			play()
+			play(state.time)
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current!()
 			unsubscribeSessionPayloadFn.current = undefined

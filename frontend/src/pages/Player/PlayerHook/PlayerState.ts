@@ -356,7 +356,6 @@ export const PlayerReducer = (
 			s.time = action.time
 			break
 		case PlayerActionType.addLiveEvents:
-			s.isLiveMode = true
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.replayer?.replaceEvents(events)
@@ -364,8 +363,7 @@ export const PlayerReducer = (
 				PlayerActionType.addLiveEvents,
 				s,
 				ReplayerState.Playing,
-				events[events.length - 1].timestamp -
-					s.sessionMetadata.startTime,
+				events[events.length - 1].timestamp - events[0].timestamp,
 			)
 			break
 		case PlayerActionType.loadSession:
