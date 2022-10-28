@@ -63,16 +63,16 @@ const family = {
 } as const
 
 const size = {
-	xxSmall: { ...xxSmall, ...family.body },
-	xSmall: { ...xSmall, ...family.body },
-	small: { ...small, ...family.body },
-	medium: { ...medium, ...family.body },
-	large: { ...large, ...family.body },
+	xxSmall: xxSmall,
+	xSmall: xSmall,
+	small: small,
+	medium: medium,
+	large: large,
 } as const
 
 const weight = {
 	regular: { fontWeight: '300' },
-	semibold: { fontWeight: '400' },
+	medium: { fontWeight: '400' },
 	bold: { fontWeight: '500' },
 } as const
 
@@ -89,10 +89,29 @@ export const variants = recipe({
 		weight: typographyStyles.weight,
 	},
 
+	compoundVariants: [
+		{
+			variants: { family: 'monospace', weight: 'regular' },
+			style: typographyStyles.weight.medium,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'regular' },
+			style: typographyStyles.weight.medium,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'medium' },
+			style: typographyStyles.weight.bold,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'bold' },
+			style: { fontWeight: 700 },
+		},
+	],
+
 	defaultVariants: {
 		family: 'body',
 		size: 'small',
-		weight: 'regular',
+		weight: 'medium',
 	},
 })
 

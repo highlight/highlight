@@ -52,12 +52,7 @@ export const Badge: React.FC<Props> = ({
 		>
 			{iconStart}
 			{label && (
-				<Text
-					weight="semibold"
-					size={textSize}
-					color={textColor}
-					as="span"
-				>
+				<Text size={textSize} color={textColor} as="span">
 					{label}
 				</Text>
 			)}

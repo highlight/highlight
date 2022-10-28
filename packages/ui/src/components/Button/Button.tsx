@@ -54,9 +54,7 @@ export const Button: React.FC<Props> = ({
 					{React.cloneElement(iconLeft)}
 				</Box>
 			)}
-			<Text size={textSize} weight="semibold">
-				{children}
-			</Text>
+			<Text size={textSize}>{children}</Text>
 			{iconRight && (
 				<Box
 					as="span"

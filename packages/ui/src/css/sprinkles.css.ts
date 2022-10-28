@@ -64,9 +64,17 @@ const responsiveProperties = defineProperties({
 		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
 		px: ['paddingLeft', 'paddingRight'],
 		py: ['paddingTop', 'paddingBottom'],
+		pt: ['paddingTop'],
+		pr: ['paddingRight'],
+		pb: ['paddingBottom'],
+		pl: ['paddingLeft'],
 		m: ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
 		mx: ['marginLeft', 'marginRight'],
 		my: ['marginTop', 'marginBottom'],
+		mt: ['marginTop'],
+		mr: ['marginRight'],
+		mb: ['marginBottom'],
+		ml: ['marginLeft'],
 	},
 })
 

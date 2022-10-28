@@ -1,5 +1,5 @@
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
@@ -34,11 +34,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<FaUsers />
 								<Text>Users</Text>
 							</Box>
-							<Text color="purple700">Metrics {'>'}</Text>
+							<Text>
+								<TextLink href="#metrics">
+									Metrics {'>'}
+								</TextLink>
+							</Text>
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large">
+							<Text color="black" size="large" weight="bold">
 								25
 							</Text>
 							<Tag>
@@ -64,11 +68,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<BsGridFill />
 								<Text>Instances</Text>
 							</Box>
-							<Text color="purple700">Latest {'>'}</Text>
+							<Text>
+								<TextLink href="#latest">Latest {'>'}</TextLink>
+							</Text>
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large">
+							<Text color="black" size="large" weight="bold">
 								32
 							</Text>
 							<Tag>
@@ -90,10 +96,10 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large">
+							<Text color="black" size="large" weight="bold">
 								25
 							</Text>
-							<Text color="neutral500" size="large">
+							<Text color="neutral500" size="large" weight="bold">
 								{' '}
 								/ Sep 13
 							</Text>
@@ -118,7 +124,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<FaUsers />
 								<Text>Last 30 days</Text>
 							</Box>
-							<Text color="purple700">Metrics {'>'}</Text>
+							<Text>
+								<TextLink href="#metrics">
+									Metrics {'>'}
+								</TextLink>
+							</Text>
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
@@ -127,8 +137,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					</>
 				</Stat>
 			</Box>
-			<Box p="10">
-				<Text size="monospace">{body}</Text>
+			<Box py="12" px="16">
+				<Text family="monospace">{body}</Text>
 			</Box>
 		</Box>
 	)
@@ -141,11 +151,17 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
-		px="10"
-		py="8"
+		px="16"
+		py="12"
 		flex="stretch"
 	>
-		<Box display="flex" flexDirection="column" gap="6">
+		<Box
+			display="flex"
+			flexDirection="column"
+			gap="6"
+			justifyContent="space-between"
+			style={{ height: '100%' }}
+		>
 			{children}
 		</Box>
 	</Box>

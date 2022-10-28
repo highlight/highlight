@@ -42,8 +42,8 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 	}, [event, headerText])
 
 	return (
-		<Box my="16">
-			<Box borderBottom="neutral" py="16" marginBottom="24">
+		<Box mb="16">
+			<Box borderBottom="neutral" pb="16" marginBottom="24">
 				<Box display="flex" justifyContent="space-between">
 					<Box alignItems="center" display="flex" gap="10">
 						<Box

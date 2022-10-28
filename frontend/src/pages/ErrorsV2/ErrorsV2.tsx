@@ -210,7 +210,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 			>
 				<SearchPanel />
 
-				<div className={styles.detailsContainer}>
+				<div className={classNames(styles.detailsContainer)}>
 					{!integrated && <IntegrationCard />}
 					{error_secure_id && !errorQueryingErrorGroup ? (
 						<>
@@ -223,9 +223,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								</title>
 							</Helmet>
 
-							<div
-								className={classNames(styles.detailsContainer)}
-							>
+							<div>
 								<div className={styles.errorDetails}>
 									{loading ? (
 										<>

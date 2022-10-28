@@ -78,7 +78,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 				]}
 			>
 				<Box cssClass={style.title} color="dark">
-					<Text as="span" size="small" weight="semibold" color="dark">
+					<Text as="span" size="small" color="dark">
 						{body}
 					</Text>
 				</Box>
@@ -120,12 +120,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							/>
 						</Box>
 						<Box>
-							<Text
-								as="span"
-								size="xSmall"
-								weight="semibold"
-								color="neutral700"
-							>
+							<Text as="span" size="xSmall" color="neutral700">
 								{date}
 							</Text>
 						</Box>
