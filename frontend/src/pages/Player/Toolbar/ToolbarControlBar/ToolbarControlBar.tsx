@@ -74,8 +74,6 @@ const ToolbarControls = () => {
 		setShowDevTools,
 		playerSpeed,
 		setPlayerSpeed,
-		skipInactive,
-		setSkipInactive,
 		showPlayerAbsoluteTime,
 	} = usePlayerConfiguration()
 
@@ -275,26 +273,6 @@ const ToolbarControls = () => {
 							disabled={isPlayerFullscreen || disableControls}
 						>
 							<TerminalIcon />
-						</Button>
-					</ExplanatoryPopover>
-
-					<ExplanatoryPopover content={<>Skip inactive</>}>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && skipInactive,
-								},
-							)}
-							trackingId="SkipInactiveToggle"
-							disabled={disableControls}
-							onClick={() => {
-								setSkipInactive(!skipInactive)
-							}}
-						>
-							<FastForwardIcon />
 						</Button>
 					</ExplanatoryPopover>
 

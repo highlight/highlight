@@ -973,11 +973,25 @@ const TimelineIndicatorsBarGraph = ({
 				data={areaChartBuckets}
 				margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
 			>
+				<defs>
+					<linearGradient id="activityBackground" y1="0" y2="1">
+						<stop
+							offset="-42.86%"
+							stopColor="var(--color-neutral-700)"
+							stopOpacity={1}
+						/>
+						<stop
+							offset="100%"
+							stopColor="var(--color-neutral-700)"
+							stopOpacity={0.48}
+						/>
+					</linearGradient>
+				</defs>
 				<Area
 					type="monotone"
 					stroke="transparent"
 					dataKey="totalCount"
-					fill="var(--color-neutral-200)"
+					fill="url(#activityBackground)"
 				></Area>
 			</AreaChart>
 		)
