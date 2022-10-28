@@ -65,7 +65,7 @@ const upload = async function (
 	opts: Options,
 ) {
 	const fileRelPath = fileAbsPath
-		.split(join(opts.workspace, opts.buildDir))
+		.split(`${join(opts.workspace, opts.buildDir)}/`)
 		.pop()!
 	const key = `v${version}/${fileRelPath}`
 
