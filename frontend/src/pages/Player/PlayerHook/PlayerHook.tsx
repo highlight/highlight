@@ -377,14 +377,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 					newTime,
 					undefined,
 					ReplayerState.Playing,
-				).then()
-			})
-
-			// Log how long it took to move to the new time.
-			const timelineChangeTime = timerEnd('timelineChangeTime')
-			datadogLogs.logger.info('Timeline Change Time', {
-				duration: timelineChangeTime,
-				sessionId: state.session_secure_id,
+				).then(() => {
+					// Log how long it took to move to the new time.
+					const timelineChangeTime = timerEnd('timelineChangeTime')
+					datadogLogs.logger.info('Timeline Play Time', {
+						duration: timelineChangeTime,
+						sessionId: state.session_secure_id,
+					})
+				})
 			})
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
@@ -400,14 +400,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 					time ?? 0,
 					undefined,
 					ReplayerState.Paused,
-				).then()
-			})
-
-			// Log how long it took to move to the new time.
-			const timelineChangeTime = timerEnd('timelineChangeTime')
-			datadogLogs.logger.info('Timeline Change Time', {
-				duration: timelineChangeTime,
-				sessionId: state.session_secure_id,
+				).then(() => {
+					// Log how long it took to move to the new time.
+					const timelineChangeTime = timerEnd('timelineChangeTime')
+					datadogLogs.logger.info('Timeline Pause Time', {
+						duration: timelineChangeTime,
+						sessionId: state.session_secure_id,
+					})
+				})
 			})
 		},
 		[ensureChunksLoaded, state.session_secure_id],
