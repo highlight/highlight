@@ -11,7 +11,7 @@ export default {
 
 export const Variants = () => (
 	<>
-		<Box display="flex" gap="6" alignItems="center" marginBottom="24">
+		<Box display="flex" gap="6" marginBottom="32">
 			<Button variant="primary" size="xSmall">
 				Primary (xSmall)
 			</Button>
@@ -32,7 +32,7 @@ export const Variants = () => (
 			</Button>
 		</Box>
 
-		<Box display="flex" gap="6" alignItems="center" marginBottom="10">
+		<Box display="flex" gap="6" marginBottom="32">
 			<Button variant="white" size="xSmall">
 				White (xSmall)
 			</Button>
@@ -53,7 +53,7 @@ export const Variants = () => (
 			</Button>
 		</Box>
 
-		<Box display="flex" gap="6" alignItems="center" marginBottom="10">
+		<Box display="flex" gap="6" marginBottom="32">
 			<Button variant="grey" size="xSmall">
 				Grey (xSmall)
 			</Button>
