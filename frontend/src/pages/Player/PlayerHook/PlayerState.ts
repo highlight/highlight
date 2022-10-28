@@ -355,6 +355,9 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setTime:
 			s.time = action.time
+			if (s.time < state.sessionEndTime) {
+				s.replayerState = ReplayerState.Paused
+			}
 			break
 		case PlayerActionType.addLiveEvents:
 			s.liveEventCount += 1
