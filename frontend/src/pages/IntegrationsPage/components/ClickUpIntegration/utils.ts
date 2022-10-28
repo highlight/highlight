@@ -4,7 +4,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { IntegrationType } from '@graph/schemas'
-import { useIntegration } from '@pages/IntegrationsPage/components/utils/useIntegration'
+import { useIntegration } from '@pages/IntegrationsPage/components/common/useIntegration'
 
 export const useClickUpIntegration = (workspaceId: string | undefined) =>
 	useIntegration(

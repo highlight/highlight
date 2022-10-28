@@ -21,14 +21,6 @@ type Settings<SettingsQueryOutput> =
 	| SettingsLoadingState
 	| SettingsLoadedState<SettingsQueryOutput>
 
-// type IntegrationHook<SettingsType, UpdateType> = (
-// 	workspaceId: string,
-// 	integrationType: IntegrationType,
-// 	settingsQuery: keyof typeof namedOperations.Query,
-// 	getSettingsQuery: (opts: Apollo.QueryHookOptions<SettingsType & {is_integrated: boolean}, {workspace_id: string}>) => Apollo.QueryResult<SettingsType & {is_integrated: boolean}, Exact<{workspace_id: string;}>>,
-// 	updateSettingsMutation: (opts?: Apollo.MutationHookOptions<any, UpdateType>) => Apollo.MutationTuple<any, UpdateType, Apollo.DefaultContext, Apollo.ApolloCache<unknown>>,
-// ) => IntegrationActions<SettingsType, UpdateType>
-
 export interface IntegrationActions<SettingsQueryOutput, UpdateMutationInput> {
 	addIntegration: (code: string) => Promise<unknown>
 	updateIntegration: (settings: UpdateMutationInput) => Promise<unknown>

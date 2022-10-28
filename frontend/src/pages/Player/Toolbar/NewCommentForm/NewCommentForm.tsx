@@ -409,7 +409,7 @@ export const NewCommentForm = ({
 					</span>
 				),
 				id: 'linear',
-				value: 'Linear',
+				value: IntegrationType.Linear,
 			})
 		}
 		if (isClickupIntegrated) {
@@ -424,7 +424,7 @@ export const NewCommentForm = ({
 					</span>
 				),
 				id: 'clickup',
-				value: 'ClickUp',
+				value: IntegrationType.ClickUp,
 			})
 		}
 		return integrations
@@ -432,10 +432,10 @@ export const NewCommentForm = ({
 
 	useEffect(() => {
 		const idx = modalHeader?.toLowerCase().indexOf('issue') || -1
-		if (idx !== -1) {
-			setSelectedIssueService(IntegrationType.Linear)
+		if (idx !== -1 && issueIntegrationsOptions.length !== 0) {
+			setSelectedIssueService(issueIntegrationsOptions[0].value)
 		}
-	}, [modalHeader, isLinearIntegratedWithProject])
+	}, [modalHeader, issueIntegrationsOptions])
 
 	const integrationName = issueServiceDetail?.name ?? ''
 	const issueLabel = issueServiceDetail?.issueLabel ?? ''
