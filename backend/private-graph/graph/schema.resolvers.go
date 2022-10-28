@@ -1237,29 +1237,27 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 	})
 
-	if len(integrations) > 0 {
-		for _, s := range integrations {
-			attachment := &model.ExternalAttachment{
-				IntegrationType:  *s,
-				SessionCommentID: sessionComment.ID,
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType:  *s,
+			SessionCommentID: sessionComment.ID,
+		}
+
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
-			if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating linear ticket or workspace")
-				}
-
-				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
-			} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-				desc := *issueDescription
-				desc += "\n"
-				desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
-				if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating ClickUp task")
-				}
-
-				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
+			desc := *issueDescription
+			desc += "\n"
+			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1300,20 +1298,27 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 	viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 
-	if len(integrations) > 0 {
-		for _, s := range integrations {
-			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
-				attachment := &model.ExternalAttachment{
-					IntegrationType:  modelInputs.IntegrationTypeLinear,
-					SessionCommentID: sessionComment.ID,
-				}
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType:  *s,
+			SessionCommentID: sessionComment.ID,
+		}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating linear ticket or workspace")
-				}
-
-				sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
+			desc := *issueDescription
+			desc += "\n"
+			desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, sessionComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		}
 	}
 
@@ -1559,29 +1564,27 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 		)
 	}
 
-	if len(integrations) > 0 {
-		for _, s := range integrations {
-			attachment := &model.ExternalAttachment{
-				IntegrationType: *s,
-				ErrorCommentID:  errorComment.ID,
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType: *s,
+			ErrorCommentID:  errorComment.ID,
+		}
+
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
 
-			if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, textForEmail, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating linear ticket or workspace")
-				}
-
-				errorComment.Attachments = append(errorComment.Attachments, attachment)
-			} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-				desc := *issueDescription
-				desc += "\n"
-				desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
-				if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating ClickUp task")
-				}
-
-				errorComment.Attachments = append(errorComment.Attachments, attachment)
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
+			desc := *issueDescription
+			desc += "\n"
+			desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, textForEmail, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -1649,20 +1652,27 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 	viewLink := fmt.Sprintf("%v", errorURL)
 
-	if len(integrations) > 0 {
-		for _, s := range integrations {
-			if *s == modelInputs.IntegrationTypeLinear && *workspace.LinearAccessToken != "" {
-				attachment := &model.ExternalAttachment{
-					IntegrationType: modelInputs.IntegrationTypeLinear,
-					ErrorCommentID:  errorComment.ID,
-				}
+	for _, s := range integrations {
+		attachment := &model.ExternalAttachment{
+			IntegrationType: *s,
+			ErrorCommentID:  errorComment.ID,
+		}
 
-				if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
-					return nil, e.Wrap(err, "error creating linear ticket or workspace")
-				}
-
-				errorComment.Attachments = append(errorComment.Attachments, attachment)
+		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
+			if err := r.CreateLinearIssueAndAttachment(workspace, attachment, *issueTitle, *issueDescription, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating linear ticket or workspace")
 			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
+		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
+			desc := *issueDescription
+			desc += "\n"
+			desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, errorComment.Text, authorName, viewLink, issueTeamID); err != nil {
+				return nil, e.Wrap(err, "error creating ClickUp task")
+			}
+
+			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		}
 	}
 
@@ -3004,16 +3014,19 @@ func (r *mutationResolver) UpdateClickUpProjectMappings(ctx context.Context, wor
 		return false, e.New("workspace does not have an access token")
 	}
 
-	configs := []*model.ClickupSettings{}
+	configs := []*model.IntegrationProjectMapping{}
 	for _, m := range projectMappings {
-		configs = append(configs, &model.ClickupSettings{
-			WorkspaceID:    workspaceID,
-			ProjectID:      m.ProjectID,
-			ClickupSpaceID: m.ClickupSpaceID,
+		configs = append(configs, &model.IntegrationProjectMapping{
+			WorkspaceID: workspaceID,
+			ProjectID:   m.ProjectID,
+			ExternalID:  m.ClickupSpaceID,
 		})
 	}
 
-	if err := r.DB.Where("workspace_id = ?", workspaceID).Delete(&model.ClickupSettings{}).Error; err != nil {
+	if err := r.DB.
+		Delete(&model.IntegrationProjectMapping{
+			WorkspaceID: workspaceID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
+		Error; err != nil {
 		return false, err
 	}
 
@@ -5204,15 +5217,17 @@ func (r *queryResolver) ClickupProjectMappings(ctx context.Context, workspaceID 
 		return nil, err
 	}
 
-	rows := []*model.ClickupSettings{}
-	if err := r.DB.Where("workspace_id = ?", workspaceID).Find(&rows).Error; err != nil {
+	rows := []*model.IntegrationProjectMapping{}
+	if err := r.DB.Where(&model.IntegrationProjectMapping{
+		WorkspaceID: workspaceID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
+		Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
-	results := lo.Map(rows, func(c *model.ClickupSettings, idx int) *modelInputs.ClickUpProjectMapping {
+	results := lo.Map(rows, func(c *model.IntegrationProjectMapping, idx int) *modelInputs.ClickUpProjectMapping {
 		return &modelInputs.ClickUpProjectMapping{
 			ProjectID:      c.ProjectID,
-			ClickupSpaceID: c.ClickupSpaceID,
+			ClickupSpaceID: c.ExternalID,
 		}
 	})
 
@@ -5235,16 +5250,18 @@ func (r *queryResolver) ClickupFolders(ctx context.Context, projectID int) ([]*m
 		return nil, e.New("workspace does not have an access token")
 	}
 
-	var settings model.ClickupSettings
-	if err := r.DB.Where("project_id = ?", projectID).Find(&settings).Error; err != nil {
+	var settings model.IntegrationProjectMapping
+	if err := r.DB.Where(&model.IntegrationProjectMapping{
+		ProjectID: projectID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
+		Find(&settings).Error; err != nil {
 		return nil, err
 	}
 
-	if settings.ClickupSpaceID == "" {
+	if settings.ExternalID == "" {
 		return nil, e.New("Project does not have an associated ClickUp space")
 	}
 
-	return clickup.GetFolders(*workspace.ClickupAccessToken, settings.ClickupSpaceID)
+	return clickup.GetFolders(*workspace.ClickupAccessToken, settings.ExternalID)
 }
 
 // ClickupFolderlessLists is the resolver for the clickup_folderless_lists field.
@@ -5263,16 +5280,18 @@ func (r *queryResolver) ClickupFolderlessLists(ctx context.Context, projectID in
 		return nil, e.New("workspace does not have an access token")
 	}
 
-	var settings model.ClickupSettings
-	if err := r.DB.Where("project_id = ?", projectID).Find(&settings).Error; err != nil {
+	var settings model.IntegrationProjectMapping
+	if err := r.DB.Where(&model.IntegrationProjectMapping{
+		ProjectID: projectID, IntegrationType: modelInputs.IntegrationTypeClickUp}).
+		Find(&settings).Error; err != nil {
 		return nil, err
 	}
 
-	if settings.ClickupSpaceID == "" {
+	if settings.ExternalID == "" {
 		return nil, e.New("Project does not have an associated ClickUp space")
 	}
 
-	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ClickupSpaceID)
+	return clickup.GetFolderlessLists(*workspace.ClickupAccessToken, settings.ExternalID)
 }
 
 // LinearTeams is the resolver for the linear_teams field.

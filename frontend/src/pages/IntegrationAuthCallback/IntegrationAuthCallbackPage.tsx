@@ -287,14 +287,24 @@ const ClickUpIntegrationCallback = ({
 	projectId,
 	workspaceId,
 }: Props) => {
-	const { addIntegration } = useClickUpIntegration(workspaceId)
 	return (
-		<WorkspaceIntegrationCallback
-			code={code}
-			name="ClickUp"
-			addIntegration={addIntegration}
-			projectId={projectId}
-		/>
+		<ApplicationContextProvider
+			value={{
+				currentProject: undefined,
+				allProjects: [],
+				currentWorkspace: workspaceId
+					? { id: workspaceId, name: '' }
+					: undefined,
+				workspaces: [],
+			}}
+		>
+			<WorkspaceIntegrationCallback
+				code={code}
+				name="ClickUp"
+				addIntegration={useClickUpIntegration().addIntegration}
+				projectId={projectId}
+			/>
+		</ApplicationContextProvider>
 	)
 }
 

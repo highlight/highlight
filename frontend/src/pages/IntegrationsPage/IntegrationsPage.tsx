@@ -11,7 +11,6 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 import { Helmet } from 'react-helmet'
@@ -51,14 +50,12 @@ const IntegrationsPage = () => {
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
 		useDiscordIntegration()
 
-	const { currentWorkspace } = useApplicationContext()
-	const workspaceId = currentWorkspace!.id
 	const {
 		settings: {
 			isIntegrated: isClickUpIntegratedWithProject,
 			loading: loadingClickUp,
 		},
-	} = useClickUpIntegration(workspaceId)
+	} = useClickUpIntegration()
 
 	const loading =
 		loadingLinear ||

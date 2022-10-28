@@ -173,7 +173,7 @@ var Models = []interface{}{
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
-	&ClickupSettings{},
+	&IntegrationProjectMapping{},
 }
 
 func init() {
@@ -1065,10 +1065,11 @@ type VercelIntegrationConfig struct {
 	VercelProjectID string `gorm:"uniqueIndex:idx_workspace_id_vercel_project_id"`
 }
 
-type ClickupSettings struct {
-	WorkspaceID    int
-	ProjectID      int `gorm:"uniqueIndex"`
-	ClickupSpaceID string
+type IntegrationProjectMapping struct {
+	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	WorkspaceID     int
+	ProjectID       int `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
+	ExternalID      string
 }
 
 type AlertEvent struct {

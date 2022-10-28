@@ -5,6 +5,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Exact, IntegrationType } from '@graph/schemas'
+import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useCallback } from 'react'
 
 type SettingsLoadingState = {
@@ -29,7 +30,6 @@ export interface IntegrationActions<SettingsQueryOutput, UpdateMutationInput> {
 }
 
 export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
-	workspaceId: string | undefined,
 	integrationType: IntegrationType,
 	settingsQuery: keyof typeof namedOperations.Query,
 	getSettingsQuery: (
@@ -42,19 +42,23 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 		Exact<{ workspace_id: string }>
 	>,
 	updateSettingsMutation: (
-		opts?: Apollo.MutationHookOptions<any, UpdateMutationInput>,
+		opts?: Apollo.MutationHookOptions<
+			any,
+			UpdateMutationInput & { workspace_id: string }
+		>,
 	) => Apollo.MutationTuple<
 		any,
-		UpdateMutationInput,
+		UpdateMutationInput & { workspace_id: string },
 		Apollo.DefaultContext,
 		Apollo.ApolloCache<unknown>
 	>,
 ): IntegrationActions<SettingsQueryOutput, UpdateMutationInput> => {
-	const workspaceIdStr = workspaceId ?? ''
+	const { currentWorkspace } = useApplicationContext()
+	const workspaceIdStr = currentWorkspace?.id ?? ''
 
 	const { data, loading } = getSettingsQuery({
 		variables: { workspace_id: workspaceIdStr },
-		skip: !workspaceId,
+		skip: !currentWorkspace,
 	})
 
 	const [addIntegrationImpl] = useAddIntegrationToWorkspaceMutation({

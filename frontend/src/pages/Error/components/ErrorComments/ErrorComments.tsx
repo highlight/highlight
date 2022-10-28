@@ -12,7 +12,13 @@ import { ErrorComment, Maybe } from '@graph/schemas'
 import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgTrashIcon from '@icons/TrashIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
-import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
+import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import {
+	CLICKUP_INTEGRATION,
+	LINEAR_INTEGRATION,
+} from '@pages/IntegrationsPage/Integrations'
+import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { Menu } from 'antd'
 import classNames from 'classnames'
@@ -89,7 +95,9 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 		refetchQueries: [namedOperations.Query.GetErrorComments],
 	})
 
-	const [showNewIssueModal, setShowNewIssueModal] = useState(false)
+	const [showNewIssueModal, setShowNewIssueModal] = useState<
+		IssueTrackerIntegration | undefined
+	>(undefined)
 
 	const defaultIssueTitle = useMemo(() => {
 		if (errorGroup?.error_group?.event) {
@@ -98,21 +106,41 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 		return `Issue from this bug`
 	}, [errorGroup])
 
-	const createIssueMenuItem = (
-		<MenuItem
-			icon={<SvgFileText2Icon />}
-			onClick={() => {
-				H.track('Create Issue from Comment')
-				setShowNewIssueModal(true)
-			}}
-		>
-			Create Issue from Comment
-		</MenuItem>
+	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const {
+		settings: { isIntegrated: isClickupIntegrated },
+	} = useClickUpIntegration()
+
+	const createIssueMenuItems = (
+		<>
+			{isLinearIntegratedWithProject ? (
+				<MenuItem
+					icon={<SvgFileText2Icon />}
+					onClick={() => {
+						H.track('Create Linear Issue from Comment')
+						setShowNewIssueModal(LINEAR_INTEGRATION)
+					}}
+				>
+					Create Linear Issue
+				</MenuItem>
+			) : null}
+			{isClickupIntegrated ? (
+				<MenuItem
+					icon={<SvgFileText2Icon />}
+					onClick={() => {
+						H.track('Create ClickUp Issue from Comment')
+						setShowNewIssueModal(CLICKUP_INTEGRATION)
+					}}
+				>
+					Create ClickUp Issue
+				</MenuItem>
+			) : null}
+		</>
 	)
 
 	const moreMenu = (
 		<Menu>
-			{createIssueMenuItem}
+			{createIssueMenuItems}
 			<MenuItem
 				icon={<SvgTrashIcon />}
 				onClick={() => {
@@ -136,9 +164,9 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 		>
 			{children}
 			<NewIssueModal
-				selectedIntegration={LINEAR_INTEGRATION}
-				visible={showNewIssueModal}
-				changeVisible={setShowNewIssueModal}
+				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
+				visible={!!showNewIssueModal}
+				onClose={() => setShowNewIssueModal(undefined)}
 				commentId={parseInt(comment.id, 10)}
 				commentText={comment.text}
 				commentType="ErrorComment"

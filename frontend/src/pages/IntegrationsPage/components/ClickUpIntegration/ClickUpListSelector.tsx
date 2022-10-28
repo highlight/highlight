@@ -38,7 +38,7 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 	)
 
 	useEffect(() => {
-		setSelectionId(selectedClickUpListId)
+		setSelectionId('' + selectedClickUpListId)
 	}, [selectedClickUpListId, setSelectionId])
 
 	useEffect(() => {
@@ -46,12 +46,6 @@ const ClickUpListSelector: React.FC<ContainerSelectionProps> = ({
 			setClickUpListId(clickUpListOptions[0].value)
 		}
 	}, [selectedClickUpListId, clickUpListOptions, setClickUpListId])
-
-	console.log(
-		'clickuplistselector',
-		clickUpListOptions,
-		selectedClickUpListId,
-	)
 
 	return (
 		<Form.Item label={`ClickUp List`}>

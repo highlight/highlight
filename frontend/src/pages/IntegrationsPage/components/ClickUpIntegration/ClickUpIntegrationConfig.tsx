@@ -111,8 +111,7 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
 	setIntegrationEnabled,
 }) => {
-	const { currentWorkspace } = useApplicationContext()
-	const { removeIntegration } = useClickUpIntegration(currentWorkspace?.id)
+	const { removeIntegration } = useClickUpIntegration()
 
 	return (
 		<>
@@ -161,12 +160,11 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 export const ClickUpIntegrationSettings: React.FC<
 	IntegrationConfigProps & { onCancel?: () => void; onSuccess?: () => void }
 > = ({ setModalOpen, onCancel, onSuccess }) => {
-	const { currentWorkspace, allProjects } = useApplicationContext()
-	const workspaceId = currentWorkspace!.id
+	const { allProjects } = useApplicationContext()
 	const [projectMap, projectMapSet, projectMapSetMulti, projectMapDelete] =
 		useMap<string, string>()
 
-	const { updateIntegration, settings } = useClickUpIntegration(workspaceId)
+	const { updateIntegration, settings } = useClickUpIntegration()
 
 	useEffect(() => {
 		if (settings.loading || !allProjects || allProjects?.length === 0) {
@@ -283,7 +281,6 @@ export const ClickUpIntegrationSettings: React.FC<
 
 	const onSave = () => {
 		updateIntegration({
-			workspace_id: workspaceId,
 			project_mappings: projectMappings,
 		})
 			.then(() => {

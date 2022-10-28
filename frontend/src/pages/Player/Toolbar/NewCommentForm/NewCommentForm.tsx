@@ -33,7 +33,6 @@ import ISSUE_TRACKER_INTEGRATIONS, {
 } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
-import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -83,7 +82,6 @@ export const NewCommentForm = ({
 	const [createComment] = useCreateSessionCommentMutation()
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()
-	const { currentWorkspace } = useApplicationContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data: commentTagsData } = useGetCommentTagsForProjectQuery({
 		variables: { project_id },
@@ -393,7 +391,7 @@ export const NewCommentForm = ({
 
 	const {
 		settings: { isIntegrated: isClickupIntegrated },
-	} = useClickUpIntegration(currentWorkspace?.id)
+	} = useClickUpIntegration()
 
 	const issueIntegrationsOptions = useMemo(() => {
 		const integrations = []

@@ -11,8 +11,13 @@ import SvgCopyIcon from '@icons/CopyIcon'
 import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgReferrer from '@icons/Referrer'
 import SvgTrashIcon from '@icons/TrashIcon'
+import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import {
+	CLICKUP_INTEGRATION,
+	LINEAR_INTEGRATION,
+} from '@pages/IntegrationsPage/Integrations'
+import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import {
 	ParsedSessionComment,
@@ -52,8 +57,13 @@ const SessionCommentHeader = ({
 	const history = useHistory()
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const {
+		settings: { isIntegrated: isClickupIntegrated },
+	} = useClickUpIntegration()
 
-	const [showNewIssueModal, setShowNewIssueModal] = useState(false)
+	const [showNewIssueModal, setShowNewIssueModal] = useState<
+		IssueTrackerIntegration | undefined
+	>()
 
 	const getCommentLink = () => {
 		const url = onGetLinkWithTimestamp(comment.timestamp || 0)
@@ -71,16 +81,31 @@ const SessionCommentHeader = ({
 		return `Highlight Comment for a session`
 	}, [session])
 
-	const createIssueMenuItem = (
-		<MenuItem
-			icon={<SvgFileText2Icon />}
-			onClick={() => {
-				H.track('Create Issue from Comment')
-				setShowNewIssueModal(true)
-			}}
-		>
-			Create Linear Issue
-		</MenuItem>
+	const createIssueMenuItems = (
+		<>
+			{isLinearIntegratedWithProject ? (
+				<MenuItem
+					icon={<SvgFileText2Icon />}
+					onClick={() => {
+						H.track('Create Linear Issue from Comment')
+						setShowNewIssueModal(LINEAR_INTEGRATION)
+					}}
+				>
+					Create Linear Issue
+				</MenuItem>
+			) : null}
+			{isClickupIntegrated ? (
+				<MenuItem
+					icon={<SvgFileText2Icon />}
+					onClick={() => {
+						H.track('Create ClickUp Issue from Comment')
+						setShowNewIssueModal(CLICKUP_INTEGRATION)
+					}}
+				>
+					Create ClickUp Issue
+				</MenuItem>
+			) : null}
+		</>
 	)
 
 	const moreMenu = (
@@ -161,7 +186,7 @@ const SessionCommentHeader = ({
 			>
 				Delete comment
 			</MenuItem>
-			{session && isLinearIntegratedWithProject && createIssueMenuItem}
+			{session && createIssueMenuItems}
 			{menuItems?.map((menuItem, index) => (
 				<MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
 					{menuItem.label}
@@ -172,7 +197,7 @@ const SessionCommentHeader = ({
 
 	const shareMenu = (
 		<Menu>
-			{session && createIssueMenuItem}
+			{session && createIssueMenuItems}
 			<MenuItem
 				icon={<SvgBallotBoxIcon />}
 				onClick={() => {
@@ -257,9 +282,11 @@ const SessionCommentHeader = ({
 		>
 			{children}
 			<NewIssueModal
-				selectedIntegration={LINEAR_INTEGRATION}
-				visible={showNewIssueModal}
-				changeVisible={setShowNewIssueModal}
+				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
+				visible={!!showNewIssueModal}
+				onClose={() => {
+					setShowNewIssueModal(undefined)
+				}}
 				timestamp={comment.timestamp || 0}
 				commentId={parseInt(comment.id, 10)}
 				commentText={comment.text}

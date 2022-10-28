@@ -11,10 +11,8 @@ import {
 } from '@graph/hooks'
 import { IntegrationType } from '@graph/schemas'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import {
-	Integration,
-	LINEAR_INTEGRATION,
-} from '@pages/IntegrationsPage/Integrations'
+import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
@@ -26,17 +24,17 @@ import styles from './NewIssueModal.module.scss'
 
 interface NewIssueModalProps {
 	visible: boolean
-	changeVisible: (newVal: boolean) => void
+	onClose: () => void
 	commentId: number
 	commentText: string
 	defaultIssueTitle?: string
 	timestamp?: number
-	selectedIntegration: Integration
+	selectedIntegration: IssueTrackerIntegration
 	commentType: 'ErrorComment' | 'SessionComment'
 }
 const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	visible,
-	changeVisible,
+	onClose,
 	commentId,
 	selectedIntegration,
 	commentText,
@@ -143,7 +141,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			} else {
 				throw new Error('Invalid Comment Type: ' + commentType)
 			}
-			changeVisible(false)
+			onClose()
 			form.resetFields()
 			message.success('New Issue Created!')
 		} catch (e: any) {
@@ -175,7 +173,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				</>
 			}
 			visible={visible}
-			onCancel={() => changeVisible(false)}
+			onCancel={onClose}
 		>
 			<ModalBody>
 				<Form
@@ -227,7 +225,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							<Button
 								trackingId="CreateIssueCancel"
 								htmlType="submit"
-								onClick={() => changeVisible(false)}
+								onClick={onClose}
 							>
 								Cancel
 							</Button>
