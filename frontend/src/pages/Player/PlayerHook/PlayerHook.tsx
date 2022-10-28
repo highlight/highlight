@@ -149,6 +149,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const resetPlayer = useCallback(
 		(nextState?: ReplayerState) => {
+			if (unsubscribeSessionPayloadFn.current) {
+				unsubscribeSessionPayloadFn.current()
+				unsubscribeSessionPayloadFn.current = undefined
+			}
 			chunkEventsReset()
 			dispatch({
 				type: PlayerActionType.reset,
@@ -511,7 +515,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 			play(state.time)
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
-			unsubscribeSessionPayloadFn.current!()
+			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
 			pause()
 		}
@@ -600,14 +604,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (!sessionPayload || !sessionIntervals || !timelineIndicatorEvents)
 			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
-		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
+		if (!!sessionPayload?.events?.length) {
 			chunkEventsSet(0, toHighlightEvents(sessionPayload?.events))
-			dispatch({
-				type: PlayerActionType.onChunksLoad,
-				showPlayerMouseTail,
-				time: 0,
-				action: ReplayerState.Paused,
-			})
+			dispatchAction(0, ReplayerState.Paused)
 		}
 		dispatch({
 			type: PlayerActionType.onSessionPayloadLoaded,
