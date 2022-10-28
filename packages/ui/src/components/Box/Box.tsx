@@ -6,18 +6,15 @@ export type Props = Sprinkles &
 	React.PropsWithChildren &
 	Omit<React.AllHTMLAttributes<HTMLElement>, 'color'> & {
 		as?: React.ElementType | string
-		ref?: React.MutableRefObject<unknown>
 		// Can't use className because it does some conversion on its values and
-		// breaks values like arrays, which would otherwise be valid values for
-		// clsx. Also got warnings about using camelCase for the prop name so made
-		// it all lowercase.
+		// breaks values like arrays, which would otherwise be valid for clsx.
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const Box: React.FC<Props> = ({ as = 'div', ...props }) => {
+export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
 	const sprinklesProps: Record<string, unknown> = {}
 	const nativeProps: Record<string, unknown> = {}
-	const userClasses = clsx(props.cssClass)
+	const userClasses = clsx(cssClass)
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {
