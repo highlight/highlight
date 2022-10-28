@@ -6,7 +6,6 @@
 	"main": "dist/index.js",
 	"module": "dist/indexESM.js",
 	"types": "dist/src/index.d.ts",
-	"type": "module",
 	"scripts": {
 		"build": "yarn types:check && yarn typegen && rollup -c",
 		"codegen": "graphql-codegen --config codegen.yml",
