@@ -50,6 +50,7 @@ import {
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
 import log from '@util/log'
+import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'
 import moment from 'moment/moment'
 import { MutableRefObject, SetStateAction } from 'react'
@@ -701,25 +702,31 @@ const replayerAction = (
 	time: number,
 	skipSetTime?: boolean,
 ) => {
-	log(
-		'PlayerState.ts',
-		'ReplayerAction',
-		PlayerActionType[source],
-		ReplayerState[desiredState],
-		time,
+	timedCall(
+		'playerState/replayerAction',
+		() => {
+			if (!s.replayer) return s
+			if (desiredState === ReplayerState.Paused) {
+				s.replayer.pause(
+					toReplayerTime(s.replayer, s.sessionMetadata, time),
+				)
+			} else if (desiredState === ReplayerState.Playing) {
+				s.replayer.play(
+					toReplayerTime(s.replayer, s.sessionMetadata, time),
+				)
+			} else {
+				return s
+			}
+			s.replayerState = desiredState
+			if (!skipSetTime) {
+				s.time = time
+			}
+		},
+		[
+			{ name: 'source', value: PlayerActionType[source] },
+			{ name: 'replayerState', value: ReplayerState[desiredState] },
+		],
 	)
-	if (!s.replayer) return s
-	if (desiredState === ReplayerState.Paused) {
-		s.replayer.pause(toReplayerTime(s.replayer, s.sessionMetadata, time))
-	} else if (desiredState === ReplayerState.Playing) {
-		s.replayer.play(toReplayerTime(s.replayer, s.sessionMetadata, time))
-	} else {
-		return s
-	}
-	s.replayerState = desiredState
-	if (!skipSetTime) {
-		s.time = time
-	}
 	return s
 }
 
