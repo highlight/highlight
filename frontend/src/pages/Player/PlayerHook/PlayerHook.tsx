@@ -18,6 +18,7 @@ import {
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
+	getTimeFromReplayer,
 	LOOKAHEAD_MS,
 	MAX_CHUNK_COUNT,
 	PlayerActionType,
@@ -128,8 +129,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [
 		chunkEventsRef,
 		chunkEventsSet,
-		chunkEventsSetMulti,
-		,
+		chunkEventsRemove,
 		chunkEventsReset,
 	] = useMapRef<number, HighlightEvent[]>()
 	const [state, dispatch] = useReducer(PlayerReducer, {
@@ -193,6 +193,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[eventChunksData],
 	)
 
+	// returns chunks to remove that are exceeding MAX_CHUNK_COUNT. returns
+	// the chunks furthest from the currentIdx since they are
+	// less likely to be viewed next
 	const getChunksToRemove = useCallback(
 		(
 			chunkEvents: Omit<
@@ -200,50 +203,30 @@ export const usePlayer = (): ReplayerContextInterface => {
 				'set' | 'clear' | 'delete'
 			>,
 			currentIdx: number,
-			startIdx: number,
-			endIdx: number,
 		): number[] => {
-			// Get the count of non-empty chunks, as well as the
-			// min and max idx of non-empty chunks.
-			let minIdx: number | undefined = undefined
-			let maxIdx: number | undefined = undefined
-			let count = 0
-			for (const [k, v] of chunkEvents) {
-				if (v.length !== 0) {
-					count++
-
-					if (minIdx === undefined || k < minIdx) {
-						minIdx = k
-					}
-
-					if (maxIdx === undefined || k > maxIdx) {
-						maxIdx = k
-					}
-				}
+			const chunksIndexesWithData = Array.from(chunkEvents.entries())
+				.filter(([, v]) => !!v.length)
+				.map(([k]) => k)
+			if (chunksIndexesWithData.length <= MAX_CHUNK_COUNT) {
+				return []
 			}
 
-			const toRemove = new Set<number>([])
-			if (
-				minIdx !== undefined &&
-				maxIdx !== undefined &&
-				count > MAX_CHUNK_COUNT
-			) {
-				const countToRemove = count - MAX_CHUNK_COUNT
-				let removedIdx = minIdx
-				if (currentIdx < minIdx + countToRemove) {
-					removedIdx = endIdx - countToRemove + 1
-				}
-				for (
-					let idx = removedIdx;
-					idx < removedIdx + countToRemove;
-					++idx
-				) {
-					toRemove.add(idx)
-				}
+			chunksIndexesWithData.sort()
+			// if we are on the left side of the chunks, remove the ones from the right
+			if (currentIdx <= chunksIndexesWithData[0]) {
+				chunksIndexesWithData.reverse()
 			}
+
+			const toRemove = new Set<number>(
+				chunksIndexesWithData.slice(MAX_CHUNK_COUNT),
+			)
 			toRemove.delete(currentIdx)
 
-			log('getChunksToRemove', { currentIdx, startIdx, endIdx, toRemove })
+			log('getChunksToRemove', {
+				chunksIndexesWithData,
+				currentIdx,
+				toRemove,
+			})
 			return Array.from(toRemove)
 		},
 		[],
@@ -272,24 +255,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
-			const toSet: [number, HighlightEvent[] | undefined][] = []
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
 			const endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
-
-			const currentIdx = getChunkIdx(
-				state.sessionMetadata.startTime +
-					(state.replayer?.getCurrentTime() ?? 0),
-			)
-			getChunksToRemove(
-				chunkEventsRef.current,
-				currentIdx,
-				startIdx,
-				endIdx,
-			).forEach((idx) => toSet.push([idx, undefined]))
 
 			const promises = []
 			log(
@@ -343,11 +314,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 					log('PlayerHook.ts', 'pushed promise for chunk', i)
 				}
 			}
+			const nextIdx = getChunkIdx(
+				state.sessionMetadata.startTime + startTime,
+			)
+			getChunksToRemove(chunkEventsRef.current, nextIdx).forEach((idx) =>
+				chunkEventsRemove(idx),
+			)
 			for (const [i, data] of await Promise.all(promises)) {
-				toSet.push([i, toHighlightEvents(data)])
+				chunkEventsSet(i, toHighlightEvents(data))
 			}
-			if (toSet.length || action) {
-				chunkEventsSetMulti(toSet)
+			if (promises.length || action) {
 				dispatchAction(startTime, action)
 			}
 			return promises.length
@@ -356,7 +332,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			project_id,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
-			state.replayer,
 			getChunkIdx,
 			getChunksToRemove,
 			chunkEventsRef,
@@ -364,7 +339,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			chunkEventsSet,
 			fetchEventChunkURL,
 			session_secure_id,
-			chunkEventsSetMulti,
+			chunkEventsRemove,
 		],
 	)
 
@@ -462,8 +437,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 			dispatch({
 				type: PlayerActionType.updateCurrentUrl,
 				currentTime:
-					state.replayer.getCurrentTime() +
-					state.replayer.getMetaData().startTime,
+					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
+					state.sessionMetadata.startTime,
 			})
 		}, 1000),
 		[],
@@ -552,11 +527,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 			dispatch({
 				type: PlayerActionType.updateCurrentUrl,
 				currentTime:
-					state.replayer.getCurrentTime() +
-					state.replayer.getMetaData().startTime,
+					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
+					state.sessionMetadata.startTime,
 			})
 		}
-	}, [state.session?.secure_id, session_secure_id, state.replayer])
+	}, [
+		state.session?.secure_id,
+		session_secure_id,
+		state.replayer,
+		state.sessionMetadata,
+	])
 
 	useEffect(() => {
 		const searchParamsObject = new URLSearchParams(location.search)
@@ -617,9 +597,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events && chunkEventsRef.current.size === 0) {
-			chunkEventsSetMulti([
-				[0, toHighlightEvents(sessionPayload?.events)],
-			])
+			chunkEventsSet(0, toHighlightEvents(sessionPayload?.events))
 			dispatch({
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
@@ -646,7 +624,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		sessionPayload,
 		sessionIntervals,
 		timelineIndicatorEvents,
-		chunkEventsSetMulti,
+		chunkEventsSet,
 	])
 
 	useEffect(() => {

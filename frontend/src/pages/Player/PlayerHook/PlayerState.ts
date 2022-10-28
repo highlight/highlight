@@ -117,7 +117,6 @@ interface PlayerState {
 	replayer: Replayer | undefined
 	replayerState: ReplayerState
 	replayerStateBeforeLoad: ReplayerState
-	replayerTimeOffset: number | undefined
 	scale: number
 	session: Session | undefined
 	sessionComments: SessionComment[]
@@ -305,7 +304,6 @@ export const PlayerInitialState = {
 	replayer: undefined,
 	replayerState: ReplayerState.Empty,
 	replayerStateBeforeLoad: ReplayerState.Empty,
-	replayerTimeOffset: undefined,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -475,7 +473,7 @@ export const PlayerReducer = (
 				PlayerActionType.startChunksLoad,
 				s,
 				ReplayerState.Paused,
-				s.replayer?.getCurrentTime() ?? 0,
+				getTimeFromReplayer(s.replayer, s.sessionMetadata),
 				true,
 			)
 			break
@@ -513,18 +511,7 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
-			// The player may start later than the session if earlier events are unloaded
-			if (
-				s.replayerTimeOffset === undefined &&
-				s.replayer.getMetaData().startTime &&
-				s.sessionMetadata.startTime
-			) {
-				s.replayerTimeOffset =
-					s.replayer.getMetaData().startTime -
-					s.sessionMetadata.startTime
-			}
-			const time =
-				s.replayer.getCurrentTime() + (s.replayerTimeOffset ?? 0)
+			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
 			const activeTime = time - LIVE_MODE_DELAY
@@ -728,9 +715,9 @@ const replayerAction = (
 	if (!s.replayer) return s
 	if (desiredState === ReplayerState.Paused) {
 		s.isLiveMode = false
-		s.replayer.pause(time)
+		s.replayer.pause(toReplayerTime(s.replayer, s.sessionMetadata, time))
 	} else if (desiredState === ReplayerState.Playing) {
-		s.replayer.play(time)
+		s.replayer.play(toReplayerTime(s.replayer, s.sessionMetadata, time))
 	} else {
 		return s
 	}
@@ -913,6 +900,32 @@ const processSessionMetadata = (
 	s.sessionMetadata = sm
 	s.eventsLoaded = true
 	return s
+}
+
+const toReplayerTime = function (
+	replayer: Replayer | undefined,
+	sessionMetadata: playerMetaData | undefined,
+	time: number,
+): number {
+	return time - getReplayerOffset(replayer, sessionMetadata)
+}
+
+const getReplayerOffset = function (
+	replayer: Replayer | undefined,
+	sessionMetadata: playerMetaData | undefined,
+): number {
+	if (!replayer || !sessionMetadata) return 0
+	return replayer.getMetaData().startTime - sessionMetadata.startTime
+}
+
+export const getTimeFromReplayer = function (
+	replayer: Replayer | undefined,
+	sessionMetadata: playerMetaData | undefined,
+): number {
+	return (
+		(replayer?.getCurrentTime() ?? 0) +
+		getReplayerOffset(replayer, sessionMetadata)
+	)
 }
 
 export const getEvents = (

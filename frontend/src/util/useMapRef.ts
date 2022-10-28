@@ -5,11 +5,12 @@ export type MapOrEntries<K, V> = Map<K, V> | [K, V][]
 type Return<K, V> = [
 	MutableRefObject<Omit<Map<K, V>, 'set' | 'clear' | 'delete'>>,
 	(key: K, value: V) => void,
-	(entries: [K, V | undefined][]) => void,
 	(key: K) => void,
 	Map<K, V>['clear'],
 ]
 
+// unlike useMap, useMapRef does not implement setMulti since it is synchronous,
+// and there is no advantage to provide more than one k,v pair per set call
 function useMapRef<K, V>(
 	initialState: MapOrEntries<K, V> = new Map(),
 ): Return<K, V> {
@@ -17,16 +18,6 @@ function useMapRef<K, V>(
 
 	const set = useCallback((key: K, value: V) => {
 		mapRef.current.set(key, value)
-	}, [])
-
-	const setMulti = useCallback((entries: [K, V | undefined][]) => {
-		for (const [k, v] of entries) {
-			if (v === undefined) {
-				mapRef.current.delete(k)
-			} else {
-				mapRef.current.set(k, v)
-			}
-		}
 	}, [])
 
 	const remove = useCallback((key: K) => {
@@ -37,7 +28,7 @@ function useMapRef<K, V>(
 		mapRef.current = new Map()
 	}, [])
 
-	return [mapRef, set, setMulti, remove, reset]
+	return [mapRef, set, remove, reset]
 }
 
 export default useMapRef
