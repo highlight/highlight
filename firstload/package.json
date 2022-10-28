@@ -32,7 +32,7 @@
 	"bundlesize": [
 		{
 			"path": "dist/**.js",
-			"maxSize": "150 kB"
+			"maxSize": "20 kB"
 		}
 	]
 }
