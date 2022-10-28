@@ -25,5 +25,5 @@
 		"/firstload/firstload/src/index.js",
 		"/firstload/firstload/src/index.map.js"
 	],
-	"content_security_policy": "script-src 'self' https://static.highlight.run; object-src 'self'"
+	"content_security_policy": "script-src 'self' https://static.highlight.run https://static.highlight.io; object-src 'self'"
 }
