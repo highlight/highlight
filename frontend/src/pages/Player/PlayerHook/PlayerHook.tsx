@@ -169,7 +169,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					if (!interval.active) {
 						// skip forward some frames after the inactivity to prevent
 						// the player from rounding back into the inactive region
-						return interval.endTime + 10 * FRAME_MS
+						return interval.endTime + 30 * FRAME_MS
 					} else {
 						return undefined
 					}
@@ -280,8 +280,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
 
-			// TODO(vkorolik) HIG-3149 - breaks seeking in long sessions
-			/*
 			const currentIdx = getChunkIdx(
 				state.sessionMetadata.startTime +
 					(state.replayer?.getCurrentTime() ?? 0),
@@ -292,7 +290,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				startIdx,
 				endIdx,
 			).forEach((idx) => toSet.push([idx, undefined]))
-			*/
+
 			const promises = []
 			log(
 				'PlayerHook.ts',
@@ -355,16 +353,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 			return promises.length
 		},
 		[
-			chunkEventsRef,
-			chunkEventsSet,
-			chunkEventsSetMulti,
-			dispatchAction,
-			fetchEventChunkURL,
-			getChunkIdx,
 			project_id,
-			session_secure_id,
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
+			state.replayer,
+			getChunkIdx,
+			getChunksToRemove,
+			chunkEventsRef,
+			dispatchAction,
+			chunkEventsSet,
+			fetchEventChunkURL,
+			session_secure_id,
+			chunkEventsSetMulti,
 		],
 	)
 

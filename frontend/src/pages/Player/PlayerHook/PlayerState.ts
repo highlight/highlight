@@ -117,6 +117,7 @@ interface PlayerState {
 	replayer: Replayer | undefined
 	replayerState: ReplayerState
 	replayerStateBeforeLoad: ReplayerState
+	replayerTimeOffset: number | undefined
 	scale: number
 	session: Session | undefined
 	sessionComments: SessionComment[]
@@ -304,6 +305,7 @@ export const PlayerInitialState = {
 	replayer: undefined,
 	replayerState: ReplayerState.Empty,
 	replayerStateBeforeLoad: ReplayerState.Empty,
+	replayerTimeOffset: undefined,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -515,9 +517,17 @@ export const PlayerReducer = (
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
 			// The player may start later than the session if earlier events are unloaded
-			const offset =
-				s.replayer.getMetaData().startTime - s.sessionMetadata.startTime
-			const time = s.replayer.getCurrentTime() + offset
+			if (
+				s.replayerTimeOffset === undefined &&
+				s.replayer.getMetaData().startTime &&
+				s.sessionMetadata.startTime
+			) {
+				s.replayerTimeOffset =
+					s.replayer.getMetaData().startTime -
+					s.sessionMetadata.startTime
+			}
+			const time =
+				s.replayer.getCurrentTime() + (s.replayerTimeOffset ?? 0)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
 			const activeTime = time - LIVE_MODE_DELAY
@@ -749,6 +759,7 @@ const processSessionMetadata = (s: PlayerState): PlayerState => {
 		)
 		return s
 	}
+
 	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
 		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
 			.errors as ErrorObject[]
