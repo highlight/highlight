@@ -26,8 +26,13 @@ interface PerformanceData {
 }
 
 const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
-	const { performancePayloads, jankPayloads, pause, session } =
-		useReplayerContext()
+	const {
+		performancePayloads,
+		jankPayloads,
+		pause,
+		eventsForTimelineIndicator,
+		session,
+	} = useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
 		(payload) => {
@@ -59,8 +64,12 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 	)
 	performanceData.sort((a, b) => a.timestamp - b.timestamp)
 
-	const isLoading = performancePayloads.length === 0
-	const hasNoPerformancePayloads = performancePayloads.length === 0
+	const isLoading =
+		eventsForTimelineIndicator.length === 0 &&
+		performancePayloads.length === 0
+	const hasNoPerformancePayloads =
+		eventsForTimelineIndicator.length > 0 &&
+		performancePayloads.length === 0
 
 	return (
 		<div className={styles.container}>
