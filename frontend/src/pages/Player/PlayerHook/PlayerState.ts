@@ -330,10 +330,7 @@ export const PlayerReducer = (
 		case PlayerActionType.play:
 			if (s.isLiveMode) {
 				// live mode play time is the current time
-				action.time =
-					Date.now() -
-					LIVE_MODE_DELAY -
-					getEvents(s.chunkEventsRef.current)[0].timestamp
+				action.time = Date.now() - LIVE_MODE_DELAY - events[0].timestamp
 			}
 			s = replayerAction(
 				PlayerActionType.play,
@@ -463,7 +460,7 @@ export const PlayerReducer = (
 		case PlayerActionType.updateCurrentUrl:
 			if (!s.replayer) break
 			s.currentUrl = findLatestUrl(
-				getAllUrlEvents(getEvents(s.chunkEventsRef.current)),
+				getAllUrlEvents(events),
 				action.currentTime,
 			)
 			break
@@ -496,7 +493,7 @@ export const PlayerReducer = (
 			if (s.replayer === undefined) {
 				s = initReplayer(s, events, action.showPlayerMouseTail)
 				if (s.onSessionPayloadLoadedPayload) {
-					s = processSessionMetadata(s)
+					s = processSessionMetadata(s, events)
 				}
 			} else {
 				s.replayer.replaceEvents(events)
@@ -579,7 +576,7 @@ export const PlayerReducer = (
 			}
 			// onChunksLoad has fired and the replayer is created
 			if (s.replayer) {
-				s = processSessionMetadata(s)
+				s = processSessionMetadata(s, events)
 			}
 			// otherwise, onChunksLoad will process session metadata if this happens first
 			break
@@ -744,7 +741,10 @@ const replayerAction = (
 	return s
 }
 
-const processSessionMetadata = (s: PlayerState): PlayerState => {
+const processSessionMetadata = (
+	s: PlayerState,
+	events: HighlightEvent[],
+): PlayerState => {
 	if (!s.onSessionPayloadLoadedPayload) {
 		console.error(
 			'PlayerState.ts',
@@ -815,7 +815,7 @@ const processSessionMetadata = (s: PlayerState): PlayerState => {
 					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
 						.timeline_indicator_events,
 			  )
-			: getEvents(s.chunkEventsRef.current)
+			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(
 		addEventsToSessionIntervals(
 			addErrorsToSessionIntervals(
@@ -909,7 +909,6 @@ const processSessionMetadata = (s: PlayerState): PlayerState => {
 		)
 
 		s.rageClicks = rageClicksWithRelativePositions
-		s.sessionIntervals = sessionIntervals
 	}
 	s.sessionMetadata = sm
 	s.eventsLoaded = true
