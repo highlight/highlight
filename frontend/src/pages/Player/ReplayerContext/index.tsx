@@ -10,7 +10,6 @@ import {
 	SessionInterval,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
-import { SessionViewability } from '@pages/Player/PlayerHook/PlayerHook'
 import { createContext } from '@util/context/context'
 
 import {
@@ -18,6 +17,7 @@ import {
 	HighlightJankPayload,
 	HighlightPerformancePayload,
 } from '../HighlightEvent'
+import { SessionViewability } from '../PlayerHook/PlayerState'
 
 export enum ReplayerState {
 	/** There is no active session. */
@@ -77,7 +77,6 @@ export interface ReplayerContextInterface {
 	play: (time?: number) => void
 	pause: (time?: number) => void
 	setScale: React.Dispatch<React.SetStateAction<number>>
-	events: Array<HighlightEvent>
 	performancePayloads: HighlightPerformancePayload[]
 	jankPayloads: HighlightJankPayload[]
 	errors: ErrorObject[]
@@ -112,11 +111,7 @@ export interface ReplayerContextInterface {
 	viewingUnauthorizedSession: boolean
 	setViewingUnauthorizedSession: React.Dispatch<React.SetStateAction<boolean>>
 	browserExtensionScriptURLs: string[]
-	setBrowserExtensionScriptURLs: React.Dispatch<
-		React.SetStateAction<string[]>
-	>
 	isLoadingEvents: boolean
-	setIsLoadingEvents: React.Dispatch<React.SetStateAction<boolean>>
 	sessionMetadata: playerMetaData
 	currentEvent: string
 	setCurrentEvent: React.Dispatch<React.SetStateAction<string>>
