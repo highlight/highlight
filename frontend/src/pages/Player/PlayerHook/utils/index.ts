@@ -175,9 +175,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 			sessionDurationMilliseconds: number,
 			sessionStartTimeMilliseconds: number,
 			errors: ErrorObject[],
-			setSelectedErrorId: React.Dispatch<
-				React.SetStateAction<string | undefined>
-			>,
 		) => {
 			const searchParamsObject = new URLSearchParams(location.search)
 
@@ -235,7 +232,6 @@ export const useSetPlayerTimestampFromSearchParam = (
 								)}.`,
 							)
 						}
-						setSelectedErrorId(errorId)
 
 						// Show errors on the timeline indicators if deep linked.
 						if (
@@ -663,4 +659,14 @@ export const loadiFrameResources = (r: Replayer, project_id: string) => {
 		scriptLink.crossOrigin = 'anonymous'
 		r.iframe.contentDocument.head.appendChild(scriptLink)
 	}
+}
+
+export const toHighlightEvents = (
+	events: Array<any>,
+): Array<HighlightEvent> => {
+	return (
+		events.map((e: HighlightEvent, i: number) => {
+			return { ...e, identifier: i.toString() }
+		}) ?? []
+	)
 }
