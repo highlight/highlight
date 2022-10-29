@@ -26,7 +26,7 @@ import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import {
 	useCallback,
 	useEffect,
@@ -102,15 +102,17 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
+	const viewportBbox = viewportRef.current?.getBoundingClientRect()
 	useLayoutEffect(() => {
-		const div = viewportRef.current
-		if (!div) {
+		if (!viewportBbox) {
 			return
 		}
-		const bbox = div.getBoundingClientRect()
-		const width = Math.max(Math.round(bbox.width) - 2 * TIMELINE_MARGIN, 0)
-		setViewportWidth(width)
-	}, [width, showHistogram])
+		const viewportWidth = Math.max(
+			Math.round(viewportBbox.width) - 2 * TIMELINE_MARGIN,
+			0,
+		)
+		setViewportWidth(viewportWidth)
+	}, [width, showHistogram, viewportBbox])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -723,7 +725,7 @@ const TimelineIndicatorsBarGraph = ({
 				: 0.5
 
 			tickProps.push({
-				className: classNames(style.timeTick, style.timeTickMajor),
+				className: clsx([style.timeTick, style.timeTickMajor]),
 				left,
 				borderLeftWidth,
 				timestamp,
@@ -739,10 +741,13 @@ const TimelineIndicatorsBarGraph = ({
 					const isMid = minorIdx === mid && MINOR_TICK_COUNT % 2 === 1
 					timestamp += mainTickInMs / (MINOR_TICK_COUNT + 1)
 					tickProps.push({
-						className: classNames(style.timeTick, {
-							[style.timeTickMinor]: !isMid,
-							[style.timeTickMid]: isMid,
-						}),
+						className: clsx([
+							style.timeTick,
+							{
+								[style.timeTickMinor]: !isMid,
+								[style.timeTickMid]: isMid,
+							},
+						]),
 						left: timeToProgress(timestamp) * canvasWidth,
 						timestamp,
 					})
@@ -897,10 +902,10 @@ const TimelineIndicatorsBarGraph = ({
 										return (
 											<div
 												key={idx}
-												className={classNames(
+												className={clsx([
 													style.inactivityPeriod,
 													style.inactivityPeriodPlayed,
-												)}
+												])}
 												style={{
 													left,
 													width: clamp(
@@ -1054,9 +1059,12 @@ const TimelineIndicatorsBarGraph = ({
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			{progressBar}
 			<div
-				className={classNames(style.sessionMonitor, {
-					[style.hidden]: !showHistogram,
-				})}
+				className={clsx([
+					style.sessionMonitor,
+					{
+						[style.hidden]: !showHistogram,
+					},
+				])}
 				ref={sessionMonitorRef}
 			>
 				{sessionMonitor}
@@ -1068,9 +1076,12 @@ const TimelineIndicatorsBarGraph = ({
 				/>
 			</div>
 			<div
-				className={classNames(style.timelineContainer, {
-					[style.hideOverflow]: !showHistogram,
-				})}
+				className={clsx([
+					style.timelineContainer,
+					{
+						[style.hideOverflow]: !showHistogram,
+					},
+				])}
 				ref={viewportRef}
 			>
 				<TimeIndicator
@@ -1091,9 +1102,12 @@ const TimelineIndicatorsBarGraph = ({
 					{ticks}
 				</div>
 				<div
-					className={classNames(style.separator, {
-						[style.hidden]: !showHistogram,
-					})}
+					className={clsx([
+						style.separator,
+						{
+							[style.hidden]: !showHistogram,
+						},
+					])}
 					style={{
 						width: canvasWidth + 2 * TIMELINE_MARGIN,
 					}}
@@ -1106,18 +1120,21 @@ const TimelineIndicatorsBarGraph = ({
 					return (
 						<span
 							key={idx}
-							className={classNames(style.inactivityPeriodMask)}
+							className={clsx([style.inactivityPeriodMask])}
 							style={{
 								width,
 								left,
 							}}
-						></span>
+						/>
 					)
 				})}
 				<div
-					className={classNames(style.eventHistogram, {
-						[style.hidden]: !showHistogram,
-					})}
+					className={clsx([
+						style.eventHistogram,
+						{
+							[style.hidden]: !showHistogram,
+						},
+					])}
 					ref={canvasRef}
 				>
 					<div className={style.eventTrack}>
