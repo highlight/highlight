@@ -14,7 +14,6 @@ import { gte } from 'semver'
 
 const REMOTE_MAIN = 'origin/master'
 const S3_BUCKET = `highlight-client-bundle`
-const FIRSTLOAD_PACKAGE = 'highlight.run'
 const FIRSTLOAD_PACKAGE_JSON = './firstload/package.json'
 
 const rootDir = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -104,8 +103,9 @@ const upload = async function (
 	if (opts.validate) {
 		const publishedVersion = (
 			await new Promise<string>((r) =>
-				exec(`npm show ${FIRSTLOAD_PACKAGE} version`, (_, stdout) =>
-					r(stdout),
+				exec(
+					`npm show ${highlightRunPackageJson.name} version`,
+					(_, stdout) => r(stdout),
 				),
 			)
 		).split('\n')[0]!

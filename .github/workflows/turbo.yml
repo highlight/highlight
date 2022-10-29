@@ -52,8 +52,10 @@ jobs:
             - name: Validate project is ready to be published
               run: yarn prepublish
 
-            # publish client on each PR push, replacing existing files
-            # this allows testing the prod client bundle from this PR
+            # always publish client, even in PRs
+            # this is ok because the final push to master of the version will replace
+            # any previous builds, while doing this in PR will allow the PR frontend preview
+            # to reference the PR's latest version of client
             - name: Publish client bundle
               run: yarn publish:client
 
