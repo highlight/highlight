@@ -5,7 +5,8 @@ export const TIMELINE_MARGIN = 32
 export const SESSION_MONITOR_HEIGHT = 20
 export const TIME_AXIS_HEIGHT = 24
 export const PROGRESS_BAR_HEIGHT = 3
-export const HISTOGRAM_HEIGHT = 92
+export const HISTOGRAM_AREA_HEIGHT = 92
+export const HISTOGRAM_OFFSET = 24
 
 export const timelineIndicatorsContainer = style({
 	alignItems: 'center',
@@ -103,16 +104,18 @@ export const timelineContainer = style({
 
 export const eventHistogram = style({
 	display: 'flex',
-	flexDirection: 'row',
-	height: HISTOGRAM_HEIGHT,
+	flexDirection: 'column',
+	height: HISTOGRAM_AREA_HEIGHT,
 	marginLeft: TIMELINE_MARGIN,
 	marginRight: TIMELINE_MARGIN,
 	position: 'relative',
+	justifyContent: 'flex-end',
 })
 
 export const eventTrack = style({
 	position: 'relative',
 	width: '100%',
+	height: HISTOGRAM_AREA_HEIGHT - HISTOGRAM_OFFSET,
 })
 
 export const timeAxis = style({

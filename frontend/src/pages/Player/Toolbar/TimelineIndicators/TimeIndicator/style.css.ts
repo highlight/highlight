@@ -1,5 +1,5 @@
 import {
-	HISTOGRAM_HEIGHT,
+	HISTOGRAM_AREA_HEIGHT,
 	TIME_AXIS_HEIGHT,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/style.css'
 import { style } from '@vanilla-extract/css'
@@ -23,7 +23,7 @@ export const timeIndicatorMoving = style({
 export const timeIndicatorHair = style({
 	borderLeft: '2px var(--color-neutral-900) solid',
 	cursor: 'ew-resize',
-	height: HISTOGRAM_HEIGHT + 1,
+	height: HISTOGRAM_AREA_HEIGHT + 1,
 	position: 'absolute',
 	top: TIME_AXIS_HEIGHT,
 })

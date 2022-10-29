@@ -1038,7 +1038,7 @@ const TimelineIndicatorsBarGraph = ({
 					</>
 				)}
 				<div className={style.timelineContainer} ref={viewportRef}>
-					<Skeleton height={'100%'} />
+					<Skeleton height="100%" />
 				</div>
 			</Box>
 		)
