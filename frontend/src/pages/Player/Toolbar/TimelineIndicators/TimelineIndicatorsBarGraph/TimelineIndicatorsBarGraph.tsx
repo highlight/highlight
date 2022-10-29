@@ -1,5 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { Box } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
@@ -37,7 +38,8 @@ import {
 import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
-import style from './TimelineIndicatorsBarGraph.module.scss'
+import * as style from './style.css'
+import { TIMELINE_MARGIN } from './style.css'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
@@ -53,7 +55,6 @@ const ZOOM_SCALING_FACTOR = 100
 const MIN_ZOOM = 1.0
 const INACTIVE_TICK_FREQUENCY = 7
 
-export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & {
 	eventType: string
 	identifier: string
@@ -970,7 +971,7 @@ const TimelineIndicatorsBarGraph = ({
 		) : (
 			<AreaChart
 				width={borderlessWidth}
-				height={22}
+				height={style.SESSION_MONITOR_HEIGHT}
 				data={areaChartBuckets}
 				margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
 			>
@@ -1005,10 +1006,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	if (showSkeleton) {
 		return (
-			<div
-				className={style.timelineIndicatorsContainer}
-				style={{ width }}
-			>
+			<Box cssClass={[style.timelineIndicatorsContainer, { width }]}>
 				<div
 					className={style.progressBarContainer}
 					style={{
@@ -1030,14 +1028,14 @@ const TimelineIndicatorsBarGraph = ({
 							className={style.sessionMonitor}
 							ref={sessionMonitorRef}
 						>
-							<Skeleton height={22} />
+							<Skeleton height={style.SESSION_MONITOR_HEIGHT} />
 						</div>
 					</>
 				)}
 				<div className={style.timelineContainer} ref={viewportRef}>
 					<Skeleton height={'100%'} />
 				</div>
-			</div>
+			</Box>
 		)
 	}
 

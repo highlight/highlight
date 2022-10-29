@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { RefObject, useLayoutEffect, useRef, useState } from 'react'
 
-import style from './TimeIndicator.module.scss'
+import * as style from './style.css'
 interface Props {
 	left: number
 	topRef: RefObject<HTMLElement>
@@ -14,6 +14,7 @@ interface Props {
 }
 const TIME_INDICATOR_ACTIVATION_RADIUS = 15
 const TIME_INDICATOR_TOP_WIDTH = 10
+
 const TimeIndicator = ({
 	left,
 	topRef,
@@ -103,7 +104,7 @@ const TimeIndicator = ({
 			<span className={style.timeIndicatorTop} ref={topRef} />
 			<span
 				className={classNames(style.timeIndicatorHair, {
-					[style.hidden]: !showHistogram,
+					[style.timeIndicatorHidden]: !showHistogram,
 				})}
 				ref={hairRef}
 			></span>
