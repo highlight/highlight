@@ -11,10 +11,19 @@ type Props = React.PropsWithChildren &
 		weight?: textStyles.Variants['weight']
 	}
 
-export const TextLink: React.FC<Props> = ({ children, href, ...props }) => {
+export const TextLink: React.FC<Props> = ({
+	children,
+	href,
+	size,
+	weight,
+	underline,
+}) => {
 	return (
 		<a
-			className={clsx([styles.variants({ underline: props.underline })])}
+			className={clsx([
+				styles.variants({ underline }),
+				textStyles.variants({ size, weight }),
+			])}
 			href={href}
 		>
 			{children}

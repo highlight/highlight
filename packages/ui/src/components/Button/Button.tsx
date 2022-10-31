@@ -63,7 +63,7 @@ export const Button: React.FC<Props> = ({
 					height={props.size}
 					width={props.size}
 				>
-					{React.cloneElement(iconRight)}
+					{iconRight}
 				</Box>
 			)}
 		</AriakitButton>

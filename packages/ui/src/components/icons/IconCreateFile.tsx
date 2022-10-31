@@ -1,5 +1,5 @@
 import React from 'react'
-import { IconProps } from './IconShare'
+import { IconProps } from './types'
 
 export const IconCreateFile: React.FC<IconProps> = () => (
 	<svg
