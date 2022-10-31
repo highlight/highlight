@@ -45,7 +45,6 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
 import { FocusListener } from './listeners/focus-listener/focus-listener'
-import packageJson from '../package.json'
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
@@ -586,7 +585,7 @@ export class Highlight {
 				organization_verbose_id: this.organizationID,
 				enable_strict_privacy: this.enableStrictPrivacy,
 				enable_recording_network_contents: enableNetworkRecording,
-				clientVersion: packageJson['version'],
+				clientVersion: this.firstloadVersion,
 				firstloadVersion: this.firstloadVersion,
 				clientConfig: JSON.stringify(this._optionsInternal),
 				environment: this.environment,
