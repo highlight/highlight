@@ -58,7 +58,7 @@ jobs:
                   aws-region: us-east-2
 
             - name: Validate project is ready to be published
-              if: needs.changes.outputs.highlight-run == 'true'
+              if: steps.filter.outputs.highlight-run == 'true'
               run: yarn prepublish
 
             # always publish client, even in PRs
@@ -66,7 +66,7 @@ jobs:
             # any previous builds, while doing this in PR will allow the PR frontend preview
             # to reference the PR's latest version of client
             - name: Publish client bundle
-              if: needs.changes.outputs.highlight-run == 'true'
+              if: steps.filter.outputs.highlight-run == 'true'
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
