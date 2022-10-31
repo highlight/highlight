@@ -9,5 +9,4 @@ github.com/stripe/stripe-go/v73 v73.0.0 h1:tGFNSoEjbtK56ni42hoNn0A7Cw4hVqDOsN37R
 github.com/stripe/stripe-go/v73 v73.0.0/go.mod h1:4FBC7C8KkIXDS94N/YTWd0bZlOa2mbGJkx8lAu9ixCQ=
 github.com/stripe/stripe-go/v73 v73.14.0 h1:D+2w5FszydQ3l5/cxZ5abIjs+JQVvYF5uTF6Dc42CJg=
 github.com/stripe/stripe-go/v73 v73.14.0/go.mod h1:Uk0oBh96JHdlxRsu0/t8XfuJ3xOUQTUgpKAFZuDcFnQ=
-github.com/tidwall/gjson v1.9.3 h1:hqzS9wAHMO+KVBBkLxYdkEeeFHuqr95GfClRLKlgK0E=
-github.com/tidwall/gjson v1.9.3/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
+golang.org/x/term v0.1.0/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

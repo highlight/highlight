@@ -10,14 +10,6 @@ replace github.com/satori/go.uuid => github.com/gofrs/uuid v4.2.0+incompatible
 
 replace golang.org/x/crypto => golang.org/x/crypto v0.1.0
 
-replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
-
-replace github.com/labstack/echo => github.com/labstack/echo/v4 v4.2.0
-
-replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.9.3
-
-replace golang.org/x/net => golang.org/x/net v0.1.0
-
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.20
