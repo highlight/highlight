@@ -125,6 +125,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
+	const loadingChunksRef = useRef<boolean>(false)
 
 	const [
 		chunkEventsRef,
@@ -255,6 +256,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Ensure all chunks between startTs and endTs are loaded.
 	const ensureChunksLoaded = useCallback(
 		async (startTime: number, endTime?: number, action?: ReplayerState) => {
+			if (loadingChunksRef.current) return
 			if (
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
@@ -262,6 +264,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				if (action) dispatchAction(startTime, action)
 				return
 			}
+			loadingChunksRef.current = true
 
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
@@ -322,19 +325,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 					log('PlayerHook.tsx', 'pushed promise for chunk', i)
 				}
 			}
-			const nextIdx = getChunkIdx(
-				state.sessionMetadata.startTime + startTime,
-			)
-			getChunksToRemove(chunkEventsRef.current, nextIdx).forEach((idx) =>
-				chunkEventsRemove(idx),
-			)
-			for (const [i, data] of await Promise.all(promises)) {
-				chunkEventsSet(i, toHighlightEvents(data))
+			if (promises.length) {
+				getChunksToRemove(
+					chunkEventsRef.current,
+					getChunkIdx(state.sessionMetadata.startTime + startTime),
+				).forEach((idx) => chunkEventsRemove(idx))
+				for (const [i, data] of await Promise.all(promises)) {
+					chunkEventsSet(i, toHighlightEvents(data))
+				}
 			}
 			if (promises.length || action) {
 				dispatchAction(startTime, action)
 			}
-			return promises.length
+			loadingChunksRef.current = false
 		},
 		[
 			project_id,
@@ -385,8 +388,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
-
-	const debouncedPlay = _.debounce(play, 300)
 
 	const pause = useCallback(
 		(time?: number) => {
@@ -744,14 +745,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 						'due to inactivity at',
 						state.time,
 					)
-					return debouncedPlay(inactivityEnd)
+					return play(inactivityEnd)
 				}
 			}
-			log(
-				'PlayerHook.tsx',
-				'calling ensureChunksLoaded from state.time useEffect',
-				state.time,
-			)
 			ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
 		}
 	}, [
@@ -762,7 +758,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,
-		debouncedPlay,
+		play,
 		state.isLiveMode,
 	])
 

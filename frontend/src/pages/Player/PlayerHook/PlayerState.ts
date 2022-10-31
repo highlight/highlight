@@ -499,16 +499,12 @@ export const PlayerReducer = (
 			}
 			s.isLoadingEvents = false
 			s.time = action.time
-			try {
-				s = replayerAction(
-					PlayerActionType.onChunksLoad,
-					s,
-					action.action || s.replayerStateBeforeLoad,
-					s.time,
-				)
-			} catch (e: any) {
-				log('PlayerState.ts', 'onChunksLoad exception', e)
-			}
+			s = replayerAction(
+				PlayerActionType.onChunksLoad,
+				s,
+				action.action || s.replayerStateBeforeLoad,
+				s.time,
+			)
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
@@ -610,6 +606,7 @@ export const PlayerReducer = (
 			'PlayerStateUpdate',
 			PlayerActionType[action.type],
 			s.time,
+			events.length,
 			{
 				initialState: state,
 				finalState: s,
@@ -622,6 +619,7 @@ export const PlayerReducer = (
 			'PlayerStateTransition',
 			PlayerActionType[action.type],
 			s.time,
+			events.length,
 			{
 				initialState: state,
 				finalState: s,
@@ -705,20 +703,37 @@ const replayerAction = (
 	time: number,
 	skipSetTime?: boolean,
 ) => {
+	log(
+		'PlayerState.ts',
+		'playerState/replayerAction',
+		PlayerActionType[source],
+		'to',
+		ReplayerState[desiredState],
+		time,
+	)
 	timedCall(
 		'playerState/replayerAction',
 		() => {
 			if (!s.replayer) return s
-			if (desiredState === ReplayerState.Paused) {
-				s.replayer.pause(
-					toReplayerTime(s.replayer, s.sessionMetadata, time),
+			try {
+				if (desiredState === ReplayerState.Paused) {
+					s.replayer.pause(
+						toReplayerTime(s.replayer, s.sessionMetadata, time),
+					)
+				} else if (desiredState === ReplayerState.Playing) {
+					s.replayer.play(
+						toReplayerTime(s.replayer, s.sessionMetadata, time),
+					)
+				} else {
+					return s
+				}
+			} catch (e: any) {
+				log(
+					'PlayerState.ts',
+					'replayerAction exception',
+					PlayerActionType[source],
+					e,
 				)
-			} else if (desiredState === ReplayerState.Playing) {
-				s.replayer.play(
-					toReplayerTime(s.replayer, s.sessionMetadata, time),
-				)
-			} else {
-				return s
 			}
 			s.replayerState = desiredState
 			if (!skipSetTime) {
