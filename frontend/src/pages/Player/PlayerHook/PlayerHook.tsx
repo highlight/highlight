@@ -27,7 +27,7 @@ import {
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
 import log from '@util/log'
-import { timedCall, timedCallback } from '@util/perf/instrument'
+import { timedCallback } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
@@ -372,20 +372,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (newTime) {
 				dispatch({ type: PlayerActionType.setTime, time: newTime })
 			}
-			timedCall('player/play/ensureChunksLoaded', () => {
-				ensureChunksLoaded(
-					newTime,
-					undefined,
-					ReplayerState.Playing,
-				).then(() => {
+			ensureChunksLoaded(newTime, undefined, ReplayerState.Playing).then(
+				() => {
 					// Log how long it took to move to the new time.
 					const timelineChangeTime = timerEnd('timelineChangeTime')
 					datadogLogs.logger.info('Timeline Play Time', {
 						duration: timelineChangeTime,
 						sessionId: state.session_secure_id,
 					})
-				})
-			})
+				},
+			)
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
@@ -397,20 +393,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (time) {
 				dispatch({ type: PlayerActionType.setTime, time })
 			}
-			timedCall('player/pause/ensureChunksLoaded', () => {
-				ensureChunksLoaded(
-					time ?? 0,
-					undefined,
-					ReplayerState.Paused,
-				).then(() => {
+			ensureChunksLoaded(time ?? 0, undefined, ReplayerState.Paused).then(
+				() => {
 					// Log how long it took to move to the new time.
 					const timelineChangeTime = timerEnd('timelineChangeTime')
 					datadogLogs.logger.info('Timeline Pause Time', {
 						duration: timelineChangeTime,
 						sessionId: state.session_secure_id,
 					})
-				})
-			})
+				},
+			)
 		},
 		[ensureChunksLoaded, state.session_secure_id],
 	)
@@ -418,9 +410,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const seek = useCallback(
 		(time: number) => {
 			dispatch({ type: PlayerActionType.setTime, time })
-			timedCall('player/seek/ensureChunksLoaded', () => {
-				ensureChunksLoaded(time, undefined, state.replayerState).then()
-			})
+			ensureChunksLoaded(time, undefined, state.replayerState).then()
 		},
 		[ensureChunksLoaded, state.replayerState],
 	)
