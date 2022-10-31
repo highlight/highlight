@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "4.5.4",
+	"version": "5.0.0",
 	"scripts": {
 		"build": "yarn typegen && rollup -c",
 		"dev": "doppler run -- rollup -c -w",
@@ -32,7 +32,7 @@
 	"bundlesize": [
 		{
 			"path": "dist/**.js",
-			"maxSize": "150 kB"
+			"maxSize": "20 kB"
 		}
 	]
 }

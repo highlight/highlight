@@ -2,6 +2,7 @@ import { Props } from '../components/Box/Box'
 import { vars } from './vars'
 
 type BorderKeys =
+	| 'none'
 	| 'black'
 	| 'blackMedium'
 	| 'blackLarge'
@@ -16,6 +17,8 @@ type Borders = Record<BorderKeys, string>
 
 // Tried to create dynamically but lost types with the `${color}${width}` keys.
 export const borders: Borders = {
+	none: '0',
+
 	black: `${vars.color.black} solid ${vars.borderWidth.small}`,
 	blackMedium: `${vars.color.black} solid ${vars.borderWidth.medium}`,
 	blackLarge: `${vars.color.black} solid ${vars.borderWidth.large}`,

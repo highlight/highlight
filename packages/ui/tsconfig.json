@@ -3,9 +3,6 @@
 	"include": ["src"],
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
-		"composite": true,
-		"declaration": true,
-		"declarationMap": true,
 		"incremental": true,
 		"rootDir": "src",
 		"outDir": "dist",

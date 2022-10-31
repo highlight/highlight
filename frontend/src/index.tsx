@@ -78,7 +78,6 @@ const options: HighlightOptions = {
 	},
 	inlineStylesheet: true,
 	inlineImages: true,
-	scriptUrl: 'https://static.highlight.run/beta/index.js',
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 }
 const favicon = document.querySelector("link[rel~='icon']") as any

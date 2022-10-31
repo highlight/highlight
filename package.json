@@ -19,6 +19,7 @@
 		"highlight-node",
 		"render",
 		"rrweb/packages/*",
+		"scripts",
 		"sourcemap-uploader"
 	],
 	"scripts": {
@@ -41,9 +42,11 @@
 		"g": "yarn generate",
 		"generate": "hygen",
 		"prepare": "husky install && patch-package",
-		"publish:all": "run-p --print-label publish:turbo publish:render",
-		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
+		"prepublish": "yarn workspace scripts prepublish:client",
+		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
+		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
+		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-snapshot",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},

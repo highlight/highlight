@@ -19,7 +19,14 @@ const responsiveProperties = defineProperties({
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
-		display: ['none', 'flex', 'block', 'inline'],
+		display: [
+			'none',
+			'flex',
+			'block',
+			'inline',
+			'inline-block',
+			'inline-flex',
+		],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
@@ -51,17 +58,23 @@ const responsiveProperties = defineProperties({
 		marginBottom: vars.space,
 		marginLeft: vars.space,
 		marginRight: vars.space,
-		height: vars.space,
-		width: { fit: 'fit-content', ...vars.space },
 	},
 	shorthands: {
 		align: ['alignItems'],
 		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
 		px: ['paddingLeft', 'paddingRight'],
 		py: ['paddingTop', 'paddingBottom'],
+		pt: ['paddingTop'],
+		pr: ['paddingRight'],
+		pb: ['paddingBottom'],
+		pl: ['paddingLeft'],
 		m: ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
 		mx: ['marginLeft', 'marginRight'],
 		my: ['marginTop', 'marginBottom'],
+		mt: ['marginTop'],
+		mr: ['marginRight'],
+		mb: ['marginBottom'],
+		ml: ['marginLeft'],
 	},
 })
 

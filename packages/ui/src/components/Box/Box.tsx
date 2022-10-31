@@ -2,12 +2,14 @@ import clsx, { ClassValue } from 'clsx'
 import React from 'react'
 import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
-export interface Props extends Sprinkles, React.PropsWithChildren {
-	as?: React.ElementType
-	// Can't use className because it does some conversion on its values and
-	// breaks values like arrays, which would otherwise be valid values for clsx.
-	cssClass?: ClassValue | ClassValue[]
-}
+export type Props = Sprinkles &
+	React.PropsWithChildren &
+	Omit<React.AllHTMLAttributes<HTMLElement>, 'color'> & {
+		as?: React.ElementType | string
+		// Can't use className because it does some conversion on its values and
+		// breaks values like arrays, which would otherwise be valid for clsx.
+		cssClass?: ClassValue | ClassValue[]
+	}
 
 export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
 	const sprinklesProps: Record<string, unknown> = {}
@@ -16,9 +18,9 @@ export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
 
 	for (const key in props) {
 		if (sprinkles.properties.has(key as keyof Sprinkles)) {
-			sprinklesProps[key] = props[key]
+			sprinklesProps[key] = props[key as keyof typeof props]
 		} else {
-			nativeProps[key] = props[key]
+			nativeProps[key] = props[key as keyof typeof props]
 		}
 	}
 

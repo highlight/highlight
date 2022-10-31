@@ -223,9 +223,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								</title>
 							</Helmet>
 
-							<div
-								className={classNames(styles.detailsContainer)}
-							>
+							<div>
 								<div className={styles.errorDetails}>
 									{loading ? (
 										<>
