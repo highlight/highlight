@@ -6,6 +6,9 @@
 	height: calc(100% + 36px);
 	position: absolute;
 	z-index: 2;
+	&.timeIndicatorMoving {
+		transition: left 0.17s linear;
+	}
 }
 
 .timeIndicatorHair {

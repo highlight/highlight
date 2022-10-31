@@ -15,11 +15,18 @@ interface Props {
 }
 
 const SessionLevelBar = React.memo(({ width }: Props) => {
-	const { state, events, session, viewport, currentUrl, isLiveMode } =
-		useReplayerContext()
+	const {
+		state,
+		eventsForTimelineIndicator,
+		session,
+		viewport,
+		currentUrl,
+		isLiveMode,
+	} = useReplayerContext()
 
 	const isLoading =
-		(state === ReplayerState.Loading && !events.length) ||
+		(state === ReplayerState.Loading &&
+			!eventsForTimelineIndicator.length) ||
 		!viewport ||
 		!currentUrl ||
 		!session

@@ -17,10 +17,8 @@ import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import PlayerCommentCanvas, {
 	Coordinates2D,
 } from '@pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
-import {
-	SessionViewability,
-	usePlayer,
-} from '@pages/Player/PlayerHook/PlayerHook'
+import { usePlayer } from '@pages/Player/PlayerHook/PlayerHook'
+import { SessionViewability } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
@@ -46,7 +44,14 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+	Suspense,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
@@ -128,39 +133,43 @@ const Player = ({ integrated }: Props) => {
 		}
 	}, [session_secure_id, setShowLeftPanel])
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const resizePlayer = (replayer: Replayer): boolean => {
-		const width = replayer?.wrapper?.getBoundingClientRect().width
-		const height = replayer?.wrapper?.getBoundingClientRect().height
-		const targetWidth = playerWrapperRef.current?.clientWidth
-		const targetHeight = playerWrapperRef.current?.clientHeight
-		if (!width || !targetWidth || !height || !targetHeight) {
-			return false
-		}
-		const widthScale = (targetWidth - 80) / width
-		const heightScale = (targetHeight - 80) / height
-		const scale = Math.min(heightScale, widthScale)
-		// If calculated scale is close enough to 1, return to avoid
-		// infinite looping caused by small floating point math differences
-		if (scale >= 0.9999 && scale <= 1.0001) {
+	const resizePlayer = useCallback(
+		(replayer: Replayer): boolean => {
+			const width = replayer?.wrapper?.getBoundingClientRect().width
+			const height = replayer?.wrapper?.getBoundingClientRect().height
+			const targetWidth = playerWrapperRef.current?.clientWidth
+			const targetHeight = playerWrapperRef.current?.clientHeight
+			if (!width || !targetWidth || !height || !targetHeight) {
+				return false
+			}
+			const widthScale = (targetWidth - 80) / width
+			const heightScale = (targetHeight - 80) / height
+			const scale = Math.min(heightScale, widthScale)
+			// If calculated scale is close enough to 1, return to avoid
+			// infinite looping caused by small floating point math differences
+			if (scale >= 0.9999 && scale <= 1.0001) {
+				return true
+			}
+
+			if (scale <= 0) {
+				return false
+			}
+
+			// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
+			replayer?.wrapper?.setAttribute(
+				'style',
+				`transform: scale(${
+					replayerScale * scale
+				}) translate(-50%, -50%)`,
+			)
+
+			setScale((s) => {
+				return s * scale
+			})
 			return true
-		}
-
-		if (scale <= 0) {
-			return false
-		}
-
-		// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-		replayer?.wrapper?.setAttribute(
-			'style',
-			`transform: scale(${replayerScale * scale}) translate(-50%, -50%)`,
-		)
-
-		setScale((s) => {
-			return s * scale
-		})
-		return true
-	}
+		},
+		[replayerScale, setScale],
+	)
 
 	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
 	useEffect(() => {
