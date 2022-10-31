@@ -32,7 +32,7 @@ import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
-import _, { debounce } from 'lodash'
+import _ from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
@@ -386,7 +386,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
 
-	const debouncedPlay = debounce(play, 300)
+	const debouncedPlay = _.debounce(play, 300)
 
 	const pause = useCallback(
 		(time?: number) => {
