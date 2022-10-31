@@ -12,7 +12,6 @@ import { fileURLToPath } from 'url'
 import yargs from 'yargs'
 import { gte } from 'semver'
 
-const REMOTE_MAIN = 'origin/master'
 const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './firstload/package.json'
 
@@ -28,18 +27,11 @@ const highlightRunPackageJson = JSON.parse(
 interface Options {
 	workspace: string
 	buildDir: string
-	force: boolean
 	replace?: boolean
 	validate?: boolean
 }
 
 const publish = async function (opts: Options) {
-	if (!opts.force) {
-		if (!(await hasRelevantChanges())) {
-			console.log('Exiting because no relevant changes detected.')
-			process.exit(0)
-		}
-	}
 	const buildDir = join(opts.workspace, opts.buildDir)
 	const promises = []
 	for await (const file of getFiles(join(rootDir, buildDir))) {
@@ -130,24 +122,6 @@ const upload = async function (
 	console.log(`Uploaded ${key}`)
 }
 
-const hasRelevantChanges = async function () {
-	for (const dir of ['client', 'firstload']) {
-		const diff = await new Promise<string>((r) =>
-			exec(
-				`git diff ${REMOTE_MAIN} --stat -- ${dir}`,
-				{
-					cwd: rootDir,
-				},
-				(_, stdout) => r(stdout),
-			),
-		)
-		if (diff.length) {
-			return true
-		}
-	}
-	return false
-}
-
 await yargs(process.argv.slice(2))
 	.command(
 		'publish <workspace>',
@@ -160,12 +134,6 @@ await yargs(process.argv.slice(2))
 		type: 'string',
 		describe: 'the build directory in the workspace',
 		default: 'dist',
-	})
-	.option('force', {
-		type: 'boolean',
-		describe:
-			'run even if there are no changes to client, firstload, or deps',
-		default: false,
 	})
 	.boolean('replace')
 	.boolean('validate')
