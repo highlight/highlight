@@ -82,7 +82,7 @@ export const H: HighlightPublicInterface = {
 			script = document.createElement('script')
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
-				: 'https://static.highlight.run/index.js'
+				: `https://static.highlight.io/v${packageJson.version}/index.js`
 			script.setAttribute(
 				'src',
 				scriptSrc + '?' + new Date().getMilliseconds(),
