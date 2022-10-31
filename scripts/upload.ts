@@ -131,10 +131,14 @@ const upload = async function (
 }
 
 const hasRelevantChanges = async function () {
-	for (const dir of ['../client', '../firstload']) {
+	for (const dir of ['client', 'firstload']) {
 		const diff = await new Promise<string>((r) =>
-			exec(`git diff ${REMOTE_MAIN} --stat -- ${dir}`, (_, stdout) =>
-				r(stdout),
+			exec(
+				`git diff ${REMOTE_MAIN} --stat -- ${dir}`,
+				{
+					cwd: rootDir,
+				},
+				(_, stdout) => r(stdout),
 			),
 		)
 		if (diff.length) {
