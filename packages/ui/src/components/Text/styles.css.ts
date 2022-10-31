@@ -46,33 +46,33 @@ const plexo = createStyleObject({
 	fontMetrics: plexoFontMetrics,
 })
 
+const mainFontFamily = 'Steradian'
+
 const family = {
 	body: {
-		fontFamily:
-			'Steradian, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol',
+		fontFamily: `${mainFontFamily}, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol`,
 	},
 	heading: {
-		fontFamily:
-			'Steradian, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif',
+		fontFamily: `${mainFontFamily}, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif`,
 	},
 	monospace: {
 		fontFamily:
 			'IBM Plex Mono, Menlo, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier, monospace',
+		...plexo,
 	},
 } as const
 
 const size = {
-	xxSmall: { ...xxSmall, ...family.body },
-	xSmall: { ...xSmall, ...family.body },
-	small: { ...small, ...family.body },
-	medium: { ...medium, ...family.body },
-	large: { ...large, ...family.body },
-	monospace: { ...plexo, ...family.monospace },
+	xxSmall: xxSmall,
+	xSmall: xSmall,
+	small: small,
+	medium: medium,
+	large: large,
 } as const
 
 const weight = {
 	regular: { fontWeight: '300' },
-	semibold: { fontWeight: '400' },
+	medium: { fontWeight: '400' },
 	bold: { fontWeight: '500' },
 } as const
 
@@ -84,13 +84,34 @@ export const typographyStyles = {
 
 export const variants = recipe({
 	variants: {
+		family: typographyStyles.family,
 		size: typographyStyles.size,
 		weight: typographyStyles.weight,
 	},
 
+	compoundVariants: [
+		{
+			variants: { family: 'monospace', weight: 'regular' },
+			style: typographyStyles.weight.medium,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'regular' },
+			style: typographyStyles.weight.medium,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'medium' },
+			style: typographyStyles.weight.bold,
+		},
+		{
+			variants: { family: 'body', size: 'xxSmall', weight: 'bold' },
+			style: { fontWeight: 700 },
+		},
+	],
+
 	defaultVariants: {
+		family: 'body',
 		size: 'small',
-		weight: 'regular',
+		weight: 'medium',
 	},
 })
 

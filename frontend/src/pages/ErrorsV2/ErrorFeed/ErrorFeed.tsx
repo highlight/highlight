@@ -71,21 +71,21 @@ const ErrorFeed = () => {
 	const showHistogram = searchResultsLoading || errorCount > 0
 	return (
 		<>
-			<Box py="small" px="medium" borderBottom="neutral">
+			<Box py="6" px="8" borderBottom="neutral">
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</Box>
 			{showHistogram && (
 				<Box
 					borderBottom="neutral"
-					paddingTop="large"
-					paddingBottom="tiny"
-					px="medium"
+					paddingTop="10"
+					paddingBottom="12"
+					px="8"
 				>
 					<ErrorFeedHistogram useCachedErrors={useCachedErrors} />
 				</Box>
 			)}
-			<Box padding="small" cssClass={style.content}>
+			<Box padding="6" cssClass={style.content}>
 				{searchResultsLoading ? (
 					<Skeleton
 						height={80}
@@ -115,12 +115,7 @@ const ErrorFeed = () => {
 					</>
 				)}
 			</Box>
-			<Box
-				borderTop="neutral"
-				paddingTop="small"
-				paddingBottom="medium"
-				px="large"
-			>
+			<Box borderTop="neutral" paddingTop="6" paddingBottom="8" px="10">
 				<Pagination
 					page={page}
 					setPage={setPage}

@@ -8,16 +8,16 @@ export const Palette = () => (
 	<>
 		{Object.keys(colors).map((name) => {
 			return (
-				<>
+				<div key={name}>
 					<Box
 						background={name as keyof typeof colors}
-						padding="large"
+						padding="10"
 						textTransform="capitalize"
 					>
 						{name}
 					</Box>
 					<br />
-				</>
+				</div>
 			)
 		})}
 	</>

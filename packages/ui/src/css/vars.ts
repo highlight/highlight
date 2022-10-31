@@ -9,12 +9,12 @@ export const vars = {
 	space: spaces,
 	border: borders,
 	borderRadius: {
-		xSmall: '3px',
-		small: '4px',
-		xTiny: '5px',
-		tiny: '6px',
-		medium: '8px',
-		large: '12px',
+		'3': '3px',
+		'4': '4px',
+		'5': '5px',
+		'6': '6px',
+		'8': '8px',
+		'12': '12px',
 		round: '999px',
 	},
 	borderWidth: {
@@ -37,4 +37,4 @@ export const vars = {
 		medium: '0 2px 4px 0px rgba(28,28,28,.1), 0 8px 8px -4px rgba(28,28,28,.1), 0 12px 12px -8px rgba(28,28,28,.2)',
 		large: '0 2px 4px 0px rgba(28,28,28,.1), 0 12px 12px -4px rgba(28,28,28,.1), 0 20px 20px -12px rgba(28,28,28,.2)',
 	},
-}
+} as const

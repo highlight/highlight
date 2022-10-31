@@ -26,7 +26,7 @@ export const h1 = createStyleObject({
 })
 
 export const variants = recipe({
-	base: [sprinkles({ margin: 'none' })],
+	base: [sprinkles({ margin: '0' })],
 
 	variants: {
 		size: {

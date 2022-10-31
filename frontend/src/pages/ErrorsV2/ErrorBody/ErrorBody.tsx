@@ -1,5 +1,5 @@
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
@@ -15,7 +15,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const body = getErrorBody(errorGroup?.event)
 
 	return (
-		<Box border="neutral" borderRadius="medium">
+		<Box border="neutral" borderRadius="6">
 			<Box display="flex">
 				<Stat>
 					<>
@@ -29,16 +29,20 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<FaUsers />
 								<Text>Users</Text>
 							</Box>
-							<Text color="purple700">Metrics {'>'}</Text>
+							<Text>
+								<TextLink href="#metrics">
+									Metrics {'>'}
+								</TextLink>
+							</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" size="large">
+						<Box display="flex" gap="4" alignItems="center">
+							<Text color="black" size="large" weight="bold">
 								25
 							</Text>
 							<Tag>
@@ -59,16 +63,18 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<BsGridFill />
 								<Text>Instances</Text>
 							</Box>
-							<Text color="purple700">Latest {'>'}</Text>
+							<Text>
+								<TextLink href="#latest">Latest {'>'}</TextLink>
+							</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" size="large">
+						<Box display="flex" gap="4" alignItems="center">
+							<Text color="black" size="large" weight="bold">
 								32
 							</Text>
 							<Tag>
@@ -83,17 +89,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							color="neutral300"
 							display="flex"
 							alignItems="center"
-							gap="xSmall"
+							gap="4"
 						>
 							<FaUsers />
 							<Text>Users</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
-							<Text color="black" size="large">
+						<Box display="flex" gap="4" alignItems="center">
+							<Text color="black" size="large" weight="bold">
 								25
 							</Text>
-							<Text color="neutral500" size="large">
+							<Text color="neutral500" size="large" weight="bold">
 								{' '}
 								/ Sep 13
 							</Text>
@@ -113,22 +119,26 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								color="neutral300"
 								display="flex"
 								alignItems="center"
-								gap="xSmall"
+								gap="4"
 							>
 								<FaUsers />
 								<Text>Last 30 days</Text>
 							</Box>
-							<Text color="purple700">Metrics {'>'}</Text>
+							<Text>
+								<TextLink href="#metrics">
+									Metrics {'>'}
+								</TextLink>
+							</Text>
 						</Box>
 
-						<Box display="flex" gap="xSmall" alignItems="center">
+						<Box display="flex" gap="4" alignItems="center">
 							TODO: Histogram
 						</Box>
 					</>
 				</Stat>
 			</Box>
-			<Box p="large">
-				<Text size="monospace">{body}</Text>
+			<Box py="12" px="16">
+				<Text family="monospace">{body}</Text>
 			</Box>
 		</Box>
 	)
@@ -141,18 +151,24 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
-		px="large"
-		py="medium"
+		px="16"
+		py="12"
 		flex="stretch"
 	>
-		<Box display="flex" flexDirection="column" gap="small">
+		<Box
+			display="flex"
+			flexDirection="column"
+			gap="6"
+			justifyContent="space-between"
+			style={{ height: '100%' }}
+		>
 			{children}
 		</Box>
 	</Box>
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" background="neutral100" borderRadius="small" p="xSmall">
+	<Box as="span" background="neutral100" borderRadius="4" p="4">
 		<Text color="black">{children}</Text>
 	</Box>
 )

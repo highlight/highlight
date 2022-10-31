@@ -47,18 +47,12 @@ export const Badge: React.FC<Props> = ({
 		<Box
 			display="flex"
 			alignItems="center"
-			gap="xxSmall"
-			width="fit"
+			gap="2"
 			cssClass={[styles.variants({ ...rest })]}
 		>
 			{iconStart}
 			{label && (
-				<Text
-					weight="semibold"
-					size={textSize}
-					color={textColor}
-					as="span"
-				>
+				<Text size={textSize} color={textColor} as="span">
 					{label}
 				</Text>
 			)}
