@@ -49,7 +49,7 @@ export const Button: React.FC<Props> = ({
 					height={size}
 					width={size}
 				>
-					{React.cloneElement(iconLeft)}
+					{iconLeft}
 				</Box>
 			)}
 			<Text size={textSize}>{children}</Text>
