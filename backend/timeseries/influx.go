@@ -3,16 +3,15 @@ package timeseries
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/hlog"
+	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/domain"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
 	"sync"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/hlog"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
-	"github.com/influxdata/influxdb-client-go/v2/domain"
-	log "github.com/sirupsen/logrus"
 )
 
 type Measurement string
@@ -96,19 +95,18 @@ func (i *InfluxDB) GetBucket(bucket string) string {
 
 func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 	b := i.GetBucket(bucket)
-	retentionRuleExpire := domain.RetentionRuleTypeExpire
 	// ignore bucket already exists error
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
 		// short metric expiry for granular data since we will only store downsampled data long term
 		EverySeconds: int64((DownsampleThreshold).Seconds()),
-		Type:         &retentionRuleExpire,
+		Type:         domain.RetentionRuleTypeExpire,
 	})
 	// create a downsample bucket. ignore bucket already exists error
 	downsampleB := b + downsampledBucketSuffix
 	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
 		// 90 day metric expiry for downsampled data
 		EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
-		Type:         &retentionRuleExpire,
+		Type:         domain.RetentionRuleTypeExpire,
 	})
 	taskName := fmt.Sprintf("task-%s", downsampleB)
 	tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
