@@ -17,6 +17,7 @@ import {
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
+import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -401,6 +402,8 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
+	const [showZoomButtons, setShowZoomButtons] = useState(false)
+
 	useHTMLElementEvent(
 		viewportRef.current,
 		'wheel',
@@ -556,6 +559,22 @@ const TimelineIndicatorsBarGraph = ({
 	const onPointermove = useCallback(
 		(event: MouseEvent) => {
 			setDragTime(moveTime(event))
+			const viewportBbox = viewportRef.current?.getBoundingClientRect()
+			if (!viewportBbox) {
+				return
+			}
+			const { clientX, clientY } = event
+
+			if (
+				viewportBbox.left <= clientX &&
+				clientX <= viewportBbox.right &&
+				viewportBbox.bottom >= clientY &&
+				clientY >= viewportBbox.top
+			) {
+				setShowZoomButtons(true)
+			} else {
+				setShowZoomButtons(false)
+			}
 		},
 		[moveTime],
 	)
@@ -1075,6 +1094,8 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
+			<TimelineZoom isHidden={!showZoomButtons} />
+
 			<div
 				className={clsx([
 					style.timelineContainer,

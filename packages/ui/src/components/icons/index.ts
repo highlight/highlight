@@ -1,4 +1,6 @@
 export * from './IconCaretDown'
 export * from './IconCreateFile'
 export * from './IconShare'
+export * from './IconMinusSm'
+export * from './IconPlusSm'
 export * from './types'

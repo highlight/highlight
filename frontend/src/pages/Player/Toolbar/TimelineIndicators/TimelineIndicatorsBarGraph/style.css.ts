@@ -6,7 +6,8 @@ export const SESSION_MONITOR_HEIGHT = 20
 export const TIME_AXIS_HEIGHT = 24
 export const PROGRESS_BAR_HEIGHT = 3
 export const HISTOGRAM_AREA_HEIGHT = 92
-export const HISTOGRAM_OFFSET = 24
+export const HISTOGRAM_OFFSET = 26
+export const SEPARATOR_HEIGHT = 1
 
 export const timelineIndicatorsContainer = style({
 	alignItems: 'center',
@@ -17,6 +18,7 @@ export const timelineIndicatorsContainer = style({
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,
+	position: 'relative',
 })
 
 export const sessionMonitor = style({
@@ -68,8 +70,8 @@ export const liveProgressBar = style({
 	animationTimingFunction: 'linear',
 	background: `linear-gradient(
 		to right,
-		var(--color-red-300) 8%",
-		var(--color-red) 38%",
+		var(--color-red-300) 8%,
+		var(--color-red) 38%,
 		var(--color-red-300) 68%
 	)`,
 	backgroundSize: '800px 5px',
@@ -127,7 +129,7 @@ export const timeAxis = style({
 })
 
 export const separator = style({
-	borderBottom: '1px var(--color-neutral-100) solid',
+	borderBottom: `${SEPARATOR_HEIGHT}px var(--color-neutral-100) solid`,
 })
 
 export const bucketMark = style({
