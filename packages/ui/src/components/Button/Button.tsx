@@ -1,9 +1,8 @@
 import React from 'react'
 import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
-import { Text } from '../Text/Text'
+import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
-import { typographyStyles } from '../Text/styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 
@@ -15,41 +14,40 @@ type Props = ButtonProps &
 		onPress?: () => void
 	}
 
-const buttonToTextSize: Record<
-	styles.Variants['size'],
-	keyof typeof typographyStyles.size
-> = {
+const buttonToTextSize = {
 	xSmall: 'xSmall',
 	small: 'small',
 	medium: 'small',
 	large: 'small',
 	xLarge: 'large',
-}
+} as const
 
 export const Button: React.FC<Props> = ({
 	children,
 	iconLeft,
 	iconRight,
-	...props
+	size = styles.defaultSize,
+	variant,
+	...buttonProps
 }) => {
-	const textSize = buttonToTextSize[props.size]
+	const textSize: TextProps['size'] = buttonToTextSize[size]
 
 	return (
 		<AriakitButton
 			as="button"
 			className={styles.variants({
-				variant: props.variant,
-				size: props.size,
+				variant: variant,
+				size: size,
 			})}
-			{...props}
+			{...buttonProps}
 		>
 			{iconLeft && (
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size: props.size })}
-					height={props.size}
-					width={props.size}
+					className={styles.iconVariants({ size })}
+					height={size}
+					width={size}
 				>
 					{React.cloneElement(iconLeft)}
 				</Box>
@@ -59,9 +57,9 @@ export const Button: React.FC<Props> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size: props.size })}
-					height={props.size}
-					width={props.size}
+					className={styles.iconVariants({ size })}
+					height={size}
+					width={size}
 				>
 					{iconRight}
 				</Box>

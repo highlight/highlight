@@ -8,6 +8,8 @@ const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
 
+export const defaultSize = 'small'
+
 export const iconVariants = recipe({
 	base: {
 		alignItems: 'center',
@@ -26,7 +28,7 @@ export const iconVariants = recipe({
 	},
 
 	defaultVariants: {
-		size: 'small',
+		size: defaultSize,
 	},
 })
 
@@ -43,23 +45,11 @@ export const variants = recipe({
 		},
 		{
 			selectors: {
-				// TODO: Clean up duplication
-				'&:disabled': {
+				'&:disabled, &:disabled:hover, &:disabled:active': {
 					backgroundColor: vars.color.neutral50,
 					border: 0,
 					boxShadow: 'none',
 					color: vars.color.neutral300,
-				},
-				'&:disabled:hover': {
-					backgroundColor: vars.color.neutral50,
-					border: 0,
-					boxShadow: 'none',
-					color: vars.color.neutral300,
-				},
-				'&:disabled:active': {
-					backgroundColor: vars.color.neutral50,
-					border: 0,
-					boxShadow: 'none',
 				},
 			},
 		},
@@ -133,7 +123,7 @@ export const variants = recipe({
 
 	defaultVariants: {
 		variant: 'primary',
-		size: 'small',
+		size: defaultSize,
 	},
 })
 
