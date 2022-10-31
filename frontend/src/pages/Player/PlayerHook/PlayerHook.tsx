@@ -32,7 +32,7 @@ import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
 import { H } from 'highlight.run'
-import _ from 'lodash'
+import _, { debounce } from 'lodash'
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { BooleanParam, useQueryParam } from 'use-query-params'
@@ -173,7 +173,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					if (!interval.active) {
 						// skip forward some frames after the inactivity to prevent
 						// the player from rounding back into the inactive region
-						return interval.endTime + 120 * FRAME_MS
+						return interval.endTime + 5 * FRAME_MS
 					} else {
 						return undefined
 					}
@@ -215,7 +215,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return []
 			}
 
-			chunksIndexesWithData.sort()
+			chunksIndexesWithData.sort((a, b) => b - a)
 			const midChunkIdx =
 				chunksIndexesWithData[
 					Math.floor(chunksIndexesWithData.length / 2)
@@ -230,7 +230,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			)
 			toRemove.delete(currentIdx)
 
-			log('getChunksToRemove', {
+			log('PlayerHook.tsx', 'getChunksToRemove', {
 				chunksIndexesWithData,
 				currentIdx,
 				toRemove,
@@ -272,26 +272,26 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 			const promises = []
 			log(
-				'PlayerHook.ts',
+				'PlayerHook.tsx',
 				'checking chunk loaded status range',
 				startIdx,
 				endIdx,
 			)
 			for (let i = startIdx; i <= endIdx; i++) {
 				log(
-					'PlayerHook.ts',
+					'PlayerHook.tsx',
 					'hasChunk',
 					i,
 					chunkEventsRef.current.has(i),
 				)
 				if (!chunkEventsRef.current.has(i)) {
-					log('PlayerHook.ts', 'set events for chunk', i)
+					log('PlayerHook.tsx', 'set events for chunk', i)
 					chunkEventsSet(i, [])
 
 					// signal that we are loading chunks once
 					if (!promises.length) {
 						log(
-							'PlayerHook.ts',
+							'PlayerHook.tsx',
 							'ensureChunksLoaded needs load for chunk',
 							i,
 						)
@@ -319,7 +319,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 							}
 						})(i),
 					)
-					log('PlayerHook.ts', 'pushed promise for chunk', i)
+					log('PlayerHook.tsx', 'pushed promise for chunk', i)
 				}
 			}
 			const nextIdx = getChunkIdx(
@@ -389,6 +389,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
+
+	const debouncedPlay = debounce(play, 300)
 
 	const pause = useCallback(
 		(time?: number) => {
@@ -745,11 +747,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 			) {
 				inactivityEnd = getInactivityEnd(state.time)
 				if (inactivityEnd !== undefined) {
-					return play(inactivityEnd)
+					log(
+						'PlayerHook.tsx',
+						'seeking to',
+						inactivityEnd,
+						'due to inactivity at',
+						state.time,
+					)
+					return debouncedPlay(inactivityEnd)
 				}
 			}
 			log(
-				'PlayerHook.ts',
+				'PlayerHook.tsx',
 				'calling ensureChunksLoaded from state.time useEffect',
 				state.time,
 			)
@@ -763,7 +772,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,
-		play,
+		debouncedPlay,
 		state.isLiveMode,
 	])
 
