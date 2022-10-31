@@ -14,21 +14,9 @@ replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
 
 replace github.com/labstack/echo => github.com/labstack/echo/v4 v4.2.0
 
-replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.14.3
+replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.9.3
 
 replace golang.org/x/net => golang.org/x/net v0.1.0
-
-replace github.com/tidwall/match => github.com/tidwall/match v1.1.1
-
-replace golang.org/x/text => golang.org/x/text v0.4.0
-
-replace github.com/dgrijalva/jwt-go => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
-
-replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.7
-
-replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
-
-replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
 
 require (
 	firebase.google.com/go v3.13.0+incompatible
