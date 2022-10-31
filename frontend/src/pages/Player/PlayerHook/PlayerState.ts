@@ -355,7 +355,10 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setTime:
 			s.time = action.time
-			if (s.time < state.sessionEndTime) {
+			if (
+				s.replayerState === ReplayerState.SessionEnded &&
+				s.time < state.sessionEndTime
+			) {
 				s.replayerState = ReplayerState.Paused
 			}
 			break
