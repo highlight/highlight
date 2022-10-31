@@ -1,25 +1,13 @@
 .container {
 	background: var(--color-primary-background);
-	border: 1px solid var(--color-gray-300);
-	border-radius: var(--border-radius);
 	display: flex;
-	height: 62px;
 	margin: 0 auto;
-	padding: var(--size-xSmall) var(--size-medium);
 	position: relative;
 	width: 100%;
 	z-index: 2;
-
-	.graphContainer {
-		margin: 0 auto;
-		position: relative;
+	> div {
+		height: 36px;
 		width: 100%;
-
-		.sessionInterval {
-			height: var(--size-xxLarge);
-			position: absolute;
-			width: 100%;
-		}
 	}
 }
 

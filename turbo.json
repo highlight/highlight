@@ -47,8 +47,11 @@
 				"DD_RUM_APPLICATION_ID"
 			]
 		},
+		"enforce-size": {
+			"dependsOn": ["build"]
+		},
 		"test": {
-			"dependsOn": ["prepublish", "build"],
+			"dependsOn": ["prepublish", "enforce-size"],
 			"outputs": [],
 			"inputs": [
 				"src/**/*.tsx",

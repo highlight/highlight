@@ -35,6 +35,7 @@
 	"references": [
 		{ "path": "../client" },
 		{ "path": "../firstload" },
+		{ "path": "../packages/ui" },
 		{ "path": "../rrweb/packages/rrweb" }
 	]
 }

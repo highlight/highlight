@@ -34,6 +34,7 @@
 		"dev:backend": "cd backend && make start",
 		"dev:frontend": "yarn turbo run dev --filter frontend...",
 		"dev:redis": "redis-server",
+		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
 		"format-check": "prettier --check --ignore-unknown . \"!./data\"",
 		"format:all": "prettier --write --ignore-unknown . \"!./data\"",
 		"frontend:start": "yarn dev:frontend",
@@ -71,6 +72,8 @@
 		"object-path": "0.11.8",
 		"prismjs": "1.27.0",
 		"tmpl": "1.0.5",
-		"trim-newlines": "3.0.1"
+		"trim-newlines": "3.0.1",
+		"trim": "0.0.3",
+		"minimatch": "3.0.5"
 	}
 }

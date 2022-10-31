@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 export function MillisToMinutesAndSeconds(millis: number) {
 	const minutes = Math.floor(millis / 60000)
 	const seconds = Math.floor((millis % 60000) / 1000)
@@ -67,4 +69,13 @@ export function formatTimeAsAlphanum(
 	]
 		.join(' ')
 		.trim()
+}
+
+export const serializeAbsoluteTimeRange = (
+	start: Date | undefined,
+	end: Date | undefined,
+) => {
+	const startIso = moment(start).toISOString()
+	const endIso = moment(end).toISOString()
+	return `${startIso}_${endIso}`
 }

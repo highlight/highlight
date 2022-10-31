@@ -1,4 +1,4 @@
-import { useGetResourcesQuery, useGetSessionQuery } from '@graph/hooks'
+import { useGetResourcesQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
@@ -28,11 +28,6 @@ export const useResources = (
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
-	const { refetch: refetchSession } = useGetSessionQuery({
-		fetchPolicy: 'no-cache',
-		skip: true,
-	})
-
 	const [resourcesLoading, setResourcesLoading] = useState(true)
 	const skipQuery =
 		sessionSecureId === undefined ||
@@ -41,7 +36,7 @@ export const useResources = (
 
 	const { data, loading: queryLoading } = useGetResourcesQuery({
 		variables: {
-			session_secure_id: sessionSecureId! ?? '',
+			session_secure_id: sessionSecureId ?? '',
 		},
 		fetchPolicy: 'no-cache',
 		skip: skipQuery,
@@ -84,12 +79,12 @@ export const useResources = (
 			})
 
 			a.href = URL.createObjectURL(file)
-			a.download = `session-${session_secure_id}-resources.json`
+			a.download = `session-${sessionSecureId}-resources.json`
 			a.click()
 
 			URL.revokeObjectURL(a.href)
 		}
-	}, [downloadResources, resources, session_secure_id])
+	}, [downloadResources, resources, sessionSecureId])
 
 	// If sessionSecureId is set and equals the current session's (ensures effect is run once)
 	// and resources url is defined, fetch using resources url
@@ -99,17 +94,7 @@ export const useResources = (
 			!!session?.resources_url
 		) {
 			setResourcesLoading(true)
-			refetchSession({
-				secure_id: sessionSecureId,
-			})
-				.then((result) => {
-					const newUrl = result.data.session?.resources_url
-					if (newUrl) {
-						return fetch(newUrl)
-					} else {
-						throw new Error('resources_url not defined')
-					}
-				})
+			fetch(session.resources_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setResources(

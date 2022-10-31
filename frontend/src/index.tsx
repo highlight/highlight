@@ -29,6 +29,7 @@ import {
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -339,6 +340,11 @@ const AuthenticationRoleRouter = () => {
 		}
 	}, [authRole, setLoadingState])
 
+	const [enableStaffView] = useLocalStorage(
+		`highlight-enable-staff-view`,
+		true,
+	)
+
 	return (
 		<AuthContextProvider
 			value={{
@@ -349,7 +355,7 @@ const AuthenticationRoleRouter = () => {
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: isLoggedIn(authRole),
-				isHighlightAdmin: isHighlightAdmin(authRole),
+				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
 			}}
 		>
 			<Helmet>

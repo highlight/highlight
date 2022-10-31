@@ -63,17 +63,11 @@
 	width: 100%;
 }
 
-.currentIndicatorWrapper {
-	height: 100%;
+.currentIndicator {
+	background-color: var(--color-blue-500);
+	border-radius: 50%;
+	height: 6px;
 	left: var(--size-xSmall);
 	position: absolute;
-	top: var(--size-xLarge);
-	width: 100%;
-
-	.currentIndicator {
-		background-color: var(--color-blue-500);
-		border-radius: 50%;
-		height: 6px;
-		width: 6px;
-	}
+	width: 6px;
 }

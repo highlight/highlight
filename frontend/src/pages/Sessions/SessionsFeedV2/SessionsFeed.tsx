@@ -5,7 +5,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Series } from '@components/Histogram/Histogram'
 import {
-	PAGE_SIZE,
+	DEFAULT_PAGE_SIZE,
 	Pagination,
 	RESET_PAGE_MS,
 	STARTING_PAGE,
@@ -20,10 +20,10 @@ import {
 } from '@graph/hooks'
 import { GetSessionsOpenSearchQuery } from '@graph/operations'
 import { DateHistogramBucketSize, PlanType } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer'
 import {
 	QueryBuilderState,
-	serializeAbsoluteTimeRange,
 	updateQueriedTimeRange,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
@@ -39,6 +39,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { serializeAbsoluteTimeRange } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -177,7 +178,7 @@ export const SessionFeed = React.memo(() => {
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = sessionsCount > PAGE_SIZE
+	const projectHasManySessions = sessionsCount > DEFAULT_PAGE_SIZE
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
@@ -186,7 +187,7 @@ export const SessionFeed = React.memo(() => {
 		useGetSessionsOpenSearchQuery({
 			variables: {
 				project_id,
-				count: PAGE_SIZE,
+				count: DEFAULT_PAGE_SIZE,
 				page: 1,
 				query: getUnprocessedSessionsQuery(
 					backendSearchQuery?.searchQuery || '',
@@ -211,7 +212,7 @@ export const SessionFeed = React.memo(() => {
 		if (response?.sessions_opensearch) {
 			setSessionResults(response.sessions_opensearch)
 			totalPages.current = Math.ceil(
-				response?.sessions_opensearch.totalCount / PAGE_SIZE,
+				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
 			setSessionsCount(response?.sessions_opensearch.totalCount)
 		}
@@ -221,7 +222,7 @@ export const SessionFeed = React.memo(() => {
 	const { loading, called } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
-			count: PAGE_SIZE,
+			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id,
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
@@ -322,9 +323,11 @@ export const SessionFeed = React.memo(() => {
 				<SegmentPickerForPlayer />
 				<SessionsQueryBuilder />
 			</div>
-			{isHighlightAdmin &&
-				(loading || sessionResults.totalCount > 0) &&
-				histogram}
+			{isHighlightAdmin && (loading || sessionResults.totalCount > 0) && (
+				<Box paddingTop="large" paddingBottom="tiny" px="medium">
+					{histogram}
+				</Box>
+			)}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{sessionResults.totalCount === -1 ? (
@@ -463,7 +466,11 @@ export const SessionFeed = React.memo(() => {
 					)}
 				</div>
 			</div>
-			<Pagination page={page} setPage={setPage} totalPages={totalPages} />
+			<Pagination
+				page={page}
+				setPage={setPage}
+				totalPages={totalPages.current}
+			/>
 		</SessionFeedConfigurationContextProvider>
 	)
 })

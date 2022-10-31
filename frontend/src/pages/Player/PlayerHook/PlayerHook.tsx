@@ -18,8 +18,10 @@ import {
 	SessionResults,
 } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
+	metaEvent,
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
@@ -163,6 +165,47 @@ export const usePlayer = (): ReplayerContextInterface => {
 		EMPTY_SESSION_METADATA,
 	)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
+
+	const updateCurrentUrl = useCallback(() => {
+		setCurrentUrl(undefined)
+		if (!replayer) {
+			return
+		}
+
+		if (events.length > 0 && session?.secure_id === session_secure_id) {
+			setCurrentUrl(
+				findLatestUrl(
+					getAllUrlEvents(events),
+					replayer.getCurrentTime() +
+						replayer.getMetaData().startTime,
+				),
+			)
+		}
+	}, [replayer, session?.secure_id, session_secure_id, events])
+	useEffect(() => {
+		if (session?.secure_id !== session_secure_id) {
+			updateCurrentUrl()
+		}
+	}, [session?.secure_id, session_secure_id, updateCurrentUrl])
+
+	// Initializes the simulated viewport size and currentUrl with values from the first meta event
+	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
+	// can be empty, which is a poor UX.
+	useEffect(() => {
+		if (!viewport) {
+			const metas = events.filter(
+				(event) => event.type === EventType.Meta,
+			)
+			if (metas.length > 0) {
+				const meta = metas[0] as metaEvent
+				setViewport({
+					width: meta.data.width,
+					height: meta.data.height,
+				})
+			}
+		}
+	}, [events, viewport])
+
 	// Incremented whenever events are received in live mode. This is subscribed
 	// to for knowing when new live events are available to add to the player.
 	const [liveEventCount, setLiveEventCount] = useState<number>(0)
@@ -573,19 +616,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			setShowRightPanel(true)
 		}
 	}, [setShowLeftPanel, setShowRightPanel])
-
-	const updateCurrentUrl = useCallback(() => {
-		if (!replayer) {
-			return
-		}
-
-		setCurrentUrl(
-			findLatestUrl(
-				getAllUrlEvents(events),
-				replayer.getCurrentTime() + replayer.getMetaData().startTime,
-			),
-		)
-	}, [setCurrentUrl, events, replayer])
 
 	const onevent = useCallback(
 		(e: any) => {

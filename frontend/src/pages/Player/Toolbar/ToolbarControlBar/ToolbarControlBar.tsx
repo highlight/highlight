@@ -47,7 +47,7 @@ const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
 const isOnMac = window.navigator.platform.includes('Mac')
 
-const showTimelineShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}H`
+const showTimelineShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}E`
 const showDevToolsShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}/`
 
 const ToolbarControls = () => {
@@ -65,7 +65,7 @@ const ToolbarControls = () => {
 		sessionMetadata,
 		lastActiveString,
 	} = useReplayerContext()
-	const { setIsPlayerFullscreen } = usePlayerUIContext()
+	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 
 	const {
 		showHistogram,
@@ -272,7 +272,7 @@ const ToolbarControls = () => {
 							onClick={() => {
 								setShowDevTools(!showDevTools)
 							}}
-							disabled={disableControls}
+							disabled={isPlayerFullscreen || disableControls}
 						>
 							<TerminalIcon />
 						</Button>

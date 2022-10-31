@@ -1,6 +1,7 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -10,14 +11,12 @@ import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import devStyles from '../DevToolsWindow.module.scss'
 import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard'
 import styles from './ErrorsPage.module.scss'
-import { findLastActiveEventIndex } from './utils/utils'
 
 interface ErrorsPageHistoryState {
 	errorCardIndex: number
 }
 
 const ErrorsPage = React.memo(() => {
-	const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1)
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const [isInteractingWithErrors, setIsInteractingWithErrors] =
 		useState(false)
@@ -37,33 +36,22 @@ const ErrorsPage = React.memo(() => {
 	const loading = state === ReplayerState.Loading
 
 	/** Only errors recorded after this feature was released will have the timestamp. */
+
 	const hasTimestamp =
 		!loading && allErrors?.every((error) => !!error.timestamp)
-
-	useEffect(() => {
-		if (
-			!isInteractingWithErrors &&
-			hasTimestamp &&
-			sessionMetadata.startTime
-		) {
-			const index = findLastActiveEventIndex(
+	const lastActiveErrorIndex = useMemo(() => {
+		if (hasTimestamp) {
+			return findLastActiveEventIndex(
 				time,
 				sessionMetadata.startTime,
 				allErrors,
 			)
-			setLastActiveErrorIndex(index)
 		}
-	}, [
-		allErrors,
-		hasTimestamp,
-		isInteractingWithErrors,
-		sessionMetadata.startTime,
-		time,
-	])
+		return -1
+	}, [allErrors, hasTimestamp, sessionMetadata.startTime, time])
 
-	useEffect(() => {
-		if (virtuoso.current) {
-			// Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
+	useLayoutEffect(() => {
+		if (virtuoso.current && !isInteractingWithErrors) {
 			if (
 				history.location.state?.errorCardIndex !== undefined &&
 				state === ReplayerState.Playing
@@ -75,7 +63,12 @@ const ErrorsPage = React.memo(() => {
 				virtuoso.current.scrollToIndex(lastActiveErrorIndex)
 			}
 		}
-	}, [history.location.state?.errorCardIndex, lastActiveErrorIndex, state])
+	}, [
+		history.location.state?.errorCardIndex,
+		isInteractingWithErrors,
+		lastActiveErrorIndex,
+		state,
+	])
 
 	const errorsToRender = useMemo(() => {
 		if (filterSearchTerm === '') {

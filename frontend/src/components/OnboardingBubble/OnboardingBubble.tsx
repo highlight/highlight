@@ -68,6 +68,9 @@ const OnboardingBubble = () => {
 				admin_id: (admin_data?.admin?.id as string) || '',
 			},
 			fetchPolicy: 'network-only',
+			skip:
+				temporarilyHideOnboardingBubble ||
+				permanentlyHideOnboardingBubble,
 		})
 
 	const { slackUrl: slackBotUrl } = useSlackBot({
