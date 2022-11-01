@@ -31,7 +31,6 @@ import styles from './NewProject.module.scss'
 
 const NewProjectPage = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
-	const [error, setError] = useState<undefined | string>(undefined)
 	const [name, setName] = useState<string>('')
 	const [autoJoinDomains, setAutoJoinDomains] = useState<string[]>()
 
@@ -56,10 +55,9 @@ const NewProjectPage = () => {
 	useEffect(() => {
 		if (projectError || workspaceError) {
 			const err = projectError?.message ?? workspaceError?.message
-			setError(err)
 			message.error(err)
 		}
-	}, [setError, projectError, workspaceError])
+	}, [projectError, workspaceError])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
@@ -136,7 +134,6 @@ const NewProjectPage = () => {
 		}
 	}
 
-	const pageType = isWorkspace ? 'workspace' : 'project'
 	const pageTypeCaps = isWorkspace ? 'Workspace' : 'Project'
 
 	return (
