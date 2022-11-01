@@ -2,20 +2,25 @@ import React from 'react'
 import { IconProps } from './types'
 
 type Props = IconProps & {
-	width?: number
-	height?: number
 	color?: string
+	size?: number | string
+	width?: number | string
+	height?: number | string
 }
 
-export const PlusSmIcon: React.FC<Props> = ({ width, height, color }) => {
+export const IconPlusSm: React.FC<Props> = ({ size, color, width, height }) => {
+	if (size) {
+		width = size
+		height = size
+	}
 	width = width ?? 20
 	height = height ?? 20
 	color = color ?? 'currentColor'
 	return (
 		<svg
-			width={width ?? 20}
-			height={height ?? 20}
-			viewBox={`0 0 ${width} ${height}`}
+			width={width}
+			height={height}
+			viewBox={`0 0 20 20`}
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>

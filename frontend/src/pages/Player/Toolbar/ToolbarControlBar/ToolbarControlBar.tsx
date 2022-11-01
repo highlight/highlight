@@ -31,6 +31,7 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
+import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
@@ -38,7 +39,7 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
-import { PropsWithChildren, useState } from 'react'
+import { useState } from 'react'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
 import style from './ToolbarControlBar.module.scss'
@@ -324,31 +325,6 @@ const ToolbarControls = () => {
 				<ArrowsExpandIcon />
 			</Button>
 		</div>
-	)
-}
-
-interface ExplanatoryPopoverProps {
-	content: React.ReactNode
-}
-const ExplanatoryPopover = ({
-	content,
-	children,
-}: PropsWithChildren<ExplanatoryPopoverProps>) => {
-	return (
-		<Popover
-			content={content}
-			overlayClassName={style.buttonPopoverOverlay}
-			showArrow={false}
-			align={{
-				overflow: {
-					adjustY: false,
-					adjustX: false,
-				},
-				offset: [0, 8],
-			}}
-		>
-			{children}
-		</Popover>
 	)
 }
 

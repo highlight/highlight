@@ -49,6 +49,7 @@ const responsiveProperties = defineProperties({
 			'full-width',
 			'full-size-kana',
 		],
+		userSelect: ['all', 'auto', 'none'],
 		padding: vars.space,
 		paddingTop: vars.space,
 		paddingBottom: vars.space,

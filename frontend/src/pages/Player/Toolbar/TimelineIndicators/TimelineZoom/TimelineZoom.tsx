@@ -1,4 +1,13 @@
-import { Box, IconButton, MinusSmIcon, PlusSmIcon } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	IconArrowsExpand,
+	IconButton,
+	IconMinusSm,
+	IconPlusSm,
+	Text,
+} from '@highlight-run/ui'
+import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 
 import * as style from './style.css'
 
@@ -8,6 +17,8 @@ interface Props {
 }
 const PERCENTAGE_STEP = 25
 
+const isOnMac = window.navigator.platform.includes('Mac')
+
 const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 	return (
 		<Box
@@ -15,16 +26,44 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 			border="neutral"
 			visibility={isHidden ? 'hidden' : 'visible'}
 		>
-			<IconButton
-				onClick={() => zoom(PERCENTAGE_STEP)}
-				variant="secondary"
-				icon={<PlusSmIcon />}
-			/>
-			<IconButton
-				onClick={() => zoom(-PERCENTAGE_STEP)}
-				variant="secondary"
-				icon={<MinusSmIcon />}
-			/>
+			<ExplanatoryPopover
+				content={
+					<>
+						<Box display="flex" gap="2">
+							<Badge
+								variant="grey"
+								size="tiny"
+								label={isOnMac ? '⌘' : 'Ctrl'}
+							/>
+							<Badge variant="grey" size="tiny" label="Scroll" />
+						</Box>
+						<Text userSelect="none">or</Text>
+						<Badge
+							variant="grey"
+							size="tiny"
+							label="Pinch"
+							iconEnd={<IconArrowsExpand size={12} />}
+						/>
+					</>
+				}
+			>
+				<Box
+					style={{
+						height: 20, // explicit, because antd overvwrites class of the first child
+					}}
+				>
+					<IconButton
+						onClick={() => zoom(PERCENTAGE_STEP)}
+						variant="secondary"
+						icon={<IconPlusSm />}
+					/>
+					<IconButton
+						onClick={() => zoom(-PERCENTAGE_STEP)}
+						variant="secondary"
+						icon={<IconMinusSm />}
+					/>
+				</Box>
+			</ExplanatoryPopover>
 		</Box>
 	)
 }

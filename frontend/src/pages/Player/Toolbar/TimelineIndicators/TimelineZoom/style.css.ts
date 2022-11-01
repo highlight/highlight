@@ -20,4 +20,10 @@ export const zoomButtons = style({
 	flexDirection: 'row',
 	borderRadius: 5,
 	overflow: 'hidden',
+	justifyContent: 'center',
+	alignItems: 'center',
+})
+
+export const zoomButtonsInner = style({
+	height: '20px !important',
 })
