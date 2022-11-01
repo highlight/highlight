@@ -453,7 +453,7 @@ type ComplexityRoot struct {
 		CreateSegment                    func(childComplexity int, projectID int, name string, params model.SearchParamsInput) int
 		CreateSessionAlert               func(childComplexity int, input model.SessionAlertInput) int
 		CreateSessionComment             func(childComplexity int, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) int
-		CreateWorkspace                  func(childComplexity int, name string) int
+		CreateWorkspace                  func(childComplexity int, name string, promoCode *string) int
 		DeleteAdminFromProject           func(childComplexity int, projectID int, adminID int) int
 		DeleteAdminFromWorkspace         func(childComplexity int, workspaceID int, adminID int) int
 		DeleteDashboard                  func(childComplexity int, id int) int
@@ -981,7 +981,7 @@ type MetricMonitorResolver interface {
 type MutationResolver interface {
 	UpdateAdminAboutYouDetails(ctx context.Context, adminDetails model.AdminAboutYouDetails) (bool, error)
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
-	CreateWorkspace(ctx context.Context, name string) (*model1.Workspace, error)
+	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray) (*model1.Project, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
@@ -3139,7 +3139,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateWorkspace(childComplexity, args["name"].(string)), true
+		return e.complexity.Mutation.CreateWorkspace(childComplexity, args["name"].(string), args["promo_code"].(*string)), true
 
 	case "Mutation.deleteAdminFromProject":
 		if e.complexity.Mutation.DeleteAdminFromProject == nil {
@@ -7728,7 +7728,7 @@ type Query {
 type Mutation {
 	updateAdminAboutYouDetails(adminDetails: AdminAboutYouDetails!): Boolean!
 	createProject(name: String!, workspace_id: ID!): Project
-	createWorkspace(name: String!): Workspace
+	createWorkspace(name: String!, promo_code: String): Workspace
 	editProject(
 		id: ID!
 		name: String
@@ -8983,6 +8983,15 @@ func (ec *executionContext) field_Mutation_createWorkspace_args(ctx context.Cont
 		}
 	}
 	args["name"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["promo_code"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("promo_code"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["promo_code"] = arg1
 	return args, nil
 }
 
@@ -23636,7 +23645,7 @@ func (ec *executionContext) _Mutation_createWorkspace(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateWorkspace(rctx, fc.Args["name"].(string))
+		return ec.resolvers.Mutation().CreateWorkspace(rctx, fc.Args["name"].(string), fc.Args["promo_code"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

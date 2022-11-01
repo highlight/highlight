@@ -38,5 +38,12 @@
 }
 
 .cardForm {
-	grid-row-gap: 20px;
+	grid-row-gap: 24px;
+}
+
+.inputLabel {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	justify-content: space-between;
 }

@@ -18,6 +18,7 @@ import { namedOperations } from '@graph/operations'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
+import { message } from 'antd'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
@@ -25,7 +26,6 @@ import { Helmet } from 'react-helmet'
 import { Redirect, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import commonStyles from '../../Common.module.scss'
 import Button from '../../components/Button/Button/Button'
 import styles from './NewProject.module.scss'
 
@@ -55,7 +55,9 @@ const NewProjectPage = () => {
 
 	useEffect(() => {
 		if (projectError || workspaceError) {
-			setError(projectError?.message ?? workspaceError?.message)
+			const err = projectError?.message ?? workspaceError?.message
+			setError(err)
+			message.error(err)
 		}
 	}, [setError, projectError, workspaceError])
 
@@ -66,9 +68,11 @@ const NewProjectPage = () => {
 	const { data, loading } = useGetWorkspacesCountQuery()
 
 	const { search } = useLocation()
-	const [{ next }] = useQueryParams({
+	const [{ next, promo }] = useQueryParams({
 		next: StringParam,
+		promo: StringParam,
 	})
+	const [promoCode, setPromoCode] = useState(promo ?? '')
 
 	// User is creating a workspace if workspace is not specified in the URL
 	const isWorkspace = !workspace_id
@@ -79,6 +83,7 @@ const NewProjectPage = () => {
 			const result = await createWorkspace({
 				variables: {
 					name: name,
+					promo_code: promoCode || undefined,
 				},
 			})
 			const createdWorkspaceId = result.data?.createWorkspace?.id
@@ -147,24 +152,38 @@ const NewProjectPage = () => {
 					{!isWorkspace &&
 						`Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
 				</p>
-				{error && (
-					<div className={commonStyles.errorMessage}>
-						{`Error with ${pageType} name ` + error}
-					</div>
-				)}
 				<CardForm onSubmit={onSubmit} className={styles.cardForm}>
-					<Input
-						placeholder={
-							isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
-						}
-						name="name"
-						value={name}
-						onChange={(e) => {
-							setName(e.target.value)
-						}}
-						autoComplete="off"
-						autoFocus
-					/>
+					<label className={styles.inputLabel}>
+						{isWorkspace ? 'Workspace' : 'Project'} name
+						<Input
+							placeholder={
+								isWorkspace
+									? 'Pied Piper, Inc'
+									: 'Web Front End'
+							}
+							name="name"
+							value={name}
+							onChange={(e) => {
+								setName(e.target.value)
+							}}
+							autoComplete="off"
+							autoFocus
+						/>
+					</label>
+					{isWorkspace && (
+						<>
+							<label className={styles.inputLabel}>
+								Promo code
+								<Input
+									placeholder={`Enter a promo code (optional)`}
+									value={promoCode}
+									onChange={(e) => {
+										setPromoCode(e.target.value)
+									}}
+								/>
+							</label>
+						</>
+					)}
 					{isWorkspace && (
 						<AutoJoinForm
 							newWorkspace

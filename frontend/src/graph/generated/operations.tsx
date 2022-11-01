@@ -191,6 +191,7 @@ export type SubmitRegistrationFormMutation = { __typename?: 'Mutation' } & Pick<
 
 export type CreateWorkspaceMutationVariables = Types.Exact<{
 	name: Types.Scalars['String']
+	promo_code?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type CreateWorkspaceMutation = { __typename?: 'Mutation' } & {
