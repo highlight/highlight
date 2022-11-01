@@ -353,7 +353,8 @@ func reportUsage(DB *gorm.DB, stripeClient *client.API, workspaceID int, product
 		return nil
 	}
 	if err != nil {
-		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice")
+		log.Error(err)
+		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot report usage - failed to retrieve upcoming invoice for customer "+c.ID)
 	}
 
 	invoiceLines := map[ProductType]*stripe.InvoiceLine{}
