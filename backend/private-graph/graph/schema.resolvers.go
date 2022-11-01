@@ -3292,8 +3292,11 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-
+	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	errorGroupsOpensearchSearchSpan.Finish()
+
 	if err != nil {
 		return nil, err
 	}
@@ -3303,7 +3306,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
 	}
 
-	if err := r.SetErrorFrequencies(asErrorGroups, 5); err != nil {
+	errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+
+	err = r.SetErrorFrequencies(asErrorGroups, 5)
+	errorFrequencyOpensearchSpan.Finish()
+
+	if err != nil {
 		return nil, err
 	}
 
