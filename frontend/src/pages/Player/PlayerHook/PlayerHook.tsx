@@ -27,7 +27,6 @@ import {
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
 import log from '@util/log'
-import { timedCallback } from '@util/perf/instrument'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
 import useMapRef from '@util/useMapRef'
@@ -198,7 +197,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[eventChunksData],
 	)
 
-	// returns chunks to remove that are exceeding MAX_CHUNK_COUNT. returns
+	const getChunkTs = useCallback(
+		(idx: number) => {
+			return eventChunksData?.event_chunks[idx].timestamp
+		},
+		[eventChunksData],
+	)
+
+	// returns extra loaded chunks. returns
 	// the chunks furthest from the currentIdx since they are
 	// less likely to be viewed next
 	const getChunksToRemove = useCallback(
@@ -207,6 +213,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 				Map<number, HighlightEvent[]>,
 				'set' | 'clear' | 'delete'
 			>,
+			startIdx: number,
+			endIdx: number,
 			currentIdx: number,
 		): number[] => {
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
@@ -216,13 +224,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return []
 			}
 
-			chunksIndexesWithData.sort((a, b) => b - a)
+			chunksIndexesWithData.sort((a, b) => a - b)
 			const midChunkIdx =
 				chunksIndexesWithData[
 					Math.floor(chunksIndexesWithData.length / 2)
 				]
-			// if we are on the left side of the chunks, remove the ones from the right
-			if (currentIdx <= midChunkIdx) {
+
+			// if we are on the right side of the chunks, remove the ones from the left
+			if (currentIdx >= midChunkIdx) {
 				chunksIndexesWithData.reverse()
 			}
 
@@ -230,15 +239,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 				chunksIndexesWithData.slice(MAX_CHUNK_COUNT),
 			)
 			toRemove.delete(currentIdx)
+			for (let i = startIdx; i <= endIdx; i++) {
+				toRemove.delete(i)
+			}
 
-			log('PlayerHook.tsx', 'getChunksToRemove', {
-				chunksIndexesWithData,
-				currentIdx,
-				toRemove,
-			})
+			const keepTs = getChunkTs(chunksIndexesWithData[0]) ?? 0
+			for (const chunk of toRemove) {
+				const chunkTs = getChunkTs(chunk) ?? 0
+				if (Math.abs(keepTs - chunkTs) <= LOOKAHEAD_MS) {
+					toRemove.delete(chunk)
+				}
+			}
+
 			return Array.from(toRemove)
 		},
-		[],
+		[getChunkTs],
 	)
 
 	const dispatchAction = useCallback(
@@ -326,13 +341,20 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 			if (promises.length) {
-				getChunksToRemove(
+				const toRemove = getChunksToRemove(
 					chunkEventsRef.current,
+					startIdx,
+					endIdx,
 					getChunkIdx(state.sessionMetadata.startTime + startTime),
-				).forEach((idx) => chunkEventsRemove(idx))
+				)
 				for (const [i, data] of await Promise.all(promises)) {
 					chunkEventsSet(i, toHighlightEvents(data))
 				}
+				toRemove.forEach((idx) => chunkEventsRemove(idx))
+				log('PlayerHook.tsx', 'getChunksToRemove', {
+					after: chunkEventsRef.current,
+					toRemove,
+				})
 			}
 			if (promises.length || action) {
 				dispatchAction(startTime, action)
@@ -344,12 +366,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.session?.chunked,
 			state.sessionMetadata.startTime,
 			getChunkIdx,
-			getChunksToRemove,
-			chunkEventsRef,
 			dispatchAction,
+			chunkEventsRef,
 			chunkEventsSet,
 			fetchEventChunkURL,
 			session_secure_id,
+			getChunksToRemove,
 			chunkEventsRemove,
 		],
 	)
@@ -639,28 +661,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 				state.isLiveMode) &&
 			!animationFrameID.current
 		) {
-			const frameAction = timedCallback<FrameRequestCallback>(
-				`player/update`,
-				() => {
-					if (state.replayer) {
-						// The player may start later than the session if earlier events are unloaded
-						onFrame()
-					}
-					animationFrameID.current =
-						requestAnimationFrame(frameAction)
-				},
-				[
-					{
-						name: 'session_secure_id',
-						value: session_secure_id || '',
-					},
-					{ name: 'state', value: state.replayerState.toString() },
-					{
-						name: 'live',
-						value: state.isLiveMode ? 'true' : 'false',
-					},
-				],
-			)
+			const frameAction = () => {
+				if (state.replayer) {
+					// The player may start later than the session if earlier events are unloaded
+					onFrame()
+				}
+				animationFrameID.current = requestAnimationFrame(frameAction)
+			}
 			animationFrameID.current = requestAnimationFrame(frameAction)
 		} else if (
 			animationFrameID.current &&
