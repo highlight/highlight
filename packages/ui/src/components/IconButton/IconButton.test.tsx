@@ -5,7 +5,7 @@ import { IconButton } from './IconButton'
 
 describe('IconButton', () => {
 	it('exists', async () => {
-		render(<IconButton>Testing</IconButton>)
+		render(<IconButton icon={<span>Testing</span>} />)
 
 		await screen.findByText('Testing')
 	})
