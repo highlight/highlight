@@ -1,23 +1,27 @@
-import Button from '@components/Button/Button/Button'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
+import {
+	Badge,
+	Box,
+	Button,
+	IconArrowsExpand,
+	IconCog,
+	IconPause,
+	IconPlay,
+	IconRestart,
+	IconSkipLeft,
+	IconSkipRight,
+} from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
-import { ReactComponent as ArrowsExpandIcon } from '@icons/Solid/arrows-expand.svg'
 import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
-import { ReactComponent as CogIcon } from '@icons/Solid/cog.svg'
 import { ReactComponent as CrossIcon } from '@icons/Solid/cross.svg'
 import { ReactComponent as CursorClickIcon } from '@icons/Solid/cursor-click.svg'
 import { ReactComponent as FastForwardIcon } from '@icons/Solid/fast-forward.svg'
-import { ReactComponent as PauseIcon } from '@icons/Solid/pause.svg'
-import { ReactComponent as PlayIcon } from '@icons/Solid/play.svg'
 import { ReactComponent as PlayCircleIcon } from '@icons/Solid/play-circle.svg'
-import { ReactComponent as RestartIcon } from '@icons/Solid/restart.svg'
-import { ReactComponent as SkipLeftIcon } from '@icons/Solid/skip-left.svg'
-import { ReactComponent as SkipRightIcon } from '@icons/Solid/skip-right.svg'
 import { ReactComponent as TerminalIcon } from '@icons/Solid/terminal.svg'
 import {
 	getFullScreenPopoverGetPopupContainer,
@@ -48,8 +52,8 @@ const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
 const isOnMac = window.navigator.platform.includes('Mac')
 
-const showTimelineShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}E`
-const showDevToolsShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}/`
+const showTimelineShortcut = 'E'
+const showDevToolsShortcut = '/'
 
 const ToolbarControls = () => {
 	const {
@@ -96,21 +100,17 @@ const ToolbarControls = () => {
 	return (
 		<div className={style.controlContainer}>
 			<Button
-				className={style.button}
-				trackingId="PlayerSkipLeft"
 				onClick={() => {
 					H.track('PlayerSkipLeft')
 					const prevTime = Math.max(time - 5000, 0)
 					setTime(prevTime)
 				}}
 				disabled={disableControls}
-			>
-				<SkipLeftIcon />
-			</Button>
+				iconLeft={<IconSkipLeft size={14} />}
+				variant="white"
+			/>
 
 			<Button
-				className={style.button}
-				trackingId="PlayerPlayPause"
 				onClick={() => {
 					H.track('Player Play/Pause Button')
 					if (isPlaybackComplete) {
@@ -124,35 +124,34 @@ const ToolbarControls = () => {
 					}
 				}}
 				disabled={disableControls}
-			>
-				{isPaused && isPlaybackComplete ? (
-					<RestartIcon />
-				) : isPaused && !isLiveMode ? (
-					<PlayIcon />
-				) : (
-					<PauseIcon />
-				)}
-			</Button>
+				iconLeft={
+					isPaused && isPlaybackComplete ? (
+						<IconRestart size={14} />
+					) : isPaused && !isLiveMode ? (
+						<IconPlay size={14} />
+					) : (
+						<IconPause size={14} />
+					)
+				}
+				variant="white"
+			/>
 
 			<Button
-				className={style.button}
-				trackingId="PlayerSkipRight"
 				onClick={() => {
 					H.track('PlayerSkipRight')
 					const newTime = Math.max(time + 5000, 0)
 					setTime(newTime)
 				}}
 				disabled={disableControls}
-			>
-				<SkipRightIcon />
-			</Button>
+				iconLeft={<IconSkipRight size={14} />}
+				variant="white"
+			/>
 
 			{showLiveToggle && (
 				<Button
 					className={classNames(style.button, style.smallButton, {
 						[style.activeButton]: isLiveMode,
 					})}
-					trackingId="LiveToggle"
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
@@ -206,7 +205,6 @@ const ToolbarControls = () => {
 							style.moveRight,
 							style.smallButton,
 						)}
-						trackingId="PlaybackSpeedControl"
 						onClick={() => {
 							const idx =
 								(playerSpeedIdx + 1) %
@@ -223,9 +221,18 @@ const ToolbarControls = () => {
 						content={
 							<>
 								Timeline
-								<span className={style.popoverCmdShortcut}>
-									{showTimelineShortcut}
-								</span>
+								<Box display="flex" gap="2">
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={isOnMac ? '⌘' : 'Ctrl'}
+									/>
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={showTimelineShortcut}
+									/>
+								</Box>
 							</>
 						}
 					>
@@ -238,7 +245,6 @@ const ToolbarControls = () => {
 										!disableControls && isHistogramVisible,
 								},
 							)}
-							trackingId="HistogramToggle"
 							onClick={() => {
 								setShowHistogram(!showHistogram)
 							}}
@@ -267,7 +273,6 @@ const ToolbarControls = () => {
 										!disableControls && showDevTools,
 								},
 							)}
-							trackingId="DevToolsToggle"
 							onClick={() => {
 								setShowDevTools(!showDevTools)
 							}}
@@ -304,26 +309,20 @@ const ToolbarControls = () => {
 						destroyTooltipOnHide
 					>
 						<Button
-							className={style.button}
-							trackingId="PlayerSettings"
 							disabled={disableControls}
-						>
-							<CogIcon />
-						</Button>
+							variant="white"
+							iconLeft={<IconCog size={14} />}
+						/>
 					</Popover>
 				</>
 			)}
 			<Button
-				className={classNames(style.button, {
-					[style.moveRight]: isLiveMode,
-				})}
-				trackingId="PlayerFullscreen"
 				onClick={() => {
 					setIsPlayerFullscreen((prev) => !prev)
 				}}
-			>
-				<ArrowsExpandIcon />
-			</Button>
+				iconLeft={<IconArrowsExpand size={14} />}
+				variant="white"
+			/>
 		</div>
 	)
 }
