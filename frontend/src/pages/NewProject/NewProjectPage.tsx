@@ -71,6 +71,7 @@ const NewProjectPage = () => {
 		promo: StringParam,
 	})
 	const [promoCode, setPromoCode] = useState(promo ?? '')
+	const [showPromoCode, setShowPromoCode] = useState(!!promoCode)
 
 	// User is creating a workspace if workspace is not specified in the URL
 	const isWorkspace = !workspace_id
@@ -150,25 +151,20 @@ const NewProjectPage = () => {
 						`Let's create a project! This is usually a single application (e.g. web front end, landing page, etc.).`}
 				</p>
 				<CardForm onSubmit={onSubmit} className={styles.cardForm}>
-					<label className={styles.inputLabel}>
-						{isWorkspace ? 'Workspace' : 'Project'} name
-						<Input
-							placeholder={
-								isWorkspace
-									? 'Pied Piper, Inc'
-									: 'Web Front End'
-							}
-							name="name"
-							value={name}
-							onChange={(e) => {
-								setName(e.target.value)
-							}}
-							autoComplete="off"
-							autoFocus
-						/>
-					</label>
-					{isWorkspace && (
-						<>
+					<Input
+						placeholder={
+							isWorkspace ? 'Pied Piper, Inc' : 'Web Front End'
+						}
+						name="name"
+						value={name}
+						onChange={(e) => {
+							setName(e.target.value)
+						}}
+						autoComplete="off"
+						autoFocus
+					/>
+					{isWorkspace &&
+						(showPromoCode ? (
 							<label className={styles.inputLabel}>
 								Promo code
 								<Input
@@ -179,8 +175,16 @@ const NewProjectPage = () => {
 									}}
 								/>
 							</label>
-						</>
-					)}
+						) : (
+							<span
+								onClick={() => {
+									setShowPromoCode(true)
+								}}
+								className={styles.promoCodeToggle}
+							>
+								Have a promo code?
+							</span>
+						))}
 					{isWorkspace && (
 						<AutoJoinForm
 							newWorkspace

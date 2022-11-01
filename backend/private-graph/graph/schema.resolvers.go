@@ -376,7 +376,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 
 	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
 	if promoCode != nil {
-		trialDetails, ok := PromoCodes[*promoCode]
+		trialDetails, ok := PromoCodes[strings.ToUpper(*promoCode)]
 		if !ok {
 			return nil, e.New("Could not create workspace: promo code is not valid.")
 		}
