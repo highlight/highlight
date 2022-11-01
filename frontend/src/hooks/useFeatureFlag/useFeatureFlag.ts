@@ -55,10 +55,9 @@ const useFeature = (feature: Feature, override?: boolean) => {
 	useEffect(() => {
 		IsFeatureOn(feature, project?.workspace?.id, admin?.id).then(
 			(_isOn) => {
-				setIsOn(!!override || _isOn)
-				H.track(`Feature-${Feature[feature]}`, {
-					on: _isOn,
-				})
+				const on = !!override || _isOn
+				setIsOn(on)
+				H.track(`Feature-${Feature[feature]}`, { on })
 			},
 		)
 	}, [admin?.id, feature, override, project?.workspace?.id])
