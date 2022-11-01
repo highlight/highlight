@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
+import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
 export enum Feature {
@@ -52,8 +53,13 @@ const useFeature = (feature: Feature, override?: boolean) => {
 	const [isOn, setIsOn] = useState<boolean>(!!override)
 
 	useEffect(() => {
-		IsFeatureOn(feature, project?.workspace?.id, admin?.id).then((_isOn) =>
-			setIsOn(!!override || _isOn),
+		IsFeatureOn(feature, project?.workspace?.id, admin?.id).then(
+			(_isOn) => {
+				setIsOn(!!override || _isOn)
+				H.track(`Feature-${Feature[feature]}`, {
+					on: _isOn,
+				})
+			},
 		)
 	}, [admin?.id, feature, override, project?.workspace?.id])
 
