@@ -440,7 +440,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const onEvent = useCallback(
-		_.debounce((e) => {
+		_.throttle((e) => {
 			const event = e as HighlightEvent
 			if (
 				usefulEvent(event) ||
@@ -452,7 +452,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					event: e as HighlightEvent,
 				})
 			}
-		}, 1000),
+		}, FRAME_MS * 60),
 		[],
 	)
 
@@ -466,7 +466,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
 					state.sessionMetadata.startTime,
 			})
-		}, 1000),
+		}, FRAME_MS * 60),
 		[],
 	)
 
@@ -477,7 +477,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				type: PlayerActionType.updateViewport,
 				viewport: _e as viewportResizeDimension,
 			})
-		}, 1000),
+		}, FRAME_MS * 60),
 		[],
 	)
 
