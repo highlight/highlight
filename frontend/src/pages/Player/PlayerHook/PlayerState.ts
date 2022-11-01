@@ -737,6 +737,13 @@ const replayerAction = (
 					PlayerActionType[source],
 					e,
 				)
+				H.consumeError(
+					e as Error,
+					`PlayerState.ts replayerAction exception occurred`,
+					{
+						source: PlayerActionType[source],
+					},
+				)
 			}
 			s.replayerState = desiredState
 			if (!skipSetTime) {
