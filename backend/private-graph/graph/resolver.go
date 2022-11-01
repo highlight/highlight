@@ -1288,7 +1288,7 @@ func (r *Resolver) SlackEventsWebhook(signingSecret string) func(w http.Response
 
 		log.Infof("Slack event received with event type: %s", eventsAPIEvent.InnerEvent.Type)
 
-		if eventsAPIEvent.InnerEvent.Type == string(slackevents.LinkShared) {
+		if eventsAPIEvent.InnerEvent.Type == slackevents.LinkShared {
 			go (func() {
 				defer util.Recover()
 				ev := eventsAPIEvent.InnerEvent.Data.(*slackevents.LinkSharedEvent)

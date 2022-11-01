@@ -1,3 +1,6 @@
-github.com/gammazero/deque v0.1.2 h1:WvbDJ3YaT4ELf9+Cq9lv4Ef0aPRyZeEpIoVkjOw9kes=
-github.com/gammazero/deque v0.1.2/go.mod h1:KQw7vFau1hHuM8xmI9RbgKFbAsQFWmBpqQ2KenFLk6M=
+github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1/go.mod h1:+hnT3ywWDTAFrW5aE+u2Sa/wT555ZqwoCS+pk3p6ry4=
+github.com/opensearch-project/opensearch-go v1.0.0 h1:8Gh7B7Un5BxuxWAgmzleEF7lpOtC71pCgPp7lKr3ca8=
+github.com/opensearch-project/opensearch-go v1.0.0/go.mod h1:FrUl/52DBegRYvK7ISF278AXmjDV647lyTnsLGBR7J4=
 github.com/pierrec/lz4 v2.5.2+incompatible h1:WCjObylUIOlKy/+7Abdn34TLIkXiA4UWUMhxq9m9ZXI=
+golang.org/x/term v0.1.0/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
+inet.af/netaddr v0.0.0-20220617031823-097006376321/go.mod h1:OIezDfdzOgFhuw4HuWapWq2e9l0H9tK4F1j+ETRtF3k=

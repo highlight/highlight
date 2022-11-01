@@ -11,10 +11,11 @@ import {
 	MenuProps,
 } from 'ariakit'
 import React, { useContext } from 'react'
+import { Text } from '../Text/Text'
 
 import * as styles from './styles.css'
 
-const MenuContext = React.createContext<MenuState>({} as unknown)
+const MenuContext = React.createContext<MenuState>({} as MenuState)
 const useMenu = () => useContext(MenuContext)
 
 type MenuComponent = React.FC<React.PropsWithChildren> & {
@@ -24,6 +25,9 @@ type MenuComponent = React.FC<React.PropsWithChildren> & {
 	Divider: typeof Divider
 }
 
+// The assignment of sub-components in the types above causes this linting rule
+// to error for some reason. Can remove the disable-next-line below if/when we
+// resolve.
 // eslint-disable-next-line react/prop-types
 export const Menu: MenuComponent = ({ children }) => {
 	const menu = useMenuState({ gutter: 6 })
@@ -66,7 +70,7 @@ const List: React.FC<React.PropsWithChildren & Partial<MenuProps>> = ({
 
 const Item: React.FC<MenuItemProps> = ({ children, ...props }) => (
 	<MenuItem className={styles.menuItem} {...props}>
-		{children}
+		{typeof children === 'string' ? <Text>{children}</Text> : children}
 	</MenuItem>
 )
 

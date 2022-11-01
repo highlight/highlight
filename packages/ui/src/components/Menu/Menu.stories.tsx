@@ -9,21 +9,20 @@ export default {
 	component: Menu,
 } as ComponentMeta<typeof Menu>
 
-export const Basic = () => (
-	<>
-		<Menu>
-			<Menu.Button variant="grey">Menu</Menu.Button>
-			<Menu.List>
-				<Menu.Item onClick={() => alert('Edit')}>Edit</Menu.Item>
-				<Menu.Item>
-					<TextLink href="http://example.com" target="_blank">
-						Go to website
-					</TextLink>
-				</Menu.Item>
-				<Menu.Item disabled>Delete (disabled)</Menu.Item>
-				<Menu.Divider />
-				<Menu.Item>Report</Menu.Item>
-			</Menu.List>
-		</Menu>
-	</>
+// TODO: Document individual components
+export const FullExample = () => (
+	<Menu>
+		<Menu.Button variant="grey">Menu</Menu.Button>
+		<Menu.List>
+			<Menu.Item onClick={() => alert('Edit')}>Edit</Menu.Item>
+			<Menu.Item>
+				<TextLink href="http://example.com" target="_blank">
+					Go to website
+				</TextLink>
+			</Menu.Item>
+			<Menu.Item disabled>Delete (disabled)</Menu.Item>
+			<Menu.Divider />
+			<Menu.Item>Report</Menu.Item>
+		</Menu.List>
+	</Menu>
 )

@@ -3,19 +3,24 @@ import {
 	Box,
 	Button,
 	Heading,
-	IconCaretDown,
 	IconCreateFile,
 	IconShare,
 	Text,
 } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
+import { ErrorStateSelect } from '@pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
 import { FaArrowRight } from 'react-icons/fa'
 
 interface Props {
 	errorGroup:
-		| Maybe<Pick<ErrorGroup, 'event' | 'type' | 'secure_id' | 'is_public'>>
+		| Maybe<
+				Pick<
+					ErrorGroup,
+					'event' | 'type' | 'secure_id' | 'is_public' | 'state'
+				>
+		  >
 		| undefined
 	errorObject?: ErrorObject
 }
@@ -76,13 +81,9 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					</Box>
 
 					<Box display="flex" gap="8">
-						<Button
-							size="small"
-							variant="grey"
-							iconRight={<IconCaretDown />}
-						>
-							Open
-						</Button>
+						{errorGroup?.state && (
+							<ErrorStateSelect state={errorGroup.state} />
+						)}
 						<Button
 							size="small"
 							variant="grey"

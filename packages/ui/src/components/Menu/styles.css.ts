@@ -18,8 +18,8 @@ export const menuList = style({
 })
 
 export const menuItem = style({
+	cursor: 'pointer',
 	padding: vars.space[8],
-	...typographyStyles.size.small,
 
 	selectors: {
 		'&[data-active-item], &:hover': {
