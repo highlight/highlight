@@ -182,7 +182,7 @@ const NewProjectPage = () => {
 								}}
 								className={styles.promoCodeToggle}
 							>
-								Have a promo code?
+								Use a promo code?
 							</span>
 						))}
 					{isWorkspace && (
