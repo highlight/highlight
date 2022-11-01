@@ -4,16 +4,18 @@ import { IconProps } from '../icons'
 
 import * as styles from './styles.css'
 
-type Props = styles.Variants & {
-	icon: React.ReactElement<IconProps>
-}
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
+	styles.Variants & {
+		icon: React.ReactElement<IconProps>
+	}
 
-export const IconButton: React.FC<Props> = ({ icon, variant }) => {
+export const IconButton: React.FC<Props> = ({ icon, variant, onClick }) => {
 	return (
 		<Box
 			as="button"
 			display="inline-flex"
 			className={styles.variants({ variant })}
+			onClick={onClick}
 		>
 			{icon}
 		</Box>

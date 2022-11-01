@@ -4,16 +4,27 @@ import * as style from './style.css'
 
 interface Props {
 	isHidden?: boolean
+	zoom: (byPercent: number) => void
 }
-const TimelineZoom: React.FC<Props> = ({ isHidden }) => {
+const PERCENTAGE_STEP = 25
+
+const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 	return (
 		<Box
 			cssClass={style.zoomButtons}
 			border="neutral"
 			visibility={isHidden ? 'hidden' : 'visible'}
 		>
-			<IconButton variant="secondary" icon={<PlusSmIcon />} />
-			<IconButton variant="secondary" icon={<MinusSmIcon />} />
+			<IconButton
+				onClick={() => zoom(PERCENTAGE_STEP)}
+				variant="secondary"
+				icon={<PlusSmIcon />}
+			/>
+			<IconButton
+				onClick={() => zoom(-PERCENTAGE_STEP)}
+				variant="secondary"
+				icon={<MinusSmIcon />}
+			/>
 		</Box>
 	)
 }

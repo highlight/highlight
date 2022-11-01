@@ -1094,7 +1094,17 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
-			<TimelineZoom isHidden={!showZoomButtons} />
+			<TimelineZoom
+				isHidden={!showZoomButtons}
+				zoom={(percent: number) =>
+					zoom(
+						(viewportBbox?.left ?? 0) +
+							TIMELINE_MARGIN +
+							viewportWidth / 2,
+						-percent / ZOOM_SCALING_FACTOR,
+					)
+				}
+			/>
 
 			<div
 				className={clsx([
