@@ -1,4 +1,6 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
+import useFeature, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
@@ -17,9 +19,12 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu'
-import useLocalStorage from '@rehooks/local-storage'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import {
+	MillisToMinutesAndSeconds,
+	MillisToMinutesAndSecondsVerbose,
+} from '@util/time'
 import { timerStart } from '@util/timer/timer'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
@@ -27,7 +32,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import Skeleton from 'react-loading-skeleton'
 
-import { useAuthContext } from '../../../authentication/AuthContext'
 import Button from '../../../components/Button/Button/Button'
 import SvgFullscreenIcon from '../../../static/FullscreenIcon'
 import SvgMinimize2Icon from '../../../static/Minimize2Icon'
@@ -35,10 +39,6 @@ import SvgPauseIcon from '../../../static/PauseIcon'
 import SvgPlayIcon from '../../../static/PlayIcon'
 import SvgSkipBackIcon from '../../../static/SkipBackIcon'
 import SvgSkipForwardIcon from '../../../static/SkipForwardIcon'
-import {
-	MillisToMinutesAndSeconds,
-	MillisToMinutesAndSecondsVerbose,
-} from '../../../util/time'
 import { usePlayerUIContext } from '../context/PlayerUIContext'
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
@@ -123,9 +123,8 @@ export const Toolbar = ({ width }: Props) => {
 
 	const isPaused = ReplayerPausedStates.includes(state)
 
-	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
-	const [histogramOn] = useLocalStorage(
-		`highlight-session-histogram-v2`,
+	const histogramOn = useFeature(
+		Feature.HistogramTimelineV2,
 		isHighlightAdmin,
 	)
 

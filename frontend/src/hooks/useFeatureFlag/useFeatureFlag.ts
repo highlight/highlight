@@ -1,33 +1,63 @@
+import { useAuthContext } from '@authentication/AuthContext'
+import { useGetProjectQuery } from '@graph/hooks'
+import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
-import { useGetAdminQuery } from '../../graph/generated/hooks'
-
-const useFeatureFlag = (feature: Feature) => {
-	const { data } = useGetAdminQuery({
-		skip: false,
-	})
-	const [hasAccessToFeature, setHasAccessToFeature] = useState(false)
-
-	useEffect(() => {
-		if (data) {
-			const flight = Flights[feature]
-
-			if (flight.includes(data.admin?.id || '')) {
-				setHasAccessToFeature(true)
-			} else {
-				setHasAccessToFeature(false)
-			}
-		}
-	}, [data, feature])
-
-	return { hasAccessToFeature }
+export enum Feature {
+	HistogramTimelineV2,
 }
 
-export default useFeatureFlag
+const isActive = async function (
+	feature: Feature,
+	key: string,
+	percent: number,
+) {
+	const text = `${Feature[feature]}-${key}`
+	const textAsBuffer = new TextEncoder().encode(text)
+	const hashBuffer = await window.crypto.subtle.digest(
+		'SHA-256',
+		textAsBuffer,
+	)
+	const hashArray = Array.from(new Uint8Array(hashBuffer))
+	const digest = hashArray.reduce((a, b) => a + b, 0)
 
-export enum Feature {}
+	return digest % Math.round(100 / percent) === 0
+}
 
-/**
- * A mapping between features and users that have access to them. Users are identified with their Admin ID.
- */
-const Flights: { [key in Feature]: string[] } = {}
+// configures the criteria and percentage of population for which the feature is active.
+// can configure to rollout by project, workspace, or admin
+const IsFeatureOn = async function (
+	feature: Feature,
+	workspaceId?: string,
+	adminId?: string,
+) {
+	switch (feature) {
+		case Feature.HistogramTimelineV2:
+			return isActive(feature, workspaceId ?? adminId ?? 'demo', 25)
+	}
+	return false
+}
+
+// use to roll out a feature to a subset of users.
+const useFeature = (feature: Feature, override?: boolean) => {
+	const { admin } = useAuthContext()
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const { data: project } = useGetProjectQuery({
+		variables: { id: project_id },
+		skip: !project_id,
+	})
+
+	const [isOn, setIsOn] = useState<boolean>(!!override)
+
+	useEffect(() => {
+		IsFeatureOn(feature, project?.workspace?.id, admin?.id).then((_isOn) =>
+			setIsOn(!!override || _isOn),
+		)
+	}, [admin?.id, feature, override, project?.workspace?.id])
+
+	return isOn
+}
+
+export default useFeature
