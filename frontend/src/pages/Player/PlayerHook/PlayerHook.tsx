@@ -230,11 +230,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 					Math.floor(chunksIndexesWithData.length / 2)
 				]
 
-			let removeRight = false
 			// if we are on the right side of the chunks, remove the ones from the left
-			if (currentIdx <= midChunkIdx) {
+			if (currentIdx >= midChunkIdx) {
 				chunksIndexesWithData.reverse()
-				removeRight = true
 			}
 
 			const toRemove = new Set<number>(
@@ -245,18 +243,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 				toRemove.delete(i)
 			}
 
-			const toRemoveArr = Array.from(toRemove).sort((a, b) => a - b)
-			const keepTs =
-				(removeRight
-					? getChunkTs(chunksIndexesWithData[0])
-					: getChunkTs(
-							chunksIndexesWithData[
-								chunksIndexesWithData.length - 1
-							],
-					  )) ?? 0
-			for (const chunk of toRemoveArr) {
+			const keepTs = getChunkTs(chunksIndexesWithData[0]) ?? 0
+			for (const chunk of toRemove) {
 				const chunkTs = getChunkTs(chunk) ?? 0
-				if (keepTs - chunkTs <= LOOKAHEAD_MS) {
+				if (Math.abs(keepTs - chunkTs) <= LOOKAHEAD_MS) {
 					toRemove.delete(chunk)
 				}
 			}
