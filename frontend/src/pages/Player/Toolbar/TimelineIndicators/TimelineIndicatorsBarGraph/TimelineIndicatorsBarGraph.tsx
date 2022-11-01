@@ -1074,6 +1074,8 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
+	const barHeightAdjustment =
+		1 - style.HISTOGRAM_OFFSET / style.HISTOGRAM_AREA_HEIGHT
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			{progressBar}
@@ -1178,21 +1180,25 @@ const TimelineIndicatorsBarGraph = ({
 										bucket.endPercent,
 									),
 							)
-							.map((bucket, idx) =>
-								bucket.totalCount > 0 ? (
+							.map((bucket, idx) => {
+								if (!bucket.totalCount) {
+									return null
+								}
+
+								const relativeHeight =
+									barHeightAdjustment *
+									(bucket.totalCount / maxBucketCount) *
+									100
+								return (
 									<TimelineBar
 										key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
 										bucket={bucket}
 										width={bucketPercentWidth}
-										height={
-											(bucket.totalCount /
-												maxBucketCount) *
-											100
-										}
+										height={relativeHeight}
 										viewportRef={viewportRef}
 									/>
-								) : null,
-							)}
+								)
+							})}
 					</div>
 				</div>
 			</div>

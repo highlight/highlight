@@ -117,7 +117,7 @@ export const eventHistogram = style({
 export const eventTrack = style({
 	position: 'relative',
 	width: '100%',
-	height: HISTOGRAM_AREA_HEIGHT - HISTOGRAM_OFFSET,
+	height: HISTOGRAM_AREA_HEIGHT,
 })
 
 export const timeAxis = style({
