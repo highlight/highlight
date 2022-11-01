@@ -11800,10 +11800,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-webcodecs@npm:*":
-  version: 0.1.5
-  resolution: "@types/dom-webcodecs@npm:0.1.5"
-  checksum: 181eaa1356ee9f6d3df68e11e9de95a2759c2b4b2a5ba2a49ccebd0dc128126a1f7a3397db2748a03a3e16f4a9317bf82d07e15fc3fb7356b368009f5a72b129
+"@types/dom-webcodecs@npm:0.1.4":
+  version: 0.1.4
+  resolution: "@types/dom-webcodecs@npm:0.1.4"
+  checksum: 150813bbee4315620282ef849d0e61c7a5e6ba7d9475307d06effaa900baa124cd6d922e5de498f80f31beb5dc23daa1750f71babcf5cf1159df05ee0d224751
   languageName: node
   linkType: hard
 
