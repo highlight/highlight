@@ -19,6 +19,7 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu'
+import { useLocalStorage } from '@rehooks/local-storage'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import {
@@ -123,9 +124,10 @@ export const Toolbar = ({ width }: Props) => {
 
 	const isPaused = ReplayerPausedStates.includes(state)
 
+	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
 	const histogramOn = useFeature(
 		Feature.HistogramTimelineV2,
-		isHighlightAdmin,
+		useLocalStorage(`highlight-session-histogram-v2`, isHighlightAdmin)[0],
 	)
 
 	useEffect(() => {
