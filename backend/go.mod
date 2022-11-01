@@ -8,6 +8,28 @@ replace github.com/emicklei/go-restful => github.com/emicklei/go-restful/v3 v3.8
 
 replace github.com/satori/go.uuid => github.com/gofrs/uuid v4.2.0+incompatible
 
+replace golang.org/x/crypto => golang.org/x/crypto v0.1.0
+
+replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
+
+replace github.com/labstack/echo => github.com/labstack/echo/v4 v4.2.0
+
+replace github.com/tidwall/gjson => github.com/tidwall/gjson v1.14.3
+
+replace golang.org/x/net => golang.org/x/net v0.1.0
+
+replace github.com/tidwall/match => github.com/tidwall/match v1.1.1
+
+replace golang.org/x/text => golang.org/x/text v0.4.0
+
+replace github.com/dgrijalva/jwt-go => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+
+replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.7
+
+replace github.com/miekg/dns => github.com/miekg/dns v1.1.25
+
+replace github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.7
+
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.12
@@ -57,9 +79,9 @@ require (
 	github.com/vektah/gqlparser/v2 v2.4.6
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.4.0
 	google.golang.org/api v0.31.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.39.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
 	gopkg.in/kothar/brotli-go.v0 v0.0.0-20170728081549-771231d473d6
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.9
@@ -97,7 +119,10 @@ require (
 	github.com/tidwall/rtred v0.1.2 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
 )
 
 require (
@@ -159,7 +184,7 @@ require (
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
+	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
 	golang.org/x/tools v0.1.12 // indirect
