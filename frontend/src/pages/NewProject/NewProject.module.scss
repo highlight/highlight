@@ -38,18 +38,20 @@
 }
 
 .cardForm {
-	grid-row-gap: 24px;
+	grid-row-gap: 20px;
 }
 
 .inputLabel {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 4px;
 	justify-content: space-between;
+	margin-top: -6px;
 }
 
 .promoCodeToggle {
 	color: var(--color-purple);
 	cursor: pointer;
+	margin-top: -6px;
 	width: fit-content;
 }
