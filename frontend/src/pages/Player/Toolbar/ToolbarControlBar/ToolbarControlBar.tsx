@@ -6,12 +6,15 @@ import {
 	Box,
 	Button,
 	IconArrowsExpand,
+	IconArrowSmLeft,
+	IconArrowSmRight,
 	IconCog,
 	IconPause,
 	IconPlay,
 	IconRestart,
 	IconSkipLeft,
 	IconSkipRight,
+	Text,
 } from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
@@ -99,54 +102,98 @@ const ToolbarControls = () => {
 
 	return (
 		<div className={style.controlContainer}>
-			<Button
-				onClick={() => {
-					H.track('PlayerSkipLeft')
-					const prevTime = Math.max(time - 5000, 0)
-					setTime(prevTime)
-				}}
-				disabled={disableControls}
-				iconLeft={<IconSkipLeft size={14} />}
-				variant="white"
-			/>
-
-			<Button
-				onClick={() => {
-					H.track('Player Play/Pause Button')
-					if (isPlaybackComplete) {
-						pause(time)
-						const newTime = 0
-						play(newTime)
-					} else if (isPaused && !isLiveMode) {
-						play(time)
-					} else {
-						pause(time)
-					}
-				}}
-				disabled={disableControls}
-				iconLeft={
-					isPaused && isPlaybackComplete ? (
-						<IconRestart size={14} />
-					) : isPaused && !isLiveMode ? (
-						<IconPlay size={14} />
-					) : (
-						<IconPause size={14} />
-					)
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							Skip back
+						</Text>
+						<Badge
+							variant="grey"
+							size="tiny"
+							iconStart={<IconArrowSmLeft size={12} />}
+						/>
+					</>
 				}
-				variant="white"
-			/>
+			>
+				<Button
+					onClick={() => {
+						H.track('PlayerSkipLeft')
+						const prevTime = Math.max(time - 5000, 0)
+						setTime(prevTime)
+					}}
+					disabled={disableControls}
+					iconLeft={<IconSkipLeft size={14} />}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
 
-			<Button
-				onClick={() => {
-					H.track('PlayerSkipRight')
-					const newTime = Math.max(time + 5000, 0)
-					setTime(newTime)
-				}}
-				disabled={disableControls}
-				iconLeft={<IconSkipRight size={14} />}
-				variant="white"
-			/>
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							{isPlaybackComplete
+								? 'Restart'
+								: isPaused && !isLiveMode
+								? 'Play'
+								: 'Pause'}
+						</Text>
+						<Badge variant="grey" size="tiny" label="Space" />
+					</>
+				}
+			>
+				<Button
+					onClick={() => {
+						H.track('Player Play/Pause Button')
+						if (isPlaybackComplete) {
+							pause(time)
+							const newTime = 0
+							play(newTime)
+						} else if (isPaused && !isLiveMode) {
+							play(time)
+						} else {
+							pause(time)
+						}
+					}}
+					disabled={disableControls}
+					iconLeft={
+						isPaused && isPlaybackComplete ? (
+							<IconRestart size={14} />
+						) : isPaused && !isLiveMode ? (
+							<IconPlay size={14} />
+						) : (
+							<IconPause size={14} />
+						)
+					}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
 
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							Skip forward
+						</Text>
+						<Badge
+							variant="grey"
+							size="tiny"
+							iconStart={<IconArrowSmRight size={12} />}
+						/>
+					</>
+				}
+			>
+				<Button
+					onClick={() => {
+						H.track('PlayerSkipRight')
+						const newTime = Math.max(time + 5000, 0)
+						setTime(newTime)
+					}}
+					disabled={disableControls}
+					iconLeft={<IconSkipRight size={14} />}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
 			{showLiveToggle && (
 				<Button
 					className={classNames(style.button, style.smallButton, {
@@ -171,7 +218,7 @@ const ToolbarControls = () => {
 			)}
 			{!isLiveMode && (
 				<>
-					<span className={style.currentTime}>
+					<Text color="neutral500" userSelect="none">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -198,7 +245,7 @@ const ToolbarControls = () => {
 								</>
 							</>
 						)}
-					</span>
+					</Text>
 					<Button
 						className={classNames(
 							style.button,

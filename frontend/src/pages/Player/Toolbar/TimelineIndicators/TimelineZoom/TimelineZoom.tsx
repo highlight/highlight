@@ -37,7 +37,9 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 							/>
 							<Badge variant="grey" size="tiny" label="Scroll" />
 						</Box>
-						<Text userSelect="none">or</Text>
+						<Text userSelect="none" color="neutral500">
+							or
+						</Text>
 						<Badge
 							variant="grey"
 							size="tiny"
@@ -46,23 +48,18 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 						/>
 					</>
 				}
+				height="20px"
 			>
-				<Box
-					style={{
-						height: 20, // explicit, because antd overvwrites class of the first child
-					}}
-				>
-					<IconButton
-						onClick={() => zoom(PERCENTAGE_STEP)}
-						variant="secondary"
-						icon={<IconPlusSm />}
-					/>
-					<IconButton
-						onClick={() => zoom(-PERCENTAGE_STEP)}
-						variant="secondary"
-						icon={<IconMinusSm />}
-					/>
-				</Box>
+				<IconButton
+					onClick={() => zoom(PERCENTAGE_STEP)}
+					variant="secondary"
+					icon={<IconPlusSm />}
+				/>
+				<IconButton
+					onClick={() => zoom(-PERCENTAGE_STEP)}
+					variant="secondary"
+					icon={<IconMinusSm />}
+				/>
 			</ExplanatoryPopover>
 		</Box>
 	)

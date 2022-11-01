@@ -1,11 +1,16 @@
+import { Box } from '@highlight-run/ui'
 import { Popover, PopoverProps } from 'antd'
 import { PropsWithChildren } from 'react'
 
 import style from './ExplanatoryPopover.module.scss'
 
-const ExplanatoryPopover: React.FC<PropsWithChildren<PopoverProps>> = ({
+type Props = PopoverProps & {
+	height?: number | string
+}
+const ExplanatoryPopover: React.FC<PropsWithChildren<Props>> = ({
 	content,
 	children,
+	height,
 	...popoverProps
 }) => {
 	return (
@@ -18,7 +23,13 @@ const ExplanatoryPopover: React.FC<PropsWithChildren<PopoverProps>> = ({
 			}}
 			{...popoverProps}
 		>
-			{children}
+			<Box
+				style={{
+					height: height ?? 'min-content', // explicit, because antd overvwrites class of the first child
+				}}
+			>
+				{children}
+			</Box>
 		</Popover>
 	)
 }

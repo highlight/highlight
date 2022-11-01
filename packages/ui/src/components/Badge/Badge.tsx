@@ -46,6 +46,7 @@ export const Badge: React.FC<Props> = ({
 	return (
 		<Box
 			display="flex"
+			flexDirection="row"
 			alignItems="center"
 			gap="2"
 			cssClass={[styles.variants({ ...rest })]}
