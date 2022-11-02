@@ -79,6 +79,18 @@ var BytesConversion = map[string]int64{
 	"pb": 1024 * 1024 * 1024 * 1024 * 1024,
 }
 
+type PromoCode struct {
+	TrialDays  int
+	ValidUntil time.Time
+}
+
+var PromoCodes = map[string]PromoCode{
+	"WEBDEVSIMPLIFIED": {
+		TrialDays:  60,
+		ValidUntil: time.Date(2023, time.May, 15, 0, 0, 0, 0, time.UTC),
+	},
+}
+
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB

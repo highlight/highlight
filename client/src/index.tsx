@@ -300,6 +300,7 @@ export class Highlight {
 	async _reset() {
 		if (this.pushPayloadTimerId) {
 			clearTimeout(this.pushPayloadTimerId)
+			this.pushPayloadTimerId = undefined
 		}
 
 		let user_identifier, user_object
@@ -656,6 +657,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 			if (this.pushPayloadTimerId) {
 				clearTimeout(this.pushPayloadTimerId)
+				this.pushPayloadTimerId = undefined
 			}
 			this.pushPayloadTimerId = setTimeout(() => {
 				this._save()
@@ -948,6 +950,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.hasSessionUnloaded = true
 				if (this.pushPayloadTimerId) {
 					clearTimeout(this.pushPayloadTimerId)
+					this.pushPayloadTimerId = undefined
 				}
 			})
 		} catch (e) {
@@ -1114,13 +1117,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
-			await this._sendPayload({ isBeacon: false })
-			this.hasPushedData = true
-			this.sessionData.lastPushTime = Date.now()
-			// Listeners are cleared when the user calls stop() manually.
-			if (this.listeners.length === 0) {
-				return
-			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
@@ -1129,6 +1125,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					MAX_SESSION_LENGTH
 			) {
 				await this._reset()
+			}
+			await this._sendPayload({ isBeacon: false })
+			this.hasPushedData = true
+			this.sessionData.lastPushTime = Date.now()
+			// Listeners are cleared when the user calls stop() manually.
+			if (this.listeners.length === 0) {
 				return
 			}
 		} catch (e) {
@@ -1140,6 +1142,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (this.state === 'Recording') {
 			if (this.pushPayloadTimerId) {
 				clearTimeout(this.pushPayloadTimerId)
+				this.pushPayloadTimerId = undefined
 			}
 			this.pushPayloadTimerId = setTimeout(() => {
 				this._save()

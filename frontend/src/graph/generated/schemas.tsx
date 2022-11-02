@@ -794,6 +794,7 @@ export type MutationCreateSessionCommentArgs = {
 
 export type MutationCreateWorkspaceArgs = {
 	name: Scalars['String']
+	promo_code?: Maybe<Scalars['String']>
 }
 
 export type MutationDeleteAdminFromProjectArgs = {
