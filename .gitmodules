@@ -4,3 +4,6 @@
 [submodule "rrweb"]
 	path = rrweb
 	url = git@github.com:highlight-run/rrweb.git
+[submodule "docs"]
+	path = docs
+	url = git@github.com:highlight-run/docs.git
