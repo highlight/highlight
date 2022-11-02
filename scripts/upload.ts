@@ -61,7 +61,11 @@ const getFiles = async function* (
 }
 
 const changelogExists = function (version: string) {
-	return statSync(join(docsDir, `8_changelog`, `${version}.md`)).isFile()
+	try {
+		return statSync(join(docsDir, `8_changelog`, `${version}.md`)).isFile()
+	} catch (e) {
+		return false
+	}
 }
 
 const upload = async function (
