@@ -1,7 +1,5 @@
 import { style } from '@vanilla-extract/css'
 import { RecipeVariants } from '@vanilla-extract/recipes'
-import { sprinkles } from '../../css/sprinkles.css'
-import { themeVars } from '../../css/theme.css'
 import { vars } from '../../css/vars'
 import * as buttonStyles from '../Button/styles.css'
 import { typographyStyles } from '../Text/styles.css'
@@ -20,8 +18,13 @@ export const menuList = style({
 export const menuItem = style({
 	cursor: 'pointer',
 	padding: vars.space[8],
+	...typographyStyles.size.small,
 
 	selectors: {
+		'&[aria-disabled]': {
+			cursor: 'default',
+			opacity: '0.5',
+		},
 		'&[data-active-item], &:hover': {
 			backgroundColor: vars.color.neutral100,
 		},

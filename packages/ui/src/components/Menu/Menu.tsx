@@ -9,6 +9,7 @@ import {
 	MenuState,
 	useMenuState,
 	MenuProps,
+	MenuButtonProps,
 } from 'ariakit'
 import React, { useContext } from 'react'
 import { Text } from '../Text/Text'
@@ -35,11 +36,11 @@ export const Menu: MenuComponent = ({ children }) => {
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
 
-const Button: React.FC<React.PropsWithChildren & styles.ButtonVariants> = ({
-	children,
-	size,
-	variant,
-}) => {
+const Button: React.FC<
+	React.PropsWithChildren &
+		styles.ButtonVariants &
+		Omit<MenuButtonProps, 'state'>
+> = ({ children, size, variant, ...props }) => {
 	const menu = useMenu()
 
 	return (
@@ -49,6 +50,7 @@ const Button: React.FC<React.PropsWithChildren & styles.ButtonVariants> = ({
 				variant: variant,
 				size: size,
 			})}
+			{...props}
 		>
 			{children}
 			<MenuButtonArrow />
@@ -70,7 +72,7 @@ const List: React.FC<React.PropsWithChildren & Partial<MenuProps>> = ({
 
 const Item: React.FC<MenuItemProps> = ({ children, ...props }) => (
 	<MenuItem className={styles.menuItem} {...props}>
-		{typeof children === 'string' ? <Text>{children}</Text> : children}
+		{children}
 	</MenuItem>
 )
 

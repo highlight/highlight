@@ -8,13 +8,11 @@ import { StringParam, useQueryParam } from 'use-query-params'
 import { useUpdateErrorGroupStateMutation } from '../../../graph/generated/hooks'
 import { ErrorState } from '../../../graph/generated/schemas'
 
-export const ErrorStateSelect: React.FC<
-	React.PropsWithChildren<{
-		state?: ErrorState
-	}>
-> = ({ state: initialErrorState }) => {
+export const ErrorStateSelect: React.FC<{ state?: ErrorState }> = ({
+	state: initialErrorState,
+}) => {
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
-	const [updateErrorGroupState, { loading: updateLoading }] =
+	const [updateErrorGroupState, { loading }] =
 		useUpdateErrorGroupStateMutation()
 	const [action, setAction] = useQueryParam('action', StringParam)
 	const { isLoggedIn } = useAuthContext()
@@ -51,8 +49,8 @@ export const ErrorStateSelect: React.FC<
 
 	return (
 		<Menu>
-			<Menu.Button size="small" variant="grey">
-				<Text case="capital">{initialErrorState}</Text>
+			<Menu.Button size="small" variant="grey" disabled={loading}>
+				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
 			</Menu.Button>
 			<Menu.List>
 				{ErrorStatuses.map((option) => (
@@ -63,7 +61,7 @@ export const ErrorStateSelect: React.FC<
 						}
 						key={option}
 					>
-						<Text case="capital">{option}</Text>
+						{option}
 					</Menu.Item>
 				))}
 			</Menu.List>

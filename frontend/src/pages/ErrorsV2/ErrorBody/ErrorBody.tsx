@@ -138,7 +138,12 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
-				<Text family="monospace">{body}</Text>
+				<Text
+					family="monospace"
+					lines={body.length > 400 ? '3' : undefined}
+				>
+					{body}
+				</Text>
 			</Box>
 		</Box>
 	)
