@@ -1,7 +1,9 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
+import { Box } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -16,6 +18,7 @@ import {
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
+import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -25,7 +28,7 @@ import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTimeAsAlphanum, formatTimeAsHMS } from '@util/time'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import {
 	useCallback,
 	useEffect,
@@ -37,7 +40,8 @@ import {
 import { Area, AreaChart } from 'recharts'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
-import style from './TimelineIndicatorsBarGraph.module.scss'
+import * as style from './style.css'
+import { TIMELINE_MARGIN } from './style.css'
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
@@ -53,7 +57,6 @@ const ZOOM_SCALING_FACTOR = 100
 const MIN_ZOOM = 1.0
 const INACTIVE_TICK_FREQUENCY = 7
 
-export const TIMELINE_MARGIN = 32
 type SessionEvent = ParsedEvent & {
 	eventType: string
 	identifier: string
@@ -66,7 +69,9 @@ const TimelineIndicatorsBarGraph = ({
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const { showPlayerAbsoluteTime, showHistogram } = usePlayerConfiguration()
+	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
+		usePlayerConfiguration()
+	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -80,6 +85,7 @@ const TimelineIndicatorsBarGraph = ({
 		state: replayerState,
 		session,
 	} = useReplayerContext()
+	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
 
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
@@ -101,15 +107,17 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
+	const viewportBbox = viewportRef.current?.getBoundingClientRect()
 	useLayoutEffect(() => {
-		const div = viewportRef.current
-		if (!div) {
+		if (!viewportBbox) {
 			return
 		}
-		const bbox = div.getBoundingClientRect()
-		const width = Math.max(Math.round(bbox.width) - 2 * TIMELINE_MARGIN, 0)
-		setViewportWidth(width)
-	}, [width, showHistogram])
+		const viewportWidth = Math.max(
+			Math.round(viewportBbox.width) - 2 * TIMELINE_MARGIN,
+			0,
+		)
+		setViewportWidth(viewportWidth)
+	}, [width, showHistogram, viewportBbox])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -398,6 +406,8 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
+	const [showZoomButtons, setShowZoomButtons] = useState(false)
+
 	useHTMLElementEvent(
 		viewportRef.current,
 		'wheel',
@@ -553,6 +563,22 @@ const TimelineIndicatorsBarGraph = ({
 	const onPointermove = useCallback(
 		(event: MouseEvent) => {
 			setDragTime(moveTime(event))
+			const viewportBbox = viewportRef.current?.getBoundingClientRect()
+			if (!viewportBbox) {
+				return
+			}
+			const { clientX, clientY } = event
+
+			if (
+				viewportBbox.left <= clientX &&
+				clientX <= viewportBbox.right &&
+				viewportBbox.bottom >= clientY &&
+				clientY >= viewportBbox.top
+			) {
+				setShowZoomButtons(true)
+			} else {
+				setShowZoomButtons(false)
+			}
 		},
 		[moveTime],
 	)
@@ -722,7 +748,7 @@ const TimelineIndicatorsBarGraph = ({
 				: 0.5
 
 			tickProps.push({
-				className: classNames(style.timeTick, style.timeTickMajor),
+				className: clsx([style.timeTick, style.timeTickMajor]),
 				left,
 				borderLeftWidth,
 				timestamp,
@@ -738,10 +764,13 @@ const TimelineIndicatorsBarGraph = ({
 					const isMid = minorIdx === mid && MINOR_TICK_COUNT % 2 === 1
 					timestamp += mainTickInMs / (MINOR_TICK_COUNT + 1)
 					tickProps.push({
-						className: classNames(style.timeTick, {
-							[style.timeTickMinor]: !isMid,
-							[style.timeTickMid]: isMid,
-						}),
+						className: clsx([
+							style.timeTick,
+							{
+								[style.timeTickMinor]: !isMid,
+								[style.timeTickMid]: isMid,
+							},
+						]),
 						left: timeToProgress(timestamp) * canvasWidth,
 						timestamp,
 					})
@@ -896,10 +925,10 @@ const TimelineIndicatorsBarGraph = ({
 										return (
 											<div
 												key={idx}
-												className={classNames(
+												className={clsx([
 													style.inactivityPeriod,
 													style.inactivityPeriodPlayed,
-												)}
+												])}
 												style={{
 													left,
 													width: clamp(
@@ -970,15 +999,29 @@ const TimelineIndicatorsBarGraph = ({
 		) : (
 			<AreaChart
 				width={borderlessWidth}
-				height={22}
+				height={style.SESSION_MONITOR_HEIGHT}
 				data={areaChartBuckets}
 				margin={{ top: 4, bottom: 0, left: 0, right: 0 }}
 			>
+				<defs>
+					<linearGradient id="activityBackground" y1="0%" y2="100%">
+						<stop
+							offset="-42.86%"
+							stopColor="var(--color-neutral-700)"
+							stopOpacity="100%"
+						/>
+						<stop
+							offset="100%"
+							stopColor="var(--color-neutral-700)"
+							stopOpacity="48%"
+						/>
+					</linearGradient>
+				</defs>
 				<Area
 					type="monotone"
 					stroke="transparent"
 					dataKey="totalCount"
-					fill="var(--color-neutral-200)"
+					fill="url(#activityBackground)"
 				></Area>
 			</AreaChart>
 		)
@@ -991,10 +1034,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	if (showSkeleton) {
 		return (
-			<div
-				className={style.timelineIndicatorsContainer}
-				style={{ width }}
-			>
+			<Box cssClass={[style.timelineIndicatorsContainer, { width }]}>
 				<div
 					className={style.progressBarContainer}
 					style={{
@@ -1016,14 +1056,14 @@ const TimelineIndicatorsBarGraph = ({
 							className={style.sessionMonitor}
 							ref={sessionMonitorRef}
 						>
-							<Skeleton height={22} />
+							<Skeleton height={style.SESSION_MONITOR_HEIGHT} />
 						</div>
 					</>
 				)}
 				<div className={style.timelineContainer} ref={viewportRef}>
-					<Skeleton height={'100%'} />
+					<Skeleton height="100%" />
 				</div>
-			</div>
+			</Box>
 		)
 	}
 
@@ -1038,13 +1078,18 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
+	const barHeightAdjustment =
+		1 - style.HISTOGRAM_OFFSET / style.HISTOGRAM_AREA_HEIGHT
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
 			{progressBar}
 			<div
-				className={classNames(style.sessionMonitor, {
-					[style.hidden]: !showHistogram,
-				})}
+				className={clsx([
+					style.sessionMonitor,
+					{
+						[style.hidden]: !showHistogram,
+					},
+				])}
 				ref={sessionMonitorRef}
 			>
 				{sessionMonitor}
@@ -1055,10 +1100,25 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
+			<TimelineZoom
+				isHidden={!showZoomButtons || !showHistogram}
+				zoom={(percent: number) =>
+					zoom(
+						(viewportBbox?.left ?? 0) +
+							TIMELINE_MARGIN +
+							viewportWidth / 2,
+						-percent / ZOOM_SCALING_FACTOR,
+					)
+				}
+			/>
+
 			<div
-				className={classNames(style.timelineContainer, {
-					[style.hideOverflow]: !showHistogram,
-				})}
+				className={clsx([
+					style.timelineContainer,
+					{
+						[style.hideOverflow]: !showHistogram,
+					},
+				])}
 				ref={viewportRef}
 			>
 				<TimeIndicator
@@ -1079,9 +1139,12 @@ const TimelineIndicatorsBarGraph = ({
 					{ticks}
 				</div>
 				<div
-					className={classNames(style.separator, {
-						[style.hidden]: !showHistogram,
-					})}
+					className={clsx([
+						style.separator,
+						{
+							[style.hidden]: !showHistogram,
+						},
+					])}
 					style={{
 						width: canvasWidth + 2 * TIMELINE_MARGIN,
 					}}
@@ -1094,18 +1157,22 @@ const TimelineIndicatorsBarGraph = ({
 					return (
 						<span
 							key={idx}
-							className={classNames(style.inactivityPeriodMask)}
+							className={clsx([style.inactivityPeriodMask])}
 							style={{
 								width,
 								left,
 							}}
-						></span>
+						/>
 					)
 				})}
 				<div
-					className={classNames(style.eventHistogram, {
-						[style.hidden]: !showHistogram,
-					})}
+					className={clsx([
+						style.eventHistogram,
+						{
+							[style.hidden]:
+								!showHistogram || isPlayerFullscreen,
+						},
+					])}
 					ref={canvasRef}
 				>
 					<div className={style.eventTrack}>
@@ -1118,21 +1185,25 @@ const TimelineIndicatorsBarGraph = ({
 										bucket.endPercent,
 									),
 							)
-							.map((bucket, idx) =>
-								bucket.totalCount > 0 ? (
+							.map((bucket, idx) => {
+								if (!bucket.totalCount) {
+									return null
+								}
+
+								const relativeHeight =
+									barHeightAdjustment *
+									(bucket.totalCount / maxBucketCount) *
+									100
+								return (
 									<TimelineBar
 										key={`${bucketSize.multiple}${bucketSize.tick}-${idx}`}
 										bucket={bucket}
 										width={bucketPercentWidth}
-										height={
-											(bucket.totalCount /
-												maxBucketCount) *
-											100
-										}
+										height={relativeHeight}
 										viewportRef={viewportRef}
 									/>
-								) : null,
-							)}
+								)
+							})}
 					</div>
 				</div>
 			</div>

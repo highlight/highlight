@@ -5,6 +5,7 @@ import { Text, Props as TextProps } from '../Text/Text'
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
+import clsx from 'clsx'
 
 type Props = ButtonProps &
 	styles.Variants & {
@@ -14,19 +15,18 @@ type Props = ButtonProps &
 	}
 
 const buttonToTextSize = {
-	xSmall: 'xSmall',
-	small: 'small',
-	medium: 'small',
+	small: 'xSmall',
+	medium: 'xSmall',
 	large: 'small',
-	xLarge: 'large',
 } as const
 
-export const Button: React.FC<React.PropsWithChildren<Props>> = ({
+export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	iconLeft,
 	iconRight,
 	size = styles.defaultSize,
-	variant,
+	variant = styles.defaultVariant,
+	className,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -34,29 +34,36 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<AriakitButton
 			as="button"
-			className={styles.variants({
-				variant: variant,
-				size: size,
-			})}
+			className={clsx([
+				className,
+				styles.variants({
+					variant,
+					size,
+				}),
+			])}
 			{...buttonProps}
 		>
 			{iconLeft && (
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					className={styles.iconVariants({ size, variant })}
 					height={size}
 					width={size}
 				>
 					{iconLeft}
 				</Box>
 			)}
-			{children && <Text size={textSize}>{children}</Text>}
+			{children && (
+				<Text size={textSize} userSelect="none">
+					{children}
+				</Text>
+			)}
 			{iconRight && (
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size })}
+					className={styles.iconVariants({ size, variant })}
 					height={size}
 					width={size}
 				>

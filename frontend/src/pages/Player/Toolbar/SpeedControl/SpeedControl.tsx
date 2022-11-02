@@ -6,36 +6,21 @@ import { BiMinus } from 'react-icons/bi'
 import { BsPlus } from 'react-icons/bs'
 
 import Button from '../../../../components/Button/Button/Button'
-import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '../../PlayerHook/utils/usePlayerConfiguration'
 import styles from './SpeedControl.module.scss'
-
-export const PLAYBACK_MIN_SPEED = 0.5
-export const PLAYBACK_MAX_SPEED = 8.0
-export const PLAYBACK_SPEED_INCREMENT = 0.5
 
 interface Props {
 	disabled: boolean
 }
 
 const SpeedControl = ({ disabled }: Props) => {
-	const { playerSpeed, setPlayerSpeed } = usePlayerConfiguration()
+	const { playerSpeedIdx, setPlayerSpeedIdx } = usePlayerConfiguration()
 
 	const onHandleSpeedChange = (type: 'DECREMENT' | 'INCREMENT') => {
-		let newSpeed = playerSpeed
-
-		if (type === 'DECREMENT') {
-			newSpeed = Math.max(
-				PLAYBACK_MIN_SPEED,
-				newSpeed - PLAYBACK_SPEED_INCREMENT,
-			)
-		} else {
-			newSpeed = Math.min(
-				PLAYBACK_MAX_SPEED,
-				newSpeed + PLAYBACK_SPEED_INCREMENT,
-			)
-		}
-
-		setPlayerSpeed(newSpeed)
+		const change = type === 'DECREMENT' ? -1 : 1
+		setPlayerSpeedIdx(playerSpeedIdx + change)
 	}
 
 	return (
@@ -47,36 +32,26 @@ const SpeedControl = ({ disabled }: Props) => {
 					onHandleSpeedChange('DECREMENT')
 				}}
 				type="primary"
-				disabled={disabled || playerSpeed === PLAYBACK_MIN_SPEED}
+				disabled={disabled || playerSpeedIdx === 0}
 			>
 				<BiMinus />
 			</Button>
 			<PopoverMenu
 				getPopupContainer={getFullScreenPopoverGetPopupContainer}
 				// This is a range() function that generates a list from `PLAYBACK_MIN_SPEED` to `PLAYBACK_MAX_SPEED` in increments of `1`.
-				menuItems={[
-					0.5,
-					...Array.from(
-						new Array(
-							Math.floor(
-								PLAYBACK_MAX_SPEED - PLAYBACK_MIN_SPEED,
-							) + 1,
-						),
-						(_, i) => i + 1,
-					),
-				].map((speed) => ({
-					displayName: `${speed.toFixed(1)}x`,
+				menuItems={PLAYBACK_SPEED_OPTIONS.map((speedIdx, idx) => ({
+					displayName: `${speedIdx}x`,
 					action: () => {
-						setPlayerSpeed(speed)
+						setPlayerSpeedIdx(idx)
 					},
 					icon:
-						playerSpeed === speed ? (
+						playerSpeedIdx === idx ? (
 							<SvgCheckCircleIcon className={styles.icon} />
 						) : (
 							<div className={styles.icon} />
 						),
 					iconPosition: 'ending',
-					active: speed === playerSpeed,
+					active: speedIdx === idx,
 				}))}
 				buttonTrackingId="SpeedControlMenu"
 				buttonContentsOverride={
@@ -86,7 +61,7 @@ const SpeedControl = ({ disabled }: Props) => {
 						className={styles.shortcutButton}
 					>
 						<span className={styles.speedText}>
-							{playerSpeed.toFixed(1)}x
+							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</span>
 					</Button>
 				}
@@ -99,7 +74,10 @@ const SpeedControl = ({ disabled }: Props) => {
 				onClick={() => {
 					onHandleSpeedChange('INCREMENT')
 				}}
-				disabled={disabled || playerSpeed === PLAYBACK_MAX_SPEED}
+				disabled={
+					disabled ||
+					playerSpeedIdx === PLAYBACK_SPEED_OPTIONS.length - 1
+				}
 			>
 				<BsPlus />
 			</Button>

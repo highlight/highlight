@@ -27,6 +27,7 @@ const responsiveProperties = defineProperties({
 			'inline-block',
 			'inline-flex',
 		],
+		visibility: ['hidden', 'visible'],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
@@ -48,6 +49,7 @@ const responsiveProperties = defineProperties({
 			'full-width',
 			'full-size-kana',
 		],
+		userSelect: ['all', 'auto', 'none'],
 		padding: vars.space,
 		paddingTop: vars.space,
 		paddingBottom: vars.space,
