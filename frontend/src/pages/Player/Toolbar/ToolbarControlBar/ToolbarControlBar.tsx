@@ -4,28 +4,29 @@ import Switch from '@components/Switch/Switch'
 import {
 	Badge,
 	Box,
+	BoxSwitch,
 	Button,
 	IconArrowsExpand,
 	IconArrowSmLeft,
 	IconArrowSmRight,
+	IconChartBar,
 	IconCog,
 	IconPause,
 	IconPlay,
 	IconRestart,
 	IconSkipLeft,
 	IconSkipRight,
+	IconTerminal,
 	Text,
 } from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
-import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
 import { ReactComponent as CrossIcon } from '@icons/Solid/cross.svg'
 import { ReactComponent as CursorClickIcon } from '@icons/Solid/cursor-click.svg'
 import { ReactComponent as FastForwardIcon } from '@icons/Solid/fast-forward.svg'
 import { ReactComponent as PlayCircleIcon } from '@icons/Solid/play-circle.svg'
-import { ReactComponent as TerminalIcon } from '@icons/Solid/terminal.svg'
 import {
 	getFullScreenPopoverGetPopupContainer,
 	usePlayerUIContext,
@@ -84,8 +85,6 @@ const ToolbarControls = () => {
 		setPlayerSpeed,
 		showPlayerAbsoluteTime,
 	} = usePlayerConfiguration()
-
-	const isHistogramVisible = !isLiveMode && showHistogram
 
 	const [playerSpeedIdx, setPlayerSpeedIdx] = useState<number>(
 		Math.max(PLAYBACK_SPEED_OPTIONS.indexOf(playerSpeed), 0),
@@ -264,71 +263,62 @@ const ToolbarControls = () => {
 						{playerSpeed}x
 					</Button>
 
-					<ExplanatoryPopover
-						content={
-							<>
-								Timeline
-								<Box display="flex" gap="2">
-									<Badge
-										variant="grey"
-										size="tiny"
-										label={isOnMac ? '⌘' : 'Ctrl'}
-									/>
-									<Badge
-										variant="grey"
-										size="tiny"
-										label={showTimelineShortcut}
-									/>
-								</Box>
-							</>
-						}
-					>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && isHistogramVisible,
-								},
-							)}
-							onClick={() => {
-								setShowHistogram(!showHistogram)
-							}}
-							disabled={disableControls}
+					{!isLiveMode && (
+						<ExplanatoryPopover
+							content={
+								<>
+									<Text userSelect="none" color="neutral500">
+										Timeline
+									</Text>
+									<Box display="flex" gap="2">
+										<Badge
+											variant="grey"
+											size="tiny"
+											label={isOnMac ? '⌘' : 'Ctrl'}
+										/>
+										<Badge
+											variant="grey"
+											size="tiny"
+											label={showTimelineShortcut}
+										/>
+									</Box>
+								</>
+							}
 						>
-							<ChartBarIcon />
-						</Button>
-					</ExplanatoryPopover>
-
-					<ExplanatoryPopover
-						content={
-							<>
-								Dev tools
-								<span className={style.popoverCmdShortcut}>
-									{showDevToolsShortcut}
-								</span>
-							</>
-						}
-					>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && showDevTools,
-								},
-							)}
-							onClick={() => {
-								setShowDevTools(!showDevTools)
-							}}
-							disabled={isPlayerFullscreen || disableControls}
+							<BoxSwitch
+								onChange={() => {
+									setShowHistogram(!showHistogram)
+								}}
+								checked={showHistogram}
+								disabled={disableControls}
+								icon={<IconChartBar size={14} />}
+							/>
+						</ExplanatoryPopover>
+					)}
+					{!isLiveMode && (
+						<ExplanatoryPopover
+							content={
+								<>
+									<Text userSelect="none" color="neutral500">
+										Dev tools
+									</Text>
+									<span className={style.popoverCmdShortcut}>
+										{showDevToolsShortcut}
+									</span>
+								</>
+							}
+							height="28px"
 						>
-							<TerminalIcon />
-						</Button>
-					</ExplanatoryPopover>
-
+							<BoxSwitch
+								onChange={() => {
+									setShowDevTools(!showDevTools)
+								}}
+								checked={showDevTools}
+								disabled={isPlayerFullscreen || disableControls}
+								icon={<IconTerminal size={14} />}
+							/>
+						</ExplanatoryPopover>
+					)}
 					<Popover
 						getPopupContainer={
 							getFullScreenPopoverGetPopupContainer
@@ -355,11 +345,13 @@ const ToolbarControls = () => {
 						visible={showSettings}
 						destroyTooltipOnHide
 					>
-						<Button
-							disabled={disableControls}
-							variant="white"
-							iconLeft={<IconCog size={14} />}
-						/>
+						<Box>
+							<Button
+								disabled={disableControls}
+								variant="white"
+								iconLeft={<IconCog size={14} />}
+							/>
+						</Box>
 					</Popover>
 				</>
 			)}
@@ -403,7 +395,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				)}
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
-				<ChartBarIcon />
+				<IconChartBar />
 				Timeline
 				<span
 					className={classNames(
@@ -429,7 +421,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				)}
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
-				<TerminalIcon />
+				<IconTerminal />
 				Dev tools
 				<span
 					className={classNames(

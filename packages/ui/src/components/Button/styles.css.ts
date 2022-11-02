@@ -3,7 +3,7 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { typographyStyles } from '../Text/styles.css'
 
-const shadows = {
+export const shadows = {
 	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
