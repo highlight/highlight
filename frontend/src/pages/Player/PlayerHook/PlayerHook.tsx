@@ -362,7 +362,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					toRemove,
 				})
 			}
-			if (promises.length || action) {
+			if (!loadingChunksRef.current.size && (promises.length || action)) {
 				dispatchAction(startTime, action)
 			}
 		},
