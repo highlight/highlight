@@ -44,7 +44,7 @@ export const Buttons = () => {
 			)!.innerHTML = `<span id="${id}">special ${id}</span>`
 
 			let nestedShadow: ShadowRoot = shadow
-			for (let i = 0; i < 16; i++) {
+			for (let i = 0; i < 3; i++) {
 				nestedShadow = nestedShadow
 					.appendChild(document.createElement('div'))
 					.attachShadow({ mode: 'open' })
@@ -56,6 +56,19 @@ export const Buttons = () => {
 				a.target = '_blank'
 				a.rel = 'noopener noreferrer'
 				a.innerText = `link #${i}`
+
+				const frag = new DocumentFragment()
+				for (let j = 0; j < 3; j++) {
+					const div = frag
+						.appendChild(document.createElement('div'))
+						.attachShadow({ mode: 'closed' })
+					const a2 = document.createElement('a')
+					a2.id = `id-${Math.random() * 1000}`
+					a2.href = 'https://highlight.io/docs'
+					a2.innerText = `shadow #${j}`
+					div.appendChild(a2)
+				}
+				a.appendChild(frag)
 			}
 		}, 1000)
 		return () => {
