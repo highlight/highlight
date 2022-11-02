@@ -4,13 +4,11 @@ import { PropsWithChildren } from 'react'
 
 import style from './ExplanatoryPopover.module.scss'
 
-type Props = PopoverProps & {
-	height?: number | string
-}
+type Props = PopoverProps
+
 const ExplanatoryPopover: React.FC<PropsWithChildren<Props>> = ({
 	content,
 	children,
-	height,
 	...popoverProps
 }) => {
 	return (
@@ -25,7 +23,10 @@ const ExplanatoryPopover: React.FC<PropsWithChildren<Props>> = ({
 		>
 			<Box
 				style={{
-					height: height ?? 'min-content', // explicit, because antd overvwrites class of the first child
+					// explicit, because antd overvwrites class of the first child
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
 				}}
 			>
 				{children}

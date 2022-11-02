@@ -1,3 +1,4 @@
+import { isOnMac } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
 	Badge,
 	Box,
@@ -16,8 +17,6 @@ interface Props {
 	zoom: (byPercent: number) => void
 }
 const PERCENTAGE_STEP = 25
-
-const isOnMac = window.navigator.platform.includes('Mac')
 
 const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 	return (
@@ -48,7 +47,6 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 						/>
 					</>
 				}
-				height="20px"
 			>
 				<IconButton
 					onClick={() => zoom(PERCENTAGE_STEP)}

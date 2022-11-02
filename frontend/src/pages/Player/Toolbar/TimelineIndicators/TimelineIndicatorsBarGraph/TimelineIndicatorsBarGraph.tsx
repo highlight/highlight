@@ -3,6 +3,7 @@ import { customEvent } from '@highlight-run/rrweb/typings/types'
 import { Box } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -68,7 +69,9 @@ const TimelineIndicatorsBarGraph = ({
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const { showPlayerAbsoluteTime, showHistogram } = usePlayerConfiguration()
+	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
+		usePlayerConfiguration()
+	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -82,6 +85,7 @@ const TimelineIndicatorsBarGraph = ({
 		state: replayerState,
 		session,
 	} = useReplayerContext()
+	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
 
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
@@ -1165,7 +1169,8 @@ const TimelineIndicatorsBarGraph = ({
 					className={clsx([
 						style.eventHistogram,
 						{
-							[style.hidden]: !showHistogram,
+							[style.hidden]:
+								!showHistogram || isPlayerFullscreen,
 						},
 					])}
 					ref={canvasRef}

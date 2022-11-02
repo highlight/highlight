@@ -307,7 +307,7 @@ export interface ShortcutItem {
 	shortcut: string[]
 }
 
-const isOnMac = window.navigator.platform.includes('Mac')
+export const isOnMac = window.navigator.platform.includes('Mac')
 
 export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 	{
@@ -315,6 +315,16 @@ export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 		shortcut: ['?'],
 	},
 ]
+
+export const DevToolsShortcut: ShortcutItem = {
+	description: `Toggle dev tools`,
+	shortcut: [isOnMac ? '⌘' : 'Ctrl', '/'],
+}
+
+export const TimelineShortcut: ShortcutItem = {
+	description: `Toggle the timeline`,
+	shortcut: [isOnMac ? '⌘' : 'Ctrl', 'E'],
+}
 
 export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	{
@@ -333,14 +343,8 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 		} seconds forwards`,
 		shortcut: ['right'],
 	},
-	{
-		description: `Toggle the timeline`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'E'],
-	},
-	{
-		description: `Toggle dev tools`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', '/'],
-	},
+	TimelineShortcut,
+	DevToolsShortcut,
 	{
 		description: `Play the next session`,
 		shortcut: ['shift', 'N'],

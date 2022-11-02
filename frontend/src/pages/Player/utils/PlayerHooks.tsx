@@ -7,7 +7,9 @@ import {
 	findNextSessionInList,
 	findPreviousSessionInList,
 } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -232,7 +234,9 @@ export const usePlayerKeyboardShortcuts = () => {
 			H.track('PlayerIncreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			setPlayerSpeedIdx(playerSpeedIdx + 1)
+			if (playerSpeedIdx !== PLAYBACK_SPEED_OPTIONS.length - 1) {
+				setPlayerSpeedIdx(playerSpeedIdx + 1)
+			}
 		},
 		[playerSpeedIdx],
 	)
@@ -243,7 +247,9 @@ export const usePlayerKeyboardShortcuts = () => {
 			H.track('PlayerDecreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			setPlayerSpeedIdx(playerSpeedIdx - 1)
+			if (playerSpeedIdx !== 0) {
+				setPlayerSpeedIdx(playerSpeedIdx - 1)
+			}
 		},
 		[playerSpeedIdx],
 	)

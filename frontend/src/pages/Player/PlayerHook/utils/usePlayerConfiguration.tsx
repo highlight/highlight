@@ -3,7 +3,6 @@ import {
 	RightPlayerPanelTabType,
 } from '@pages/Player/RightPlayerPanel/constants'
 import useLocalStorage from '@rehooks/local-storage'
-import { clamp } from '@util/numbers'
 import { useCallback, useMemo } from 'react'
 
 import { DevToolTabType } from '../../Toolbar/DevToolsContext/DevToolsContext'
@@ -87,9 +86,8 @@ const usePlayerConfiguration = () => {
 	)
 	const setPlayerSpeedIdx = useCallback(
 		(val: number) => {
-			_setPlayerSpeedIdx(
-				clamp(Math.round(val), 0, PLAYBACK_SPEED_OPTIONS.length - 1),
-			)
+			const modulo = PLAYBACK_SPEED_OPTIONS.length
+			_setPlayerSpeedIdx((Math.round(val) + modulo) % modulo)
 		},
 		[_setPlayerSpeedIdx],
 	)

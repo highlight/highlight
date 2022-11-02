@@ -1,3 +1,8 @@
+import {
+	DevToolsShortcut,
+	ShortcutItem,
+	TimelineShortcut,
+} from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
@@ -7,8 +12,10 @@ import {
 	BoxSwitch,
 	Button,
 	IconArrowsExpand,
+	IconArrowSmDown,
 	IconArrowSmLeft,
 	IconArrowSmRight,
+	IconArrowSmUp,
 	IconChartBar,
 	IconCog,
 	IconPause,
@@ -50,16 +57,13 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
+import React from 'react'
 import { useState } from 'react'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
 import style from './ToolbarControlBar.module.scss'
+
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
-
-const isOnMac = window.navigator.platform.includes('Mac')
-
-const showTimelineShortcut = 'E'
-const showDevToolsShortcut = '/'
 
 const ToolbarControls = () => {
 	const {
@@ -239,16 +243,33 @@ const ToolbarControls = () => {
 							</>
 						)}
 					</Text>
-					<Tag
-						variant="grey"
+					<ExplanatoryPopover
 						className={style.moveRight}
-						onClick={() => {
-							setPlayerSpeedIdx(playerSpeedIdx + 1)
-						}}
-						disabled={disableControls}
+						content={
+							<>
+								<Text userSelect="none" color="neutral500">
+									Speed +/-
+								</Text>
+								<Badge
+									variant="grey"
+									size="tiny"
+									iconStart={<IconArrowSmUp size={12} />}
+									label="/"
+									iconEnd={<IconArrowSmDown size={12} />}
+								/>
+							</>
+						}
 					>
-						{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
-					</Tag>
+						<Tag
+							variant="grey"
+							onClick={() => {
+								setPlayerSpeedIdx(playerSpeedIdx + 1)
+							}}
+							disabled={disableControls}
+						>
+							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
+						</Tag>
+					</ExplanatoryPopover>
 
 					<ExplanatoryPopover
 						content={
@@ -256,18 +277,9 @@ const ToolbarControls = () => {
 								<Text userSelect="none" color="neutral500">
 									Timeline
 								</Text>
-								<Box display="flex" gap="2">
-									<Badge
-										variant="grey"
-										size="tiny"
-										label={isOnMac ? '⌘' : 'Ctrl'}
-									/>
-									<Badge
-										variant="grey"
-										size="tiny"
-										label={showTimelineShortcut}
-									/>
-								</Box>
+								<ShortcutTextGuide
+									shortcut={TimelineShortcut}
+								/>
 							</>
 						}
 					>
@@ -276,7 +288,7 @@ const ToolbarControls = () => {
 								setShowHistogram(!showHistogram)
 							}}
 							checked={showHistogram}
-							disabled={disableControls}
+							disabled={isPlayerFullscreen || disableControls}
 							icon={<IconChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
@@ -286,12 +298,11 @@ const ToolbarControls = () => {
 								<Text userSelect="none" color="neutral500">
 									Dev tools
 								</Text>
-								<span className={style.popoverCmdShortcut}>
-									{showDevToolsShortcut}
-								</span>
+								<ShortcutTextGuide
+									shortcut={DevToolsShortcut}
+								/>
 							</>
 						}
-						height="28px"
 					>
 						<BoxSwitch
 							onChange={() => {
@@ -382,14 +393,10 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			>
 				<IconChartBar />
 				Timeline
-				<span
-					className={classNames(
-						style.settingsOptionShortcut,
-						style.moveRight,
-					)}
-				>
-					{showTimelineShortcut}
-				</span>
+				<ShortcutTextGuide
+					shortcut={TimelineShortcut}
+					className={style.moveRight}
+				/>
 				<Switch
 					trackingId="HistogramMenuToggle"
 					checked={showHistogram}
@@ -408,14 +415,10 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			>
 				<IconTerminal />
 				Dev tools
-				<span
-					className={classNames(
-						style.settingsOptionShortcut,
-						style.moveRight,
-					)}
-				>
-					{showDevToolsShortcut}
-				</span>
+				<ShortcutTextGuide
+					shortcut={DevToolsShortcut}
+					className={style.moveRight}
+				/>
 				<Switch
 					trackingId="DevToolsMenuToggle"
 					checked={showDevTools}
@@ -614,5 +617,21 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		</div>
 	)
 }
+
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="grey" size="tiny" label={char} />
+				))}
+			</Box>
+		)
+	},
+)
 
 export default ToolbarControls
