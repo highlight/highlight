@@ -18,6 +18,7 @@ import {
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
+	FRAME_MS,
 	getTimeFromReplayer,
 	LOOKAHEAD_MS,
 	MAX_CHUNK_COUNT,
@@ -45,9 +46,6 @@ import {
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
-
-// assuming 120 fps
-const FRAME_MS = 1000 / 120
 
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()

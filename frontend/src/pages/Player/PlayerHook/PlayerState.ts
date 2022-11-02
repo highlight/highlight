@@ -62,6 +62,9 @@ const EMPTY_SESSION_METADATA = {
 }
 const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 
+// assuming 120 fps
+export const FRAME_MS = 1000 / 120
+
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 60 * 3
 export const MAX_CHUNK_COUNT = 8
