@@ -471,6 +471,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.startChunksLoad:
+			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
 			s.replayerStateBeforeLoad = s.replayerState
 			// important to pause at the actual current time,
@@ -504,7 +505,6 @@ export const PlayerReducer = (
 			} else {
 				s.replayer.replaceEvents(events)
 			}
-			s.isLoadingEvents = false
 			s.time = action.time
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
@@ -512,6 +512,7 @@ export const PlayerReducer = (
 				action.action || s.replayerStateBeforeLoad,
 				s.time,
 			)
+			s.isLoadingEvents = false
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break

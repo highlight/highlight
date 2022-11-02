@@ -270,7 +270,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Ensure all chunks between startTs and endTs are loaded.
 	const ensureChunksLoaded = useCallback(
 		async (startTime: number, endTime?: number, action?: ReplayerState) => {
-			if (loadingChunksRef.current.size) return
 			if (
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
@@ -306,9 +305,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 						'ensureChunksLoaded waiting for loading chunk',
 						i,
 					)
-					dispatch({
-						type: PlayerActionType.startChunksLoad,
-					})
 				} else if (!chunkEventsRef.current.has(i)) {
 					loadingChunksRef.current.add(i)
 					log('PlayerHook.tsx', 'set events for chunk', i)
