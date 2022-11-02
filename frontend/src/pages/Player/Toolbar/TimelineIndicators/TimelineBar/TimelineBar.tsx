@@ -79,15 +79,16 @@ const TimelineIndicatorsBar = ({
 		}
 	}, [isInsideBar, isInsidePopover, viewportRef, width])
 
+	const viewportBbox = viewportRef.current?.getBoundingClientRect()
+
 	const tooltipPosition = useMemo(() => {
 		const viewportDiv = viewportRef.current
-		if (!viewportDiv) {
+		if (!viewportDiv || !viewportBbox) {
 			return {
 				rightOffset: 0,
 				placement: 'top' as TooltipPlacement,
 			}
 		}
-		const viewportBbox = viewportDiv.getBoundingClientRect()
 		const { scrollWidth, scrollLeft } = viewportDiv
 
 		const barLeft = (bucket.startPercent * scrollWidth) / 100 - scrollLeft
@@ -121,7 +122,7 @@ const TimelineIndicatorsBar = ({
 		}
 		// disable checks to update on scroll
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [viewportRef.current?.getBoundingClientRect(), width])
+	}, [viewportBbox, width])
 
 	return (
 		<Popover
