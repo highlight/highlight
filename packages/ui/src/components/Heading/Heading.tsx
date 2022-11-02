@@ -5,10 +5,14 @@ import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 
 import * as styles from './styles.css'
 
+// `as?: styles.Variants['level']` was producing a type error so pulled this out
+// to a separate type.
+type Levels = 'h1' | 'h2' | 'h3' | 'h4'
+
 type Props = React.PropsWithChildren &
-	styles.Variants &
 	Pick<Sprinkles, 'my' | 'mt' | 'mb' | 'marginTop' | 'marginBottom'> & {
-		as?: styles.Variants['level']
+		as?: Levels
+		level?: Levels
 		lines?: TruncateProps['lines']
 	}
 
