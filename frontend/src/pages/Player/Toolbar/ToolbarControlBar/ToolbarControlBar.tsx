@@ -33,7 +33,9 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerPausedStates,
 	ReplayerState,
@@ -52,7 +54,6 @@ import { useState } from 'react'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
 import style from './ToolbarControlBar.module.scss'
-const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
 const isOnMac = window.navigator.platform.includes('Mac')
@@ -82,14 +83,10 @@ const ToolbarControls = () => {
 		setShowHistogram,
 		showDevTools,
 		setShowDevTools,
-		playerSpeed,
-		setPlayerSpeed,
+		playerSpeedIdx,
+		setPlayerSpeedIdx,
 		showPlayerAbsoluteTime,
 	} = usePlayerConfiguration()
-
-	const [playerSpeedIdx, setPlayerSpeedIdx] = useState<number>(
-		Math.max(PLAYBACK_SPEED_OPTIONS.indexOf(playerSpeed), 0),
-	)
 
 	const isPaused = ReplayerPausedStates.includes(state)
 	const sessionDuration = sessionMetadata.totalTime ?? 0
@@ -246,15 +243,11 @@ const ToolbarControls = () => {
 						variant="grey"
 						className={style.moveRight}
 						onClick={() => {
-							const idx =
-								(playerSpeedIdx + 1) %
-								PLAYBACK_SPEED_OPTIONS.length
-							setPlayerSpeedIdx(idx)
-							setPlayerSpeed(PLAYBACK_SPEED_OPTIONS[idx])
+							setPlayerSpeedIdx(playerSpeedIdx + 1)
 						}}
 						disabled={disableControls}
 					>
-						{playerSpeed}x
+						{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 					</Tag>
 
 					<ExplanatoryPopover

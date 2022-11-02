@@ -8,11 +8,6 @@ import {
 	findPreviousSessionInList,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import {
-	PLAYBACK_MAX_SPEED,
-	PLAYBACK_MIN_SPEED,
-	PLAYBACK_SPEED_INCREMENT,
-} from '@pages/Player/Toolbar/SpeedControl/SpeedControl'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -61,8 +56,8 @@ export const usePlayerKeyboardShortcuts = () => {
 	} = useReplayerContext()
 	const { setIsPlayerFullscreen } = usePlayerUIContext()
 	const {
-		setPlayerSpeed,
-		playerSpeed,
+		setPlayerSpeedIdx,
+		playerSpeedIdx,
 		setEnableInspectElement,
 		setShowLeftPanel,
 		showLeftPanel,
@@ -122,6 +117,8 @@ export const usePlayerKeyboardShortcuts = () => {
 					case ReplayerState.Loading:
 					case ReplayerState.SessionRecordingStopped:
 						break
+					case ReplayerState.SessionEnded:
+						play(0)
 				}
 			}
 		},
@@ -230,45 +227,25 @@ export const usePlayerKeyboardShortcuts = () => {
 	)
 
 	useHotkeys(
-		'shift+.',
+		'cmd+up, ctrl+up',
 		(e) => {
 			H.track('PlayerIncreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			if (playerSpeed === PLAYBACK_MAX_SPEED) {
-				message.success(
-					`Playback speed is already at the max: ${PLAYBACK_MAX_SPEED}x`,
-				)
-				return
-			}
-
-			const newSpeed = playerSpeed + PLAYBACK_SPEED_INCREMENT
-			setPlayerSpeed(newSpeed)
-
-			message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`)
+			setPlayerSpeedIdx(playerSpeedIdx + 1)
 		},
-		[playerSpeed],
+		[playerSpeedIdx],
 	)
 
 	useHotkeys(
-		'shift+,',
+		'cmd+down, ctrl+down',
 		(e) => {
 			H.track('PlayerDecreasePlayerSpeedKeyboardShortcut')
 			moveFocusToDocument(e)
 
-			if (playerSpeed === PLAYBACK_MIN_SPEED) {
-				message.success(
-					`Playback speed is already at the minimum: ${PLAYBACK_MIN_SPEED}x`,
-				)
-				return
-			}
-
-			const newSpeed = playerSpeed - PLAYBACK_SPEED_INCREMENT
-			setPlayerSpeed(newSpeed)
-
-			message.success(`Playback speed set to ${newSpeed.toFixed(1)}x`)
+			setPlayerSpeedIdx(playerSpeedIdx - 1)
 		},
-		[playerSpeed],
+		[playerSpeedIdx],
 	)
 
 	useHotkeys(

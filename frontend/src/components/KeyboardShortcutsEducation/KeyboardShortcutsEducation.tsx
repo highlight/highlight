@@ -3,7 +3,6 @@ import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import Input from '@components/Input/Input'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import SvgSearchIcon from '@icons/SearchIcon'
-import { PLAYBACK_SPEED_INCREMENT } from '@pages/Player/Toolbar/SpeedControl/SpeedControl'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
@@ -303,21 +302,21 @@ const KeyboardShortcut = ({ shortcut }: Pick<ShortcutItem, 'shortcut'>) => {
 	)
 }
 
-interface ShortcutItem {
+export interface ShortcutItem {
 	description: string
 	shortcut: string[]
 }
 
 const isOnMac = window.navigator.platform.includes('Mac')
 
-const GeneralKeyboardShortcuts: ShortcutItem[] = [
+export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Open Keyboard Shortcuts Guide',
 		shortcut: ['?'],
 	},
 ]
 
-const PlayerKeyboardShortcuts: ShortcutItem[] = [
+export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: 'Play or pause the video',
 		shortcut: ['space'],
@@ -351,11 +350,11 @@ const PlayerKeyboardShortcuts: ShortcutItem[] = [
 		shortcut: ['shift', 'P'],
 	},
 	{
-		description: `Decrease the playback speed by ${PLAYBACK_SPEED_INCREMENT}x`,
+		description: `Decrease the playback speed`,
 		shortcut: ['shift', ','],
 	},
 	{
-		description: `Increase the playback speed by ${PLAYBACK_SPEED_INCREMENT}x`,
+		description: `Increase the playback speed`,
 		shortcut: ['shift', '.'],
 	},
 	{
