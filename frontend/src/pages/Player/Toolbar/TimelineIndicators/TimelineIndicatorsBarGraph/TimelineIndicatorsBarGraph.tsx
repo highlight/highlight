@@ -1018,6 +1018,7 @@ const TimelineIndicatorsBarGraph = ({
 					</linearGradient>
 				</defs>
 				<Area
+					isAnimationActive={false}
 					type="monotone"
 					stroke="transparent"
 					dataKey="totalCount"
