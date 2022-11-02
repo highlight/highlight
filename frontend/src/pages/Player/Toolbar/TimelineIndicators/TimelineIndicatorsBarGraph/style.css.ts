@@ -38,7 +38,7 @@ export const hidden = style({
 })
 
 export const hideOverflow = style({
-	overflow: 'hidden',
+	overflow: 'hidden !important',
 })
 
 export const progressBarContainer = style({

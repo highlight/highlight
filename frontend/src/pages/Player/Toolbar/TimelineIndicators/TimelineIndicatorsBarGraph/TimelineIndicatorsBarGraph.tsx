@@ -1097,7 +1097,7 @@ const TimelineIndicatorsBarGraph = ({
 				/>
 			</div>
 			<TimelineZoom
-				isHidden={!showZoomButtons}
+				isHidden={!showZoomButtons || !showHistogram}
 				zoom={(percent: number) =>
 					zoom(
 						(viewportBbox?.left ?? 0) +
