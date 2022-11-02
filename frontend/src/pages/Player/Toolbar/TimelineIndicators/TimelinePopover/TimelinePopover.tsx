@@ -1,3 +1,4 @@
+import { Box, Text } from '@highlight-run/ui'
 import { ReactComponent as CircleRightArrow } from '@icons/Solid/arrow-circle-right.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
@@ -130,19 +131,21 @@ const TimelinePopover = ({ bucket }: Props) => {
 				)}
 			</div>
 			{!!selectedType ? (
-				<div className={style.infoPanel}>
-					<span className={style.selectedTypeName}>
+				<Box cssClass={style.infoPanel} background="neutral50">
+					<Text color="neutral500" size="xxSmall">
 						{selectedTypeName}
-					</span>
+					</Text>
 					<div
 						className={classNames(
 							style.rightCounter,
 							style.infoPanelCounter,
 						)}
 					>
-						<span>{selectedCount}</span>
+						<Text color="neutral500" size="xxSmall">
+							{selectedCount}
+						</Text>
 					</div>
-				</div>
+				</Box>
 			) : null}
 			<div className={style.timelinePopoverDetails}>
 				{!selectedType ? (

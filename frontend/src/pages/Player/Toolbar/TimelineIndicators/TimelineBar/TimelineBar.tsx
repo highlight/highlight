@@ -121,7 +121,7 @@ const TimelineIndicatorsBar = ({
 		}
 		// disable checks to update on scroll
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [viewportRef, viewportRef.current?.scrollLeft, width])
+	}, [viewportRef.current?.getBoundingClientRect(), width])
 
 	return (
 		<Popover
