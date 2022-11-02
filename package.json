@@ -41,6 +41,7 @@
 		"frontend:start": "yarn dev:frontend",
 		"g": "yarn generate",
 		"generate": "hygen",
+		"preinstall": "git submodule update --init --recursive",
 		"prepare": "husky install && patch-package",
 		"prepublish": "yarn workspace scripts prepublish:client",
 		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
