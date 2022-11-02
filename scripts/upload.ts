@@ -115,7 +115,7 @@ const upload = async function (
 		}
 		if (!changelogExists(highlightRunPackageJson.version)) {
 			console.error(
-				`Current highlight.run version ${highlightRunPackageJson.version} have a changelog in ${docsDir}`,
+				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
 			)
 			process.exit(1)
 		}
