@@ -229,7 +229,7 @@ func main() {
 	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
-	errorLogger := httplog.NewLogger(fmt.Sprintf("%v", runtimeParsed), httplog.Options{
+	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
 		JSON:     true,
 		LogLevel: "warn",
 		Concise:  true,
