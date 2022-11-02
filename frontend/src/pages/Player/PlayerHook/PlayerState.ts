@@ -435,7 +435,10 @@ export const PlayerReducer = (
 			}
 			break
 		case PlayerActionType.reset:
-			return {
+			if (s.replayer) {
+				replayerAction(PlayerActionType.reset, s, ReplayerState.Paused)
+			}
+			s = {
 				...s,
 				currentEvent: '',
 				currentUrl: undefined,
@@ -456,6 +459,7 @@ export const PlayerReducer = (
 				session_secure_id: action.sessionSecureId,
 				time: 0,
 			}
+			break
 		case PlayerActionType.updateViewport:
 			s.viewport = action.viewport
 			break
@@ -703,7 +707,7 @@ const replayerAction = (
 	source: PlayerActionType,
 	s: PlayerState,
 	desiredState: ReplayerState,
-	time: number,
+	time?: number,
 	skipSetTime?: boolean,
 ) => {
 	log(
@@ -719,21 +723,20 @@ const replayerAction = (
 		() => {
 			if (!s.replayer) return s
 			try {
+				const desiredTime =
+					time !== undefined
+						? toReplayerTime(s.replayer, s.sessionMetadata, time)
+						: undefined
 				if (desiredState === ReplayerState.Paused) {
-					s.replayer.pause(
-						toReplayerTime(s.replayer, s.sessionMetadata, time),
-					)
+					s.replayer.pause(desiredTime)
 				} else if (desiredState === ReplayerState.Playing) {
-					s.replayer.play(
-						toReplayerTime(s.replayer, s.sessionMetadata, time),
-					)
+					s.replayer.play(desiredTime)
 				} else {
 					return s
 				}
 			} catch (e: any) {
-				log(
-					'PlayerState.ts',
-					'replayerAction exception',
+				console.error(
+					'PlayerState.ts replayerAction exception',
 					PlayerActionType[source],
 					e,
 				)
@@ -746,7 +749,7 @@ const replayerAction = (
 				)
 			}
 			s.replayerState = desiredState
-			if (!skipSetTime) {
+			if (!skipSetTime && time !== undefined) {
 				s.time = time
 			}
 		},
