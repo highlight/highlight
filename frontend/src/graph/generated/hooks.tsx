@@ -1040,8 +1040,8 @@ export type SubmitRegistrationFormMutationOptions = Apollo.BaseMutationOptions<
 	Types.SubmitRegistrationFormMutationVariables
 >
 export const CreateWorkspaceDocument = gql`
-	mutation CreateWorkspace($name: String!) {
-		createWorkspace(name: $name) {
+	mutation CreateWorkspace($name: String!, $promo_code: String) {
+		createWorkspace(name: $name, promo_code: $promo_code) {
 			id
 			name
 		}
@@ -1066,6 +1066,7 @@ export type CreateWorkspaceMutationFn = Apollo.MutationFunction<
  * const [createWorkspaceMutation, { data, loading, error }] = useCreateWorkspaceMutation({
  *   variables: {
  *      name: // value for 'name'
+ *      promo_code: // value for 'promo_code'
  *   },
  * });
  */

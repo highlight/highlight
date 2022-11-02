@@ -251,6 +251,7 @@ type Workspace struct {
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
 	ClearbitEnabled             bool       `gorm:"default:false"`
 	DiscordGuildId              *string
+	PromoCode                   *string
 }
 
 type WorkspaceAdmin struct {
