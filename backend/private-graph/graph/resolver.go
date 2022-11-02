@@ -1472,6 +1472,7 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Path:     "/",
 	})
+	w.WriteHeader(http.StatusOK)
 }
 
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
