@@ -146,6 +146,7 @@ export const usePlayerKeyboardShortcuts = () => {
 					case ReplayerState.Paused:
 					case ReplayerState.LoadedAndUntouched:
 					case ReplayerState.LoadedWithDeepLink:
+					case ReplayerState.SessionEnded:
 						pause(newTime)
 						break
 					case ReplayerState.Loading:
