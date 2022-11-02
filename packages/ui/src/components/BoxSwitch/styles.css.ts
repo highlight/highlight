@@ -55,8 +55,8 @@ export const variants = recipe({
 						color: vars.color.neutral700,
 					},
 					'&:focus': {
-						background: vars.color.neutral50,
-						color: vars.color.neutral500,
+						background: vars.color.neutral200,
+						color: vars.color.neutral700,
 					},
 					'&:disabled': {
 						background: vars.color.white,

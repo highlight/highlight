@@ -17,6 +17,7 @@ import {
 	IconSkipLeft,
 	IconSkipRight,
 	IconTerminal,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
@@ -126,7 +127,6 @@ const ToolbarControls = () => {
 					variant="white"
 				/>
 			</ExplanatoryPopover>
-
 			<ExplanatoryPopover
 				content={
 					<>
@@ -167,7 +167,6 @@ const ToolbarControls = () => {
 					variant="white"
 				/>
 			</ExplanatoryPopover>
-
 			<ExplanatoryPopover
 				content={
 					<>
@@ -194,17 +193,15 @@ const ToolbarControls = () => {
 				/>
 			</ExplanatoryPopover>
 			{showLiveToggle && (
-				<Button
-					className={classNames(style.button, style.smallButton, {
-						[style.activeButton]: isLiveMode,
-					})}
+				<Tag
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
+					variant={isLiveMode ? 'primary' : 'grey'}
 					disabled={disableControls}
 				>
 					Live
-				</Button>
+				</Tag>
 			)}
 			{isLiveMode && lastActiveString && (
 				<SessionToken
@@ -245,12 +242,9 @@ const ToolbarControls = () => {
 							</>
 						)}
 					</Text>
-					<Button
-						className={classNames(
-							style.button,
-							style.moveRight,
-							style.smallButton,
-						)}
+					<Tag
+						variant="grey"
+						className={style.moveRight}
 						onClick={() => {
 							const idx =
 								(playerSpeedIdx + 1) %
@@ -261,64 +255,60 @@ const ToolbarControls = () => {
 						disabled={disableControls}
 					>
 						{playerSpeed}x
-					</Button>
+					</Tag>
 
-					{!isLiveMode && (
-						<ExplanatoryPopover
-							content={
-								<>
-									<Text userSelect="none" color="neutral500">
-										Timeline
-									</Text>
-									<Box display="flex" gap="2">
-										<Badge
-											variant="grey"
-											size="tiny"
-											label={isOnMac ? '⌘' : 'Ctrl'}
-										/>
-										<Badge
-											variant="grey"
-											size="tiny"
-											label={showTimelineShortcut}
-										/>
-									</Box>
-								</>
-							}
-						>
-							<BoxSwitch
-								onChange={() => {
-									setShowHistogram(!showHistogram)
-								}}
-								checked={showHistogram}
-								disabled={disableControls}
-								icon={<IconChartBar size={14} />}
-							/>
-						</ExplanatoryPopover>
-					)}
-					{!isLiveMode && (
-						<ExplanatoryPopover
-							content={
-								<>
-									<Text userSelect="none" color="neutral500">
-										Dev tools
-									</Text>
-									<span className={style.popoverCmdShortcut}>
-										{showDevToolsShortcut}
-									</span>
-								</>
-							}
-							height="28px"
-						>
-							<BoxSwitch
-								onChange={() => {
-									setShowDevTools(!showDevTools)
-								}}
-								checked={showDevTools}
-								disabled={isPlayerFullscreen || disableControls}
-								icon={<IconTerminal size={14} />}
-							/>
-						</ExplanatoryPopover>
-					)}
+					<ExplanatoryPopover
+						content={
+							<>
+								<Text userSelect="none" color="neutral500">
+									Timeline
+								</Text>
+								<Box display="flex" gap="2">
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={isOnMac ? '⌘' : 'Ctrl'}
+									/>
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={showTimelineShortcut}
+									/>
+								</Box>
+							</>
+						}
+					>
+						<BoxSwitch
+							onChange={() => {
+								setShowHistogram(!showHistogram)
+							}}
+							checked={showHistogram}
+							disabled={disableControls}
+							icon={<IconChartBar size={14} />}
+						/>
+					</ExplanatoryPopover>
+					<ExplanatoryPopover
+						content={
+							<>
+								<Text userSelect="none" color="neutral500">
+									Dev tools
+								</Text>
+								<span className={style.popoverCmdShortcut}>
+									{showDevToolsShortcut}
+								</span>
+							</>
+						}
+						height="28px"
+					>
+						<BoxSwitch
+							onChange={() => {
+								setShowDevTools(!showDevTools)
+							}}
+							checked={showDevTools}
+							disabled={isPlayerFullscreen || disableControls}
+							icon={<IconTerminal size={14} />}
+						/>
+					</ExplanatoryPopover>
 					<Popover
 						getPopupContainer={
 							getFullScreenPopoverGetPopupContainer
@@ -355,13 +345,15 @@ const ToolbarControls = () => {
 					</Popover>
 				</>
 			)}
-			<Button
-				onClick={() => {
-					setIsPlayerFullscreen((prev) => !prev)
-				}}
-				iconLeft={<IconArrowsExpand size={14} />}
-				variant="white"
-			/>
+			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
+				<Button
+					onClick={() => {
+						setIsPlayerFullscreen((prev) => !prev)
+					}}
+					iconLeft={<IconArrowsExpand size={14} />}
+					variant="white"
+				/>
+			</Box>
 		</div>
 	)
 }

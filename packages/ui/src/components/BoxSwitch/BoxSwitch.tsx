@@ -13,7 +13,12 @@ type Props = CheckboxProps & {
 	icon: React.ReactElement<IconProps>
 }
 
-export const BoxSwitch: React.FC<Props> = ({ icon, onChange, checked }) => {
+export const BoxSwitch: React.FC<Props> = ({
+	icon,
+	onChange,
+	checked,
+	...rest
+}) => {
 	const className = styles.variants({
 		variant: checked ? 'checked' : 'unchecked',
 	})
@@ -25,6 +30,7 @@ export const BoxSwitch: React.FC<Props> = ({ icon, onChange, checked }) => {
 			state={checkbox}
 			onChange={onChange}
 			checked={checked}
+			{...rest}
 		>
 			{icon}
 		</Checkbox>
