@@ -79,6 +79,12 @@ export const variants = recipe({
 		},
 		{
 			selectors: {
+				'&:disabled, &:disabled:hover, &:disabled:focus': {
+					backgroundColor: vars.color.neutral50,
+					border: 0,
+					boxShadow: 'none',
+					color: vars.color.neutral300,
+				},
 				'&:focus, &:active': {
 					boxShadow: 'none',
 					outline: 'none',

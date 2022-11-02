@@ -142,6 +142,10 @@
 }
 
 .section {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	padding: 4px 0;
 	width: 100%;
 }
@@ -153,11 +157,12 @@
 	display: flex;
 	font-size: 13px;
 	gap: 4px;
-	height: 20px;
+	height: 28px;
 	padding: 4px 8px;
 	user-select: none;
 	width: 100%;
 	&:hover {
+		background: var(--color-neutral-50);
 		cursor: pointer;
 	}
 	> svg {
@@ -167,10 +172,6 @@
 			fill: var(--color-neutral-300);
 		}
 	}
-}
-
-.settingsOption {
-	height: 28px;
 }
 
 .settingsOptionShortcut {

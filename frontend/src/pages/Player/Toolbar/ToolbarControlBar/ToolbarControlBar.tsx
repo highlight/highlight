@@ -55,7 +55,7 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import { H } from 'highlight.run'
 import React from 'react'
 import { useState } from 'react'
@@ -385,10 +385,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const options = (
 		<>
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
 				<IconChartBar />
@@ -407,10 +404,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
 				<IconTerminal />
@@ -429,10 +423,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
 				<CursorClickIcon />
@@ -448,10 +439,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
 				<FastForwardIcon />
@@ -467,10 +455,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
 				<PlayCircleIcon />
@@ -486,10 +471,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowSessionSettings(false)}
 			>
 				<AnnotationIcon />
@@ -528,13 +510,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		}
 
 		return (
-			<button
-				key={idx}
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
-			>
+			<button key={idx} className={style.settingsButton}>
 				<div
 					className={style.leftSelection}
 					onClick={() => {
@@ -566,10 +542,10 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					/>
 					<span>{name}</span>
 					<span
-						className={classNames(
+						className={clsx([
 							style.leftClickActionName,
 							style.moveRight,
-						)}
+						])}
 					>
 						{onLeftClickActionName}
 					</span>
