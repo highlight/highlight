@@ -16,8 +16,8 @@ const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './firstload/package.json'
 const DOCS_DIR = './docs'
 
-const rootDir = dirname(dirname(fileURLToPath(import.meta.url)))
 const client = new S3Client({ region: 'us-east-2' })
+const rootDir = dirname(dirname(fileURLToPath(import.meta.url)))
 const docsDir = join(rootDir, DOCS_DIR)
 
 const highlightRunPackageJson = JSON.parse(
