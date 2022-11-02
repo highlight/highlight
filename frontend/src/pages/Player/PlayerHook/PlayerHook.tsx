@@ -124,7 +124,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
-	const loadingChunksRef = useRef<boolean>(false)
+	const loadingChunksRef = useRef<Set<number>>(new Set<number>())
 
 	const [
 		chunkEventsRef,
@@ -215,7 +215,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			>,
 			startIdx: number,
 			endIdx: number,
-			currentIdx: number,
 		): number[] => {
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
 				.filter(([, v]) => !!v.length)
@@ -231,14 +230,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 				]
 
 			// if we are on the right side of the chunks, remove the ones from the left
-			if (currentIdx >= midChunkIdx) {
+			if (startIdx >= midChunkIdx) {
 				chunksIndexesWithData.reverse()
 			}
 
 			const toRemove = new Set<number>(
 				chunksIndexesWithData.slice(MAX_CHUNK_COUNT),
 			)
-			toRemove.delete(currentIdx)
+			toRemove.delete(startIdx)
 			for (let i = startIdx; i <= endIdx; i++) {
 				toRemove.delete(i)
 			}
@@ -271,7 +270,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Ensure all chunks between startTs and endTs are loaded.
 	const ensureChunksLoaded = useCallback(
 		async (startTime: number, endTime?: number, action?: ReplayerState) => {
-			if (loadingChunksRef.current) return
+			if (loadingChunksRef.current.size) return
 			if (
 				CHUNKING_DISABLED_PROJECTS.includes(project_id) ||
 				!state.session?.chunked
@@ -279,7 +278,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				if (action) dispatchAction(startTime, action)
 				return
 			}
-			loadingChunksRef.current = true
 
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
@@ -302,20 +300,32 @@ export const usePlayer = (): ReplayerContextInterface => {
 					i,
 					chunkEventsRef.current.has(i),
 				)
-				if (!chunkEventsRef.current.has(i)) {
+				if (loadingChunksRef.current.has(i)) {
+					log(
+						'PlayerHook.tsx',
+						'ensureChunksLoaded waiting for loading chunk',
+						i,
+					)
+					dispatch({
+						type: PlayerActionType.startChunksLoad,
+					})
+				} else if (!chunkEventsRef.current.has(i)) {
+					loadingChunksRef.current.add(i)
 					log('PlayerHook.tsx', 'set events for chunk', i)
 					chunkEventsSet(i, [])
 
 					// signal that we are loading chunks once
 					if (!promises.length) {
-						log(
-							'PlayerHook.tsx',
-							'ensureChunksLoaded needs load for chunk',
-							i,
-						)
-						dispatch({
-							type: PlayerActionType.startChunksLoad,
-						})
+						if (action || i == startIdx) {
+							log(
+								'PlayerHook.tsx',
+								'ensureChunksLoaded needs blocking load for chunk',
+								i,
+							)
+							dispatch({
+								type: PlayerActionType.startChunksLoad,
+							})
+						}
 					}
 					promises.push(
 						(async (_i: number) => {
@@ -345,9 +355,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 					chunkEventsRef.current,
 					startIdx,
 					endIdx,
-					getChunkIdx(state.sessionMetadata.startTime + startTime),
 				)
 				for (const [i, data] of await Promise.all(promises)) {
+					loadingChunksRef.current.delete(i)
 					chunkEventsSet(i, toHighlightEvents(data))
 				}
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
@@ -359,7 +369,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (promises.length || action) {
 				dispatchAction(startTime, action)
 			}
-			loadingChunksRef.current = false
 		},
 		[
 			project_id,
