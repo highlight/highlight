@@ -41,7 +41,9 @@ import {
 } from '../../../util/time'
 import { usePlayerUIContext } from '../context/PlayerUIContext'
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
-import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '../PlayerHook/utils/usePlayerConfiguration'
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import {
 	ParsedSessionInterval,
@@ -103,7 +105,7 @@ export const Toolbar = ({ width }: Props) => {
 	usePlayerKeyboardShortcuts()
 
 	const {
-		playerSpeed,
+		playerSpeedIdx,
 		showDevTools,
 		setShowDevTools,
 		selectedDevToolsTab,
@@ -141,11 +143,13 @@ export const Toolbar = ({ width }: Props) => {
 
 	useEffect(() => {
 		if (!isLiveMode) {
-			replayer?.setConfig({ speed: playerSpeed })
+			replayer?.setConfig({
+				speed: PLAYBACK_SPEED_OPTIONS[playerSpeedIdx],
+			})
 		} else {
 			replayer?.setConfig({ speed: 1 })
 		}
-	}, [replayer, playerSpeed, isLiveMode])
+	}, [replayer, isLiveMode, playerSpeedIdx])
 
 	// Automatically start the player if the user has set the preference.
 	useEffect(() => {
