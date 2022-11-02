@@ -901,10 +901,11 @@ const TimelineIndicatorsBarGraph = ({
 							[style.moveIndicator]: useTransition,
 						},
 					])}
-					style={{
-						transform: `scaleX(${sessionProgress})`,
-					}}
-				/>
+									style={{
+											transform: `scaleX(${
+												sessionProgress })`,
+											}}
+										/>
 
 				{adjustedInactivityPeriods.map((interval, idx) => {
 					const left =
