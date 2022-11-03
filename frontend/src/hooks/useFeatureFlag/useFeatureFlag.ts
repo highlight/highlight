@@ -5,9 +5,11 @@ import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
 interface Config {
+	percent: number
 	project?: boolean
 	workspace?: boolean
-	percent: number
+	projectOverride?: Set<string>
+	workspaceOverride?: Set<string>
 }
 
 export enum Feature {
@@ -20,8 +22,10 @@ export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.HistogramTimelineV2]: {
 		workspace: true,
 		percent: 25,
+		// enabled for Portal, Impira, and Sunsama
+		projectOverride: new Set<string>(['79', '122', '153', '172', '657']),
 	},
-}
+} as const
 
 const isActive = async function (
 	feature: Feature,
@@ -40,13 +44,27 @@ const isActive = async function (
 	return digest % Math.ceil(100 / percent) === 0
 }
 
-const isFeatureOn = async function (
+export const isFeatureOn = async function (
 	feature: Feature,
 	projectId?: string,
 	workspaceId?: string,
 	adminId?: string,
 ) {
 	const config = FeatureConfig[feature]
+	if (
+		projectId &&
+		config.projectOverride &&
+		config.projectOverride.has(projectId)
+	) {
+		return true
+	}
+	if (
+		workspaceId &&
+		config.workspaceOverride &&
+		config.workspaceOverride.has(workspaceId)
+	) {
+		return true
+	}
 	return isActive(
 		feature,
 		(config.project
@@ -59,7 +77,9 @@ const isFeatureOn = async function (
 }
 
 // use to roll out a feature to a subset of users.
-const useFeature = (feature: Feature, override?: boolean) => {
+// if overrideOn is set, the feature will be on for that user.
+// otherwise, the default percentage-based logic will be used
+const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
 	const { admin } = useAuthContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -69,7 +89,7 @@ const useFeature = (feature: Feature, override?: boolean) => {
 		skip: !project_id,
 	})
 
-	const [isOn, setIsOn] = useState<boolean>(!!override)
+	const [isOn, setIsOn] = useState<boolean>(!!overrideOn)
 
 	useEffect(() => {
 		isFeatureOn(
@@ -78,14 +98,14 @@ const useFeature = (feature: Feature, override?: boolean) => {
 			project?.workspace?.id,
 			admin?.id,
 		).then((_isOn) => {
-			const on = override ?? _isOn
+			const on = overrideOn || _isOn
 			setIsOn(on)
 			H.track(`Feature-${Feature[feature]}`, { on })
 		})
 	}, [
 		admin?.id,
 		feature,
-		override,
+		overrideOn,
 		project?.project?.id,
 		project?.workspace?.id,
 	])
@@ -93,4 +113,4 @@ const useFeature = (feature: Feature, override?: boolean) => {
 	return isOn
 }
 
-export default useFeature
+export default useFeatureFlag
