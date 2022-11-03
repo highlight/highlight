@@ -42,7 +42,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 
 	return (
 		<Box mb="16">
-			<Box borderBottom="neutral" pb="16" marginBottom="24">
+			<Box borderBottom="neutral" pb="16">
 				<Box display="flex" justifyContent="space-between">
 					<Box alignItems="center" display="flex" gap="10">
 						<Box
@@ -81,7 +81,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					</Box>
 				</Box>
 			</Box>
-			<Box mb="16">
+			<Box my="28">
 				<Heading level="h2" lines="2">
 					{headerTextAsJson || headerText}
 				</Heading>

@@ -4,7 +4,7 @@ import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 export const lineClampStyles: ComplexStyleRule = {
 	display: '-webkit-box',
 	WebkitBoxOrient: 'vertical',
-	overflowX: 'hidden',
+	overflow: 'hidden',
 }
 
 export const variants = recipe({
