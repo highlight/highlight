@@ -100,7 +100,9 @@ const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
 		).then((_isOn) => {
 			const on = overrideOn || _isOn
 			setIsOn(on)
-			H.track(`Feature-${Feature[feature]}`, { on })
+			H.track(Feature[feature], {
+				[`FeatureFlag-${Feature[feature]}-on`]: on,
+			})
 		})
 	}, [
 		admin?.id,
