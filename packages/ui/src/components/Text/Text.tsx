@@ -14,32 +14,42 @@ export type Props = React.PropsWithChildren &
 		userSelect?: BoxProps['userSelect']
 	}
 
-export const Text: React.FC<Props> = ({
-	as,
-	children,
-	color,
-	display,
-	lines,
-	transform,
-	userSelect,
-	...props
-}) => {
-	const content = lines ? (
-		<Truncate lines={lines}>{children}</Truncate>
-	) : (
-		children
-	)
+export const Text = React.forwardRef<unknown, Props>(
+	(
+		{
+			as,
+			children,
+			color,
+			display,
+			lines,
+			transform,
+			userSelect,
+			...props
+		},
+		ref,
+	) => {
+		const content = lines ? (
+			<Truncate ref={ref} lines={lines}>
+				{children}
+			</Truncate>
+		) : (
+			children
+		)
 
-	return (
-		<Box
-			as={as}
-			display={display}
-			color={color}
-			userSelect={userSelect}
-			textTransform={transform}
-			cssClass={styles.variants({ ...props })}
-		>
-			{content}
-		</Box>
-	)
-}
+		return (
+			<Box
+				as={as}
+				display={display}
+				color={color}
+				ref={lines ? undefined : ref}
+				userSelect={userSelect}
+				textTransform={transform}
+				cssClass={styles.variants({ ...props })}
+			>
+				{content}
+			</Box>
+		)
+	},
+)
+
+Text.displayName = 'Text'
