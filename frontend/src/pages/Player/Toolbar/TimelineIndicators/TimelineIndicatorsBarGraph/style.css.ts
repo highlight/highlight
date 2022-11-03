@@ -58,7 +58,8 @@ export const progressBar = style({
 	left: 0,
 	position: 'absolute',
 	top: 0,
-	transition: 'width 0.3s linear',
+	transition: 'transform 0.3s linear',
+	willChange: 'transform',
 	zIndex: 3,
 })
 

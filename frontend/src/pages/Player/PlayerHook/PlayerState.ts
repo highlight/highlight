@@ -728,9 +728,13 @@ const replayerAction = (
 						? toReplayerTime(s.replayer, s.sessionMetadata, time)
 						: undefined
 				if (desiredState === ReplayerState.Paused) {
-					s.replayer.pause(desiredTime)
+					setTimeout(() => {
+						s.replayer!.pause(desiredTime)
+					}, 1)
 				} else if (desiredState === ReplayerState.Playing) {
-					s.replayer.play(desiredTime)
+					setTimeout(() => {
+						s.replayer!.play(desiredTime)
+					}, 1)
 				} else {
 					return s
 				}

@@ -77,14 +77,13 @@ const TimeIndicator = ({
 	const origin = topRef.current?.getBoundingClientRect()
 
 	const textWidth = textRef.current?.getBoundingClientRect().width || 0
+	const pos = left - TIME_INDICATOR_TOP_WIDTH / 2
 	return (
 		<div
 			className={classNames(style.timeIndicator, {
 				[style.timeIndicatorMoving]: !isDragging && !isZooming,
 			})}
-			style={{
-				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
-			}}
+			style={{ transform: `translateX(${pos}px)` }}
 			ref={indicatorRef}
 		>
 			<span

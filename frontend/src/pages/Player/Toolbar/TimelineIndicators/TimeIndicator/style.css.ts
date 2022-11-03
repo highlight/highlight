@@ -13,11 +13,12 @@ export const timeIndicator = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'absolute',
+	willChange: 'transform',
 	zIndex: '2',
 })
 
 export const timeIndicatorMoving = style({
-	transition: 'left 0.17s linear',
+	transition: 'transform 0.3s linear',
 })
 
 export const timeIndicatorHair = style({

@@ -42,6 +42,7 @@ import { NumberParam, useQueryParams } from 'use-query-params'
 
 import * as style from './style.css'
 import { TIMELINE_MARGIN } from './style.css'
+
 interface Props {
 	selectedTimelineAnnotationTypes: string[]
 	width: number
@@ -144,7 +145,7 @@ const TimelineIndicatorsBarGraph = ({
 		}
 
 		let durationCut = 0
-		const adjusted = inactivityPeriods.map((interval) => {
+		return inactivityPeriods.map((interval) => {
 			const fracInactive = interval[1] / inactiveDuration
 			const adjustedDuration = Math.max(
 				fracInactive * targetInactiveDuration,
@@ -156,7 +157,6 @@ const TimelineIndicatorsBarGraph = ({
 
 			return [adjustedStart, adjustedDuration] as [number, number]
 		})
-		return adjusted
 	}, [activeDuration, inactiveDuration, inactivityPeriods])
 
 	const adjustedInactiveDuration = adjustedInactivityPeriods.reduce(
@@ -496,12 +496,11 @@ const TimelineIndicatorsBarGraph = ({
 				canvasWidth,
 			)
 
-			const newTime = clamp(
+			return clamp(
 				Math.round(progressToTime(x / canvasWidth)),
 				0,
 				duration,
 			)
-			return newTime
 		},
 		[duration, progressToTime],
 	)
@@ -882,6 +881,9 @@ const TimelineIndicatorsBarGraph = ({
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	const progressBar = useMemo(() => {
+		const scale =
+			clamp(sessionProgress * borderlessWidth, 0, borderlessWidth) /
+			borderlessWidth
 		return (
 			<div className={style.progressBarContainer}>
 				{isLiveMode ? (
@@ -893,11 +895,10 @@ const TimelineIndicatorsBarGraph = ({
 								<div
 									className={style.progressBar}
 									style={{
-										width: clamp(
-											sessionProgress * borderlessWidth,
-											0,
-											borderlessWidth,
-										),
+										width: borderlessWidth,
+										transform: `translateX(${
+											-borderlessWidth / 2
+										}px) scaleX(${2 * scale})`,
 									}}
 								/>
 								{adjustedInactivityPeriods.map(
@@ -1378,7 +1379,7 @@ function buildViewportEventBuckets(
 		eventBuckets[bucketId].identifier[eventType].push(identifier)
 		const details = JSON.stringify(
 			getEventRenderDetails(event as HighlightEvent).displayValue,
-		)?.replaceAll(/^\"|\"$/g, '')
+		)?.replaceAll(/^"|"$/g, '')
 		eventBuckets[bucketId].details[identifier] = !details
 			? identifier
 			: details
