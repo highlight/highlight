@@ -8,6 +8,7 @@ import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackInte
 import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
 import React from 'react'
+import FrontPluginConfig from '@pages/IntegrationsPage/components/FrontPlugin/FrontPluginConfig'
 
 export interface Integration {
 	key: string
@@ -80,6 +81,16 @@ export const FRONT_INTEGRATION: Integration = {
 	hasSettings: false,
 }
 
+export const FRONT_PLUGIN: Integration = {
+	key: 'front',
+	name: 'Front',
+	configurationPath: 'front',
+	description: 'Enhance your customer interaction experience.',
+	icon: '/images/integrations/front.png',
+	configurationPage: (opts) => <FrontPluginConfig {...opts} />,
+	hasSettings: false,
+}
+
 export const VERCEL_INTEGRATION: Integration = {
 	key: 'vercel',
 	name: 'Vercel',
@@ -108,7 +119,7 @@ const INTEGRATIONS: Integration[] = [
 	LINEAR_INTEGRATION,
 	ZAPIER_INTEGRATION,
 	CLEARBIT_INTEGRATION,
-	FRONT_INTEGRATION,
+	FRONT_PLUGIN,
 	VERCEL_INTEGRATION,
 	DISCORD_INTEGRATION,
 ]

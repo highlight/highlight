@@ -7,11 +7,13 @@ export const variants = recipe({
 		{
 			alignItems: 'center',
 			display: 'inline-flex',
+			userSelect: 'none',
 		},
 	],
 
 	variants: {
 		size: {
+			tiny: [sprinkles({ px: '4' }), { height: 16 }],
 			small: [sprinkles({ px: '6' }), { height: 16 }],
 			medium: [sprinkles({ px: '8' }), { height: 20 }],
 			large: [sprinkles({ px: '10' }), { height: 24 }],
@@ -23,18 +25,33 @@ export const variants = recipe({
 			rounded: {},
 		},
 		variant: {
-			white: sprinkles({ background: 'white', border: 'neutral' }),
-			grey: sprinkles({ background: 'neutral100' }),
+			white: sprinkles({
+				background: 'white',
+				border: 'neutral',
+				color: 'neutral700',
+			}),
+			grey: sprinkles({ background: 'neutral100', color: 'neutral500' }),
 			outlineGrey: sprinkles({
 				border: 'neutral',
+				color: 'neutral500',
 			}),
 			green: sprinkles({
 				background: 'green500',
+				color: 'white',
 			}),
 		},
 	},
 
 	compoundVariants: [
+		{
+			variants: {
+				size: 'tiny',
+				shape: 'rounded',
+			},
+			style: {
+				borderRadius: vars.borderRadius['3'],
+			},
+		},
 		{
 			variants: {
 				size: 'small',

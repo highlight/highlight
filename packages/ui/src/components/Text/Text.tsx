@@ -11,6 +11,7 @@ export type Props = React.PropsWithChildren &
 		display?: BoxProps['display']
 		lines?: TruncateProps['lines']
 		transform?: BoxProps['textTransform']
+		userSelect?: BoxProps['userSelect']
 	}
 
 export const Text: React.FC<Props> = ({
@@ -20,6 +21,7 @@ export const Text: React.FC<Props> = ({
 	display,
 	lines,
 	transform,
+	userSelect,
 	...props
 }) => {
 	const content = lines ? (
@@ -33,6 +35,7 @@ export const Text: React.FC<Props> = ({
 			as={as}
 			display={display}
 			color={color}
+			userSelect={userSelect}
 			textTransform={transform}
 			cssClass={styles.variants({ ...props })}
 		>

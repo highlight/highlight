@@ -30,6 +30,7 @@ import (
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/httplog"
 	"github.com/gorilla/websocket"
 	H "github.com/highlight-run/highlight-go"
 	highlightChi "github.com/highlight-run/highlight-go/middleware/chi"
@@ -228,7 +229,12 @@ func main() {
 	private.SetupAuthClient(oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
-	// r.Use(handlers.CompressHandler)
+	errorLogger := httplog.NewLogger(fmt.Sprintf("%v-service", runtimeParsed), httplog.Options{
+		JSON:     true,
+		LogLevel: "warn",
+		Concise:  true,
+	})
+	r.Use(httplog.RequestLogger(errorLogger))
 	compressor := middleware.NewCompressor(5, "application/json")
 	compressor.SetEncoder("br", func(w io.Writer, level int) io.Writer {
 		params := brotli_enc.NewBrotliParams()

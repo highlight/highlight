@@ -14,9 +14,11 @@ import { gte } from 'semver'
 
 const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './firstload/package.json'
+const DOCS_DIR = './docs'
 
-const rootDir = dirname(dirname(fileURLToPath(import.meta.url)))
 const client = new S3Client({ region: 'us-east-2' })
+const rootDir = dirname(dirname(fileURLToPath(import.meta.url)))
+const docsDir = join(rootDir, DOCS_DIR)
 
 const highlightRunPackageJson = JSON.parse(
 	fs.readFileSync(join(rootDir, FIRSTLOAD_PACKAGE_JSON), {
@@ -55,6 +57,14 @@ const getFiles = async function* (
 		} else if (stat.isDirectory()) {
 			yield* getFiles(filePath)
 		}
+	}
+}
+
+const changelogExists = function (version: string) {
+	try {
+		return statSync(join(docsDir, `8_changelog`, `${version}.md`)).isFile()
+	} catch (e) {
+		return false
 	}
 }
 
@@ -107,6 +117,13 @@ const upload = async function (
 			)
 			process.exit(1)
 		}
+		if (!changelogExists(highlightRunPackageJson.version)) {
+			console.error(
+				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
+			)
+			process.exit(1)
+		}
+
 		console.log(
 			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
 		)

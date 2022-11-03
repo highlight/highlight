@@ -3,7 +3,7 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { typographyStyles } from '../Text/styles.css'
 
-const shadows = {
+export const shadows = {
 	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
@@ -45,11 +45,15 @@ export const variants = recipe({
 		},
 		{
 			selectors: {
-				'&:disabled, &:disabled:hover, &:disabled:active': {
+				'&:disabled, &:disabled:hover, &:disabled:focus': {
 					backgroundColor: vars.color.neutral50,
 					border: 0,
 					boxShadow: 'none',
 					color: vars.color.neutral300,
+				},
+				'&:focus, &:active': {
+					boxShadow: 'none',
+					outline: 'none',
 				},
 			},
 		},
@@ -65,7 +69,7 @@ export const variants = recipe({
 					'&:hover': {
 						background: vars.color.purple700,
 					},
-					'&:active': {
+					'&:focus, &:active': {
 						boxShadow: 'none',
 					},
 				},
@@ -78,7 +82,7 @@ export const variants = recipe({
 					'&:hover': {
 						background: vars.color.neutral50,
 					},
-					'&:active': {
+					'&:focus, &:active': {
 						border: `1px solid ${vars.color.neutral300}`,
 					},
 				},
@@ -91,7 +95,7 @@ export const variants = recipe({
 					'&:hover': {
 						background: vars.color.neutral200,
 					},
-					'&:active': {
+					'&:focus, &:active': {
 						boxShadow: 'none',
 					},
 				},

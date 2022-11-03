@@ -53,5 +53,7 @@ export const borderRadii = {
 	'6': '6px',
 	'8': '8px',
 	'12': '12px',
+	'16': '16px',
+	'23': '23px',
 	round: '999px',
 } as const

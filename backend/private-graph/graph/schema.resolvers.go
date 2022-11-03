@@ -36,7 +36,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -368,13 +368,24 @@ func (r *mutationResolver) CreateProject(ctx context.Context, name string, works
 }
 
 // CreateWorkspace is the resolver for the createWorkspace field.
-func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*model.Workspace, error) {
+func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model.Workspace, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, nil
 	}
 
 	trialEnd := time.Now().Add(14 * 24 * time.Hour) // Trial expires 14 days from current day
+	if promoCode != nil {
+		trialDetails, ok := PromoCodes[strings.ToUpper(*promoCode)]
+		if !ok {
+			return nil, e.New("Could not create workspace: promo code is not valid.")
+		}
+		if time.Now().After(trialDetails.ValidUntil) {
+			return nil, e.New("Could not create workspace: promo code has expired.")
+		}
+
+		trialEnd = time.Now().Add(time.Duration(trialDetails.TrialDays*24) * time.Hour)
+	}
 
 	workspace := &model.Workspace{
 		Admins:                    []model.Admin{*admin},
@@ -382,6 +393,7 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string) (*m
 		TrialEndDate:              &trialEnd,
 		EligibleForTrialExtension: true, // Trial can be extended if user integrates + fills out form
 		TrialExtensionEnabled:     false,
+		PromoCode:                 promoCode,
 	}
 
 	if err := r.DB.Create(workspace).Error; err != nil {
@@ -3292,8 +3304,11 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		// page param is 1 indexed
 		options.ResultsFrom = ptr.Int((*page - 1) * count)
 	}
-
+	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, query, options, &results)
+	errorGroupsOpensearchSearchSpan.Finish()
+
 	if err != nil {
 		return nil, err
 	}
@@ -3303,7 +3318,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
 	}
 
-	if err := r.SetErrorFrequencies(asErrorGroups, 5); err != nil {
+	errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+		tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+
+	err = r.SetErrorFrequencies(asErrorGroups, 5)
+	errorFrequencyOpensearchSpan.Finish()
+
+	if err != nil {
 		return nil, err
 	}
 

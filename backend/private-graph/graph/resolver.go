@@ -79,6 +79,18 @@ var BytesConversion = map[string]int64{
 	"pb": 1024 * 1024 * 1024 * 1024 * 1024,
 }
 
+type PromoCode struct {
+	TrialDays  int
+	ValidUntil time.Time
+}
+
+var PromoCodes = map[string]PromoCode{
+	"WEBDEVSIMPLIFIED": {
+		TrialDays:  60,
+		ValidUntil: time.Date(2023, time.May, 15, 0, 0, 0, 0, time.UTC),
+	},
+}
+
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB
@@ -1472,6 +1484,7 @@ func (r *Resolver) ProjectJWTHandler(w http.ResponseWriter, req *http.Request) {
 		SameSite: http.SameSiteNoneMode,
 		Path:     "/",
 	})
+	w.WriteHeader(http.StatusOK)
 }
 
 func (r *Resolver) AssetHandler(w http.ResponseWriter, req *http.Request) {
@@ -2479,54 +2492,32 @@ func (r *Resolver) GetSlackChannelsFromSlack(workspaceId int) (*[]model.SlackCha
 		log.Error(e.Wrap(err, "failed to get users"))
 	}
 
-	newChannels := []model.SlackChannel{}
-	for _, channel := range allSlackChannelsFromAPI {
-		newChannel := model.SlackChannel{}
-
-		// Slack channels' `User` will be an empty string and the user's ID if it's a user.
-		if channel.User != "" {
-			var userToFind *slack.User
-			for _, user := range users {
-				if user.ID == channel.User {
-					userToFind = &user
-					break
-				}
-			}
-
-			if userToFind != nil {
-				// Filter out Slack Bots.
-				if userToFind.IsBot || userToFind.Name == "slackbot" {
-					continue
-				}
-				newChannel.WebhookChannel = fmt.Sprintf("@%s", userToFind.Name)
-			}
-		} else {
-			newChannel.WebhookChannel = fmt.Sprintf("#%s", channel.Name)
-		}
-
-		newChannel.WebhookChannelID = channel.ID
-		newChannels = append(newChannels, newChannel)
-	}
-
 	newChannelsCount := 0
-	// Filter out `newChannels` that already exist in `existingChannels` so we don't have duplicates.
-	for _, newChannel := range newChannels {
-		channelAlreadyExists := false
 
-		for _, existingChannel := range existingChannels {
-			if existingChannel.WebhookChannelID == newChannel.WebhookChannelID {
-				channelAlreadyExists = true
-				break
-			}
-		}
+	channelsAndUsers := map[string]model.SlackChannel{}
+	for _, channel := range existingChannels {
+		channelsAndUsers[channel.WebhookChannelID] = channel
+	}
 
-		if !channelAlreadyExists {
-			filteredNewChannels = append(filteredNewChannels, newChannel)
+	for _, channel := range allSlackChannelsFromAPI {
+		_, exists := channelsAndUsers[channel.ID]
+		if !exists && channel.IsChannel && channel.ID != "" {
 			newChannelsCount++
+			slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+			channelsAndUsers[channel.ID] = slackChannel
+			existingChannels = append(existingChannels, slackChannel)
 		}
 	}
 
-	existingChannels = append(existingChannels, filteredNewChannels...)
+	for _, user := range users {
+		_, exists := channelsAndUsers[user.ID]
+		if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
+			newChannelsCount++
+			slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+			channelsAndUsers[user.ID] = slackChannel
+			existingChannels = append(existingChannels, slackChannel)
+		}
+	}
 
 	return &existingChannels, newChannelsCount, nil
 }
