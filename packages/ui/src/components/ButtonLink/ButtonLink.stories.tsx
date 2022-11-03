@@ -8,4 +8,14 @@ export default {
 	component: ButtonLink,
 } as ComponentMeta<typeof ButtonLink>
 
-export const Basic = () => <ButtonLink>Hello! 👋</ButtonLink>
+export const Basic = () => (
+	<>
+		<ButtonLink
+			onClick={() =>
+				alert('Use buttons for actions and links to navigate!')
+			}
+		>
+			I am a button that looks like a link!
+		</ButtonLink>
+	</>
+)
