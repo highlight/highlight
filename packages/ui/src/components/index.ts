@@ -1,6 +1,7 @@
 export { Badge } from './Badge/Badge'
 export { Box } from './Box/Box'
 export { Button } from './Button/Button'
+export { ButtonLink } from './ButtonLink/ButtonLink'
 export { Card } from './Card/Card'
 export { Heading } from './Heading/Heading'
 export { Menu } from './Menu/Menu'

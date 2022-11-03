@@ -1,5 +1,5 @@
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, Text, TextLink } from '@highlight-run/ui'
+import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
@@ -12,6 +12,7 @@ interface Props {
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
+	const [truncated, setTruncated] = React.useState(true)
 	const body = getErrorBody(errorGroup?.event)
 
 	return (
@@ -138,12 +139,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
-				<Text
-					family="monospace"
-					lines={body.length > 400 ? '3' : undefined}
-				>
+				<Text family="monospace" lines={truncated ? '3' : undefined}>
 					{body}
 				</Text>
+
+				<Box mt="12">
+					<ButtonLink onClick={() => setTruncated(!truncated)}>
+						Show {truncated ? 'more' : 'less'}
+					</ButtonLink>
+				</Box>
 			</Box>
 		</Box>
 	)
