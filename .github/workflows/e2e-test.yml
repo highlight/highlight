@@ -8,15 +8,18 @@ on:
             - '**/package.json'
             - '**/yarn.lock'
             - '.github/workflows/e2e-test.yml'
+            - '.gitmodules'
             - 'client/**'
             - 'cypress.config.js'
             - 'cypress/**'
             - 'firstload/**'
             - 'frontend/**'
+            - 'rrweb/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         env:
             ENVIRONMENT: test
             PGPASSWORD: postgres

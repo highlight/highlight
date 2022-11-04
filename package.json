@@ -64,6 +64,7 @@
 	},
 	"packageManager": "yarn@3.2.3",
 	"resolutions": {
+		"@types/dom-webcodecs": "0.1.4",
 		"ansi-regex": "3.0.1",
 		"ejs": "3.1.7",
 		"eventsource": "1.1.1",
