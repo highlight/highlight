@@ -447,12 +447,31 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const seek = useCallback(
 		(time: number) => {
+			if (!state.isLiveMode && skipInactive) {
+				const inactivityEnd = getInactivityEnd(time)
+				if (inactivityEnd) {
+					log(
+						'PlayerHook.tsx',
+						'seeking to',
+						inactivityEnd,
+						'due to inactivity at seek requested for',
+						time,
+					)
+					time = inactivityEnd
+				}
+			}
 			dispatch({ type: PlayerActionType.setTime, time })
 			requestAnimationFrame(() =>
 				ensureChunksLoaded(time, undefined, state.replayerState).then(),
 			)
 		},
-		[ensureChunksLoaded, state.replayerState],
+		[
+			ensureChunksLoaded,
+			getInactivityEnd,
+			skipInactive,
+			state.isLiveMode,
+			state.replayerState,
+		],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
