@@ -13,6 +13,7 @@ on:
             - 'cypress/**'
             - 'firstload/**'
             - 'frontend/**'
+            - 'rrweb/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
