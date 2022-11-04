@@ -8,6 +8,7 @@ on:
             - '**/package.json'
             - '**/yarn.lock'
             - '.github/workflows/e2e-test.yml'
+            - '.gitmodules'
             - 'client/**'
             - 'cypress.config.js'
             - 'cypress/**'
