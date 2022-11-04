@@ -30,7 +30,7 @@ jobs:
               id: vars
               run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
             - name: Push to Docker Hub
-              uses: docker/build-push-action@v2
+              uses: docker/build-push-action@v3
               with:
                   context: ./
                   push: ${{ github.ref == 'refs/heads/master' }}
