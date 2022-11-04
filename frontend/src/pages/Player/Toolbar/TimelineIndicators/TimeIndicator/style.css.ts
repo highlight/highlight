@@ -1,12 +1,12 @@
 import {
 	HISTOGRAM_AREA_HEIGHT,
 	TIME_AXIS_HEIGHT,
+	TIME_INDICATOR_TOP_WIDTH,
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/style.css'
 import { style } from '@vanilla-extract/css'
 
 export const TOP_HEIGHT = 12
 export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
-export const TIME_INDICATOR_TOP_WIDTH = 10
 
 export const timeIndicator = style({
 	alignItems: 'center',
@@ -14,7 +14,8 @@ export const timeIndicator = style({
 	display: 'flex',
 	flexDirection: 'column',
 	height: '100%',
-	position: 'absolute',
+	width: TIME_INDICATOR_TOP_WIDTH,
+	position: 'relative',
 	zIndex: '2',
 })
 

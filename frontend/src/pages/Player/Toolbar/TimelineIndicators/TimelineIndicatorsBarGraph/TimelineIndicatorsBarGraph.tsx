@@ -888,11 +888,19 @@ const TimelineIndicatorsBarGraph = ({
 	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
+	const useTransition = !isRefreshingDOM && !isDragging
+
 	const progressBar = useMemo(() => {
 		return (
 			<div className={style.progressBarContainer}>
 				<div
-					className={style.progressBar}
+					className={clsx([
+						style.progressBar,
+
+						{
+							[style.moveIndicator]: useTransition,
+						},
+					])}
 					style={{
 						transform: `scaleX(${sessionProgress})`,
 					}}
@@ -1049,9 +1057,9 @@ const TimelineIndicatorsBarGraph = ({
 		1 - style.HISTOGRAM_OFFSET / style.HISTOGRAM_AREA_HEIGHT
 
 	const containerProgress = clamp(
-		canvasWidth * canvasProgress + TIMELINE_MARGIN,
-		TIMELINE_MARGIN,
-		TIMELINE_MARGIN + canvasWidth,
+		canvasWidth * canvasProgress,
+		0,
+		canvasWidth,
 	)
 	return (
 		<div className={style.timelineIndicatorsContainer} style={{ width }}>
@@ -1094,16 +1102,36 @@ const TimelineIndicatorsBarGraph = ({
 				])}
 				ref={viewportRef}
 			>
-				<TimeIndicator
-					topRef={timeIndicatorTopRef}
-					hairRef={timeIndicatorHairRef}
-					viewportRef={viewportRef}
-					text={formatTimeOnTop(shownTime)}
-					isDragging={isDragging}
-					isZooming={isRefreshingDOM}
-					hideHair={!showHistogram}
-					containerProgress={containerProgress}
-				/>
+				<div
+					className={style.timeIndicatorContainerWrapper}
+					style={{
+						width: canvasWidth,
+					}}
+				>
+					<div
+						className={clsx([
+							style.timeIndicatorContainer,
+							{
+								[style.moveIndicator]: useTransition,
+							},
+						])}
+						style={{
+							transform: `translateX(${
+								containerProgress -
+								style.TIME_INDICATOR_TOP_WIDTH / 2
+							}px)`,
+						}}
+					>
+						<TimeIndicator
+							topRef={timeIndicatorTopRef}
+							hairRef={timeIndicatorHairRef}
+							viewportRef={viewportRef}
+							text={formatTimeOnTop(shownTime)}
+							isDragging={isDragging}
+							hideHair={!showHistogram}
+						/>
+					</div>
+				</div>
 				<div className={style.timeAxis} ref={timeAxisRef}>
 					{ticks}
 				</div>

@@ -8,6 +8,7 @@ export const PROGRESS_BAR_HEIGHT = 3
 export const HISTOGRAM_AREA_HEIGHT = 92
 export const HISTOGRAM_OFFSET = 26
 export const SEPARATOR_HEIGHT = 1
+export const TIME_INDICATOR_TOP_WIDTH = 10
 
 export const timelineIndicatorsContainer = style({
 	alignItems: 'center',
@@ -60,7 +61,6 @@ export const progressBar = style({
 	position: 'absolute',
 	top: 0,
 	width: '100%',
-	transition: 'transform 0.3s ease',
 	transformOrigin: 'left',
 })
 
@@ -180,4 +180,23 @@ export const inactivityPeriodMask = style({
 	height: '100%',
 	position: 'absolute',
 	zIndex: -1,
+})
+
+export const moveIndicator = style({
+	transition: 'transform 0.3s ease',
+})
+
+export const timeIndicatorContainerWrapper = style({
+	position: 'absolute',
+	left: TIMELINE_MARGIN,
+	height: '100%',
+})
+
+export const timeIndicatorContainer = style({
+	willChange: 'transform',
+	position: 'relative',
+	height: '100%',
+	width: TIME_INDICATOR_TOP_WIDTH,
+	overflow: 'hidden',
+	zIndex: 1,
 })
