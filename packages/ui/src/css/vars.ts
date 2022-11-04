@@ -1,4 +1,4 @@
-import { borders } from './borders'
+import { borderRadii, borders, borderWidths } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
 import { spaces } from './spaces'
@@ -8,23 +8,8 @@ export const vars = {
 	color: colors,
 	space: spaces,
 	border: borders,
-	borderRadius: {
-		'3': '3px',
-		'4': '4px',
-		'5': '5px',
-		'6': '6px',
-		'8': '8px',
-		'10': '10px',
-		'12': '12px',
-		'16': '16px',
-		'23': '23px',
-		round: '999px',
-	},
-	borderWidth: {
-		small: '1px',
-		medium: '2px',
-		large: '4px',
-	},
+	borderRadius: borderRadii,
+	borderWidth: borderWidths,
 	borderStyle: {
 		standard: 'solid',
 	},

@@ -87,6 +87,17 @@ export const variants = recipe({
 		family: typographyStyles.family,
 		size: typographyStyles.size,
 		weight: typographyStyles.weight,
+		case: {
+			capital: {
+				textTransform: 'capitalize',
+			},
+			upper: {
+				textTransform: 'uppercase',
+			},
+			lower: {
+				textTransform: 'lowercase',
+			},
+		},
 	},
 
 	compoundVariants: [

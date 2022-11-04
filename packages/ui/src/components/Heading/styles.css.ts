@@ -29,11 +29,11 @@ export const variants = recipe({
 	base: [sprinkles({ margin: '0' })],
 
 	variants: {
-		size: {
-			h4: { ...h4, ...typographyStyles.family.heading },
-			h3: { ...h3, ...typographyStyles.family.heading },
-			h2: { ...h2, ...typographyStyles.family.heading },
+		level: {
 			h1: { ...h1, ...typographyStyles.family.heading },
+			h2: { ...h2, ...typographyStyles.family.heading },
+			h3: { ...h3, ...typographyStyles.family.heading },
+			h4: { ...h4, ...typographyStyles.family.heading },
 		},
 	},
 })
