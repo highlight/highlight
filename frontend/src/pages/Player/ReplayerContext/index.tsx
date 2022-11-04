@@ -69,8 +69,6 @@ export interface ParsedSessionInterval extends SessionInterval {
 export interface ReplayerContextInterface {
 	state: ReplayerState
 	replayer: Replayer | undefined
-	/** The current time the player is at. */
-	time: number
 	setTime: (newTime: number) => void
 	/** The current size of the replayer (in percent). */
 	scale: number
@@ -96,13 +94,6 @@ export interface ReplayerContextInterface {
 	isLiveMode: boolean
 	setIsLiveMode: React.Dispatch<React.SetStateAction<boolean>>
 	lastActiveString: string | null
-	/**
-	 * The percentage value of the current player time relative to the total duration.
-	 * `playerProgress` is `null` if there is no active session.
-	 * @example The session is 100 seconds long. The current time is 10 seconds. `playerProgress` is 0.1.
-	 * @example The session is 100 seconds long. The current time is 50 seconds. `playerProgress` is 0.5.
-	 */
-	playerProgress: number | null
 	rageClicks: RageClick[]
 	viewport: viewportResizeDimension | undefined
 	currentUrl: string | undefined

@@ -48,6 +48,7 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
@@ -66,9 +67,9 @@ import style from './ToolbarControlBar.module.scss'
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
 const ToolbarControls = () => {
+	const [time] = usePlayerTime()
 	const {
 		setTime,
-		time,
 		state,
 		play,
 		pause,

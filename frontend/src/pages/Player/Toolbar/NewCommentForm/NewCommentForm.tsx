@@ -28,6 +28,7 @@ import ArrowLeftIcon from '@icons/ArrowLeftIcon'
 import ArrowRightIcon from '@icons/ArrowRightIcon'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import INTEGRATIONS, { Integration } from '@pages/IntegrationsPage/Integrations'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
 import useLocalStorage from '@rehooks/local-storage'
@@ -47,7 +48,6 @@ import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguratio
 import styles from './NewCommentForm.module.scss'
 
 interface Props {
-	commentTime: number
 	onCloseHandler: () => void
 	commentPosition: Coordinates2D | undefined
 	parentRef?: React.RefObject<HTMLDivElement>
@@ -65,7 +65,6 @@ enum CommentFormSection {
 }
 
 export const NewCommentForm = ({
-	commentTime,
 	onCloseHandler,
 	commentPosition,
 	parentRef,
@@ -84,6 +83,7 @@ export const NewCommentForm = ({
 		variables: { project_id },
 		fetchPolicy: 'network-only',
 	})
+	const [commentTime] = usePlayerTime()
 	const [commentText, setCommentText] = useState('')
 	/**
 	 * commentTextForEmail is the comment text without the formatting.

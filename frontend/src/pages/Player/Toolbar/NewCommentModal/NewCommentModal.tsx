@@ -9,7 +9,6 @@ import styles from './NewCommentModal.module.scss'
 
 interface Props {
 	newCommentModalRef: React.RefObject<HTMLDivElement>
-	commentTime: number
 	onCancel: () => void
 	commentModalPosition?: Coordinates2D
 	commentPosition?: Coordinates2D
@@ -25,7 +24,6 @@ export function NewCommentModal({
 	newCommentModalRef,
 	commentModalPosition,
 	commentPosition,
-	commentTime,
 	session,
 	onCancel,
 	session_secure_id,
@@ -72,7 +70,6 @@ export function NewCommentModal({
 		>
 			<div ref={newCommentModalRef}>
 				<NewCommentForm
-					commentTime={Math.floor(commentTime)}
 					onCloseHandler={onCancel}
 					commentPosition={commentPosition}
 					parentRef={newCommentModalRef}

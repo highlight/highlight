@@ -1,4 +1,8 @@
-import { ApolloQueryResult, LazyQueryExecFunction } from '@apollo/client'
+import {
+	ApolloQueryResult,
+	LazyQueryExecFunction,
+	ReactiveVar,
+} from '@apollo/client'
 import { MarkSessionAsViewedMutationFn } from '@graph/hooks'
 import {
 	GetEventChunkUrlQuery,
@@ -130,7 +134,8 @@ interface PlayerState {
 	sessionResults: SessionResults
 	sessionViewability: SessionViewability
 	session_secure_id: string
-	time: number
+	setPlayerTime: ReactiveVar<number>
+	timeRef: MutableRefObject<number>
 	viewingUnauthorizedSession: boolean
 	viewport: viewportResizeDimension | undefined
 }
@@ -357,10 +362,10 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.setTime:
-			s.time = action.time
+			s.timeRef.current = action.time
 			if (
 				s.replayerState === ReplayerState.SessionEnded &&
-				s.time < state.sessionEndTime
+				s.timeRef.current < state.sessionEndTime
 			) {
 				s.replayerState = ReplayerState.Paused
 			}
@@ -460,7 +465,6 @@ export const PlayerReducer = (
 				sessionMetadata: EMPTY_SESSION_METADATA,
 				sessionViewability: SessionViewability.VIEWABLE,
 				session_secure_id: action.sessionSecureId,
-				time: 0,
 			}
 			break
 		case PlayerActionType.updateViewport:
@@ -508,18 +512,21 @@ export const PlayerReducer = (
 			} else {
 				s.replayer.replaceEvents(events)
 			}
-			s.time = action.time
+			s.timeRef.current = action.time
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
 				s,
 				action.action || s.replayerStateBeforeLoad,
-				s.time,
+				s.timeRef.current,
 			)
 			s.isLoadingEvents = false
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
+			s.setPlayerTime(
+				getTimeFromReplayer(state.replayer, state.sessionMetadata),
+			)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
 			if (
@@ -539,8 +546,8 @@ export const PlayerReducer = (
 			}
 
 			if (s.replayerState !== ReplayerState.Playing) break
-			s.time = time
-			if (s.time >= s.sessionMetadata.totalTime) {
+			s.timeRef.current = time
+			if (s.timeRef.current >= s.sessionMetadata.totalTime) {
 				s.replayerState = s.isLiveMode
 					? ReplayerState.Paused // Waiting for more data
 					: ReplayerState.SessionEnded
@@ -616,7 +623,7 @@ export const PlayerReducer = (
 			'PlayerState.ts',
 			'PlayerStateUpdate',
 			PlayerActionType[action.type],
-			s.time,
+			s.timeRef.current,
 			events.length,
 			{
 				initialState: state,
@@ -629,7 +636,7 @@ export const PlayerReducer = (
 			'PlayerState.ts',
 			'PlayerStateTransition',
 			PlayerActionType[action.type],
-			s.time,
+			s.timeRef.current,
 			events.length,
 			{
 				initialState: state,
@@ -754,7 +761,7 @@ const replayerAction = (
 			}
 			s.replayerState = desiredState
 			if (!skipSetTime && time !== undefined) {
-				s.time = time
+				s.timeRef.current = time
 			}
 		},
 		[

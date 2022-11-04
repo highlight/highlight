@@ -1,3 +1,4 @@
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import {
 	RightPlayerPanelTabsId,
 	RightPlayerPanelTabType,
@@ -73,7 +74,7 @@ const usePlayerConfiguration = () => {
 		...EventsForTimeline,
 	])
 
-	const [playerTime, setPlayerTime] = useLocalStorage('playerTime', 0)
+	const [playerTime, setPlayerTime] = usePlayerTime()
 
 	const [enableInspectElement, setEnableInspectElement] = useLocalStorage(
 		'highlightMenuEnableDOMInteractions',

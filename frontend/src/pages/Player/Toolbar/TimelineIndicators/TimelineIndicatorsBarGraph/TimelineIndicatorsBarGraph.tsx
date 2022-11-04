@@ -68,11 +68,13 @@ const TimelineIndicatorsBarGraph = ({
 }: Props) => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
-		usePlayerConfiguration()
+	const {
+		showPlayerAbsoluteTime,
+		showHistogram: shouldShowHistogram,
+		playerTime: time,
+	} = usePlayerConfiguration()
 	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
-		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
 		setTime,
 		eventsForTimelineIndicator,

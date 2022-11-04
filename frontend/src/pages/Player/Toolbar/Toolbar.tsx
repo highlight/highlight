@@ -3,6 +3,7 @@ import Switch from '@components/Switch/Switch'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
 import TimelineIndicators from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicators'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
@@ -86,10 +87,10 @@ interface Props {
 }
 export const Toolbar = ({ width }: Props) => {
 	const { isHighlightAdmin } = useAuthContext()
+	const [time] = usePlayerTime()
 	const {
 		replayer,
 		setTime,
-		time,
 		state,
 		play,
 		pause,
@@ -433,6 +434,7 @@ interface SliderProps {
 	width: number
 }
 const Slider = ({ width }: SliderProps) => {
+	const [time] = usePlayerTime()
 	const {
 		setTime,
 		isLiveMode,
@@ -441,7 +443,6 @@ const Slider = ({ width }: SliderProps) => {
 		sessionMetadata,
 		pause,
 		play,
-		time,
 		canViewSession,
 	} = useReplayerContext()
 	const sliderWrapperRef = useRef<HTMLButtonElement>(null)
@@ -617,7 +618,8 @@ const SessionSegment = React.memo(
 		getSliderTime: (sliderTime: number) => number
 		isLastSegment: boolean
 	}) => {
-		const { time, sessionStartDateTime } = useReplayerContext()
+		const [time] = usePlayerTime()
+		const { sessionStartDateTime } = useReplayerContext()
 		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 		const playedColor = interval.active
 			? 'var(--color-purple)'

@@ -57,7 +57,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [download] = useQueryParam('download', BooleanParam)
 
 	const {
-		setPlayerTime: setPlayerTimeToPersistance,
+		setPlayerTime,
 		autoPlaySessions,
 		showPlayerMouseTail,
 		setShowLeftPanel,
@@ -124,6 +124,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
 	const currentChunkIdx = useRef<number>(0)
+	const timeRef = useRef<number>(0)
 
 	const [
 		chunkEventsRef,
@@ -134,11 +135,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const [state, dispatch] = useReducer(PlayerReducer, {
 		...PlayerInitialState,
 		chunkEventsRef,
-		isLoggedIn,
-		isHighlightAdmin,
-		markSessionAsViewed,
-		getSessionPayloadQuery,
 		fetchEventChunkURL,
+		getSessionPayloadQuery,
+		isHighlightAdmin,
+		isLoggedIn,
+		markSessionAsViewed,
+		setPlayerTime,
+		timeRef,
 	})
 
 	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
@@ -548,7 +551,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			play(state.time)
+			play(timeRef.current)
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
@@ -712,10 +715,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [state.replayerState, state.isLiveMode])
 
-	useEffect(() => {
-		setPlayerTimeToPersistance(state.time)
-	}, [setPlayerTimeToPersistance, state.time])
-
 	// Finds the next session in the session feed to play if autoplay is enabled.
 	useEffect(() => {
 		if (
@@ -760,22 +759,26 @@ export const usePlayer = (): ReplayerContextInterface => {
 				skipInactive &&
 				state.replayerState === ReplayerState.Playing
 			) {
-				inactivityEnd = getInactivityEnd(state.time)
+				inactivityEnd = getInactivityEnd(timeRef.current)
 				if (inactivityEnd !== undefined) {
 					log(
 						'PlayerHook.tsx',
 						'seeking to',
 						inactivityEnd,
 						'due to inactivity at',
-						state.time,
+						timeRef.current,
 					)
 					return play(inactivityEnd)
 				}
 			}
-			ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
+			ensureChunksLoaded(
+				timeRef.current,
+				timeRef.current + LOOKAHEAD_MS,
+			).then()
 		}
+		// TODO(vkorolik)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		state.time,
 		ensureChunksLoaded,
 		state.sessionMetadata.startTime,
 		state.session?.processed,
@@ -784,8 +787,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 		getInactivityEnd,
 		play,
 		state.isLiveMode,
+		timeRef.current,
 	])
-
 	return {
 		...state,
 		setScale: (scale) =>
@@ -813,9 +816,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},
-		playerProgress: state.replayer
-			? state.time / state.sessionMetadata.totalTime
-			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
 		setViewingUnauthorizedSession: (viewingUnauthorizedSession) =>
 			dispatch({

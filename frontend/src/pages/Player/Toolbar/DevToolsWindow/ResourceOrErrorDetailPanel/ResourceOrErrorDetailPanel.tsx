@@ -25,8 +25,8 @@ type Props = {
 }
 
 const ResourceOrErrorDetailPanelContent = ({ resource, error }: Props) => {
-	const { pause, session, sessionMetadata } = useReplayerContext()
-	const { errors, isPlayerReady } = useReplayerContext()
+	const { pause, session, sessionMetadata, errors, isPlayerReady } =
+		useReplayerContext()
 	const { resources, loadResources, resourcesLoading } = useResourcesContext()
 
 	if (resource !== undefined && error === undefined) {

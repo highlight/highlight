@@ -11,6 +11,7 @@ import {
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import { StreamElement } from '@pages/Player/StreamElement/StreamElement'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
@@ -24,9 +25,9 @@ import styles from './EventStream.module.scss'
 
 const EventStream = () => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const [time] = usePlayerTime()
 	const {
 		sessionMetadata,
-		time,
 		eventsForTimelineIndicator: replayerEvents,
 		state,
 		replayer,

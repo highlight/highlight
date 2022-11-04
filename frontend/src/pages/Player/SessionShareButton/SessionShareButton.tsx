@@ -1,22 +1,23 @@
+import { useAuthContext } from '@authentication/AuthContext'
+import { useUpdateSessionIsPublicMutation } from '@graph/hooks'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import { useParams } from '@util/react-router/useParams'
 import { ButtonProps } from 'antd'
 import { H } from 'highlight.run'
 import React, { useState } from 'react'
 
-import { useAuthContext } from '../../../authentication/AuthContext'
 import ShareButton from '../../../components/Button/ShareButton/ShareButton'
 import CopyText from '../../../components/CopyText/CopyText'
 import Modal from '../../../components/Modal/Modal'
 import ModalBody from '../../../components/ModalBody/ModalBody'
 import Switch from '../../../components/Switch/Switch'
-import { useUpdateSessionIsPublicMutation } from '../../../graph/generated/hooks'
 import SvgShareIcon from '../../../static/ShareIcon'
 import { useReplayerContext } from '../ReplayerContext'
 import styles from './SessionShareButton.module.scss'
 import { onGetLink, onGetLinkWithTimestamp } from './utils/utils'
 
 const SessionShareButton = (props: ButtonProps) => {
-	const { time } = useReplayerContext()
+	const [time] = usePlayerTime()
 	const { isLoggedIn } = useAuthContext()
 	const [showModal, setShowModal] = useState(false)
 	const [shareTimestamp, setShareTimestamp] = useState(false)

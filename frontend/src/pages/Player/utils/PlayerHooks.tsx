@@ -47,17 +47,11 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
-	const {
-		state,
-		play,
-		pause,
-		time,
-		replayer,
-		sessionResults,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { state, play, pause, replayer, sessionResults, sessionMetadata } =
+		useReplayerContext()
 	const { setIsPlayerFullscreen } = usePlayerUIContext()
 	const {
+		playerTime: time,
 		setPlayerSpeedIdx,
 		playerSpeedIdx,
 		setEnableInspectElement,

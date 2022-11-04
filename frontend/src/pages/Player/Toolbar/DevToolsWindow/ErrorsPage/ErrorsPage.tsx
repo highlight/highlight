@@ -1,4 +1,5 @@
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import usePlayerTime from '@pages/Player/ReplayerContext/usePlayerTime'
 import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -22,10 +23,10 @@ const ErrorsPage = React.memo(() => {
 		useState(false)
 	const [filterSearchTerm, setFilterSearchTerm] = useState('')
 	const history = useHistory<ErrorsPageHistoryState>()
+	const [time] = usePlayerTime()
 	const {
 		errors: allErrors,
 		state,
-		time,
 		session,
 		setTime,
 		sessionMetadata,
