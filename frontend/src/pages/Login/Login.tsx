@@ -47,6 +47,7 @@ export const AuthAdminRouter = () => {
 				name: string
 				highlightDisplayName?: string
 				email?: string
+				workspaceId?: string
 			} = {
 				id,
 				name,

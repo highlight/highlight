@@ -287,6 +287,7 @@ export const H: HighlightPublicInterface = {
 		}
 		if (window.mixpanel?.identify) {
 			window.mixpanel.identify(identifier)
+			window.mixpanel.register(metadata)
 		}
 		if (window.amplitude?.getInstance) {
 			window.amplitude.getInstance().setUserId(identifier)
