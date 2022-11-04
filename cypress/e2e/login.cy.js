@@ -12,7 +12,8 @@ describe('login spec', () => {
 		// Fill out login form
 		cy.get('[name="email"]').should('be.visible').type('swag@highlight.run')
 		cy.get('[name="password"]').type('9nsUj7eNoh#qeVPB!LaYCPFLBs!wwPG2')
-		cy.get('button[type="submit"]').click()
+		cy.get('button[type="submit"]').click().wait(1000)
+		cy.visit('/1/buttons')
 
 		// Ensure client requests are made
 		cy.wait('@pushMetrics')
