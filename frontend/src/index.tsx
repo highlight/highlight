@@ -26,6 +26,7 @@ import {
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
+	useGetProjectLazyQuery,
 } from '@graph/hooks'
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
@@ -192,6 +193,7 @@ const App = () => {
 const AuthenticationRoleRouter = () => {
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
+	const [getProjectQuery] = useGetProjectLazyQuery()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -338,6 +340,28 @@ const AuthenticationRoleRouter = () => {
 			)
 		}
 	}, [authRole, setLoadingState])
+
+	useEffect(() => {
+		if (!projectId) {
+			return
+		}
+
+		getProjectQuery({
+			variables: {
+				id: projectId,
+			},
+			onCompleted: (data) => {
+				if (!data.project) {
+					return
+				}
+
+				window.mixpanel.register({
+					projectId: data.project?.id,
+					workspaceId: data.workspace?.id,
+				})
+			},
+		})
+	}, [getProjectQuery, projectId])
 
 	const [enableStaffView] = useLocalStorage(
 		`highlight-enable-staff-view`,
