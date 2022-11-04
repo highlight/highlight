@@ -8,6 +8,7 @@ export const PROGRESS_BAR_HEIGHT = 3
 export const HISTOGRAM_AREA_HEIGHT = 92
 export const HISTOGRAM_OFFSET = 26
 export const SEPARATOR_HEIGHT = 1
+export const TIME_INDICATOR_TOP_WIDTH = 10
 
 export const timelineIndicatorsContainer = style({
 	alignItems: 'center',
@@ -53,13 +54,14 @@ export const progressBarContainer = style({
 })
 
 export const progressBar = style({
+	willChange: 'transform',
 	backgroundColor: 'var(--color-neutral-700)',
 	height: PROGRESS_BAR_HEIGHT,
 	left: 0,
 	position: 'absolute',
 	top: 0,
-	transition: 'width 0.3s linear',
-	zIndex: 3,
+	width: '100%',
+	transformOrigin: 'left',
 })
 
 export const liveProgressBar = style({
@@ -88,11 +90,15 @@ export const inactivityPeriod = style({
 	position: 'absolute',
 	top: 0,
 	zIndex: 2,
+	display: 'flex',
 })
 
 export const inactivityPeriodPlayed = style({
+	willChange: 'transform',
 	backgroundColor: 'var(--color-neutral-500)',
 	zIndex: 4,
+	width: '100%',
+	transformOrigin: 'left',
 })
 
 export const timelineContainer = style({
@@ -174,4 +180,23 @@ export const inactivityPeriodMask = style({
 	height: '100%',
 	position: 'absolute',
 	zIndex: -1,
+})
+
+export const moveIndicator = style({
+	transition: 'transform 0.3s linear',
+})
+
+export const timeIndicatorContainerWrapper = style({
+	position: 'absolute',
+	left: TIMELINE_MARGIN,
+	height: '100%',
+})
+
+export const timeIndicatorContainer = style({
+	willChange: 'transform',
+	position: 'relative',
+	height: '100%',
+	width: TIME_INDICATOR_TOP_WIDTH,
+	overflow: 'hidden',
+	zIndex: 1,
 })

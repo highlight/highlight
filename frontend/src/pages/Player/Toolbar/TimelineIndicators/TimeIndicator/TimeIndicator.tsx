@@ -1,29 +1,24 @@
+import { TIME_INDICATOR_TOP_WIDTH } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/style.css'
 import classNames from 'classnames'
 import { RefObject, useLayoutEffect, useRef, useState } from 'react'
 
 import * as style from './style.css'
 interface Props {
-	left: number
 	topRef: RefObject<HTMLElement>
 	hairRef: RefObject<HTMLElement>
 	viewportRef: RefObject<HTMLElement>
 	text?: string
 	isDragging?: boolean
-	isZooming?: boolean
-	showHistogram?: boolean
+	hideHair?: boolean
 }
-const TIME_INDICATOR_ACTIVATION_RADIUS = 15
-const TIME_INDICATOR_TOP_WIDTH = 10
 
 const TimeIndicator = ({
-	left,
 	topRef,
 	hairRef,
 	text,
 	isDragging,
-	isZooming,
 	viewportRef,
-	showHistogram,
+	hideHair,
 }: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
@@ -54,7 +49,7 @@ const TimeIndicator = ({
 			return (
 				isDragging ||
 				(pointerX - topCenterX) ** 2 + (pointerY - topCenterY) ** 2 <
-					TIME_INDICATOR_ACTIVATION_RADIUS ** 2
+					style.TIME_INDICATOR_ACTIVATION_RADIUS ** 2
 			)
 		}
 
@@ -78,15 +73,7 @@ const TimeIndicator = ({
 
 	const textWidth = textRef.current?.getBoundingClientRect().width || 0
 	return (
-		<div
-			className={classNames(style.timeIndicator, {
-				[style.timeIndicatorMoving]: !isDragging && !isZooming,
-			})}
-			style={{
-				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
-			}}
-			ref={indicatorRef}
-		>
+		<div className={style.timeIndicator} ref={indicatorRef}>
 			<span
 				className={style.timeIndicatorText}
 				ref={textRef}
@@ -104,7 +91,7 @@ const TimeIndicator = ({
 			<span className={style.timeIndicatorTop} ref={topRef} />
 			<span
 				className={classNames(style.timeIndicatorHair, {
-					[style.timeIndicatorHidden]: !showHistogram,
+					[style.hairHidden]: hideHair,
 				})}
 				ref={hairRef}
 			></span>
