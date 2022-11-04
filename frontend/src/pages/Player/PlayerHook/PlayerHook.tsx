@@ -170,9 +170,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			for (const interval of state.sessionIntervals) {
 				if (time >= interval.startTime && time < interval.endTime) {
 					if (!interval.active) {
-						// skip forward some frames after the inactivity to prevent
-						// the player from rounding back into the inactive region
-						return interval.endTime + 5 * FRAME_MS
+						return interval.endTime
 					} else {
 						return undefined
 					}
