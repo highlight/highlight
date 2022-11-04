@@ -342,7 +342,8 @@ const AuthenticationRoleRouter = () => {
 	}, [authRole, setLoadingState])
 
 	useEffect(() => {
-		if (!projectId) {
+		// Wait until auth is finished loading otherwise this request can fail.
+		if (!projectId || isAuthLoading(authRole)) {
 			return
 		}
 
@@ -361,7 +362,7 @@ const AuthenticationRoleRouter = () => {
 				})
 			},
 		})
-	}, [getProjectQuery, projectId])
+	}, [getProjectQuery, projectId, authRole])
 
 	const [enableStaffView] = useLocalStorage(
 		`highlight-enable-staff-view`,
