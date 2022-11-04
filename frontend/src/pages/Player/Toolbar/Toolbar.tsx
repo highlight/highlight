@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
-import useFeature, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
+import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
@@ -127,9 +127,13 @@ export const Toolbar = ({ width }: Props) => {
 	const isPaused = ReplayerPausedStates.includes(state)
 
 	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
-	const histogramOn = useFeature(
+	const [histogramOnOverride] = useLocalStorage(
+		`highlight-session-histogram-v2`,
+		isHighlightAdmin,
+	)
+	const histogramOn = useFeatureFlag(
 		Feature.HistogramTimelineV2,
-		useLocalStorage(`highlight-session-histogram-v2`, isHighlightAdmin)[0],
+		isHighlightAdmin ? histogramOnOverride : undefined,
 	)
 
 	useEffect(() => {
