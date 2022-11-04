@@ -22,8 +22,16 @@ export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.HistogramTimelineV2]: {
 		workspace: true,
 		percent: 25,
-		// enabled for Portal, Impira, and Sunsama
-		projectOverride: new Set<string>(['79', '122', '153', '172', '657']),
+		projectOverride: new Set<string>([
+			// Portal
+			'79',
+			// Impira
+			'122',
+			'153',
+			'172',
+			// Sunsama
+			'657',
+		]),
 	},
 } as const
 
