@@ -127,9 +127,13 @@ export const Toolbar = ({ width }: Props) => {
 	const isPaused = ReplayerPausedStates.includes(state)
 
 	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
+	const [histogramOnOverride] = useLocalStorage(
+		`highlight-session-histogram-v2`,
+		isHighlightAdmin,
+	)
 	const histogramOn = useFeatureFlag(
 		Feature.HistogramTimelineV2,
-		useLocalStorage(`highlight-session-histogram-v2`, isHighlightAdmin)[0],
+		isHighlightAdmin ? histogramOnOverride : undefined,
 	)
 
 	useEffect(() => {

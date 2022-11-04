@@ -84,10 +84,8 @@ export const isFeatureOn = async function (
 	)
 }
 
-// use to roll out a feature to a subset of users.
-// if overrideOn is set, the feature will be on for that user.
-// otherwise, the default percentage-based logic will be used
-const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
+// use to roll out a feature to a subset of users. keep override undefined to use default logic
+const useFeatureFlag = (feature: Feature, override?: boolean) => {
 	const { admin } = useAuthContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -97,7 +95,7 @@ const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
 		skip: !project_id,
 	})
 
-	const [isOn, setIsOn] = useState<boolean>(!!overrideOn)
+	const [isOn, setIsOn] = useState<boolean>(!!override)
 
 	useEffect(() => {
 		isFeatureOn(
@@ -106,7 +104,7 @@ const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
 			project?.workspace?.id,
 			admin?.id,
 		).then((_isOn) => {
-			const on = overrideOn || _isOn
+			const on = override ?? _isOn
 			setIsOn(on)
 			H.track(Feature[feature], {
 				[`FeatureFlag-${Feature[feature]}-on`]: on,
@@ -115,7 +113,7 @@ const useFeatureFlag = (feature: Feature, overrideOn?: boolean) => {
 	}, [
 		admin?.id,
 		feature,
-		overrideOn,
+		override,
 		project?.project?.id,
 		project?.workspace?.id,
 	])
