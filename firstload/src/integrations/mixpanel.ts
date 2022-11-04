@@ -77,7 +77,7 @@ export const setupMixpanelIntegration: Integration = ({
 	document.head.appendChild(script)
 
 	script.addEventListener('load', () => {
-		window.mixpanel?.init(projectToken, { debug: true })
+		window.mixpanel?.init(projectToken)
 	})
 }
 
@@ -85,7 +85,6 @@ const MixpanelBundle = 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js'
 
 export interface MixpanelAPI {
 	init: (token: string, config?: any, name?: string) => void
-	register: (properties: { [key: string]: string | number | boolean }) => void
 	track: (event_name: string, properties?: any, options?: any) => void
 	identify: (unique_id: string) => void
 }

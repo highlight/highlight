@@ -86,7 +86,7 @@ if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
 	options.backendUrl = 'https://localhost:8082/public'
 
-	// options.integrations = undefined
+	options.integrations = undefined
 
 	const sampleEnvironmentNames = ['john', 'jay', 'anthony', 'cameron', 'boba']
 	options.environment = `${
