@@ -357,8 +357,8 @@ const AuthenticationRoleRouter = () => {
 				}
 
 				window.mixpanel.register({
-					projectId: data.project?.id,
-					workspaceId: data.workspace?.id,
+					'Project ID': data.project?.id,
+					'Workspace ID': data.workspace?.id,
 				})
 			},
 		})
