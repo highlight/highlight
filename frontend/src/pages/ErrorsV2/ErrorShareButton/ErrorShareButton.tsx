@@ -58,7 +58,7 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
 	const [updateErrorGroupIsPublic, { loading }] =
 		useUpdateErrorGroupIsPublicMutation({
 			update(cache, { data }) {
-				const is_public =
+				const isPublic =
 					data?.updateErrorGroupIsPublic?.is_public === true
 				cache.modify({
 					fields: {
