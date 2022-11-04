@@ -3,27 +3,25 @@ import { RefObject, useLayoutEffect, useRef, useState } from 'react'
 
 import * as style from './style.css'
 interface Props {
-	left: number
+	containerProgress: number
 	topRef: RefObject<HTMLElement>
 	hairRef: RefObject<HTMLElement>
 	viewportRef: RefObject<HTMLElement>
 	text?: string
 	isDragging?: boolean
 	isZooming?: boolean
-	showHistogram?: boolean
+	hideHair?: boolean
 }
-const TIME_INDICATOR_ACTIVATION_RADIUS = 15
-const TIME_INDICATOR_TOP_WIDTH = 10
 
 const TimeIndicator = ({
-	left,
 	topRef,
 	hairRef,
 	text,
 	isDragging,
 	isZooming,
 	viewportRef,
-	showHistogram,
+	hideHair,
+	containerProgress,
 }: Props) => {
 	const indicatorRef = useRef<HTMLDivElement>(null)
 	const textRef = useRef<HTMLElement>(null)
@@ -54,7 +52,7 @@ const TimeIndicator = ({
 			return (
 				isDragging ||
 				(pointerX - topCenterX) ** 2 + (pointerY - topCenterY) ** 2 <
-					TIME_INDICATOR_ACTIVATION_RADIUS ** 2
+					style.TIME_INDICATOR_ACTIVATION_RADIUS ** 2
 			)
 		}
 
@@ -83,7 +81,7 @@ const TimeIndicator = ({
 				[style.timeIndicatorMoving]: !isDragging && !isZooming,
 			})}
 			style={{
-				left: left - TIME_INDICATOR_TOP_WIDTH / 2,
+				left: containerProgress - style.TIME_INDICATOR_TOP_WIDTH / 2,
 			}}
 			ref={indicatorRef}
 		>
@@ -94,7 +92,7 @@ const TimeIndicator = ({
 					top: (origin?.top || 0) - 2.1 * (origin?.height || 0),
 					left:
 						(origin?.left || 0) +
-						TIME_INDICATOR_TOP_WIDTH / 2 -
+						style.TIME_INDICATOR_TOP_WIDTH / 2 -
 						textWidth / 2,
 					visibility: isTextVisible ? 'visible' : 'hidden',
 				}}
@@ -104,7 +102,7 @@ const TimeIndicator = ({
 			<span className={style.timeIndicatorTop} ref={topRef} />
 			<span
 				className={classNames(style.timeIndicatorHair, {
-					[style.timeIndicatorHidden]: !showHistogram,
+					[style.hairHidden]: hideHair,
 				})}
 				ref={hairRef}
 			></span>

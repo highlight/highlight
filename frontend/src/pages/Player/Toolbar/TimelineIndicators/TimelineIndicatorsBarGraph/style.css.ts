@@ -58,8 +58,9 @@ export const progressBar = style({
 	left: 0,
 	position: 'absolute',
 	top: 0,
-	transition: 'width 0.3s linear',
-	zIndex: 3,
+	width: '100%',
+	transition: 'transform 0.3s linear',
+	transformOrigin: 'left',
 })
 
 export const liveProgressBar = style({
@@ -88,11 +89,16 @@ export const inactivityPeriod = style({
 	position: 'absolute',
 	top: 0,
 	zIndex: 2,
+	display: 'flex',
 })
 
 export const inactivityPeriodPlayed = style({
+	willChange: 'transform',
 	backgroundColor: 'var(--color-neutral-500)',
 	zIndex: 4,
+	width: '100%',
+	transition: 'transform 0.3s linear',
+	transformOrigin: 'left',
 })
 
 export const timelineContainer = style({

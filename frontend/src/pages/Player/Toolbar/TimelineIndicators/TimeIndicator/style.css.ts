@@ -4,7 +4,9 @@ import {
 } from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/style.css'
 import { style } from '@vanilla-extract/css'
 
-const TOP_HEIGHT = 12
+export const TOP_HEIGHT = 12
+export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
+export const TIME_INDICATOR_TOP_WIDTH = 10
 
 export const timeIndicator = style({
 	alignItems: 'center',
@@ -17,7 +19,7 @@ export const timeIndicator = style({
 })
 
 export const timeIndicatorMoving = style({
-	transition: 'left 0.17s linear',
+	transition: 'transform 0.17s linear',
 })
 
 export const timeIndicatorHair = style({
@@ -28,7 +30,7 @@ export const timeIndicatorHair = style({
 	top: TIME_AXIS_HEIGHT,
 })
 
-export const timeIndicatorHidden = style({
+export const hairHidden = style({
 	height: '0',
 	visibility: 'hidden',
 })
