@@ -212,15 +212,15 @@ export const usePlayer = (): ReplayerContextInterface => {
 			>,
 			startIdx: number,
 		): Set<number> => {
+			const toRemove = new Set<number>()
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
 				.filter(([, v]) => !!v.length)
 				.map(([k]) => k)
 			if (chunksIndexesWithData.length <= MAX_CHUNK_COUNT) {
-				return new Set<number>()
+				return toRemove
 			}
 			chunksIndexesWithData.sort((a, b) => a - b)
 
-			const toRemove = new Set<number>()
 			const startTs = getChunkTs(startIdx)
 			for (const idx of chunksIndexesWithData) {
 				const chunkTs = getChunkTs(idx)
