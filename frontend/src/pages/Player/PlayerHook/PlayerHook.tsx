@@ -212,7 +212,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				'set' | 'clear' | 'delete'
 			>,
 			startIdx: number,
-			endIdx: number,
 		): number[] => {
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
 				.filter(([, v]) => !!v.length)
@@ -220,34 +219,22 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (chunksIndexesWithData.length <= MAX_CHUNK_COUNT) {
 				return []
 			}
-
 			chunksIndexesWithData.sort((a, b) => a - b)
-			const midChunkIdx =
-				chunksIndexesWithData[
-					Math.floor(chunksIndexesWithData.length / 2)
-				]
 
-			// if we are on the right side of the chunks, remove the ones from the left
-			if (startIdx >= midChunkIdx) {
-				chunksIndexesWithData.reverse()
-			}
-
-			const toRemove = new Set<number>(
-				chunksIndexesWithData.slice(MAX_CHUNK_COUNT),
-			)
-			toRemove.delete(startIdx)
-			for (let i = startIdx; i <= endIdx; i++) {
-				toRemove.delete(i)
-			}
-
-			const keepTs = getChunkTs(chunksIndexesWithData[0]) ?? 0
-			for (const chunk of toRemove) {
-				const chunkTs = getChunkTs(chunk) ?? 0
-				if (Math.abs(keepTs - chunkTs) <= LOOKAHEAD_MS) {
-					toRemove.delete(chunk)
+			const toRemove = new Set<number>()
+			const startTs = getChunkTs(startIdx)
+			for (const idx of chunksIndexesWithData) {
+				const chunkTs = getChunkTs(idx)
+				if (
+					idx < startIdx ||
+					(chunkTs &&
+						startTs &&
+						idx >= startIdx + MAX_CHUNK_COUNT &&
+						chunkTs > startTs + LOOKAHEAD_MS)
+				) {
+					toRemove.add(idx)
 				}
 			}
-
 			return Array.from(toRemove)
 		},
 		[getChunkTs],
@@ -354,7 +341,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				const toRemove = getChunksToRemove(
 					chunkEventsRef.current,
 					startIdx,
-					endIdx,
 				)
 				log('PlayerHook.tsx', 'getChunksToRemove', {
 					after: chunkEventsRef.current,
