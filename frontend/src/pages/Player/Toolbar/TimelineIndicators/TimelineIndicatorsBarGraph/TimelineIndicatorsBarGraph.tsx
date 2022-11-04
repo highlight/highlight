@@ -904,15 +904,10 @@ const TimelineIndicatorsBarGraph = ({
 					const width =
 						(interval[1] / adjustedDuration) * borderlessWidth
 					const progress = clamp(
-						((Math.min(
-							sessionProgress * adjustedDuration - interval[0],
+						(sessionProgress * adjustedDuration - interval[0]) /
 							interval[1],
-						) /
-							adjustedDuration) *
-							borderlessWidth) /
-							width,
 						0,
-						1,
+						1.01,
 					)
 					return (
 						<div
