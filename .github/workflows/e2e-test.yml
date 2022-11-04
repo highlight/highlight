@@ -19,6 +19,7 @@ jobs:
     test:
         name: End-to-end Cypress Testing
         runs-on: ubuntu-latest
+        timeout-minutes: 20
         env:
             ENVIRONMENT: test
             PGPASSWORD: postgres
