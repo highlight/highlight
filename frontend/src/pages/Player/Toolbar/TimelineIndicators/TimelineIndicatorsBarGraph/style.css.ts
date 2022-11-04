@@ -53,13 +53,14 @@ export const progressBarContainer = style({
 })
 
 export const progressBar = style({
+	willChange: 'transform',
 	backgroundColor: 'var(--color-neutral-700)',
 	height: PROGRESS_BAR_HEIGHT,
 	left: 0,
 	position: 'absolute',
 	top: 0,
 	width: '100%',
-	transition: 'transform 0.3s linear',
+	transition: 'transform 0.3s ease',
 	transformOrigin: 'left',
 })
 
@@ -97,7 +98,6 @@ export const inactivityPeriodPlayed = style({
 	backgroundColor: 'var(--color-neutral-500)',
 	zIndex: 4,
 	width: '100%',
-	transition: 'transform 0.3s linear',
 	transformOrigin: 'left',
 })
 

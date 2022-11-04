@@ -881,107 +881,62 @@ const TimelineIndicatorsBarGraph = ({
 
 	const shownTime = isDragging ? dragTime : time
 	const canvasProgress = timeToProgress(shownTime)
-	const sessionProgress = (canvasProgress * canvasDuration) / adjustedDuration
+	const sessionProgress = clamp(
+		(canvasProgress * canvasDuration) / adjustedDuration,
+		0,
+		1,
+	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
 	const progressBar = useMemo(() => {
-		const mainProgressBarWidth = clamp(
-			sessionProgress * borderlessWidth,
-			0,
-			borderlessWidth,
-		)
 		return (
 			<div className={style.progressBarContainer}>
-				{isLiveMode ? (
-					<div className={style.liveProgressBar} />
-				) : (
-					<>
-						{shownTime > 0 ? (
-							<>
-								<div
-									className={style.progressBar}
-									style={{
-										width: mainProgressBarWidth,
-									}}
-								/>
-								{adjustedInactivityPeriods.map(
-									(interval, idx) => {
-										if (
-											interval[0] / adjustedDuration >=
-											sessionProgress
-										) {
-											return null
-										}
+				<div
+					className={style.progressBar}
+					style={{
+						transform: `scaleX(${sessionProgress})`,
+					}}
+				/>
 
-										const left =
-											(interval[0] / adjustedDuration) *
-											borderlessWidth
-										const width =
-											(Math.min(
-												sessionProgress *
-													adjustedDuration -
-													interval[0],
-												interval[1],
-											) /
-												adjustedDuration) *
-											borderlessWidth
-
-										return (
-											<div
-												key={idx}
-												className={clsx([
-													style.inactivityPeriod,
-													style.inactivityPeriodPlayed,
-												])}
-												style={{
-													left,
-													width: clamp(
-														width,
-														0,
-														mainProgressBarWidth -
-															left,
-													),
-												}}
-											/>
-										)
-									},
-								)}
-								,
-							</>
-						) : null}
-						{adjustedInactivityPeriods.map((interval, idx) => {
-							const left =
-								(interval[0] / adjustedDuration) *
-								borderlessWidth
-							const width =
-								(interval[1] / adjustedDuration) *
-								borderlessWidth
-							return (
-								<div
-									key={idx}
-									className={style.inactivityPeriod}
-									style={{
-										left,
-										width: clamp(
-											width,
-											0,
-											borderlessWidth - left,
-										),
-									}}
-								/>
-							)
-						})}
-					</>
-				)}
+				{adjustedInactivityPeriods.map((interval, idx) => {
+					const left =
+						(interval[0] / adjustedDuration) * borderlessWidth
+					const width =
+						(interval[1] / adjustedDuration) * borderlessWidth
+					const progress = clamp(
+						((Math.min(
+							sessionProgress * adjustedDuration - interval[0],
+							interval[1],
+						) /
+							adjustedDuration) *
+							borderlessWidth) /
+							width,
+						0,
+						1,
+					)
+					return (
+						<div
+							key={idx}
+							className={style.inactivityPeriod}
+							style={{
+								left,
+								width: clamp(width, 0, borderlessWidth - left),
+							}}
+						>
+							<div
+								className={style.inactivityPeriodPlayed}
+								style={{ transform: `scaleX(${progress})` }}
+							/>
+						</div>
+					)
+				})}
 			</div>
 		)
 	}, [
 		adjustedDuration,
 		adjustedInactivityPeriods,
 		borderlessWidth,
-		isLiveMode,
 		sessionProgress,
-		shownTime,
 	])
 
 	const sessionMonitor = useMemo(() => {
@@ -1090,7 +1045,7 @@ const TimelineIndicatorsBarGraph = ({
 				className={style.timelineIndicatorsContainer}
 				style={{ width }}
 			>
-				{progressBar}
+				<div className={style.liveProgressBar} />
 			</div>
 		)
 	}
