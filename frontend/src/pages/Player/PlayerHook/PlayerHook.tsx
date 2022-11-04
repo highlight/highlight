@@ -397,15 +397,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (newTime) {
 				dispatch({ type: PlayerActionType.setTime, time: newTime })
 			}
-			ensureChunksLoaded(newTime, undefined, ReplayerState.Playing).then(
-				() => {
+			setTimeout(() =>
+				ensureChunksLoaded(
+					newTime,
+					undefined,
+					ReplayerState.Playing,
+				).then(() => {
 					// Log how long it took to move to the new time.
 					const timelineChangeTime = timerEnd('timelineChangeTime')
 					datadogLogs.logger.info('Timeline Play Time', {
 						duration: timelineChangeTime,
 						sessionId: state.session_secure_id,
 					})
-				},
+				}),
 			)
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
@@ -416,15 +420,19 @@ export const usePlayer = (): ReplayerContextInterface => {
 			if (time) {
 				dispatch({ type: PlayerActionType.setTime, time })
 			}
-			ensureChunksLoaded(time ?? 0, undefined, ReplayerState.Paused).then(
-				() => {
+			setTimeout(() =>
+				ensureChunksLoaded(
+					time ?? 0,
+					undefined,
+					ReplayerState.Paused,
+				).then(() => {
 					// Log how long it took to move to the new time.
 					const timelineChangeTime = timerEnd('timelineChangeTime')
 					datadogLogs.logger.info('Timeline Pause Time', {
 						duration: timelineChangeTime,
 						sessionId: state.session_secure_id,
 					})
-				},
+				}),
 			)
 		},
 		[ensureChunksLoaded, state.session_secure_id],
@@ -433,7 +441,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const seek = useCallback(
 		(time: number) => {
 			dispatch({ type: PlayerActionType.setTime, time })
-			ensureChunksLoaded(time, undefined, state.replayerState).then()
+			setTimeout(() =>
+				ensureChunksLoaded(time, undefined, state.replayerState).then(),
+			)
 		},
 		[ensureChunksLoaded, state.replayerState],
 	)
