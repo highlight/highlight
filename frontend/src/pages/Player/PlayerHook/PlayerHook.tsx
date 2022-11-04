@@ -203,7 +203,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	// returns extra loaded chunks. returns
-	// the chunks furthest from the currentIdx since they are
+	// the chunks furthest from the startIdx since they are
 	// less likely to be viewed next
 	const getChunksToRemove = useCallback(
 		(
@@ -331,7 +331,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 								const chunkResponse = await fetch(
 									response.data.event_chunk_url,
 								)
-								return [_i, await chunkResponse.json()]
+								chunkEventsSet(
+									_i,
+									toHighlightEvents(
+										await chunkResponse.json(),
+									),
+								)
+								loadingChunksRef.current.delete(_i)
+								log('PlayerHook.tsx', 'set data for chunk', _i)
 							} catch (e: any) {
 								H.consumeError(
 									e,
@@ -341,7 +348,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 							}
 						})(i),
 					)
-					log('PlayerHook.tsx', 'pushed promise for chunk', i)
 				}
 			}
 			if (promises.length) {
@@ -350,17 +356,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 					startIdx,
 					endIdx,
 				)
-				for (const [i, data] of await Promise.all(promises)) {
-					loadingChunksRef.current.delete(i)
-					chunkEventsSet(i, toHighlightEvents(data))
-				}
-				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				log('PlayerHook.tsx', 'getChunksToRemove', {
 					after: chunkEventsRef.current,
 					toRemove,
 				})
-			}
-			if (!loadingChunksRef.current.size && (promises.length || action)) {
+				toRemove.forEach((idx) => chunkEventsRemove(idx))
+				await Promise.all(promises)
+				dispatchAction(startTime, action)
+			} else if (action) {
 				dispatchAction(startTime, action)
 			}
 		},
