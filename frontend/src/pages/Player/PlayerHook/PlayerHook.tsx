@@ -353,7 +353,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				await Promise.all(promises)
 			}
-			if (!loadingChunks.current.size && (promises.length || action)) {
+			if ((!loadingChunks.current.size && promises.length) || action) {
 				log(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
