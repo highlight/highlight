@@ -7,7 +7,6 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
-import { Sidebar } from '@components/Sidebar/Sidebar'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -364,11 +363,11 @@ export const ProjectRouter = () => {
 						</Route>
 						<Route>
 							<Header />
-							{(isLoggedIn ||
+							{/* {(isLoggedIn ||
 								projectIdRemapped ===
 									DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
 								<Sidebar />
-							)}
+							)} */}
 							<div
 								className={classNames(
 									commonStyles.bodyWrapper,
