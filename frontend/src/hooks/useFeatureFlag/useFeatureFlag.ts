@@ -5,9 +5,11 @@ import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
 interface Config {
+	percent: number
 	project?: boolean
 	workspace?: boolean
-	percent: number
+	projectOverride?: Set<string>
+	workspaceOverride?: Set<string>
 }
 
 export enum Feature {
@@ -20,8 +22,18 @@ export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.HistogramTimelineV2]: {
 		workspace: true,
 		percent: 25,
+		projectOverride: new Set<string>([
+			// Portal
+			'79',
+			// Impira
+			'122',
+			'153',
+			'172',
+			// Sunsama
+			'657',
+		]),
 	},
-}
+} as const
 
 const isActive = async function (
 	feature: Feature,
@@ -40,13 +52,27 @@ const isActive = async function (
 	return digest % Math.ceil(100 / percent) === 0
 }
 
-const isFeatureOn = async function (
+export const isFeatureOn = async function (
 	feature: Feature,
 	projectId?: string,
 	workspaceId?: string,
 	adminId?: string,
 ) {
 	const config = FeatureConfig[feature]
+	if (
+		projectId &&
+		config.projectOverride &&
+		config.projectOverride.has(projectId)
+	) {
+		return true
+	}
+	if (
+		workspaceId &&
+		config.workspaceOverride &&
+		config.workspaceOverride.has(workspaceId)
+	) {
+		return true
+	}
 	return isActive(
 		feature,
 		(config.project
@@ -58,8 +84,8 @@ const isFeatureOn = async function (
 	)
 }
 
-// use to roll out a feature to a subset of users.
-const useFeature = (feature: Feature, override?: boolean) => {
+// use to roll out a feature to a subset of users. keep override undefined to use default logic
+const useFeatureFlag = (feature: Feature, override?: boolean) => {
 	const { admin } = useAuthContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -80,7 +106,9 @@ const useFeature = (feature: Feature, override?: boolean) => {
 		).then((_isOn) => {
 			const on = override ?? _isOn
 			setIsOn(on)
-			H.track(`Feature-${Feature[feature]}`, { on })
+			H.track(Feature[feature], {
+				[`FeatureFlag-${Feature[feature]}-on`]: on,
+			})
 		})
 	}, [
 		admin?.id,
@@ -93,4 +121,4 @@ const useFeature = (feature: Feature, override?: boolean) => {
 	return isOn
 }
 
-export default useFeature
+export default useFeatureFlag

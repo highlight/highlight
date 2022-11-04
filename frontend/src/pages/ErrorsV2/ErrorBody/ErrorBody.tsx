@@ -1,5 +1,5 @@
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, Text, TextLink } from '@highlight-run/ui'
+import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
@@ -12,7 +12,18 @@ interface Props {
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
+	const [truncated, setTruncated] = React.useState(true)
+	const [truncateable, setTruncateable] = React.useState(true)
 	const body = getErrorBody(errorGroup?.event)
+	const bodyRef = React.useRef<HTMLElement | undefined>()
+
+	React.useEffect(() => {
+		if (bodyRef.current) {
+			setTruncateable(
+				bodyRef.current.offsetHeight + 5 < bodyRef.current.scrollHeight,
+			)
+		}
+	}, [body])
 
 	return (
 		<Box border="neutral" borderRadius="6">
@@ -138,7 +149,21 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
-				<Text family="monospace">{body}</Text>
+				<Text
+					family="monospace"
+					lines={truncated ? '3' : undefined}
+					ref={bodyRef}
+				>
+					{body}
+				</Text>
+
+				{truncateable && (
+					<Box mt="12">
+						<ButtonLink onClick={() => setTruncated(!truncated)}>
+							Show {truncated ? 'more' : 'less'}
+						</ButtonLink>
+					</Box>
+				)}
 			</Box>
 		</Box>
 	)
