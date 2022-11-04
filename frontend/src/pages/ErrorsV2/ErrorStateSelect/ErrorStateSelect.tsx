@@ -1,14 +1,13 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
+import { ErrorState } from '@graph/schemas'
 import { Menu, Text } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import { useUpdateErrorGroupStateMutation } from '../../../graph/generated/hooks'
-import { ErrorState } from '../../../graph/generated/schemas'
-
-export const ErrorStateSelect: React.FC<{ state?: ErrorState }> = ({
+export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 	state: initialErrorState,
 }) => {
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
@@ -18,23 +17,6 @@ export const ErrorStateSelect: React.FC<{ state?: ErrorState }> = ({
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
 
-	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
-	useEffect(() => {
-		if (action) {
-			const castedAction = action.toUpperCase() as ErrorState
-			if (Object.values(ErrorState).includes(castedAction)) {
-				updateErrorGroupState({
-					variables: {
-						secure_id: error_secure_id,
-						state: castedAction,
-					},
-				})
-				showStateUpdateMessage(castedAction)
-			}
-			setAction(undefined)
-		}
-	}, [action, error_secure_id, setAction, updateErrorGroupState])
-
 	const handleChange = async (newState: ErrorState) => {
 		await updateErrorGroupState({
 			variables: { secure_id: error_secure_id, state: newState },
@@ -43,9 +25,18 @@ export const ErrorStateSelect: React.FC<{ state?: ErrorState }> = ({
 		showStateUpdateMessage(newState)
 	}
 
-	if (!initialErrorState) {
-		return null
-	}
+	// Sets the state based on the query parameters. This is used for the Slack deep-linked messages.
+	useEffect(() => {
+		if (action) {
+			const castedAction = action.toUpperCase() as ErrorState
+			if (Object.values(ErrorState).includes(castedAction)) {
+				handleChange(castedAction)
+			}
+
+			setAction(undefined)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [action, error_secure_id])
 
 	return (
 		<Menu>

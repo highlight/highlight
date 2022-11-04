@@ -10,13 +10,13 @@ export const variants = recipe({
 		sprinkles({ color: 'purple700' }),
 		{
 			':hover': {
-				color: vars.color.purple500,
+				color: vars.color.purple900,
 			},
 			':focus': {
-				color: vars.color.purple500,
+				color: vars.color.purple900,
 			},
 			':active': {
-				color: vars.color.purple900,
+				color: vars.color.purple700,
 			},
 		},
 	],

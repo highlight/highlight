@@ -27,7 +27,8 @@ export const Box = React.forwardRef<unknown, Props>(
 
 		return React.createElement(as, {
 			className: clsx([sprinkles(sprinklesProps), userClasses]),
-			...{ ...nativeProps, ref },
+			ref,
+			...nativeProps,
 		})
 	},
 )

@@ -60,12 +60,13 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
 			update(cache, { data }) {
 				const isPublic =
 					data?.updateErrorGroupIsPublic?.is_public === true
+
 				cache.modify({
 					fields: {
 						errorGroup(existingErrorGroup) {
 							const updatedErrorGroup = {
 								...existingErrorGroup,
-								is_public,
+								isPublic,
 							}
 							return updatedErrorGroup
 						},
@@ -78,7 +79,7 @@ const ExternalSharingToggle = ({ errorGroup }: Props) => {
 		<Box my="12">
 			<Switch
 				loading={loading}
-				checked={!!errorGroup?.is_public}
+				checked={errorGroup?.is_public === true}
 				onChange={(checked: boolean) => {
 					updateErrorGroupIsPublic({
 						variables: {
