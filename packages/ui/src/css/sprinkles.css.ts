@@ -27,6 +27,7 @@ const responsiveProperties = defineProperties({
 			'inline-block',
 			'inline-flex',
 		],
+		position: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
 		visibility: ['hidden', 'visible'],
 		gap: vars.space,
 		flex: {

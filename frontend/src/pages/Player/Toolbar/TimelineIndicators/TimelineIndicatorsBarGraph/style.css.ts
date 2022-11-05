@@ -1,16 +1,18 @@
 import { style } from '@vanilla-extract/css'
 
-export const TIMELINE_MARGIN = 32
-
-export const SESSION_MONITOR_HEIGHT = 20
-export const TIME_AXIS_HEIGHT = 24
-export const PROGRESS_BAR_HEIGHT = 3
 export const HISTOGRAM_AREA_HEIGHT = 92
 export const HISTOGRAM_OFFSET = 26
+export const PROGRESS_BAR_HEIGHT = 3
 export const SEPARATOR_HEIGHT = 1
+export const SESSION_MONITOR_HEIGHT = 20
+export const TIME_AXIS_HEIGHT = 24
+export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
 export const TIME_INDICATOR_TOP_WIDTH = 10
+export const TIME_INDICATOR_TEXT_HEIGHT = 20
+export const TIMELINE_MARGIN = 32
+export const TOP_HEIGHT = 12
 
-export const timelineIndicatorsContainer = style({
+export const timelineContainer = style({
 	alignItems: 'center',
 	backgroundColor: 'var(--color-primary-background)',
 	border: '1px solid var(--color-neutral-100)',
@@ -101,9 +103,9 @@ export const inactivityPeriodPlayed = style({
 	transformOrigin: 'left',
 })
 
-export const timelineContainer = style({
+export const viewportContainer = style({
 	height: 'min-content',
-	overflowX: 'scroll',
+	overflowX: 'clip',
 	overflowY: 'hidden',
 	overscrollBehavior: 'none',
 	position: 'relative',
@@ -190,6 +192,7 @@ export const timeIndicatorContainerWrapper = style({
 	position: 'absolute',
 	left: TIMELINE_MARGIN,
 	height: '100%',
+	bottom: 0,
 })
 
 export const timeIndicatorContainer = style({
@@ -199,4 +202,58 @@ export const timeIndicatorContainer = style({
 	width: TIME_INDICATOR_TOP_WIDTH,
 	overflow: 'hidden',
 	zIndex: 1,
+})
+
+export const timeIndicator = style({
+	alignItems: 'center',
+	bottom: '0',
+	display: 'flex',
+	flexDirection: 'column',
+	height: '100%',
+	width: TIME_INDICATOR_TOP_WIDTH,
+	position: 'relative',
+	zIndex: '2',
+})
+
+export const timeIndicatorMoving = style({
+	transition: 'transform 0.17s linear',
+})
+
+export const timeIndicatorHair = style({
+	borderLeft: '2px var(--color-neutral-900) solid',
+	cursor: 'ew-resize',
+	height: HISTOGRAM_AREA_HEIGHT + 1,
+	position: 'absolute',
+	top: TIME_AXIS_HEIGHT,
+})
+
+export const hairHidden = style({
+	height: '0',
+	visibility: 'hidden',
+})
+
+const timeIndicatorTopOffset = TIME_AXIS_HEIGHT - TOP_HEIGHT + 1
+
+export const timeIndicatorTop = style({
+	backgroundColor: 'var(--color-neutral-900)',
+	border: '1px solid var(--color-white)',
+	borderRadius: '1px 1px 12px 12px',
+	cursor: 'grab',
+	height: TOP_HEIGHT,
+	position: 'sticky',
+	top: timeIndicatorTopOffset,
+	width: '8px',
+})
+
+export const timeIndicatorText = style({
+	zIndex: 2,
+	height: TIME_INDICATOR_TEXT_HEIGHT,
+	left: 0,
+	top:
+		PROGRESS_BAR_HEIGHT +
+		SESSION_MONITOR_HEIGHT +
+		timeIndicatorTopOffset -
+		TIME_INDICATOR_TEXT_HEIGHT -
+		4,
+	transformOrigin: 'left',
 })

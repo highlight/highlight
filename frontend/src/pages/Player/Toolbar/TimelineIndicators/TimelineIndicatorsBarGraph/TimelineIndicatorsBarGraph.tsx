@@ -1,6 +1,6 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { customEvent } from '@highlight-run/rrweb/typings/types'
-import { Box } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -16,7 +16,6 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
-import TimeIndicator from '@pages/Player/Toolbar/TimelineIndicators/TimeIndicator/TimeIndicator'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
 import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
@@ -103,6 +102,8 @@ const TimelineIndicatorsBarGraph = ({
 	const sessionMonitorRef = useRef<HTMLDivElement>(null)
 	const timeAxisRef = useRef<HTMLDivElement>(null)
 	const timeIndicatorHairRef = useRef<HTMLSpanElement>(null)
+	const timeIndicatorRef = useRef<HTMLDivElement>(null)
+	const timeIndicatorTextRef = useRef<HTMLElement>(null)
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
@@ -401,6 +402,7 @@ const TimelineIndicatorsBarGraph = ({
 	)
 
 	const [showZoomButtons, setShowZoomButtons] = useState(false)
+	const [showIndicatorText, setShowIndicatorText] = useState(false)
 
 	useHTMLElementEvent(
 		viewportRef.current,
@@ -559,18 +561,33 @@ const TimelineIndicatorsBarGraph = ({
 			}
 			const { clientX, clientY } = event
 
-			if (
+			const isInsideViewport =
 				viewportBbox.left <= clientX &&
 				clientX <= viewportBbox.right &&
 				viewportBbox.bottom >= clientY &&
 				clientY >= viewportBbox.top
-			) {
-				setShowZoomButtons(true)
-			} else {
-				setShowZoomButtons(false)
+
+			const indicatorBbox =
+				timeIndicatorRef.current?.getBoundingClientRect()
+			if (!indicatorBbox) {
+				return
 			}
+
+			setShowZoomButtons(isInsideViewport)
+			if (!isInsideViewport) {
+				setShowIndicatorText(false)
+				return
+			}
+
+			setShowIndicatorText(
+				isDragging ||
+					(indicatorBbox.left <= clientX &&
+						clientX <= indicatorBbox.right &&
+						indicatorBbox.bottom >= clientY &&
+						clientY >= indicatorBbox.top),
+			)
 		},
-		[moveTime],
+		[isDragging, moveTime],
 	)
 	useWindowEvent('pointermove', onPointermove, { passive: true })
 
@@ -940,6 +957,7 @@ const TimelineIndicatorsBarGraph = ({
 		adjustedInactivityPeriods,
 		borderlessWidth,
 		sessionProgress,
+		useTransition,
 	])
 
 	const sessionMonitor = useMemo(() => {
@@ -1003,12 +1021,28 @@ const TimelineIndicatorsBarGraph = ({
 			[style.hidden]: !showHistogram,
 		},
 	])
+
+	const containerProgress = clamp(
+		canvasWidth * canvasProgress,
+		0,
+		canvasWidth,
+	)
+	const timeIndicatorStart =
+		containerProgress - style.TIME_INDICATOR_TOP_WIDTH / 2
+
+	const timeIndicatorTextWidth =
+		timeIndicatorTextRef.current?.getBoundingClientRect().width || 0
+
+	const textStart =
+		timeIndicatorStart +
+		TIMELINE_MARGIN -
+		timeIndicatorTextWidth / 2 +
+		style.TIME_INDICATOR_TOP_WIDTH / 2 -
+		camera.x
+
 	if (showSkeleton) {
 		return (
-			<Box
-				cssClass={[style.timelineIndicatorsContainer]}
-				style={{ width }}
-			>
+			<Box cssClass={[style.timelineContainer]} style={{ width }}>
 				<div
 					className={style.progressBarContainer}
 					style={{
@@ -1027,7 +1061,7 @@ const TimelineIndicatorsBarGraph = ({
 				<div className={sessionMonitorStyle} ref={sessionMonitorRef}>
 					<Skeleton height={style.SESSION_MONITOR_HEIGHT} />
 				</div>
-				<div className={style.timelineContainer} ref={viewportRef}>
+				<div className={style.viewportContainer} ref={viewportRef}>
 					<Skeleton
 						height={
 							showHistogram
@@ -1044,25 +1078,14 @@ const TimelineIndicatorsBarGraph = ({
 
 	if (isLiveMode) {
 		return (
-			<div
-				className={style.timelineIndicatorsContainer}
-				style={{ width }}
-			>
+			<div className={style.timelineContainer} style={{ width }}>
 				<div className={style.liveProgressBar} />
 			</div>
 		)
 	}
 
-	const barHeightAdjustment =
-		1 - style.HISTOGRAM_OFFSET / style.HISTOGRAM_AREA_HEIGHT
-
-	const containerProgress = clamp(
-		canvasWidth * canvasProgress,
-		0,
-		canvasWidth,
-	)
 	return (
-		<div className={style.timelineIndicatorsContainer} style={{ width }}>
+		<div className={style.timelineContainer} style={{ width }}>
 			{progressBar}
 			<div
 				className={clsx([
@@ -1093,9 +1116,36 @@ const TimelineIndicatorsBarGraph = ({
 				}
 			/>
 
+			<Box
+				ref={timeIndicatorTextRef}
+				background="neutral800"
+				borderRadius="10"
+				position="absolute"
+				px="8"
+				py="2"
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				cssClass={clsx(style.timeIndicatorText, {
+					[style.moveIndicator]: useTransition,
+				})}
+				style={{
+					transform: `translateX(${textStart}px)`,
+					visibility: showIndicatorText ? 'visible' : 'hidden',
+				}}
+			>
+				<Text
+					ref={timeIndicatorTextRef}
+					color="neutral200"
+					size="xSmall"
+					userSelect="none"
+				>
+					{formatTimeOnTop(shownTime)}
+				</Text>
+			</Box>
 			<div
 				className={clsx([
-					style.timelineContainer,
+					style.viewportContainer,
 					{
 						[style.hideOverflow]: !showHistogram,
 					},
@@ -1109,6 +1159,7 @@ const TimelineIndicatorsBarGraph = ({
 					}}
 				>
 					<div
+						ref={timeIndicatorRef}
 						className={clsx([
 							style.timeIndicatorContainer,
 							{
@@ -1116,20 +1167,21 @@ const TimelineIndicatorsBarGraph = ({
 							},
 						])}
 						style={{
-							transform: `translateX(${
-								containerProgress -
-								style.TIME_INDICATOR_TOP_WIDTH / 2
-							}px)`,
+							transform: `translateX(${timeIndicatorStart}px)`,
 						}}
 					>
-						<TimeIndicator
-							topRef={timeIndicatorTopRef}
-							hairRef={timeIndicatorHairRef}
-							viewportRef={viewportRef}
-							text={formatTimeOnTop(shownTime)}
-							isDragging={isDragging}
-							hideHair={!showHistogram}
-						/>
+						<div className={style.timeIndicator}>
+							<span
+								className={style.timeIndicatorTop}
+								ref={timeIndicatorTopRef}
+							/>
+							<span
+								className={clsx(style.timeIndicatorHair, {
+									[style.hairHidden]: !showHistogram,
+								})}
+								ref={timeIndicatorHairRef}
+							/>
+						</div>
 					</div>
 				</div>
 				<div className={style.timeAxis} ref={timeAxisRef}>
@@ -1186,6 +1238,11 @@ const TimelineIndicatorsBarGraph = ({
 								if (!bucket.totalCount) {
 									return null
 								}
+
+								const barHeightAdjustment =
+									1 -
+									style.HISTOGRAM_OFFSET /
+										style.HISTOGRAM_AREA_HEIGHT
 
 								const relativeHeight =
 									barHeightAdjustment *
