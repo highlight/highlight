@@ -3,7 +3,7 @@ import {
 	Badge,
 	Box,
 	IconArrowsExpand,
-	IconButton,
+	ButtonIcon,
 	IconMinusSm,
 	IconPlusSm,
 	Text,
@@ -44,12 +44,12 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 					</>
 				}
 			>
-				<IconButton
+				<ButtonIcon
 					onClick={() => zoom(PERCENTAGE_STEP)}
 					variant="secondary"
 					icon={<IconPlusSm />}
 				/>
-				<IconButton
+				<ButtonIcon
 					onClick={() => zoom(-PERCENTAGE_STEP)}
 					variant="secondary"
 					icon={<IconMinusSm />}
