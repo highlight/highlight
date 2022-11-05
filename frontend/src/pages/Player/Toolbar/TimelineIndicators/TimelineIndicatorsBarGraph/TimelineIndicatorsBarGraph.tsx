@@ -1058,10 +1058,10 @@ const TimelineIndicatorsBarGraph = ({
 						}}
 					/>
 				</div>
-				<div className={sessionMonitorStyle} ref={sessionMonitorRef}>
+				<div className={sessionMonitorStyle}>
 					<Skeleton height={style.SESSION_MONITOR_HEIGHT} />
 				</div>
-				<div className={style.viewportContainer} ref={viewportRef}>
+				<div className={style.viewportContainer}>
 					<Skeleton
 						height={
 							showHistogram
@@ -1099,7 +1099,10 @@ const TimelineIndicatorsBarGraph = ({
 				{sessionMonitor}
 				<ZoomArea
 					containerWidth={borderlessWidth}
-					wrapperRef={sessionMonitorRef}
+					containerLeft={
+						sessionMonitorRef.current?.getBoundingClientRect()
+							.left || 0
+					}
 					update={updateCameraFromZoomArea}
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>

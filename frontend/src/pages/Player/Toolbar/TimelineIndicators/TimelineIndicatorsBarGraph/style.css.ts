@@ -9,7 +9,7 @@ export const TIME_AXIS_HEIGHT = 24
 export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
 export const TIME_INDICATOR_TOP_WIDTH = 10
 export const TIME_INDICATOR_TEXT_HEIGHT = 20
-export const TIMELINE_MARGIN = 32
+export const TIMELINE_MARGIN = 8
 export const TOP_HEIGHT = 12
 
 export const timelineContainer = style({
@@ -215,7 +215,7 @@ export const timeIndicator = style({
 	zIndex: '2',
 })
 
-export const timeIndicatorMoving = style({
+export const animated = style({
 	transition: 'transform 0.17s linear',
 })
 
