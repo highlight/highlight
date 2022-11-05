@@ -62,6 +62,9 @@ const EMPTY_SESSION_METADATA = {
 }
 const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 
+// assuming 120 fps
+export const FRAME_MS = 1000 / 120
+
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 60 * 3
 export const MAX_CHUNK_COUNT = 8
@@ -471,6 +474,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.startChunksLoad:
+			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
 			s.replayerStateBeforeLoad = s.replayerState
 			// important to pause at the actual current time,
@@ -504,7 +508,6 @@ export const PlayerReducer = (
 			} else {
 				s.replayer.replaceEvents(events)
 			}
-			s.isLoadingEvents = false
 			s.time = action.time
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
@@ -512,6 +515,7 @@ export const PlayerReducer = (
 				action.action || s.replayerStateBeforeLoad,
 				s.time,
 			)
+			s.isLoadingEvents = false
 			break
 		case PlayerActionType.onFrame:
 			if (!s.replayer) break
