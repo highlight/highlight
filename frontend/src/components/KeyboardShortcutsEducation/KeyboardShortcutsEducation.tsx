@@ -307,7 +307,8 @@ export interface ShortcutItem {
 	shortcut: string[]
 }
 
-export const isOnMac = window.navigator.platform.includes('Mac')
+const isOnMac = window.navigator.platform.includes('Mac')
+export const cmdKey = isOnMac ? '⌘' : 'Ctrl'
 
 export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 	{
@@ -318,12 +319,12 @@ export const GeneralKeyboardShortcuts: ShortcutItem[] = [
 
 export const DevToolsShortcut: ShortcutItem = {
 	description: `Toggle dev tools`,
-	shortcut: [isOnMac ? '⌘' : 'Ctrl', '/'],
+	shortcut: [cmdKey, '/'],
 }
 
 export const TimelineShortcut: ShortcutItem = {
 	description: `Toggle the timeline`,
-	shortcut: [isOnMac ? '⌘' : 'Ctrl', 'E'],
+	shortcut: [cmdKey, 'E'],
 }
 
 export const PlayerKeyboardShortcuts: ShortcutItem[] = [
@@ -375,10 +376,10 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	},
 	{
 		description: `Toggle left sidebar`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'b'],
+		shortcut: [cmdKey, 'b'],
 	},
 	{
 		description: `Toggle right sidebar`,
-		shortcut: [isOnMac ? '⌘' : 'Ctrl', 'i'],
+		shortcut: [cmdKey, 'i'],
 	},
 ]

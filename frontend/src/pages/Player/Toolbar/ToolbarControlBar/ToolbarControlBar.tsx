@@ -1,4 +1,5 @@
 import {
+	cmdKey,
 	DevToolsShortcut,
 	ShortcutItem,
 	TimelineShortcut,
@@ -250,13 +251,20 @@ const ToolbarControls = () => {
 								<Text userSelect="none" color="neutral500">
 									Speed +/-
 								</Text>
-								<Badge
-									variant="grey"
-									size="tiny"
-									iconStart={<IconArrowSmUp size={12} />}
-									label="/"
-									iconEnd={<IconArrowSmDown size={12} />}
-								/>
+								<Box display="flex" gap="2">
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={cmdKey}
+									/>
+									<Badge
+										variant="grey"
+										size="tiny"
+										iconStart={<IconArrowSmUp size={12} />}
+										label="/"
+										iconEnd={<IconArrowSmDown size={12} />}
+									/>
+								</Box>
 							</>
 						}
 					>
