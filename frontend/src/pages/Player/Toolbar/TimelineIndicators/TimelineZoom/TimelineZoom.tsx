@@ -2,8 +2,8 @@ import { cmdKey } from '@components/KeyboardShortcutsEducation/KeyboardShortcuts
 import {
 	Badge,
 	Box,
-	IconArrowsExpand,
 	ButtonIcon,
+	IconArrowsExpand,
 	IconMinusSm,
 	IconPlusSm,
 	Text,
