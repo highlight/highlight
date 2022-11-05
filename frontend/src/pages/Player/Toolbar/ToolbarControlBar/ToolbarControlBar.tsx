@@ -10,7 +10,6 @@ import Switch from '@components/Switch/Switch'
 import {
 	Badge,
 	Box,
-	BoxSwitch,
 	Button,
 	IconArrowsExpand,
 	IconArrowSmDown,
@@ -25,6 +24,7 @@ import {
 	IconSkipLeft,
 	IconSkipRight,
 	IconTerminal,
+	SwitchButton,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -291,7 +291,7 @@ const ToolbarControls = () => {
 							</>
 						}
 					>
-						<BoxSwitch
+						<SwitchButton
 							onChange={() => {
 								setShowHistogram(!showHistogram)
 							}}
@@ -312,7 +312,7 @@ const ToolbarControls = () => {
 							</>
 						}
 					>
-						<BoxSwitch
+						<SwitchButton
 							onChange={() => {
 								setShowDevTools(!showDevTools)
 							}}

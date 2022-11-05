@@ -13,7 +13,7 @@ type Props = CheckboxProps & {
 	icon: React.ReactElement<IconProps>
 }
 
-export const BoxSwitch: React.FC<Props> = ({
+export const SwitchButton: React.FC<Props> = ({
 	icon,
 	onChange,
 	checked,
