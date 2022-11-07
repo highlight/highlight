@@ -37,72 +37,73 @@ const DashboardsRouter = () => {
 	})
 
 	useEffect(() => {
-		// create default dashboards
-		if (project_id && !loading && !error && called) {
-			if (
-				!data?.dashboard_definitions?.some(
-					(d) => d?.name === 'Web Vitals',
-				)
-			) {
-				upsertDashboardMutation({
-					variables: {
-						project_id,
-						metrics: Object.values(WEB_VITALS_CONFIGURATION),
-						name: 'Web Vitals',
-						layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
-						is_default: true,
-					},
-				}).catch(H.consumeError)
-			}
-			const homeDashboard = data?.dashboard_definitions?.find(
-				(d) => d?.name === 'Home',
+		if (!project_id || loading || error || !called) {
+			return
+		}
+
+		if (
+			!data?.dashboard_definitions?.some((d) => d?.name === 'Web Vitals')
+		) {
+			upsertDashboardMutation({
+				variables: {
+					project_id,
+					metrics: Object.values(WEB_VITALS_CONFIGURATION),
+					name: 'Web Vitals',
+					layout: JSON.stringify(DEFAULT_METRICS_LAYOUT),
+					is_default: true,
+				},
+			}).catch(H.consumeError)
+		}
+
+		const homeDashboard = data?.dashboard_definitions?.find(
+			(d) => d?.name === 'Home',
+		)
+		if (!homeDashboard?.metrics?.length) {
+			upsertDashboardMutation({
+				variables: {
+					project_id,
+					metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
+					name: 'Home',
+					layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
+					is_default: true,
+				},
+			}).catch(H.consumeError)
+		} else {
+			const newMetrics = [...homeDashboard.metrics]
+
+			// if a legacy session count chart exists, update it
+			const oldSessionMetricIdx = newMetrics.findIndex(
+				(m) => m.component_type === 'SessionCountChart',
 			)
-			if (!homeDashboard) {
+			if (oldSessionMetricIdx) {
+				newMetrics[oldSessionMetricIdx] =
+					HOME_DASHBOARD_CONFIGURATION['Sessions']
+			}
+
+			// if a legacy error count chart exists, update it
+			const oldErrorMetricIdx = newMetrics.findIndex(
+				(m) => m.component_type === 'ErrorCountChart',
+			)
+			if (oldErrorMetricIdx) {
+				newMetrics[oldErrorMetricIdx] =
+					HOME_DASHBOARD_CONFIGURATION['Errors']
+			}
+
+			if (oldSessionMetricIdx || oldErrorMetricIdx) {
+				console.log(
+					'Updating legacy home dashboard',
+					[...homeDashboard.metrics],
+					'to',
+					newMetrics,
+				)
 				upsertDashboardMutation({
 					variables: {
-						project_id,
-						metrics: Object.values(HOME_DASHBOARD_CONFIGURATION),
-						name: 'Home',
-						layout: JSON.stringify(DEFAULT_HOME_DASHBOARD_LAYOUT),
-						is_default: true,
+						...homeDashboard,
+						metrics: newMetrics,
 					},
 				}).catch(H.consumeError)
-			} else {
-				const newMetrics = [...homeDashboard.metrics]
-
-				// if a legacy session count chart exists, update it
-				const oldSessionMetricIdx = newMetrics.findIndex(
-					(m) => m.component_type === 'SessionCountChart',
-				)
-				if (oldSessionMetricIdx) {
-					newMetrics[oldSessionMetricIdx] =
-						HOME_DASHBOARD_CONFIGURATION['Sessions']
-				}
-
-				// if a legacy error count chart exists, update it
-				const oldErrorMetricIdx = newMetrics.findIndex(
-					(m) => m.component_type === 'ErrorCountChart',
-				)
-				if (oldErrorMetricIdx) {
-					newMetrics[oldErrorMetricIdx] =
-						HOME_DASHBOARD_CONFIGURATION['Errors']
-				}
-
-				if (oldSessionMetricIdx || oldErrorMetricIdx) {
-					console.log(
-						'Updating legacy home dashboard',
-						[...homeDashboard.metrics],
-						'to',
-						newMetrics,
-					)
-					upsertDashboardMutation({
-						variables: {
-							...homeDashboard,
-							metrics: newMetrics,
-						},
-					}).catch(H.consumeError)
-				}
 			}
+
 			if (
 				!data?.dashboard_definitions?.some(
 					(d) => d?.name === 'Request Metrics',
