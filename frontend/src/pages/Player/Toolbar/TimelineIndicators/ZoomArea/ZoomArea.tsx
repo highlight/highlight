@@ -56,7 +56,9 @@ const ZoomArea = ({
 		passive: true,
 	})
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [_, setPanX] = useState<number>(0)
+
 	const onCenterPointerDown = (event: MouseEvent) => {
 		const containerDiv = containerRef.current
 
