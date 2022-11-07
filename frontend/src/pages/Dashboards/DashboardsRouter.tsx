@@ -54,7 +54,10 @@ const DashboardsRouter = () => {
 					},
 				}).catch(H.consumeError)
 			}
-			if (!data?.dashboard_definitions?.some((d) => d?.name === 'Home')) {
+			const homeDashboard = data?.dashboard_definitions?.find(
+				(d) => d?.name === 'Home',
+			)
+			if (!homeDashboard) {
 				upsertDashboardMutation({
 					variables: {
 						project_id,
@@ -64,6 +67,41 @@ const DashboardsRouter = () => {
 						is_default: true,
 					},
 				}).catch(H.consumeError)
+			} else {
+				const newMetrics = [...homeDashboard.metrics]
+
+				// if a legacy session count chart exists, update it
+				const oldSessionMetricIdx = newMetrics.findIndex(
+					(m) => m.component_type === 'SessionCountChart',
+				)
+				if (oldSessionMetricIdx) {
+					newMetrics[oldSessionMetricIdx] =
+						HOME_DASHBOARD_CONFIGURATION['Sessions']
+				}
+
+				// if a legacy error count chart exists, update it
+				const oldErrorMetricIdx = newMetrics.findIndex(
+					(m) => m.component_type === 'ErrorCountChart',
+				)
+				if (oldErrorMetricIdx) {
+					newMetrics[oldErrorMetricIdx] =
+						HOME_DASHBOARD_CONFIGURATION['Errors']
+				}
+
+				if (oldSessionMetricIdx || oldErrorMetricIdx) {
+					console.log(
+						'Updating legacy home dashboard',
+						[...homeDashboard.metrics],
+						'to',
+						newMetrics,
+					)
+					upsertDashboardMutation({
+						variables: {
+							...homeDashboard,
+							metrics: newMetrics,
+						},
+					}).catch(H.consumeError)
+				}
 			}
 			if (
 				!data?.dashboard_definitions?.some(
