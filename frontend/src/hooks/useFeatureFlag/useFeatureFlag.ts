@@ -31,6 +31,8 @@ export const FeatureConfig: { [key: number]: Config } = {
 			'172',
 			// Sunsama
 			'657',
+			// Synder
+			'1031',
 		]),
 	},
 } as const
