@@ -1138,6 +1138,13 @@ const TimelineIndicatorsBarGraph = ({
 				style={{
 					transform: `translateX(${textStart}px)`,
 					visibility: showIndicatorText ? 'visible' : 'hidden',
+					top:
+						style.PROGRESS_BAR_HEIGHT +
+						(showHistogram ? style.SESSION_MONITOR_HEIGHT : 0) +
+						style.TIME_AXIS_HEIGHT -
+						style.TIME_INDICATOR_TOP_HEIGHT -
+						style.TIME_INDICATOR_TEXT_HEIGHT -
+						4,
 				}}
 			>
 				<Text

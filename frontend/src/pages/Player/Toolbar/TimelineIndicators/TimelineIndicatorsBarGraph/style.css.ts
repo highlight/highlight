@@ -8,9 +8,9 @@ export const SESSION_MONITOR_HEIGHT = 20
 export const TIME_AXIS_HEIGHT = 24
 export const TIME_INDICATOR_ACTIVATION_RADIUS = 15
 export const TIME_INDICATOR_TOP_WIDTH = 10
+export const TIME_INDICATOR_TOP_HEIGHT = 12
 export const TIME_INDICATOR_TEXT_HEIGHT = 20
 export const TIMELINE_MARGIN = 8
-export const TOP_HEIGHT = 12
 
 export const timelineContainer = style({
 	alignItems: 'center',
@@ -232,16 +232,14 @@ export const hairHidden = style({
 	visibility: 'hidden',
 })
 
-const timeIndicatorTopOffset = TIME_AXIS_HEIGHT - TOP_HEIGHT + 1
-
 export const timeIndicatorTop = style({
 	backgroundColor: 'var(--color-neutral-900)',
 	border: '1px solid var(--color-white)',
 	borderRadius: '1px 1px 12px 12px',
 	cursor: 'grab',
-	height: TOP_HEIGHT,
+	height: TIME_INDICATOR_TOP_HEIGHT,
 	position: 'sticky',
-	top: timeIndicatorTopOffset,
+	top: TIME_AXIS_HEIGHT - TIME_INDICATOR_TOP_HEIGHT + 1,
 	width: '8px',
 })
 
@@ -249,11 +247,5 @@ export const timeIndicatorText = style({
 	zIndex: 2,
 	height: TIME_INDICATOR_TEXT_HEIGHT,
 	left: 0,
-	top:
-		PROGRESS_BAR_HEIGHT +
-		SESSION_MONITOR_HEIGHT +
-		timeIndicatorTopOffset -
-		TIME_INDICATOR_TEXT_HEIGHT -
-		4,
 	transformOrigin: 'left',
 })
