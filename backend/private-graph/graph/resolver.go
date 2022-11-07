@@ -597,6 +597,20 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 	return nil, err
 }
 
+func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID string) (*model.ErrorObject, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
+	defer authSpan.Finish()
+	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID, preloadFields)
+	if err == nil && isOwner {
+		return errorGroup, nil
+	}
+	if errorGroup != nil && errorGroup.IsPublic {
+		return errorGroup, nil
+	}
+	return nil, err
+
+}
+
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()

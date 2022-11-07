@@ -1000,6 +1000,38 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
+query GetErrorObject($id: String!) {
+	error_object(id: $id) {
+		id
+		project_id
+		session_id
+		error_group_id
+		error_group_secure_id
+		event
+		type
+		url
+		source
+		lineNumber
+		columnNumber
+		stack_trace
+		structured_stack_trace {
+			fileName
+			lineNumber
+			functionName
+			columnNumber
+			lineContent
+			linesBefore
+			linesAfter
+			error
+		}
+		timestamp
+		payload
+		request_id
+		os
+		browser
+	}
+}
+
 query GetRecentErrors($secure_id: String!) {
 	error_group(secure_id: $secure_id) {
 		secure_id

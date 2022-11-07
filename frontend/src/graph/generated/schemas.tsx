@@ -349,12 +349,15 @@ export type ErrorMetadata = {
 
 export type ErrorObject = {
 	__typename?: 'ErrorObject'
+	browser?: Maybe<Scalars['String']>
 	columnNumber?: Maybe<Scalars['Int']>
+	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
+	os?: Maybe<Scalars['String']>
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
@@ -1180,6 +1183,7 @@ export type Query = {
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
 	error_groups_opensearch: ErrorResults
+	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1370,6 +1374,10 @@ export type QueryError_Groups_OpensearchArgs = {
 	page?: Maybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryError_ObjectArgs = {
+	id: Scalars['String']
 }
 
 export type QueryError_SegmentsArgs = {

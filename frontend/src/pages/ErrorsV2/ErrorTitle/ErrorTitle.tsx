@@ -1,3 +1,4 @@
+import { useGetProjectQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorObject } from '@graph/schemas'
 import { Box, Heading, Text } from '@highlight-run/ui'
@@ -5,6 +6,7 @@ import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import ErrorIssueButton from '@pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
 import { ErrorStateSelect } from '@pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
+import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
 import { FaArrowRight } from 'react-icons/fa'
@@ -16,6 +18,9 @@ interface Props {
 
 const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 	const [headerTextAsJson, setHeaderTextAsJson] = useState<null | any>(null)
+	const { data: projectData } = useGetProjectQuery({
+		variables: { id: String(errorGroup?.project_id) },
+	})
 
 	const event = errorObject?.event ?? errorGroup?.event
 	const headerText = getHeaderFromError(event ?? [])
@@ -70,7 +75,10 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 						</Box>
 
 						<Box>
-							<Text>Error groups {'>'} HIG-1234</Text>
+							<Text>
+								{getProjectPrefix(projectData?.project)}-
+								{errorGroup.id}
+							</Text>
 						</Box>
 					</Box>
 

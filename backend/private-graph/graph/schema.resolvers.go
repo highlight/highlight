@@ -3369,6 +3369,11 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	return r.canAdminViewErrorGroup(ctx, secureID, true)
 }
 
+// ErrorObject is the resolver for the error_object field.
+func (r *queryResolver) ErrorObject(ctx context.Context, id string) (*model.ErrorObject, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)

@@ -332,6 +332,9 @@ type ErrorObject {
 	timestamp: Timestamp!
 	payload: String
 	request_id: String
+	os: String
+	browser: String
+	environment: String
 }
 
 type ErrorField {
@@ -1029,6 +1032,7 @@ type Query {
 		histogram_options: DateHistogramOptions!
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
+	error_object(id: String!): ErrorObject
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
