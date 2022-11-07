@@ -23,6 +23,9 @@ export const variants = recipe({
 					boxShadow: 'none',
 					outline: 'none',
 				},
+				'&:hover': {
+					cursor: 'pointer',
+				},
 			},
 		},
 	],

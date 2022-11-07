@@ -19,6 +19,7 @@ const ExplanatoryPopover: React.FC<PropsWithChildren<Props>> = ({
 			align={{
 				offset: [0, 8],
 			}}
+			mouseEnterDelay={1}
 			{...popoverProps}
 		>
 			<Box
