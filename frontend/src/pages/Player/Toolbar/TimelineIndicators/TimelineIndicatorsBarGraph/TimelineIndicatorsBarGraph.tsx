@@ -908,7 +908,7 @@ const TimelineIndicatorsBarGraph = ({
 	)
 
 	const borderlessWidth = width - 2 * CONTAINER_BORDER_WIDTH // adjusting the width to account for the borders
-	const useTransition = !isRefreshingDOM && !isDragging
+	const useTransition = !isRefreshingDOM && !isDragging && time > 0
 
 	const progressBar = useMemo(() => {
 		return (
