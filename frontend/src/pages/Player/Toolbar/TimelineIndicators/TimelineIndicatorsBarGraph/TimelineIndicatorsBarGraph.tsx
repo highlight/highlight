@@ -552,7 +552,7 @@ const TimelineIndicatorsBarGraph = ({
 
 	useWindowEvent('pointerup', onPointerup, { passive: true })
 
-	const onPointermove = useCallback(
+	const onVisibilityChange = useCallback(
 		(event: MouseEvent) => {
 			setDragTime(moveTime(event))
 			const viewportBbox = viewportRef.current?.getBoundingClientRect()
@@ -589,7 +589,10 @@ const TimelineIndicatorsBarGraph = ({
 		},
 		[isDragging, moveTime],
 	)
-	useWindowEvent('pointermove', onPointermove, { passive: true })
+	useWindowEvent('pointermove', onVisibilityChange, { passive: true })
+	useHTMLElementEvent(viewportRef.current, 'wheel', onVisibilityChange, {
+		passive: true,
+	})
 
 	const onScroll = useCallback((event: Event) => {
 		event.preventDefault()

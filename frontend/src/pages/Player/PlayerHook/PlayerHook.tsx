@@ -394,9 +394,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
-			if (newTime) {
-				dispatch({ type: PlayerActionType.setTime, time: newTime })
-			}
+			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			requestAnimationFrame(() =>
 				ensureChunksLoaded(
 					newTime,
