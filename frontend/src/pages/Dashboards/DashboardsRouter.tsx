@@ -71,24 +71,18 @@ const DashboardsRouter = () => {
 				const newMetrics = [...homeDashboard.metrics]
 
 				// if a legacy session count chart exists, update it
-				const oldSessionMetric = newMetrics.find(
+				const oldSessionMetricIdx = newMetrics.findIndex(
 					(m) => m.component_type === 'SessionCountChart',
 				)
-				const oldSessionMetricIdx = oldSessionMetric
-					? newMetrics.indexOf(oldSessionMetric)
-					: undefined
 				if (oldSessionMetricIdx) {
 					newMetrics[oldSessionMetricIdx] =
 						HOME_DASHBOARD_CONFIGURATION['Sessions']
 				}
 
 				// if a legacy error count chart exists, update it
-				const oldErrorMetric = newMetrics.find(
+				const oldErrorMetricIdx = newMetrics.findIndex(
 					(m) => m.component_type === 'ErrorCountChart',
 				)
-				const oldErrorMetricIdx = oldErrorMetric
-					? newMetrics.indexOf(oldErrorMetric)
-					: undefined
 				if (oldErrorMetricIdx) {
 					newMetrics[oldErrorMetricIdx] =
 						HOME_DASHBOARD_CONFIGURATION['Errors']
