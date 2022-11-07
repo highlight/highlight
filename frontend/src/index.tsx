@@ -343,7 +343,12 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
-		if (!window.mixpanel || !projectId || isAuthLoading(authRole)) {
+		if (
+			!window.mixpanel ||
+			typeof window.mixpanel.register !== 'function' ||
+			!projectId ||
+			isAuthLoading(authRole)
+		) {
 			return
 		}
 
