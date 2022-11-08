@@ -235,11 +235,6 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 	return r.UnmarshalStackTrace(*obj.StackTrace)
 }
 
-// Session is the resolver for the session field.
-func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
-	return &obj.Session, nil
-}
-
 // Params is the resolver for the params field.
 func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.ErrorSearchParams, error) {
 	params := &model.ErrorSearchParams{}
@@ -3381,6 +3376,18 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 		return nil, e.Wrap(err, "error reading error object")
 	}
 	return errorObject, nil
+}
+
+// ErrorGroupObjects is the resolver for the error_group_objects field.
+func (r *queryResolver) ErrorGroupObjects(ctx context.Context, errorGroupID int, perPage int, page int) ([]*model.ErrorObject, error) {
+	offset := (page - 1) * perPage
+
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Preload("Session").Where(&model.ErrorObject{ErrorGroupID: errorGroupID}).Limit(perPage).Offset(offset).Find(&errorObjects).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+
+	return errorObjects, nil
 }
 
 // Messages is the resolver for the messages field.

@@ -7128,6 +7128,106 @@ export type GetErrorGroupQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupQuery,
 	Types.GetErrorGroupQueryVariables
 >
+export const GetErrorGroupObjectsDocument = gql`
+	query GetErrorGroupObjects(
+		$errorGroupID: ID!
+		$perPage: Int!
+		$page: Int!
+	) {
+		error_group_objects(
+			error_group_id: $errorGroupID
+			per_page: $perPage
+			page: $page
+		) {
+			id
+			created_at
+			project_id
+			session {
+				secure_id
+				city
+				state
+				country
+				user_properties
+			}
+			error_group_id
+			error_group_secure_id
+			event
+			type
+			url
+			source
+			lineNumber
+			columnNumber
+			stack_trace
+			structured_stack_trace {
+				fileName
+				lineNumber
+				functionName
+				columnNumber
+				lineContent
+				linesBefore
+				linesAfter
+				error
+			}
+			timestamp
+			payload
+			request_id
+			os
+			browser
+			environment
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupObjectsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupObjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupObjectsQuery({
+ *   variables: {
+ *      errorGroupID: // value for 'errorGroupID'
+ *      perPage: // value for 'perPage'
+ *      page: // value for 'page'
+ *   },
+ * });
+ */
+export function useGetErrorGroupObjectsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupObjectsQuery,
+		Types.GetErrorGroupObjectsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupObjectsQuery,
+		Types.GetErrorGroupObjectsQueryVariables
+	>(GetErrorGroupObjectsDocument, baseOptions)
+}
+export function useGetErrorGroupObjectsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupObjectsQuery,
+		Types.GetErrorGroupObjectsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupObjectsQuery,
+		Types.GetErrorGroupObjectsQueryVariables
+	>(GetErrorGroupObjectsDocument, baseOptions)
+}
+export type GetErrorGroupObjectsQueryHookResult = ReturnType<
+	typeof useGetErrorGroupObjectsQuery
+>
+export type GetErrorGroupObjectsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupObjectsLazyQuery
+>
+export type GetErrorGroupObjectsQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupObjectsQuery,
+	Types.GetErrorGroupObjectsQueryVariables
+>
 export const GetErrorObjectDocument = gql`
 	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {

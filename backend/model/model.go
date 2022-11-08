@@ -863,8 +863,8 @@ type ErrorObject struct {
 	SessionID      int
 	// TODO: Check if using belongs to in this way is alright. Don't see other
 	// instances of it :thinking:
-	Session          Session
-	ErrorGroupID     int
+	// Session          Session
+	ErrorGroupID     int // see if we can add `gorm:"index;option:CONCURRENTLY;not null;`
 	Event            string
 	Type             string
 	URL              string
