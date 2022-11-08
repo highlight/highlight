@@ -1,54 +1,70 @@
-import Button from '@components/Button/Button/Button'
+import {
+	cmdKey,
+	DevToolsShortcut,
+	ShortcutItem,
+	TimelineShortcut,
+} from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
+import {
+	Badge,
+	Box,
+	Button,
+	IconArrowsExpand,
+	IconArrowSmDown,
+	IconArrowSmLeft,
+	IconArrowSmRight,
+	IconArrowSmUp,
+	IconChartBar,
+	IconCog,
+	IconPause,
+	IconPlay,
+	IconRestart,
+	IconSkipLeft,
+	IconSkipRight,
+	IconTerminal,
+	SwitchButton,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
-import { ReactComponent as ArrowsExpandIcon } from '@icons/Solid/arrows-expand.svg'
-import { ReactComponent as ChartBarIcon } from '@icons/Solid/chart-bar.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
 import { ReactComponent as ChevronRightIcon } from '@icons/Solid/cheveron-right.svg'
-import { ReactComponent as CogIcon } from '@icons/Solid/cog.svg'
 import { ReactComponent as CrossIcon } from '@icons/Solid/cross.svg'
 import { ReactComponent as CursorClickIcon } from '@icons/Solid/cursor-click.svg'
 import { ReactComponent as FastForwardIcon } from '@icons/Solid/fast-forward.svg'
-import { ReactComponent as PauseIcon } from '@icons/Solid/pause.svg'
-import { ReactComponent as PlayIcon } from '@icons/Solid/play.svg'
 import { ReactComponent as PlayCircleIcon } from '@icons/Solid/play-circle.svg'
-import { ReactComponent as RestartIcon } from '@icons/Solid/restart.svg'
-import { ReactComponent as SkipLeftIcon } from '@icons/Solid/skip-left.svg'
-import { ReactComponent as SkipRightIcon } from '@icons/Solid/skip-right.svg'
-import { ReactComponent as TerminalIcon } from '@icons/Solid/terminal.svg'
 import {
 	getFullScreenPopoverGetPopupContainer,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { EventsForTimeline } from '@pages/Player/PlayerHook/utils'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	ReplayerPausedStates,
 	ReplayerState,
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
+import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import { H } from 'highlight.run'
-import { PropsWithChildren, useState } from 'react'
+import React from 'react'
+import { useState } from 'react'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
 import style from './ToolbarControlBar.module.scss'
-const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
+
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
-
-const isOnMac = window.navigator.platform.includes('Mac')
-
-const showTimelineShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}E`
-const showDevToolsShortcut = `${isOnMac ? '⌘ ' : 'Ctrl-'}/`
 
 const ToolbarControls = () => {
 	const {
@@ -72,18 +88,10 @@ const ToolbarControls = () => {
 		setShowHistogram,
 		showDevTools,
 		setShowDevTools,
-		playerSpeed,
-		setPlayerSpeed,
-		skipInactive,
-		setSkipInactive,
+		playerSpeedIdx,
+		setPlayerSpeedIdx,
 		showPlayerAbsoluteTime,
 	} = usePlayerConfiguration()
-
-	const isHistogramVisible = !isLiveMode && showHistogram
-
-	const [playerSpeedIdx, setPlayerSpeedIdx] = useState<number>(
-		Math.max(PLAYBACK_SPEED_OPTIONS.indexOf(playerSpeed), 0),
-	)
 
 	const isPaused = ReplayerPausedStates.includes(state)
 	const sessionDuration = sessionMetadata.totalTime ?? 0
@@ -96,71 +104,106 @@ const ToolbarControls = () => {
 
 	return (
 		<div className={style.controlContainer}>
-			<Button
-				className={style.button}
-				trackingId="PlayerSkipLeft"
-				onClick={() => {
-					H.track('PlayerSkipLeft')
-					const prevTime = Math.max(time - 5000, 0)
-					setTime(prevTime)
-				}}
-				disabled={disableControls}
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							Skip back
+						</Text>
+						<Badge
+							variant="grey"
+							size="tiny"
+							iconStart={<IconArrowSmLeft size={12} />}
+						/>
+					</>
+				}
 			>
-				<SkipLeftIcon />
-			</Button>
-
-			<Button
-				className={style.button}
-				trackingId="PlayerPlayPause"
-				onClick={() => {
-					H.track('Player Play/Pause Button')
-					if (isPlaybackComplete) {
-						pause(time)
-						const newTime = 0
-						play(newTime)
-					} else if (isPaused && !isLiveMode) {
-						play(time)
-					} else {
-						pause(time)
-					}
-				}}
-				disabled={disableControls}
-			>
-				{isPaused && isPlaybackComplete ? (
-					<RestartIcon />
-				) : isPaused && !isLiveMode ? (
-					<PlayIcon />
-				) : (
-					<PauseIcon />
-				)}
-			</Button>
-
-			<Button
-				className={style.button}
-				trackingId="PlayerSkipRight"
-				onClick={() => {
-					H.track('PlayerSkipRight')
-					const newTime = Math.max(time + 5000, 0)
-					setTime(newTime)
-				}}
-				disabled={disableControls}
-			>
-				<SkipRightIcon />
-			</Button>
-
-			{showLiveToggle && (
 				<Button
-					className={classNames(style.button, style.smallButton, {
-						[style.activeButton]: isLiveMode,
-					})}
-					trackingId="LiveToggle"
+					onClick={() => {
+						H.track('PlayerSkipLeft')
+						const prevTime = Math.max(time - 5000, 0)
+						setTime(prevTime)
+					}}
+					disabled={disableControls}
+					iconLeft={<IconSkipLeft size={14} />}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							{isPlaybackComplete
+								? 'Restart'
+								: isPaused && !isLiveMode
+								? 'Play'
+								: 'Pause'}
+						</Text>
+						<Badge variant="grey" size="tiny" label="Space" />
+					</>
+				}
+			>
+				<Button
+					onClick={() => {
+						H.track('Player Play/Pause Button')
+						if (isPlaybackComplete) {
+							pause(time)
+							const newTime = 0
+							play(newTime)
+						} else if (isPaused && !isLiveMode) {
+							play(time)
+						} else {
+							pause(time)
+						}
+					}}
+					disabled={disableControls}
+					iconLeft={
+						isPaused && isPlaybackComplete ? (
+							<IconRestart size={14} />
+						) : isPaused && !isLiveMode ? (
+							<IconPlay size={14} />
+						) : (
+							<IconPause size={14} />
+						)
+					}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
+			<ExplanatoryPopover
+				content={
+					<>
+						<Text userSelect="none" color="neutral500">
+							Skip forward
+						</Text>
+						<Badge
+							variant="grey"
+							size="tiny"
+							iconStart={<IconArrowSmRight size={12} />}
+						/>
+					</>
+				}
+			>
+				<Button
+					onClick={() => {
+						H.track('PlayerSkipRight')
+						const newTime = Math.max(time + 5000, 0)
+						setTime(newTime)
+					}}
+					disabled={disableControls}
+					iconLeft={<IconSkipRight size={14} />}
+					variant="white"
+				/>
+			</ExplanatoryPopover>
+			{showLiveToggle && (
+				<Tag
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
+					variant={isLiveMode ? 'primary' : 'grey'}
 					disabled={disableControls}
 				>
 					Live
-				</Button>
+				</Tag>
 			)}
 			{isLiveMode && lastActiveString && (
 				<SessionToken
@@ -173,7 +216,7 @@ const ToolbarControls = () => {
 			)}
 			{!isLiveMode && (
 				<>
-					<span className={style.currentTime}>
+					<Text color="neutral500" userSelect="none">
 						{disableControls ? (
 							<Skeleton count={1} width="60.13px" />
 						) : showPlayerAbsoluteTime ? (
@@ -200,104 +243,84 @@ const ToolbarControls = () => {
 								</>
 							</>
 						)}
-					</span>
-					<Button
-						className={classNames(
-							style.button,
-							style.moveRight,
-							style.smallButton,
-						)}
-						trackingId="PlaybackSpeedControl"
-						onClick={() => {
-							const idx =
-								(playerSpeedIdx + 1) %
-								PLAYBACK_SPEED_OPTIONS.length
-							setPlayerSpeedIdx(idx)
-							setPlayerSpeed(PLAYBACK_SPEED_OPTIONS[idx])
-						}}
-						disabled={disableControls}
+					</Text>
+					<ExplanatoryPopover
+						className={style.moveRight}
+						content={
+							<>
+								<Text userSelect="none" color="neutral500">
+									Speed +/-
+								</Text>
+								<Box display="flex" gap="2">
+									<Badge
+										variant="grey"
+										size="tiny"
+										label={cmdKey}
+									/>
+									<Badge
+										variant="grey"
+										size="tiny"
+										iconStart={<IconArrowSmUp size={12} />}
+										label="/"
+										iconEnd={<IconArrowSmDown size={12} />}
+									/>
+								</Box>
+							</>
+						}
 					>
-						{playerSpeed}x
-					</Button>
+						<Tag
+							variant="grey"
+							onClick={() => {
+								setPlayerSpeedIdx(playerSpeedIdx + 1)
+							}}
+							disabled={disableControls}
+						>
+							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
+						</Tag>
+					</ExplanatoryPopover>
 
 					<ExplanatoryPopover
 						content={
 							<>
-								Timeline
-								<span className={style.popoverCmdShortcut}>
-									{showTimelineShortcut}
-								</span>
+								<Text userSelect="none" color="neutral500">
+									Timeline
+								</Text>
+								<ShortcutTextGuide
+									shortcut={TimelineShortcut}
+								/>
 							</>
 						}
 					>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && isHistogramVisible,
-								},
-							)}
-							trackingId="HistogramToggle"
-							onClick={() => {
+						<SwitchButton
+							onChange={() => {
 								setShowHistogram(!showHistogram)
 							}}
-							disabled={disableControls}
-						>
-							<ChartBarIcon />
-						</Button>
+							checked={showHistogram}
+							disabled={isPlayerFullscreen || disableControls}
+							icon={<IconChartBar size={14} />}
+						/>
 					</ExplanatoryPopover>
-
 					<ExplanatoryPopover
 						content={
 							<>
-								Dev tools
-								<span className={style.popoverCmdShortcut}>
-									{showDevToolsShortcut}
-								</span>
+								<Text userSelect="none" color="neutral500">
+									Dev tools
+								</Text>
+								<ShortcutTextGuide
+									shortcut={DevToolsShortcut}
+								/>
 							</>
 						}
 					>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && showDevTools,
-								},
-							)}
-							trackingId="DevToolsToggle"
-							onClick={() => {
+						<SwitchButton
+							onChange={() => {
 								setShowDevTools(!showDevTools)
 							}}
+							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-						>
-							<TerminalIcon />
-						</Button>
+							icon={<IconTerminal size={14} />}
+						/>
 					</ExplanatoryPopover>
-
-					<ExplanatoryPopover content={<>Skip inactive</>}>
-						<Button
-							className={classNames(
-								style.button,
-								style.minorButton,
-								{
-									[style.activeButton]:
-										!disableControls && skipInactive,
-								},
-							)}
-							trackingId="SkipInactiveToggle"
-							disabled={disableControls}
-							onClick={() => {
-								setSkipInactive(!skipInactive)
-							}}
-						>
-							<FastForwardIcon />
-						</Button>
-					</ExplanatoryPopover>
-
 					<Popover
 						getPopupContainer={
 							getFullScreenPopoverGetPopupContainer
@@ -324,53 +347,26 @@ const ToolbarControls = () => {
 						visible={showSettings}
 						destroyTooltipOnHide
 					>
-						<Button
-							className={style.button}
-							trackingId="PlayerSettings"
-							disabled={disableControls}
-						>
-							<CogIcon />
-						</Button>
+						<Box>
+							<Button
+								disabled={disableControls}
+								variant="white"
+								iconLeft={<IconCog size={14} />}
+							/>
+						</Box>
 					</Popover>
 				</>
 			)}
-			<Button
-				className={classNames(style.button, {
-					[style.moveRight]: isLiveMode,
-				})}
-				trackingId="PlayerFullscreen"
-				onClick={() => {
-					setIsPlayerFullscreen((prev) => !prev)
-				}}
-			>
-				<ArrowsExpandIcon />
-			</Button>
+			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
+				<Button
+					onClick={() => {
+						setIsPlayerFullscreen((prev) => !prev)
+					}}
+					iconLeft={<IconArrowsExpand size={14} />}
+					variant="white"
+				/>
+			</Box>
 		</div>
-	)
-}
-
-interface ExplanatoryPopoverProps {
-	content: React.ReactNode
-}
-const ExplanatoryPopover = ({
-	content,
-	children,
-}: PropsWithChildren<ExplanatoryPopoverProps>) => {
-	return (
-		<Popover
-			content={content}
-			overlayClassName={style.buttonPopoverOverlay}
-			showArrow={false}
-			align={{
-				overflow: {
-					adjustY: false,
-					adjustX: false,
-				},
-				offset: [0, 8],
-			}}
-		>
-			{children}
-		</Popover>
 	)
 }
 
@@ -397,22 +393,15 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const options = (
 		<>
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
-				<ChartBarIcon />
+				<IconChartBar />
 				Timeline
-				<span
-					className={classNames(
-						style.settingsOptionShortcut,
-						style.moveRight,
-					)}
-				>
-					{showTimelineShortcut}
-				</span>
+				<ShortcutTextGuide
+					shortcut={TimelineShortcut}
+					className={style.moveRight}
+				/>
 				<Switch
 					trackingId="HistogramMenuToggle"
 					checked={showHistogram}
@@ -423,22 +412,15 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
-				<TerminalIcon />
+				<IconTerminal />
 				Dev tools
-				<span
-					className={classNames(
-						style.settingsOptionShortcut,
-						style.moveRight,
-					)}
-				>
-					{showDevToolsShortcut}
-				</span>
+				<ShortcutTextGuide
+					shortcut={DevToolsShortcut}
+					className={style.moveRight}
+				/>
 				<Switch
 					trackingId="DevToolsMenuToggle"
 					checked={showDevTools}
@@ -449,10 +431,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
 				<CursorClickIcon />
@@ -468,10 +447,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
 				<FastForwardIcon />
@@ -487,10 +463,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
 				<PlayCircleIcon />
@@ -506,10 +479,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			</button>
 
 			<button
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
+				className={style.settingsButton}
 				onClick={() => setShowSessionSettings(false)}
 			>
 				<AnnotationIcon />
@@ -548,13 +518,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		}
 
 		return (
-			<button
-				key={idx}
-				className={classNames(
-					style.settingsButton,
-					style.settingsOption,
-				)}
-			>
+			<button key={idx} className={style.settingsButton}>
 				<div
 					className={style.leftSelection}
 					onClick={() => {
@@ -586,10 +550,10 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					/>
 					<span>{name}</span>
 					<span
-						className={classNames(
+						className={clsx([
 							style.leftClickActionName,
 							style.moveRight,
-						)}
+						])}
 					>
 						{onLeftClickActionName}
 					</span>
@@ -637,5 +601,21 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		</div>
 	)
 }
+
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="grey" size="tiny" label={char} />
+				))}
+			</Box>
+		)
+	},
+)
 
 export default ToolbarControls

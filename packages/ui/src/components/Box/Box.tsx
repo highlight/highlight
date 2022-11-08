@@ -11,21 +11,27 @@ export type Props = Sprinkles &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export const Box: React.FC<Props> = ({ as = 'div', cssClass, ...props }) => {
-	const sprinklesProps: Record<string, unknown> = {}
-	const nativeProps: Record<string, unknown> = {}
-	const userClasses = clsx(cssClass)
+export const Box = React.forwardRef<unknown, Props>(
+	({ as = 'div', cssClass, ...props }, ref) => {
+		const sprinklesProps: Record<string, unknown> = {}
+		const nativeProps: Record<string, unknown> = {}
+		const userClasses = clsx(cssClass)
 
-	for (const key in props) {
-		if (sprinkles.properties.has(key as keyof Sprinkles)) {
-			sprinklesProps[key] = props[key as keyof typeof props]
-		} else {
-			nativeProps[key] = props[key as keyof typeof props]
+		for (const key in props) {
+			if (sprinkles.properties.has(key as keyof Sprinkles)) {
+				sprinklesProps[key] = props[key as keyof typeof props]
+			} else {
+				nativeProps[key] = props[key as keyof typeof props]
+			}
 		}
-	}
 
-	return React.createElement(as, {
-		className: clsx([sprinkles(sprinklesProps), userClasses]),
-		...nativeProps,
-	})
-}
+		return React.createElement(as, {
+			className: clsx([sprinkles(sprinklesProps), userClasses]),
+			ref,
+			...nativeProps,
+		})
+	},
+)
+
+// Required because of using forwardRef
+Box.displayName = 'Box'

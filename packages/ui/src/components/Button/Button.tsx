@@ -8,7 +8,6 @@ import { IconProps } from '../icons'
 
 type Props = ButtonProps &
 	styles.Variants & {
-		children: React.ReactNode
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 		onPress?: () => void
@@ -22,7 +21,7 @@ const buttonToTextSize = {
 	xLarge: 'large',
 } as const
 
-export const Button: React.FC<Props> = ({
+export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
 	iconLeft,
 	iconRight,
@@ -52,7 +51,7 @@ export const Button: React.FC<Props> = ({
 					{iconLeft}
 				</Box>
 			)}
-			<Text size={textSize}>{children}</Text>
+			{children && <Text size={textSize}>{children}</Text>}
 			{iconRight && (
 				<Box
 					as="span"

@@ -27,6 +27,7 @@ const responsiveProperties = defineProperties({
 			'inline-block',
 			'inline-flex',
 		],
+		position: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
@@ -39,14 +40,6 @@ const responsiveProperties = defineProperties({
 			'flex-end',
 			'space-around',
 			'space-between',
-		],
-		textTransform: [
-			'none',
-			'capitalize',
-			'uppercase',
-			'lowercase',
-			'full-width',
-			'full-size-kana',
 		],
 		padding: vars.space,
 		paddingTop: vars.space,
@@ -75,6 +68,24 @@ const responsiveProperties = defineProperties({
 		mr: ['marginRight'],
 		mb: ['marginBottom'],
 		ml: ['marginLeft'],
+	},
+})
+
+const staticProperties = defineProperties({
+	properties: {
+		visibility: ['hidden', 'visible'],
+		textTransform: [
+			'none',
+			'capitalize',
+			'uppercase',
+			'lowercase',
+			'full-width',
+			'full-size-kana',
+		],
+		userSelect: ['all', 'auto', 'none'],
+		overflow: vars.overflow,
+		overflowX: vars.overflow,
+		overflowY: vars.overflow,
 	},
 })
 
@@ -108,6 +119,10 @@ const colorProperties = defineProperties({
 	},
 })
 
-export const sprinkles = createSprinkles(responsiveProperties, colorProperties)
+export const sprinkles = createSprinkles(
+	responsiveProperties,
+	colorProperties,
+	staticProperties,
+)
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]

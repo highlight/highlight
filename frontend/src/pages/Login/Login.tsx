@@ -59,6 +59,15 @@ export const AuthAdminRouter = () => {
 				}
 			}
 			H.identify(email, identifyMetadata)
+			if (window.mixpanel && typeof window.mixpanel.people === 'object') {
+				window.mixpanel.people.set({
+					$avatar: identifyMetadata.avatar,
+					$distinct_id: email,
+					$name: name,
+					$email: email,
+					'User ID': id,
+				})
+			}
 			window.analytics.identify(email, identifyMetadata)
 			H.getSessionURL()
 				.then((sessionUrl) => {

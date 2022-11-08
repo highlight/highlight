@@ -1,31 +1,37 @@
+import { Box } from '@highlight-run/ui'
 import ErrorFeed from '@pages/ErrorsV2/ErrorFeed/ErrorFeed'
-import classNames from 'classnames'
+import clsx from 'clsx'
 
 import useErrorPageConfiguration from '../../Error/utils/ErrorPageUIConfiguration'
 import PanelToggleButton from '../../Player/components/PanelToggleButton/PanelToggleButton'
-import styles from './SearchPanel.module.scss'
+import * as style from './SearchPanel.css'
 
 const SearchPanel = () => {
 	const { setShowLeftPanel, showLeftPanel } = useErrorPageConfiguration()
 
 	return (
-		<aside
-			className={classNames(styles.searchPanel, {
-				[styles.hidden]: !showLeftPanel,
+		<Box
+			display="flex"
+			flexDirection="column"
+			borderRight="neutral"
+			position="relative"
+			cssClass={clsx(style.searchPanel, {
+				[style.searchPanelHidden]: !showLeftPanel,
 			})}
+			background="neutral50"
 		>
 			{showLeftPanel && <ErrorFeed />}
 			<PanelToggleButton
 				direction="left"
-				className={classNames(styles.panelToggleButton, {
-					[styles.hidden]: !showLeftPanel,
+				className={clsx(style.searchPanelToggleButton, {
+					[style.searchPanelToggleButtonHidden]: !showLeftPanel,
 				})}
 				isOpen={showLeftPanel}
 				onClick={() => {
 					setShowLeftPanel(!showLeftPanel)
 				}}
 			/>
-		</aside>
+		</Box>
 	)
 }
 

@@ -1,4 +1,4 @@
-import { borders } from './borders'
+import { borderRadii, borders, borderWidths } from './borders'
 import { breakpoints } from './breakpoints'
 import { colors } from './colors'
 import { spaces } from './spaces'
@@ -8,20 +8,8 @@ export const vars = {
 	color: colors,
 	space: spaces,
 	border: borders,
-	borderRadius: {
-		'3': '3px',
-		'4': '4px',
-		'5': '5px',
-		'6': '6px',
-		'8': '8px',
-		'12': '12px',
-		round: '999px',
-	},
-	borderWidth: {
-		small: '1px',
-		medium: '2px',
-		large: '4px',
-	},
+	borderRadius: borderRadii,
+	borderWidth: borderWidths,
 	borderStyle: {
 		standard: 'solid',
 	},
@@ -37,4 +25,5 @@ export const vars = {
 		medium: '0 2px 4px 0px rgba(28,28,28,.1), 0 8px 8px -4px rgba(28,28,28,.1), 0 12px 12px -8px rgba(28,28,28,.2)',
 		large: '0 2px 4px 0px rgba(28,28,28,.1), 0 12px 12px -4px rgba(28,28,28,.1), 0 20px 20px -12px rgba(28,28,28,.2)',
 	},
+	overflow: ['auto', 'hidden', 'visible', 'scroll'],
 } as const

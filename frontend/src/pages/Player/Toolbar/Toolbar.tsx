@@ -1,4 +1,6 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
+import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import ActivityIcon from '@icons/ActivityIcon'
 import SvgReload from '@icons/Reload'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
@@ -17,9 +19,13 @@ import {
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu'
-import useLocalStorage from '@rehooks/local-storage'
+import { useLocalStorage } from '@rehooks/local-storage'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
+import {
+	MillisToMinutesAndSeconds,
+	MillisToMinutesAndSecondsVerbose,
+} from '@util/time'
 import { timerStart } from '@util/timer/timer'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
@@ -27,7 +33,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import Skeleton from 'react-loading-skeleton'
 
-import { useAuthContext } from '../../../authentication/AuthContext'
 import Button from '../../../components/Button/Button/Button'
 import SvgFullscreenIcon from '../../../static/FullscreenIcon'
 import SvgMinimize2Icon from '../../../static/Minimize2Icon'
@@ -35,13 +40,11 @@ import SvgPauseIcon from '../../../static/PauseIcon'
 import SvgPlayIcon from '../../../static/PlayIcon'
 import SvgSkipBackIcon from '../../../static/SkipBackIcon'
 import SvgSkipForwardIcon from '../../../static/SkipForwardIcon'
-import {
-	MillisToMinutesAndSeconds,
-	MillisToMinutesAndSecondsVerbose,
-} from '../../../util/time'
 import { usePlayerUIContext } from '../context/PlayerUIContext'
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
-import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
+import usePlayerConfiguration, {
+	PLAYBACK_SPEED_OPTIONS,
+} from '../PlayerHook/utils/usePlayerConfiguration'
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import {
 	ParsedSessionInterval,
@@ -103,7 +106,7 @@ export const Toolbar = ({ width }: Props) => {
 	usePlayerKeyboardShortcuts()
 
 	const {
-		playerSpeed,
+		playerSpeedIdx,
 		showDevTools,
 		setShowDevTools,
 		selectedDevToolsTab,
@@ -124,9 +127,13 @@ export const Toolbar = ({ width }: Props) => {
 	const isPaused = ReplayerPausedStates.includes(state)
 
 	// On by default for highlight admins, bumping to "v2" so we won't have to clear it manually
-	const [histogramOn] = useLocalStorage(
+	const [histogramOnOverride] = useLocalStorage(
 		`highlight-session-histogram-v2`,
 		isHighlightAdmin,
+	)
+	const histogramOn = useFeatureFlag(
+		Feature.HistogramTimelineV2,
+		isHighlightAdmin ? histogramOnOverride : undefined,
 	)
 
 	useEffect(() => {
@@ -141,11 +148,13 @@ export const Toolbar = ({ width }: Props) => {
 
 	useEffect(() => {
 		if (!isLiveMode) {
-			replayer?.setConfig({ speed: playerSpeed })
+			replayer?.setConfig({
+				speed: PLAYBACK_SPEED_OPTIONS[playerSpeedIdx],
+			})
 		} else {
 			replayer?.setConfig({ speed: 1 })
 		}
-	}, [replayer, playerSpeed, isLiveMode])
+	}, [replayer, isLiveMode, playerSpeedIdx])
 
 	// Automatically start the player if the user has set the preference.
 	useEffect(() => {
