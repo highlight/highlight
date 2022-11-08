@@ -33,6 +33,6 @@
 	z-index: 999;
 
 	&.hidden {
-		right: calc(-1 * (var(--sidebar-width) - var(--size-xLarge)));
+		right: var(--size-xLarge);
 	}
 }

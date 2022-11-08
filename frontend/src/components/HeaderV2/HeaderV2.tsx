@@ -24,15 +24,15 @@ import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
+import { CommandBar } from '../Header/CommandBar/CommandBar'
+import ApplicationPicker from '../Header/components/ApplicationPicker/ApplicationPicker'
+import FeedbackButton from '../Header/components/FeedbackButton/FeedbackButton'
+import HeaderActions from '../Header/components/HeaderActions'
+import { UserDropdown } from '../Header/UserDropdown/UserDropdown'
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
-import { CommandBar } from './CommandBar/CommandBar'
-import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker'
-import FeedbackButton from './components/FeedbackButton/FeedbackButton'
-import HeaderActions from './components/HeaderActions'
 import styles from './Header.module.scss'
-import { UserDropdown } from './UserDropdown/UserDropdown'
 
-export const Header = () => {
+export const HeaderV2 = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()

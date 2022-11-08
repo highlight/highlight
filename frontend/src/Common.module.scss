@@ -1,7 +1,7 @@
 .bodyWrapper {
 	display: flex;
 	height: 100%;
-	padding-left: var(--sidebar-width);
+	overflow-x: hidden;
 	position: absolute;
 	width: 100%;
 
@@ -9,11 +9,6 @@
 		animation: accomodate-banner 0.5s forwards;
 		height: calc(100% - var(--banner-height));
 		overflow-x: hidden;
-	}
-
-	&.sidebarHidden {
-		overflow-x: hidden;
-		padding-left: 0;
 	}
 }
 

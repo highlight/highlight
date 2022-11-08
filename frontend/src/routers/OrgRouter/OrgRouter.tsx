@@ -125,20 +125,6 @@ export const ProjectRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (
-			isLoggedIn ||
-			projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
-		) {
-			document.documentElement.style.setProperty(
-				'--sidebar-width',
-				'64px',
-			)
-		} else {
-			document.documentElement.style.setProperty('--sidebar-width', '0')
-		}
-	}, [isLoggedIn, projectIdRemapped])
-
-	useEffect(() => {
 		if (!error) {
 			setLoadingState((previousLoadingState) => {
 				if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {

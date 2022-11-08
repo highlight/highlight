@@ -13,7 +13,6 @@ import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { WorkspaceRedirectionRouter } from '@routers/OrgRouter/WorkspaceRedirectionRouter'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import classNames from 'classnames'
 import React, { useEffect } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { useToggle } from 'react-use'
@@ -54,17 +53,6 @@ export const WorkspaceRouter = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			document.documentElement.style.setProperty(
-				'--sidebar-width',
-				'64px',
-			)
-		} else {
-			document.documentElement.style.setProperty('--sidebar-width', '0')
-		}
-	}, [isLoggedIn])
-
-	useEffect(() => {
-		if (isLoggedIn) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
 	}, [isLoggedIn, setLoadingState])
@@ -96,12 +84,7 @@ export const WorkspaceRouter = () => {
 				}}
 			>
 				<Header />
-				<div
-					className={classNames(
-						commonStyles.bodyWrapper,
-						commonStyles.sidebarHidden,
-					)}
-				>
+				<div className={commonStyles.bodyWrapper}>
 					{isLoggedIn && joinableWorkspace ? (
 						<ErrorState
 							shownWithHeader
