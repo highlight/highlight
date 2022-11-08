@@ -7897,6 +7897,7 @@ __metadata:
   dependencies:
     "@highlight-run/rrweb-snapshot": "workspace:*"
     "@rollup/plugin-commonjs": ^20.0.0
+    "@rrweb/types": "workspace:*"
     "@types/jest": ^27.4.1
     "@types/puppeteer": ^5.4.4
     "@typescript-eslint/eslint-plugin": ^5.23.0
@@ -7920,6 +7921,7 @@ __metadata:
     "@highlight-run/rrweb": "workspace:*"
     "@rollup/plugin-commonjs": 22.0.0
     "@rollup/plugin-node-resolve": ^13.2.1
+    "@rrweb/types": "workspace:*"
     "@tsconfig/svelte": ^1.0.1
     "@types/offscreencanvas": ^2019.6.4
     eslint: ^8.23.1
@@ -7974,6 +7976,7 @@ __metadata:
     "@highlight-run/rrdom": "workspace:*"
     "@highlight-run/rrweb-snapshot": "workspace:*"
     "@rollup/plugin-node-resolve": ^13.1.3
+    "@rrweb/types": "workspace:*"
     "@types/chai": ^4.1.6
     "@types/css-font-loading-module": 0.0.7
     "@types/dom-mediacapture-transform": ^0.1.3
@@ -9712,6 +9715,17 @@ __metadata:
   checksum: 8be16e27863c219edbb25a4e6ec2fe0e1e451d9e917b6a43cf2ae5bc025a6b8faaa40f82a6e53b66d0de37b58ff472c6c3d57a83037ae635041f8df959d6d9aa
   languageName: node
   linkType: hard
+
+"@rrweb/types@workspace:*, @rrweb/types@workspace:rrweb/packages/types":
+  version: 0.0.0-use.local
+  resolution: "@rrweb/types@workspace:rrweb/packages/types"
+  dependencies:
+    rrweb-snapshot: ^2.0.0-alpha.3
+    typescript: ^4.7.3
+    vite: ^3.2.0-beta.2
+    vite-plugin-dts: ^1.6.6
+  languageName: unknown
+  linkType: soft
 
 "@rushstack/eslint-patch@npm:^1.1.0":
   version: 1.2.0
@@ -33408,7 +33422,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.3.6":
+"postcss@npm:^8.3.6, postcss@npm:^8.4.18":
   version: 8.4.18
   resolution: "postcss@npm:8.4.18"
   dependencies:
@@ -37008,7 +37022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^2.43.1, rollup@npm:^2.45.2, rollup@npm:^2.56.3, rollup@npm:^2.68.0, rollup@npm:^2.71.1, rollup@npm:^2.74.1":
+"rollup@npm:^2.43.1, rollup@npm:^2.45.2, rollup@npm:^2.56.3, rollup@npm:^2.68.0, rollup@npm:^2.71.1, rollup@npm:^2.74.1, rollup@npm:^2.79.1":
   version: 2.79.1
   resolution: "rollup@npm:2.79.1"
   dependencies:
@@ -37047,6 +37061,13 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 9034814383ca5bdb4bea6d499270aeb31cdb0bb884f81b0c6a1d19c63cc973f040e6ee09b7af8a7169dd231c090f4b44ef8b99c4bfdf884aceeb3dcefb8cfa14
+  languageName: node
+  linkType: hard
+
+"rrweb-snapshot@npm:^2.0.0-alpha.3":
+  version: 2.0.0-alpha.3
+  resolution: "rrweb-snapshot@npm:2.0.0-alpha.3"
+  checksum: 6a809e2b19e5892d76cc24b6f73bac1d07544e6b331ff3cbd1711dd26062c4558b0f62afd33066f40fc739096564b56e7ac99db05dd4c3699964162079fdb6b9
   languageName: node
   linkType: hard
 
@@ -41821,6 +41842,44 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: af13c9820c292792f02d0a25fd46d8557e627b93f95bc05b5f7f1261e9565e9e69fda2df0c0898f248edb811ebcac5400a85a81625ef29749f50b18273439d91
+  languageName: node
+  linkType: hard
+
+"vite@npm:^3.2.0-beta.2":
+  version: 3.2.3
+  resolution: "vite@npm:3.2.3"
+  dependencies:
+    esbuild: ^0.15.9
+    fsevents: ~2.3.2
+    postcss: ^8.4.18
+    resolve: ^1.22.1
+    rollup: ^2.79.1
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 3c7c618f7fb471cdfaf7f8eb769cb5f4174447e1103cd6221cbc2ae1ea1102bc28dd6a621ead250e6aa42c1e9ee3c8092666ea81078e1d88d2325c484218fd0a
   languageName: node
   linkType: hard
 
