@@ -123,7 +123,7 @@ const DashboardsRouter = () => {
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [project_id, loading, error, called, data])
+	}, [project_id, called])
 
 	return (
 		<DashboardsContextProvider
