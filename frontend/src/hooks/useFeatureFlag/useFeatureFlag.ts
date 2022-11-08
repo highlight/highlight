@@ -21,7 +21,7 @@ export enum Feature {
 export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.HistogramTimelineV2]: {
 		workspace: true,
-		percent: 25,
+		percent: 100,
 		projectOverride: new Set<string>([
 			// Portal
 			'79',
@@ -73,6 +73,9 @@ export const isFeatureOn = async function (
 		config.workspaceOverride &&
 		config.workspaceOverride.has(workspaceId)
 	) {
+		return true
+	}
+	if (config.percent >= 100) {
 		return true
 	}
 	return isActive(
