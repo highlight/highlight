@@ -12,6 +12,11 @@ export const errorCardTitle = style({
 		2 * ERROR_CARD_PX -
 		ERROR_FEED_SCROLLBAR_WIDTH,
 })
+
+export const errorCardTitleText = style({
+	overflowX: 'hidden',
+})
+
 export const errorCard = style({
 	selectors: {
 		'&:hover': {

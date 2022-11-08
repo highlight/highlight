@@ -79,7 +79,13 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					alignItems="center"
 					cssClass={style.errorCardTitle}
 				>
-					<Text lines="1" size="small" color="dark" display="flex">
+					<Text
+						lines="1"
+						size="small"
+						color="dark"
+						display="flex"
+						cssClass={style.errorCardTitleText}
+					>
 						{body}
 					</Text>
 				</Box>
