@@ -141,7 +141,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.30.6",
 		"@typescript-eslint/parser": "^5.30.6",
 		"@vanilla-extract/vite-plugin": "^3.6.1",
-		"@vitejs/plugin-react": "^2.1.0",
+		"@vitejs/plugin-react": "^2.2.0",
 		"autoprefixer": "^10.4.8",
 		"eslint": "^7.0.0",
 		"eslint-config-prettier": "^7.2.0",
