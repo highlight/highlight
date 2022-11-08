@@ -9,6 +9,7 @@ export const shadows = {
 
 export const defaultSize = 'medium'
 export const defaultVariant = 'primary'
+export const defaultShape = 'rounded'
 
 export const iconVariants = recipe({
 	base: {
@@ -25,6 +26,17 @@ export const iconVariants = recipe({
 			large: { height: 16, width: 16 },
 		},
 		variant: {
+			transparent: {
+				color: vars.color.neutral500,
+				selectors: {
+					'&:hover': {
+						color: vars.color.neutral700,
+					},
+					'&:focus, &:active': {
+						color: vars.color.neutral500,
+					},
+				},
+			},
 			primary: {
 				color: vars.color.purple100,
 				selectors: {
@@ -100,8 +112,23 @@ export const variants = recipe({
 	variants: {
 		shape: {
 			rounded: {},
+			basic: {},
 		},
 		variant: {
+			transparent: {
+				background: 'none',
+				color: vars.color.neutral700,
+				boxShadow: 'none',
+				selectors: {
+					'&:hover': {
+						background: vars.color.neutral100,
+						boxShadow: shadows.grey,
+					},
+					'&:focus, &:active': {
+						background: vars.color.neutral200,
+					},
+				},
+			},
 			primary: {
 				background: vars.color.purple500,
 				color: vars.color.white,
@@ -177,11 +204,38 @@ export const variants = recipe({
 				sprinkles({ gap: '3', px: '10', py: '2', borderRadius: '10' }),
 			],
 		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '4', py: '0', borderRadius: '3' }),
+			],
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '4', py: '2', borderRadius: '5' }),
+			],
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '6', py: '2', borderRadius: '6' }),
+			],
+		},
 	],
 	defaultVariants: {
 		variant: defaultVariant,
 		size: defaultSize,
-		shape: 'rounded',
+		shape: defaultShape,
 	},
 })
 
