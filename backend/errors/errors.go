@@ -135,6 +135,8 @@ func getFileSourcemap(projectId int, version *string, stackTraceFileURL string, 
 		sourceMapFileBytes, err = storageClient.ReadSourceMapFileFromS3(projectId, version, pathSubpath)
 		if err != nil {
 			if pathSubpath == "" {
+				// SOURCEMAP_ERROR: could not find source map file in s3
+				// (user-facing error message can include all the paths searched)
 				return "", nil, e.Wrapf(err, "failed to match file-scheme sourcemap for js file %s", stackTraceFileURL)
 			}
 			pathSubpath = strings.Join(strings.Split(pathSubpath, "/")[1:], "/")
@@ -154,6 +156,8 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		minifiedFileBytes, err = fetch.fetchFile(stackTraceFileURL)
 		if err != nil {
 			// fallback if we can't get the source file at all
+			// SOURCEMAP_ERROR: minified file does not exist in S3 and could not be found at the URL
+			// (user-facing error message can include the S3 path and URL that was searched)
 			err := e.Wrapf(err, "error fetching file: %v", stackTraceFileURL)
 			return "", nil, err
 		}
@@ -163,6 +167,8 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		}
 	}
 	if len(minifiedFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		// SOURCEMAP_ERROR: minified file larger than 128MB
+		// (user-facing error message  should include actual size)
 		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, len(minifiedFileBytes))
 		return "", nil, err
 	}
@@ -182,6 +188,8 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		if len(sourceMapURL) > 500 {
 			sourceMapURL = sourceMapURL[:500]
 		}
+		// SOURCEMAP_ERROR: sourceMapURL is not a valid URL
+		// (might be good to include the sourceMapURL in the user-facing error message)
 		err := e.Errorf("error parsing source map url: %s", sourceMapURL)
 		return "", nil, err
 	}
@@ -198,12 +206,16 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 		sourceMapFileBytes, err = fetch.fetchFile(sourceMapURL)
 		if err != nil {
 			// fallback if we can't get the source file at all
+			// SOURCEMAP_ERROR: source map file does not exist in S3 and could not be found at the URL
+			// (user-facing error message can include the S3 path and URL that was searched)
 			err := e.Wrapf(err, "error fetching source map file: %v", sourceMapURL)
 			return "", nil, err
 		}
 		smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 		if err != nil || smap == nil {
 			// what we expected to be a source map is not. don't store it in s3
+			// SOURCEMAP_ERROR: sourcemap library could not parse the source map file
+			// (user-facing error message can include sourceMapURL)
 			err := e.Wrapf(err, "error parsing fetched source map: %v - %v, %v", sourceMapURL, smap, err)
 			return "", nil, err
 		}
@@ -223,6 +235,10 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	// get file name index from URL
 	stackFileNameIndex := strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
 	if stackFileNameIndex == -1 {
+		// SOURCEMAP_ERROR: path.Base returns the last element of a path
+		// (e.g. foo.com/bar/example.js would return example.js)
+		// This case is likely happening when the path is empty.
+		// (might be good to include the stackTraceFileURL in the user-facing error message)
 		err := e.Errorf("source path doesn't contain file name: %v", stackTraceFileURL)
 		return nil, err
 	}
@@ -230,6 +246,8 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	// get path from url
 	u, err := url.Parse(stackTraceFileURL)
 	if err != nil {
+		// SOURCEMAP_ERROR: stackTraceFileURL is not a valid URL
+		// (might be good to include the stackTraceFileURL in the user-facing error message)
 		err := e.Wrapf(err, "error parsing stack trace file url: %v", stackTraceFileURL)
 		return nil, err
 	}
@@ -255,17 +273,25 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 	}
 
 	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+		// SOURCEMAP_ERROR: source map file larger than our max supported size (128MB)
+		// (might be good to include actual size in the user-facing error message)
 		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFilePath, len(sourceMapFileBytes))
 		return nil, err
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
 	if err != nil {
+		// SOURCEMAP_ERROR: the sourcemap library couldn't parse
+		// the source map with the input URL and file content
+		// (might be good to include sourceMapURL in the user-facing error message)
 		err := e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
 		return nil, err
 	}
 
 	sourceFileName, fn, line, col, ok := smap.Source(stackTraceLineNumber, stackTraceColumnNumber)
 	if !ok {
+		// SOURCEMAP_ERROR: the sourcemap library couldn't retrieve the original source
+		// with the input line and column number
+		// (might be good to include line and column number in the user-facing error message)
 		err := e.Errorf("error extracting true error info from source map: %v", sourceMapURL)
 		return nil, err
 	}
