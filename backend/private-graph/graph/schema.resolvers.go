@@ -184,12 +184,12 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 				20
 			) AS e ON s.id = e.session_id
 		WHERE
-			s.excluded <> true 
+			s.excluded <> true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
 		LIMIT
-			20;	
+			20;
 	`,
 		obj.ID,
 		obj.ProjectID,
@@ -233,6 +233,11 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 // StructuredStackTrace is the resolver for the structured_stack_trace field.
 func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorObject) ([]*modelInputs.ErrorTrace, error) {
 	return r.UnmarshalStackTrace(*obj.StackTrace)
+}
+
+// Session is the resolver for the session field.
+func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
+	return &obj.Session, nil
 }
 
 // Params is the resolver for the params field.
@@ -3370,8 +3375,12 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 }
 
 // ErrorObject is the resolver for the error_object field.
-func (r *queryResolver) ErrorObject(ctx context.Context, id string) (*model.ErrorObject, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Preload("Session").Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
 }
 
 // Messages is the resolver for the messages field.

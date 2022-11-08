@@ -351,6 +351,7 @@ export type ErrorObject = {
 	__typename?: 'ErrorObject'
 	browser?: Maybe<Scalars['String']>
 	columnNumber?: Maybe<Scalars['Int']>
+	created_at: Scalars['Timestamp']
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
@@ -361,6 +362,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	session?: Maybe<Session>
 	session_id: Scalars['Int']
 	source?: Maybe<Scalars['String']>
 	stack_trace: Scalars['String']
@@ -1377,7 +1379,7 @@ export type QueryError_Groups_OpensearchArgs = {
 }
 
 export type QueryError_ObjectArgs = {
-	id: Scalars['String']
+	id: Scalars['ID']
 }
 
 export type QueryError_SegmentsArgs = {

@@ -7129,11 +7129,19 @@ export type GetErrorGroupQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupQueryVariables
 >
 export const GetErrorObjectDocument = gql`
-	query GetErrorObject($id: String!) {
+	query GetErrorObject($id: ID!) {
 		error_object(id: $id) {
 			id
+			created_at
 			project_id
-			session_id
+			session {
+				id
+				secure_id
+				city
+				state
+				country
+				user_properties
+			}
 			error_group_id
 			error_group_secure_id
 			event
@@ -7158,6 +7166,7 @@ export const GetErrorObjectDocument = gql`
 			request_id
 			os
 			browser
+			environment
 		}
 	}
 `

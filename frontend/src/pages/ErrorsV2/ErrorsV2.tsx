@@ -254,7 +254,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												errorGroup={data?.error_group}
 											/>
 
-											<ErrorInstance errorObjectId={1} />
+											<ErrorInstance
+												errorGroup={data?.error_group}
+											/>
 										</>
 									)}
 								</div>

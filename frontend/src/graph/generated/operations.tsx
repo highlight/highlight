@@ -2553,7 +2553,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 }
 
 export type GetErrorObjectQueryVariables = Types.Exact<{
-	id: Types.Scalars['String']
+	id: Types.Scalars['ID']
 }>
 
 export type GetErrorObjectQuery = { __typename?: 'Query' } & {
@@ -2561,8 +2561,8 @@ export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'ErrorObject' } & Pick<
 			Types.ErrorObject,
 			| 'id'
+			| 'created_at'
 			| 'project_id'
-			| 'session_id'
 			| 'error_group_id'
 			| 'error_group_secure_id'
 			| 'event'
@@ -2577,7 +2577,19 @@ export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 			| 'request_id'
 			| 'os'
 			| 'browser'
+			| 'environment'
 		> & {
+				session?: Types.Maybe<
+					{ __typename?: 'Session' } & Pick<
+						Types.Session,
+						| 'id'
+						| 'secure_id'
+						| 'city'
+						| 'state'
+						| 'country'
+						| 'user_properties'
+					>
+				>
 				structured_stack_trace: Array<
 					Types.Maybe<
 						{ __typename?: 'ErrorTrace' } & Pick<
