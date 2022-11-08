@@ -44,6 +44,7 @@ export const Text = React.forwardRef<unknown, Props>(
 				ref={lines ? undefined : ref}
 				userSelect={userSelect}
 				textTransform={transform}
+				overflowX={lines ? 'hidden' : undefined}
 				cssClass={styles.variants({ ...props })}
 			>
 				{content}
