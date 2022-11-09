@@ -13,6 +13,7 @@ import {
 import { GetSessionQuery } from '@graph/operations'
 import {
 	customEvent,
+	EventType,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
@@ -484,7 +485,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const onEvent = useCallback(
 		(event: HighlightEvent) => {
 			if (
-				(event.type === 5 &&
+				(event.type === EventType.Custom &&
 					(event.data.tag === 'Navigate' ||
 						event.data.tag === 'Reload')) ||
 				(event as customEvent)?.data?.tag === 'Stop'
