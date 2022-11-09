@@ -858,12 +858,9 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID int
-	ProjectID      int `json:"project_id"`
-	SessionID      int
-	// TODO: Check if using belongs to in this way is alright. Don't see other
-	// instances of it :thinking:
-	// Session          Session
+	OrganizationID   int
+	ProjectID        int `json:"project_id"`
+	SessionID        int
 	ErrorGroupID     int // see if we can add `gorm:"index;option:CONCURRENTLY;not null;`
 	Event            string
 	Type             string

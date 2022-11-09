@@ -974,6 +974,8 @@ type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
 	StructuredStackTrace(ctx context.Context, obj *model1.ErrorObject) ([]*model.ErrorTrace, error)
+
+	Session(ctx context.Context, obj *model1.ErrorObject) (*model1.Session, error)
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
@@ -20512,7 +20514,7 @@ func (ec *executionContext) _ErrorObject_session(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Session, nil
+		return ec.resolvers.ErrorObject().Session(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20521,17 +20523,17 @@ func (ec *executionContext) _ErrorObject_session(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model1.Session)
+	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOSession2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObject",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -50091,9 +50093,22 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ErrorObject_environment(ctx, field, obj)
 
 		case "session":
+			field := field
 
-			out.Values[i] = ec._ErrorObject_session(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_session(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -60731,10 +60746,6 @@ func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Segment(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSession2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
-	return ec._Session(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {

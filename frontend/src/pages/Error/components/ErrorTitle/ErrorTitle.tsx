@@ -28,7 +28,6 @@ const ErrorTitle = ({
 		if (headerText) {
 			if (event) {
 				const title = getErrorBody(event)
-
 				if (title) {
 					setHeaderTextAsJson(title)
 				} else {

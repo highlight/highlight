@@ -235,6 +235,11 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 	return r.UnmarshalStackTrace(*obj.StackTrace)
 }
 
+// Session is the resolver for the session field.
+func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Params is the resolver for the params field.
 func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.ErrorSearchParams, error) {
 	params := &model.ErrorSearchParams{}
