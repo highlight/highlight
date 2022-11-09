@@ -1184,7 +1184,6 @@ export type Query = {
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
-	error_group_objects: Array<ErrorObject>
 	error_groups_opensearch: ErrorResults
 	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
@@ -1370,12 +1369,6 @@ export type QueryError_Fields_OpensearchArgs = {
 
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
-}
-
-export type QueryError_Group_ObjectsArgs = {
-	error_group_id: Scalars['ID']
-	page: Scalars['Int']
-	per_page: Scalars['Int']
 }
 
 export type QueryError_Groups_OpensearchArgs = {

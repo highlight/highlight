@@ -33,6 +33,8 @@ const responsiveProperties = defineProperties({
 			stretch: '1 1 0',
 		},
 		flexDirection: ['row', 'column'],
+		flexGrow: [0, 1],
+		flexShrink: [0],
 		justifyContent: [
 			'stretch',
 			'flex-start',
@@ -60,6 +62,12 @@ const responsiveProperties = defineProperties({
 		marginBottom: vars.space,
 		marginLeft: vars.space,
 		marginRight: vars.space,
+		width: {
+			full: '100%',
+		},
+		maxWidth: {
+			full: '100%',
+		},
 	},
 	shorthands: {
 		align: ['alignItems'],

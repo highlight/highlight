@@ -6,7 +6,6 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import {
-	Badge,
 	Box,
 	Button,
 	Heading,
@@ -19,10 +18,17 @@ import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import {
 	getDisplayName,
+	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
+	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
+import { useHistory } from 'react-router-dom'
 import React from 'react'
+import { Maybe, Session } from '@graph/schemas'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { FiExternalLink } from 'react-icons/fi'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -30,6 +36,7 @@ type Props = React.PropsWithChildren & {
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { projectId } = useProjectId()
+	const history = useHistory()
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [selectedErrorObjectIndex, setSelectedErrorObjectIndex] =
 		React.useState<number>(0)
@@ -49,16 +56,17 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	})
 
 	const metadataLog = recentErrorsData?.error_group?.metadata_log || []
-	console.log(
-		selectedErrorObjectIndex,
-		metadataLog[selectedErrorObjectIndex]?.error_id,
-	)
 	const { data } = useGetErrorObjectQuery({
 		variables: {
 			id: String(metadataLog[selectedErrorObjectIndex]?.error_id),
 		},
 	})
 
+	if (!data?.error_object) {
+		return null
+	}
+
+	const errorObject = data.error_object
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
@@ -69,22 +77,28 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 					<Text>
 						Error groups {'>'} {projectPrefix}-
-						{data?.error_object?.error_group_id} {' > '}
-						{projectPrefix}-Ins-{data?.error_object?.id}
+						{errorObject.error_group_id} {' > '}
+						{projectPrefix}-Ins-{errorObject.id}
 					</Text>
 				</Box>
 
-				<Box>
+				<Box display="flex" gap="8">
 					<Button
+						disabled={selectedErrorObjectIndex <= 0}
+						variant="white"
 						onClick={() =>
 							setSelectedErrorObjectIndex(
-								selectedErrorObjectIndex - 1,
+								Math.max(selectedErrorObjectIndex - 1, 0),
 							)
 						}
 					>
 						Older
 					</Button>
 					<Button
+						disabled={
+							selectedErrorObjectIndex >= metadataLog.length - 1
+						}
+						variant="white"
 						onClick={() =>
 							setSelectedErrorObjectIndex(
 								selectedErrorObjectIndex + 1,
@@ -94,37 +108,56 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						Newer
 					</Button>
 					{/* TODO: Build link component that looks like a button, or use history to navigate */}
-					<Button onClick={() => null} iconLeft={<IconPlay />}>
+					<Button
+						variant="grey"
+						onClick={() =>
+							history.push(
+								`/${projectId}/sessions/${errorObject.session?.secure_id}`,
+							)
+						}
+						iconLeft={<IconPlay />}
+					>
 						Show Session
 					</Button>
 				</Box>
 			</Box>
 
-			<Tags errorObject={data?.error_object} />
+			<Box
+				display="flex"
+				flexDirection={{ desktop: 'row', mobile: 'column' }}
+				my="40"
+				gap="40"
+			>
+				<div style={{ flexBasis: 0, flexGrow: 1 }}>
+					<Metadata errorObject={errorObject} />
+				</div>
 
-			<Box display="flex" my="32">
-				<User errorObject={data?.error_object} />
+				<div style={{ flexBasis: 0, flexGrow: 1 }}>
+					<Box display="flex">
+						<User errorObject={errorObject} />
+					</Box>
+				</div>
 			</Box>
 
 			<Text size="large" weight="bold">
 				Stack trace
 			</Text>
 			<Box bt="neutral" mt="12" pt="16">
-				<ErrorStackTrace errorObject={data?.error_object} />
+				<ErrorStackTrace errorObject={errorObject} />
 			</Box>
 		</Box>
 	)
 }
 
-const Tags: React.FC<{ errorObject?: GetErrorObjectQuery['error_object'] }> = ({
-	errorObject,
-}) => {
+const Metadata: React.FC<{
+	errorObject?: GetErrorObjectQuery['error_object']
+}> = ({ errorObject }) => {
 	if (!errorObject) {
 		return null
 	}
 
 	// TODO: Be smarter about how we pull these.
-	const tags = [
+	const metadata = [
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
@@ -136,18 +169,30 @@ const Tags: React.FC<{ errorObject?: GetErrorObjectQuery['error_object'] }> = ({
 		<Box>
 			<Box bb="neutral" pb="20" my="12">
 				<Text weight="bold" size="large">
-					Tags
+					Instance metadata
 				</Text>
 			</Box>
 
-			{tags.map((tag) => {
-				return (
-					<Box key={tag.key} display="inline-flex" as="span" mr="8">
-						<Badge label={tag.key} />
-						<Badge label={tag.label as string} />
-					</Box>
-				)
-			})}
+			<Box as="table">
+				{metadata.map((tag) => {
+					return (
+						<Box as="tr">
+							<Box as="th" py="10" pr="16">
+								<Text
+									color="neutral500"
+									transform="capitalize"
+									align="left"
+								>
+									{tag.key}
+								</Text>
+							</Box>
+							<Box as="td">
+								<Text align="left">{tag.label}</Text>
+							</Box>
+						</Box>
+					)
+				})}
+			</Box>
 		</Box>
 	)
 }
@@ -155,23 +200,30 @@ const Tags: React.FC<{ errorObject?: GetErrorObjectQuery['error_object'] }> = ({
 const User: React.FC<{
 	errorObject?: GetErrorObjectQuery['error_object']
 }> = ({ errorObject }) => {
+	const history = useHistory()
+	const { projectId } = useProjectId()
+	const { setSearchParams } = useSearchContext()
+
 	if (!errorObject?.session) {
 		return null
 	}
 
 	const { session } = errorObject
-	const displayName = getDisplayName(session as any)
-	const avatarImage = getIdentifiedUserProfileImage(session as any)
+	const userProperties = getUserProperties(session)
+	const [displayName, field] = getDisplayNameAndField(session)
+	const avatarImage = getIdentifiedUserProfileImage(session)
 	const location = [session?.city, session?.state, session?.country]
 		.filter(Boolean)
 		.join(', ')
 
 	return (
-		<div style={{ width: '100%' }}>
-			<Text size="large" weight="bold">
-				User details
-			</Text>
-			<Box border="neutral" borderRadius="6" mt="12">
+		<Box width="full">
+			<Box pb="20" mt="12">
+				<Text weight="bold" size="large">
+					User details
+				</Text>
+			</Box>
+			<Box border="neutral" borderRadius="6">
 				<Box
 					bb="neutral"
 					py="8"
@@ -180,33 +232,77 @@ const User: React.FC<{
 					display="flex"
 					justifyContent="space-between"
 				>
-					<Box alignItems="center" display="flex">
+					<Box alignItems="center" display="flex" gap="8">
 						<Avatar
 							seed={displayName}
 							style={{ height: 28, width: 28 }}
 							customImage={avatarImage}
 						/>
-						<Text>{displayName}</Text>
+						<Text>{session.identifier}</Text>
 					</Box>
-					<Button variant="grey" iconRight={<IconArrowsExpand />}>
+
+					<Button
+						variant="grey"
+						iconRight={<FiExternalLink />}
+						onClick={() => {
+							// Logic taken from Metadata box. There may be a cleaner way.
+							const searchParams = {
+								...EmptySessionsSearchParams,
+							}
+
+							if (session.identifier && field !== null) {
+								searchParams.user_properties = [
+									{
+										id: '0',
+										name: field,
+										value: displayName,
+									},
+								]
+							} else if (session?.fingerprint) {
+								searchParams.device_id = String(
+									session.fingerprint,
+								)
+							}
+
+							history.push(`/${projectId}/sessions`)
+							setSearchParams(searchParams)
+						}}
+					>
 						All sessions for this user
 					</Button>
 				</Box>
 
 				<Box py="8" px="12">
-					<table>
-						<tr>
-							<th>User-ID</th>
-							<td>id1234</td>
-						</tr>
-						<tr>
-							<th>Location</th>
-							<td>{location}</td>
-						</tr>
-					</table>
+					<Box as="table">
+						{Object.keys(userProperties)
+							.filter((k) => k !== 'avatar')
+							.map((key) => (
+								<Box as="tr" key={key}>
+									<Box as="th" py="10" pr="16">
+										<Text
+											color="neutral500"
+											align="left"
+											transform="capitalize"
+										>
+											{key}
+										</Text>
+									</Box>
+									<Box as="td">{userProperties[key]}</Box>
+								</Box>
+							))}
+
+						<Box as="tr">
+							<Box as="th" py="10" pr="16">
+								<Text color="neutral500" align="left">
+									Location
+								</Text>
+							</Box>
+							<Box as="td">{location}</Box>
+						</Box>
+					</Box>
 				</Box>
 			</Box>
-		</div>
+		</Box>
 	)
 }
 

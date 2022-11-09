@@ -1,4 +1,5 @@
 import BarChart from '@components/BarChart/BarChart'
+import styles from '@components/RadioGroup/RadioGroup.module'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import { Badge, Box, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -101,8 +102,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								label={`${errorCount}`}
 							/>
 							<Box
-								width="4"
-								height="4"
+								cssClass={style.circleDivider}
 								background="neutral200"
 								borderRadius="round"
 								as="span"

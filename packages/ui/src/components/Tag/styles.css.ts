@@ -7,15 +7,16 @@ export const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
 
+export const defaultShape = 'rounded'
 export const defaultSize = 'medium'
 export const defaultVariant = 'primary'
 
 export const iconVariants = recipe({
 	base: {
 		alignItems: 'center',
+		border: 'none',
 		display: 'inline-flex',
 		justifyContent: 'center',
-		border: 'none',
 	},
 
 	variants: {
@@ -97,6 +98,7 @@ export const variants = recipe({
 	variants: {
 		shape: {
 			rounded: {},
+			round: {},
 		},
 		variant: {
 			primary: {
@@ -140,9 +142,9 @@ export const variants = recipe({
 			},
 		},
 		size: {
-			small: [{ height: 16 }],
-			medium: [{ height: 20 }],
-			large: [{ height: 24 }],
+			small: { height: 16 },
+			medium: { height: 20 },
+			large: { height: 24 },
 		},
 	},
 
@@ -152,6 +154,27 @@ export const variants = recipe({
 				size: 'small',
 				shape: 'rounded',
 			},
+			style: { borderRadius: vars.borderRadius[3] },
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'rounded',
+			},
+			style: { borderRadius: vars.borderRadius[5] },
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'rounded',
+			},
+			style: { borderRadius: vars.borderRadius[6] },
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'round',
+			},
 			style: [
 				sprinkles({ gap: '2', px: '6', py: '0', borderRadius: '23' }),
 			],
@@ -159,7 +182,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'medium',
-				shape: 'rounded',
+				shape: 'round',
 			},
 			style: [
 				sprinkles({ gap: '3', px: '8', py: '2', borderRadius: '16' }),
@@ -168,7 +191,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'large',
-				shape: 'rounded',
+				shape: 'round',
 			},
 			style: [
 				sprinkles({ gap: '3', px: '10', py: '2', borderRadius: '10' }),
@@ -178,7 +201,7 @@ export const variants = recipe({
 	defaultVariants: {
 		variant: defaultVariant,
 		size: defaultSize,
-		shape: 'rounded',
+		shape: defaultShape,
 	},
 })
 

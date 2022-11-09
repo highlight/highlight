@@ -2552,64 +2552,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorGroupObjectsQueryVariables = Types.Exact<{
-	errorGroupID: Types.Scalars['ID']
-	perPage: Types.Scalars['Int']
-	page: Types.Scalars['Int']
-}>
-
-export type GetErrorGroupObjectsQuery = { __typename?: 'Query' } & {
-	error_group_objects: Array<
-		{ __typename?: 'ErrorObject' } & Pick<
-			Types.ErrorObject,
-			| 'id'
-			| 'created_at'
-			| 'project_id'
-			| 'error_group_id'
-			| 'error_group_secure_id'
-			| 'event'
-			| 'type'
-			| 'url'
-			| 'source'
-			| 'lineNumber'
-			| 'columnNumber'
-			| 'stack_trace'
-			| 'timestamp'
-			| 'payload'
-			| 'request_id'
-			| 'os'
-			| 'browser'
-			| 'environment'
-		> & {
-				session?: Types.Maybe<
-					{ __typename?: 'Session' } & Pick<
-						Types.Session,
-						| 'secure_id'
-						| 'city'
-						| 'state'
-						| 'country'
-						| 'user_properties'
-					>
-				>
-				structured_stack_trace: Array<
-					Types.Maybe<
-						{ __typename?: 'ErrorTrace' } & Pick<
-							Types.ErrorTrace,
-							| 'fileName'
-							| 'lineNumber'
-							| 'functionName'
-							| 'columnNumber'
-							| 'lineContent'
-							| 'linesBefore'
-							| 'linesAfter'
-							| 'error'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type GetErrorObjectQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -2640,7 +2582,8 @@ export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 				session?: Types.Maybe<
 					{ __typename?: 'Session' } & Pick<
 						Types.Session,
-						| 'id'
+						| 'identifier'
+						| 'fingerprint'
 						| 'secure_id'
 						| 'city'
 						| 'state'
@@ -3692,7 +3635,6 @@ export const namedOperations = {
 		GetBillingDetails: 'GetBillingDetails' as const,
 		GetSubscriptionDetails: 'GetSubscriptionDetails' as const,
 		GetErrorGroup: 'GetErrorGroup' as const,
-		GetErrorGroupObjects: 'GetErrorGroupObjects' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
 		GetMessages: 'GetMessages' as const,

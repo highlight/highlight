@@ -1000,57 +1000,14 @@ query GetErrorGroup($secure_id: String!) {
 	}
 }
 
-query GetErrorGroupObjects($errorGroupID: ID!, $perPage: Int!, $page: Int!) {
-	error_group_objects(
-		error_group_id: $errorGroupID
-		per_page: $perPage
-		page: $page
-	) {
-		id
-		created_at
-		project_id
-		session {
-			secure_id
-			city
-			state
-			country
-			user_properties
-		}
-		error_group_id
-		error_group_secure_id
-		event
-		type
-		url
-		source
-		lineNumber
-		columnNumber
-		stack_trace
-		structured_stack_trace {
-			fileName
-			lineNumber
-			functionName
-			columnNumber
-			lineContent
-			linesBefore
-			linesAfter
-			error
-		}
-		timestamp
-		payload
-		request_id
-		os
-		browser
-		environment
-	}
-}
-
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
 		id
 		created_at
 		project_id
 		session {
-			id
+			identifier
+			fingerprint
 			secure_id
 			city
 			state

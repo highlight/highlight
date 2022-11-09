@@ -573,7 +573,6 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroupObjects            func(childComplexity int, errorGroupID int, perPage int, page int) int
 		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
 		ErrorObject                  func(childComplexity int, id int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
@@ -1065,7 +1064,6 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
-	ErrorGroupObjects(ctx context.Context, errorGroupID int, perPage int, page int) ([]*model1.ErrorObject, error)
 	Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
@@ -4213,18 +4211,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorGroup(childComplexity, args["secure_id"].(string)), true
-
-	case "Query.error_group_objects":
-		if e.complexity.Query.ErrorGroupObjects == nil {
-			break
-		}
-
-		args, err := ec.field_Query_error_group_objects_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorGroupObjects(childComplexity, args["error_group_id"].(int), args["per_page"].(int), args["page"].(int)), true
 
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
@@ -7639,11 +7625,6 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
-	error_group_objects(
-		error_group_id: ID!
-		per_page: Int!
-		page: Int!
-	): [ErrorObject!]!
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -11071,39 +11052,6 @@ func (ec *executionContext) field_Query_error_group_args(ctx context.Context, ra
 		}
 	}
 	args["secure_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_error_group_objects_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["error_group_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_group_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["per_page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("per_page"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["per_page"] = arg1
-	var arg2 int
-	if tmp, ok := rawArgs["page"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["page"] = arg2
 	return args, nil
 }
 
@@ -30140,105 +30088,6 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_error_object_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_error_group_objects(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_error_group_objects(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupObjects(rctx, fc.Args["error_group_id"].(int), fc.Args["per_page"].(int), fc.Args["page"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.ErrorObject)
-	fc.Result = res
-	return ec.marshalNErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObjectᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_error_group_objects(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ErrorObject_id(ctx, field)
-			case "created_at":
-				return ec.fieldContext_ErrorObject_created_at(ctx, field)
-			case "project_id":
-				return ec.fieldContext_ErrorObject_project_id(ctx, field)
-			case "session_id":
-				return ec.fieldContext_ErrorObject_session_id(ctx, field)
-			case "error_group_id":
-				return ec.fieldContext_ErrorObject_error_group_id(ctx, field)
-			case "error_group_secure_id":
-				return ec.fieldContext_ErrorObject_error_group_secure_id(ctx, field)
-			case "event":
-				return ec.fieldContext_ErrorObject_event(ctx, field)
-			case "type":
-				return ec.fieldContext_ErrorObject_type(ctx, field)
-			case "url":
-				return ec.fieldContext_ErrorObject_url(ctx, field)
-			case "source":
-				return ec.fieldContext_ErrorObject_source(ctx, field)
-			case "lineNumber":
-				return ec.fieldContext_ErrorObject_lineNumber(ctx, field)
-			case "columnNumber":
-				return ec.fieldContext_ErrorObject_columnNumber(ctx, field)
-			case "stack_trace":
-				return ec.fieldContext_ErrorObject_stack_trace(ctx, field)
-			case "structured_stack_trace":
-				return ec.fieldContext_ErrorObject_structured_stack_trace(ctx, field)
-			case "timestamp":
-				return ec.fieldContext_ErrorObject_timestamp(ctx, field)
-			case "payload":
-				return ec.fieldContext_ErrorObject_payload(ctx, field)
-			case "request_id":
-				return ec.fieldContext_ErrorObject_request_id(ctx, field)
-			case "os":
-				return ec.fieldContext_ErrorObject_os(ctx, field)
-			case "browser":
-				return ec.fieldContext_ErrorObject_browser(ctx, field)
-			case "environment":
-				return ec.fieldContext_ErrorObject_environment(ctx, field)
-			case "session":
-				return ec.fieldContext_ErrorObject_session(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_error_group_objects_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -51927,29 +51776,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "error_group_objects":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_error_group_objects(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "messages":
 			field := field
 
@@ -57160,60 +56986,6 @@ func (ec *executionContext) marshalNErrorObject2ᚕgithubᚗcomᚋhighlightᚑru
 	wg.Wait()
 
 	return ret
-}
-
-func (ec *executionContext) marshalNErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ErrorObject(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNErrorResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v model1.ErrorResults) graphql.Marshaler {

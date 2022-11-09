@@ -21,6 +21,7 @@ interface Props {
 const ErrorStackTrace = ({ errorObject }: Props) => {
 	const { project_id } = useParams<{ project_id: string }>()
 
+	console.log(errorObject)
 	const structuredStackTrace = errorObject?.structured_stack_trace
 
 	/**
