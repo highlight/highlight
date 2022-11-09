@@ -184,12 +184,12 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 				20
 			) AS e ON s.id = e.session_id
 		WHERE
-			s.excluded <> true 
+			s.excluded <> true
 			AND s.project_id = ?
 		ORDER BY
 			s.updated_at DESC
 		LIMIT
-			20;	
+			20;
 	`,
 		obj.ID,
 		obj.ProjectID,
@@ -4249,7 +4249,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
-			Size:    pointy.Int(100),
+			Size:    pointy.Int(500),
 		},
 	}
 
