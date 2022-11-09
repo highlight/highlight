@@ -553,7 +553,7 @@ export const PlayerReducer = (
 			if ((action.event as customEvent)?.data?.tag === 'Stop') {
 				s.replayerState = ReplayerState.SessionRecordingStopped
 			}
-			if (action.event.type === 5) {
+			if (action.event.type === EventType.Custom) {
 				switch (action.event.data.tag) {
 					case 'Navigate':
 					case 'Reload':
@@ -867,7 +867,10 @@ const processSessionMetadata = (
 
 		sessionIntervals.forEach((interval, sessionIndex) => {
 			interval.sessionEvents.forEach((event) => {
-				if (event.type === 5 && event.data.tag === 'Click') {
+				if (
+					event.type === EventType.Custom &&
+					event.data.tag === 'Click'
+				) {
 					allClickEvents.push({
 						...event,
 						sessionIndex,

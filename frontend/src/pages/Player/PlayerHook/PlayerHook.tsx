@@ -11,6 +11,7 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
 	viewportResizeDimension,
@@ -471,21 +472,33 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const processUsefulEvent = useCallback(
+		_.throttle((event: HighlightEvent) => {
+			dispatch({
+				type: PlayerActionType.onEvent,
+				event: event,
+			})
+		}, 60 * FRAME_MS),
+		[],
+	)
+
 	const onEvent = useCallback(
-		_.throttle((e) => {
-			const event = e as HighlightEvent
+		(event: HighlightEvent) => {
 			if (
-				usefulEvent(event) ||
-				(event as customEvent)?.data?.tag === 'Stop' ||
-				event.type === 5
+				(event.type === EventType.Custom &&
+					(event.data.tag === 'Navigate' ||
+						event.data.tag === 'Reload')) ||
+				(event as customEvent)?.data?.tag === 'Stop'
 			) {
 				dispatch({
 					type: PlayerActionType.onEvent,
-					event: e as HighlightEvent,
+					event: event,
 				})
+			} else if (usefulEvent(event)) {
+				processUsefulEvent(event)
 			}
-		}, FRAME_MS * 60),
-		[],
+		},
+		[processUsefulEvent],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -609,7 +622,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		if (!state.replayer) {
 			return
 		}
-		state.replayer.on('event-cast', onEvent)
+		state.replayer.on('event-cast', (e: any) =>
+			onEvent(e as HighlightEvent),
+		)
 		state.replayer.on('resize', onViewportChange)
 		state.replayer.on('pause', onPlayStartStop)
 		state.replayer.on('start', onPlayStartStop)
