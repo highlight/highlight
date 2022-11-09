@@ -419,7 +419,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	const pause = useCallback(
-		(time?: number) => {
+		(time?: number, cb?: () => void) => {
 			if (time) {
 				dispatch({ type: PlayerActionType.setTime, time })
 			}
@@ -435,6 +435,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						duration: timelineChangeTime,
 						sessionId: state.session_secure_id,
 					})
+					if (cb) cb()
 				}),
 			)
 		},
@@ -744,24 +745,24 @@ export const usePlayer = (): ReplayerContextInterface => {
 			)
 
 			if (nextSessionInList) {
-				pause()
-				setTimeout(() => {
+				pause(state.time, () => {
 					history.push(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
 					resetPlayer(ReplayerState.Empty)
-				}, 250)
+				})
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		autoPlaySessions,
 		history,
+		pause,
 		project_id,
 		resetPlayer,
-		state.sessionResults.sessions,
 		session_secure_id,
-		state,
-		pause,
+		state.replayerState,
+		state.sessionResults.sessions,
 	])
 
 	// ensures that chunks are loaded in advance during playback
