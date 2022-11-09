@@ -11,9 +11,9 @@ import {
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
+import { EventType } from '@highlight-run/rrweb'
 import {
 	customEvent,
-	EventType,
 	viewportResizeDimension,
 } from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
