@@ -9,6 +9,9 @@ type BorderKeys =
 	| 'neutral'
 	| 'neutralMedium'
 	| 'neutralLarge'
+	| 'neutralDark'
+	| 'neutralDarkMedium'
+	| 'neutralDarkLarge'
 	| 'purple'
 	| 'purpleMedium'
 	| 'purpleLarge'
@@ -32,6 +35,10 @@ export const borders: Borders = {
 	neutral: `${colors.neutral200} solid ${borderWidths.small}`,
 	neutralMedium: `${colors.neutral200} solid ${borderWidths.medium}`,
 	neutralLarge: `${colors.neutral200} solid ${borderWidths.large}`,
+
+	neutralDark: `${colors.neutral300} solid ${borderWidths.small}`,
+	neutralDarkMedium: `${colors.neutral300} solid ${borderWidths.medium}`,
+	neutralDarkLarge: `${colors.neutral300} solid ${borderWidths.large}`,
 
 	purple: `${colors.purple700} solid ${borderWidths.small}`,
 	purpleMedium: `${colors.purple700} solid ${borderWidths.medium}`,

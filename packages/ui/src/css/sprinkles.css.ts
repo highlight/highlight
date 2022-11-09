@@ -31,6 +31,7 @@ const responsiveProperties = defineProperties({
 		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
+			fixed: '0 0 auto',
 		},
 		flexDirection: ['row', 'column'],
 		justifyContent: [
