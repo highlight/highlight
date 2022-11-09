@@ -29,7 +29,7 @@ const DashboardsRouter = () => {
 	const { data: adminsData } = useGetWorkspaceAdminsByProjectIdQuery({
 		variables: { project_id },
 	})
-	const { data, loading, error, called } = useGetDashboardDefinitionsQuery({
+	const { data, loading, called } = useGetDashboardDefinitionsQuery({
 		variables: { project_id },
 	})
 	const [upsertDashboardMutation] = useUpsertDashboardMutation({
@@ -37,7 +37,7 @@ const DashboardsRouter = () => {
 	})
 
 	useEffect(() => {
-		if (!project_id || loading || error || !called) {
+		if (loading || !called) {
 			return
 		}
 
@@ -75,7 +75,7 @@ const DashboardsRouter = () => {
 			const oldSessionMetricIdx = newMetrics.findIndex(
 				(m) => m.component_type === 'SessionCountChart',
 			)
-			if (oldSessionMetricIdx) {
+			if (oldSessionMetricIdx !== -1) {
 				newMetrics[oldSessionMetricIdx] =
 					HOME_DASHBOARD_CONFIGURATION['Sessions']
 			}
@@ -84,17 +84,18 @@ const DashboardsRouter = () => {
 			const oldErrorMetricIdx = newMetrics.findIndex(
 				(m) => m.component_type === 'ErrorCountChart',
 			)
-			if (oldErrorMetricIdx) {
+			if (oldErrorMetricIdx !== -1) {
 				newMetrics[oldErrorMetricIdx] =
 					HOME_DASHBOARD_CONFIGURATION['Errors']
 			}
 
-			if (oldSessionMetricIdx || oldErrorMetricIdx) {
+			if (oldSessionMetricIdx !== -1 || oldErrorMetricIdx !== -1) {
 				console.log(
 					'Updating legacy home dashboard',
 					[...homeDashboard.metrics],
 					'to',
 					newMetrics,
+					{ oldSessionMetricIdx, oldErrorMetricIdx },
 				)
 				upsertDashboardMutation({
 					variables: {
@@ -123,7 +124,7 @@ const DashboardsRouter = () => {
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [project_id, called])
+	}, [loading, called])
 
 	return (
 		<DashboardsContextProvider
