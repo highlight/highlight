@@ -17,11 +17,12 @@ import (
 type Measurement string
 
 const (
+	Errors                  Measurement = "errors"
 	Metrics                 Measurement = "metrics"
 	MetricsAggMinute        Measurement = "metrics-aggregate-minute"
 	DownsampleInterval                  = time.Minute
 	DownsampleThreshold                 = 60 * DownsampleInterval
-	downsampledBucketSuffix string      = "/downsampled"
+	DownsampledBucketSuffix string      = "/downsampled"
 )
 
 var IgnoredTags = map[string]bool{
@@ -47,9 +48,9 @@ type Result struct {
 }
 
 type DB interface {
-	GetBucket(bucket string) string
+	GetBucket(bucket string, m Measurement) string
 	GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement)
-	Write(bucket string, points []Point)
+	Write(bucket string, m Measurement, points []Point)
 	Query(ctx context.Context, query string) (results []*Result, e error)
 }
 
@@ -89,34 +90,45 @@ func New() *InfluxDB {
 	}
 }
 
-func (i *InfluxDB) GetBucket(bucket string) string {
-	return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+func (i *InfluxDB) GetBucket(bucket string, measurement Measurement) string {
+	switch measurement {
+	case Metrics:
+		return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+	}
+	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, bucket, measurement)
 }
 
-func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
-	b := i.GetBucket(bucket)
-	// ignore bucket already exists error
-	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
-		// short metric expiry for granular data since we will only store downsampled data long term
-		EverySeconds: int64((DownsampleThreshold).Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
-	})
-	// create a downsample bucket. ignore bucket already exists error
-	downsampleB := b + downsampledBucketSuffix
-	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
-		// 90 day metric expiry for downsampled data
-		EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
-		Type:         domain.RetentionRuleTypeExpire,
-	})
-	taskName := fmt.Sprintf("task-%s", downsampleB)
-	tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
-		Name:  taskName,
-		OrgID: i.orgID,
-		Limit: 1,
-	})
-	if err == nil && len(tasks) < 1 {
-		// create a task to downsample data
-		_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
+func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
+	b := i.GetBucket(bucket, measurement)
+	switch measurement {
+	case Errors:
+		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+			EverySeconds: 0,
+			Type:         domain.RetentionRuleTypeExpire,
+		})
+	case Metrics:
+		// ignore bucket already exists error
+		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+			// short metric expiry for granular data since we will only store downsampled data long term
+			EverySeconds: int64((DownsampleThreshold).Seconds()),
+			Type:         domain.RetentionRuleTypeExpire,
+		})
+		// create a downsample bucket. ignore bucket already exists error
+		downsampleB := b + DownsampledBucketSuffix
+		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
+			// 90 day metric expiry for downsampled data
+			EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
+			Type:         domain.RetentionRuleTypeExpire,
+		})
+		taskName := fmt.Sprintf("task-%s", downsampleB)
+		tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+			Name:  taskName,
+			OrgID: i.orgID,
+			Limit: 1,
+		})
+		if err == nil && len(tasks) < 1 {
+			// create a task to downsample data
+			_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
 		option task = {name: "%s", every: %dm}
 		from(bucket: "%s")
 			|> range(start: -task.every)
@@ -125,20 +137,22 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 			|> set(key: "_measurement", value: "%s")
 			|> to(bucket: "%s")
 	`, taskName, int(DownsampleInterval.Minutes()), b, Metrics, int(DownsampleInterval.Minutes()), MetricsAggMinute, downsampleB), i.orgID)
-	}
-	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
-	tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
-		Name:  taskName,
-		OrgID: i.orgID,
-	})
-	if len(tasks) > 1 {
-		sort.Slice(tasks, func(i, j int) bool {
-			return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
+		}
+		// since the create operation is not idempotent, check if we created duplicate tasks and clean up
+		tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+			Name:  taskName,
+			OrgID: i.orgID,
 		})
-		for _, t := range tasks[1:] {
-			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
+		if len(tasks) > 1 {
+			sort.Slice(tasks, func(i, j int) bool {
+				return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
+			})
+			for _, t := range tasks[1:] {
+				_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
+			}
 		}
 	}
+
 	// Get non-blocking write client
 	writeAPI := i.Client.WriteAPI(i.org, b)
 	// Get errors channel
@@ -152,19 +166,19 @@ func (i *InfluxDB) createWriteAPI(bucket string) api.WriteAPI {
 	return writeAPI
 }
 
-func (i *InfluxDB) getWriteAPI(bucket string) api.WriteAPI {
+func (i *InfluxDB) getWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
 	i.writeAPILock.Lock()
 	defer i.writeAPILock.Unlock()
-	b := i.GetBucket(bucket)
+	b := i.GetBucket(bucket, measurement)
 	if _, ok := i.writeAPIs[b]; !ok {
-		i.writeAPIs[b] = i.createWriteAPI(bucket)
+		i.writeAPIs[b] = i.createWriteAPI(bucket, measurement)
 	}
 	return i.writeAPIs[b]
 }
 
-func (i *InfluxDB) Write(bucket string, points []Point) {
+func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point) {
 	start := time.Now()
-	writeAPI := i.getWriteAPI(bucket)
+	writeAPI := i.getWriteAPI(bucket, measurement)
 	for _, point := range points {
 		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
 		for k, v := range point.Tags {
@@ -197,7 +211,7 @@ func (i *InfluxDB) GetSampledMeasurement(defaultBucket string, defaultMeasuremen
 	if timeRange > DownsampleThreshold {
 		switch defaultMeasurement {
 		case Metrics:
-			return defaultBucket + downsampledBucketSuffix, MetricsAggMinute
+			return defaultBucket + DownsampledBucketSuffix, MetricsAggMinute
 		}
 	}
 	return defaultBucket, defaultMeasurement
