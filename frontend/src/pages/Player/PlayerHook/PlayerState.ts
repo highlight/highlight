@@ -15,13 +15,6 @@ import {
 	SessionResults,
 } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
-import {
-	customEvent,
-	metaEvent,
-	playerMetaData,
-	SessionInterval,
-	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	HighlightEvent,
@@ -49,6 +42,13 @@ import {
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
 } from '@pages/Player/SessionLevelBar/utils/utils'
+import {
+	customEvent,
+	metaEvent,
+	playerMetaData,
+	SessionInterval,
+	viewportResizeDimension,
+} from '@rrweb/types'
 import log from '@util/log'
 import { timedCall } from '@util/perf/instrument'
 import { H } from 'highlight.run'

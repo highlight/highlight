@@ -12,10 +12,6 @@ import {
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
 import { EventType } from '@highlight-run/rrweb'
-import {
-	customEvent,
-	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
 import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
@@ -28,6 +24,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { customEvent, viewportResizeDimension } from '@rrweb/types'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'

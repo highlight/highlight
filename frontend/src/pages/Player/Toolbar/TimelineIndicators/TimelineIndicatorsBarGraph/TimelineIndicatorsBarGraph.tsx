@@ -1,5 +1,4 @@
 import { Skeleton } from '@components/Skeleton/Skeleton'
-import { customEvent } from '@highlight-run/rrweb/typings/types'
 import { Box, Text } from '@highlight-run/ui'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
@@ -23,6 +22,7 @@ import {
 	useToolbarItemsContext,
 	ZoomAreaPercent,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import { customEvent } from '@rrweb/types'
 import { clamp } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'

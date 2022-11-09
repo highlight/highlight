@@ -9,7 +9,7 @@ import {
 	playerMetaData,
 	SessionInterval,
 	viewportResizeDimension,
-} from '@highlight-run/rrweb/typings/types'
+} from '@rrweb/types'
 import { createContext } from '@util/context/context'
 
 import {
