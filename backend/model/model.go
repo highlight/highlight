@@ -1126,7 +1126,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 
 	var err error
 
-	logLevel := logger.Silent
+	logLevel := logger.Info
 	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
 		logLevel = logger.Info
 	}

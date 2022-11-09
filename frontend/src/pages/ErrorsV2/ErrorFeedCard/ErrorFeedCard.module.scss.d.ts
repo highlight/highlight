@@ -1,4 +1,3 @@
-export const circleDivider: string
 export const errorCard: string
 export const errorCardSelected: string
 export const icon: string

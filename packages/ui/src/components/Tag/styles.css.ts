@@ -26,6 +26,17 @@ export const iconVariants = recipe({
 			large: { height: 16, width: 16 },
 		},
 		variant: {
+			transparent: {
+				color: vars.color.neutral500,
+				selectors: {
+					'&:hover': {
+						color: vars.color.neutral700,
+					},
+					'&:focus, &:active': {
+						color: vars.color.neutral500,
+					},
+				},
+			},
 			primary: {
 				color: vars.color.purple100,
 				selectors: {
@@ -91,6 +102,9 @@ export const variants = recipe({
 					outline: 'none',
 					border: 0,
 				},
+				'&:hover': {
+					cursor: 'pointer',
+				},
 			},
 		},
 	],
@@ -98,9 +112,23 @@ export const variants = recipe({
 	variants: {
 		shape: {
 			rounded: {},
-			round: {},
+			basic: {},
 		},
 		variant: {
+			transparent: {
+				background: 'none',
+				color: vars.color.neutral700,
+				boxShadow: 'none',
+				selectors: {
+					'&:hover': {
+						background: vars.color.neutral100,
+						boxShadow: shadows.grey,
+					},
+					'&:focus, &:active': {
+						background: vars.color.neutral200,
+					},
+				},
+			},
 			primary: {
 				background: vars.color.purple500,
 				color: vars.color.white,
@@ -154,27 +182,6 @@ export const variants = recipe({
 				size: 'small',
 				shape: 'rounded',
 			},
-			style: { borderRadius: vars.borderRadius[3] },
-		},
-		{
-			variants: {
-				size: 'medium',
-				shape: 'rounded',
-			},
-			style: { borderRadius: vars.borderRadius[5] },
-		},
-		{
-			variants: {
-				size: 'large',
-				shape: 'rounded',
-			},
-			style: { borderRadius: vars.borderRadius[6] },
-		},
-		{
-			variants: {
-				size: 'small',
-				shape: 'round',
-			},
 			style: [
 				sprinkles({ gap: '2', px: '6', py: '0', borderRadius: '23' }),
 			],
@@ -182,7 +189,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'medium',
-				shape: 'round',
+				shape: 'rounded',
 			},
 			style: [
 				sprinkles({ gap: '3', px: '8', py: '2', borderRadius: '16' }),
@@ -191,10 +198,37 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'large',
-				shape: 'round',
+				shape: 'rounded',
 			},
 			style: [
 				sprinkles({ gap: '3', px: '10', py: '2', borderRadius: '10' }),
+			],
+		},
+		{
+			variants: {
+				size: 'small',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '4', py: '0', borderRadius: '3' }),
+			],
+		},
+		{
+			variants: {
+				size: 'medium',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '4', py: '2', borderRadius: '5' }),
+			],
+		},
+		{
+			variants: {
+				size: 'large',
+				shape: 'basic',
+			},
+			style: [
+				sprinkles({ gap: '2', px: '6', py: '2', borderRadius: '6' }),
 			],
 		},
 	],

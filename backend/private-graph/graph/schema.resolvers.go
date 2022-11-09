@@ -4267,7 +4267,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
-			Size:    pointy.Int(100),
+			Size:    pointy.Int(500),
 		},
 	}
 

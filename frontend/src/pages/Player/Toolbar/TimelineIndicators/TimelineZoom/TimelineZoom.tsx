@@ -1,9 +1,9 @@
-import { isOnMac } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
+import { cmdKey } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
 	Badge,
 	Box,
+	ButtonIcon,
 	IconArrowsExpand,
-	IconButton,
 	IconMinusSm,
 	IconPlusSm,
 	Text,
@@ -29,11 +29,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 				content={
 					<>
 						<Box display="flex" gap="2">
-							<Badge
-								variant="grey"
-								size="tiny"
-								label={isOnMac ? '⌘' : 'Ctrl'}
-							/>
+							<Badge variant="grey" size="tiny" label={cmdKey} />
 							<Badge variant="grey" size="tiny" label="Scroll" />
 						</Box>
 						<Text userSelect="none" color="neutral500">
@@ -48,12 +44,12 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 					</>
 				}
 			>
-				<IconButton
+				<ButtonIcon
 					onClick={() => zoom(PERCENTAGE_STEP)}
 					variant="secondary"
 					icon={<IconPlusSm />}
 				/>
-				<IconButton
+				<ButtonIcon
 					onClick={() => zoom(-PERCENTAGE_STEP)}
 					variant="secondary"
 					icon={<IconMinusSm />}

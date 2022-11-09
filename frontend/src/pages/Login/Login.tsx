@@ -59,7 +59,7 @@ export const AuthAdminRouter = () => {
 				}
 			}
 			H.identify(email, identifyMetadata)
-			if (window.mixpanel) {
+			if (window.mixpanel && typeof window.mixpanel.people === 'object') {
 				window.mixpanel.people.set({
 					$avatar: identifyMetadata.avatar,
 					$distinct_id: email,

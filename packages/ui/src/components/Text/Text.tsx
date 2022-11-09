@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import React from 'react'
 import { Box, Props as BoxProps } from '../Box/Box'
 import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
@@ -12,6 +13,7 @@ export type Props = React.PropsWithChildren &
 		lines?: TruncateProps['lines']
 		transform?: BoxProps['textTransform']
 		userSelect?: BoxProps['userSelect']
+		cssClass?: BoxProps['cssClass']
 	}
 
 export const Text = React.forwardRef<unknown, Props>(
@@ -24,6 +26,7 @@ export const Text = React.forwardRef<unknown, Props>(
 			lines,
 			transform,
 			userSelect,
+			cssClass,
 			...props
 		},
 		ref,
@@ -44,7 +47,7 @@ export const Text = React.forwardRef<unknown, Props>(
 				ref={lines ? undefined : ref}
 				userSelect={userSelect}
 				textTransform={transform}
-				cssClass={styles.variants({ ...props })}
+				cssClass={clsx(styles.variants({ ...props }), cssClass)}
 			>
 				{content}
 			</Box>

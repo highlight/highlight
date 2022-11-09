@@ -9,7 +9,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 		icon: React.ReactElement<IconProps>
 	}
 
-export const IconButton: React.FC<Props> = ({ icon, variant, onClick }) => {
+export const ButtonIcon: React.FC<Props> = ({ icon, variant, onClick }) => {
 	return (
 		<Box
 			as="button"

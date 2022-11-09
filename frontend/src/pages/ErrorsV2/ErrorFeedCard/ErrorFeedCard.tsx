@@ -1,19 +1,21 @@
 import BarChart from '@components/BarChart/BarChart'
 import styles from '@components/RadioGroup/RadioGroup.module'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
-import { Badge, Box, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSparkles,
+	IconUsers,
+	IconViewGrid,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { ReactComponent as CheckCircleIcon } from '@icons/Solid/check-circle.svg'
-import { ReactComponent as StopCircleIcon } from '@icons/Solid/stop-circle.svg'
-import { ReactComponent as UsersIcon } from '@icons/Solid/users.svg'
-import { ReactComponent as ViewGridIcon } from '@icons/Solid/view-grid.svg'
-import { ReactComponent as XCircleIcon } from '@icons/Solid/x-circle.svg'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import style from './ErrorFeedCard.module.scss'
+import * as style from './ErrorFeedCard.css'
 interface Props {
 	errorGroup: Maybe<ErrorGroup>
 	urlParams?: string
@@ -24,11 +26,15 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 		error_secure_id?: string
 	}>()
 	const body = getErrorBody(errorGroup?.event)
-	const date = errorGroup?.created_at
-		? `Since ${new Date(errorGroup?.created_at).toLocaleString('en-us', {
+	const createdDate = errorGroup?.created_at
+		? `${new Date(errorGroup.created_at).toLocaleString('en-us', {
 				day: 'numeric',
-				month: 'long',
-				year: 'numeric',
+				month: 'short',
+				year:
+					new Date().getFullYear() !==
+					new Date(errorGroup.created_at).getFullYear()
+						? 'numeric'
+						: undefined,
 		  })}`
 		: ''
 
@@ -41,20 +47,10 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 		}
 	}, [errorGroup?.error_frequency])
 
-	// TODO: replace this with an aggregate count from openSearch
+	// TODO: replace this with the data from the new backend
 	const errorCount = frequencies.reduce((acc, curr) => acc + curr, 0)
 	const userCount = 5
-
-	const stateIcon = useMemo(() => {
-		switch (errorGroup?.state) {
-			case ErrorState.Open:
-				return <StopCircleIcon className={style.icon} />
-			case ErrorState.Resolved:
-				return <CheckCircleIcon className={style.resolvedIcon} />
-			default:
-				return <XCircleIcon className={style.icon} />
-		}
-	}, [errorGroup?.state])
+	const updatedDate = 'Yesterday'
 
 	return (
 		<Link
@@ -65,7 +61,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 			<Box
 				paddingTop="8"
 				paddingBottom="10"
-				px="12"
+				px={`${style.ERROR_CARD_PX}`}
 				borderRadius="6"
 				display="flex"
 				flexDirection="column"
@@ -78,8 +74,19 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					},
 				]}
 			>
-				<Box cssClass={style.title} color="dark">
-					<Text as="span" size="small" color="dark">
+				<Box
+					color="dark"
+					display="flex"
+					alignItems="center"
+					cssClass={style.errorCardTitle}
+				>
+					<Text
+						lines="1"
+						size="small"
+						color="dark"
+						display="flex"
+						cssClass={style.errorCardTitleText}
+					>
 						{body}
 					</Text>
 				</Box>
@@ -90,39 +97,48 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						gap="6"
 						justifyContent="space-between"
 					>
-						<Box display="flex" gap="6" alignItems="center">
-							<Badge
-								iconStart={<UsersIcon className={style.icon} />}
-								label={`${userCount}`}
-							/>
-							<Badge
-								iconStart={
-									<ViewGridIcon className={style.icon} />
-								}
-								label={`${errorCount}`}
-							/>
-							<Box
-								cssClass={style.circleDivider}
-								background="neutral200"
-								borderRadius="round"
-								as="span"
-							/>
-							<Badge
+						<Box display="flex" gap="4" alignItems="center">
+							<Tag
+								shape="basic"
 								variant={
 									errorGroup?.state === ErrorState.Resolved
-										? 'green'
+										? 'primary'
 										: errorGroup?.state ===
 										  ErrorState.Ignored
 										? 'grey'
-										: 'outlineGrey'
+										: 'white'
 								}
-								iconStart={stateIcon}
-							/>
+							>
+								<Text transform="capitalize">
+									{errorGroup?.state.toLowerCase()}
+								</Text>
+							</Tag>
+							<Tag
+								shape="basic"
+								variant="transparent"
+								iconLeft={<IconUsers size={12} />}
+							>
+								<Text>{userCount}</Text>
+							</Tag>
+							<Tag
+								shape="basic"
+								variant="transparent"
+								iconLeft={<IconViewGrid size={12} />}
+							>
+								<Text>{errorCount}</Text>
+							</Tag>
 						</Box>
-						<Box>
-							<Text as="span" size="xSmall" color="neutral700">
-								{date}
-							</Text>
+						<Box display="flex" gap="4" alignItems="center">
+							<Tag shape="basic" variant="grey">
+								{updatedDate}
+							</Tag>
+							<Tag
+								shape="basic"
+								variant="grey"
+								iconLeft={<IconSparkles size={12} />}
+							>
+								{createdDate}
+							</Tag>
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
