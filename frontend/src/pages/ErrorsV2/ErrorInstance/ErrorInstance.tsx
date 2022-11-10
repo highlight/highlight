@@ -270,10 +270,6 @@ const User: React.FC<{
 				</Box>
 
 				<Box py="8" px="12">
-					{/*
-					TODO: Table isn't working here because it doesn't break words the way
-					we'd like them to. Should refactor to use Flex or something for columns.
-					*/}
 					<Box>
 						{Object.keys(userProperties)
 							.filter((k) => k !== 'avatar')
