@@ -11,38 +11,6 @@ export type Props = Sprinkles &
 		cssClass?: ClassValue | ClassValue[]
 	}
 
-export type PaddingProps = Pick<
-	Props,
-	| 'p'
-	| 'py'
-	| 'px'
-	| 'pt'
-	| 'pr'
-	| 'pb'
-	| 'pl'
-	| 'padding'
-	| 'paddingTop'
-	| 'paddingRight'
-	| 'paddingBottom'
-	| 'paddingLeft'
->
-
-export type MarginProps = Pick<
-	Props,
-	| 'm'
-	| 'my'
-	| 'mx'
-	| 'mt'
-	| 'mr'
-	| 'mb'
-	| 'ml'
-	| 'margin'
-	| 'marginTop'
-	| 'marginRight'
-	| 'marginBottom'
-	| 'marginLeft'
->
-
 export const Box = React.forwardRef<unknown, Props>(
 	({ as = 'div', cssClass, ...props }, ref) => {
 		const sprinklesProps: Record<string, unknown> = {}

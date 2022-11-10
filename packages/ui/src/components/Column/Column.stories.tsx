@@ -102,20 +102,22 @@ export const Basic = () => (
 			</Column>
 		</Column.Container>
 
-		<Column.Container gap="8" pt="24">
-			<Column>
-				<Content>auto</Content>
-			</Column>
-			<Column>
-				<Content>auto</Content>
-			</Column>
-			<Column>
-				<Content>auto</Content>
-			</Column>
-			<Column>
-				<Content>auto</Content>
-			</Column>
-		</Column.Container>
+		<Box mt="24">
+			<Column.Container gap="8">
+				<Column>
+					<Content>auto</Content>
+				</Column>
+				<Column>
+					<Content>auto</Content>
+				</Column>
+				<Column>
+					<Content>auto</Content>
+				</Column>
+				<Column>
+					<Content>auto</Content>
+				</Column>
+			</Column.Container>
+		</Box>
 	</>
 )
 
