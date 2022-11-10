@@ -28,7 +28,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	iconLeft,
 	iconRight,
 	size = styles.defaultSize,
-	variant,
+	kind,
 	emphasis,
 	className,
 	cssClass,
@@ -41,7 +41,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 			as="button"
 			className={clsx(
 				styles.variants({
-					variant,
+					kind,
 					size,
 					emphasis,
 				}),
@@ -54,7 +54,11 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, emphasis, variant })}
+					className={styles.iconVariants({
+						size,
+						emphasis,
+						kind,
+					})}
 					height={size}
 					width={size}
 				>
@@ -70,7 +74,11 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, emphasis, variant })}
+					className={styles.iconVariants({
+						size,
+						emphasis,
+						kind,
+					})}
 					height={size}
 					width={size}
 				>

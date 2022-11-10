@@ -12,13 +12,13 @@ export default {
 } as ComponentMeta<typeof Button>
 
 export const ButtonVariants = () => {
-	const variant: Variants['variant'][] = ['primary', 'secondary']
+	const kind: Variants['kind'][] = ['primary', 'secondary']
 	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
 	const size: Variants['size'][] = ['xSmall', 'small', 'medium']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
-			{variant.map(($variant, idx) => (
+			{kind.map(($kind, idx) => (
 				<Box key={idx} display="flex" gap="6" flexDirection="column">
 					{emphasis.map(($emphasis, jdx) => (
 						<Box
@@ -40,15 +40,15 @@ export const ButtonVariants = () => {
 										) : null
 									}
 									size={$size}
-									variant={$variant}
+									kind={$kind}
 									emphasis={$emphasis}
 									key={`b-${idx}-${jdx}-${kdx}`}
 								>
-									s:{$size}|e:{$emphasis}|v:{$variant}
+									s:{$size}|e:{$emphasis}|k:{$kind}
 								</Button>
 							))}
 							<Button
-								variant={$variant}
+								kind={$kind}
 								emphasis={$emphasis}
 								key={`b-${idx}-${jdx}-d`}
 								size={size[size.length - 1]}
@@ -59,7 +59,7 @@ export const ButtonVariants = () => {
 								}
 								disabled
 							>
-								{$emphasis}|{$variant}|disabled
+								{$emphasis}|{$kind}|disabled
 							</Button>
 						</Box>
 					))}

@@ -42,7 +42,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 		<Menu>
 			<Menu.Button
 				size="small"
-				variant="secondary"
+				kind="secondary"
 				emphasis="low"
 				disabled={loading}
 			>

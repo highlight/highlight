@@ -162,7 +162,7 @@ const SearchPagination = ({
 									onClick={() => setPage(val)}
 									size="small"
 									emphasis="medium"
-									variant="secondary"
+									kind="secondary"
 								>
 									{val}
 								</Button>

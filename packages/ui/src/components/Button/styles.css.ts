@@ -30,7 +30,7 @@ export const iconVariants = recipe({
 			medium: {},
 			low: {},
 		},
-		variant: {
+		kind: {
 			primary: {},
 			secondary: {},
 		},
@@ -39,7 +39,7 @@ export const iconVariants = recipe({
 	compoundVariants: [
 		{
 			variants: {
-				variant: 'primary',
+				kind: 'primary',
 				emphasis: 'low',
 			},
 			style: {
@@ -52,7 +52,7 @@ export const iconVariants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'high',
 			},
 			style: {
@@ -66,7 +66,7 @@ export const iconVariants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'medium',
 			},
 			style: {
@@ -80,7 +80,7 @@ export const iconVariants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'low',
 			},
 			style: {
@@ -131,7 +131,7 @@ export const variants = recipe({
 			medium: {},
 			low: {},
 		},
-		variant: {
+		kind: {
 			primary: {},
 			secondary: {},
 		},
@@ -161,7 +161,7 @@ export const variants = recipe({
 	compoundVariants: [
 		{
 			variants: {
-				variant: 'primary',
+				kind: 'primary',
 				emphasis: 'high',
 			},
 			style: {
@@ -186,7 +186,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				variant: 'primary',
+				kind: 'primary',
 				emphasis: 'medium',
 			},
 			style: {
@@ -211,7 +211,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				variant: 'primary',
+				kind: 'primary',
 				emphasis: 'low',
 			},
 			style: {
@@ -235,7 +235,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'high',
 			},
 			style: {
@@ -260,7 +260,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'medium',
 			},
 			style: {
@@ -284,7 +284,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				variant: 'secondary',
+				kind: 'secondary',
 				emphasis: 'low',
 			},
 			style: {
@@ -308,7 +308,7 @@ export const variants = recipe({
 		},
 	],
 	defaultVariants: {
-		variant: 'primary',
+		kind: 'primary',
 		emphasis: 'medium',
 		size: defaultSize,
 	},

@@ -17,7 +17,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	return (
 		<>
 			<Button
-				variant="secondary"
+				kind="secondary"
 				size="small"
 				emphasis="high"
 				onClick={() => setShowCreateCommentModal(CreateModalType.Issue)}

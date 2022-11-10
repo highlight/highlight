@@ -12,7 +12,9 @@ export default {
 // TODO: Document individual components
 export const FullExample = () => (
 	<Menu>
-		<Menu.Button variant="grey">Menu</Menu.Button>
+		<Menu.Button kind="secondary" emphasis="low">
+			Menu
+		</Menu.Button>
 		<Menu.List>
 			<Menu.Item onClick={() => alert('Edit')}>Edit</Menu.Item>
 			<Menu.Item>
