@@ -412,58 +412,65 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	const play = useCallback(
-		(time?: number) => {
+		(time?: number): Promise<void> => {
 			const newTime = time ?? 0
 			// Don't play the session if the player is already at the end of the session.
 			if (newTime >= state.sessionEndTime) {
-				return
+				return Promise.resolve()
 			}
 
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
-			requestAnimationFrame(() =>
-				ensureChunksLoaded(
-					newTime,
-					undefined,
-					ReplayerState.Playing,
-				).then(() => {
-					// Log how long it took to move to the new time.
-					const timelineChangeTime = timerEnd('timelineChangeTime')
-					datadogLogs.logger.info('Timeline Play Time', {
-						duration: timelineChangeTime,
-						sessionId: state.session_secure_id,
-					})
-				}),
+			return new Promise<void>((r) =>
+				requestAnimationFrame(() =>
+					ensureChunksLoaded(
+						newTime,
+						undefined,
+						ReplayerState.Playing,
+					).then(() => {
+						// Log how long it took to move to the new time.
+						const timelineChangeTime =
+							timerEnd('timelineChangeTime')
+						datadogLogs.logger.info('Timeline Play Time', {
+							duration: timelineChangeTime,
+							sessionId: state.session_secure_id,
+						})
+						r()
+					}),
+				),
 			)
 		},
 		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
 
 	const pause = useCallback(
-		(time?: number, cb?: () => void) => {
+		(time?: number): Promise<void> => {
 			if (time) {
 				dispatch({ type: PlayerActionType.setTime, time })
 			}
-			requestAnimationFrame(() =>
-				ensureChunksLoaded(
-					time ?? 0,
-					undefined,
-					ReplayerState.Paused,
-				).then(() => {
-					// Log how long it took to move to the new time.
-					const timelineChangeTime = timerEnd('timelineChangeTime')
-					datadogLogs.logger.info('Timeline Pause Time', {
-						duration: timelineChangeTime,
-						sessionId: state.session_secure_id,
-					})
-					if (cb) cb()
-				}),
+			return new Promise<void>((r) =>
+				requestAnimationFrame(() =>
+					ensureChunksLoaded(
+						time ?? 0,
+						undefined,
+						ReplayerState.Paused,
+					).then(() => {
+						// Log how long it took to move to the new time.
+						const timelineChangeTime =
+							timerEnd('timelineChangeTime')
+						datadogLogs.logger.info('Timeline Pause Time', {
+							duration: timelineChangeTime,
+							sessionId: state.session_secure_id,
+						})
+						r()
+					}),
+				),
 			)
 		},
 		[ensureChunksLoaded, state.session_secure_id],
 	)
 
 	const seek = useCallback(
-		(time: number) => {
+		(time: number): Promise<void> => {
 			if (!state.isLiveMode && skipInactive) {
 				const inactivityEnd = getInactivityEnd(time)
 				if (inactivityEnd) {
@@ -478,8 +485,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			}
 			dispatch({ type: PlayerActionType.setTime, time })
-			requestAnimationFrame(() =>
-				ensureChunksLoaded(time, undefined, state.replayerState).then(),
+			return new Promise<void>((r) =>
+				requestAnimationFrame(() =>
+					ensureChunksLoaded(
+						time,
+						undefined,
+						state.replayerState,
+					).then(r),
+				),
 			)
 		},
 		[
@@ -765,7 +778,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			)
 
 			if (nextSessionInList) {
-				pause(state.time, () => {
+				pause(state.time).then(() => {
 					history.push(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
@@ -813,7 +826,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 					'due to inactivity at',
 					state.time,
 				)
-				return play(inactivityEnd)
+				play(inactivityEnd).then()
+				return
 			}
 		}
 		ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
