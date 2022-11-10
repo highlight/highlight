@@ -29,6 +29,7 @@ import { Maybe, Session } from '@graph/schemas'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { FiExternalLink } from 'react-icons/fi'
+import * as styles from './ErrorInstance.css'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -173,11 +174,17 @@ const Metadata: React.FC<{
 				</Text>
 			</Box>
 
-			<Box as="table">
+			<Box>
 				{metadata.map((tag) => {
 					return (
-						<Box as="tr">
-							<Box as="th" py="10" pr="16">
+						<Box
+							display="flex"
+							py="10"
+							gap="16"
+							alignItems="center"
+							key={tag.key}
+						>
+							<Box cssClass={styles.tableHeader}>
 								<Text
 									color="neutral500"
 									transform="capitalize"
@@ -186,8 +193,10 @@ const Metadata: React.FC<{
 									{tag.key}
 								</Text>
 							</Box>
-							<Box as="td">
-								<Text align="left">{tag.label}</Text>
+							<Box cssClass={styles.tableData}>
+								<Text align="left" lines="1">
+									{tag.label}
+								</Text>
 							</Box>
 						</Box>
 					)
@@ -273,12 +282,22 @@ const User: React.FC<{
 				</Box>
 
 				<Box py="8" px="12">
-					<Box as="table">
+					{/*
+					TODO: Table isn't working here because it doesn't break words the way
+					we'd like them to. Should refactor to use Flex or something for columns.
+					*/}
+					<Box>
 						{Object.keys(userProperties)
 							.filter((k) => k !== 'avatar')
 							.map((key) => (
-								<Box as="tr" key={key}>
-									<Box as="th" py="10" pr="16">
+								<Box
+									key={key}
+									display="flex"
+									py="10"
+									gap="16"
+									alignItems="center"
+								>
+									<Box cssClass={styles.tableHeader}>
 										<Text
 											color="neutral500"
 											align="left"
@@ -287,17 +306,26 @@ const User: React.FC<{
 											{key}
 										</Text>
 									</Box>
-									<Box as="td">{userProperties[key]}</Box>
+									<Box cssClass={styles.tableData}>
+										<Text>{userProperties[key]}</Text>
+									</Box>
 								</Box>
 							))}
 
-						<Box as="tr">
-							<Box as="th" py="10" pr="16">
+						<Box
+							display="flex"
+							py="10"
+							alignItems="center"
+							gap="16"
+						>
+							<Box cssClass={styles.tableHeader}>
 								<Text color="neutral500" align="left">
 									Location
 								</Text>
 							</Box>
-							<Box as="td">{location}</Box>
+							<Box cssClass={styles.tableData}>
+								<Text>{location}</Text>
+							</Box>
 						</Box>
 					</Box>
 				</Box>

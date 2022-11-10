@@ -35,6 +35,7 @@ const responsiveProperties = defineProperties({
 		flexDirection: ['row', 'column'],
 		flexGrow: [0, 1],
 		flexShrink: [0],
+		flexWrap: ['wrap'],
 		justifyContent: [
 			'stretch',
 			'flex-start',

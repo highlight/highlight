@@ -29,7 +29,6 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	variant = styles.defaultVariant,
-	shape = styles.defaultShape,
 	className,
 	...buttonProps
 }) => {
