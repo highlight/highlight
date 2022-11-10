@@ -59,6 +59,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const {
 		setPlayerTime: setPlayerTimeToPersistance,
 		autoPlaySessions,
+		autoPlayVideo,
 		showPlayerMouseTail,
 		setShowLeftPanel,
 		setShowRightPanel,
@@ -152,6 +153,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 				unsubscribeSessionPayloadFn.current()
 				unsubscribeSessionPayloadFn.current = undefined
 			}
+			if (animationFrameID.current) {
+				cancelAnimationFrame(animationFrameID.current)
+				animationFrameID.current = 0
+			}
+			loadingChunks.current.clear()
+			currentChunkIdx.current = 0
 			chunkEventsReset()
 			dispatch({
 				type: PlayerActionType.reset,
@@ -352,7 +359,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				await Promise.all(promises)
 			}
 			if ((!loadingChunks.current.size && promises.length) || action) {
-				log(
+				console.trace(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
 					'calling dispatchAction',
@@ -768,28 +775,34 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
-		if (state.session?.processed && state.sessionMetadata.startTime !== 0) {
-			// If the player is in an inactive interval, skip to the end of it
-			let inactivityEnd: number | undefined
-			if (
-				!state.isLiveMode &&
-				skipInactive &&
-				state.replayerState === ReplayerState.Playing
-			) {
-				inactivityEnd = getInactivityEnd(state.time)
-				if (inactivityEnd !== undefined) {
-					log(
-						'PlayerHook.tsx',
-						'seeking to',
-						inactivityEnd,
-						'due to inactivity at',
-						state.time,
-					)
-					return play(inactivityEnd)
-				}
-			}
-			ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
+		if (
+			!state.session?.processed ||
+			state.sessionMetadata.startTime === 0 ||
+			state.replayerState !== ReplayerState.Playing ||
+			session_secure_id !== state.session_secure_id
+		) {
+			return
 		}
+		// If the player is in an inactive interval, skip to the end of it
+		let inactivityEnd: number | undefined
+		if (
+			!state.isLiveMode &&
+			skipInactive &&
+			state.replayerState === ReplayerState.Playing
+		) {
+			inactivityEnd = getInactivityEnd(state.time)
+			if (inactivityEnd !== undefined) {
+				log(
+					'PlayerHook.tsx',
+					'seeking to',
+					inactivityEnd,
+					'due to inactivity at',
+					state.time,
+				)
+				return play(inactivityEnd)
+			}
+		}
+		ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
 	}, [
 		state.time,
 		ensureChunksLoaded,
@@ -800,7 +813,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 		getInactivityEnd,
 		play,
 		state.isLiveMode,
+		state.session_secure_id,
+		session_secure_id,
 	])
+
+	useEffect(() => {
+		if (state.eventsLoaded && autoPlayVideo) {
+			dispatch({
+				type: PlayerActionType.play,
+				time: 0,
+			})
+		}
+	}, [autoPlayVideo, state.eventsLoaded])
 
 	return {
 		...state,

@@ -438,14 +438,12 @@ export const PlayerReducer = (
 			}
 			break
 		case PlayerActionType.reset:
-			if (s.replayer) {
-				replayerAction(PlayerActionType.reset, s, ReplayerState.Paused)
-			}
 			s = {
 				...s,
 				currentEvent: '',
 				currentUrl: undefined,
 				errors: [],
+				eventsLoaded: false,
 				isLiveMode: false,
 				lastActiveString: null,
 				lastActiveTimestamp: 0,
@@ -690,6 +688,7 @@ const initReplayer = (
 	s.jankPayloads = getAllJankEvents(events)
 	if (s.isLiveMode) {
 		s.replayer.startLive(events[0].timestamp)
+		s.replayer.play()
 	}
 
 	// Initializes the simulated viewport size and currentUrl with values from the first meta event
