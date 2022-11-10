@@ -12,6 +12,7 @@ const SearchPanel = () => {
 	return (
 		<Box
 			display="flex"
+			flex="fixed"
 			flexDirection="column"
 			borderRight="neutral"
 			position="relative"

@@ -40,7 +40,12 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 
 	return (
 		<Menu>
-			<Menu.Button size="small" variant="grey" disabled={loading}>
+			<Menu.Button
+				size="small"
+				kind="secondary"
+				emphasis="low"
+				disabled={loading}
+			>
 				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
 			</Menu.Button>
 			<Menu.List>

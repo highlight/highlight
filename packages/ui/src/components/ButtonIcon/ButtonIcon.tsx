@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import React from 'react'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
@@ -7,15 +8,31 @@ import * as styles from './styles.css'
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 	styles.Variants & {
 		icon: React.ReactElement<IconProps>
+		cssClass?: string
 	}
 
-export const ButtonIcon: React.FC<Props> = ({ icon, variant, onClick }) => {
+export const ButtonIcon: React.FC<Props> = ({
+	icon,
+	variant,
+	shape,
+	emphasis,
+	size,
+	onClick,
+	disabled,
+	cssClass,
+	className,
+}) => {
 	return (
 		<Box
 			as="button"
 			display="inline-flex"
-			className={styles.variants({ variant })}
+			cssClass={clsx(
+				styles.variants({ variant, shape, emphasis, size }),
+				className,
+				cssClass,
+			)}
 			onClick={onClick}
+			disabled={disabled}
 		>
 			{icon}
 		</Box>

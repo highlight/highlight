@@ -1,5 +1,8 @@
-import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination'
+import { STARTING_PAGE } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
+import SearchPagination, {
+	DEFAULT_PAGE_SIZE,
+} from '@components/SearchPagination/SearchPagination'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
 import { ErrorGroup, ErrorResults, Maybe } from '@graph/schemas'
@@ -16,7 +19,7 @@ import { useEffect, useState } from 'react'
 
 import * as style from './ErrorFeed.css'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = DEFAULT_PAGE_SIZE
 
 const ErrorFeed = () => {
 	const {
@@ -39,8 +42,6 @@ const ErrorFeed = () => {
 		`errorsCount-project-${projectId}`,
 		0,
 	)
-
-	const totalPages = Math.ceil(errorCount / PAGE_SIZE)
 
 	const useCachedErrors = errorCount > PAGE_SIZE
 
@@ -85,7 +86,12 @@ const ErrorFeed = () => {
 					<ErrorFeedHistogram useCachedErrors={useCachedErrors} />
 				</Box>
 			)}
-			<Box padding="6" cssClass={style.content}>
+			<Box
+				padding="6"
+				overflowX="hidden"
+				overflowY="auto"
+				cssClass={style.content}
+			>
 				{searchResultsLoading ? (
 					<Skeleton
 						height={80}
@@ -115,14 +121,12 @@ const ErrorFeed = () => {
 					</>
 				)}
 			</Box>
-			<Box borderTop="neutral" paddingTop="6" paddingBottom="8" px="10">
-				<Pagination
-					page={page}
-					setPage={setPage}
-					totalPages={totalPages}
-					className={style.pagination}
-				/>
-			</Box>
+			<SearchPagination
+				page={page}
+				setPage={setPage}
+				totalCount={errorCount}
+				pageSize={PAGE_SIZE}
+			/>
 		</>
 	)
 }

@@ -23,7 +23,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 		<Box
 			cssClass={style.zoomButtons}
 			border="neutral"
-			visibility={isHidden ? 'hidden' : 'visible'}
+			visibility={'visible'} // isHidden ? 'hidden' : 'visible'}
 		>
 			<ExplanatoryPopover
 				content={
@@ -47,11 +47,15 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 				<ButtonIcon
 					onClick={() => zoom(PERCENTAGE_STEP)}
 					variant="secondary"
+					size="minimal"
+					emphasis="none"
 					icon={<IconPlusSm />}
 				/>
 				<ButtonIcon
 					onClick={() => zoom(-PERCENTAGE_STEP)}
 					variant="secondary"
+					size="minimal"
+					emphasis="none"
 					icon={<IconMinusSm />}
 				/>
 			</ExplanatoryPopover>
