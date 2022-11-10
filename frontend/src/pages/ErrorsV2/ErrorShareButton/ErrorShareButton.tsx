@@ -20,7 +20,8 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 		<>
 			<Button
 				size="small"
-				variant="grey"
+				variant="secondary"
+				emphasis="low"
 				onClick={() => setShowModal(true)}
 				iconRight={<IconShare />}
 			>

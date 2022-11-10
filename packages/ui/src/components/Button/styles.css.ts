@@ -25,7 +25,80 @@ export const iconVariants = recipe({
 			large: { height: 16, width: 16, ...typographyStyles.size.small },
 			xLarge: { height: 16, width: 16, ...typographyStyles.size.large },
 		},
+		emphasis: {
+			high: {},
+			medium: {},
+			low: {},
+		},
+		variant: {
+			primary: {},
+			secondary: {},
+		},
 	},
+
+	compoundVariants: [
+		{
+			variants: {
+				variant: 'primary',
+				emphasis: 'low',
+			},
+			style: {
+				selectors: {
+					'&:focus, &:active': {
+						color: vars.color.purple500,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'high',
+			},
+			style: {
+				color: vars.color.neutral700,
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.neutral300,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'medium',
+			},
+			style: {
+				color: vars.color.neutral700,
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.neutral300,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'low',
+			},
+			style: {
+				color: vars.color.neutral500,
+				selectors: {
+					'&:hover': {
+						color: vars.color.neutral700,
+					},
+					'&:focus, &:active': {
+						color: vars.color.neutral500,
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.neutral300,
+					},
+				},
+			},
+		},
+	],
 
 	defaultVariants: {
 		size: defaultSize,
@@ -42,19 +115,9 @@ export const variants = recipe({
 		{
 			lineHeight: '1em',
 			width: 'auto',
-		},
-		{
+			background: 'transparent',
+			outline: 'none',
 			selectors: {
-				'&:disabled, &:disabled:hover, &:disabled:focus': {
-					backgroundColor: vars.color.neutral50,
-					border: 0,
-					boxShadow: 'none',
-					color: vars.color.neutral300,
-				},
-				'&:focus, &:active': {
-					boxShadow: 'none',
-					outline: 'none',
-				},
 				'&:hover': {
 					cursor: 'pointer',
 				},
@@ -63,46 +126,14 @@ export const variants = recipe({
 	],
 
 	variants: {
+		emphasis: {
+			high: {},
+			medium: {},
+			low: {},
+		},
 		variant: {
-			primary: {
-				background: vars.color.purple500,
-				color: vars.color.white,
-				boxShadow: shadows.primary,
-				selectors: {
-					'&:hover': {
-						background: vars.color.purple700,
-					},
-					'&:focus, &:active': {
-						boxShadow: 'none',
-					},
-				},
-			},
-			white: {
-				background: vars.color.white,
-				border: `1px solid ${vars.color.neutral200}`,
-				color: vars.color.neutral800,
-				selectors: {
-					'&:hover': {
-						background: vars.color.neutral50,
-					},
-					'&:focus, &:active': {
-						border: `1px solid ${vars.color.neutral300}`,
-					},
-				},
-			},
-			grey: {
-				background: vars.color.neutral100,
-				color: vars.color.neutral800,
-				boxShadow: shadows.grey,
-				selectors: {
-					'&:hover': {
-						background: vars.color.neutral200,
-					},
-					'&:focus, &:active': {
-						boxShadow: 'none',
-					},
-				},
-			},
+			primary: {},
+			secondary: {},
 		},
 		size: {
 			xSmall: [
@@ -127,9 +158,158 @@ export const variants = recipe({
 			],
 		},
 	},
-
+	compoundVariants: [
+		{
+			variants: {
+				variant: 'primary',
+				emphasis: 'high',
+			},
+			style: {
+				background: vars.color.purple500,
+				color: vars.color.white,
+				boxShadow: shadows.primary,
+				selectors: {
+					'&:hover': {
+						background: vars.color.purple700,
+					},
+					'&:focus, &:active': {
+						background: vars.color.purple700,
+						boxShadow: 'none',
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						background: vars.color.purple100,
+						color: vars.color.neutral50,
+						boxShadow: 'none',
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'primary',
+				emphasis: 'medium',
+			},
+			style: {
+				color: vars.color.purple500,
+				boxShadow: 'none',
+				border: vars.border.neutral,
+				selectors: {
+					'&:hover': {
+						border: vars.border.neutralDark,
+						color: vars.color.purple700,
+					},
+					'&:focus, &:active': {
+						border: vars.border.purple,
+						color: vars.color.purple700,
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						border: vars.border.purpleLight,
+						color: vars.color.purple100,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'primary',
+				emphasis: 'low',
+			},
+			style: {
+				color: vars.color.purple500,
+				boxShadow: 'none',
+				border: vars.border.none,
+				selectors: {
+					'&:hover': {
+						color: vars.color.purple700,
+						background: vars.color.neutral200,
+					},
+					'&:focus, &:active': {
+						color: vars.color.purple700,
+						background: vars.color.neutral200,
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.purple100,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'high',
+			},
+			style: {
+				background: vars.color.neutral100,
+				color: vars.color.neutral800,
+				boxShadow: shadows.grey,
+				selectors: {
+					'&:hover': {
+						background: vars.color.neutral200,
+					},
+					'&:focus, &:active': {
+						background: vars.color.neutral200,
+						boxShadow: 'none',
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						background: vars.color.neutral50,
+						color: vars.color.neutral300,
+						boxShadow: 'none',
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'medium',
+			},
+			style: {
+				color: vars.color.neutral800,
+				boxShadow: 'none',
+				border: vars.border.neutral,
+				selectors: {
+					'&:hover': {
+						border: vars.border.neutralDark,
+					},
+					'&:focus, &:active': {
+						border: vars.border.neutralDark,
+						background: vars.color.neutral100,
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						border: vars.border.neutral,
+						color: vars.color.neutral300,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				variant: 'secondary',
+				emphasis: 'low',
+			},
+			style: {
+				color: vars.color.neutral700,
+				boxShadow: 'none',
+				border: vars.border.none,
+				selectors: {
+					'&:hover': {
+						color: vars.color.neutral800,
+						background: vars.color.neutral200,
+					},
+					'&:focus, &:active': {
+						color: vars.color.neutral800,
+						background: vars.color.neutral200,
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.neutral300,
+					},
+				},
+			},
+		},
+	],
 	defaultVariants: {
 		variant: 'primary',
+		emphasis: 'medium',
 		size: defaultSize,
 	},
 })

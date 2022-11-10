@@ -149,10 +149,12 @@ const SearchPagination = ({
 						default:
 							return (
 								<Button
-									variant="grey"
-									cssClass={style.noBorder}
+									cssClass={[style.noBorder]}
 									key={idx}
 									onClick={() => setPage(val)}
+									size="small"
+									emphasis="medium"
+									variant="secondary"
 								>
 									{val}
 								</Button>

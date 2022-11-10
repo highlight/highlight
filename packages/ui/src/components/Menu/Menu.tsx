@@ -35,15 +35,16 @@ const Button: React.FC<
 	React.PropsWithChildren &
 		styles.ButtonVariants &
 		Omit<MenuButtonProps, 'state'>
-> = ({ children, size, variant, ...props }) => {
+> = ({ children, size, variant, emphasis, ...props }) => {
 	const menu = useMenu()
 
 	return (
 		<MenuButton
 			state={menu}
 			className={styles.buttonVariants({
-				variant: variant,
-				size: size,
+				variant,
+				size,
+				emphasis,
 			})}
 			{...props}
 		>

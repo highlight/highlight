@@ -11,6 +11,7 @@ export const variants = recipe({
 			justifyContent: 'center',
 			border: 'none',
 			borderRadius: 6,
+			outline: 'none',
 		},
 	],
 
@@ -275,14 +276,36 @@ export const variants = recipe({
 						color: vars.color.neutral300,
 					},
 					'&:hover': {
-						background: vars.color.neutral100,
+						background: vars.color.neutral200,
 						color: vars.color.neutral700,
-						border: vars.border.neutralDark,
 					},
 					'&:focus, &:active': {
-						background: vars.color.neutral100,
-						color: vars.color.neutral700,
-						border: vars.border.neutralDark,
+						background: vars.color.neutral200,
+						color: vars.color.neutral500,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				size: 'minimal',
+				variant: 'primary',
+			},
+			style: {
+				background: vars.color.purple500,
+				color: vars.color.white,
+				boxShadow: 'none',
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.purple100,
+					},
+					'&:hover': {
+						background: vars.color.purple700,
+						color: vars.color.neutral50,
+					},
+					'&:focus, &:active': {
+						background: vars.color.purple500,
+						color: vars.color.white,
 					},
 				},
 			},
