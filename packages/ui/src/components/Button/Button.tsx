@@ -5,12 +5,14 @@ import { Text, Props as TextProps } from '../Text/Text'
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
+import clsx from 'clsx'
 
 type Props = ButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 		onPress?: () => void
+		cssClass?: string
 	}
 
 const buttonToTextSize = {
@@ -27,6 +29,8 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	iconRight,
 	size = styles.defaultSize,
 	variant,
+	className,
+	cssClass,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -34,10 +38,14 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<AriakitButton
 			as="button"
-			className={styles.variants({
-				variant: variant,
-				size: size,
-			})}
+			className={clsx(
+				styles.variants({
+					variant: variant,
+					size: size,
+				}),
+				className,
+				cssClass,
+			)}
 			{...buttonProps}
 		>
 			{iconLeft && (

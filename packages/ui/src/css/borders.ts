@@ -15,6 +15,9 @@ type BorderKeys =
 	| 'purple'
 	| 'purpleMedium'
 	| 'purpleLarge'
+	| 'purpleLight'
+	| 'purpleLightMedium'
+	| 'purpleLightLarge'
 
 type Borders = Record<BorderKeys, string>
 
@@ -39,6 +42,10 @@ export const borders: Borders = {
 	neutralDark: `${colors.neutral300} solid ${borderWidths.small}`,
 	neutralDarkMedium: `${colors.neutral300} solid ${borderWidths.medium}`,
 	neutralDarkLarge: `${colors.neutral300} solid ${borderWidths.large}`,
+
+	purpleLight: `${colors.purple100} solid ${borderWidths.small}`,
+	purpleLightMedium: `${colors.purple100} solid ${borderWidths.medium}`,
+	purpleLightLarge: `${colors.purple100} solid ${borderWidths.large}`,
 
 	purple: `${colors.purple700} solid ${borderWidths.small}`,
 	purpleMedium: `${colors.purple700} solid ${borderWidths.medium}`,

@@ -23,6 +23,7 @@ export const variants = recipe({
 			low: {},
 			medium: {},
 			high: {},
+			none: {},
 		},
 		size: {
 			tiny: [
@@ -43,6 +44,12 @@ export const variants = recipe({
 					height: 32,
 				},
 			],
+			minimal: {
+				height: 20,
+				width: 20,
+				borderRadius: 4,
+				padding: 2,
+			},
 		},
 		variant: {
 			primary: {},
@@ -126,6 +133,84 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'high',
+				variant: 'primary',
+			},
+			style: {
+				background: vars.color.purple500,
+				color: vars.color.white,
+				boxShadow: shadows.primary,
+				selectors: {
+					'&:hover': {
+						background: vars.color.purple700,
+					},
+					'&:focus, &:active': {
+						background: vars.color.purple700,
+						boxShadow: 'none',
+					},
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						background: vars.color.purple100,
+						color: vars.color.neutral50,
+						boxShadow: 'none',
+						outline: 'none',
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				emphasis: 'medium',
+				variant: 'primary',
+			},
+			style: {
+				background: 'transparent',
+				color: vars.color.purple500,
+				boxShadow: 'none',
+				border: vars.border.neutral,
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.purple100,
+						border: vars.border.purpleLight,
+						boxShadow: 'none',
+						outline: 'none',
+					},
+					'&:hover': {
+						color: vars.color.purple700,
+						border: vars.border.neutralDark,
+					},
+					'&:focus, &:active': {
+						color: vars.color.purple700,
+						border: vars.border.purple,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				emphasis: 'low',
+				variant: 'primary',
+			},
+			style: {
+				background: 'transparent',
+				color: vars.color.purple500,
+				boxShadow: 'none',
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.purple100,
+					},
+					'&:hover': {
+						background: vars.color.neutral200,
+						color: vars.color.purple900,
+					},
+					'&:focus, &:active': {
+						background: vars.color.neutral200,
+						color: vars.color.purple700,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				emphasis: 'high',
 				variant: 'secondary',
 			},
 			style: {
@@ -198,6 +283,31 @@ export const variants = recipe({
 						background: vars.color.neutral100,
 						color: vars.color.neutral700,
 						border: vars.border.neutralDark,
+					},
+				},
+			},
+		},
+		{
+			variants: {
+				size: 'minimal',
+				variant: 'secondary',
+			},
+			style: {
+				background: 'transparent',
+				color: vars.color.neutral500,
+				boxShadow: 'none',
+				selectors: {
+					'&:disabled, &:disabled:hover, &:disabled:focus': {
+						color: vars.color.neutral300,
+					},
+					'&:hover': {
+						background: vars.color.neutral200,
+						color: vars.color.neutral700,
+						boxShadow: shadows.grey,
+					},
+					'&:focus, &:active': {
+						background: vars.color.neutral50,
+						color: vars.color.neutral500,
 					},
 				},
 			},
