@@ -1,11 +1,24 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import ApplicationPickerV2 from '@components/Header/components/ApplicationPickerV2/ApplicationPickerV2'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
+import {
+	Box,
+	Button,
+	IconBell,
+	IconCog,
+	IconDotsHorizontal,
+	IconHome,
+	IconPlayCircle,
+	IconPlusSm,
+	IconViewGrid,
+	IconXCircle,
+	Menu,
+} from '@highlight-run/ui'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
@@ -21,16 +34,12 @@ import classNames from 'classnames/bind'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useHistory, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { CommandBar } from './CommandBar/CommandBar'
-import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker'
-import FeedbackButton from './components/FeedbackButton/FeedbackButton'
-import HeaderActions from './components/HeaderActions'
 import styles from './Header.module.scss'
-import { UserDropdown } from './UserDropdown/UserDropdown'
 
 export const Header = () => {
 	const { project_id } = useParams<{
@@ -43,65 +52,156 @@ export const Header = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const { showBanner } = useGlobalContext()
+	const history = useHistory()
 
 	return (
 		<>
 			<CommandBar />
-			<div
-				className={classNames(styles.header, {
-					[styles.guest]:
-						!isLoggedIn &&
-						projectIdRemapped !==
-							DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-					[styles.bannerShown]: showBanner,
-				})}
-			>
-				{!!project_id && getBanner(project_id)}
-				<div className={styles.headerContent}>
+			<Box background="neutral50" borderBottom="neutral">
+				{!!project_id && getBanner(project_id) /** ZANETODO: banner? */}
+				<Box
+					height="45"
+					display="flex"
+					alignItems="center"
+					px="12"
+					py="8"
+					justifyContent="space-between"
+				>
 					{isLoggedIn ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
-						<div className={styles.applicationPickerContainer}>
-							<ApplicationPicker />
-
-							{!!project_id && (
-								<div className={styles.quicksearchWrapper}>
-									<QuickSearch />
-								</div>
-							)}
-						</div>
+						<Box display="flex" alignItems="center" gap="12">
+							<ApplicationPickerV2 />
+							<Box
+								display="flex"
+								alignItems="center"
+								gap="4"
+								style={{ zIndex: 4 }}
+							>
+								<Button
+									iconLeft={<IconHome size="14" />}
+									variant="grey"
+									onClick={() => {
+										history.push(`/${project_id}/home`)
+									}}
+								>
+									Home
+								</Button>
+								<Button
+									iconLeft={<IconXCircle size="14" />}
+									onClick={() => {
+										history.push(`/${project_id}/errors`)
+									}}
+								>
+									Errors
+								</Button>
+								<Button
+									iconLeft={<IconPlayCircle size="14" />}
+									variant="grey"
+									onClick={() => {
+										history.push(`/${project_id}/sessions`)
+									}}
+								>
+									Sessions
+								</Button>
+								<Button
+									iconLeft={<IconViewGrid size="14" />}
+									variant="grey"
+									onClick={() => {
+										history.push(
+											`/${project_id}/dashboards`,
+										)
+									}}
+								>
+									Dashboards
+								</Button>
+								<Menu>
+									<Menu.Button variant="grey">
+										<IconDotsHorizontal size="14" />
+									</Menu.Button>
+									<Menu.List>
+										<Menu.Item
+											onClick={() => {
+												history.push(
+													`/${project_id}/alerts`,
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconPlusSm size="14" />
+												Alerts
+											</Box>
+										</Menu.Item>
+										<Menu.Item
+											onClick={() => {
+												history.push(
+													`/${project_id}/integrations`,
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconPlusSm size="14" />
+												Integrations
+											</Box>
+										</Menu.Item>
+										<Menu.Item
+											onClick={() => {
+												history.push(
+													`/${project_id}/setup`,
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconPlusSm size="14" />
+												Setup
+											</Box>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
+							</Box>
+						</Box>
 					) : (
-						<div className={styles.logoWrapper}>
+						<Box className={styles.logoWrapper}>
 							<Link
 								className={styles.homeLink}
 								to={`/${projectIdRemapped}/home`}
 							>
 								<HighlightLogo />
 							</Link>
-						</div>
+						</Box>
 					)}
 
-					<div className={styles.rightHeader}>
-						<HeaderActions />
-						<div className={styles.hideableButtonContainer}>
-							{!isLoggedIn ? (
-								<ButtonLink
-									className={styles.upsellButton}
-									trackingId="DemoProjectSignUp"
-									to="/?sign_up=1"
-								>
-									Try Highlight for Free!
-								</ButtonLink>
-							) : (
-								<FeedbackButton />
-							)}
-						</div>
-						{isLoggedIn && (
-							<UserDropdown workspaceId={currentWorkspace?.id} />
+					<Box display="flex" alignItems="center" gap="12">
+						{!!project_id && (
+							<Box className={styles.quicksearchWrapper}>
+								<QuickSearch />
+							</Box>
 						)}
-					</div>
-				</div>
-			</div>
+						<Box display="flex" alignItems="center" gap="4">
+							<Button
+								iconLeft={<IconBell size="14" />}
+								variant="grey"
+							/>
+							<Button
+								iconLeft={<IconCog size="14" />}
+								variant="grey"
+							/>
+						</Box>
+					</Box>
+				</Box>
+			</Box>
 		</>
 	)
 }
