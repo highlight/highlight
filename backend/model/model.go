@@ -861,7 +861,7 @@ type ErrorObject struct {
 	OrganizationID   int
 	ProjectID        int `json:"project_id"`
 	SessionID        int
-	ErrorGroupID     int // see if we can add `gorm:"index;option:CONCURRENTLY;not null;`
+	ErrorGroupID     int
 	Event            string
 	Type             string
 	URL              string
@@ -1126,7 +1126,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 
 	var err error
 
-	logLevel := logger.Info
+	logLevel := logger.Silent
 	if os.Getenv("HIGHLIGHT_DEBUG_MODE") == "blame-GARAGE-spike-typic-neckline-santiago-tore-keep-becalm-preach-fiber-pomade-escheat-crone-tasmania" {
 		logLevel = logger.Info
 	}
