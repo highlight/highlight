@@ -50,6 +50,9 @@ const SearchPagination = ({
 		)
 	}
 
+	// startIdx | dots | siblings | currentIdx | siblings | dots | endIdx
+	const sideItemCount = 1 + $siblingCount + 1 + $siblingCount
+
 	const content = useMemo(() => {
 		// startIdx | dots | siblings | currentIdx | siblings | dots | endIdx
 		const totalItemCount = 2 + $siblingCount + 1 + $siblingCount + 2
@@ -84,7 +87,6 @@ const SearchPagination = ({
 			]
 		}
 
-		const sideItemCount = 1 + $siblingCount + 1 + $siblingCount
 		if (!showLeftDots && showRightDots) {
 			const leftRange = range(START_PAGE, sideItemCount)
 
@@ -96,7 +98,7 @@ const SearchPagination = ({
 			totalPageCount + 1,
 		)
 		return [START_PAGE, ExpandAction.Back, ...rightRange]
-	}, [$siblingCount, currentPage, totalPageCount])
+	}, [$siblingCount, currentPage, sideItemCount, totalPageCount])
 
 	if (!maxPage) return null
 
@@ -126,7 +128,7 @@ const SearchPagination = ({
 				overflow="hidden"
 			>
 				{content.map((val, idx) => {
-					const dotSkip = 2 * $siblingCount + 3
+					const dotSkip = sideItemCount - 1
 					switch (val) {
 						case ExpandAction.Forward:
 						case ExpandAction.Back:
@@ -137,7 +139,7 @@ const SearchPagination = ({
 									shape="thin"
 									emphasis="medium"
 									icon={<IconDotsHorizontal size={14} />}
-									cssClass={style.noBorder}
+									cssClass={style.simple}
 									key={idx}
 									onClick={() =>
 										val === ExpandAction.Forward
@@ -149,7 +151,13 @@ const SearchPagination = ({
 						default:
 							return (
 								<Button
-									cssClass={[style.noBorder]}
+									cssClass={[
+										style.simple,
+										{
+											[style.selected]:
+												val === currentPage,
+										},
+									]}
 									key={idx}
 									onClick={() => setPage(val)}
 									size="small"
