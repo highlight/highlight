@@ -8,8 +8,9 @@ import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import {
 	Box,
 	Button,
+	Column,
+	Columns,
 	Heading,
-	IconArrowsExpand,
 	IconPlay,
 	Text,
 } from '@highlight-run/ui'
@@ -25,11 +26,9 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { useHistory } from 'react-router-dom'
 import React from 'react'
-import { Maybe, Session } from '@graph/schemas'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { FiExternalLink } from 'react-icons/fi'
-import * as styles from './ErrorInstance.css'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -108,7 +107,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					>
 						Newer
 					</Button>
-					{/* TODO: Build link component that looks like a button, or use history to navigate */}
 					<Button
 						variant="grey"
 						onClick={() =>
@@ -177,28 +175,26 @@ const Metadata: React.FC<{
 			<Box>
 				{metadata.map((tag) => {
 					return (
-						<Box
-							display="flex"
-							py="10"
-							gap="16"
-							alignItems="center"
-							key={tag.key}
-						>
-							<Box cssClass={styles.tableHeader}>
-								<Text
-									color="neutral500"
-									transform="capitalize"
-									align="left"
-								>
-									{tag.key}
-								</Text>
-							</Box>
-							<Box cssClass={styles.tableData}>
-								<Text align="left" lines="1">
-									{tag.label}
-								</Text>
-							</Box>
-						</Box>
+						<Columns gap="16" key={tag.key}>
+							<Column span="4">
+								<Box py="10">
+									<Text
+										color="neutral500"
+										transform="capitalize"
+										align="left"
+									>
+										{tag.key}
+									</Text>
+								</Box>
+							</Column>
+							<Column span="8">
+								<Box py="10">
+									<Text align="left" lines="1">
+										{tag.label}
+									</Text>
+								</Box>
+							</Column>
+						</Columns>
 					)
 				})}
 			</Box>
@@ -290,43 +286,40 @@ const User: React.FC<{
 						{Object.keys(userProperties)
 							.filter((k) => k !== 'avatar')
 							.map((key) => (
-								<Box
-									key={key}
-									display="flex"
-									py="10"
-									gap="16"
-									alignItems="center"
-								>
-									<Box cssClass={styles.tableHeader}>
-										<Text
-											color="neutral500"
-											align="left"
-											transform="capitalize"
-										>
-											{key}
-										</Text>
-									</Box>
-									<Box cssClass={styles.tableData}>
-										<Text>{userProperties[key]}</Text>
-									</Box>
-								</Box>
+								<Columns key={key} gap="16">
+									<Column span="4">
+										<Box py="10">
+											<Text
+												color="neutral500"
+												align="left"
+												transform="capitalize"
+											>
+												{key}
+											</Text>
+										</Box>
+									</Column>
+									<Column span="8">
+										<Box py="10">
+											<Text>{userProperties[key]}</Text>
+										</Box>
+									</Column>
+								</Columns>
 							))}
 
-						<Box
-							display="flex"
-							py="10"
-							alignItems="center"
-							gap="16"
-						>
-							<Box cssClass={styles.tableHeader}>
-								<Text color="neutral500" align="left">
-									Location
-								</Text>
-							</Box>
-							<Box cssClass={styles.tableData}>
-								<Text>{location}</Text>
-							</Box>
-						</Box>
+						<Columns gap="16">
+							<Column span="4">
+								<Box py="10">
+									<Text color="neutral500" align="left">
+										Location
+									</Text>
+								</Box>
+							</Column>
+							<Column span="8">
+								<Box py="10">
+									<Text>{location}</Text>
+								</Box>
+							</Column>
+						</Columns>
 					</Box>
 				</Box>
 			</Box>

@@ -1,20 +1,11 @@
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { breakpoints } from './breakpoints'
+import { mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 
 const responsiveProperties = defineProperties({
-	conditions: {
-		mobile: {},
-		tablet: {
-			'@media': `screen and (min-width: ${breakpoints.tablet})`,
-		},
-		desktop: {
-			'@media': `screen and (min-width: ${breakpoints.desktop})`,
-		},
-		wide: { '@media': `screen and (min-width: ${breakpoints.wide})` },
-	},
+	conditions: mediaQueries,
 	defaultCondition: 'mobile',
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
