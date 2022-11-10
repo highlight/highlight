@@ -9,6 +9,7 @@ import clsx from 'clsx'
 
 type Props = ButtonProps &
 	styles.Variants & {
+		/** An alias for iconLeft as a convenience for icon-only tags. */
 		icon?: React.ReactElement<IconProps>
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>

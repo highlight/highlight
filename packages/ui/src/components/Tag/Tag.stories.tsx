@@ -25,13 +25,13 @@ export const Sizes = () => {
 			<Tag size="small">Small</Tag>
 			<Tag size="medium">Medium</Tag>
 			<Tag size="large">Large</Tag>
-			<Tag shape="round" size="small">
+			<Tag shape="basic" size="small">
 				Small
 			</Tag>
-			<Tag shape="round" size="medium">
+			<Tag shape="basic" size="medium">
 				Medium
 			</Tag>
-			<Tag shape="round" size="large">
+			<Tag shape="basic" size="large">
 				Large
 			</Tag>
 		</Box>
@@ -61,7 +61,7 @@ export const Icons = () => {
 			flexDirection="column"
 			gap="16"
 		>
-			<Tag size="large" iconLeft={<IconCog />} />
+			<Tag size="large" icon={<IconCog />} />
 			<Tag size="large" variant="primary" iconLeft={<IconArrowSmDown />}>
 				Primary
 			</Tag>
