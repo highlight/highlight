@@ -5632,12 +5632,12 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 	query := fmt.Sprintf(`
 		from(bucket: "%s")
 		  |> range(start: -1d)
-		  |> filter(fn: (r) => r["_measurement"] == "%s")
+		  |> filter(fn: (r) => r["_measurement"] == "%s") 
 		  %s
 		  |> group(columns: ["_field"])
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
@@ -5660,7 +5660,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5690,7 +5690,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), tagName, timeseries.Metric.Name, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5720,7 +5720,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -5857,7 +5857,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  |> sort(desc: true)
           |> limit(n: 10)
 		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), days, timeseries.Metric.Name, extraFiltersStr, params.Attribute.String())
 	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())

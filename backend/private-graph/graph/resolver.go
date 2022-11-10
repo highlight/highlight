@@ -2763,7 +2763,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		resMins = *params.ResolutionMinutes
 	}
 
-	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := tdb.GetSampledMeasurement(tdb.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	query := fmt.Sprintf(`
       query = () =>
 		from(bucket: "%[1]s")

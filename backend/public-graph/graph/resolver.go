@@ -2081,13 +2081,13 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			return err
 		}
 		points = append(points, timeseries.Point{
-			Measurement: timeseries.Metrics,
+			Measurement: timeseries.Metric.Name,
 			Time:        firstTime,
 			Tags:        tags,
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(strconv.Itoa(projectID), timeseries.Metrics, points)
+	r.TDB.Write(strconv.Itoa(projectID), timeseries.Metric.Name, points)
 	return nil
 }
 
@@ -2301,13 +2301,13 @@ func (r *Resolver) RecordErrorGroupMetrics(errorGroup *model.ErrorGroup, errors 
 			"Identifier":  identifier,
 		}
 		points = append(points, timeseries.Point{
-			Measurement: timeseries.Errors,
+			Measurement: timeseries.Error.Name,
 			Time:        e.Timestamp,
 			Tags:        tags,
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(strconv.Itoa(errorGroup.ProjectID), timeseries.Metrics, points)
+	r.TDB.Write(strconv.Itoa(errorGroup.ProjectID), timeseries.Error.Name, points)
 	return nil
 }
 
@@ -2875,12 +2875,12 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 		// request time is relative to session start
 		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
 		points = append(points, timeseries.Point{
-			Measurement: timeseries.Metrics,
+			Measurement: timeseries.Metric.Name,
 			Time:        sessionObj.CreatedAt.Add(d),
 			Tags:        tags,
 			Fields:      fields,
 		})
 	}
-	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), timeseries.Metrics, points)
+	r.TDB.Write(strconv.Itoa(sessionObj.ProjectID), timeseries.Metric.Name, points)
 	return nil
 }

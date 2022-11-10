@@ -16,14 +16,36 @@ import (
 
 type Measurement string
 
-const (
-	Errors                  Measurement = "errors"
-	Metrics                 Measurement = "metrics"
-	MetricsAggMinute        Measurement = "metrics-aggregate-minute"
-	DownsampleInterval                  = time.Minute
-	DownsampleThreshold                 = 60 * DownsampleInterval
-	DownsampledBucketSuffix string      = "/downsampled"
-)
+type MeasurementConfig struct {
+	Name                   Measurement
+	AggName                Measurement
+	DownsampleInterval     time.Duration
+	DownsampleThreshold    time.Duration
+	DownsampleRetention    time.Duration
+	DownsampleBucketSuffix string
+}
+
+var Error = MeasurementConfig{
+	Name:                   "errors",
+	AggName:                "errors-aggregate-hour",
+	DownsampleInterval:     time.Hour,
+	DownsampleThreshold:    12 * time.Hour,
+	DownsampleRetention:    0,
+	DownsampleBucketSuffix: "/downsampled",
+}
+
+var Metric = MeasurementConfig{
+	Name:                   "metrics",
+	AggName:                "metrics-aggregate-minute",
+	DownsampleInterval:     time.Minute,
+	DownsampleThreshold:    time.Hour,
+	DownsampleRetention:    time.Hour * 24 * 90,
+	DownsampleBucketSuffix: "/downsampled",
+}
+
+var Configs = map[Measurement]MeasurementConfig{
+	"errors": Error, "metrics": Metric,
+}
 
 var IgnoredTags = map[string]bool{
 	"group_name": true,
@@ -92,64 +114,50 @@ func New() *InfluxDB {
 
 func (i *InfluxDB) GetBucket(bucket string, measurement Measurement) string {
 	switch measurement {
-	case Metrics:
+	case Configs["metrics"].Name:
 		return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
 	}
 	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, bucket, measurement)
 }
 
 func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
+	config := Configs[measurement]
 	b := i.GetBucket(bucket, measurement)
-	switch measurement {
-	case Errors:
-		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
-			EverySeconds: 0,
-			Type:         domain.RetentionRuleTypeExpire,
+	// ignore bucket already exists error
+	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
+		// short data expiry for granular data since we will only store downsampled data long term
+		EverySeconds: int64(config.DownsampleThreshold.Seconds()),
+		Type:         domain.RetentionRuleTypeExpire,
+	})
+	// create a downsample bucket. ignore bucket already exists error
+	downsampleB := b + config.DownsampleBucketSuffix
+	_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
+		// long term data expiry for downsampled data
+		EverySeconds: int64(config.DownsampleRetention.Seconds()),
+		Type:         domain.RetentionRuleTypeExpire,
+	})
+	taskName := fmt.Sprintf("task-%s", downsampleB)
+	tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+		Name:  taskName,
+		OrgID: i.orgID,
+		Limit: 1,
+	})
+	if err == nil && len(tasks) < 1 {
+		// create a task to downsample data
+		taskFlux := getDownsampleTask(b, downsampleB, taskName, config)
+		_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), taskFlux, i.orgID)
+	}
+	// since the create operation is not idempotent, check if we created duplicate tasks and clean up
+	tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
+		Name:  taskName,
+		OrgID: i.orgID,
+	})
+	if len(tasks) > 1 {
+		sort.Slice(tasks, func(i, j int) bool {
+			return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
 		})
-	case Metrics:
-		// ignore bucket already exists error
-		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, b, domain.RetentionRule{
-			// short metric expiry for granular data since we will only store downsampled data long term
-			EverySeconds: int64((DownsampleThreshold).Seconds()),
-			Type:         domain.RetentionRuleTypeExpire,
-		})
-		// create a downsample bucket. ignore bucket already exists error
-		downsampleB := b + DownsampledBucketSuffix
-		_, _ = i.Client.BucketsAPI().CreateBucketWithNameWithID(context.Background(), i.orgID, downsampleB, domain.RetentionRule{
-			// 90 day metric expiry for downsampled data
-			EverySeconds: int64((time.Hour * 24 * 90).Seconds()),
-			Type:         domain.RetentionRuleTypeExpire,
-		})
-		taskName := fmt.Sprintf("task-%s", downsampleB)
-		tasks, err := i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
-			Name:  taskName,
-			OrgID: i.orgID,
-			Limit: 1,
-		})
-		if err == nil && len(tasks) < 1 {
-			// create a task to downsample data
-			_, _ = i.Client.TasksAPI().CreateTaskByFlux(context.Background(), fmt.Sprintf(`
-		option task = {name: "%s", every: %dm}
-		from(bucket: "%s")
-			|> range(start: -task.every)
-			|> filter(fn: (r) => r._measurement == "%s")
-			|> aggregateWindow(every: %dm, fn: mean)
-			|> set(key: "_measurement", value: "%s")
-			|> to(bucket: "%s")
-	`, taskName, int(DownsampleInterval.Minutes()), b, Metrics, int(DownsampleInterval.Minutes()), MetricsAggMinute, downsampleB), i.orgID)
-		}
-		// since the create operation is not idempotent, check if we created duplicate tasks and clean up
-		tasks, _ = i.Client.TasksAPI().FindTasks(context.Background(), &api.TaskFilter{
-			Name:  taskName,
-			OrgID: i.orgID,
-		})
-		if len(tasks) > 1 {
-			sort.Slice(tasks, func(i, j int) bool {
-				return tasks[i].CreatedAt.Sub(*tasks[j].CreatedAt) < time.Duration(0)
-			})
-			for _, t := range tasks[1:] {
-				_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
-			}
+		for _, t := range tasks[1:] {
+			_ = i.Client.TasksAPI().DeleteTaskWithID(context.Background(), t.Id)
 		}
 	}
 
@@ -208,11 +216,9 @@ func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point)
 
 // GetSampledMeasurement returns the bucket and measurement to query depending on the time range
 func (i *InfluxDB) GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement) {
-	if timeRange > DownsampleThreshold {
-		switch defaultMeasurement {
-		case Metrics:
-			return defaultBucket + DownsampledBucketSuffix, MetricsAggMinute
-		}
+	config := Configs[m]
+	if timeRange > config.DownsampleThreshold {
+		return defaultBucket + config.DownsampleBucketSuffix, config.AggName
 	}
 	return defaultBucket, defaultMeasurement
 }
@@ -247,4 +253,62 @@ func (i *InfluxDB) Stop() {
 	}
 	// Ensures background processes finishes
 	i.Client.Close()
+}
+
+func getDownsampleTask(bucket string, downsampleBucket string, taskName string, config MeasurementConfig) string {
+	switch config.Name {
+	case Configs["errors"].Name:
+		return fmt.Sprintf(`
+import "join"
+
+option task = {name: "%[1]s", every: %[2]dm}
+counts = from(bucket: "%[3]s")
+		|> range(start: -task.every)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		|> group(columns: ["%[7]s"])
+		|> aggregateWindow(every: %[2]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
+
+sessionCounts = from(bucket: "%[3]s")
+		|> range(start: -task.every)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		|> unique(column: "SessionID")
+		|> group(columns: ["%[7]s"])
+		|> aggregateWindow(every: %[2]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
+
+identifierCounts = from(bucket: "%[3]s")
+		|> range(start: -task.every)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		|> filter(fn: (r) => r._field == "Identifier")
+		|> unique()
+		|> group(columns: ["%[7]s"])
+		|> aggregateWindow(every: %[2]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
+
+environmentCounts = from(bucket: "%[3]s")
+		|> range(start: -task.every)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		|> filter(fn: (r) => r._field == "Environment")
+		|> unique()
+		|> group(columns: ["%[7]s"])
+		|> aggregateWindow(every: %[2]dm, fn: count)
+		|> keep(columns: ["_measurement","_time","_field","_value", "%[7]s"])
+
+join.time(left: counts, right: sessionCounts, as: (l, r) => ({l with count: l._value, sessionCount: r._value}))
+	|> join.time(right: identifierCounts, as: (l, r) => ({l with identifierCount: r._value}))
+	|> join.time(right: environmentCounts, as: (l, r) => ({l with environmentCount: r._value}))
+	|> set(key: "_measurement", value: "%[5]s")
+	|> to(bucket: "%[6]s", fieldFn: (r) => ({"count": r.count, "sessionCount": r.sessionCount, "identifierCount": r.identifierCount, "environmentCount": r.environmentCount}))
+	`, taskName, int(config.DownsampleInterval.Minutes()), bucket, config.Name, config.AggName, downsampleBucket, "ErrorGroupID")
+	}
+	return fmt.Sprintf(`
+		option task = {name: "%s", every: %dm}
+		from(bucket: "%s")
+			|> range(start: -task.every)
+			|> filter(fn: (r) => r._measurement == "%s")
+			|> aggregateWindow(every: %dm, fn: mean)
+			|> set(key: "_measurement", value: "%s")
+			|> to(bucket: "%s")
+	`, taskName, int(config.DownsampleInterval.Minutes()), bucket, config.Name, int(config.DownsampleInterval.Minutes()), config.AggName, downsampleBucket)
 }
