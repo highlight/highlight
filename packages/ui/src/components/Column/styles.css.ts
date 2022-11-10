@@ -6,12 +6,12 @@ import { vars } from '../../css/vars'
 export const columns = style({
 	display: 'flex',
 	flexWrap: 'wrap',
+	width: '100%',
 })
 
 export const column = style({
 	boxSizing: 'border-box',
-	flexGrow: 0,
-	flexShrink: 0,
+	minWidth: 0, // resolves issue with text truncation
 })
 
 const columnProperties = defineProperties({
@@ -19,6 +19,7 @@ const columnProperties = defineProperties({
 	defaultCondition: 'mobile',
 	properties: {
 		flex: {
+			auto: '1 0 auto',
 			'1': '0 0 calc(100% / 12)',
 			'2': '0 0 calc(100% * 2 / 12)',
 			'3': '0 0 calc(100% * 3 / 12)',

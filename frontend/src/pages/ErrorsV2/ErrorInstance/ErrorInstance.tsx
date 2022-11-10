@@ -5,15 +5,7 @@ import {
 	useGetRecentErrorsQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import {
-	Box,
-	Button,
-	Column,
-	Columns,
-	Heading,
-	IconPlay,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
@@ -175,7 +167,7 @@ const Metadata: React.FC<{
 			<Box>
 				{metadata.map((tag) => {
 					return (
-						<Columns gap="16" key={tag.key}>
+						<Column.Container gap="16" key={tag.key}>
 							<Column span="4">
 								<Box py="10">
 									<Text
@@ -194,7 +186,7 @@ const Metadata: React.FC<{
 									</Text>
 								</Box>
 							</Column>
-						</Columns>
+						</Column.Container>
 					)
 				})}
 			</Box>
@@ -286,7 +278,7 @@ const User: React.FC<{
 						{Object.keys(userProperties)
 							.filter((k) => k !== 'avatar')
 							.map((key) => (
-								<Columns key={key} gap="16">
+								<Column.Container key={key} gap="16">
 									<Column span="4">
 										<Box py="10">
 											<Text
@@ -303,10 +295,10 @@ const User: React.FC<{
 											<Text>{userProperties[key]}</Text>
 										</Box>
 									</Column>
-								</Columns>
+								</Column.Container>
 							))}
 
-						<Columns gap="16">
+						<Column.Container gap="16">
 							<Column span="4">
 								<Box py="10">
 									<Text color="neutral500" align="left">
@@ -319,7 +311,7 @@ const User: React.FC<{
 									<Text>{location}</Text>
 								</Box>
 							</Column>
-						</Columns>
+						</Column.Container>
 					</Box>
 				</Box>
 			</Box>

@@ -1,11 +1,15 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 
-import { Columns } from './Columns'
+import { Column } from './Column'
 
-describe('Columns', () => {
+describe('Column', () => {
 	it('exists', async () => {
-		render(<Columns>Testing</Columns>)
+		render(
+			<Column.Container>
+				<Column>Testing</Column>
+			</Column.Container>,
+		)
 
 		await screen.findByText('Testing')
 	})
