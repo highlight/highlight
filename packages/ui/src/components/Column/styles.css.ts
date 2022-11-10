@@ -1,7 +1,7 @@
 import { style, styleVariants } from '@vanilla-extract/css'
 import { createSprinkles, defineProperties } from '@vanilla-extract/sprinkles'
 import { mediaQueries } from '../../css/breakpoints'
-import { vars } from '../../css/vars'
+import { spaces } from '../../css/spaces'
 
 export const columns = style({
 	display: 'flex',
@@ -38,7 +38,7 @@ const columnProperties = defineProperties({
 export const columnSprinkles = createSprinkles(columnProperties)
 export type ColumnSprinkles = Parameters<typeof columnSprinkles>[0]
 
-const negativeMarginValues: { [K in keyof typeof vars.space]: string } = {
+const negativeMarginValues: { [K in keyof typeof spaces]: string } = {
 	'0': '0',
 	'3': '-3px',
 	'2': '-2px',
@@ -53,7 +53,7 @@ const negativeMarginValues: { [K in keyof typeof vars.space]: string } = {
 	'28': '-28px',
 	'32': '-32px',
 	'40': '-40px',
-}
+} as const
 
 export const negativeMargins = {
 	mobile: styleVariants(negativeMarginValues, (value) => ({
@@ -84,4 +84,4 @@ export const negativeMargins = {
 			},
 		},
 	})),
-}
+} as const
