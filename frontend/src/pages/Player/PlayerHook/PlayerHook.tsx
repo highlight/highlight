@@ -125,6 +125,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
 	const currentChunkIdx = useRef<number>(0)
+	// used to track latest time atomically where the state may be out of date
+	const lastTimeRef = useRef<number>(0)
 
 	const [
 		chunkEventsRef,
@@ -358,15 +360,26 @@ export const usePlayer = (): ReplayerContextInterface => {
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				await Promise.all(promises)
 			}
-			if ((!loadingChunks.current.size && promises.length) || action) {
-				console.trace(
+			if (!loadingChunks.current.size && promises.length) {
+				log(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
-					'calling dispatchAction',
+					'calling dispatchAction due to loading',
+					{
+						time: lastTimeRef.current,
+						promises,
+						chunks: chunkEventsRef.current,
+					},
+				)
+				dispatchAction(lastTimeRef.current)
+			} else if (action) {
+				log(
+					'PlayerHook.tsx',
+					'ensureChunksLoaded',
+					'calling dispatchAction due to action',
 					{
 						startTime,
 						action,
-						promises,
 						chunks: chunkEventsRef.current,
 					},
 				)
@@ -775,6 +788,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// ensures that chunks are loaded in advance during playback
 	// ensures we skip over inactivity periods
 	useEffect(() => {
+		lastTimeRef.current = state.time
 		if (
 			!state.session?.processed ||
 			state.sessionMetadata.startTime === 0 ||
