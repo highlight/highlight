@@ -597,11 +597,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 					return prev
 				},
 			})
-			play(state.time)
+			play(state.time).then()
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
-			pause()
+			pause().then()
 		}
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -699,7 +699,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			timelineIndicatorEvents,
 		})
 		if (state.replayerState <= ReplayerState.Loading) {
-			pause()
+			pause().then()
 		}
 		setPlayerTimestamp(
 			state.sessionMetadata.totalTime,
@@ -708,6 +708,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
+		session_secure_id,
 		sessionPayload,
 		sessionIntervals,
 		timelineIndicatorEvents,
