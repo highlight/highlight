@@ -9720,7 +9720,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rrweb/types@workspace:rrweb/packages/types"
   dependencies:
-    rrweb-snapshot: ^2.0.0-alpha.3
+    "@highlight-run/rrweb-snapshot": "workspace:*"
     typescript: ^4.7.3
     vite: ^3.2.0-beta.2
     vite-plugin-dts: ^1.6.6
@@ -37061,13 +37061,6 @@ __metadata:
   bin:
     rollup: dist/bin/rollup
   checksum: 9034814383ca5bdb4bea6d499270aeb31cdb0bb884f81b0c6a1d19c63cc973f040e6ee09b7af8a7169dd231c090f4b44ef8b99c4bfdf884aceeb3dcefb8cfa14
-  languageName: node
-  linkType: hard
-
-"rrweb-snapshot@npm:^2.0.0-alpha.3":
-  version: 2.0.0-alpha.3
-  resolution: "rrweb-snapshot@npm:2.0.0-alpha.3"
-  checksum: 6a809e2b19e5892d76cc24b6f73bac1d07544e6b331ff3cbd1711dd26062c4558b0f62afd33066f40fc739096564b56e7ac99db05dd4c3699964162079fdb6b9
   languageName: node
   linkType: hard
 
