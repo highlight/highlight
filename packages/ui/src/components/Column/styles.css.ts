@@ -38,22 +38,11 @@ const columnProperties = defineProperties({
 export const columnSprinkles = createSprinkles(columnProperties)
 export type ColumnSprinkles = Parameters<typeof columnSprinkles>[0]
 
-const negativeMarginValues: { [K in keyof typeof spaces]: string } = {
-	'0': '0',
-	'3': '-3px',
-	'2': '-2px',
-	'4': '-4px',
-	'6': '-6px',
-	'8': '-8px',
-	'10': '-10px',
-	'12': '-12px',
-	'16': '-16px',
-	'20': '-20px',
-	'24': '-24px',
-	'28': '-28px',
-	'32': '-32px',
-	'40': '-40px',
-} as const
+const negativeMarginValues: { [K in keyof typeof spaces]: string } =
+	Object.keys(spaces).reduce((previous, key: keyof typeof spaces) => {
+		previous[key] = `-${spaces[key]}`
+		return previous
+	}, {} as any)
 
 export const negativeMargins = {
 	mobile: styleVariants(negativeMarginValues, (value) => ({

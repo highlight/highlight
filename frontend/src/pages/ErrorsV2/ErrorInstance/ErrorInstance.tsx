@@ -74,7 +74,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Box display="flex" gap="8">
 					<Button
 						disabled={selectedErrorObjectIndex <= 0}
-						variant="white"
+						kind="secondary"
+						emphasis="medium"
 						onClick={() =>
 							setSelectedErrorObjectIndex(
 								Math.max(selectedErrorObjectIndex - 1, 0),
@@ -87,7 +88,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						disabled={
 							selectedErrorObjectIndex >= metadataLog.length - 1
 						}
-						variant="white"
+						kind="secondary"
+						emphasis="medium"
 						onClick={() =>
 							setSelectedErrorObjectIndex(
 								selectedErrorObjectIndex + 1,
@@ -236,7 +238,8 @@ const User: React.FC<{
 					</Box>
 
 					<Button
-						variant="grey"
+						kind="secondary"
+						emphasis="high"
 						iconRight={<FiExternalLink />}
 						onClick={() => {
 							// Logic taken from Metadata box. There may be a cleaner way.
