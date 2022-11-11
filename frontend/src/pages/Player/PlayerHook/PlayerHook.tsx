@@ -127,6 +127,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const currentChunkIdx = useRef<number>(0)
 	// used to track latest time atomically where the state may be out of date
 	const lastTimeRef = useRef<number>(0)
+	const replayerStateBeforeLoad = useRef<ReplayerState>(ReplayerState.Empty)
 
 	const [
 		chunkEventsRef,
@@ -255,7 +256,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				type: PlayerActionType.onChunksLoad,
 				showPlayerMouseTail,
 				time,
-				action,
+				action: action || replayerStateBeforeLoad.current,
 			})
 		},
 		[getChunkIdx, showPlayerMouseTail, state.sessionMetadata.startTime],
@@ -369,6 +370,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						time: lastTimeRef.current,
 						promises,
 						chunks: chunkEventsRef.current,
+						prevState: replayerStateBeforeLoad.current,
 					},
 				)
 				dispatchAction(lastTimeRef.current)
@@ -381,6 +383,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						startTime,
 						action,
 						chunks: chunkEventsRef.current,
+						prevState: replayerStateBeforeLoad.current,
 					},
 				)
 				dispatchAction(startTime, action)
@@ -830,6 +833,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 		}
+		replayerStateBeforeLoad.current = state.replayerState
 		ensureChunksLoaded(state.time, state.time + LOOKAHEAD_MS).then()
 	}, [
 		state.time,

@@ -118,7 +118,6 @@ interface PlayerState {
 	rageClicks: RageClick[]
 	replayer: Replayer | undefined
 	replayerState: ReplayerState
-	replayerStateBeforeLoad: ReplayerState
 	scale: number
 	session: Session | undefined
 	sessionComments: SessionComment[]
@@ -241,7 +240,7 @@ interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
 	time: number
-	action?: ReplayerState
+	action: ReplayerState
 }
 
 interface onFrame {
@@ -305,7 +304,6 @@ export const PlayerInitialState = {
 	rageClicks: [],
 	replayer: undefined,
 	replayerState: ReplayerState.Empty,
-	replayerStateBeforeLoad: ReplayerState.Empty,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -328,7 +326,6 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
-			s.replayerStateBeforeLoad = ReplayerState.Playing
 			if (s.isLiveMode) {
 				// live mode play time is the current time
 				action.time = Date.now() - events[0].timestamp
@@ -476,7 +473,6 @@ export const PlayerReducer = (
 		case PlayerActionType.startChunksLoad:
 			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
-			s.replayerStateBeforeLoad = s.replayerState
 			// important to pause at the actual current time,
 			// rather than the future time for which chunks are loaded.
 			// because we are setting time temporarily for the purpose of pausing while loading,
@@ -512,7 +508,7 @@ export const PlayerReducer = (
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
 				s,
-				action.action || s.replayerStateBeforeLoad,
+				action.action,
 				s.time,
 			)
 			s.isLoadingEvents = false
@@ -785,8 +781,9 @@ const processSessionMetadata = (
 		return s
 	}
 
-	s.replayerState = ReplayerState.Paused
-	s.replayerStateBeforeLoad = ReplayerState.Playing
+	if (s.replayerState < ReplayerState.Playing) {
+		s.replayerState = ReplayerState.Paused
+	}
 	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
 		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
 			.errors as ErrorObject[]
