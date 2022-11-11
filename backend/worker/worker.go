@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/openlyinc/pointy"
 	"io"
 	"math"
 	"math/rand"
@@ -855,6 +856,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 		}
+	}
+
+	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            "sessionActiveLength",
+			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+	}); err != nil {
+		log.Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
 	}
 
 	// Update session count on dailydb
