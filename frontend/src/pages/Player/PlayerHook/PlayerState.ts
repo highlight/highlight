@@ -328,6 +328,7 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
+			s.replayerStateBeforeLoad = ReplayerState.Playing
 			if (s.isLiveMode) {
 				// live mode play time is the current time
 				action.time = Date.now() - events[0].timestamp
@@ -476,6 +477,9 @@ export const PlayerReducer = (
 			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
 			s.replayerStateBeforeLoad = s.replayerState
+			if (s.replayerStateBeforeLoad < ReplayerState.Playing) {
+				s.replayerStateBeforeLoad = ReplayerState.Playing
+			}
 			// important to pause at the actual current time,
 			// rather than the future time for which chunks are loaded.
 			// because we are setting time temporarily for the purpose of pausing while loading,
