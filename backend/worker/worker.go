@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/openlyinc/pointy"
 	"io"
 	"math"
 	"math/rand"
@@ -19,23 +18,11 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/leonelquinteros/hubspot"
-
-	"gorm.io/gorm"
-
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
-
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -45,7 +32,16 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions
