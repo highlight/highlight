@@ -400,7 +400,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
-			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			requestAnimationFrame(() =>
 				ensureChunksLoaded(
 					newTime,
@@ -422,7 +421,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const pause = useCallback(
 		(time?: number) => {
 			if (time !== undefined) {
-				dispatch({ type: PlayerActionType.setTime, time })
 				requestAnimationFrame(() =>
 					ensureChunksLoaded(
 						time,

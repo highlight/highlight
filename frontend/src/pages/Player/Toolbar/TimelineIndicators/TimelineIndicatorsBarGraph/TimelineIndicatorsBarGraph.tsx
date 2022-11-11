@@ -81,6 +81,7 @@ const TimelineIndicatorsBarGraph = ({
 		isLiveMode,
 		canViewSession,
 		state: replayerState,
+		isPlayerReady,
 	} = useReplayerContext()
 	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
 
@@ -1009,7 +1010,8 @@ const TimelineIndicatorsBarGraph = ({
 	const showSkeleton =
 		!events.length ||
 		replayerState === ReplayerState.Loading ||
-		!canViewSession
+		!canViewSession ||
+		!isPlayerReady
 
 	const sessionMonitorStyle = clsx([
 		style.sessionMonitor,

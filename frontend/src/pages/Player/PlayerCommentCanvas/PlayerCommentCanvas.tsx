@@ -124,14 +124,11 @@ const PlayerCommentCanvas = ({
 	const showCommentsOverlaid =
 		selectedTimelineAnnotationTypes.includes('Comments')
 
-	if (!isPlayerReady) {
+	if (!isPlayerReady || enableInspectElement) {
 		return null
 	}
 	return (
 		<button
-			style={{
-				visibility: !enableInspectElement ? 'visible' : 'hidden',
-			}}
 			className={classNames({
 				[styles.commentButton]: isPlayerReady,
 				[styles.blurBackground]: isLoadingEvents,

@@ -381,7 +381,6 @@ export const PlayerReducer = (
 			if (action.data.session) {
 				s.session = action.data?.session as Session
 				s.isLiveMode = !s.session?.processed
-				s.time = 0
 			}
 			if (action.data.session === null) {
 				s.sessionViewability = SessionViewability.ERROR
@@ -417,20 +416,27 @@ export const PlayerReducer = (
 
 				const directDownloadUrl =
 					action.data.session?.direct_download_url
+				const resolve = () => {
+					s.time = 0
+				}
 				if (directDownloadUrl) {
 					s.getSessionPayloadQuery({
 						variables: {
 							session_secure_id: s.session_secure_id,
 							skip_events: true,
 						},
-					}).catch(console.error)
+					})
+						.then(resolve)
+						.catch(console.error)
 				} else {
 					s.getSessionPayloadQuery({
 						variables: {
 							session_secure_id: s.session_secure_id,
 							skip_events: false,
 						},
-					}).catch(console.error)
+					})
+						.then(resolve)
+						.catch(console.error)
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 				H.track('Viewed session', { is_guest: !s.isLoggedIn })
