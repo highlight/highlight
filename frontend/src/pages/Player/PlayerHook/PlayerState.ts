@@ -187,7 +187,7 @@ interface play {
 
 interface pause {
 	type: PlayerActionType.pause
-	time: number
+	time?: number
 }
 
 interface seek {
@@ -381,6 +381,7 @@ export const PlayerReducer = (
 			if (action.data.session) {
 				s.session = action.data?.session as Session
 				s.isLiveMode = !s.session?.processed
+				s.time = 0
 			}
 			if (action.data.session === null) {
 				s.sessionViewability = SessionViewability.ERROR

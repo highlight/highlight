@@ -1,3 +1,4 @@
+import { colors } from '@highlight-run/ui/src/css/colors'
 import {
 	PROGRESS_BAR_HEIGHT,
 	SEPARATOR_HEIGHT,
@@ -22,6 +23,7 @@ export const zoomButtons = style({
 	overflow: 'hidden',
 	justifyContent: 'center',
 	alignItems: 'center',
+	background: colors.white,
 })
 
 export const zoomButtonsInner = style({

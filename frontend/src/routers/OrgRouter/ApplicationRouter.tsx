@@ -13,7 +13,7 @@ import { Redirect, Route, Switch } from 'react-router-dom'
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 import ErrorPage from '../../pages/Error/ErrorPage'
-import Player from '../../pages/Player/PlayerPage'
+import PlayerPage from '../../pages/Player/PlayerPage'
 import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings'
 
 interface Props {
@@ -34,7 +34,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 			<Switch>
 				{/* These two routes do not require login */}
 				<Route path="/:project_id/sessions/:session_secure_id?" exact>
-					<Player integrated={integrated} />
+					<PlayerPage integrated={integrated} />
 				</Route>
 				<Route path="/:project_id/errors/:error_secure_id?" exact>
 					{isHighlightAdmin && newErrorsPageEnabled ? (

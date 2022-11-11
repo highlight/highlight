@@ -423,21 +423,24 @@ export const usePlayer = (): ReplayerContextInterface => {
 		(time?: number) => {
 			if (time) {
 				dispatch({ type: PlayerActionType.setTime, time })
+				requestAnimationFrame(() =>
+					ensureChunksLoaded(
+						time,
+						undefined,
+						ReplayerState.Paused,
+					).then(() => {
+						// Log how long it took to move to the new time.
+						const timelineChangeTime =
+							timerEnd('timelineChangeTime')
+						datadogLogs.logger.info('Timeline Pause Time', {
+							duration: timelineChangeTime,
+							sessionId: state.session_secure_id,
+						})
+					}),
+				)
+			} else {
+				dispatch({ type: PlayerActionType.pause })
 			}
-			requestAnimationFrame(() =>
-				ensureChunksLoaded(
-					time ?? 0,
-					undefined,
-					ReplayerState.Paused,
-				).then(() => {
-					// Log how long it took to move to the new time.
-					const timelineChangeTime = timerEnd('timelineChangeTime')
-					datadogLogs.logger.info('Timeline Pause Time', {
-						duration: timelineChangeTime,
-						sessionId: state.session_secure_id,
-					})
-				}),
-			)
 		},
 		[ensureChunksLoaded, state.session_secure_id],
 	)
@@ -580,7 +583,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
-			pause()
+			pause(0)
 		}
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -680,7 +683,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			timelineIndicatorEvents,
 		})
 		if (state.replayerState <= ReplayerState.Loading) {
-			pause()
+			pause(0)
 		}
 		setPlayerTimestamp(
 			state.sessionMetadata.totalTime,
@@ -759,7 +762,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			)
 
 			if (nextSessionInList) {
-				pause()
 				setTimeout(() => {
 					history.push(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,

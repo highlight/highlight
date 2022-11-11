@@ -81,7 +81,6 @@ const TimelineIndicatorsBarGraph = ({
 		isLiveMode,
 		canViewSession,
 		state: replayerState,
-		session,
 	} = useReplayerContext()
 	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
 
@@ -426,12 +425,6 @@ const TimelineIndicatorsBarGraph = ({
 		},
 		{ passive: false },
 	)
-
-	useEffect(() => {
-		if (session_secure_id !== session?.secure_id) {
-			setTime(0)
-		}
-	}, [session?.secure_id, session_secure_id, setTime])
 
 	useLayoutEffect(() => {
 		const viewportDiv = viewportRef.current
