@@ -32,10 +32,9 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
-	const { setTime, setCurrentEvent } = useReplayerContext()
+	const { setCurrentEvent, pause } = useReplayerContext()
 	const {
 		setShowRightPanel,
-		setShowLeftPanel,
 		setShowDevTools,
 		setSelectedDevToolsTab,
 		setSelectedRightPlayerPanelTab,
@@ -64,21 +63,19 @@ const TimelinePopover = ({ bucket }: Props) => {
 	const onEventInstanceClick = (type: string, identifier: string) => {
 		const timestamp = bucket.timestamp[identifier]
 
-		setTime(timestamp)
+		pause(timestamp)
 		if (type === 'Comments') {
 			const urlSearchParams = new URLSearchParams()
 			urlSearchParams.append(PlayerSearchParameters.commentId, identifier)
 			history.replace(
 				`${history.location.pathname}?${urlSearchParams.toString()}`,
 			)
-			setShowLeftPanel(false)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Comments)
 		} else if (type === 'Errors') {
 			setShowDevTools(true)
 			setSelectedDevToolsTab(DevToolTabType.Errors)
 		} else {
-			setShowLeftPanel(false)
 			setShowRightPanel(true)
 			setSelectedRightPlayerPanelTab(RightPlayerPanelTabType.Events)
 			setCurrentEvent(identifier)
@@ -101,7 +98,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 					if (selectedType) {
 						setSelectedType(null)
 					} else {
-						setTime(bucket.startTime)
+						pause(bucket.startTime)
 					}
 				}}
 			>
