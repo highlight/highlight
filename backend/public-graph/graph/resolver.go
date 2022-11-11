@@ -1620,6 +1620,27 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
+	tags := []*publicModel.MetricTag{
+		{Name: "Identifier", Value: session.Identifier},
+		{Name: "Identified", Value: strconv.FormatBool(session.Identified)},
+		{Name: "FirstTime", Value: strconv.FormatBool(*session.FirstTime)},
+	}
+	for k, v := range userObj {
+		tags = append(tags, &publicModel.MetricTag{Name: k, Value: v})
+	}
+	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
+		{
+			SessionSecureID: session.SecureID,
+			Timestamp:       session.CreatedAt,
+			Name:            "users",
+			Value:           1,
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags:            tags,
+		},
+	}); err != nil {
+		log.Errorf("failed to produce identify metric for %s: %s", session.SecureID, err)
+	}
+
 	if !backfill && len(session.ClientID) > 0 {
 		// Find past unidentified sessions and identify them.
 		backfillSessions := []*model.Session{}

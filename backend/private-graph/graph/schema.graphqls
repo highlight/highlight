@@ -317,6 +317,7 @@ type ErrorSegment {
 
 type ErrorObject {
 	id: ID!
+	created_at: Timestamp!
 	project_id: Int!
 	session_id: Int!
 	error_group_id: Int!
@@ -332,6 +333,10 @@ type ErrorObject {
 	timestamp: Timestamp!
 	payload: String
 	request_id: String
+	os: String
+	browser: String
+	environment: String
+	session: Session
 }
 
 type ErrorField {
@@ -1029,6 +1034,7 @@ type Query {
 		histogram_options: DateHistogramOptions!
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
+	error_object(id: ID!): ErrorObject
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]

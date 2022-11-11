@@ -152,6 +152,7 @@ export const SessionFeed = React.memo(() => {
 	const {
 		autoPlaySessions,
 		setAutoPlaySessions,
+		setAutoPlayVideo,
 		setShowDetailedSessionView,
 		showDetailedSessionView,
 	} = usePlayerConfiguration()
@@ -376,6 +377,7 @@ export const SessionFeed = React.memo(() => {
 									checked={autoPlaySessions}
 									onChange={(checked) => {
 										setAutoPlaySessions(checked)
+										if (checked) setAutoPlayVideo(checked)
 									}}
 									trackingId="SessionFeedAutoplay"
 								/>

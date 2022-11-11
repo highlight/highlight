@@ -18,14 +18,16 @@ import * as styles from './styles.css'
 const MenuContext = React.createContext<MenuState>({} as MenuState)
 const useMenu = () => useContext(MenuContext)
 
-type MenuComponent = React.FC<React.PropsWithChildren> & {
+type Props = React.PropsWithChildren
+
+type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
 	List: typeof List
 	Item: typeof Item
 	Divider: typeof Divider
 }
 
-export const Menu: MenuComponent = ({ children }: React.PropsWithChildren) => {
+export const Menu: MenuComponent = ({ children }: Props) => {
 	const menu = useMenuState({ gutter: 6 })
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>

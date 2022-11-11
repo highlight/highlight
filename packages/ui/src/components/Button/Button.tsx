@@ -59,8 +59,6 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 						emphasis,
 						kind,
 					})}
-					height={size}
-					width={size}
 				>
 					{iconLeft}
 				</Box>
@@ -79,8 +77,6 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 						emphasis,
 						kind,
 					})}
-					height={size}
-					width={size}
 				>
 					{iconRight}
 				</Box>
