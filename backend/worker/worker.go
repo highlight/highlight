@@ -884,6 +884,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		log.WithContext(ctx).Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
 	}
 
+	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            "sessionActiveLength",
+			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+	}); err != nil {
+		log.Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
+	}
+
 	// Update session count on dailydb
 	currentDate := time.Date(s.CreatedAt.UTC().Year(), s.CreatedAt.UTC().Month(), s.CreatedAt.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	dailySession := &model.DailySessionCount{}
