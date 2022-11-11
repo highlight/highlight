@@ -99,7 +99,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						Newer
 					</Button>
 					<Button
-						variant="grey"
+						kind="secondary"
+						emphasis="high"
 						onClick={() =>
 							history.push(
 								`/${projectId}/sessions/${errorObject.session?.secure_id}`,
