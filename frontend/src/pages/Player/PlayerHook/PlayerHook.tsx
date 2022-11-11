@@ -846,13 +846,18 @@ export const usePlayer = (): ReplayerContextInterface => {
 	])
 
 	useEffect(() => {
-		if (state.eventsLoaded && autoPlayVideo) {
+		if (
+			state.eventsLoaded &&
+			autoPlayVideo &&
+			state.replayerState !== ReplayerState.Playing
+		) {
 			log('PlayerHook.tsx', 'Auto Playing')
 			dispatch({
 				type: PlayerActionType.play,
 				time: 0,
 			})
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [autoPlayVideo, state.eventsLoaded])
 
 	return {
