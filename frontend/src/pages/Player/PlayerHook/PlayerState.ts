@@ -118,7 +118,6 @@ interface PlayerState {
 	rageClicks: RageClick[]
 	replayer: Replayer | undefined
 	replayerState: ReplayerState
-	replayerStateBeforeLoad: ReplayerState
 	scale: number
 	session: Session | undefined
 	sessionComments: SessionComment[]
@@ -241,7 +240,7 @@ interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
 	time: number
-	action?: ReplayerState
+	action: ReplayerState
 }
 
 interface onFrame {
@@ -305,7 +304,6 @@ export const PlayerInitialState = {
 	rageClicks: [],
 	replayer: undefined,
 	replayerState: ReplayerState.Empty,
-	replayerStateBeforeLoad: ReplayerState.Empty,
 	scale: 1,
 	session: undefined,
 	sessionComments: [],
@@ -377,6 +375,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.loadSession:
+			s.session_secure_id = action.data!.session!.secure_id
 			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session
@@ -438,14 +437,12 @@ export const PlayerReducer = (
 			}
 			break
 		case PlayerActionType.reset:
-			if (s.replayer) {
-				replayerAction(PlayerActionType.reset, s, ReplayerState.Paused)
-			}
 			s = {
 				...s,
 				currentEvent: '',
 				currentUrl: undefined,
 				errors: [],
+				eventsLoaded: false,
 				isLiveMode: false,
 				lastActiveString: null,
 				lastActiveTimestamp: 0,
@@ -476,7 +473,6 @@ export const PlayerReducer = (
 		case PlayerActionType.startChunksLoad:
 			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
-			s.replayerStateBeforeLoad = s.replayerState
 			// important to pause at the actual current time,
 			// rather than the future time for which chunks are loaded.
 			// because we are setting time temporarily for the purpose of pausing while loading,
@@ -512,7 +508,7 @@ export const PlayerReducer = (
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
 				s,
-				action.action || s.replayerStateBeforeLoad,
+				action.action,
 				s.time,
 			)
 			s.isLoadingEvents = false
@@ -617,8 +613,8 @@ export const PlayerReducer = (
 			'PlayerStateUpdate',
 			PlayerActionType[action.type],
 			s.time,
-			events.length,
 			{
+				numEvents: events.length,
 				initialState: state,
 				finalState: s,
 				action,
@@ -630,8 +626,8 @@ export const PlayerReducer = (
 			'PlayerStateTransition',
 			PlayerActionType[action.type],
 			s.time,
-			events.length,
 			{
+				numEvents: events.length,
 				initialState: state,
 				finalState: s,
 				action,
@@ -690,6 +686,7 @@ const initReplayer = (
 	s.jankPayloads = getAllJankEvents(events)
 	if (s.isLiveMode) {
 		s.replayer.startLive(events[0].timestamp)
+		s.replayer.play()
 	}
 
 	// Initializes the simulated viewport size and currentUrl with values from the first meta event
@@ -784,6 +781,9 @@ const processSessionMetadata = (
 		return s
 	}
 
+	if (s.replayerState < ReplayerState.Playing) {
+		s.replayerState = ReplayerState.Paused
+	}
 	if (s.onSessionPayloadLoadedPayload.sessionPayload?.errors) {
 		s.errors = s.onSessionPayloadLoadedPayload.sessionPayload
 			.errors as ErrorObject[]
