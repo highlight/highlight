@@ -515,7 +515,6 @@ export const PlayerReducer = (
 			} else {
 				s.replayer.replaceEvents(events)
 			}
-			s.time = action.time
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
 				s,

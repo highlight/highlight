@@ -21,18 +21,18 @@ import { SessionViewability } from '../PlayerHook/PlayerState'
 
 export enum ReplayerState {
 	/** There is no active session. */
-	Empty,
-	Loading,
+	Empty = 'Empty',
+	Loading = 'Loading',
 	/** Replayer is loaded but the user hasn't interacted with the player yet. */
-	LoadedAndUntouched,
+	LoadedAndUntouched = 'LoadedAndUntouched',
 	/** The session page was loaded by a deep link to a comment or error. */
-	LoadedWithDeepLink,
-	Playing,
-	Paused,
+	LoadedWithDeepLink = 'LoadedWithDeepLink',
+	Playing = 'Playing',
+	Paused = 'Paused',
 	/** Caused when the end-user calls H.stop() manually to stop recording. */
-	SessionRecordingStopped,
+	SessionRecordingStopped = 'SessionRecordingStopped',
 	/** Playback of the session has reached the end. */
-	SessionEnded,
+	SessionEnded = 'SessionEnded',
 }
 
 export const ReplayerPausedStates = [

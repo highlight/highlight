@@ -395,8 +395,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const play = useCallback(
 		(time?: number) => {
 			const newTime = time ?? 0
+			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			// Don't play the session if the player is already at the end of the session.
-			if (newTime >= state.sessionEndTime) {
+			if (newTime > state.sessionEndTime) {
 				return
 			}
 
@@ -421,6 +422,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const pause = useCallback(
 		(time?: number) => {
 			if (time !== undefined) {
+				dispatch({ type: PlayerActionType.setTime, time })
 				requestAnimationFrame(() =>
 					ensureChunksLoaded(
 						time,
