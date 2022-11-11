@@ -23,7 +23,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 		<Box
 			cssClass={style.zoomButtons}
 			border="neutral"
-			visibility={'visible'} // isHidden ? 'hidden' : 'visible'}
+			visibility={isHidden ? 'hidden' : 'visible'}
 		>
 			<ExplanatoryPopover
 				content={

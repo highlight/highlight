@@ -112,8 +112,6 @@ export const Toolbar = ({ width }: Props) => {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
 		autoPlayVideo,
-		autoPlaySessions,
-		setAutoPlayVideo,
 		enableInspectElement,
 		showPlayerAbsoluteTime,
 		selectedTimelineAnnotationTypes,
@@ -122,7 +120,8 @@ export const Toolbar = ({ width }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 	const max = sessionMetadata.totalTime ?? 0
-	const disableControls = state === ReplayerState.Loading || !canViewSession
+	const disableControls =
+		state === ReplayerState.Loading || !canViewSession || !isPlayerReady
 
 	const isPaused = ReplayerPausedStates.includes(state)
 
@@ -159,11 +158,7 @@ export const Toolbar = ({ width }: Props) => {
 	// Automatically start the player if the user has set the preference.
 	useEffect(() => {
 		if (isLoggedIn) {
-			if (
-				(autoPlayVideo || autoPlaySessions || isLiveMode) &&
-				replayer &&
-				isPlayerReady
-			) {
+			if ((autoPlayVideo || isLiveMode) && replayer && isPlayerReady) {
 				if (state === ReplayerState.LoadedAndUntouched) {
 					play(time)
 				} else if (state === ReplayerState.LoadedWithDeepLink) {
@@ -172,17 +167,15 @@ export const Toolbar = ({ width }: Props) => {
 			}
 		}
 	}, [
-		isLoggedIn,
 		autoPlayVideo,
-		autoPlaySessions,
+		isLiveMode,
+		isLoggedIn,
 		isPlayerReady,
 		pause,
 		play,
 		replayer,
-		setAutoPlayVideo,
 		state,
 		time,
-		isLiveMode,
 	])
 
 	// The play button should be disabled if the player has reached the end.
@@ -319,7 +312,7 @@ export const Toolbar = ({ width }: Props) => {
 							<>
 								{MillisToMinutesAndSeconds(
 									//     Sometimes the replayer will report a higher time when the player has ended.
-									Math.min(Math.max(time, 0), max),
+									clamp(time, 0, max),
 								)}
 								<>
 									&nbsp;/&nbsp;

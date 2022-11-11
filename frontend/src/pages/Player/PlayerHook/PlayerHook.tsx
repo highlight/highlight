@@ -420,6 +420,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	const play = useCallback(
 		(time?: number): Promise<void> => {
 			const newTime = time ?? 0
+			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			// Don't play the session if the player is already at the end of the session.
 			if (newTime >= state.sessionEndTime) {
 				return Promise.resolve()
@@ -449,28 +450,31 @@ export const usePlayer = (): ReplayerContextInterface => {
 	)
 
 	const pause = useCallback(
-		(time?: number): Promise<void> => {
-			if (time) {
-				dispatch({ type: PlayerActionType.setTime, time })
-			}
-			return new Promise<void>((r) =>
-				requestAnimationFrame(() =>
-					ensureChunksLoaded(
-						time ?? 0,
-						undefined,
-						ReplayerState.Paused,
-					).then(() => {
-						// Log how long it took to move to the new time.
-						const timelineChangeTime =
-							timerEnd('timelineChangeTime')
-						datadogLogs.logger.info('Timeline Pause Time', {
-							duration: timelineChangeTime,
-							sessionId: state.session_secure_id,
-						})
-						r()
-					}),
-				),
-			)
+		(time?: number) => {
+			return new Promise<void>((r) => {
+				if (time !== undefined) {
+					dispatch({ type: PlayerActionType.setTime, time })
+					requestAnimationFrame(() =>
+						ensureChunksLoaded(
+							time,
+							undefined,
+							ReplayerState.Paused,
+						).then(() => {
+							// Log how long it took to move to the new time.
+							const timelineChangeTime =
+								timerEnd('timelineChangeTime')
+							datadogLogs.logger.info('Timeline Pause Time', {
+								duration: timelineChangeTime,
+								sessionId: state.session_secure_id,
+							})
+							r()
+						}),
+					)
+				} else {
+					dispatch({ type: PlayerActionType.pause })
+					r()
+				}
+			})
 		},
 		[ensureChunksLoaded, state.session_secure_id],
 	)
@@ -619,7 +623,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
-			pause().then()
+			pause(0).then()
 		}
 		// We don't want to re-evaluate this every time the play/pause fn changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -719,7 +723,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			timelineIndicatorEvents,
 		})
 		if (state.replayerState <= ReplayerState.Loading) {
-			pause().then()
+			pause(0).then()
 		}
 		setPlayerTimestamp(
 			state.sessionMetadata.totalTime,

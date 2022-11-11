@@ -186,7 +186,7 @@ interface play {
 
 interface pause {
 	type: PlayerActionType.pause
-	time: number
+	time?: number
 }
 
 interface seek {
@@ -415,20 +415,27 @@ export const PlayerReducer = (
 
 				const directDownloadUrl =
 					action.data.session?.direct_download_url
+				const resolve = () => {
+					s.time = 0
+				}
 				if (directDownloadUrl) {
 					s.getSessionPayloadQuery({
 						variables: {
 							session_secure_id: s.session_secure_id,
 							skip_events: true,
 						},
-					}).catch(console.error)
+					})
+						.then(resolve)
+						.catch(console.error)
 				} else {
 					s.getSessionPayloadQuery({
 						variables: {
 							session_secure_id: s.session_secure_id,
 							skip_events: false,
 						},
-					}).catch(console.error)
+					})
+						.then(resolve)
+						.catch(console.error)
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 				H.track('Viewed session', { is_guest: !s.isLoggedIn })
@@ -504,7 +511,6 @@ export const PlayerReducer = (
 			} else {
 				s.replayer.replaceEvents(events)
 			}
-			s.time = action.time
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
 				s,
