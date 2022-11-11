@@ -10,7 +10,7 @@ import Switch from '@components/Switch/Switch'
 import {
 	Badge,
 	Box,
-	Button,
+	ButtonIcon,
 	IconArrowsExpand,
 	IconArrowSmDown,
 	IconArrowSmLeft,
@@ -118,15 +118,18 @@ const ToolbarControls = () => {
 					</>
 				}
 			>
-				<Button
+				<ButtonIcon
 					onClick={() => {
 						H.track('PlayerSkipLeft')
 						const prevTime = Math.max(time - 5000, 0)
 						setTime(prevTime)
 					}}
 					disabled={disableControls}
-					iconLeft={<IconSkipLeft size={14} />}
-					variant="white"
+					icon={<IconSkipLeft size={14} />}
+					size="small"
+					shape="square"
+					emphasis="low"
+					variant="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -143,7 +146,7 @@ const ToolbarControls = () => {
 					</>
 				}
 			>
-				<Button
+				<ButtonIcon
 					onClick={() => {
 						H.track('Player Play/Pause Button')
 						if (isPlaybackComplete) {
@@ -157,7 +160,7 @@ const ToolbarControls = () => {
 						}
 					}}
 					disabled={disableControls}
-					iconLeft={
+					icon={
 						isPaused && isPlaybackComplete ? (
 							<IconRestart size={14} />
 						) : isPaused && !isLiveMode ? (
@@ -166,7 +169,10 @@ const ToolbarControls = () => {
 							<IconPause size={14} />
 						)
 					}
-					variant="white"
+					size="small"
+					shape="square"
+					emphasis="low"
+					variant="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -183,15 +189,18 @@ const ToolbarControls = () => {
 					</>
 				}
 			>
-				<Button
+				<ButtonIcon
 					onClick={() => {
 						H.track('PlayerSkipRight')
 						const newTime = Math.max(time + 5000, 0)
 						setTime(newTime)
 					}}
 					disabled={disableControls}
-					iconLeft={<IconSkipRight size={14} />}
-					variant="white"
+					icon={<IconSkipRight size={14} />}
+					size="small"
+					shape="square"
+					emphasis="low"
+					variant="secondary"
 				/>
 			</ExplanatoryPopover>
 			{showLiveToggle && (
@@ -348,22 +357,28 @@ const ToolbarControls = () => {
 						destroyTooltipOnHide
 					>
 						<Box>
-							<Button
+							<ButtonIcon
 								disabled={disableControls}
-								variant="white"
-								iconLeft={<IconCog size={14} />}
+								icon={<IconCog size={14} />}
+								size="small"
+								shape="square"
+								emphasis="low"
+								variant="secondary"
 							/>
 						</Box>
 					</Popover>
 				</>
 			)}
 			<Box cssClass={{ [style.moveRight]: isLiveMode }}>
-				<Button
+				<ButtonIcon
 					onClick={() => {
 						setIsPlayerFullscreen((prev) => !prev)
 					}}
-					iconLeft={<IconArrowsExpand size={14} />}
-					variant="white"
+					icon={<IconArrowsExpand size={14} />}
+					size="small"
+					shape="square"
+					emphasis="low"
+					variant="secondary"
 				/>
 			</Box>
 		</div>

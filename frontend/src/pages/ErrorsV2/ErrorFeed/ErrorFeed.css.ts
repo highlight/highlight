@@ -3,8 +3,7 @@ import { style } from '@vanilla-extract/css'
 
 export const ERROR_FEED_SCROLLBAR_WIDTH = 8
 export const content = style({
-	overflowX: 'hidden',
-	overflowY: 'auto',
+	height: '100%',
 	selectors: {
 		'&::-webkit-scrollbar': {
 			backgroundColor: colors.neutral50,
@@ -14,8 +13,4 @@ export const content = style({
 			backgroundColor: colors.neutral100,
 		},
 	},
-})
-
-export const pagination = style({
-	margin: 0,
 })

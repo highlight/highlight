@@ -8,7 +8,7 @@ type Props = IconProps & {
 	height?: number | string
 }
 
-export const IconDotsHorizontal: React.FC<Props> = ({
+export const IconChevronLeft: React.FC<Props> = ({
 	size,
 	color,
 	width,
@@ -30,15 +30,9 @@ export const IconDotsHorizontal: React.FC<Props> = ({
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<path
-				d="M6 10C6 11.1046 5.10457 12 4 12C2.89543 12 2 11.1046 2 10C2 8.89543 2.89543 8 4 8C5.10457 8 6 8.89543 6 10Z"
-				fill={color}
-			/>
-			<path
-				d="M12 10C12 11.1046 11.1046 12 10 12C8.89543 12 8 11.1046 8 10C8 8.89543 8.89543 8 10 8C11.1046 8 12 8.89543 12 10Z"
-				fill={color}
-			/>
-			<path
-				d="M16 12C17.1046 12 18 11.1046 18 10C18 8.89543 17.1046 8 16 8C14.8954 8 14 8.89543 14 10C14 11.1046 14.8954 12 16 12Z"
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M12.7071 5.29289C13.0976 5.68342 13.0976 6.31658 12.7071 6.70711L9.41421 10L12.7071 13.2929C13.0976 13.6834 13.0976 14.3166 12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L7.29289 10.7071C6.90237 10.3166 6.90237 9.68342 7.29289 9.29289L11.2929 5.29289C11.6834 4.90237 12.3166 4.90237 12.7071 5.29289Z"
 				fill={color}
 			/>
 		</svg>

@@ -18,23 +18,11 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
-	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/leonelquinteros/hubspot"
-
-	"gorm.io/gorm"
-
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
-
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
+	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -44,7 +32,16 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	storage "github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions
@@ -855,6 +852,22 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 		}
+	}
+
+	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            "sessionActiveLength",
+			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+	}); err != nil {
+		log.Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
 	}
 
 	// Update session count on dailydb

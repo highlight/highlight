@@ -17,7 +17,9 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 	return (
 		<>
 			<Button
-				variant="white"
+				kind="secondary"
+				size="small"
+				emphasis="high"
 				onClick={() => setShowCreateCommentModal(CreateModalType.Issue)}
 				iconLeft={<IconCreateFile />}
 			>

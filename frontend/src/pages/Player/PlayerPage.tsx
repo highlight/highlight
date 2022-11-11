@@ -29,7 +29,9 @@ import {
 	ResourcesContextProvider,
 	useResources,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
-import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
+import RightPlayerPanel, {
+	DUAL_PANEL_VIEWPORT_THRESHOLD,
+} from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel'
 import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
@@ -55,6 +57,7 @@ import React, {
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
+import { useWindowSize } from 'react-use'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './PlayerPage.module.scss'
@@ -100,8 +103,11 @@ const Player = ({ integrated }: Props) => {
 	})
 
 	const resources = useResources(session)
-	const { setShowLeftPanel, showLeftPanel: showLeftPanelPreference } =
-		usePlayerConfiguration()
+	const {
+		setShowRightPanel,
+		setShowLeftPanel,
+		showLeftPanel: showLeftPanelPreference,
+	} = usePlayerConfiguration()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -220,6 +226,8 @@ const Player = ({ integrated }: Props) => {
 		)
 	}, [controllerWidth])
 
+	const { width: windowWidth } = useWindowSize()
+
 	return (
 		<PlayerUIContextProvider
 			value={{
@@ -274,6 +282,14 @@ const Player = ({ integrated }: Props) => {
 								direction="left"
 								isOpen={showLeftPanelPreference}
 								onClick={() => {
+									if (
+										!showLeftPanelPreference &&
+										windowWidth <=
+											DUAL_PANEL_VIEWPORT_THRESHOLD
+									) {
+										setShowRightPanel(false)
+									}
+
 									setShowLeftPanel(!showLeftPanelPreference)
 								}}
 							/>
