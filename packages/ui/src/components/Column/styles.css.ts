@@ -6,7 +6,7 @@ import { spaces } from '../../css/spaces'
 export const columns = style({
 	display: 'flex',
 	flexWrap: 'wrap',
-	width: '100%',
+	minWidth: '100%',
 })
 
 export const column = style({

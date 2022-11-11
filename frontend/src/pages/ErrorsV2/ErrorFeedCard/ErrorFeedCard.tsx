@@ -1,5 +1,4 @@
 import BarChart from '@components/BarChart/BarChart'
-import styles from '@components/RadioGroup/RadioGroup.module'
 import { ErrorGroup, ErrorState, Maybe } from '@graph/schemas'
 import {
 	Box,

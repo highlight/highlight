@@ -9,18 +9,16 @@ import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
-	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import { useParams } from '@util/react-router/useParams'
-import { useHistory } from 'react-router-dom'
 import React from 'react'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { FiExternalLink } from 'react-icons/fi'
+import { useHistory } from 'react-router-dom'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -29,7 +27,6 @@ type Props = React.PropsWithChildren & {
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { projectId } = useProjectId()
 	const history = useHistory()
-	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [selectedErrorObjectIndex, setSelectedErrorObjectIndex] =
 		React.useState<number>(0)
 
@@ -40,8 +37,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	// TODO: Figure out a better way of pulling the error objects and paging
 	// through them.
 	const { data: recentErrorsData } = useGetRecentErrorsQuery({
-		variables: { secure_id: error_secure_id },
-		skip: !error_secure_id,
+		variables: { secure_id: String(errorGroup?.secure_id) },
+		skip: !errorGroup?.secure_id,
 		onCompleted: () => {
 			setSelectedErrorObjectIndex(0)
 		},
