@@ -165,30 +165,30 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				{metadata.map((tag) => {
-					return (
-						<Column.Container gap="16" key={tag.key}>
-							<Column span="4">
-								<Box py="10">
-									<Text
-										color="neutral500"
-										transform="capitalize"
-										align="left"
-									>
-										{tag.key}
-									</Text>
-								</Box>
-							</Column>
-							<Column span="8">
-								<Box py="10">
-									<Text align="left" lines="1">
-										{tag.label}
-									</Text>
-								</Box>
-							</Column>
-						</Column.Container>
-					)
-				})}
+				<Column.Container gap="16">
+					<Column span="4">
+						{metadata.map((tag) => (
+							<Box py="10" key={tag.key}>
+								<Text
+									color="neutral500"
+									transform="capitalize"
+									align="left"
+								>
+									{tag.key.replace('_', ' ')}
+								</Text>
+							</Box>
+						))}
+					</Column>
+					<Column span="8">
+						{metadata.map((tag) => (
+							<Box py="10" key={tag.key}>
+								<Text align="left" lines="1">
+									{tag.label}
+								</Text>
+							</Box>
+						))}
+					</Column>
+				</Column.Container>
 			</Box>
 		</Box>
 	)
@@ -209,6 +209,9 @@ const User: React.FC<{
 	const userProperties = getUserProperties(session)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
+	const userDisplayPropertyKeys = Object.keys(userProperties).filter(
+		(k) => k !== 'avatar',
+	)
 	const location = [session?.city, session?.state, session?.country]
 		.filter(Boolean)
 		.join(', ')
@@ -272,31 +275,20 @@ const User: React.FC<{
 
 				<Box py="8" px="12">
 					<Box>
-						{Object.keys(userProperties)
-							.filter((k) => k !== 'avatar')
-							.map((key) => (
-								<Column.Container key={key} gap="16">
-									<Column span="4">
-										<Box py="10">
-											<Text
-												color="neutral500"
-												align="left"
-												transform="capitalize"
-											>
-												{key}
-											</Text>
-										</Box>
-									</Column>
-									<Column span="8">
-										<Box py="10">
-											<Text>{userProperties[key]}</Text>
-										</Box>
-									</Column>
-								</Column.Container>
-							))}
-
 						<Column.Container gap="16">
 							<Column span="4">
+								{userDisplayPropertyKeys.map((key) => (
+									<Box py="10" key={key}>
+										<Text
+											color="neutral500"
+											align="left"
+											transform="capitalize"
+										>
+											{key}
+										</Text>
+									</Box>
+								))}
+
 								<Box py="10">
 									<Text color="neutral500" align="left">
 										Location
@@ -304,6 +296,12 @@ const User: React.FC<{
 								</Box>
 							</Column>
 							<Column span="8">
+								{userDisplayPropertyKeys.map((key) => (
+									<Box py="10" key={key}>
+										<Text>{userProperties[key]}</Text>
+									</Box>
+								))}
+
 								<Box py="10">
 									<Text>{location}</Text>
 								</Box>
