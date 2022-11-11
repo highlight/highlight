@@ -273,6 +273,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return
 			}
 
+			if (action) replayerStateBeforeLoad.current = action
+
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
