@@ -3077,7 +3077,7 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, SessionActiveMetricName: true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, strings.ToLower(SessionActiveMetricName): true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ms")
 	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")
