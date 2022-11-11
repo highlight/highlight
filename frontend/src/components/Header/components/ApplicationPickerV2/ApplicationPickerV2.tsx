@@ -9,6 +9,7 @@ import {
 	IconDotsHorizontal,
 	IconPlusSm,
 	Menu,
+	Text,
 } from '@highlight-run/ui'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
@@ -56,7 +57,7 @@ const ApplicationPickerV2 = () => {
 								borderRadius: '50%',
 							}}
 						></Box>
-						{project?.name ?? ''}
+						<Text lines="1">{project?.name ?? ''}</Text>
 					</Box>
 				</Menu.Item>
 		  ))
