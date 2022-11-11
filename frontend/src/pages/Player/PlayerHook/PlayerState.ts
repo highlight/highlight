@@ -476,9 +476,6 @@ export const PlayerReducer = (
 			if (s.isLoadingEvents) break
 			s.isLoadingEvents = true
 			s.replayerStateBeforeLoad = s.replayerState
-			if (s.replayerStateBeforeLoad) {
-				s.replayerStateBeforeLoad = ReplayerState.Playing
-			}
 			// important to pause at the actual current time,
 			// rather than the future time for which chunks are loaded.
 			// because we are setting time temporarily for the purpose of pausing while loading,

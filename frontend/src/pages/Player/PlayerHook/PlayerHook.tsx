@@ -708,7 +708,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		session_secure_id,
 		sessionPayload,
 		sessionIntervals,
 		timelineIndicatorEvents,
@@ -848,6 +847,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	useEffect(() => {
 		if (state.eventsLoaded && autoPlayVideo) {
+			log('PlayerHook.tsx', 'Auto Playing')
 			dispatch({
 				type: PlayerActionType.play,
 				time: 0,
