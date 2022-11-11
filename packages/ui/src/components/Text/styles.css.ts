@@ -84,6 +84,11 @@ export const typographyStyles = {
 
 export const variants = recipe({
 	variants: {
+		align: {
+			center: { textAlign: 'center' },
+			left: { textAlign: 'left' },
+			right: { textAlign: 'right' },
+		},
 		family: typographyStyles.family,
 		size: typographyStyles.size,
 		weight: typographyStyles.weight,
@@ -120,6 +125,7 @@ export const variants = recipe({
 	],
 
 	defaultVariants: {
+		align: 'left',
 		family: 'body',
 		size: 'small',
 		weight: 'medium',

@@ -30,10 +30,29 @@ export const variants = recipe({
 
 	variants: {
 		level: {
-			h1: { ...h1, ...typographyStyles.family.heading },
-			h2: { ...h2, ...typographyStyles.family.heading },
-			h3: { ...h3, ...typographyStyles.family.heading },
-			h4: { ...h4, ...typographyStyles.family.heading },
+			h1: {
+				...h1,
+				...typographyStyles.family.heading,
+				fontWeight: '700',
+			},
+			h2: {
+				...h2,
+				...typographyStyles.family.heading,
+				fontWeight: '700',
+			},
+			h3: {
+				...h3,
+				...typographyStyles.family.heading,
+				fontWeight: '700',
+			},
+			h4: {
+				...h4,
+				...typographyStyles.family.heading,
+				// This should be removed at some point, but we need to make sure the
+				// other !important it is overriding can be removed.
+				// https://github.com/highlight-run/highlight/blob/a96450680f7222af10b502f4ac6047b31410fd1c/frontend/src/index.scss#L240
+				fontWeight: '500 !important',
+			},
 		},
 	},
 })

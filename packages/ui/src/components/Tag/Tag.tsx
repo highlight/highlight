@@ -9,6 +9,8 @@ import clsx from 'clsx'
 
 type Props = ButtonProps &
 	styles.Variants & {
+		/** An alias for iconLeft as a convenience for icon-only tags. */
+		icon?: React.ReactElement<IconProps>
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 		onPress?: () => void
@@ -22,15 +24,17 @@ const buttonToTextSize = {
 
 export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	children,
+	icon,
 	iconLeft,
 	iconRight,
+	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	variant = styles.defaultVariant,
-	shape = styles.defaultShape,
 	className,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
+	icon = icon || iconLeft
 
 	return (
 		<AriakitButton
@@ -45,15 +49,13 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 			])}
 			{...buttonProps}
 		>
-			{iconLeft && (
+			{icon && (
 				<Box
 					as="span"
 					display="inline-flex"
 					className={styles.iconVariants({ size, variant })}
-					height={size}
-					width={size}
 				>
-					{iconLeft}
+					{icon}
 				</Box>
 			)}
 			{children && (
@@ -66,8 +68,6 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					as="span"
 					display="inline-flex"
 					className={styles.iconVariants({ size, variant })}
-					height={size}
-					width={size}
 				>
 					{iconRight}
 				</Box>
