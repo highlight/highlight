@@ -377,9 +377,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.loadSession:
-			if (action.data.session?.secure_id) {
-				s.session_secure_id = action.data.session?.secure_id
-			}
+			s.session_secure_id = action.data!.session!.secure_id
 			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session

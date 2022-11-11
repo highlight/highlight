@@ -780,10 +780,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 			if (nextSessionInList) {
 				pause(state.time).then(() => {
+					resetPlayer(ReplayerState.Empty)
 					history.push(
 						`/${project_id}/sessions/${nextSessionInList.secure_id}`,
 					)
-					resetPlayer(ReplayerState.Empty)
 				})
 			}
 		}
