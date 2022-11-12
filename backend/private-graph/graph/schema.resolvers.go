@@ -3391,18 +3391,18 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
 	if err != nil {
-		return nil, e.Wrap(err, "requestor does not have permission to view error group")
+		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
 	errorObject := model.ErrorObject{}
 	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
 	if errorObjectID == nil {
 		if err := errorObjectQuery.First(&errorObject).Error; err != nil {
-			return nil, e.Wrap(err, "error reading error instance")
+			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	} else {
 		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
-			return nil, e.Wrap(err, "error reading error instance")
+			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
 
