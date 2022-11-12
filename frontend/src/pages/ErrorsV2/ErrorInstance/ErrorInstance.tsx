@@ -1,8 +1,8 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import {
-	useGetErrorObjectQuery,
+	useGetErrorInstanceLazyQuery,
+	useGetErrorInstanceQuery,
 	useGetProjectQuery,
-	useGetRecentErrorsQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
@@ -16,7 +16,7 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import React from 'react'
+import React, { useState } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -25,37 +25,46 @@ type Props = React.PropsWithChildren & {
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const [currentErrorObjectId, setCurrentErrorObjectId] = useState<
+		string | undefined
+	>()
 	const { projectId } = useProjectId()
 	const history = useHistory()
-	const [selectedErrorObjectIndex, setSelectedErrorObjectIndex] =
-		React.useState<number>(0)
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: { id: projectId },
 	})
 
-	// TODO: Figure out a better way of pulling the error objects and paging
-	// through them.
-	const { data: recentErrorsData } = useGetRecentErrorsQuery({
-		variables: { secure_id: String(errorGroup?.secure_id) },
-		skip: !errorGroup?.secure_id,
-		onCompleted: () => {
-			setSelectedErrorObjectIndex(0)
-		},
-	})
-
-	const metadataLog = recentErrorsData?.error_group?.metadata_log || []
-	const { data } = useGetErrorObjectQuery({
+	const [getErrorInstanceLazyQuery] = useGetErrorInstanceLazyQuery()
+	const { data } = useGetErrorInstanceQuery({
 		variables: {
-			id: String(metadataLog[selectedErrorObjectIndex]?.error_id),
+			error_group_secure_id: String(errorGroup?.secure_id),
+			error_object_id:
+				!currentErrorObjectId || currentErrorObjectId === '0'
+					? undefined
+					: currentErrorObjectId,
+		},
+		onCompleted: (data) => {
+			const nextErrorObjectId = data?.error_instance?.next_id
+
+			if (nextErrorObjectId) {
+				// Prefetch the next error object so it's in the cache and transitions
+				// are fast.
+				getErrorInstanceLazyQuery({
+					variables: {
+						error_group_secure_id: String(errorGroup?.secure_id),
+						error_object_id: nextErrorObjectId,
+					},
+				})
+			}
 		},
 	})
 
-	if (!data?.error_object) {
+	if (!data?.error_instance || !data?.error_instance?.error_object) {
 		return null
 	}
 
-	const errorObject = data.error_object
+	const errorObject = data?.error_instance?.error_object
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
@@ -71,45 +80,50 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</Text>
 				</Box>
 
-				<Box display="flex" gap="8">
-					<Button
-						disabled={selectedErrorObjectIndex <= 0}
-						kind="secondary"
-						emphasis="medium"
-						onClick={() =>
-							setSelectedErrorObjectIndex(
-								Math.max(selectedErrorObjectIndex - 1, 0),
-							)
-						}
-					>
-						Older
-					</Button>
-					<Button
-						disabled={
-							selectedErrorObjectIndex >= metadataLog.length - 1
-						}
-						kind="secondary"
-						emphasis="medium"
-						onClick={() =>
-							setSelectedErrorObjectIndex(
-								selectedErrorObjectIndex + 1,
-							)
-						}
-					>
-						Newer
-					</Button>
-					<Button
-						kind="secondary"
-						emphasis="high"
-						onClick={() =>
-							history.push(
-								`/${projectId}/sessions/${errorObject.session?.secure_id}`,
-							)
-						}
-						iconLeft={<IconPlay />}
-					>
-						Show Session
-					</Button>
+				<Box>
+					<Box display="flex" gap="8" alignItems="center">
+						<Button
+							disabled={!Number(data?.error_instance.previous_id)}
+							kind="secondary"
+							emphasis="low"
+							onClick={() => {
+								if (data?.error_instance?.previous_id) {
+									setCurrentErrorObjectId(
+										data.error_instance.previous_id,
+									)
+								}
+							}}
+						>
+							Older
+						</Button>
+						<Box borderRight="neutral" style={{ height: 18 }} />
+						<Button
+							disabled={!data?.error_instance.next_id}
+							kind="secondary"
+							emphasis="low"
+							onClick={() => {
+								if (data?.error_instance?.next_id) {
+									setCurrentErrorObjectId(
+										data.error_instance.next_id,
+									)
+								}
+							}}
+						>
+							Newer
+						</Button>
+						<Button
+							kind="secondary"
+							emphasis="high"
+							onClick={() =>
+								history.push(
+									`/${projectId}/sessions/${errorObject.session?.secure_id}`,
+								)
+							}
+							iconLeft={<IconPlay />}
+						>
+							Show Session
+						</Button>
+					</Box>
 				</Box>
 			</Box>
 

@@ -1042,6 +1042,56 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
+# TODO: Use fragement
+query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
+	error_instance(
+		error_group_secure_id: $error_group_secure_id
+		error_object_id: $error_object_id
+	) {
+		error_object {
+			id
+			created_at
+			project_id
+			session {
+				identifier
+				fingerprint
+				secure_id
+				city
+				state
+				country
+				user_properties
+			}
+			error_group_id
+			error_group_secure_id
+			event
+			type
+			url
+			source
+			lineNumber
+			columnNumber
+			stack_trace
+			structured_stack_trace {
+				fileName
+				lineNumber
+				functionName
+				columnNumber
+				lineContent
+				linesBefore
+				linesAfter
+				error
+			}
+			timestamp
+			payload
+			request_id
+			os
+			browser
+			environment
+		}
+		next_id
+		previous_id
+	}
+}
+
 query GetRecentErrors($secure_id: String!) {
 	error_group(secure_id: $secure_id) {
 		secure_id
