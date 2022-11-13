@@ -1042,7 +1042,6 @@ query GetErrorObject($id: ID!) {
 	}
 }
 
-# TODO: Use fragement
 query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 	error_instance(
 		error_group_secure_id: $error_group_secure_id
