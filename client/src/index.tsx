@@ -733,22 +733,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				HighlightWarning('initializeSession', e)
 			}
 		}
-		try {
-			// ensure we only create document/window listeners once
-			if (this._hasPreviouslyInitialized && !this.manualStopped) {
-				return
-			}
+		if (this.sessionData.projectID && this.sessionData.sessionSecureID) {
 			this._setupWindowListeners()
-		} finally {
-			this._hasPreviouslyInitialized = true
-			if (
-				this.sessionData.projectID &&
-				this.sessionData.sessionSecureID
-			) {
-				this.ready = true
-				this.state = 'Recording'
-				this.manualStopped = false
-			}
+			this.ready = true
+			this.state = 'Recording'
+			this.manualStopped = false
 		}
 	}
 
@@ -934,22 +923,26 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				)
 			}
 
-			// setup electron main thread window visiblity events listener
-			if (window.electron?.ipcRenderer) {
-				window.electron.ipcRenderer.on(
-					'highlight.run',
-					({ visible }: { visible: boolean }) => {
-						this._visibilityHandler(!visible)
-					},
-				)
-				this.logger.log('Set up Electron highlight.run events.')
-			} else {
-				// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-				// as when switching tabs or apps on mobile. Non-blocking.
-				PageVisibilityListener((isTabHidden) =>
-					this._visibilityHandler(isTabHidden),
-				)
-				this.logger.log('Set up document visibility listener.')
+			// only do this once, since we want to keep the visibility listener attached even when recoding is stopped
+			if (!this._hasPreviouslyInitialized) {
+				// setup electron main thread window visiblity events listener
+				if (window.electron?.ipcRenderer) {
+					window.electron.ipcRenderer.on(
+						'highlight.run',
+						({ visible }: { visible: boolean }) => {
+							this._visibilityHandler(!visible)
+						},
+					)
+					this.logger.log('Set up Electron highlight.run events.')
+				} else {
+					// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+					// as when switching tabs or apps on mobile. Non-blocking.
+					PageVisibilityListener((isTabHidden) =>
+						this._visibilityHandler(isTabHidden),
+					)
+					this.logger.log('Set up document visibility listener.')
+				}
+				this._hasPreviouslyInitialized = true
 			}
 
 			// Clear the timer so it doesn't block the next page navigation.
@@ -1062,10 +1055,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		this.manualStopped = !!manual
 		this.stopRecordingEvents(manual)
 		this._firstLoadListeners.stopListening()
-		// stop all other event listeners, to be restarted on manual H.start()
-		if (this.manualStopped) {
-			this.listeners.forEach((stop) => stop())
-		}
+		// stop all other event listeners, to be restarted on initialize()
+		this.listeners.forEach((stop) => stop())
+		this.listeners = []
 	}
 
 	stopRecordingEvents(manual?: boolean) {
