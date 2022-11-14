@@ -772,17 +772,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	])
 
 	useEffect(() => {
-		if (
-			state.replayerState !== ReplayerState.Playing &&
-			!state.isLiveMode &&
-			animationFrameID.current
-		) {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
-		}
-	}, [state.replayerState, state.isLiveMode])
-
-	useEffect(() => {
 		setPlayerTimeToPersistance(state.time)
 	}, [setPlayerTimeToPersistance, state.time])
 
