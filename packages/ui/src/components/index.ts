@@ -1,6 +1,6 @@
 export { Badge } from './Badge/Badge'
 export { Box } from './Box/Box'
-export { SwitchButton } from './SwitchButton/SwitchButton'
+export { SwitchButton as SwitchButton } from './SwitchButton/SwitchButton'
 export { Button } from './Button/Button'
 export { ButtonLink } from './ButtonLink/ButtonLink'
 export { Card } from './Card/Card'

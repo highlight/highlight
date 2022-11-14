@@ -3,7 +3,6 @@ import { IconProps } from '../icons'
 import { Checkbox, CheckboxProps, useCheckboxState } from 'ariakit/checkbox'
 
 import * as styles from './styles.css'
-import * as buttonStyles from '../Button/styles.css'
 import { Box } from '../Box/Box'
 import { Text, Props as TextProps } from '../Text/Text'
 
