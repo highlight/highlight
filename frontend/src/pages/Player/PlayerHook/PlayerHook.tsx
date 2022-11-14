@@ -407,16 +407,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		],
 	)
 
-	const onFrame = useMemo(
-		() =>
-			_.throttle(() => {
-				dispatch({
-					type: PlayerActionType.onFrame,
-				})
-			}, FRAME_MS * 10),
-		[],
-	)
-
 	const play = useCallback(
 		(time?: number): Promise<void> => {
 			const newTime = time ?? 0
@@ -744,6 +734,21 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [state.replayer, showPlayerMouseTail])
 
+	const onFrame = useMemo(
+		() =>
+			_.throttle(() => {
+				dispatch({
+					type: PlayerActionType.onFrame,
+				})
+			}, FRAME_MS * 10),
+		[],
+	)
+
+	const frameAction = useCallback(() => {
+		animationFrameID.current = requestAnimationFrame(frameAction)
+		onFrame()
+	}, [onFrame])
+
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
 		if (
@@ -751,39 +756,24 @@ export const usePlayer = (): ReplayerContextInterface => {
 				state.isLiveMode) &&
 			!animationFrameID.current
 		) {
-			const frameAction = () => {
-				if (state.replayer) {
-					// The player may start later than the session if earlier events are unloaded
-					onFrame()
-				}
-				animationFrameID.current = requestAnimationFrame(frameAction)
-			}
 			animationFrameID.current = requestAnimationFrame(frameAction)
 		} else if (
-			animationFrameID.current &&
 			!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
 		) {
-			window.cancelAnimationFrame(animationFrameID.current)
+			cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
+		}
+		return () => {
+			cancelAnimationFrame(animationFrameID.current)
 			animationFrameID.current = 0
 		}
 	}, [
-		onFrame,
+		frameAction,
 		session_secure_id,
 		state.isLiveMode,
 		state.replayer,
 		state.replayerState,
 	])
-
-	useEffect(() => {
-		if (
-			state.replayerState !== ReplayerState.Playing &&
-			!state.isLiveMode &&
-			animationFrameID.current
-		) {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
-		}
-	}, [state.replayerState, state.isLiveMode])
 
 	useEffect(() => {
 		setPlayerTimeToPersistance(state.time)
