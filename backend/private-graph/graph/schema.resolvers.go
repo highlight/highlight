@@ -3397,7 +3397,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	errorObject := model.ErrorObject{}
 	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
 	if errorObjectID == nil {
-		if err := errorObjectQuery.First(&errorObject).Error; err != nil {
+		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	} else {
@@ -3407,12 +3407,12 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	nextErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id > ?", errorObject.ID).First(&nextErrorObject).Error; err != nil {
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id > ?", errorObject.ID).Order("id asc").Limit(1).Find(&nextErrorObject).Error; err != nil {
 		return nil, e.Wrap(err, "error reading next error object in group")
 	}
 
 	previousErrorObject := model.ErrorObject{}
-	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id < ?", errorObject.ID).Last(&previousErrorObject).Error; err != nil {
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id < ?", errorObject.ID).Order("id desc").Limit(1).Find(&previousErrorObject).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 

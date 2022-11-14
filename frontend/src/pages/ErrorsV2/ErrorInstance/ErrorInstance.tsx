@@ -40,31 +40,33 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id:
-				!currentErrorObjectId || currentErrorObjectId === '0'
+				Number(currentErrorObjectId) === 0
 					? undefined
 					: currentErrorObjectId,
 		},
 		onCompleted: (data) => {
-			const nextErrorObjectId = data?.error_instance?.next_id
+			const previousErrorObjectId = data?.error_instance?.previous_id
 
-			if (nextErrorObjectId) {
+			if (previousErrorObjectId) {
 				// Prefetch the next error object so it's in the cache and transitions
 				// are fast.
 				getErrorInstanceLazyQuery({
 					variables: {
 						error_group_secure_id: String(errorGroup?.secure_id),
-						error_object_id: nextErrorObjectId,
+						error_object_id: previousErrorObjectId,
 					},
 				})
 			}
 		},
 	})
 
-	if (!data?.error_instance || !data?.error_instance?.error_object) {
+	const errorInstance = data?.error_instance
+
+	if (!errorInstance || !errorInstance?.error_object) {
 		return null
 	}
 
-	const errorObject = data?.error_instance?.error_object
+	const errorObject = errorInstance?.error_object
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
@@ -83,13 +85,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
 						<Button
-							disabled={!Number(data?.error_instance.previous_id)}
+							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
 							onClick={() => {
-								if (data?.error_instance?.previous_id) {
+								if (errorInstance?.previous_id) {
 									setCurrentErrorObjectId(
-										data.error_instance.previous_id,
+										errorInstance.previous_id,
 									)
 								}
 							}}
@@ -98,13 +100,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Button>
 						<Box borderRight="neutral" style={{ height: 18 }} />
 						<Button
-							disabled={!data?.error_instance.next_id}
+							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
 							onClick={() => {
-								if (data?.error_instance?.next_id) {
+								if (errorInstance?.next_id) {
 									setCurrentErrorObjectId(
-										data.error_instance.next_id,
+										errorInstance.next_id,
 									)
 								}
 							}}
