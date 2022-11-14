@@ -16,3 +16,6 @@ export const spaces = {
 	'32': '32px',
 	'40': '40px',
 } as const
+
+export type Space = keyof typeof spaces
+export const spaceNames = Object.keys(spaces) as Space[]

@@ -1,4 +1,4 @@
-import { Props } from '../components/Box/Box'
+import { BoxProps } from '../components/Box/Box'
 import { colors } from './colors'
 
 type BorderKeys =
@@ -53,11 +53,11 @@ export const borders: Borders = {
 } as const
 
 export interface BorderProps {
-	border?: Props['border']
-	borderTop?: Props['border']
-	borderRight?: Props['border']
-	borderBottom?: Props['border']
-	borderLeft?: Props['border']
+	border?: BoxProps['border']
+	borderTop?: BoxProps['border']
+	borderRight?: BoxProps['border']
+	borderBottom?: BoxProps['border']
+	borderLeft?: BoxProps['border']
 }
 
 export const borderRadii = {

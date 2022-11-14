@@ -3,15 +3,16 @@
 //
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { Props as BoxProps } from '../Box/Box'
+import { breakpointNames } from '../../css/breakpoints'
+import { BoxProps } from '../Box/Box'
 import * as styles from './styles.css'
 
 export const negativeMargin = (space: BoxProps['gap']): string => {
 	switch (typeof space) {
 		case 'object':
-			return Object.keys(space)
+			return breakpointNames
 				.map(
-					(viewport: keyof typeof space) =>
+					(viewport) =>
 						styles.negativeMargins[viewport][space[viewport]],
 				)
 				.join(' ')

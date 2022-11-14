@@ -5,6 +5,9 @@ export const breakpoints = {
 	wide: '1200px',
 } as const
 
+export type Breakpoint = keyof typeof breakpoints
+export const breakpointNames = Object.keys(breakpoints) as Breakpoint[]
+
 export const mediaQueries = {
 	mobile: {},
 	tablet: {
