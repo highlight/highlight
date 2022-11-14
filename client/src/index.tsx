@@ -202,7 +202,6 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	recordStop!: (() => void) | undefined
 	_payloadId!: number
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -325,12 +324,8 @@ export class Highlight {
 		this.sessionData.sessionSecureID = GenerateSecureID()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
 		this.sessionData.sessionStartTime = Date.now()
-		this._firstLoadListeners.stopListening()
+		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
 		await this.initialize()
 		if (user_identifier && user_object) {
 			await this.identify(user_identifier, user_object)
@@ -670,10 +665,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 			setTimeout(() => {
 				// Skip if we're already recording events
-				if (this.recordStop) {
+				if (this.state === 'Recording') {
 					return
 				}
-				this.recordStop = record({
+				const recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
@@ -697,8 +692,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 				})
-				if (this.recordStop) {
-					this.listeners.push(this.recordStop)
+				if (recordStop) {
+					this.listeners.push(recordStop)
 				}
 				const viewport = {
 					height: window.innerHeight,
@@ -788,7 +783,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 			}
 		}
-		this.stopRecordingEvents()
+		this.stopRecording()
 	}
 
 	_setupWindowListeners() {
@@ -1053,25 +1048,17 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	 */
 	stopRecording(manual?: boolean) {
 		this.manualStopped = !!manual
-		this.stopRecordingEvents(manual)
-		this._firstLoadListeners.stopListening()
-		// stop all other event listeners, to be restarted on initialize()
-		this.listeners.forEach((stop) => stop())
-		this.listeners = []
-	}
-
-	stopRecordingEvents(manual?: boolean) {
-		if (manual) {
+		if (this.manualStopped) {
 			this.addCustomEvent(
 				'Stop',
 				'H.stop() was called which stops Highlight from recording.',
 			)
 		}
 		this.state = 'NotRecording'
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
+		this._firstLoadListeners.stopListening()
+		// stop all other event listeners, to be restarted on initialize()
+		this.listeners.forEach((stop) => stop())
+		this.listeners = []
 	}
 
 	getCurrentSessionTimestamp() {
