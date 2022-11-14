@@ -203,14 +203,15 @@ type ErrorSearchParamsInput struct {
 }
 
 type ErrorTrace struct {
-	FileName     *string `json:"fileName"`
-	LineNumber   *int    `json:"lineNumber"`
-	FunctionName *string `json:"functionName"`
-	ColumnNumber *int    `json:"columnNumber"`
-	Error        *string `json:"error"`
-	LineContent  *string `json:"lineContent"`
-	LinesBefore  *string `json:"linesBefore"`
-	LinesAfter   *string `json:"linesAfter"`
+	FileName                   *string             `json:"fileName"`
+	LineNumber                 *int                `json:"lineNumber"`
+	FunctionName               *string             `json:"functionName"`
+	ColumnNumber               *int                `json:"columnNumber"`
+	Error                      *string             `json:"error"`
+	SourceMappingErrorMetadata *SourceMappingError `json:"sourceMappingErrorMetadata"`
+	LineContent                *string             `json:"lineContent"`
+	LinesBefore                *string             `json:"linesBefore"`
+	LinesAfter                 *string             `json:"linesAfter"`
 }
 
 type HistogramBucket struct {
@@ -391,6 +392,11 @@ type SlackSyncResponse struct {
 type SocialLink struct {
 	Type SocialType `json:"type"`
 	Link *string    `json:"link"`
+}
+
+type SourceMappingError struct {
+	ErrorCode *SourceMappingErrorCode `json:"errorCode"`
+	FileURL   *string                 `json:"fileURL"`
 }
 
 type SubscriptionDetails struct {
@@ -1063,6 +1069,63 @@ func (e *SocialType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SocialType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SourceMappingErrorCode string
+
+const (
+	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
+	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
+	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
+	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
+	SourceMappingErrorCodeMinifiedFileLarger                    SourceMappingErrorCode = "Minified_File_Larger"
+	SourceMappingErrorCodeSourceMapFileLarger                   SourceMappingErrorCode = "Source_Map_File_Larger"
+	SourceMappingErrorCodeInvalidSourceMapURL                   SourceMappingErrorCode = "Invalid_SourceMapURL"
+	SourceMappingErrorCodeSourcemapLibraryCouldntParse          SourceMappingErrorCode = "Sourcemap_Library_Couldnt_Parse"
+	SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource SourceMappingErrorCode = "Sourcemap_Library_Couldnt_Retrieve_Source"
+)
+
+var AllSourceMappingErrorCode = []SourceMappingErrorCode{
+	SourceMappingErrorCodeFileNameMissingFromSourcePath,
+	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeMissingSourceMapFileInS3,
+	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
+	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
+	SourceMappingErrorCodeMinifiedFileLarger,
+	SourceMappingErrorCodeSourceMapFileLarger,
+	SourceMappingErrorCodeInvalidSourceMapURL,
+	SourceMappingErrorCodeSourcemapLibraryCouldntParse,
+	SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource,
+}
+
+func (e SourceMappingErrorCode) IsValid() bool {
+	switch e {
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+		return true
+	}
+	return false
+}
+
+func (e SourceMappingErrorCode) String() string {
+	return string(e)
+}
+
+func (e *SourceMappingErrorCode) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SourceMappingErrorCode(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SourceMappingErrorCode", str)
+	}
+	return nil
+}
+
+func (e SourceMappingErrorCode) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
