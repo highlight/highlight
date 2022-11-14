@@ -168,6 +168,7 @@ export class Highlight {
 	events!: eventWithTime[]
 	sessionData!: SessionData
 	ready!: boolean
+	manualStopped!: boolean
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	fingerprintjs!: Promise<Agent>
@@ -343,6 +344,7 @@ export class Highlight {
 
 		this.ready = false
 		this.state = 'NotRecording'
+		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy || false
 		this.enableCanvasRecording = options.enableCanvasRecording || false
@@ -733,7 +735,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		}
 		try {
 			// ensure we only create document/window listeners once
-			if (this._hasPreviouslyInitialized) {
+			if (this._hasPreviouslyInitialized && !this.manualStopped) {
 				return
 			}
 			this._setupWindowListeners()
@@ -745,11 +747,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			) {
 				this.ready = true
 				this.state = 'Recording'
+				this.manualStopped = false
 			}
 		}
 	}
 
 	async _visibilityHandler(hidden: boolean) {
+		if (this.manualStopped) {
+			this.logger.log(`Ignoring visibility event due to manual stop.`)
+			return
+		}
 		if (
 			new Date().getTime() - this._lastVisibilityChangeTime <
 			VISIBILITY_DEBOUNCE_MS
@@ -946,13 +953,17 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 
 			// Clear the timer so it doesn't block the next page navigation.
-			window.addEventListener('beforeunload', () => {
+			const unloadListener = () => {
 				this.hasSessionUnloaded = true
 				if (this.pushPayloadTimerId) {
 					clearTimeout(this.pushPayloadTimerId)
 					this.pushPayloadTimerId = undefined
 				}
-			})
+			}
+			window.addEventListener('beforeunload', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -960,26 +971,34 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 		}
 
-		window.addEventListener('beforeunload', () => {
+		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
 			window.sessionStorage.setItem(
 				SESSION_STORAGE_KEYS.SESSION_DATA,
 				JSON.stringify(this.sessionData),
 			)
-		})
+		}
+		window.addEventListener('beforeunload', unloadListener)
+		this.listeners.push(() =>
+			window.removeEventListener('beforeunload', unloadListener),
+		)
 
 		// beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
 		const isOnIOS =
 			navigator.userAgent.match(/iPad/i) ||
 			navigator.userAgent.match(/iPhone/i)
 		if (isOnIOS) {
-			window.addEventListener('pagehide', () => {
+			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
 				window.sessionStorage.setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(this.sessionData),
 				)
-			})
+			}
+			window.addEventListener('pagehide', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		}
 	}
 
@@ -1040,8 +1059,13 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	 * @param manual The end user requested to stop recording.
 	 */
 	stopRecording(manual?: boolean) {
+		this.manualStopped = !!manual
 		this.stopRecordingEvents(manual)
 		this._firstLoadListeners.stopListening()
+		// stop all other event listeners, to be restarted on manual H.start()
+		if (this.manualStopped) {
+			this.listeners.forEach((stop) => stop())
+		}
 	}
 
 	stopRecordingEvents(manual?: boolean) {
