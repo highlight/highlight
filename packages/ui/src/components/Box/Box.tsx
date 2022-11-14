@@ -4,7 +4,7 @@ import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
 
 export type Props = Sprinkles &
 	React.PropsWithChildren &
-	Omit<React.AllHTMLAttributes<HTMLElement>, 'color'> & {
+	Omit<React.AllHTMLAttributes<HTMLElement>, 'color' | 'height' | 'width'> & {
 		as?: React.ElementType | string
 		// Can't use className because it does some conversion on its values and
 		// breaks values like arrays, which would otherwise be valid for clsx.

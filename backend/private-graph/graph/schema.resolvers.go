@@ -235,6 +235,15 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 	return r.UnmarshalStackTrace(*obj.StackTrace)
 }
 
+// Session is the resolver for the session field.
+func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObject) (*model.Session, error) {
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: obj.SessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "error reading session from error object")
+	}
+	return session, nil
+}
+
 // Params is the resolver for the params field.
 func (r *errorSegmentResolver) Params(ctx context.Context, obj *model.ErrorSegment) (*model.ErrorSearchParams, error) {
 	params := &model.ErrorSearchParams{}
@@ -3367,6 +3376,15 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
 	return r.canAdminViewErrorGroup(ctx, secureID, true)
+}
+
+// ErrorObject is the resolver for the error_object field.
+func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading error object")
+	}
+	return errorObject, nil
 }
 
 // Messages is the resolver for the messages field.

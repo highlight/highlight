@@ -72,7 +72,7 @@ export const RIGHT_PANEL_WIDTH = 350
 const CENTER_COLUMN_MARGIN = 16
 const MIN_CENTER_COLUMN_WIDTH = 428
 
-const Player = ({ integrated }: Props) => {
+const PlayerPage = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const { session_secure_id } = useParams<{
@@ -84,14 +84,12 @@ const Player = ({ integrated }: Props) => {
 	const player = usePlayer()
 	const {
 		state: replayerState,
-		scale: replayerScale,
 		setScale,
 		replayer,
 		time,
 		sessionViewability,
 		isPlayerReady,
 		session,
-		isLoadingEvents,
 		currentUrl,
 	} = player
 
@@ -161,20 +159,20 @@ const Player = ({ integrated }: Props) => {
 				return false
 			}
 
-			// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-			replayer?.wrapper?.setAttribute(
-				'style',
-				`transform: scale(${
-					replayerScale * scale
-				}) translate(-50%, -50%)`,
-			)
-
 			setScale((s) => {
-				return s * scale
+				const replayerScale = s * scale
+
+				// why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
+				replayer?.wrapper?.setAttribute(
+					'style',
+					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
+				)
+
+				return replayerScale
 			})
 			return true
 		},
-		[replayerScale, setScale],
+		[setScale],
 	)
 
 	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
@@ -194,7 +192,7 @@ const Player = ({ integrated }: Props) => {
 	const playerBoundingClientRectHeight =
 		replayer?.wrapper?.getBoundingClientRect().height
 
-	// On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
+	// On any change to replayer, 'sizes', refresh the size of the player.
 	useEffect(() => {
 		replayer && resizePlayer(replayer)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,6 +226,7 @@ const Player = ({ integrated }: Props) => {
 
 	const { width: windowWidth } = useWindowSize()
 
+	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	return (
 		<PlayerUIContextProvider
 			value={{
@@ -403,10 +402,8 @@ const Player = ({ integrated }: Props) => {
 														styles.manuallyStoppedMessageContainer
 													}
 													style={{
-														height: replayer?.wrapper.getBoundingClientRect()
-															.height,
-														width: replayer?.wrapper.getBoundingClientRect()
-															.width,
+														height: replayerWrapperBbox?.height,
+														width: replayerWrapperBbox?.width,
 													}}
 												>
 													<ElevatedCard title="Session recording manually stopped">
@@ -443,36 +440,25 @@ const Player = ({ integrated }: Props) => {
 													</ElevatedCard>
 												</div>
 											)}
-											{isPlayerReady && (
-												<PlayerCommentCanvas
-													setModalPosition={
-														setCommentModalPosition
-													}
-													isReplayerReady={
-														isPlayerReady
-													}
-													modalPosition={
-														commentModalPosition
-													}
-													setCommentPosition={
-														setCommentPosition
-													}
-													isLoadingEvents={
-														isLoadingEvents
-													}
-												/>
-											)}
 											<div
 												style={{
 													visibility: isPlayerReady
 														? 'visible'
 														: 'hidden',
 												}}
-												className={classNames(
-													styles.rrwebPlayerDiv,
-													'highlight-block',
-												)}
+												className="highlight-block"
 												id="player"
+											/>
+											<PlayerCommentCanvas
+												setModalPosition={
+													setCommentModalPosition
+												}
+												modalPosition={
+													commentModalPosition
+												}
+												setCommentPosition={
+													setCommentPosition
+												}
 											/>
 											{!isPlayerReady &&
 												sessionViewability ===
@@ -511,7 +497,7 @@ const Player = ({ integrated }: Props) => {
 						newCommentModalRef={newCommentModalRef}
 						commentModalPosition={commentModalPosition}
 						commentPosition={commentPosition}
-						commentTime={time || 0}
+						commentTime={time}
 						session={session}
 						session_secure_id={session_secure_id}
 						onCancel={() => {
@@ -546,7 +532,7 @@ const PlayerSkeleton = ({
 	)
 }
 
-export default Player
+export default PlayerPage
 
 const getTabTitle = (session?: Session) => {
 	if (!session) {

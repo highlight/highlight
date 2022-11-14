@@ -7,16 +7,16 @@ export const shadows = {
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
 } as const
 
+export const defaultShape = 'rounded'
 export const defaultSize = 'medium'
 export const defaultVariant = 'primary'
-export const defaultShape = 'rounded'
 
 export const iconVariants = recipe({
 	base: {
 		alignItems: 'center',
+		border: 'none',
 		display: 'inline-flex',
 		justifyContent: 'center',
-		border: 'none',
 	},
 
 	variants: {
@@ -170,9 +170,9 @@ export const variants = recipe({
 			},
 		},
 		size: {
-			small: [{ height: 16 }],
-			medium: [{ height: 20 }],
-			large: [{ height: 24 }],
+			small: { height: 16 },
+			medium: { height: 20 },
+			large: { height: 24 },
 		},
 	},
 
