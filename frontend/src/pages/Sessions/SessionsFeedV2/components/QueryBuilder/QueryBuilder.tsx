@@ -1417,88 +1417,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 		},
 		[parseRuleImpl],
 	)
-
-	const parseGroup = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
-			const errorObjectRules = rules.filter(
-				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-			)
-			if (errorObjectRules.length === 0) {
-				return {
-					query: {
-						bool: {
-							[isAnd ? 'must' : 'should']: rules.map((rule) =>
-								parseRule(rule),
-							),
-						},
-					},
-				}
-			} else {
-				const standardRules = rules.filter(
-					(r) => getType(r.field!.value) !== ERROR_FIELD_TYPE,
-				)
-				return {
-					query: {
-						bool: {
-							[isAnd ? 'must' : 'should']: [
-								{
-									bool: {
-										[isAnd ? 'must' : 'should']:
-											standardRules.map((rule) =>
-												parseRule(rule),
-											),
-									},
-								},
-								{
-									has_child: {
-										type: 'child',
-										query: {
-											bool: {
-												[isAnd ? 'must' : 'should']:
-													errorObjectRules.map(
-														(rule) =>
-															parseRule(rule),
-													),
-											},
-										},
-									},
-								},
-							],
-						},
-					},
-					childQuery: {
-						bool: {
-							[isAnd ? 'must' : 'should']: [
-								{
-									has_parent: {
-										parent_type: 'parent',
-										query: {
-											bool: {
-												[isAnd ? 'must' : 'should']:
-													standardRules.map((rule) =>
-														parseRule(rule),
-													),
-											},
-										},
-									},
-								},
-								{
-									bool: {
-										[isAnd ? 'must' : 'should']:
-											errorObjectRules.map((rule) =>
-												parseRule(rule),
-											),
-									},
-								},
-							],
-						},
-					},
-				}
-			}
-		},
-		[parseRule],
-	)
-
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -1529,17 +1447,135 @@ function QueryBuilder<T extends SearchContextTypes>(
 			},
 		}
 	}, [timeRangeField, project_id])
+
+	const getFilterRules = useCallback(
+		(rules: RuleProps[]) =>
+			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+		[timeRangeField.value],
+	)
+
+	const parseGroup = useCallback(
+		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
+			const timeRange = parseRule(
+				rules.find(
+					(rule) => rule.field?.value === timeRangeField.value,
+				) ?? defaultTimeRangeRule,
+			)
+			const errorObjectRules = getFilterRules(
+				rules.filter(
+					(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
+				),
+			)
+			const standardRules = getFilterRules(
+				rules.filter(
+					(r) => getType(r.field!.value) !== ERROR_FIELD_TYPE,
+				),
+			)
+			const condition = isAnd ? 'must' : 'should'
+			const query: OpenSearchQuery = {
+				query: {
+					bool: {
+						must: [
+							{
+								bool: {
+									[condition]: standardRules.map((rule) =>
+										parseRule(rule),
+									),
+								},
+							},
+							timeRange,
+						],
+					},
+				},
+			}
+			if (errorObjectRules.length > 0) {
+				query.query = {
+					bool: {
+						must: [
+							{
+								bool: {
+									[condition]: [
+										{
+											bool: {
+												[condition]: standardRules.map(
+													(rule) => parseRule(rule),
+												),
+											},
+										},
+										{
+											has_child: {
+												type: 'child',
+												query: {
+													bool: {
+														[condition]:
+															errorObjectRules.map(
+																(rule) =>
+																	parseRule(
+																		rule,
+																	),
+															),
+													},
+												},
+											},
+										},
+									],
+								},
+							},
+							timeRange,
+						],
+					},
+				}
+				query.childQuery = {
+					bool: {
+						must: [
+							{
+								bool: {
+									[condition]: [
+										{
+											has_parent: {
+												parent_type: 'parent',
+												query: {
+													bool: {
+														[condition]:
+															standardRules.map(
+																(rule) =>
+																	parseRule(
+																		rule,
+																	),
+															),
+													},
+												},
+											},
+										},
+										{
+											bool: {
+												[condition]:
+													errorObjectRules.map(
+														(rule) =>
+															parseRule(rule),
+													),
+											},
+										},
+									],
+								},
+							},
+						],
+						timeRange,
+					},
+				}
+			}
+
+			return query
+		},
+		[defaultTimeRangeRule, getFilterRules, parseRule, timeRangeField.value],
+	)
+
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
-	const timeRangeRule = useMemo<RuleProps | undefined>(
-		() => rules.find((rule) => rule.field?.value === timeRangeField.value),
-		[rules, timeRangeField.value],
-	)
 	const filterRules = useMemo<RuleProps[]>(
-		() =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[rules, timeRangeField.value],
+		() => getFilterRules(rules),
+		[getFilterRules, rules],
 	)
 	const setRules = (rules: RuleProps[]) => {
 		setRulesImpl(rules)
@@ -1575,6 +1611,18 @@ function QueryBuilder<T extends SearchContextTypes>(
 		[rules],
 	)
 
+	const timeRangeRule = useMemo<RuleProps>(() => {
+		const timeRange = rules.find(
+			(rule) => rule.field?.value === timeRangeField.value,
+		)
+		if (!timeRange) {
+			addRule(defaultTimeRangeRule)
+			return defaultTimeRangeRule
+		}
+
+		return timeRange
+	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
+
 	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const getKeyOptions = async (input: string) => {
@@ -1607,7 +1655,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			if (!timeRangeRule) return
 			const startDate = moment(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
@@ -1806,75 +1853,67 @@ function QueryBuilder<T extends SearchContextTypes>(
 		return null
 	}
 
-	if (!timeRangeRule) {
-		addRule(defaultTimeRangeRule)
-	}
-
 	return (
 		<div className={styles.builderContainer}>
-			{timeRangeRule && (
-				<div className={styles.rulesContainer}>
-					<div
-						className={classNames(
-							styles.ruleContainer,
-							styles.timeRangeContainer,
-						)}
-					>
-						<TimeRangeFilter
-							rule={timeRangeRule}
-							onChangeValue={(val) =>
-								updateRule(timeRangeRule, { val })
-							}
-						/>
-						{!readonly &&
-							timeRangeRule.val?.options[0].value !==
-								defaultTimeRangeRule.val?.options[0].value && (
-								<Button
-									trackingId="resetTimeRangeRule"
-									className={classNames(
-										styles.ruleItem,
-										styles.removeRule,
-									)}
-									onClick={() =>
-										updateRule(timeRangeRule, {
-											val: defaultTimeRangeRule.val,
-										})
-									}
-								>
-									<SvgXIcon />
-								</Button>
-							)}
-					</div>
+			<div className={styles.rulesContainer}>
+				<div
+					className={classNames(
+						styles.ruleContainer,
+						styles.timeRangeContainer,
+					)}
+				>
+					<TimeRangeFilter
+						rule={timeRangeRule}
+						onChangeValue={(val) =>
+							updateRule(timeRangeRule, { val })
+						}
+					/>
 					{!readonly &&
-						!isAbsoluteTimeRange(
-							timeRangeRule.val?.options[0].value,
-						) && (
+						timeRangeRule.val?.options[0].value !==
+							defaultTimeRangeRule.val?.options[0].value && (
 							<Button
+								trackingId="resetTimeRangeRule"
 								className={classNames(
 									styles.ruleItem,
-									styles.syncButton,
+									styles.removeRule,
 								)}
-								onClick={() => {
-									// Re-generate the absolute times used in the serialized query
-									updateSerializedQuery(isAnd, rules)
-									setBackendSearchQuery(
-										serializedQuery.current,
-									)
-								}}
-								disabled={syncButtonDisabled}
-								trackingId={'RefreshSearchResults'}
+								onClick={() =>
+									updateRule(timeRangeRule, {
+										val: defaultTimeRangeRule.val,
+									})
+								}
 							>
-								<Tooltip
-									title={
-										'Refetch the latest results of your query.'
-									}
-								>
-									<Reload width="1em" height="1em" />
-								</Tooltip>
+								<SvgXIcon />
 							</Button>
 						)}
 				</div>
-			)}
+				{!readonly &&
+					!isAbsoluteTimeRange(
+						timeRangeRule.val?.options[0].value,
+					) && (
+						<Button
+							className={classNames(
+								styles.ruleItem,
+								styles.syncButton,
+							)}
+							onClick={() => {
+								// Re-generate the absolute times used in the serialized query
+								updateSerializedQuery(isAnd, rules)
+								setBackendSearchQuery(serializedQuery.current)
+							}}
+							disabled={syncButtonDisabled}
+							trackingId={'RefreshSearchResults'}
+						>
+							<Tooltip
+								title={
+									'Refetch the latest results of your query.'
+								}
+							>
+								<Reload width="1em" height="1em" />
+							</Tooltip>
+						</Button>
+					)}
+			</div>
 			<div>
 				{filterRules.length > 0 && (
 					<div className={styles.rulesContainer}>
