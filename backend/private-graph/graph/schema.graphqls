@@ -339,6 +339,12 @@ type ErrorObject {
 	session: Session
 }
 
+type ErrorInstance {
+	error_object: ErrorObject!
+	next_id: ID
+	previous_id: ID
+}
+
 type ErrorField {
 	project_id: Int
 	name: String!
@@ -1035,6 +1041,10 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_instance(
+		error_group_secure_id: String!
+		error_object_id: ID
+	): ErrorInstance
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
