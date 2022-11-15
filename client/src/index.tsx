@@ -611,6 +611,17 @@ export class Highlight {
 					this.sessionData.userObject,
 				)
 			}
+
+			if (
+				!this.sessionData.projectID ||
+				!this.sessionData.sessionSecureID
+			) {
+				console.error(
+					'Failed to initialize Highlight; sessionData is incorrectly configured',
+					this.sessionData,
+				)
+				return
+			}
 			this.logger.log(
 				`Loaded Highlight
 Remote: ${publicGraphURI}
@@ -666,39 +677,43 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 			// Skip if we're already recording events
 			if (this.state !== 'Recording') {
-				const recordStop = record({
-					ignoreClass: 'highlight-ignore',
-					blockClass: 'highlight-block',
-					emit,
-					enableStrictPrivacy: this.enableStrictPrivacy,
-					maskAllInputs: this.enableStrictPrivacy,
-					recordCanvas: this.enableCanvasRecording,
-					sampling: {
-						canvas: {
-							fps: this.samplingStrategy.canvas,
-							resizeQuality: this.samplingStrategy.canvasQuality,
-							resizeFactor: this.samplingStrategy.canvasFactor,
-							maxSnapshotDimension:
-								this.samplingStrategy
-									.canvasMaxSnapshotDimension,
+				setTimeout(() => {
+					const recordStop = record({
+						ignoreClass: 'highlight-ignore',
+						blockClass: 'highlight-block',
+						emit,
+						enableStrictPrivacy: this.enableStrictPrivacy,
+						maskAllInputs: this.enableStrictPrivacy,
+						recordCanvas: this.enableCanvasRecording,
+						sampling: {
+							canvas: {
+								fps: this.samplingStrategy.canvas,
+								resizeQuality:
+									this.samplingStrategy.canvasQuality,
+								resizeFactor:
+									this.samplingStrategy.canvasFactor,
+								maxSnapshotDimension:
+									this.samplingStrategy
+										.canvasMaxSnapshotDimension,
+							},
 						},
-					},
-					keepIframeSrcFn: (_src) => {
-						return true
-					},
-					inlineImages: this.inlineImages,
-					inlineStylesheet: this.inlineStylesheet,
-					plugins: [getRecordSequentialIdPlugin()],
-				})
-				if (recordStop) {
-					this.listeners.push(recordStop)
-				}
-				const viewport = {
-					height: window.innerHeight,
-					width: window.innerWidth,
-				}
-				this.addCustomEvent('Viewport', viewport)
-				this.submitViewportMetrics(viewport)
+						keepIframeSrcFn: (_src) => {
+							return true
+						},
+						inlineImages: this.inlineImages,
+						inlineStylesheet: this.inlineStylesheet,
+						plugins: [getRecordSequentialIdPlugin()],
+					})
+					if (recordStop) {
+						this.listeners.push(recordStop)
+					}
+					const viewport = {
+						height: window.innerHeight,
+						width: window.innerWidth,
+					}
+					this.addCustomEvent('Viewport', viewport)
+					this.submitViewportMetrics(viewport)
+				}, 1)
 			}
 
 			if (document.referrer) {
@@ -720,17 +735,16 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					)
 				}
 			}
+
+			this._setupWindowListeners()
+			this.ready = true
+			this.state = 'Recording'
+			this.manualStopped = false
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
 				HighlightWarning('initializeSession', e)
 			}
-		}
-		if (this.sessionData.projectID && this.sessionData.sessionSecureID) {
-			this._setupWindowListeners()
-			this.ready = true
-			this.state = 'Recording'
-			this.manualStopped = false
 		}
 	}
 
@@ -1053,7 +1067,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
-		this._firstLoadListeners.stopListening()
 		// stop all other event listeners, to be restarted on initialize()
 		this.listeners.forEach((stop) => stop())
 		this.listeners = []
