@@ -168,6 +168,7 @@ export class Highlight {
 	events!: eventWithTime[]
 	sessionData!: SessionData
 	ready!: boolean
+	manualStopped!: boolean
 	state!: 'NotRecording' | 'Recording'
 	logger!: Logger
 	fingerprintjs!: Promise<Agent>
@@ -201,7 +202,6 @@ export class Highlight {
 	hasPushedData!: boolean
 	reloaded!: boolean
 	_hasPreviouslyInitialized!: boolean
-	recordStop!: (() => void) | undefined
 	_payloadId!: number
 
 	static create(options: HighlightClassOptions): Highlight {
@@ -324,12 +324,8 @@ export class Highlight {
 		this.sessionData.sessionSecureID = GenerateSecureID()
 		this.options.sessionSecureID = this.sessionData.sessionSecureID
 		this.sessionData.sessionStartTime = Date.now()
-		this._firstLoadListeners.stopListening()
+		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
 		await this.initialize()
 		if (user_identifier && user_object) {
 			await this.identify(user_identifier, user_object)
@@ -343,6 +339,7 @@ export class Highlight {
 
 		this.ready = false
 		this.state = 'NotRecording'
+		this.manualStopped = false
 		this.enableSegmentIntegration = !!options.enableSegmentIntegration
 		this.enableStrictPrivacy = options.enableStrictPrivacy || false
 		this.enableCanvasRecording = options.enableCanvasRecording || false
@@ -668,10 +665,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 			setTimeout(() => {
 				// Skip if we're already recording events
-				if (this.recordStop) {
+				if (this.state === 'Recording') {
 					return
 				}
-				this.recordStop = record({
+				const recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
 					emit,
@@ -695,8 +692,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
 				})
-				if (this.recordStop) {
-					this.listeners.push(this.recordStop)
+				if (recordStop) {
+					this.listeners.push(recordStop)
 				}
 				const viewport = {
 					height: window.innerHeight,
@@ -731,25 +728,19 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				HighlightWarning('initializeSession', e)
 			}
 		}
-		try {
-			// ensure we only create document/window listeners once
-			if (this._hasPreviouslyInitialized) {
-				return
-			}
+		if (this.sessionData.projectID && this.sessionData.sessionSecureID) {
 			this._setupWindowListeners()
-		} finally {
-			this._hasPreviouslyInitialized = true
-			if (
-				this.sessionData.projectID &&
-				this.sessionData.sessionSecureID
-			) {
-				this.ready = true
-				this.state = 'Recording'
-			}
+			this.ready = true
+			this.state = 'Recording'
+			this.manualStopped = false
 		}
 	}
 
 	async _visibilityHandler(hidden: boolean) {
+		if (this.manualStopped) {
+			this.logger.log(`Ignoring visibility event due to manual stop.`)
+			return
+		}
 		if (
 			new Date().getTime() - this._lastVisibilityChangeTime <
 			VISIBILITY_DEBOUNCE_MS
@@ -792,7 +783,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 			}
 		}
-		this.stopRecordingEvents()
+		this.stopRecording()
 	}
 
 	_setupWindowListeners() {
@@ -927,32 +918,40 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				)
 			}
 
-			// setup electron main thread window visiblity events listener
-			if (window.electron?.ipcRenderer) {
-				window.electron.ipcRenderer.on(
-					'highlight.run',
-					({ visible }: { visible: boolean }) => {
-						this._visibilityHandler(!visible)
-					},
-				)
-				this.logger.log('Set up Electron highlight.run events.')
-			} else {
-				// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
-				// as when switching tabs or apps on mobile. Non-blocking.
-				PageVisibilityListener((isTabHidden) =>
-					this._visibilityHandler(isTabHidden),
-				)
-				this.logger.log('Set up document visibility listener.')
+			// only do this once, since we want to keep the visibility listener attached even when recoding is stopped
+			if (!this._hasPreviouslyInitialized) {
+				// setup electron main thread window visiblity events listener
+				if (window.electron?.ipcRenderer) {
+					window.electron.ipcRenderer.on(
+						'highlight.run',
+						({ visible }: { visible: boolean }) => {
+							this._visibilityHandler(!visible)
+						},
+					)
+					this.logger.log('Set up Electron highlight.run events.')
+				} else {
+					// Send the payload every time the page is no longer visible - this includes when the tab is closed, as well
+					// as when switching tabs or apps on mobile. Non-blocking.
+					PageVisibilityListener((isTabHidden) =>
+						this._visibilityHandler(isTabHidden),
+					)
+					this.logger.log('Set up document visibility listener.')
+				}
+				this._hasPreviouslyInitialized = true
 			}
 
 			// Clear the timer so it doesn't block the next page navigation.
-			window.addEventListener('beforeunload', () => {
+			const unloadListener = () => {
 				this.hasSessionUnloaded = true
 				if (this.pushPayloadTimerId) {
 					clearTimeout(this.pushPayloadTimerId)
 					this.pushPayloadTimerId = undefined
 				}
-			})
+			}
+			window.addEventListener('beforeunload', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -960,26 +959,34 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 		}
 
-		window.addEventListener('beforeunload', () => {
+		const unloadListener = () => {
 			this.addCustomEvent('Page Unload', '')
 			window.sessionStorage.setItem(
 				SESSION_STORAGE_KEYS.SESSION_DATA,
 				JSON.stringify(this.sessionData),
 			)
-		})
+		}
+		window.addEventListener('beforeunload', unloadListener)
+		this.listeners.push(() =>
+			window.removeEventListener('beforeunload', unloadListener),
+		)
 
 		// beforeunload is not supported on iOS on Safari. Apple docs recommend using `pagehide` instead.
 		const isOnIOS =
 			navigator.userAgent.match(/iPad/i) ||
 			navigator.userAgent.match(/iPhone/i)
 		if (isOnIOS) {
-			window.addEventListener('pagehide', () => {
+			const unloadListener = () => {
 				this.addCustomEvent('Page Unload', '')
 				window.sessionStorage.setItem(
 					SESSION_STORAGE_KEYS.SESSION_DATA,
 					JSON.stringify(this.sessionData),
 				)
-			})
+			}
+			window.addEventListener('pagehide', unloadListener)
+			this.listeners.push(() =>
+				window.removeEventListener('beforeunload', unloadListener),
+			)
 		}
 	}
 
@@ -1040,22 +1047,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	 * @param manual The end user requested to stop recording.
 	 */
 	stopRecording(manual?: boolean) {
-		this.stopRecordingEvents(manual)
-		this._firstLoadListeners.stopListening()
-	}
-
-	stopRecordingEvents(manual?: boolean) {
-		if (manual) {
+		this.manualStopped = !!manual
+		if (this.manualStopped) {
 			this.addCustomEvent(
 				'Stop',
 				'H.stop() was called which stops Highlight from recording.',
 			)
 		}
 		this.state = 'NotRecording'
-		if (this.recordStop) {
-			this.recordStop()
-			this.recordStop = undefined
-		}
+		this._firstLoadListeners.stopListening()
+		// stop all other event listeners, to be restarted on initialize()
+		this.listeners.forEach((stop) => stop())
+		this.listeners = []
 	}
 
 	getCurrentSessionTimestamp() {
