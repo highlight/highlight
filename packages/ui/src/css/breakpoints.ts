@@ -6,7 +6,7 @@ export const breakpoints = {
 } as const
 
 export type Breakpoint = keyof typeof breakpoints
-export const breakpointNames = Object.keys(breakpoints) as Breakpoint[]
+export const breakpointNames = Object.keys(breakpoints) as readonly Breakpoint[]
 
 export const mediaQueries = {
 	mobile: {},
