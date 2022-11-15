@@ -9,6 +9,7 @@ import {
 } from '@graph/hooks'
 import { ErrorSearchParamsInput } from '@graph/schemas'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -182,6 +183,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
 
+	const { showLeftPanel } = useErrorPageConfiguration()
 	return (
 		<ErrorSearchContextProvider
 			value={{
@@ -211,7 +213,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 			>
 				<SearchPanel />
 
-				<div className={styles.detailsContainer}>
+				<div
+					className={classNames(styles.detailsContainer, {
+						[styles.moveDetailsRight]: showLeftPanel,
+					})}
+				>
 					{!integrated && <IntegrationCard />}
 					{error_secure_id && !errorQueryingErrorGroup ? (
 						<>

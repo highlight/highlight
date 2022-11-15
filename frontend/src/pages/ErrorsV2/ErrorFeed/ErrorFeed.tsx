@@ -72,7 +72,7 @@ const ErrorFeed = () => {
 	const showHistogram = searchResultsLoading || errorCount > 0
 	return (
 		<>
-			<Box py="6" px="8" borderBottom="neutral">
+			<Box py="6" px="8">
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</Box>
