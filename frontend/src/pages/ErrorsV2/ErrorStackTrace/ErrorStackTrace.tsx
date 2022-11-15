@@ -1,10 +1,10 @@
-import Alert from '@components/Alert/Alert'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { GetErrorObjectQuery } from '@graph/operations'
+import { Callout } from '@highlight-run/ui'
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
 import { useParams } from '@util/react-router/useParams'
@@ -53,35 +53,32 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 	return (
 		<div className={styles.stackTraceCard}>
 			{showStackFrameNotUseful && (
-				<Alert
-					trackingId="PrivacySourceMapEducation"
-					className={styles.alert}
-					message="These stack frames don't look that useful 😢"
-					type="info"
-					description={
-						<>
-							Are there sourcemaps tied to your javascript code?
-							If yes, you can upload them to Highlight in CI/CD to
-							get enhanced stack traces.
-							<div className={styles.sourcemapActions}>
-								<ButtonLink
-									anchor
-									trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-									href="https://docs.highlight.run/sourcemaps"
-								>
-									Learn More
-								</ButtonLink>
-								<ButtonLink
-									trackingId="stackFrameSourcemapSettings"
-									to={`/${project_id}/settings/errors`}
-									type="default"
-								>
-									Sourcemap Settings
-								</ButtonLink>
-							</div>
-						</>
-					}
-				/>
+				<Callout
+					title="These stack frames don't look that useful 😢"
+					kind="info"
+				>
+					<>
+						Are there sourcemaps tied to your javascript code? If
+						yes, you can upload them to Highlight in CI/CD to get
+						enhanced stack traces.
+						<div className={styles.sourcemapActions}>
+							<ButtonLink
+								anchor
+								trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
+								href="https://docs.highlight.run/sourcemaps"
+							>
+								Learn More
+							</ButtonLink>
+							<ButtonLink
+								trackingId="stackFrameSourcemapSettings"
+								to={`/${project_id}/settings/errors`}
+								type="default"
+							>
+								Sourcemap Settings
+							</ButtonLink>
+						</div>
+					</>
+				</Callout>
 			)}
 			{/* TODO: Loading? */}
 			{false ? (
