@@ -1559,8 +1559,8 @@ function QueryBuilder<T extends SearchContextTypes>(
 									],
 								},
 							},
+							timeRange,
 						],
-						timeRange,
 					},
 				}
 			}
