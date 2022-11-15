@@ -12,7 +12,7 @@ export default {
 } as ComponentMeta<typeof ButtonIcon>
 
 export const ButtonIconVariants = () => {
-	const variant: Variants['variant'][] = ['primary', 'secondary']
+	const variant: Variants['kind'][] = ['primary', 'secondary']
 	const shape: Variants['shape'][] = ['square', 'thin']
 	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
 	const size: Variants['size'][] = ['medium', 'small', 'tiny']
@@ -33,7 +33,7 @@ export const ButtonIconVariants = () => {
 									<ButtonIcon
 										icon={<IconCaretDown />}
 										size={$size}
-										variant={$variant}
+										kind={$variant}
 										emphasis={$emphasis}
 										shape={$shape}
 										key={`${idx}-${jdx}-${kdx}-${ldx}`}
@@ -43,7 +43,7 @@ export const ButtonIconVariants = () => {
 						</Box>
 					))}
 					<ButtonIcon
-						variant={$variant}
+						kind={$variant}
 						emphasis="none"
 						key={`b-${idx}-m`}
 						size="minimal"

@@ -52,7 +52,7 @@ export const variants = recipe({
 				padding: 2,
 			},
 		},
-		variant: {
+		kind: {
 			primary: {},
 			secondary: {},
 		},
@@ -134,7 +134,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'high',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: vars.color.purple500,
@@ -160,7 +160,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'medium',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: 'transparent',
@@ -188,7 +188,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'low',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: 'transparent',
@@ -212,7 +212,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'high',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: vars.color.neutral100,
@@ -238,7 +238,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'medium',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -265,7 +265,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'low',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -289,7 +289,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'minimal',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: vars.color.purple500,
@@ -313,7 +313,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'minimal',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -338,7 +338,7 @@ export const variants = recipe({
 	],
 
 	defaultVariants: {
-		variant: 'primary',
+		kind: 'primary',
 		emphasis: 'medium',
 		shape: 'square',
 		size: 'small',

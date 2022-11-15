@@ -8,6 +8,13 @@ import {
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
 import { ErrorSearchParamsInput } from '@graph/schemas'
+import {
+	Box,
+	ButtonIcon,
+	IconChevronDown,
+	IconChevronUp,
+	IconExitRight,
+} from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -17,6 +24,7 @@ import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
+import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
@@ -183,7 +191,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
 
-	const { showLeftPanel } = useErrorPageConfiguration()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 	return (
 		<ErrorSearchContextProvider
 			value={{
@@ -230,7 +238,68 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								</title>
 							</Helmet>
 
-							<div>
+							<Box>
+								<Box
+									display="flex"
+									alignItems="center"
+									px="12"
+									borderBottom="neutral"
+									cssClass={controlBar}
+								>
+									<Box display="flex" gap="8">
+										{!showLeftPanel && (
+											<ButtonIcon
+												kind="secondary"
+												size="small"
+												shape="square"
+												emphasis="medium"
+												icon={
+													<IconExitRight size={14} />
+												}
+												onClick={() =>
+													setShowLeftPanel(true)
+												}
+											/>
+										)}
+										<Box
+											borderRadius="6"
+											border="neutral"
+											overflow="hidden"
+											display="flex"
+										>
+											<ButtonIcon
+												kind="secondary"
+												size="small"
+												shape="square"
+												emphasis="low"
+												icon={
+													<IconChevronUp size={14} />
+												}
+												cssClass={
+													styles.sessionSwitchButton
+												}
+											/>
+											<Box
+												as="span"
+												borderRight="neutral"
+											/>
+											<ButtonIcon
+												kind="secondary"
+												size="small"
+												shape="square"
+												emphasis="low"
+												icon={
+													<IconChevronDown
+														size={14}
+													/>
+												}
+												cssClass={
+													styles.sessionSwitchButton
+												}
+											/>
+										</Box>
+									</Box>
+								</Box>
 								<div className={styles.errorDetails}>
 									{loading ? (
 										<>
@@ -251,7 +320,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											/>
 										</>
 									) : (
-										<>
+										<div>
 											<ErrorTitle
 												errorGroup={data?.error_group}
 											/>
@@ -263,10 +332,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 											<ErrorInstance
 												errorGroup={data?.error_group}
 											/>
-										</>
+										</div>
 									)}
 								</div>
-							</div>
+							</Box>
 						</>
 					) : errorQueryingErrorGroup ? (
 						<ErrorState

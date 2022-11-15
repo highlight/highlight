@@ -3,4 +3,5 @@ export const detailsContainer: string
 export const errorDetails: string
 export const errorMetrics: string
 export const moveDetailsRight: string
+export const sessionSwitchButton: string
 export const withErrorState: string
