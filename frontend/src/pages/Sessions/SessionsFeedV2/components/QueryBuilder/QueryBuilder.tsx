@@ -1456,118 +1456,82 @@ function QueryBuilder<T extends SearchContextTypes>(
 
 	const parseGroup = useCallback(
 		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
-			const timeRange = parseRule(
+			const condition = isAnd ? 'must' : 'should'
+			const filterErrors = rules.some(
+				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
+			)
+			const timeRange =
 				rules.find(
 					(rule) => rule.field?.value === timeRangeField.value,
-				) ?? defaultTimeRangeRule,
-			)
-			const errorObjectRules = getFilterRules(
-				rules.filter(
-					(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-				),
-			)
-			const standardRules = getFilterRules(
-				rules.filter(
-					(r) => getType(r.field!.value) !== ERROR_FIELD_TYPE,
-				),
-			)
-			const condition = isAnd ? 'must' : 'should'
-			const query: OpenSearchQuery = {
-				query: {
-					bool: {
-						must: [
-							{
-								bool: {
-									[condition]: standardRules.map((rule) =>
-										parseRule(rule),
-									),
-								},
-							},
-							timeRange,
-						],
-					},
-				},
-			}
-			if (errorObjectRules.length > 0) {
-				query.query = {
-					bool: {
-						must: [
-							{
-								bool: {
-									[condition]: [
-										{
-											bool: {
-												[condition]: standardRules.map(
-													(rule) => parseRule(rule),
-												),
-											},
-										},
-										{
-											has_child: {
-												type: 'child',
-												query: {
-													bool: {
-														[condition]:
-															errorObjectRules.map(
-																(rule) =>
-																	parseRule(
-																		rule,
-																	),
-															),
-													},
-												},
-											},
-										},
-									],
-								},
-							},
-							timeRange,
-						],
-					},
-				}
-				query.childQuery = {
-					bool: {
-						must: [
-							{
-								bool: {
-									[condition]: [
-										{
-											has_parent: {
-												parent_type: 'parent',
-												query: {
-													bool: {
-														[condition]:
-															standardRules.map(
-																(rule) =>
-																	parseRule(
-																		rule,
-																	),
-															),
-													},
-												},
-											},
-										},
-										{
-											bool: {
-												[condition]:
-													errorObjectRules.map(
-														(rule) =>
-															parseRule(rule),
-													),
-											},
-										},
-									],
-								},
-							},
-							timeRange,
-						],
-					},
-				}
-			}
+				) ?? defaultTimeRangeRule
 
-			return query
+			const timeRule = parseRule(timeRange)
+
+			const errorObjectRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) === ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const standardRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) !== ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const request: OpenSearchQuery = { query: {} }
+
+			if (filterErrors) {
+				request.query = {
+					bool: {
+						must: [
+							{
+								bool: {
+									[condition]: standardRules,
+								},
+							},
+							{
+								has_child: {
+									type: 'child',
+									query: {
+										bool: {
+											must: [
+												timeRule,
+												{
+													bool: {
+														[condition]:
+															errorObjectRules,
+													},
+												},
+											],
+										},
+									},
+								},
+							},
+						],
+					},
+				}
+			} else {
+				request.query = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: standardRules,
+								},
+							},
+						],
+					},
+				}
+			}
+			return request
 		},
-		[defaultTimeRangeRule, getFilterRules, parseRule, timeRangeField.value],
+		[defaultTimeRangeRule, parseRule, timeRangeField.value],
 	)
 
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
