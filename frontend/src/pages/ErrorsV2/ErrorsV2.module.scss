@@ -5,12 +5,8 @@
 	--top-padding: 80px;
 
 	display: flex;
-	padding-top: var(--header-height);
+	margin-top: var(--header-height);
 	width: 100%;
-
-	&.withErrorState {
-		padding-top: var(--header-height);
-	}
 }
 
 .detailsContainer {

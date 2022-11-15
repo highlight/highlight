@@ -214,11 +214,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				<title>Errors</title>
 			</Helmet>
 
-			<div
-				className={classNames(styles.container, {
-					[styles.withErrorState]: errorQueryingErrorGroup,
-				})}
-			>
+			<div className={styles.container}>
 				<SearchPanel />
 
 				<div
@@ -227,79 +223,67 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 					})}
 				>
 					{!integrated && <IntegrationCard />}
-					{error_secure_id && !errorQueryingErrorGroup ? (
-						<>
-							<Helmet>
-								<title>
-									Errors:{' '}
-									{getHeaderFromError(
-										data?.error_group?.event ?? [],
-									)}
-								</title>
-							</Helmet>
 
-							<Box>
+					<Box
+						display="flex"
+						flexDirection="column"
+						style={{ height: '100%' }}
+					>
+						<Box
+							display="flex"
+							alignItems="center"
+							px="12"
+							borderBottom="neutral"
+							cssClass={controlBar}
+						>
+							<Box display="flex" gap="8">
+								{!showLeftPanel && (
+									<ButtonIcon
+										kind="secondary"
+										size="small"
+										shape="square"
+										emphasis="medium"
+										icon={<IconExitRight size={14} />}
+										onClick={() => setShowLeftPanel(true)}
+									/>
+								)}
 								<Box
+									borderRadius="6"
+									border="neutral"
+									overflow="hidden"
 									display="flex"
-									alignItems="center"
-									px="12"
-									borderBottom="neutral"
-									cssClass={controlBar}
 								>
-									<Box display="flex" gap="8">
-										{!showLeftPanel && (
-											<ButtonIcon
-												kind="secondary"
-												size="small"
-												shape="square"
-												emphasis="medium"
-												icon={
-													<IconExitRight size={14} />
-												}
-												onClick={() =>
-													setShowLeftPanel(true)
-												}
-											/>
-										)}
-										<Box
-											borderRadius="6"
-											border="neutral"
-											overflow="hidden"
-											display="flex"
-										>
-											<ButtonIcon
-												kind="secondary"
-												size="small"
-												shape="square"
-												emphasis="low"
-												icon={
-													<IconChevronUp size={14} />
-												}
-												cssClass={
-													styles.sessionSwitchButton
-												}
-											/>
-											<Box
-												as="span"
-												borderRight="neutral"
-											/>
-											<ButtonIcon
-												kind="secondary"
-												size="small"
-												shape="square"
-												emphasis="low"
-												icon={
-													<IconChevronDown
-														size={14}
-													/>
-												}
-												cssClass={
-													styles.sessionSwitchButton
-												}
-											/>
-										</Box>
-									</Box>
+									<ButtonIcon
+										kind="secondary"
+										size="small"
+										shape="square"
+										emphasis="low"
+										icon={<IconChevronUp size={14} />}
+										cssClass={styles.sessionSwitchButton}
+									/>
+									<Box as="span" borderRight="neutral" />
+									<ButtonIcon
+										kind="secondary"
+										size="small"
+										shape="square"
+										emphasis="low"
+										icon={<IconChevronDown size={14} />}
+										cssClass={styles.sessionSwitchButton}
+									/>
 								</Box>
+							</Box>
+						</Box>
+						{error_secure_id && !errorQueryingErrorGroup ? (
+							<>
+								<Helmet>
+									<title>
+										Errors:{' '}
+										{getHeaderFromError(
+											data?.error_group?.event ?? [],
+										)}
+									</title>
+								</Helmet>
+
 								<div className={styles.errorDetails}>
 									{loading ? (
 										<>
@@ -335,16 +319,16 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										</div>
 									)}
 								</div>
-							</Box>
-						</>
-					) : errorQueryingErrorGroup ? (
-						<ErrorState
-							shownWithHeader
-							message="This error does not exist or has not been made public."
-						/>
-					) : (
-						<NoActiveErrorCard />
-					)}
+							</>
+						) : errorQueryingErrorGroup ? (
+							<ErrorState
+								shownWithHeader
+								message="This error does not exist or has not been made public."
+							/>
+						) : (
+							<NoActiveErrorCard />
+						)}
+					</Box>
 				</div>
 			</div>
 		</ErrorSearchContextProvider>
