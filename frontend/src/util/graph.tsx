@@ -12,6 +12,7 @@ import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { namedOperations } from '@graph/operations'
+import { apolloCache } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { persistCache } from 'apollo3-cache-persist'
 import Firebase from 'firebase/app'
@@ -115,7 +116,7 @@ const cache = new InMemoryCache({
 const STORED_QUERIES = ['metrics_histogram', 'metrics_timeline'] as const
 persistCache({
 	cache,
-	storage: sessionStorage,
+	storage: apolloCache,
 	key: 'highlight-apollo-cache',
 	persistenceMapper: async (data: string) => {
 		const d: { ROOT_QUERY?: { [key: string]: any } } = JSON.parse(data)
