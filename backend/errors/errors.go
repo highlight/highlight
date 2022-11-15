@@ -41,7 +41,7 @@ func init() {
 		client := &http.Client{Transport: customTransport}
 		fetch = NetworkFetcher{client: client}
 	} else {
-		fetch = NetworkFetcher{client: http.DefaultClient}
+		fetch = NetworkFetcher{}
 	}
 }
 
@@ -68,11 +68,19 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 		return nil, err
 	}
 	// get minified file
+	if n.client == nil {
+		n.client = http.DefaultClient
+	}
 	res, err := n.client.Get(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting source file")
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Errorf("failed to close network reader %+v", err)
+		}
+	}(res.Body)
 	if res.StatusCode != http.StatusOK {
 		return nil, e.New("status code not OK")
 	}
