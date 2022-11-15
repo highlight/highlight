@@ -617,7 +617,7 @@ export class Highlight {
 				!this.sessionData.sessionSecureID
 			) {
 				console.error(
-					'Failed to initialize Highlight; sessionData is incorrectly configured',
+					'Failed to initialize Highlight; an error occurred on our end.',
 					this.sessionData,
 				)
 				return
