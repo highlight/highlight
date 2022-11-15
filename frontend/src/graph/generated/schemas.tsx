@@ -330,6 +330,13 @@ export type ErrorGroup = {
 	type: Scalars['String']
 }
 
+export type ErrorInstance = {
+	__typename?: 'ErrorInstance'
+	error_object: ErrorObject
+	next_id?: Maybe<Scalars['ID']>
+	previous_id?: Maybe<Scalars['ID']>
+}
+
 export type ErrorMetadata = {
 	__typename?: 'ErrorMetadata'
 	browser?: Maybe<Scalars['String']>
@@ -1185,6 +1192,7 @@ export type Query = {
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
 	error_groups_opensearch: ErrorResults
+	error_instance?: Maybe<ErrorInstance>
 	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
@@ -1376,6 +1384,11 @@ export type QueryError_Groups_OpensearchArgs = {
 	page?: Maybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryError_InstanceArgs = {
+	error_group_secure_id: Scalars['String']
+	error_object_id?: Maybe<Scalars['ID']>
 }
 
 export type QueryError_ObjectArgs = {

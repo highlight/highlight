@@ -1,8 +1,8 @@
 import { Avatar } from '@components/Avatar/Avatar'
 import {
-	useGetErrorObjectQuery,
+	useGetErrorInstanceLazyQuery,
+	useGetErrorInstanceQuery,
 	useGetProjectQuery,
-	useGetRecentErrorsQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
@@ -16,7 +16,7 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import React from 'react'
+import React, { useState } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -25,37 +25,45 @@ type Props = React.PropsWithChildren & {
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const [currentErrorObjectId, setCurrentErrorObjectId] = useState<
+		string | undefined
+	>()
 	const { projectId } = useProjectId()
 	const history = useHistory()
-	const [selectedErrorObjectIndex, setSelectedErrorObjectIndex] =
-		React.useState<number>(0)
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: { id: projectId },
 	})
 
-	// TODO: Figure out a better way of pulling the error objects and paging
-	// through them.
-	const { data: recentErrorsData } = useGetRecentErrorsQuery({
-		variables: { secure_id: String(errorGroup?.secure_id) },
-		skip: !errorGroup?.secure_id,
-		onCompleted: () => {
-			setSelectedErrorObjectIndex(0)
-		},
-	})
-
-	const metadataLog = recentErrorsData?.error_group?.metadata_log || []
-	const { data } = useGetErrorObjectQuery({
+	const [getErrorInstanceLazyQuery] = useGetErrorInstanceLazyQuery()
+	const { data } = useGetErrorInstanceQuery({
 		variables: {
-			id: String(metadataLog[selectedErrorObjectIndex]?.error_id),
+			error_group_secure_id: String(errorGroup?.secure_id),
+			error_object_id: currentErrorObjectId,
+		},
+		onCompleted: (data) => {
+			const previousErrorObjectId = data?.error_instance?.previous_id
+
+			if (previousErrorObjectId) {
+				// Prefetch the next error object so it's in the cache and transitions
+				// are fast.
+				getErrorInstanceLazyQuery({
+					variables: {
+						error_group_secure_id: String(errorGroup?.secure_id),
+						error_object_id: previousErrorObjectId,
+					},
+				})
+			}
 		},
 	})
 
-	if (!data?.error_object) {
+	const errorInstance = data?.error_instance
+
+	if (!errorInstance || !errorInstance?.error_object) {
 		return null
 	}
 
-	const errorObject = data.error_object
+	const errorObject = errorInstance?.error_object
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
@@ -71,45 +79,50 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</Text>
 				</Box>
 
-				<Box display="flex" gap="8">
-					<Button
-						disabled={selectedErrorObjectIndex <= 0}
-						kind="secondary"
-						emphasis="medium"
-						onClick={() =>
-							setSelectedErrorObjectIndex(
-								Math.max(selectedErrorObjectIndex - 1, 0),
-							)
-						}
-					>
-						Older
-					</Button>
-					<Button
-						disabled={
-							selectedErrorObjectIndex >= metadataLog.length - 1
-						}
-						kind="secondary"
-						emphasis="medium"
-						onClick={() =>
-							setSelectedErrorObjectIndex(
-								selectedErrorObjectIndex + 1,
-							)
-						}
-					>
-						Newer
-					</Button>
-					<Button
-						kind="secondary"
-						emphasis="high"
-						onClick={() =>
-							history.push(
-								`/${projectId}/sessions/${errorObject.session?.secure_id}`,
-							)
-						}
-						iconLeft={<IconPlay />}
-					>
-						Show Session
-					</Button>
+				<Box>
+					<Box display="flex" gap="8" alignItems="center">
+						<Button
+							disabled={Number(errorInstance.previous_id) === 0}
+							kind="secondary"
+							emphasis="low"
+							onClick={() => {
+								if (errorInstance?.previous_id) {
+									setCurrentErrorObjectId(
+										errorInstance.previous_id,
+									)
+								}
+							}}
+						>
+							Older
+						</Button>
+						<Box borderRight="neutral" style={{ height: 18 }} />
+						<Button
+							disabled={Number(errorInstance.next_id) === 0}
+							kind="secondary"
+							emphasis="low"
+							onClick={() => {
+								if (errorInstance?.next_id) {
+									setCurrentErrorObjectId(
+										errorInstance.next_id,
+									)
+								}
+							}}
+						>
+							Newer
+						</Button>
+						<Button
+							kind="secondary"
+							emphasis="high"
+							onClick={() =>
+								history.push(
+									`/${projectId}/sessions/${errorObject.session?.secure_id}`,
+								)
+							}
+							iconLeft={<IconPlay />}
+						>
+							Show Session
+						</Button>
+					</Box>
 				</Box>
 			</Box>
 
@@ -165,30 +178,30 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				{metadata.map((tag) => {
-					return (
-						<Column.Container gap="16" key={tag.key}>
-							<Column span="4">
-								<Box py="10">
-									<Text
-										color="neutral500"
-										transform="capitalize"
-										align="left"
-									>
-										{tag.key}
-									</Text>
-								</Box>
-							</Column>
-							<Column span="8">
-								<Box py="10">
-									<Text align="left" lines="1">
-										{tag.label}
-									</Text>
-								</Box>
-							</Column>
-						</Column.Container>
-					)
-				})}
+				<Column.Container gap="16">
+					<Column span="4">
+						{metadata.map((tag) => (
+							<Box py="10" key={tag.key}>
+								<Text
+									color="neutral500"
+									transform="capitalize"
+									align="left"
+								>
+									{tag.key.replace('_', ' ')}
+								</Text>
+							</Box>
+						))}
+					</Column>
+					<Column span="8">
+						{metadata.map((tag) => (
+							<Box py="10" key={tag.key}>
+								<Text align="left" lines="1">
+									{tag.label}
+								</Text>
+							</Box>
+						))}
+					</Column>
+				</Column.Container>
 			</Box>
 		</Box>
 	)
@@ -209,6 +222,9 @@ const User: React.FC<{
 	const userProperties = getUserProperties(session)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
+	const userDisplayPropertyKeys = Object.keys(userProperties).filter(
+		(k) => k !== 'avatar',
+	)
 	const location = [session?.city, session?.state, session?.country]
 		.filter(Boolean)
 		.join(', ')
@@ -272,31 +288,20 @@ const User: React.FC<{
 
 				<Box py="8" px="12">
 					<Box>
-						{Object.keys(userProperties)
-							.filter((k) => k !== 'avatar')
-							.map((key) => (
-								<Column.Container key={key} gap="16">
-									<Column span="4">
-										<Box py="10">
-											<Text
-												color="neutral500"
-												align="left"
-												transform="capitalize"
-											>
-												{key}
-											</Text>
-										</Box>
-									</Column>
-									<Column span="8">
-										<Box py="10">
-											<Text>{userProperties[key]}</Text>
-										</Box>
-									</Column>
-								</Column.Container>
-							))}
-
 						<Column.Container gap="16">
 							<Column span="4">
+								{userDisplayPropertyKeys.map((key) => (
+									<Box py="10" key={key}>
+										<Text
+											color="neutral500"
+											align="left"
+											transform="capitalize"
+										>
+											{key}
+										</Text>
+									</Box>
+								))}
+
 								<Box py="10">
 									<Text color="neutral500" align="left">
 										Location
@@ -304,6 +309,12 @@ const User: React.FC<{
 								</Box>
 							</Column>
 							<Column span="8">
+								{userDisplayPropertyKeys.map((key) => (
+									<Box py="10" key={key}>
+										<Text>{userProperties[key]}</Text>
+									</Box>
+								))}
+
 								<Box py="10">
 									<Text>{location}</Text>
 								</Box>
