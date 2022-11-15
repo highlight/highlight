@@ -6,7 +6,7 @@ interface Metric {
 export const WebVitalsListener = (callback: (metric: Metric) => void) => {
 	;(function () {
 		var script = document.createElement('script')
-		script.src = 'https://unpkg.com/web-vitals/dist/web-vitals.iife.js'
+		script.src = 'https://static.highlight.io/web-vitals.iife.js'
 		script.onload = function () {
 			window?.webVitals?.getCLS(callback)
 			window?.webVitals?.getFCP(callback)
