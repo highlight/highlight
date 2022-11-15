@@ -18,4 +18,4 @@ export const spaces = {
 } as const
 
 export type Space = keyof typeof spaces
-export const spaceNames = Object.keys(spaces) as Space[]
+export const spaceNames = Object.keys(spaces) as readonly Space[]
