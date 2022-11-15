@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import React from 'react'
-import { Box, Props as BoxProps } from '../Box/Box'
+import { Box, BoxProps } from '../Box/Box'
 import { sprinkles } from '../../css/sprinkles.css'
 import { negativeMargin } from './utils'
 

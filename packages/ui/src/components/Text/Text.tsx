@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import React from 'react'
-import { Box, Props as BoxProps } from '../Box/Box'
+import { Box, BoxProps } from '../Box/Box'
 import { Truncate, Props as TruncateProps } from '../private/Truncate/Truncate'
 
 import * as styles from './styles.css'
