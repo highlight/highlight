@@ -663,11 +663,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.events.push(event)
 			}
 			emit.bind(this)
-			setTimeout(() => {
-				// Skip if we're already recording events
-				if (this.state === 'Recording') {
-					return
-				}
+
+			// Skip if we're already recording events
+			if (this.state !== 'Recording') {
 				const recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -701,7 +699,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 				this.addCustomEvent('Viewport', viewport)
 				this.submitViewportMetrics(viewport)
-			}, 1)
+			}
 
 			if (document.referrer) {
 				// Don't record the referrer if it's the same origin.
