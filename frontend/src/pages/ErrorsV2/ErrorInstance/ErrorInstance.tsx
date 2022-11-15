@@ -39,10 +39,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
-			error_object_id:
-				Number(currentErrorObjectId) === 0
-					? undefined
-					: currentErrorObjectId,
+			error_object_id: currentErrorObjectId,
 		},
 		onCompleted: (data) => {
 			const previousErrorObjectId = data?.error_instance?.previous_id
