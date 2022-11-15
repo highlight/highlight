@@ -919,7 +919,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			}
 
 			// only do this once, since we want to keep the visibility listener attached even when recoding is stopped
-			if (!this._hasPreviouslyInitialized && !this.manualStopped) {
+			if (!this._hasPreviouslyInitialized) {
 				// setup electron main thread window visiblity events listener
 				if (window.electron?.ipcRenderer) {
 					window.electron.ipcRenderer.on(
