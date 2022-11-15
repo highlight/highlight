@@ -1,15 +1,13 @@
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { GetErrorObjectQuery } from '@graph/operations'
-import { Callout } from '@highlight-run/ui'
+import { Button, Callout, Text } from '@highlight-run/ui'
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import Skeleton from 'react-loading-skeleton'
 
 import ErrorPageStyles from '../../Error/ErrorPage.module.scss'
 import styles from './ErrorStackTrace.module.scss'
@@ -51,43 +49,25 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 		(!errorObject?.structured_stack_trace || everyFrameHasError)
 
 	return (
-		<div className={styles.stackTraceCard}>
-			{showStackFrameNotUseful && (
+		<Stack gap="12">
+			{true && (
 				<Callout
 					title="These stack frames don't look that useful 😢"
 					kind="info"
 				>
-					<>
+					<Text>
 						Are there sourcemaps tied to your javascript code? If
 						yes, you can upload them to Highlight in CI/CD to get
 						enhanced stack traces.
-						<div className={styles.sourcemapActions}>
-							<ButtonLink
-								anchor
-								trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-								href="https://docs.highlight.run/sourcemaps"
-							>
-								Learn More
-							</ButtonLink>
-							<ButtonLink
-								trackingId="stackFrameSourcemapSettings"
-								to={`/${project_id}/settings/errors`}
-								type="default"
-							>
-								Sourcemap Settings
-							</ButtonLink>
-						</div>
-					</>
+					</Text>
+
+					<div className={styles.sourcemapActions}>
+						<Button kind="primary">Learn More</Button>
+						<Button kind="secondary">Sourcemap Settings</Button>
+					</div>
 				</Callout>
 			)}
-			{/* TODO: Loading? */}
-			{false ? (
-				Array(5)
-					.fill(0)
-					.map((_, index) => (
-						<Skeleton key={index} className={styles.skeleton} />
-					))
-			) : structuredStackTrace?.length ? (
+			{structuredStackTrace?.length ? (
 				structuredStackTrace?.map((e, i) => (
 					<StackSection
 						key={i}
@@ -113,7 +93,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 					/>
 				</div>
 			)}
-		</div>
+		</Stack>
 	)
 }
 
