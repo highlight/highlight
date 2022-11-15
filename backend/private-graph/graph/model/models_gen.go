@@ -171,8 +171,14 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	Name  string `json:"name"`
-	Value int64  `json:"value"`
+	Date  time.Time `json:"date"`
+	Name  string    `json:"name"`
+	Value int64     `json:"value"`
+}
+
+type ErrorGroupFrequenciesParamsInput struct {
+	DateRange       *DateRangeInput `json:"date_range"`
+	ResolutionHours *int            `json:"resolution_hours"`
 }
 
 type ErrorMetadata struct {

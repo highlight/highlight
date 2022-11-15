@@ -300,6 +300,7 @@ export type ErrorComment = {
 
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
+	date: Scalars['Timestamp']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }
@@ -328,6 +329,11 @@ export type ErrorGroup = {
 	state: ErrorState
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
+}
+
+export type ErrorGroupFrequenciesParamsInput = {
+	date_range?: Maybe<DateRangeInput>
+	resolution_hours?: Maybe<Scalars['Int']>
 }
 
 export type ErrorInstance = {
@@ -1184,6 +1190,7 @@ export type Query = {
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
+	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
@@ -1347,6 +1354,12 @@ export type QueryErrorDistributionArgs = {
 	error_group_secure_id: Scalars['String']
 	project_id: Scalars['ID']
 	property: Scalars['String']
+}
+
+export type QueryErrorGroupFrequenciesArgs = {
+	error_group_secure_id: Scalars['String']
+	params: ErrorGroupFrequenciesParamsInput
+	project_id: Scalars['ID']
 }
 
 export type QueryError_AlertsArgs = {

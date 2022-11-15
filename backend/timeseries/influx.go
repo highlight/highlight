@@ -25,18 +25,21 @@ type MeasurementConfig struct {
 	DownsampleBucketSuffix string
 }
 
+const Metrics Measurement = "metrics"
+const Errors Measurement = "errors"
+
 var Error = MeasurementConfig{
-	Name:                   "errors",
-	AggName:                "errors-aggregate-hour",
+	Name:                   Errors,
+	AggName:                Measurement(fmt.Sprintf("%s-aggregate-hour", Errors)),
 	DownsampleInterval:     time.Hour,
-	DownsampleThreshold:    12 * time.Hour,
+	DownsampleThreshold:    time.Hour,
 	DownsampleRetention:    0,
 	DownsampleBucketSuffix: "/downsampled",
 }
 
 var Metric = MeasurementConfig{
-	Name:                   "metrics",
-	AggName:                "metrics-aggregate-minute",
+	Name:                   Metrics,
+	AggName:                Measurement(fmt.Sprintf("%s-aggregate-minute", Metrics)),
 	DownsampleInterval:     time.Minute,
 	DownsampleThreshold:    time.Hour,
 	DownsampleRetention:    time.Hour * 24 * 90,
@@ -216,8 +219,8 @@ func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point)
 
 // GetSampledMeasurement returns the bucket and measurement to query depending on the time range
 func (i *InfluxDB) GetSampledMeasurement(defaultBucket string, defaultMeasurement Measurement, timeRange time.Duration) (bucket string, m Measurement) {
-	config := Configs[m]
-	if timeRange > config.DownsampleThreshold {
+	config := Configs[defaultMeasurement]
+	if timeRange >= config.DownsampleThreshold {
 		return defaultBucket + config.DownsampleBucketSuffix, config.AggName
 	}
 	return defaultBucket, defaultMeasurement

@@ -470,6 +470,11 @@ input HistogramParamsInput {
 	filters: [MetricTagFilterInput!]
 }
 
+input ErrorGroupFrequenciesParamsInput {
+	date_range: DateRangeInput
+	resolution_hours: Int
+}
+
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -763,6 +768,7 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
+	date: Timestamp!
 	name: String!
 	value: Int64!
 }
@@ -1083,6 +1089,11 @@ type Query {
 		project_id: ID!
 		error_group_secure_id: String!
 		property: String!
+	): [ErrorDistributionItem]!
+	errorGroupFrequencies(
+		project_id: ID!
+		error_group_secure_id: String!
+		params: ErrorGroupFrequenciesParamsInput!
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount

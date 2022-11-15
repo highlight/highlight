@@ -4035,6 +4035,50 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 	return errorDistribution, nil
 }
 
+// ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureID string, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
+	}
+
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	resHours := 24
+	if params.ResolutionHours != nil && *params.ResolutionHours != 0 {
+		resHours = *params.ResolutionHours
+	}
+	query := fmt.Sprintf(`
+      from(bucket: "%[1]s")
+		|> range(start: %[2]s, stop: %[3]s)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		|> filter(fn: (r) => r.ErrorGroupID == "%[5]s")
+		|> aggregateWindow(every: %[6]dh, fn: sum, createEmpty: true)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, strconv.Itoa(errorGroup.ID), resHours)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupID", errorGroup.ID)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		field := r.Values["_field"]
+		if field != nil {
+			var value int64 = 0
+			if r.Value != nil {
+				value = r.Value.(int64)
+			}
+			response = append(response, &modelInputs.ErrorDistributionItem{
+				Date:  r.Time,
+				Name:  field.(string),
+				Value: value,
+			})
+		}
+	}
+	return response, nil
+}
+
 // Referrers is the resolver for the referrers field.
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -5637,7 +5681,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		  |> group(columns: ["_field"])
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, filter)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
@@ -5660,7 +5704,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5690,7 +5734,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), tagName, timeseries.Metric.Name, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5720,7 +5764,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), timeseries.Metric.Name, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -5857,7 +5901,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  |> sort(desc: true)
           |> limit(n: 10)
 		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metric.Name), days, timeseries.Metric.Name, extraFiltersStr, params.Attribute.String())
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
 	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())
