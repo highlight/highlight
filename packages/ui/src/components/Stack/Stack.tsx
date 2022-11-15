@@ -43,7 +43,6 @@ export const Stack: React.FC<Props> = ({
 		wrap,
 		(value) => wrapFlexWrapLookup[String(value)],
 	)
-	console.log(flexWrap, flexDirection)
 
 	return (
 		<Box
