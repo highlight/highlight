@@ -11,7 +11,6 @@ import {
 } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { IndexedDBFetch } from '@util/db'
-import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
@@ -147,7 +146,7 @@ export const usePreloadData = function () {
 							index: 0,
 						})
 						await IndexedDBFetch(response.data.event_chunk_url)
-						log('preload.ts', `preloaded session ${sess.secure_id}`)
+						console.log(`preloaded session ${sess.secure_id}`)
 					} catch (e: any) {
 						const msg = `failed to preload session ${session.secure_id}`
 						console.warn(msg)
@@ -157,7 +156,7 @@ export const usePreloadData = function () {
 			)
 		}
 		await Promise.all(promises)
-		log('preload.ts', `preloaded ${promises.length} sessions`)
+		console.log(`preloaded ${promises.length} sessions`)
 	}, [
 		fetchEventChunkURL,
 		fetchEventChunks,
