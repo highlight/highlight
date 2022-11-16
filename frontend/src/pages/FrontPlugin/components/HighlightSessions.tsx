@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react'
-import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import Button from '@components/Button/Button/Button'
-import MinimalSessionCard from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard'
-import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
-import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
-import { useParams } from '@util/react-router/useParams'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
-import moment from 'moment/moment'
+import Card from '@components/Card/Card'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import Card from '@components/Card/Card'
-import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
+import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import SvgShareIcon from '@icons/ShareIcon'
+import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
+import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import MinimalSessionCard from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard'
+import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
+import SessionsQueryBuilder from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
+import moment from 'moment/moment'
+import React, { useEffect, useState } from 'react'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
@@ -113,10 +113,10 @@ function HighlightSessions() {
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
 	return (
-		<div className={'w-full flex flex-row justify-center p-2'}>
-			<div className={'w-full flex flex-col gap-2'}>
+		<div className={'flex w-full flex-row justify-center p-2'}>
+			<div className={'flex w-full flex-col gap-2'}>
 				<SessionsQueryBuilder />
-				<div className={'w-full flex flex-col'}>
+				<div className={'flex w-full flex-col'}>
 					{data?.sessions_opensearch.sessions.map((s) => (
 						<MinimalSessionCard
 							compact
@@ -134,7 +134,7 @@ function HighlightSessions() {
 						/>
 					))}
 					{data?.sessions_opensearch.sessions.length === 0 && (
-						<Card className={'px-4 py-0 m-0'}>
+						<Card className={'m-0 px-4 py-0'}>
 							<EmptyCardPlaceholder
 								compact
 								message={`No sessions matched the given filters. Please try adjusting the date range.`}
@@ -144,7 +144,7 @@ function HighlightSessions() {
 					)}
 				</div>
 				<Button
-					className={'w-full flex justify-center gap-2 align-middle'}
+					className={'flex w-full justify-center gap-2 align-middle'}
 					onClick={() => {
 						window.open(url, '_blank')
 					}}
