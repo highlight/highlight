@@ -86,7 +86,8 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							linesBefore={e?.linesBefore ?? undefined}
 							linesAfter={e?.linesAfter ?? undefined}
 							error={e?.error ?? undefined}
-							index={i}
+							isFirst={i === 0}
+							isLast={i >= structuredStackTrace.length - 1}
 							compact={false}
 						/>
 					))}
@@ -110,8 +111,9 @@ type StackSectionProps = {
 	linesBefore?: string
 	linesAfter?: string
 	error?: string
-	index: number
 	compact: boolean
+	isFirst: boolean
+	isLast: boolean
 }
 
 const getErrorMessage = (error: string | undefined): string | undefined => {
@@ -146,12 +148,13 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	linesBefore,
 	linesAfter,
 	error,
-	index,
+	isFirst,
+	isLast,
 }) => {
-	const [expanded, setExpanded] = React.useState(index === 0)
+	const [expanded, setExpanded] = React.useState(isFirst)
 
 	const trigger = (
-		<Box px="8">
+		<Box p="12">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -163,8 +166,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					linesAfter={linesAfter}
 				/>
 			) : (
-				<Box>
-					<span
+				<Text family="monospace" as="div">
+					<Box
+						as="span"
+						cssClass={styles.lineNumber}
+						mr="24"
 						style={
 							{
 								'--longest-character-length':
@@ -173,7 +179,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						}
 					>
 						{lineNumber}
-					</span>
+					</Box>
 					<Tooltip mouseEnterDelay={0.1} title={functionName}>
 						<span>{functionName}</span>
 					</Tooltip>
@@ -183,7 +189,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 							title={getErrorMessage(error)}
 						/>
 					</span>
-				</Box>
+				</Text>
 			)}
 		</Box>
 	)
@@ -192,11 +198,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 		<Box
 			background="neutral100"
 			p="12"
-			bt={index === 0 ? 'neutral' : undefined}
+			bt={isFirst ? 'neutral' : undefined}
 			br="neutral"
 			bb="neutral"
 			bl="neutral"
-			btr={index === 0 ? '6' : undefined}
+			btr={isFirst ? '6' : undefined}
 			display="flex"
 			justifyContent="space-between"
 			alignItems="center"
@@ -223,11 +229,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 		<Box>
 			<StackTraceSectionCollapsible
 				title={stackTraceTitle}
-				key={index}
 				expanded={expanded}
 				setExpanded={setExpanded}
+				isLast={isLast}
 			>
-				<Box>{trigger}</Box>
+				{trigger}
 			</StackTraceSectionCollapsible>
 		</Box>
 	)
@@ -235,18 +241,21 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 
 const StackTraceSectionCollapsible: React.FC<
 	React.PropsWithChildren<{
-		title: string | React.ReactElement
 		expanded: boolean
 		setExpanded: (expanded: boolean) => void
+		isLast: boolean
+		title: string | React.ReactElement
 	}>
-> = ({ children, expanded, setExpanded, title }) => {
+> = ({ children, expanded, setExpanded, isLast, title }) => {
 	return (
 		<ReactCollapsible
 			trigger={title}
 			open={expanded}
 			handleTriggerClick={() => setExpanded(!expanded)}
 			transitionTime={150}
-			contentInnerClassName={styles.collapsibleContent}
+			contentInnerClassName={styles.collapsibleContent({
+				rounded: isLast,
+			})}
 		>
 			{children}
 		</ReactCollapsible>
