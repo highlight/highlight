@@ -395,8 +395,19 @@ type SocialLink struct {
 }
 
 type SourceMappingError struct {
-	ErrorCode *SourceMappingErrorCode `json:"errorCode"`
-	FileURL   *string                 `json:"fileURL"`
+	ErrorCode                  SourceMappingErrorCode `json:"errorCode"`
+	StackTraceFileURL          string                 `json:"stackTraceFileURL"`
+	SourcemapFetchStrategy     string                 `json:"sourcemapFetchStrategy"`
+	SourceMapURL               string                 `json:"sourceMapURL"`
+	MinifiedFetchStrategy      string                 `json:"minifiedFetchStrategy"`
+	ActualMinifiedFetchedPath  string                 `json:"actualMinifiedFetchedPath"`
+	MinifiedLineNumber         int                    `json:"minifiedLineNumber"`
+	MinifiedColumnNumber       int                    `json:"minifiedColumnNumber"`
+	ActualSourcemapFetchedPath string                 `json:"actualSourcemapFetchedPath"`
+	SourcemapFileSize          string                 `json:"sourcemapFileSize"`
+	MinifiedFileSize           string                 `json:"minifiedFileSize"`
+	MappedLineNumber           int                    `json:"mappedLineNumber"`
+	MappedColumnNumber         int                    `json:"mappedColumnNumber"`
 }
 
 type SubscriptionDetails struct {

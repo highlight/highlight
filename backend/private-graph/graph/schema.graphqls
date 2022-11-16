@@ -398,15 +398,26 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
-	sourceMappingErrorMetadata: SourceMappingError
+	sourceMappingErrorMetadata: SourceMappingError!
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
 }
 
 type SourceMappingError {
-	errorCode: SourceMappingErrorCode
-	fileURL: String
+	errorCode: SourceMappingErrorCode!
+	stackTraceFileURL: String!
+	sourcemapFetchStrategy: String!
+	sourceMapURL: String!
+	minifiedFetchStrategy: String!
+	actualMinifiedFetchedPath: String!
+	minifiedLineNumber: Int!
+	minifiedColumnNumber: Int!
+	actualSourcemapFetchedPath: String!
+	sourcemapFileSize: String!
+	minifiedFileSize: String!
+	mappedLineNumber: Int!
+	mappedColumnNumber: Int!
 }
 
 type S3File {
