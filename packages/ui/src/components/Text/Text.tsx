@@ -19,7 +19,7 @@ export type Props = React.PropsWithChildren &
 export const Text = React.forwardRef<unknown, Props>(
 	(
 		{
-			as,
+			as = 'span',
 			children,
 			color,
 			display,

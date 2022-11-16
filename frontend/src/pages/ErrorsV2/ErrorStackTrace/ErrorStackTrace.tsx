@@ -1,24 +1,26 @@
-import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
-import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { GetErrorObjectQuery } from '@graph/operations'
-import { Button, Callout, Text } from '@highlight-run/ui'
-import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
-import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
-import { useParams } from '@util/react-router/useParams'
+import {
+	Box,
+	Button,
+	Callout,
+	IconCaretDown,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
+import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
+import JsonOrTextCard from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
 import React from 'react'
+import ReactCollapsible from 'react-collapsible'
 
-import ErrorPageStyles from '../../Error/ErrorPage.module.scss'
-import styles from './ErrorStackTrace.module.scss'
+import * as styles from './ErrorStackTrace.css'
 
 interface Props {
 	errorObject?: GetErrorObjectQuery['error_object']
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {
-	const { project_id } = useParams<{ project_id: string }>()
-
 	const structuredStackTrace = errorObject?.structured_stack_trace
 
 	/**
@@ -50,7 +52,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 
 	return (
 		<Stack gap="12">
-			{true && (
+			{showStackFrameNotUseful && (
 				<Callout
 					title="These stack frames don't look that useful 😢"
 					kind="info"
@@ -61,37 +63,36 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 						enhanced stack traces.
 					</Text>
 
-					<div className={styles.sourcemapActions}>
+					<Box>
 						<Button kind="primary">Learn More</Button>
 						<Button kind="secondary">Sourcemap Settings</Button>
-					</div>
+					</Box>
 				</Callout>
 			)}
+
 			{structuredStackTrace?.length ? (
-				structuredStackTrace?.map((e, i) => (
-					<StackSection
-						key={i}
-						fileName={e?.fileName ?? ''}
-						functionName={e?.functionName ?? ''}
-						lineNumber={e?.lineNumber ?? 0}
-						columnNumber={e?.columnNumber ?? 0}
-						longestLineNumberCharacterLength={
-							longestLineNumberCharacterLength
-						}
-						lineContent={e?.lineContent ?? undefined}
-						linesBefore={e?.linesBefore ?? undefined}
-						linesAfter={e?.linesAfter ?? undefined}
-						error={e?.error ?? undefined}
-						index={i}
-						compact={false}
-					/>
-				))
+				<Box>
+					{structuredStackTrace?.map((e, i) => (
+						<StackSection
+							key={i}
+							fileName={e?.fileName ?? ''}
+							functionName={e?.functionName ?? ''}
+							lineNumber={e?.lineNumber ?? 0}
+							columnNumber={e?.columnNumber ?? 0}
+							longestLineNumberCharacterLength={
+								longestLineNumberCharacterLength
+							}
+							lineContent={e?.lineContent ?? undefined}
+							linesBefore={e?.linesBefore ?? undefined}
+							linesAfter={e?.linesAfter ?? undefined}
+							error={e?.error ?? undefined}
+							index={i}
+							compact={false}
+						/>
+					))}
+				</Box>
 			) : (
-				<div className={styles.stackTraceCard}>
-					<JsonOrTextCard
-						jsonOrText={errorObject?.stack_trace || ''}
-					/>
-				</div>
+				<JsonOrTextCard jsonOrText={errorObject?.stack_trace || ''} />
 			)}
 		</Stack>
 	)
@@ -147,9 +148,10 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	error,
 	index,
 }) => {
+	const [expanded, setExpanded] = React.useState(index === 0)
+
 	const trigger = (
-		<div className={ErrorPageStyles.triggerWrapper}>
-			<hr />
+		<Box px="8">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -161,9 +163,8 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					linesAfter={linesAfter}
 				/>
 			) : (
-				<div className={styles.editor}>
+				<Box>
 					<span
-						className={styles.lineNumber}
 						style={
 							{
 								'--longest-character-length':
@@ -174,57 +175,85 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						{lineNumber}
 					</span>
 					<Tooltip mouseEnterDelay={0.1} title={functionName}>
-						<span className={styles.functionName}>
-							{functionName}
-						</span>
+						<span>{functionName}</span>
 					</Tooltip>
-					<span className={styles.tooltip}>
+					<span>
 						<InfoTooltip
 							size="large"
 							title={getErrorMessage(error)}
 						/>
 					</span>
-				</div>
+				</Box>
 			)}
-		</div>
+		</Box>
 	)
 
 	const stackTraceTitle = (
-		<>
-			{truncateFileName(fileName || '')}
-			<span className={styles.fillerText}>
-				{functionName ? ' in ' : ''}
+		<Box
+			background="neutral100"
+			p="12"
+			bt={index === 0 ? 'neutral' : undefined}
+			br="neutral"
+			bb="neutral"
+			bl="neutral"
+			btr={index === 0 ? '6' : undefined}
+			display="flex"
+			justifyContent="space-between"
+			alignItems="center"
+		>
+			<Box display="flex" gap="4">
+				<Text>{truncateFileName(fileName || '')}</Text>
+				<Text color="neutral500" as="span">
+					{functionName ? ' in ' : ''}
+				</Text>
+				<Text>{functionName}</Text>
+				<Text color="neutral500" as="span">
+					{lineNumber ? ' at line ' : ''}
+				</Text>
+				<Text>{lineNumber}</Text>
+			</Box>
+
+			<span className={styles.iconCaret({ open: expanded })}>
+				<IconCaretDown />
 			</span>
-			{functionName}
-			<span className={styles.fillerText}>
-				{lineNumber ? ' at line ' : ''}
-			</span>
-			{lineNumber}
-		</>
+		</Box>
 	)
 
 	return (
-		<div className={CollapsibleStyles.section}>
-			<div className={styles.collapsibleWrapper}>
-				{
-					<StatelessCollapsible
-						title={stackTraceTitle}
-						key={index}
-						defaultOpen={index === 0}
-						contentClassName={styles.contentWrapper}
-						stacked={true}
-					>
-						<div className={ErrorPageStyles.collapsible}>
-							{trigger}
-						</div>
-					</StatelessCollapsible>
-				}
-			</div>
-		</div>
+		<Box>
+			<StackTraceSectionCollapsible
+				title={stackTraceTitle}
+				key={index}
+				expanded={expanded}
+				setExpanded={setExpanded}
+			>
+				<Box>{trigger}</Box>
+			</StackTraceSectionCollapsible>
+		</Box>
 	)
 }
 
-const truncateFileName = (fileName: string, number_of_levels_to_go_up = 5) => {
+const StackTraceSectionCollapsible: React.FC<
+	React.PropsWithChildren<{
+		title: string | React.ReactElement
+		expanded: boolean
+		setExpanded: (expanded: boolean) => void
+	}>
+> = ({ children, expanded, setExpanded, title }) => {
+	return (
+		<ReactCollapsible
+			trigger={title}
+			open={expanded}
+			handleTriggerClick={() => setExpanded(!expanded)}
+			transitionTime={150}
+			contentInnerClassName={styles.collapsibleContent}
+		>
+			{children}
+		</ReactCollapsible>
+	)
+}
+
+const truncateFileName = (fileName: string, number_of_levels_to_go_up = 3) => {
 	const tokens = fileName.split('/')
 
 	return `${'../'.repeat(
