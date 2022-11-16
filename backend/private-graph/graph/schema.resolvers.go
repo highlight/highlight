@@ -3387,6 +3387,44 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 	return errorObject, nil
 }
 
+// ErrorInstance is the resolver for the error_instance field.
+func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, true)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error group")
+	}
+
+	errorObject := model.ErrorObject{}
+	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
+	if errorObjectID == nil {
+		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
+		}
+	} else {
+		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
+		}
+	}
+
+	nextErrorObject := model.ErrorObject{}
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id > ?", errorObject.ID).Order("id asc").Limit(1).Find(&nextErrorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading next error object in group")
+	}
+
+	previousErrorObject := model.ErrorObject{}
+	if err := r.DB.Model(&errorObject).Select("id").Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Where("id < ?", errorObject.ID).Order("id desc").Limit(1).Find(&previousErrorObject).Error; err != nil {
+		return nil, e.Wrap(err, "error reading previous error object in group")
+	}
+
+	errorInstance := model.ErrorInstance{
+		ErrorObject: errorObject,
+		NextID:      &nextErrorObject.ID,
+		PreviousID:  &previousErrorObject.ID,
+	}
+
+	return &errorInstance, nil
+}
+
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)

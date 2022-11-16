@@ -85,6 +85,7 @@ export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
 	})
 
 	return () => {
+		window.removeEventListener('storage', localStorageHandler)
 		XMLHttpRequest.prototype.send = send
 	}
 }
