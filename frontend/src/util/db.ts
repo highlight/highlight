@@ -1,9 +1,15 @@
-import { PersistentStorage } from 'apollo3-cache-persist'
+import {
+	ApolloLink,
+	FetchResult,
+	NextLink,
+	Observable,
+	Operation,
+} from '@apollo/client'
 import Dexie, { Table } from 'dexie'
 
 export interface CachedRequest {
 	key: string
-	data: string
+	data: FetchResult<Record<string, any>>
 }
 
 export class DB extends Dexie {
@@ -17,30 +23,61 @@ export class DB extends Dexie {
 	}
 }
 
-export class ApolloCache implements PersistentStorage<string> {
-	db: DB
-	constructor(db: DB) {
-		this.db = db
-	}
-	getItem: (key: string) => string | Promise<string | null> | null =
+export const db = new DB()
+
+export class IndexedDBCache {
+	getItem: (key: string) => Promise<FetchResult<Record<string, any>> | null> =
 		async function (key: string) {
 			const result = await db.requests.where('key').equals(key).first()
 			return result?.data ?? null
 		}
 	setItem: (
 		key: string,
-		value: string,
-	) => string | void | Promise<string> | Promise<void> = async function (
+		value: FetchResult<Record<string, any>>,
+	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
+		async function (key: string, value: FetchResult<Record<string, any>>) {
+			await db.requests.put({ key, data: value })
+		}
+	removeItem: (
 		key: string,
-		value: string,
-	) {
-		await db.requests.put({ key, data: value })
-	}
-	removeItem: (key: string) => void | Promise<string> | Promise<void> =
+	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
 		async function (key: string) {
 			await db.requests.delete(key)
 		}
 }
 
-export const db = new DB()
-export const apolloCache = new ApolloCache(db)
+export const indexeddbCache = new IndexedDBCache()
+
+export class IndexedDBLink extends ApolloLink {
+	httpLink: ApolloLink
+	constructor(httpLink: ApolloLink) {
+		super()
+		this.httpLink = httpLink
+	}
+	request(
+		operation: Operation,
+		forward?: NextLink,
+	): Observable<FetchResult<Record<string, any>>> | null {
+		return new Observable((observer) => {
+			const cacheKey = JSON.stringify({
+				operation: operation.operationName,
+				variables: operation.variables,
+			})
+			indexeddbCache.getItem(cacheKey).then((result) => {
+				if (result) {
+					observer.next(result)
+					observer.complete()
+				} else {
+					const req = this.httpLink.request(operation, forward)
+					if (req) {
+						req.subscribe((result) => {
+							indexeddbCache.setItem(cacheKey, result)
+							observer.next(result)
+							observer.complete()
+						})
+					}
+				}
+			})
+		})
+	}
+}

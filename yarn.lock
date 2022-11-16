@@ -7885,7 +7885,6 @@ __metadata:
     "@vanilla-extract/vite-plugin": ^3.6.1
     "@vitejs/plugin-react": ^2.2.0
     antd: ^4.17.0
-    apollo3-cache-persist: ^0.14.0
     autoprefixer: ^10.4.8
     babel-plugin-react-wrapped-display-name: ^1.0.0
     classnames: ^2.3.1
@@ -15165,15 +15164,6 @@ __metadata:
     normalize-path: ^3.0.0
     picomatch: ^2.0.4
   checksum: 985163db2292fac9e5a1e072bf99f1b5baccf196e4de25a0b0b81865ebddeb3b3eb4480734ef0a2ac8c002845396b91aa89121f5b84f93981a4658164a9ec6e9
-  languageName: node
-  linkType: hard
-
-"apollo3-cache-persist@npm:^0.14.0":
-  version: 0.14.0
-  resolution: "apollo3-cache-persist@npm:0.14.0"
-  peerDependencies:
-    "@apollo/client": ^3.2.5
-  checksum: 28a3a5cb51a4d10993b9ee0ec1c2f771e96f5eda30b01ef9438d079fe5e86eea3d0a65ed42febb9812c7c6a7e619c27b0b8a27a9436ffdd3adc48fc07af155c1
   languageName: node
   linkType: hard
 
