@@ -1635,10 +1635,10 @@ function QueryBuilder<T extends SearchContextTypes>(
 		(isAnd: boolean, rules: RuleProps[]) => {
 			const startDate = moment(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-			)
+			).startOf('minute')
 			const endDate = moment(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-			)
+			).endOf('minute')
 			const searchQuery = parseGroup(isAnd, rules)
 			serializedQuery.current = {
 				searchQuery: JSON.stringify(searchQuery.query),

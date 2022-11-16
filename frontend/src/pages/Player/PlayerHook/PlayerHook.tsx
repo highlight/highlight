@@ -683,7 +683,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					URL.revokeObjectURL(a.href)
 				}
 
-				IndexedDBFetch(directDownloadUrl)
+				fetch(directDownloadUrl)
 					.then((response) => response.json())
 					.then((data) => {
 						return toHighlightEvents(data || [])
