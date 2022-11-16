@@ -156,6 +156,11 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type DateRangeRequiredInput struct {
+	StartDate time.Time `json:"start_date"`
+	EndDate   time.Time `json:"end_date"`
+}
+
 type DiscordChannelInput struct {
 	Name string `json:"name"`
 	ID   string `json:"id"`
@@ -171,14 +176,15 @@ type EnhancedUserDetailsResult struct {
 }
 
 type ErrorDistributionItem struct {
-	Date  time.Time `json:"date"`
-	Name  string    `json:"name"`
-	Value int64     `json:"value"`
+	ErrorGroupID string    `json:"error_group_id"`
+	Date         time.Time `json:"date"`
+	Name         string    `json:"name"`
+	Value        int64     `json:"value"`
 }
 
 type ErrorGroupFrequenciesParamsInput struct {
-	DateRange       *DateRangeInput `json:"date_range"`
-	ResolutionHours *int            `json:"resolution_hours"`
+	DateRange       *DateRangeRequiredInput `json:"date_range"`
+	ResolutionHours int                     `json:"resolution_hours"`
 }
 
 type ErrorMetadata struct {

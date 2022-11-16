@@ -244,6 +244,11 @@ export type DateRangeInput = {
 	start_date?: Maybe<Scalars['Timestamp']>
 }
 
+export type DateRangeRequiredInput = {
+	end_date: Scalars['Timestamp']
+	start_date: Scalars['Timestamp']
+}
+
 export type DiscordChannel = {
 	__typename?: 'DiscordChannel'
 	id: Scalars['String']
@@ -301,6 +306,7 @@ export type ErrorComment = {
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
 	date: Scalars['Timestamp']
+	error_group_id: Scalars['String']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }
@@ -332,8 +338,8 @@ export type ErrorGroup = {
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
-	date_range?: Maybe<DateRangeInput>
-	resolution_hours?: Maybe<Scalars['Int']>
+	date_range: DateRangeRequiredInput
+	resolution_hours: Scalars['Int']
 }
 
 export type ErrorInstance = {
@@ -1357,7 +1363,7 @@ export type QueryErrorDistributionArgs = {
 }
 
 export type QueryErrorGroupFrequenciesArgs = {
-	error_group_secure_id: Scalars['String']
+	error_group_secure_ids: Array<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
 }

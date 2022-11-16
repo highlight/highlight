@@ -2256,6 +2256,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
 	}
 
+	influxSpan := tracer.StartSpan("public-graph.recordErrorGroupMetrics", tracer.ChildOf(putErrorsToDBSpan.Context()),
+		tracer.ResourceName("influx.errors"))
 	for groupID, errorObjects := range groupedErrors {
 		errorGroup := groups[groupID].Group
 		if err := r.RecordErrorGroupMetrics(errorGroup, errorObjects); err != nil {
@@ -2265,14 +2267,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			}).Error(err)
 		}
 	}
-
-	putErrorsToDBSpan.Finish()
+	influxSpan.Finish()
 
 	now := time.Now()
 	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		log.Error(e.Wrap(err, "error updating session payload time"))
+		putErrorsToDBSpan.Finish(tracer.WithError(err))
 		return
 	}
+	putErrorsToDBSpan.Finish()
 }
 
 func (r *Resolver) RecordErrorGroupMetrics(errorGroup *model.ErrorGroup, errors []*model.ErrorObject) error {
