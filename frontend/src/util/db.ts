@@ -7,18 +7,26 @@ import {
 } from '@apollo/client'
 import Dexie, { Table } from 'dexie'
 
-export interface CachedRequest {
-	key: string
-	data: FetchResult<Record<string, any>>
-}
-
 export class DB extends Dexie {
-	requests!: Table<CachedRequest>
+	requests!: Table<{
+		key: string
+		data: FetchResult<Record<string, any>>
+	}>
+	fetch!: Table<{
+		key: string
+		blob: Blob
+		options: {
+			status: number
+			statusText: string
+			headers: { [key: string]: string }
+		}
+	}>
 
 	constructor() {
 		super('highlight')
 		this.version(1).stores({
-			requests: 'key, data',
+			requests: 'key',
+			fetch: 'key',
 		})
 	}
 }
@@ -79,5 +87,33 @@ export class IndexedDBLink extends ApolloLink {
 				}
 			})
 		})
+	}
+}
+
+export const IndexedDBFetch = async function (
+	input: RequestInfo,
+	init?: RequestInit | undefined,
+) {
+	const cacheKey = JSON.stringify({ input, init })
+	const cached = await db.fetch.where('key').equals(cacheKey).first()
+	if (!cached) {
+		const response = await fetch(input, init)
+		const ret = response.clone()
+		const headers: { [key: string]: string } = {}
+		response.headers.forEach((value: string, key: string) => {
+			headers[key] = value
+		})
+		await db.fetch.put({
+			key: cacheKey,
+			blob: await response.blob(),
+			options: {
+				status: response.status,
+				statusText: response.statusText,
+				headers,
+			},
+		})
+		return ret
+	} else {
+		return new Response(cached.blob, cached.options)
 	}
 }

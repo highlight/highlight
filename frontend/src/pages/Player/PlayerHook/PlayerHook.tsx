@@ -28,6 +28,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { IndexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
@@ -327,7 +328,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 									secure_id: session_secure_id,
 									index: _i,
 								})
-								const chunkResponse = await fetch(
+								const chunkResponse = await IndexedDBFetch(
 									response.data.event_chunk_url,
 								)
 								chunkEventsSet(
@@ -682,7 +683,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					URL.revokeObjectURL(a.href)
 				}
 
-				fetch(directDownloadUrl)
+				IndexedDBFetch(directDownloadUrl)
 					.then((response) => response.json())
 					.then((data) => {
 						return toHighlightEvents(data || [])
