@@ -39,7 +39,7 @@ export const Stack: React.FC<Props> = ({
 		direction,
 		(value) => directionToFlexDirectionLookup[value],
 	)
-	const flexWrap = mapResponsiveValue(
+	const flexWrap: BoxProps['flexWrap'] = mapResponsiveValue(
 		wrap,
 		(value) => wrapFlexWrapLookup[String(value)],
 	)

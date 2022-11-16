@@ -23,22 +23,14 @@ export const variants = recipe({
 				borderRadius: vars.borderRadius.round,
 			},
 			rounded: {},
-			icon: {
-				border: 0,
-				height: 20,
-				width: 22,
-			},
 		},
-		theme: {
+		variant: {
 			white: sprinkles({
 				background: 'white',
 				border: 'neutral',
 				color: 'neutral700',
 			}),
-			grey: sprinkles({
-				background: 'neutral100',
-				color: 'neutral500',
-			}),
+			grey: sprinkles({ background: 'neutral100', color: 'neutral500' }),
 			outlineGrey: sprinkles({
 				border: 'neutral',
 				color: 'neutral500',
@@ -92,7 +84,7 @@ export const variants = recipe({
 	defaultVariants: {
 		size: 'small',
 		shape: 'rounded',
-		theme: 'white',
+		variant: 'white',
 	},
 })
 
