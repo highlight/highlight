@@ -1486,32 +1486,46 @@ function QueryBuilder<T extends SearchContextTypes>(
 			const request: OpenSearchQuery = { query: {} }
 
 			if (filterErrors) {
+				const errorGroupFilter = {
+					bool: {
+						[condition]: standardRules,
+					},
+				}
+				const errorObjectFilter = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: errorObjectRules,
+								},
+							},
+						],
+					},
+				}
 				request.query = {
 					bool: {
 						must: [
-							{
-								bool: {
-									[condition]: standardRules,
-								},
-							},
+							errorGroupFilter,
 							{
 								has_child: {
 									type: 'child',
-									query: {
-										bool: {
-											must: [
-												timeRule,
-												{
-													bool: {
-														[condition]:
-															errorObjectRules,
-													},
-												},
-											],
-										},
-									},
+									query: errorObjectFilter,
 								},
 							},
+						],
+					},
+				}
+				request.childQuery = {
+					bool: {
+						must: [
+							{
+								has_parent: {
+									parent_type: 'parent',
+									query: errorGroupFilter,
+								},
+							},
+							errorObjectFilter,
 						],
 					},
 				}
