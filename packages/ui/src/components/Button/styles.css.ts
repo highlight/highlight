@@ -121,6 +121,9 @@ export const variants = recipe({
 				'&:hover': {
 					cursor: 'pointer',
 				},
+				'&:disabled, &:disabled:hover, &:disabled:focus': {
+					cursor: 'not-allowed',
+				},
 			},
 		},
 	],
