@@ -3,22 +3,33 @@ import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import ApplicationPickerV2 from '@components/Header/components/ApplicationPickerV2/ApplicationPickerV2'
+import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
+import { linkStyle } from '@components/Header/styles.css'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
 	Button,
+	IconAtSymbol,
 	IconBell,
 	IconCog,
+	IconDesktopComputer,
+	IconDocumentText,
 	IconDotsHorizontal,
 	IconHome,
+	IconOfficeBuilding,
 	IconPlayCircle,
-	IconPlusSm,
+	IconQuestionMarkCircle,
+	IconSpeakerphone,
+	IconSwitchHorizontal,
+	IconUserCircle,
 	IconViewGrid,
+	IconViewGridAdd,
 	IconXCircle,
+	LinkButton,
 	Menu,
 } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
@@ -30,6 +41,7 @@ import { isProjectWithinTrial } from '@util/billing/billing'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { titleCaseString } from '@util/string'
 import classNames from 'classnames/bind'
 import { H } from 'highlight.run'
 import moment from 'moment'
@@ -51,8 +63,15 @@ export const Header = () => {
 			: project_id
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { showBanner } = useGlobalContext()
 	const history = useHistory()
+	const workspaceId = currentWorkspace?.id
+	const currentPage = location.pathname.split('/').pop()
+	const pages = [
+		{ key: 'home', icon: <IconHome size="14" /> },
+		{ key: 'errors', icon: <IconXCircle size="14" /> },
+		{ key: 'sessions', icon: <IconPlayCircle size="14" /> },
+		{ key: 'dashboards', icon: <IconViewGrid size="14" /> },
+	]
 
 	return (
 		<>
@@ -70,107 +89,96 @@ export const Header = () => {
 					{isLoggedIn ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
-						<Box display="flex" alignItems="center" gap="12">
-							<ApplicationPickerV2 />
-							<Box
-								display="flex"
-								alignItems="center"
-								gap="4"
-								style={{ zIndex: 4 }}
-							>
-								<Button
-									iconLeft={<IconHome size="14" />}
-									variant="grey"
-									onClick={() => {
-										history.push(`/${project_id}/home`)
-									}}
-								>
-									Home
-								</Button>
-								<Button
-									iconLeft={<IconXCircle size="14" />}
-									onClick={() => {
-										history.push(`/${project_id}/errors`)
-									}}
-								>
-									Errors
-								</Button>
-								<Button
-									iconLeft={<IconPlayCircle size="14" />}
-									variant="grey"
-									onClick={() => {
-										history.push(`/${project_id}/sessions`)
-									}}
-								>
-									Sessions
-								</Button>
-								<Button
-									iconLeft={<IconViewGrid size="14" />}
-									variant="grey"
-									onClick={() => {
-										history.push(
-											`/${project_id}/dashboards`,
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+						>
+							<ProjectPicker />
+							{project_id && (
+								<Box display="flex" alignItems="center" gap="4">
+									{pages.map((p) => {
+										return (
+											<LinkButton
+												iconLeft={p.icon}
+												emphasis={
+													currentPage === p.key
+														? 'high'
+														: 'low'
+												}
+												kind={
+													currentPage === p.key
+														? 'primary'
+														: 'secondary'
+												}
+												href={`/${project_id}/${p.key}`}
+												key={p.key}
+											>
+												{titleCaseString(p.key)}
+											</LinkButton>
 										)
-									}}
-								>
-									Dashboards
-								</Button>
-								<Menu>
-									<Menu.Button variant="grey">
-										<IconDotsHorizontal size="14" />
-									</Menu.Button>
-									<Menu.List>
-										<Menu.Item
-											onClick={() => {
-												history.push(
-													`/${project_id}/alerts`,
-												)
-											}}
+									})}
+									<Menu>
+										<Menu.Button
+											emphasis="low"
+											kind="secondary"
 										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
+											<IconDotsHorizontal size="14" />
+										</Menu.Button>
+										<Menu.List>
+											<Menu.Item
+												onClick={() => {
+													history.push(
+														`/${project_id}/alerts`,
+													)
+												}}
 											>
-												<IconPlusSm size="14" />
-												Alerts
-											</Box>
-										</Menu.Item>
-										<Menu.Item
-											onClick={() => {
-												history.push(
-													`/${project_id}/integrations`,
-												)
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSpeakerphone size="14" />
+													Alerts
+												</Box>
+											</Menu.Item>
+											<Menu.Item
+												onClick={() => {
+													history.push(
+														`/${project_id}/integrations`,
+													)
+												}}
 											>
-												<IconPlusSm size="14" />
-												Integrations
-											</Box>
-										</Menu.Item>
-										<Menu.Item
-											onClick={() => {
-												history.push(
-													`/${project_id}/setup`,
-												)
-											}}
-										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconViewGridAdd size="14" />
+													Integrations
+												</Box>
+											</Menu.Item>
+											<Menu.Item
+												onClick={() => {
+													history.push(
+														`/${project_id}/setup`,
+													)
+												}}
 											>
-												<IconPlusSm size="14" />
-												Setup
-											</Box>
-										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							</Box>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconDesktopComputer size="14" />
+													Setup
+												</Box>
+											</Menu.Item>
+										</Menu.List>
+									</Menu>
+								</Box>
+							)}
 						</Box>
 					) : (
 						<Box className={styles.logoWrapper}>
@@ -182,8 +190,12 @@ export const Header = () => {
 							</Link>
 						</Box>
 					)}
-
-					<Box display="flex" alignItems="center" gap="12">
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="12"
+						style={{ zIndex: 20000 }}
+					>
 						{!!project_id && (
 							<Box className={styles.quicksearchWrapper}>
 								<QuickSearch />
@@ -192,12 +204,148 @@ export const Header = () => {
 						<Box display="flex" alignItems="center" gap="4">
 							<Button
 								iconLeft={<IconBell size="14" />}
-								variant="grey"
+								emphasis="low"
+								kind="secondary"
 							/>
-							<Button
-								iconLeft={<IconCog size="14" />}
-								variant="grey"
-							/>
+							<Menu>
+								<Menu.Button emphasis="low" kind="secondary">
+									<IconCog size="14" />
+								</Menu.Button>
+								<Menu.List>
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/w/${workspaceId}/settings`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconOfficeBuilding
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Workspace settings
+										</Box>
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/w/${workspaceId}/account`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconUserCircle
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Account settings
+										</Box>
+									</Menu.Item>
+									<Menu.Divider />
+									<Menu.Item>
+										<Link
+											to="/switch"
+											className={linkStyle}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSwitchHorizontal
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Switch workspace
+											</Box>
+										</Link>
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/${project_id}/alerts`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconQuestionMarkCircle
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Feedback
+										</Box>
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/${project_id}/alerts`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconDocumentText
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Documentation
+										</Box>
+									</Menu.Item>
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/${project_id}/alerts`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconAtSymbol
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Shortcuts
+										</Box>
+									</Menu.Item>
+									<Menu.Divider />
+									<Menu.Item
+										onClick={() => {
+											history.push(
+												`/${project_id}/alerts`,
+											)
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											Log out
+										</Box>
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
 						</Box>
 					</Box>
 				</Box>
@@ -207,6 +355,7 @@ export const Header = () => {
 }
 
 const getBanner = (project_id: string) => {
+	return <DemoWorkspaceBanner />
 	if (isOnPrem) {
 		return <OnPremiseBanner />
 	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {

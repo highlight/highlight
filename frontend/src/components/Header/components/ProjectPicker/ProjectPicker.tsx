@@ -6,11 +6,13 @@ import {
 import {
 	Box,
 	IconBriefcase,
+	IconCheck,
 	IconDotsHorizontal,
 	IconPlusSm,
 	Menu,
 	Text,
 } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
@@ -19,7 +21,7 @@ import { useHistory, useLocation } from 'react-router-dom'
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 
-const ApplicationPickerV2 = () => {
+const ProjectPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
 	const { workspace_id, project_id } = useParams<{
@@ -38,45 +40,66 @@ const ApplicationPickerV2 = () => {
 		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
 	const projectOptions = allProjects
-		? allProjects.map((project) => (
-				<Menu.Item
-					key={project?.id}
-					onClick={() => {
-						history.push(`/${project?.id}/home`)
-					}}
-				>
-					<Box display="flex" alignItems="center" gap="4">
-						<Box
-							margin="4"
-							style={{
-								height: 8,
-								width: 8,
-								backgroundColor: generateRandomColor(
-									project?.name ?? '',
-								),
-								borderRadius: '50%',
-							}}
-						></Box>
-						<Text lines="1">{project?.name ?? ''}</Text>
-					</Box>
-				</Menu.Item>
-		  ))
+		? allProjects.map((project) => {
+				const isSelected = project_id === project?.id
+				return (
+					<Menu.Item
+						key={project?.id}
+						onClick={() => {
+							history.push(`/${project?.id}/home`)
+						}}
+						style={
+							isSelected
+								? {
+										backgroundColor: vars.color.neutral100,
+								  }
+								: undefined
+						}
+					>
+						<Box display="flex" alignItems="center" gap="4">
+							<Box
+								margin="4"
+								style={{
+									height: 8,
+									width: 8,
+									backgroundColor: generateRandomColor(
+										project?.name ?? '',
+									),
+									borderRadius: '50%',
+								}}
+							></Box>
+							<Box
+								display="flex"
+								alignItems="center"
+								justifyContent="space-between"
+								width="full"
+							>
+								<Text lines="1">{project?.name ?? ''}</Text>
+								{isSelected && <IconCheck size={14} />}
+							</Box>
+						</Box>
+					</Menu.Item>
+				)
+		  })
 		: []
 
 	const headerDisplayValue = isWorkspaceLevel
-		? 'Workspace'
+		? currentWorkspace?.name
 		: !isLoggedIn &&
 		  projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 		? DEMO_PROJECT_NAME
 		: currentProject?.name
 
 	return (
-		<div style={{ zIndex: 4 }}>
+		<div>
 			<div>
 				<Menu>
-					<Menu.Button variant="grey">
-						<IconBriefcase size="16" />
-						{headerDisplayValue}
+					<Menu.Button kind="secondary" style={{ maxWidth: 200 }}>
+						<IconBriefcase
+							size="14"
+							color={vars.color.neutral700}
+						/>
+						test
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
@@ -87,7 +110,7 @@ const ApplicationPickerV2 = () => {
 							}}
 						>
 							<Box display="flex" alignItems="center" gap="4">
-								<IconPlusSm size="16" />
+								<IconPlusSm size="14" />
 								Create new project
 							</Box>
 						</Menu.Item>
@@ -97,7 +120,7 @@ const ApplicationPickerV2 = () => {
 							}}
 						>
 							<Box display="flex" alignItems="center" gap="4">
-								<IconDotsHorizontal size="16" />
+								<IconDotsHorizontal size="14" />
 								Project settings
 							</Box>
 						</Menu.Item>
@@ -108,4 +131,4 @@ const ApplicationPickerV2 = () => {
 	)
 }
 
-export default ApplicationPickerV2
+export default ProjectPicker

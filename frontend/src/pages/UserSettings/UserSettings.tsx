@@ -14,11 +14,10 @@ const UserSettings: React.FC = () => {
 
 			<div className={commonStyles.bodyWrapper}>
 				<div>
-					<div>
-						<h2>User Settings</h2>
-					</div>
-
 					<LeadAlignLayout>
+						<div>
+							<h2>User Settings</h2>
+						</div>
 						<Auth />
 					</LeadAlignLayout>
 				</div>

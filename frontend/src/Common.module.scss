@@ -1,24 +1,24 @@
 .bodyWrapper {
 	display: flex;
-	height: 100%;
+	height: calc(100% - var(--header-height));
 	overflow-x: hidden;
-	position: absolute;
+	position: relative;
 	width: 100%;
 
 	&.bannerShown {
 		animation: accomodate-banner 0.5s forwards;
-		height: calc(100% - var(--banner-height));
-		overflow-x: hidden;
+		height: calc(100% - var(--header-height) - var(--banner-height));
+		// overflow-x: hidden;
 	}
 }
 
 @keyframes accomodate-banner {
 	0% {
-		top: 0;
+		// top: 0;
 	}
 
 	100% {
-		top: var(--banner-height);
+		// top: var(--banner-height);
 	}
 }
 

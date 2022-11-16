@@ -72,6 +72,8 @@ export const styleProps: Styles<any, false> = {
 		borderRadius: 'var(--border-radius)',
 		boxShadow: 'var(--box-shadow)',
 		border: '1px solid var(--color-gray-300)',
+		width: '550px',
+		marginLeft: '-240px',
 	}),
 	menuList: (provided) => ({
 		...provided,
@@ -394,7 +396,7 @@ const QuickSearch = () => {
 				noOptionsMessage={({ inputValue }) =>
 					!inputValue ? null : `No results for "${inputValue}"`
 				}
-				placeholder="Search for a property..."
+				placeholder="Search..."
 				onInputChange={(newValue, actionMeta) => {
 					if (actionMeta?.action === 'input-change') {
 						setQuery(newValue)

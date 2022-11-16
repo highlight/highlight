@@ -54,8 +54,6 @@
 	display: flex;
 	height: var(--banner-height);
 	justify-content: center;
-	position: fixed;
-	top: calc(-1 * var(--banner-height));
 	width: 100%;
 	z-index: 1000;
 
@@ -135,6 +133,7 @@
 	align-items: center;
 	display: flex;
 	flex-grow: 1;
+	height: 28px;
 	margin-left: var(--size-medium);
 	max-width: 550px;
 }
