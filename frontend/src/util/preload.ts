@@ -6,23 +6,68 @@ import {
 	useGetSessionIntervalsLazyQuery,
 	useGetSessionLazyQuery,
 	useGetSessionPayloadLazyQuery,
-	useGetSessionsOpenSearchLazyQuery,
+	useGetSessionsOpenSearchQuery,
 	useGetTimelineIndicatorEventsLazyQuery,
 } from '@graph/hooks'
 import { Session } from '@graph/schemas'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { IndexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
+import moment from 'moment'
 import { useMemo, useRef } from 'react'
 
 export const usePreloadData = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const startDate = useRef<moment.Moment>(
+		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
+	)
 	const preloaded = useRef<boolean>(false)
-	const [fetchSessions] = useGetSessionsOpenSearchLazyQuery()
+
+	const { data: sessions } = useGetSessionsOpenSearchQuery({
+		variables: {
+			query: JSON.stringify({
+				bool: {
+					must: [
+						{
+							bool: {
+								should: [
+									{
+										term: {
+											processed: 'true',
+										},
+									},
+								],
+							},
+						},
+						{
+							bool: {
+								should: [
+									{
+										range: {
+											created_at: {
+												gte: startDate.current
+													.clone()
+													.subtract(30, 'days')
+													.format(),
+												lte: startDate.current.format(),
+											},
+										},
+									},
+								],
+							},
+						},
+					],
+				},
+			}),
+			count: DEFAULT_PAGE_SIZE,
+			page: 1,
+			project_id,
+			sort_desc: true,
+		},
+	})
 	const [fetchSession] = useGetSessionLazyQuery()
 	const [fetchIntervals] = useGetSessionIntervalsLazyQuery()
 	const [fetchIndicatorEvents] = useGetTimelineIndicatorEventsLazyQuery()
@@ -33,12 +78,10 @@ export const usePreloadData = function () {
 		fetchPolicy: 'no-cache',
 		skip: true,
 	})
-	const { backendSearchQuery } = useSearchContext()
 
 	// session preload
 	useMemo(async () => {
 		if (
-			!backendSearchQuery?.searchQuery ||
 			!project_id ||
 			!fetchEventChunkURL ||
 			!fetchEventChunks ||
@@ -47,23 +90,13 @@ export const usePreloadData = function () {
 			!fetchSession ||
 			!fetchSessionComments ||
 			!fetchSessionPayload ||
-			!fetchSessions ||
+			!sessions?.sessions_opensearch.sessions.length ||
 			preloaded.current
 		)
-			return
+			return false
 		preloaded.current = true
-		const sessions = await fetchSessions({
-			variables: {
-				query: backendSearchQuery?.searchQuery || '',
-				count: DEFAULT_PAGE_SIZE,
-				page: 1,
-				project_id,
-				sort_desc: true,
-			},
-		})
 		const promises: Promise<void>[] = []
-		for (const session of sessions?.data?.sessions_opensearch?.sessions ||
-			[]) {
+		for (const session of sessions?.sessions_opensearch.sessions || []) {
 			promises.push(
 				(async (s: Session) => {
 					try {
@@ -114,6 +147,7 @@ export const usePreloadData = function () {
 							index: 0,
 						})
 						await IndexedDBFetch(response.data.event_chunk_url)
+						log('preload.ts', `preloaded session ${sess.secure_id}`)
 					} catch (e: any) {
 						const msg = `failed to preload session ${session.secure_id}`
 						console.warn(msg)
@@ -122,9 +156,9 @@ export const usePreloadData = function () {
 				})(session),
 			)
 		}
-		return await Promise.all(promises)
+		await Promise.all(promises)
+		log('preload.ts', `preloaded ${promises.length} sessions`)
 	}, [
-		backendSearchQuery?.searchQuery,
 		fetchEventChunkURL,
 		fetchEventChunks,
 		fetchIndicatorEvents,
@@ -132,9 +166,7 @@ export const usePreloadData = function () {
 		fetchSession,
 		fetchSessionComments,
 		fetchSessionPayload,
-		fetchSessions,
 		project_id,
-	]).then((r) => {
-		if (r) log('preload.ts', `preloaded ${r?.length} sessions`)
-	})
+		sessions?.sessions_opensearch.sessions,
+	]).then()
 }
