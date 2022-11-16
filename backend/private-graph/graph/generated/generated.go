@@ -7103,7 +7103,7 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
-	sourceMappingErrorMetadata: SourceMappingError!
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
@@ -21565,14 +21565,11 @@ func (ec *executionContext) _ErrorTrace_sourceMappingErrorMetadata(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.SourceMappingError)
 	fc.Result = res
-	return ec.marshalNSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx, field.Selections, res)
+	return ec.marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorTrace_sourceMappingErrorMetadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -50942,9 +50939,6 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._ErrorTrace_sourceMappingErrorMetadata(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "lineContent":
 
 			out.Values[i] = ec._ErrorTrace_lineContent(ctx, field, obj)
@@ -59429,16 +59423,6 @@ func (ec *executionContext) marshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋ
 	return v
 }
 
-func (ec *executionContext) marshalNSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._SourceMappingError(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNSourceMappingErrorCode2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, v interface{}) (model.SourceMappingErrorCode, error) {
 	var res model.SourceMappingErrorCode
 	err := res.UnmarshalGQL(v)
@@ -61579,6 +61563,13 @@ func (ec *executionContext) marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._SocialLink(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SourceMappingError(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

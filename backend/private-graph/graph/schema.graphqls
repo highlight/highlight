@@ -398,7 +398,7 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
-	sourceMappingErrorMetadata: SourceMappingError!
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
