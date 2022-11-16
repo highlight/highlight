@@ -9,7 +9,6 @@ import {
 	useGetSessionsOpenSearchQuery,
 	useGetTimelineIndicatorEventsLazyQuery,
 } from '@graph/hooks'
-import { Session } from '@graph/schemas'
 import { IndexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
@@ -95,13 +94,14 @@ export const usePreloadData = function () {
 			return false
 		preloaded.current = true
 		const promises: Promise<void>[] = []
-		for (const session of sessions?.sessions_opensearch.sessions || []) {
+		for (const _s of sessions?.sessions_opensearch.sessions || []) {
 			promises.push(
-				(async (s: Session) => {
+				(async (secureID: string) => {
+					console.log(`preloading session ${secureID}`)
 					try {
 						const session = await fetchSession({
 							variables: {
-								secure_id: s.secure_id,
+								secure_id: secureID,
 							},
 						})
 						const sess = session?.data?.session
@@ -117,42 +117,42 @@ export const usePreloadData = function () {
 						}
 						fetchIntervals({
 							variables: {
-								session_secure_id: sess.secure_id,
+								session_secure_id: secureID,
 							},
 						})
 						fetchIndicatorEvents({
 							variables: {
-								session_secure_id: sess.secure_id,
+								session_secure_id: secureID,
 							},
 						})
 						fetchEventChunks({
 							variables: {
-								secure_id: sess.secure_id,
+								secure_id: secureID,
 							},
 						})
 						fetchSessionComments({
 							variables: {
-								session_secure_id: sess.secure_id,
+								session_secure_id: secureID,
 							},
 						})
 						fetchSessionPayload({
 							variables: {
-								session_secure_id: sess.secure_id,
+								session_secure_id: secureID,
 								skip_events: true,
 							},
 						})
 						const response = await fetchEventChunkURL({
-							secure_id: sess.secure_id,
+							secure_id: secureID,
 							index: 0,
 						})
 						await IndexedDBFetch(response.data.event_chunk_url)
-						console.log(`preloaded session ${sess.secure_id}`)
+						console.log(`preloaded session ${secureID}`)
 					} catch (e: any) {
-						const msg = `failed to preload session ${session.secure_id}`
+						const msg = `failed to preload session ${secureID}`
 						console.warn(msg)
 						H.consumeError(e, msg)
 					}
-				})(session),
+				})(_s.secure_id),
 			)
 		}
 		await Promise.all(promises)
