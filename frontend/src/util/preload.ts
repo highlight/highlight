@@ -1,5 +1,6 @@
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import {
+	useGetEnhancedUserDetailsLazyQuery,
 	useGetEventChunksLazyQuery,
 	useGetEventChunkUrlQuery,
 	useGetSessionCommentsLazyQuery,
@@ -8,12 +9,15 @@ import {
 	useGetSessionPayloadLazyQuery,
 	useGetSessionsOpenSearchQuery,
 	useGetTimelineIndicatorEventsLazyQuery,
+	useGetWebVitalsLazyQuery,
 } from '@graph/hooks'
 import { IndexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useMemo, useRef } from 'react'
+
+const CONCURRENT_PRELOADS = 2
 
 export const usePreloadData = function () {
 	const { project_id } = useParams<{
@@ -72,6 +76,8 @@ export const usePreloadData = function () {
 	const [fetchEventChunks] = useGetEventChunksLazyQuery()
 	const [fetchSessionComments] = useGetSessionCommentsLazyQuery()
 	const [fetchSessionPayload] = useGetSessionPayloadLazyQuery()
+	const [fetchEnhanced] = useGetEnhancedUserDetailsLazyQuery()
+	const [fetchWebVitals] = useGetWebVitalsLazyQuery()
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
 		fetchPolicy: 'no-cache',
 		skip: true,
@@ -88,6 +94,8 @@ export const usePreloadData = function () {
 			!fetchSession ||
 			!fetchSessionComments ||
 			!fetchSessionPayload ||
+			!fetchEnhanced ||
+			!fetchWebVitals ||
 			!sessions?.sessions_opensearch.sessions.length ||
 			preloaded.current
 		)
@@ -95,68 +103,80 @@ export const usePreloadData = function () {
 		preloaded.current = true
 		const promises: Promise<void>[] = []
 		for (const _s of sessions?.sessions_opensearch.sessions || []) {
-			promises.push(
-				(async (secureID: string) => {
-					console.log(`preloading session ${secureID}`)
-					try {
-						const session = await fetchSession({
-							variables: {
-								secure_id: secureID,
-							},
-						})
-						const sess = session?.data?.session
-						if (!sess) return
-						if (sess.resources_url) {
-							await IndexedDBFetch(sess.resources_url)
-						}
-						if (sess.messages_url) {
-							await IndexedDBFetch(sess.messages_url)
-						}
-						if (sess.direct_download_url) {
-							IndexedDBFetch(sess.direct_download_url)
-						}
-						fetchIntervals({
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						fetchIndicatorEvents({
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						fetchEventChunks({
-							variables: {
-								secure_id: secureID,
-							},
-						})
-						fetchSessionComments({
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						fetchSessionPayload({
-							variables: {
-								session_secure_id: secureID,
-								skip_events: true,
-							},
-						})
-						const response = await fetchEventChunkURL({
+			const preloadPromise = (async (secureID: string) => {
+				console.log(`preloading session ${secureID}`)
+				try {
+					const session = await fetchSession({
+						variables: {
 							secure_id: secureID,
-							index: 0,
-						})
-						await IndexedDBFetch(response.data.event_chunk_url)
-						console.log(`preloaded session ${secureID}`)
-					} catch (e: any) {
-						const msg = `failed to preload session ${secureID}`
-						console.warn(msg)
-						H.consumeError(e, msg)
+						},
+					})
+					const sess = session?.data?.session
+					if (!sess) return
+					if (sess.resources_url) {
+						await IndexedDBFetch(sess.resources_url)
 					}
-				})(_s.secure_id),
-			)
+					if (sess.messages_url) {
+						await IndexedDBFetch(sess.messages_url)
+					}
+					if (sess.direct_download_url) {
+						await IndexedDBFetch(sess.direct_download_url)
+					}
+					fetchIntervals({
+						variables: {
+							session_secure_id: secureID,
+						},
+					})
+					fetchIndicatorEvents({
+						variables: {
+							session_secure_id: secureID,
+						},
+					})
+					fetchEventChunks({
+						variables: {
+							secure_id: secureID,
+						},
+					})
+					fetchSessionComments({
+						variables: {
+							session_secure_id: secureID,
+						},
+					})
+					fetchSessionPayload({
+						variables: {
+							session_secure_id: secureID,
+							skip_events: true,
+						},
+					})
+					fetchEnhanced({
+						variables: {
+							session_secure_id: secureID,
+						},
+					})
+					fetchWebVitals({
+						variables: {
+							session_secure_id: secureID,
+						},
+					})
+					const response = await fetchEventChunkURL({
+						secure_id: secureID,
+						index: 0,
+					})
+					await IndexedDBFetch(response.data.event_chunk_url)
+					console.log(`preloaded session ${secureID}`)
+				} catch (e: any) {
+					const msg = `failed to preload session ${secureID}`
+					console.warn(msg)
+					H.consumeError(e, msg)
+				}
+			})(_s.secure_id)
+			promises.push(preloadPromise)
+			if (promises.length === CONCURRENT_PRELOADS) {
+				await Promise.all(promises)
+				promises.length = 0
+			}
 		}
 		await Promise.all(promises)
-		console.log(`preloaded ${promises.length} sessions`)
 	}, [
 		fetchEventChunkURL,
 		fetchEventChunks,
@@ -165,6 +185,8 @@ export const usePreloadData = function () {
 		fetchSession,
 		fetchSessionComments,
 		fetchSessionPayload,
+		fetchEnhanced,
+		fetchWebVitals,
 		project_id,
 		sessions?.sessions_opensearch.sessions,
 	]).then()
