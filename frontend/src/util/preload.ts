@@ -31,49 +31,49 @@ export const usePreloadSessions = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
-	)
+	const endDate = useRef<moment.Moment>(moment())
 	const preloadedPage = useRef<number>()
 
 	const { page } = useSearchContext()
 	const pageToLoad = page ?? 1
-	const { data: sessions, called } = useGetSessionsOpenSearchQuery({
-		variables: {
-			query: JSON.stringify({
-				bool: {
-					must: [
-						{
-							bool: {
-								should: [
-									{
-										term: {
-											processed: 'true',
-										},
-									},
-								],
+	const query = JSON.stringify({
+		bool: {
+			must: [
+				{
+					bool: {
+						should: [
+							{
+								term: {
+									processed: 'true',
+								},
 							},
-						},
-						{
-							bool: {
-								should: [
-									{
-										range: {
-											created_at: {
-												gte: endDate.current
-													.clone()
-													.subtract(30, 'days')
-													.format(),
-												lte: endDate.current.format(),
-											},
-										},
-									},
-								],
-							},
-						},
-					],
+						],
+					},
 				},
-			}),
+				{
+					bool: {
+						should: [
+							{
+								range: {
+									created_at: {
+										gte: endDate.current
+											.clone()
+											.subtract(30, 'days')
+											.format(),
+										lte: endDate.current.format(),
+									},
+								},
+							},
+						],
+					},
+				},
+			],
+		},
+	})
+
+	const { data: sessions } = useGetSessionsOpenSearchQuery({
+		variables: {
+			query,
 			count: DEFAULT_PAGE_SIZE,
 			page: pageToLoad,
 			project_id,
@@ -94,8 +94,7 @@ export const usePreloadSessions = function () {
 
 	useMemo(async () => {
 		if (
-			!called ||
-			!project_id ||
+			!sessions?.sessions_opensearch.sessions.length ||
 			!fetchEventChunkURL ||
 			!fetchEventChunks ||
 			!fetchIndicatorEvents ||
@@ -196,9 +195,7 @@ export const usePreloadSessions = function () {
 		fetchSessionPayload,
 		fetchWebVitals,
 		pageToLoad,
-		project_id,
-		sessions?.sessions_opensearch.sessions,
-		called,
+		sessions,
 	]).then()
 }
 
@@ -206,9 +203,7 @@ export const usePreloadErrors = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
-	)
+	const endDate = useRef<moment.Moment>(moment())
 	const preloadedPage = useRef<number>()
 
 	const { page } = useErrorSearchContext()
@@ -255,7 +250,7 @@ export const usePreloadErrors = function () {
 			],
 		},
 	})
-	const { data: errors, called } = useGetErrorGroupsOpenSearchQuery({
+	const { data: errors } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query,
 			count: DEFAULT_PAGE_SIZE,
@@ -290,11 +285,10 @@ export const usePreloadErrors = function () {
 
 	useMemo(async () => {
 		if (
-			!called ||
-			!project_id ||
 			!fetchErrorGroup ||
 			!fetchRecentErrors ||
 			!fetchErrorGroupDistribution ||
+			!errors?.error_groups_opensearch.error_groups.length ||
 			preloadedPage.current === pageToLoad
 		)
 			return false
@@ -344,11 +338,10 @@ export const usePreloadErrors = function () {
 		await Promise.all(promises)
 	}, [
 		project_id,
-		errors?.error_groups_opensearch.error_groups,
+		errors,
 		fetchErrorGroup,
 		fetchRecentErrors,
 		fetchErrorGroupDistribution,
 		pageToLoad,
-		called,
 	]).then()
 }
