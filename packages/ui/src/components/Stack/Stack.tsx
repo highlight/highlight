@@ -12,12 +12,12 @@ type Props = React.PropsWithChildren & {
 }
 
 export const Stack: React.FC<Props> = ({
-	as = 'div',
+	as,
 	align,
 	children,
 	direction,
 	flex,
-	gap = '16',
+	gap,
 	justify,
 	wrap,
 }) => {
@@ -39,4 +39,10 @@ export const Stack: React.FC<Props> = ({
 			{children}
 		</Box>
 	)
+}
+
+Stack.defaultProps = {
+	as: 'div',
+	gap: '16',
+	direction: 'column',
 }

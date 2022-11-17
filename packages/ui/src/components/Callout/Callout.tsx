@@ -14,12 +14,14 @@ import { Text } from '../Text/Text'
 type Props = React.PropsWithChildren &
 	styles.Variants & {
 		title: string
+		handleCloseClick?: () => void
 	}
 
 export const Callout: React.FC<Props> = ({
 	children,
 	kind = 'info',
 	title,
+	handleCloseClick,
 }) => {
 	const Icon = kindIconLookup[kind]
 
@@ -34,24 +36,29 @@ export const Callout: React.FC<Props> = ({
 		>
 			<Icon />
 
-			<Box gap="16" display="flex" flexDirection="column">
+			<Box gap="16" display="flex" flexDirection="column" width="full">
 				<Box
+					alignItems="flex-start"
 					display="flex"
 					justifyContent="space-between"
-					alignItems="center"
 				>
-					<Text weight="bold" size="medium">
-						{title}
-					</Text>
+					<Box mt="6">
+						<Text weight="bold" size="medium">
+							{title}
+						</Text>
+					</Box>
 
 					<Box flexShrink={0}>
-						<ButtonIcon
-							kind="secondary"
-							emphasis="low"
-							shape="square"
-							icon={<IconX size={16} />}
-							onClick={() => alert('closing!')}
-						/>
+						{handleCloseClick && (
+							<ButtonIcon
+								kind="secondary"
+								emphasis="low"
+								shape="square"
+								size="minimal"
+								icon={<IconX size={16} />}
+								onClick={handleCloseClick}
+							/>
+						)}
 					</Box>
 				</Box>
 				{children}

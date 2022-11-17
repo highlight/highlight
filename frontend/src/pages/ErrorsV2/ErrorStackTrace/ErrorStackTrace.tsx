@@ -52,10 +52,10 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 
 	return (
 		<Stack gap="12">
-			{showStackFrameNotUseful && (
+			{true && (
 				<Callout
 					title="These stack frames don't look that useful 😢"
-					kind="info"
+					kind="warning"
 				>
 					<Text>
 						Are there sourcemaps tied to your javascript code? If
@@ -63,10 +63,12 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 						enhanced stack traces.
 					</Text>
 
-					<Box>
-						<Button kind="primary">Learn More</Button>
-						<Button kind="secondary">Sourcemap Settings</Button>
-					</Box>
+					<Stack direction="row" gap="8">
+						<Button kind="secondary">Learn More</Button>
+						<Button kind="secondary" emphasis="low">
+							Sourcemap Settings
+						</Button>
+					</Stack>
 				</Callout>
 			)}
 
