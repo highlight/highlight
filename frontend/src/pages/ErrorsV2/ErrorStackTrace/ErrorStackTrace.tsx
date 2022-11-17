@@ -52,7 +52,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 
 	return (
 		<Stack gap="12">
-			{true && (
+			{showStackFrameNotUseful && (
 				<Callout
 					title="These stack frames don't look that useful 😢"
 					kind="warning"
