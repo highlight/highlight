@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
+import { Rule } from '@components/QueryBuilder/rule'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
@@ -192,6 +193,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	}, [searchParams, setPage])
 
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+	const [rules, setRules] = useState<Rule[]>([])
 	return (
 		<ErrorSearchContextProvider
 			value={{
@@ -208,6 +210,8 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				setPage,
 				searchResultsLoading,
 				setSearchResultsLoading,
+				rules,
+				setRules,
 			}}
 		>
 			<Helmet>

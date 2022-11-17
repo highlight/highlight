@@ -7,6 +7,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
+import { Rule } from '@components/QueryBuilder/rule'
 import { Sidebar } from '@components/Sidebar/Sidebar'
 import {
 	AppLoadingState,
@@ -308,6 +309,7 @@ export const ProjectRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const [rules, setRules] = useState<Rule[]>([])
 	if (loading || integratedLoading) {
 		return null
 	}
@@ -356,6 +358,8 @@ export const ProjectRouter = () => {
 						setPage,
 						searchResultsLoading,
 						setSearchResultsLoading,
+						rules,
+						setRules,
 					}}
 				>
 					<Switch>

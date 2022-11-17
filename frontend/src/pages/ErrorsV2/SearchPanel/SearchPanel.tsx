@@ -16,12 +16,12 @@ import {
 	IconRefresh,
 	Text,
 } from '@highlight-run/ui'
-import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
-import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors'
+import ErrorQueryBuilderV1 from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
+import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -84,6 +84,21 @@ const SearchPanel = () => {
 
 	const showHistogram = searchResultsLoading || errorCount > 0
 
+	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
+
+	useEffect(() => {
+		if (searchResultsLoading === false) {
+			const timer = setTimeout(() => {
+				setSyncButtonDisabled(false)
+			}, 5000)
+			return () => {
+				clearTimeout(timer)
+			}
+		} else {
+			setSyncButtonDisabled(true)
+		}
+	}, [searchResultsLoading])
+
 	return (
 		<Box
 			display="flex"
@@ -127,6 +142,7 @@ const SearchPanel = () => {
 						shape="square"
 						emphasis="low"
 						icon={<IconRefresh size={14} />}
+						disabled={syncButtonDisabled}
 					/>
 					<ButtonIcon
 						kind="secondary"
@@ -138,9 +154,11 @@ const SearchPanel = () => {
 					/>
 				</Box>
 			</Box>
-			<Box py="6" px="8">
-				<SegmentPickerForErrors />
+			<Box p="8">
 				<ErrorQueryBuilder />
+			</Box>
+			<Box py="6" px="8">
+				<ErrorQueryBuilderV1 />
 			</Box>
 			{showHistogram && (
 				<Box

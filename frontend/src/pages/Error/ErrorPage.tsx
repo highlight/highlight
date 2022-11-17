@@ -2,6 +2,7 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
+import { Rule } from '@components/QueryBuilder/rule'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
@@ -231,6 +232,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
 
+	const [rules, setRules] = useState<Rule[]>([])
+
 	return (
 		<ErrorSearchContextProvider
 			value={{
@@ -246,6 +249,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 				setPage,
 				searchResultsLoading,
 				setSearchResultsLoading,
+				rules,
+				setRules,
 			}}
 		>
 			<Helmet>

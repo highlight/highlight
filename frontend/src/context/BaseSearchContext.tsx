@@ -1,3 +1,4 @@
+import { Rule } from '@components/QueryBuilder/rule'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import moment from 'moment'
 
@@ -29,5 +30,6 @@ export type BaseSearchContext<T> = {
 	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
 	searchResultsLoading: boolean
 	setSearchResultsLoading: React.Dispatch<React.SetStateAction<boolean>>
-	query?: string
+	rules: Rule[]
+	setRules: React.Dispatch<React.SetStateAction<Rule[]>>
 }

@@ -101,7 +101,8 @@ interface SetVisible {
 const TIME_MAX_LENGTH = 60
 const RANGE_MAX_LENGTH = 200
 
-const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
+const DEFAULT_TOOLTIP_MESSAGE =
+	'This property was automatically collected by Highlight'
 
 const styleProps: Styles<{ label: string; value: string }, false> = {
 	...SharedSelectStyleProps,
@@ -416,7 +417,7 @@ const getOption = (props: any) => {
 						type === ERROR_FIELD_TYPE ||
 						value === 'user_identifier') && (
 						<InfoTooltip
-							title={tooltipMessage ?? TOOLTIP_MESSAGE}
+							title={tooltipMessage ?? DEFAULT_TOOLTIP_MESSAGE}
 							size="medium"
 							hideArrow
 							placement="right"
@@ -1054,7 +1055,7 @@ export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 				ret.push(rule.op)
 			}
 
-			if (rule?.val?.options) {
+			if (rule.val?.options) {
 				ret.push(
 					...rule.val.options.map((op) => {
 						return op.value
@@ -1448,12 +1449,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 		}
 	}, [timeRangeField, project_id])
 
-	const getFilterRules = useCallback(
-		(rules: RuleProps[]) =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[timeRangeField.value],
-	)
-
 	const parseGroup = useCallback(
 		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
 			const condition = isAnd ? 'must' : 'should'
@@ -1548,16 +1543,16 @@ function QueryBuilder<T extends SearchContextTypes>(
 		[defaultTimeRangeRule, parseRule, timeRangeField.value],
 	)
 
-	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
+	const [rules, setRules] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
+
 	const filterRules = useMemo<RuleProps[]>(
-		() => getFilterRules(rules),
-		[getFilterRules, rules],
+		() =>
+			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+		[rules, timeRangeField.value],
 	)
-	const setRules = (rules: RuleProps[]) => {
-		setRulesImpl(rules)
-	}
+
 	const newRule = () => {
 		setCurrentRule({
 			field: undefined,
@@ -1755,7 +1750,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 	// If the search query is updated externally, set the rules and `isAnd` toggle based on it
 	useEffect(() => {
 		if (!!searchParams.query && searchParams.query !== qbState) {
-			const newState = JSON.parse(searchParams.query)
+			const newState = JSON.parse(searchParams.query) as QueryBuilderState
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
@@ -1977,7 +1972,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 										key={'popover-step-2'}
 										value={undefined}
 										setVisible={() => {
-											setCurrentStep(3)
+											setCurrentStep(2)
 										}}
 										onChange={(val) => {
 											const op = (val as SelectOption)
@@ -2038,8 +2033,8 @@ function QueryBuilder<T extends SearchContextTypes>(
 							}}
 							visible={
 								currentStep === 1 ||
-								(currentStep === 2 && !!currentRule?.field) ||
-								(currentStep === 3 && !!currentRule?.op)
+								(currentStep === 2 && !!currentRule?.op) ||
+								(currentStep === 3 && !!currentRule?.field)
 							}
 						>
 							<Button

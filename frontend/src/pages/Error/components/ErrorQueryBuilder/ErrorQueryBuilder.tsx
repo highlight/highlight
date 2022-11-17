@@ -13,7 +13,6 @@ import QueryBuilder, {
 	serializeRules,
 } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import moment from 'moment'
-import React from 'react'
 
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
