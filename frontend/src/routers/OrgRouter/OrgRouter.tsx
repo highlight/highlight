@@ -525,8 +525,12 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 
 	useEffect(() => {
 		if (dateFromSearchParams) {
-			const start_date = moment(dateFromSearchParams)
-			const end_date = moment(dateFromSearchParams)
+			const start_date = moment(
+				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
+			)
+			const end_date = moment(
+				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
+			)
 
 			setSearchParams(() => ({
 				// We are explicitly clearing any existing search params so the only

@@ -31,7 +31,9 @@ export const usePreloadSessions = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(moment())
+	const endDate = useRef<moment.Moment>(
+		moment(moment().format('MM/DD/YYYY HH:mm')),
+	)
 	const preloadedPage = useRef<number>()
 
 	const { page } = useSearchContext()
@@ -203,7 +205,9 @@ export const usePreloadErrors = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(moment())
+	const endDate = useRef<moment.Moment>(
+		moment(moment().format('MM/DD/YYYY HH:mm')),
+	)
 	const preloadedPage = useRef<number>()
 
 	const { page } = useErrorSearchContext()
