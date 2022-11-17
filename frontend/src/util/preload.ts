@@ -11,6 +11,7 @@ import {
 	useGetTimelineIndicatorEventsLazyQuery,
 	useGetWebVitalsLazyQuery,
 } from '@graph/hooks'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { IndexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
@@ -19,14 +20,16 @@ import { useMemo, useRef } from 'react'
 
 const CONCURRENT_PRELOADS = 2
 
-export const usePreloadData = function () {
+export const usePreloadSessions = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const startDate = useRef<moment.Moment>(
 		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
 	)
-	const preloaded = useRef<boolean>(false)
+	const preloadedPage = useRef<number>()
+
+	const { page } = useSearchContext()
 
 	const { data: sessions } = useGetSessionsOpenSearchQuery({
 		variables: {
@@ -65,7 +68,7 @@ export const usePreloadData = function () {
 				},
 			}),
 			count: DEFAULT_PAGE_SIZE,
-			page: 1,
+			page,
 			project_id,
 			sort_desc: true,
 		},
@@ -97,10 +100,11 @@ export const usePreloadData = function () {
 			!fetchEnhanced ||
 			!fetchWebVitals ||
 			!sessions?.sessions_opensearch.sessions.length ||
-			preloaded.current
+			!page ||
+			preloadedPage.current === page
 		)
 			return false
-		preloaded.current = true
+		preloadedPage.current = page
 		const promises: Promise<void>[] = []
 		for (const _s of sessions?.sessions_opensearch.sessions || []) {
 			const preloadPromise = (async (secureID: string) => {
@@ -187,7 +191,8 @@ export const usePreloadData = function () {
 		fetchSessionComments,
 		fetchSessionPayload,
 		fetchWebVitals,
+		page,
 		project_id,
-		sessions,
+		sessions?.sessions_opensearch.sessions,
 	]).then()
 }
