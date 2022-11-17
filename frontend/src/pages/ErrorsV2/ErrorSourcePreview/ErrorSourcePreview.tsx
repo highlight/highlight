@@ -2,13 +2,14 @@ import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 
 type ErrorSourcePreviewProps = {
-	fileName: string | undefined
-	lineNumber: number | undefined
-	columnNumber: number | undefined
-	functionName: string | undefined
 	lineContent: string
-	linesBefore: string | undefined
-	linesAfter: string | undefined
+	fileName?: string
+	lineNumber?: number
+	columnNumber?: number
+	functionName?: string
+	linesBefore?: string
+	linesAfter?: string
+	showLineNumbers?: boolean
 }
 
 const normalize = (linesStr: string | undefined): string[] => {
@@ -41,6 +42,7 @@ const ErrorSourcePreview: React.FC<
 	lineContent,
 	linesBefore,
 	linesAfter,
+	showLineNumbers = true,
 }) => {
 	const before = normalize(linesBefore)
 	const line = normalize(lineContent)
@@ -75,31 +77,30 @@ const ErrorSourcePreview: React.FC<
 	const language = (!!extension && LANGUAGE_MAP[extension]) || 'javascript'
 
 	return (
-		<span>
-			<SyntaxHighlighter
-				language={language}
-				style="light"
-				showLineNumbers
-				wrapLines
-				startingLineNumber={(lineNumber ?? 1) - before.length}
-				lineProps={(ln) => {
-					return ln === lineNumber
-						? {
-								style: {
-									backgroundColor: '#FEF3C7',
-									borderRadius: '4px',
-									...baseLineStyles,
-								},
-								'data-line-number': lineNumber.toString(),
-						  }
-						: {
-								style: baseLineStyles,
-						  }
-				}}
-			>
-				{text.join('\n')}
-			</SyntaxHighlighter>
-		</span>
+		<SyntaxHighlighter
+			language={language}
+			style="light"
+			showLineNumbers={showLineNumbers}
+			wrapLines
+			startingLineNumber={(lineNumber ?? 1) - before.length}
+			customStyle={{ margin: 0 }}
+			lineProps={(ln) => {
+				return ln === lineNumber
+					? {
+							style: {
+								backgroundColor: '#FEF3C7',
+								borderRadius: '4px',
+								...baseLineStyles,
+							},
+							'data-line-number': lineNumber.toString(),
+					  }
+					: {
+							style: baseLineStyles,
+					  }
+			}}
+		>
+			{text.join('\n')}
+		</SyntaxHighlighter>
 	)
 }
 
