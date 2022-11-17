@@ -9,10 +9,12 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import JsonOrTextCard from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
+import { useHistory } from 'react-router-dom'
 
 import * as styles from './ErrorStackTrace.css'
 
@@ -21,6 +23,8 @@ interface Props {
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {
+	const history = useHistory()
+	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
 
 	/**
@@ -64,8 +68,28 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 					</Text>
 
 					<Stack direction="row" gap="8">
-						<Button kind="secondary">Learn More</Button>
-						<Button kind="secondary" emphasis="low">
+						{/*
+						TODO: Swap these out for LinkButtons once they are created - coming
+						in a PR from Zane soon.
+						*/}
+						<Button
+							kind="secondary"
+							onClick={() => {
+								window.open(
+									'https://docs.highlight.run/sourcemaps',
+									'_blank',
+								)
+							}}
+						>
+							Learn More
+						</Button>
+						<Button
+							kind="secondary"
+							emphasis="low"
+							onClick={() =>
+								history.push(`/${projectId}/settings/errors`)
+							}
+						>
 							Sourcemap Settings
 						</Button>
 					</Stack>
