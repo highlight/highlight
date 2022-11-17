@@ -82,8 +82,12 @@ const ErrorSourcePreview: React.FC<
 			style="light"
 			showLineNumbers={showLineNumbers}
 			wrapLines
+			wrapLongLines
 			startingLineNumber={(lineNumber ?? 1) - before.length}
-			customStyle={{ margin: 0 }}
+			customStyle={{
+				margin: 0,
+				wordBreak: 'break-all',
+			}}
 			lineProps={(ln) => {
 				return ln === lineNumber
 					? {
