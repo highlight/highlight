@@ -1,16 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { StandardDropdown } from '@components/Dropdown/StandardDropdown/StandardDropdown'
 import { ErrorState } from '@components/ErrorState/ErrorState'
-import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
-import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	useGetDailyErrorFrequencyQuery,
 	useGetErrorGroupQuery,
 	useGetRecentErrorsQuery,
 	useMuteErrorCommentThreadMutation,
 } from '@graph/hooks'
-import { ErrorGroup, ErrorSearchParamsInput, Maybe } from '@graph/schemas'
+import { ErrorGroup, Maybe } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
 import ErrorContext from '@pages/Error/components/ErrorContext/ErrorContext'
@@ -21,8 +19,6 @@ import {
 import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributionChart/ErrorDistributionChart'
 import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { SessionPageSearchParams } from '@pages/Player/utils/utils'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -33,7 +29,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router'
-import { useLocalStorage } from 'react-use'
 import {
 	Bar,
 	BarChart,
@@ -44,13 +39,10 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts'
-import { NumberParam, useQueryParams } from 'use-query-params'
 
 import Button from '../../components/Button/Button/Button'
 import Tooltip from '../../components/Tooltip/Tooltip'
 import SvgDownloadIcon from '../../static/DownloadIcon'
-import { ErrorSearchContextProvider } from '../Errors/ErrorSearchContext/ErrorSearchContext'
-import { EmptyErrorsSearchParams } from '../Errors/ErrorsPage'
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard'
 import ErrorBody from './components/ErrorBody/ErrorBody'
 import { parseErrorDescriptionList } from './components/ErrorBody/utils/utils'
@@ -64,15 +56,10 @@ import styles from './ErrorPage.module.scss'
 import useErrorPageConfiguration from './utils/ErrorPageUIConfiguration'
 
 const ErrorPage = ({ integrated }: { integrated: boolean }) => {
-	const { error_secure_id, project_id } = useParams<{
+	const { error_secure_id } = useParams<{
 		error_secure_id: string
-		project_id: string
 	}>()
-	const history = useHistory()
-	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
-
 	const { showBanner } = useGlobalContext()
-
 	const { isLoggedIn } = useAuthContext()
 	const {
 		data,
@@ -86,6 +73,16 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		},
 	})
 
+	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
+
+	const history = useHistory()
+	const newCommentModalRef = useRef<HTMLDivElement>(null)
+	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+		new URLSearchParams(location.search).get(
+			PlayerSearchParameters.commentId,
+		),
+	)
+
 	const {
 		data: recentErrorsData,
 		loading: recentErrorsLoading,
@@ -95,37 +92,11 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		skip: !error_secure_id,
 	})
 
-	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [cachedParams, setCachedParams] =
-		useLocalStorage<ErrorSearchParamsInput>(
-			`cachedErrorParams-v2-${
-				segmentName || 'no-selected-segment'
-			}-${project_id}`,
-			{},
-		)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
-		cachedParams || EmptyErrorsSearchParams,
-	)
-	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
-	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>({})
-	const newCommentModalRef = useRef<HTMLDivElement>(null)
-	const dateFromSearchParams = new URLSearchParams(location.search).get(
-		SessionPageSearchParams.date,
-	)
-	const searchParamsChanged = useRef<Date>()
-	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
-		new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		),
-	)
+	const { showLeftPanel } = useErrorPageConfiguration()
 
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
+	const [showCreateCommentModal, setShowCreateCommentModal] =
+		useState<CreateModalType>(CreateModalType.None)
 
-	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
 
@@ -152,102 +123,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
 
-	useEffect(
-		() => setCachedParams(searchParams),
-		[searchParams, setCachedParams],
-	)
-
-	useEffect(() => {
-		if (dateFromSearchParams) {
-			setSearchParams(() => ({
-				// We are explicitly clearing any existing search params so the only applied search param is the date range.
-				...EmptyErrorsSearchParams,
-				date_range: {
-					start_date: moment(dateFromSearchParams)
-						.startOf('day')
-						.subtract(1, 'day')
-						.toDate()
-						.toString(),
-					end_date: moment(dateFromSearchParams)
-						.endOf('day')
-						.toDate()
-						.toString(),
-				},
-			}))
-			message.success(
-				`Showing errors that were thrown on ${dateFromSearchParams}`,
-			)
-			history.replace({ search: '' })
-		}
-	}, [history, dateFromSearchParams, setSearchParams])
-
-	useEffect(() => {
-		if (queryBuilderInput?.type === 'errors') {
-			setSearchParams({
-				...EmptyErrorsSearchParams,
-				query: JSON.stringify(queryBuilderInput),
-			})
-			setQueryBuilderInput(undefined)
-		}
-	}, [queryBuilderInput, setQueryBuilderInput])
-
-	const { showLeftPanel } = useErrorPageConfiguration()
-
-	const [backendSearchQuery, setBackendSearchQuery] =
-		useState<BackendSearchQuery>(undefined)
-	const [showCreateCommentModal, setShowCreateCommentModal] =
-		useState<CreateModalType>(CreateModalType.None)
-	const [page, setPage] = useState<number>()
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	useEffect(() => {
-		// we just loaded the page for the first time
-		if (
-			searchParamsChanged.current &&
-			new Date().getTime() - searchParamsChanged.current.getTime() >
-				RESET_PAGE_MS
-		) {
-			// the search query actually changed, reset the page
-			setPage(STARTING_PAGE)
-		}
-		searchParamsChanged.current = new Date()
-	}, [searchParams, setPage])
-
 	return (
-		<ErrorSearchContextProvider
-			value={{
-				searchParams,
-				setSearchParams,
-				existingParams,
-				setExistingParams,
-				segmentName,
-				setSegmentName,
-				backendSearchQuery,
-				setBackendSearchQuery,
-				page,
-				setPage,
-				searchResultsLoading,
-				setSearchResultsLoading,
-			}}
-		>
+		<>
 			<Helmet>
 				<title>Errors</title>
 			</Helmet>
@@ -513,7 +390,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 					<NoActiveErrorCard />
 				)}
 			</div>
-		</ErrorSearchContextProvider>
+		</>
 	)
 }
 

@@ -1,8 +1,13 @@
 import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import {
 	useGetEnhancedUserDetailsLazyQuery,
+	useGetErrorDistributionLazyQuery,
+	useGetErrorGroupLazyQuery,
+	useGetErrorGroupsOpenSearchQuery,
+	useGetErrorsHistogramQuery,
 	useGetEventChunksLazyQuery,
 	useGetEventChunkUrlQuery,
+	useGetRecentErrorsLazyQuery,
 	useGetSessionCommentsLazyQuery,
 	useGetSessionIntervalsLazyQuery,
 	useGetSessionLazyQuery,
@@ -11,6 +16,8 @@ import {
 	useGetTimelineIndicatorEventsLazyQuery,
 	useGetWebVitalsLazyQuery,
 } from '@graph/hooks'
+import { OpenSearchCalendarInterval } from '@graph/schemas'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { IndexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
@@ -24,14 +31,14 @@ export const usePreloadSessions = function () {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const startDate = useRef<moment.Moment>(
+	const endDate = useRef<moment.Moment>(
 		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
 	)
 	const preloadedPage = useRef<number>()
 
 	const { page } = useSearchContext()
-
-	const { data: sessions } = useGetSessionsOpenSearchQuery({
+	const pageToLoad = page ?? 1
+	const { data: sessions, called } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: JSON.stringify({
 				bool: {
@@ -53,11 +60,11 @@ export const usePreloadSessions = function () {
 									{
 										range: {
 											created_at: {
-												gte: startDate.current
+												gte: endDate.current
 													.clone()
 													.subtract(30, 'days')
 													.format(),
-												lte: startDate.current.format(),
+												lte: endDate.current.format(),
 											},
 										},
 									},
@@ -68,7 +75,7 @@ export const usePreloadSessions = function () {
 				},
 			}),
 			count: DEFAULT_PAGE_SIZE,
-			page,
+			page: pageToLoad,
 			project_id,
 			sort_desc: true,
 		},
@@ -82,13 +89,12 @@ export const usePreloadSessions = function () {
 	const [fetchEnhanced] = useGetEnhancedUserDetailsLazyQuery()
 	const [fetchWebVitals] = useGetWebVitalsLazyQuery()
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
-		fetchPolicy: 'no-cache',
 		skip: true,
 	})
 
-	// session preload
 	useMemo(async () => {
 		if (
+			!called ||
 			!project_id ||
 			!fetchEventChunkURL ||
 			!fetchEventChunks ||
@@ -99,12 +105,10 @@ export const usePreloadSessions = function () {
 			!fetchSessionPayload ||
 			!fetchEnhanced ||
 			!fetchWebVitals ||
-			!sessions?.sessions_opensearch.sessions.length ||
-			!page ||
-			preloadedPage.current === page
+			preloadedPage.current === pageToLoad
 		)
 			return false
-		preloadedPage.current = page
+		preloadedPage.current = pageToLoad
 		const promises: Promise<void>[] = []
 		for (const _s of sessions?.sessions_opensearch.sessions || []) {
 			const preloadPromise = (async (secureID: string) => {
@@ -191,8 +195,160 @@ export const usePreloadSessions = function () {
 		fetchSessionComments,
 		fetchSessionPayload,
 		fetchWebVitals,
-		page,
+		pageToLoad,
 		project_id,
 		sessions?.sessions_opensearch.sessions,
+		called,
+	]).then()
+}
+
+export const usePreloadErrors = function () {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const endDate = useRef<moment.Moment>(
+		moment(moment().format('MM/DD/YYYY HH:mm:SS')),
+	)
+	const preloadedPage = useRef<number>()
+
+	const { page } = useErrorSearchContext()
+	const pageToLoad = page ?? 1
+	const query = JSON.stringify({
+		bool: {
+			must: [
+				{
+					bool: {
+						must: [],
+					},
+				},
+				{
+					has_child: {
+						type: 'child',
+						query: {
+							bool: {
+								must: [
+									{
+										bool: {
+											should: [
+												{
+													range: {
+														timestamp: {
+															gte: endDate.current
+																.clone()
+																.subtract(
+																	30,
+																	'days',
+																)
+																.format(),
+															lte: endDate.current.format(),
+														},
+													},
+												},
+											],
+										},
+									},
+								],
+							},
+						},
+					},
+				},
+			],
+		},
+	})
+	const { data: errors, called } = useGetErrorGroupsOpenSearchQuery({
+		variables: {
+			query,
+			count: DEFAULT_PAGE_SIZE,
+			page: pageToLoad,
+			project_id,
+		},
+	})
+	const {} = useGetErrorsHistogramQuery({
+		variables: {
+			query,
+			project_id,
+			histogram_options: {
+				bounds: {
+					start_date: endDate.current
+						.clone()
+						.subtract(30, 'days')
+						.format(),
+					end_date: endDate.current.format(),
+				},
+				bucket_size: {
+					calendar_interval: OpenSearchCalendarInterval.Day,
+					multiple: 1,
+				},
+				time_zone: '',
+			},
+		},
+	})
+
+	const [fetchErrorGroup] = useGetErrorGroupLazyQuery()
+	const [fetchRecentErrors] = useGetRecentErrorsLazyQuery()
+	const [fetchErrorGroupDistribution] = useGetErrorDistributionLazyQuery()
+
+	useMemo(async () => {
+		if (
+			!called ||
+			!project_id ||
+			!fetchErrorGroup ||
+			!fetchRecentErrors ||
+			!fetchErrorGroupDistribution ||
+			preloadedPage.current === pageToLoad
+		)
+			return false
+		preloadedPage.current = pageToLoad
+		const promises: Promise<void>[] = []
+		for (const _eg of errors?.error_groups_opensearch.error_groups || []) {
+			const preloadPromise = (async (secureID: string) => {
+				console.log(`preloading error group ${secureID}`)
+				try {
+					await fetchErrorGroup({
+						variables: {
+							secure_id: secureID,
+						},
+					})
+					await fetchRecentErrors({
+						variables: {
+							secure_id: secureID,
+						},
+					})
+					await fetchErrorGroupDistribution({
+						variables: {
+							error_group_secure_id: secureID,
+							project_id,
+							property: 'os',
+						},
+					})
+					await fetchErrorGroupDistribution({
+						variables: {
+							error_group_secure_id: secureID,
+							project_id,
+							property: 'browser',
+						},
+					})
+					console.log(`preloaded error group ${secureID}`)
+				} catch (e: any) {
+					const msg = `failed to preload error group ${secureID}`
+					console.warn(msg)
+					H.consumeError(e, msg)
+				}
+			})(_eg.secure_id)
+			promises.push(preloadPromise)
+			if (promises.length === CONCURRENT_PRELOADS) {
+				await Promise.all(promises)
+				promises.length = 0
+			}
+		}
+		await Promise.all(promises)
+	}, [
+		project_id,
+		errors?.error_groups_opensearch.error_groups,
+		fetchErrorGroup,
+		fetchRecentErrors,
+		fetchErrorGroupDistribution,
+		pageToLoad,
+		called,
 	]).then()
 }

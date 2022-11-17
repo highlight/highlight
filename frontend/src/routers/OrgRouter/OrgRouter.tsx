@@ -7,6 +7,7 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
+import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { Sidebar } from '@components/Sidebar/Sidebar'
 import {
 	AppLoadingState,
@@ -14,12 +15,16 @@ import {
 } from '@context/AppLoadingContext'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
-import { SearchParamsInput } from '@graph/schemas'
+import { ErrorSearchParamsInput, SearchParamsInput } from '@graph/schemas'
+import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
+import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import {
 	QueryBuilderInput,
 	SearchContextProvider,
+	useSearchContext,
 } from '@pages/Sessions/SearchContext/SearchContext'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
@@ -27,10 +32,13 @@ import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
+import { message } from 'antd'
 import classNames from 'classnames'
 import Firebase from 'firebase/app'
 import _ from 'lodash'
-import React, { useEffect, useState } from 'react'
+import moment from 'moment/moment'
+import React, { useEffect, useRef, useState } from 'react'
+import { useHistory } from 'react-router'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 import {
@@ -155,7 +163,123 @@ export const ProjectRouter = () => {
 		}
 	}, [error, integratedLoading, loading, setLoadingState])
 
-	// Params and hooks for SearchContextProvider
+	if (loading || integratedLoading) {
+		return null
+	}
+
+	// if the user can join this workspace, give them that option via the ErrorState
+	const joinableWorkspace = data?.joinable_workspaces
+		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
+		?.pop()
+
+	return (
+		<GlobalContextProvider
+			value={{
+				showKeyboardShortcutsGuide,
+				toggleShowKeyboardShortcutsGuide,
+				showBanner,
+				toggleShowBanner,
+			}}
+		>
+			<ApplicationContextProvider
+				value={{
+					currentProject: data?.project || undefined,
+					allProjects: data?.workspace?.projects || [],
+					currentWorkspace: data?.workspace || undefined,
+					workspaces: data?.workspaces || [],
+				}}
+			>
+				<SearchContext>
+					<ErrorSearchContext>
+						<Switch>
+							<Route path="/:project_id/front" exact>
+								<FrontPlugin />
+							</Route>
+							<Route>
+								<Header />
+								{(isLoggedIn ||
+									projectIdRemapped ===
+										DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
+									<Sidebar />
+								)}
+								<div
+									className={classNames(
+										commonStyles.bodyWrapper,
+										{
+											[commonStyles.bannerShown]:
+												showBanner,
+										},
+									)}
+								>
+									{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
+									{isLoggedIn && joinableWorkspace ? (
+										<ErrorState
+											shownWithHeader
+											joinableWorkspace={
+												joinableWorkspace
+											}
+										/>
+									) : isLoggedIn &&
+									  (error || !data?.project) ? (
+										<ErrorState
+											title={'Enter this Workspace?'}
+											message={`
+                        Sadly, you don’t have access to the workspace 😢
+                        Request access and we'll shoot an email to your workspace admin. 
+                        Alternatively, feel free to make an account!
+                        `}
+											shownWithHeader
+											showRequestAccess
+										/>
+									) : (
+										<>
+											{isLoggedIn &&
+												!hasFinishedOnboarding && (
+													<>
+														<OnboardingBubble />
+													</>
+												)}
+											<ApplicationRouter
+												integrated={integrated}
+											/>
+										</>
+									)}
+								</div>
+							</Route>
+						</Switch>
+					</ErrorSearchContext>
+				</SearchContext>
+			</ApplicationContextProvider>
+		</GlobalContextProvider>
+	)
+}
+
+const InitialSearchParamsForUrl = {
+	browser: undefined,
+	date_range: undefined,
+	device_id: undefined,
+	excluded_properties: undefined,
+	excluded_track_properties: undefined,
+	first_time: undefined,
+	hide_viewed: undefined,
+	identified: undefined,
+	length_range: undefined,
+	os: undefined,
+	referrer: undefined,
+	track_properties: undefined,
+	user_properties: undefined,
+	visited_url: undefined,
+	show_live_sessions: undefined,
+	environments: undefined,
+	app_versions: undefined,
+}
+
+const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
+	children,
+}) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
 
 	const [segmentName, setSegmentName] = useState<string | null>(null)
 	const [showStarredSessions, setShowStarredSessions] =
@@ -181,6 +305,35 @@ export const ProjectRouter = () => {
 
 	const [queryBuilderInput, setQueryBuilderInput] =
 		useState<QueryBuilderInput>(undefined)
+
+	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
+		EmptySessionsSearchParams,
+	)
+
+	const sessionSearchContext = {
+		searchParams,
+		setSearchParams,
+		existingParams,
+		setExistingParams,
+		segmentName,
+		setSegmentName,
+		showStarredSessions,
+		setShowStarredSessions,
+		selectedSegment,
+		setSelectedSegment,
+		backendSearchQuery,
+		setBackendSearchQuery,
+		queryBuilderInput,
+		setQueryBuilderInput,
+		isQuickSearchOpen,
+		setIsQuickSearchOpen,
+		page,
+		setPage,
+		searchResultsLoading,
+		setSearchResultsLoading,
+	}
+
+	// Params and hooks for SearchContextProvider
 
 	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
 		useQueryParams({
@@ -211,10 +364,6 @@ export const ProjectRouter = () => {
 	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
 		page: NumberParam,
 	})
-
-	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
-		EmptySessionsSearchParams,
-	)
 
 	const sessionsMatch = useRouteMatch('/:project_id/sessions')
 
@@ -308,129 +457,141 @@ export const ProjectRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	if (loading || integratedLoading) {
-		return null
-	}
-
-	// if the user can join this workspace, give them that option via the ErrorState
-	const joinableWorkspace = data?.joinable_workspaces
-		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
-		?.pop()
-
 	return (
-		<GlobalContextProvider
-			value={{
-				showKeyboardShortcutsGuide,
-				toggleShowKeyboardShortcutsGuide,
-				showBanner,
-				toggleShowBanner,
-			}}
-		>
-			<ApplicationContextProvider
-				value={{
-					currentProject: data?.project || undefined,
-					allProjects: data?.workspace?.projects || [],
-					currentWorkspace: data?.workspace || undefined,
-					workspaces: data?.workspaces || [],
-				}}
-			>
-				<SearchContextProvider
-					value={{
-						searchParams,
-						setSearchParams,
-						existingParams,
-						setExistingParams,
-						segmentName,
-						setSegmentName,
-						showStarredSessions,
-						setShowStarredSessions,
-						selectedSegment,
-						setSelectedSegment,
-						backendSearchQuery,
-						setBackendSearchQuery,
-						queryBuilderInput,
-						setQueryBuilderInput,
-						isQuickSearchOpen,
-						setIsQuickSearchOpen,
-						page,
-						setPage,
-						searchResultsLoading,
-						setSearchResultsLoading,
-					}}
-				>
-					<Switch>
-						<Route path="/:project_id/front" exact>
-							<FrontPlugin />
-						</Route>
-						<Route>
-							<Header />
-							{(isLoggedIn ||
-								projectIdRemapped ===
-									DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
-								<Sidebar />
-							)}
-							<div
-								className={classNames(
-									commonStyles.bodyWrapper,
-									{
-										[commonStyles.bannerShown]: showBanner,
-									},
-								)}
-							>
-								{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-								{isLoggedIn && joinableWorkspace ? (
-									<ErrorState
-										shownWithHeader
-										joinableWorkspace={joinableWorkspace}
-									/>
-								) : isLoggedIn && (error || !data?.project) ? (
-									<ErrorState
-										title={'Enter this Workspace?'}
-										message={`
-                        Sadly, you don’t have access to the workspace 😢
-                        Request access and we'll shoot an email to your workspace admin. 
-                        Alternatively, feel free to make an account!
-                        `}
-										shownWithHeader
-										showRequestAccess
-									/>
-								) : (
-									<>
-										{isLoggedIn && !hasFinishedOnboarding && (
-											<>
-												<OnboardingBubble />
-											</>
-										)}
-										<ApplicationRouter
-											integrated={integrated}
-										/>
-									</>
-								)}
-							</div>
-						</Route>
-					</Switch>
-				</SearchContextProvider>
-			</ApplicationContextProvider>
-		</GlobalContextProvider>
+		<SearchContextProvider value={sessionSearchContext}>
+			{children}
+		</SearchContextProvider>
 	)
 }
 
-const InitialSearchParamsForUrl = {
-	browser: undefined,
-	date_range: undefined,
-	device_id: undefined,
-	excluded_properties: undefined,
-	excluded_track_properties: undefined,
-	first_time: undefined,
-	hide_viewed: undefined,
-	identified: undefined,
-	length_range: undefined,
-	os: undefined,
-	referrer: undefined,
-	track_properties: undefined,
-	user_properties: undefined,
-	visited_url: undefined,
-	show_live_sessions: undefined,
-	environments: undefined,
-	app_versions: undefined,
+const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
+	children,
+}) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+
+	const [segmentName, setSegmentName] = useState<string | null>(null)
+
+	const [cachedParams, setCachedParams] =
+		useLocalStorage<ErrorSearchParamsInput>(
+			`cachedErrorParams-v2-${
+				segmentName || 'no-selected-segment'
+			}-${project_id}`,
+			{},
+		)
+	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
+		cachedParams || EmptyErrorsSearchParams,
+	)
+	const [searchResultsLoading, setSearchResultsLoading] =
+		useState<boolean>(false)
+	const [existingParams, setExistingParams] =
+		useState<ErrorSearchParamsInput>({})
+	const dateFromSearchParams = new URLSearchParams(location.search).get(
+		SessionPageSearchParams.date,
+	)
+	const searchParamsChanged = useRef<Date>()
+
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
+
+	const [backendSearchQuery, setBackendSearchQuery] =
+		useState<BackendSearchQuery>(undefined)
+
+	const history = useHistory()
+	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
+	const [page, setPage] = useState<number>()
+
+	const errorSearchContext = {
+		searchParams,
+		setSearchParams,
+		existingParams,
+		setExistingParams,
+		segmentName,
+		setSegmentName,
+		backendSearchQuery,
+		setBackendSearchQuery,
+		page,
+		setPage,
+		searchResultsLoading,
+		setSearchResultsLoading,
+	}
+
+	useEffect(
+		() => setCachedParams(searchParams),
+		[searchParams, setCachedParams],
+	)
+
+	useEffect(() => {
+		if (dateFromSearchParams) {
+			const start_date = moment(dateFromSearchParams)
+			const end_date = moment(dateFromSearchParams)
+
+			setSearchParams(() => ({
+				// We are explicitly clearing any existing search params so the only
+				// applied search param is the date range.
+				...EmptyErrorsSearchParams,
+				date_range: {
+					start_date: start_date
+						.startOf('day')
+						.subtract(1, 'days')
+						.format(),
+					end_date: end_date.endOf('day').format(),
+				},
+			}))
+			message.success(
+				`Showing errors that were thrown on ${dateFromSearchParams}`,
+			)
+			history.replace({ search: '' })
+		}
+	}, [history, dateFromSearchParams, setSearchParams])
+
+	useEffect(() => {
+		if (queryBuilderInput?.type === 'errors') {
+			setSearchParams({
+				...EmptyErrorsSearchParams,
+				query: JSON.stringify(queryBuilderInput),
+			})
+			setQueryBuilderInput(undefined)
+		}
+	}, [queryBuilderInput, setQueryBuilderInput])
+
+	useEffect(() => {
+		if (page !== undefined) {
+			setPaginationToUrlParams(
+				{
+					page: page,
+				},
+				'replaceIn',
+			)
+		}
+	}, [setPaginationToUrlParams, page])
+
+	useEffect(() => {
+		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+			setPage(paginationToUrlParams.page)
+		}
+		// We only want to run this on mount (i.e. when the page first loads).
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	useEffect(() => {
+		// we just loaded the page for the first time
+		if (
+			searchParamsChanged.current &&
+			new Date().getTime() - searchParamsChanged.current.getTime() >
+				RESET_PAGE_MS
+		) {
+			// the search query actually changed, reset the page
+			setPage(STARTING_PAGE)
+		}
+		searchParamsChanged.current = new Date()
+	}, [searchParams, setPage])
+
+	return (
+		<ErrorSearchContextProvider value={errorSearchContext}>
+			{children}
+		</ErrorSearchContextProvider>
+	)
 }

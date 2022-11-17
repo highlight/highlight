@@ -12,7 +12,7 @@ import { Redirect, Route, Switch } from 'react-router-dom'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
-import { usePreloadSessions } from '@util/preload'
+import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 
 import ErrorPage from '../../pages/Error/ErrorPage'
 import PlayerPage from '../../pages/Player/PlayerPage'
@@ -24,6 +24,7 @@ interface Props {
 
 const ApplicationRouter = ({ integrated }: Props) => {
 	usePreloadSessions()
+	usePreloadErrors()
 	const { project_id } = useParams<{ project_id: string }>()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const [newErrorsPageEnabled] = useLocalStorage(
