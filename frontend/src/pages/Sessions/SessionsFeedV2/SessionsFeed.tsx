@@ -200,7 +200,9 @@ export const SessionFeed = React.memo(() => {
 			fetchPolicy: 'network-only',
 		})
 
-	// Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+	// Used to determine if we need to show the loading skeleton.
+	// The loading skeleton should only be shown on the first load and when searchParams changes.
+	// It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {
 		setSearchResultsLoading(true)
 	}, [backendSearchQuery, page, setSearchResultsLoading])
@@ -431,7 +433,12 @@ export const SessionFeed = React.memo(() => {
 									<SearchEmptyState
 										item={'sessions'}
 										customTitle="Your project doesn't have starred sessions."
-										customDescription="Starring a session is like bookmarking a website. It gives you a way to tag a session that you want to look at again. You can star a session by clicking the star icon next to the user details in the session's right panel."
+										customDescription={
+											'Starring a session is like bookmarking a website. ' +
+											'It gives you a way to tag a session that you want to look at again. ' +
+											'You can star a session by clicking the star icon next to the user details ' +
+											"in the session's right panel."
+										}
 									/>
 								) : (
 									<SearchEmptyState item={'sessions'} />
