@@ -1,5 +1,5 @@
-import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
-import React, { useEffect } from 'react'
+import React from 'react'
+import SyntaxHighlighter from 'react-syntax-highlighter'
 
 type ErrorSourcePreviewProps = {
 	fileName: string | undefined
@@ -25,6 +25,11 @@ const LANGUAGE_MAP: { [K in string]: string } = {
 	jsx: 'jsx',
 	ts: 'typescript',
 	tsx: 'tsx',
+}
+
+const baseLineStyles = {
+	display: 'block',
+	padding: '0 12px',
 }
 
 const ErrorSourcePreview: React.FC<
@@ -69,92 +74,31 @@ const ErrorSourcePreview: React.FC<
 	const extension = fileName?.split('.').pop()
 	const language = (!!extension && LANGUAGE_MAP[extension]) || 'javascript'
 
-	// Adds a squiggly underline to the line where the error occurred
-	useEffect(() => {
-		const thrownLineElement = document.querySelector(
-			`[data-line-number="${lineNumber}"]`,
-		)
-		if (thrownLineElement) {
-			// Skip the first 2 tokens:
-			// 1. First token is the line number
-			// 2. Second token is the tab/indentation
-			;[...thrownLineElement.children]
-				.slice(2)
-				.forEach((childElement) => {
-					if (
-						childElement.textContent === functionName ||
-						// `functionName` is empty when the error occurred on the entire line. In this case we add an underline to the entire line.
-						functionName === ''
-					) {
-						// childElement.classList.add(styles.underline)
-					}
-				})
-		}
-	}, [functionName, lineNumber])
-
 	return (
 		<span>
-			<CodeBlock
-				text={text.join('\n')}
+			<SyntaxHighlighter
 				language={language}
-				hideCopy
+				style="light"
 				showLineNumbers
-				numberOfLines={text.length}
-				lineNumber={lineNumber}
+				wrapLines
 				startingLineNumber={(lineNumber ?? 1) - before.length}
 				lineProps={(ln) => {
-					if (ln === lineNumber) {
-						return {
-							style: {
-								backgroundColor: 'var(--color-gray-300)',
-								display: 'block',
-							},
-							'data-line-number': lineNumber.toString(),
-						}
-					}
-					return {
-						style: {
-							display: 'block',
-						},
-					}
+					return ln === lineNumber
+						? {
+								style: {
+									backgroundColor: '#FEF3C7',
+									borderRadius: '4px',
+									...baseLineStyles,
+								},
+								'data-line-number': lineNumber.toString(),
+						  }
+						: {
+								style: baseLineStyles,
+						  }
 				}}
-				lineNumberStyle={{
-					paddingRight: '16px',
-					paddingLeft: '16px',
-					display: 'none',
-				}}
-				wrapLines
-				customStyle={{
-					fontFamily: 'Roboto Mono',
-					border: 'none !important',
-					overflow: 'auto',
-				}}
-				codeTagProps={{
-					style: {
-						color: '#111',
-						background: 'none',
-						fontFamily:
-							'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
-						fontSize: '1em',
-						textAlign: 'left',
-						whiteSpace: 'pre',
-						wordSpacing: 'normal',
-						wordBreak: 'normal',
-						overflowWrap: 'normal',
-						lineHeight: '1.5',
-						tabSize: '4',
-						hyphens: 'none',
-						maxHeight: 'inherit',
-						height: 'inherit',
-						padding: '8px 0',
-						display: 'block',
-						overflow: 'auto',
-						border: 'none',
-						width: 'fit-content',
-						minWidth: '100%',
-					},
-				}}
-			/>
+			>
+				{text.join('\n')}
+			</SyntaxHighlighter>
 		</span>
 	)
 }

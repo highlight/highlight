@@ -1,5 +1,5 @@
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { Box, ButtonLink, Text } from '@highlight-run/ui'
+import { Box, Button, Text } from '@highlight-run/ui'
 import { parseOptionalJSON } from '@util/string'
 import React from 'react'
 
@@ -28,17 +28,20 @@ const JsonOrTextCard: React.FC<Props> = ({ jsonOrText }) => {
 					<Text
 						lines={truncated ? '2' : undefined}
 						family="monospace"
+						ref={textRef}
 					>
 						{jsonOrText}
 					</Text>
 
 					{truncateable && (
-						<Box mt="12">
-							<ButtonLink
+						<Box mt="12" display="flex" justifyContent="center">
+							<Button
 								onClick={() => setTruncated(!truncated)}
+								kind="secondary"
+								emphasis="low"
 							>
 								Show {truncated ? 'more' : 'less'}
-							</ButtonLink>
+							</Button>
 						</Box>
 					)}
 				</>

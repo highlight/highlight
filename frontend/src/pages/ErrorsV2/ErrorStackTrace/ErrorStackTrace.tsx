@@ -70,9 +70,9 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 				</Callout>
 			)}
 
-			{structuredStackTrace?.length ? (
-				<Box>
-					{structuredStackTrace?.map((e, i) => (
+			<Box width="full">
+				{structuredStackTrace?.length ? (
+					structuredStackTrace?.map((e, i) => (
 						<StackSection
 							key={i}
 							fileName={e?.fileName ?? ''}
@@ -90,11 +90,13 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							isLast={i >= structuredStackTrace.length - 1}
 							compact={false}
 						/>
-					))}
-				</Box>
-			) : (
-				<JsonOrTextCard jsonOrText={errorObject?.stack_trace || ''} />
-			)}
+					))
+				) : (
+					<JsonOrTextCard
+						jsonOrText={errorObject?.stack_trace || ''}
+					/>
+				)}
+			</Box>
 		</Stack>
 	)
 }

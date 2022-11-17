@@ -180,23 +180,23 @@ const Metadata: React.FC<{
 			<Box>
 				<Column.Container gap="16">
 					<Column span="4">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text
 									color="neutral500"
 									transform="capitalize"
 									align="left"
 								>
-									{tag.key.replace('_', ' ')}
+									{meta.key.replace('_', ' ')}
 								</Text>
 							</Box>
 						))}
 					</Column>
 					<Column span="8">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text align="left" lines="1">
-									{tag.label}
+									{meta.label}
 								</Text>
 							</Box>
 						))}
