@@ -7,8 +7,12 @@ import {
 } from '@apollo/client'
 import Dexie, { Table } from 'dexie'
 
+const CLEANUP_CHECK_MS = 1000
+const CLEANUP_DELAY_MS = 10000
+const CLEANUP_THRESHOLD_MB = 4000
+
 export class DB extends Dexie {
-	requests!: Table<{
+	apollo!: Table<{
 		key: string
 		data: FetchResult<Record<string, any>>
 	}>
@@ -25,7 +29,7 @@ export class DB extends Dexie {
 	constructor() {
 		super('highlight')
 		this.version(1).stores({
-			requests: 'key',
+			apollo: 'key',
 			fetch: 'key',
 		})
 	}
@@ -36,7 +40,7 @@ export const db = new DB()
 export class IndexedDBCache {
 	getItem: (key: string) => Promise<FetchResult<Record<string, any>> | null> =
 		async function (key: string) {
-			const result = await db.requests.where('key').equals(key).first()
+			const result = await db.apollo.where('key').equals(key).first()
 			return result?.data ?? null
 		}
 	setItem: (
@@ -44,13 +48,13 @@ export class IndexedDBCache {
 		value: FetchResult<Record<string, any>>,
 	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
 		async function (key: string, value: FetchResult<Record<string, any>>) {
-			await db.requests.put({ key, data: value })
+			await db.apollo.put({ key, data: value })
 		}
 	removeItem: (
 		key: string,
 	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
 		async function (key: string) {
-			await db.requests.delete(key)
+			await db.apollo.delete(key)
 		}
 }
 
@@ -79,9 +83,12 @@ export class IndexedDBLink extends ApolloLink {
 					const req = this.httpLink.request(operation, forward)
 					if (req) {
 						req.subscribe((result) => {
-							indexeddbCache.setItem(cacheKey, result)
-							observer.next(result)
-							observer.complete()
+							indexeddbCache
+								.setItem(cacheKey, result)
+								.then(() => {
+									observer.next(result)
+									observer.complete()
+								})
 						})
 					}
 				}
@@ -117,3 +124,38 @@ export const IndexedDBFetch = async function (
 		return new Response(cached.blob, cached.options)
 	}
 }
+
+const cleanup = async () => {
+	const fetchElems = await db.fetch.count()
+	const apolloElems = await db.apollo.count()
+	const totalElems = fetchElems + apolloElems
+	const size = (await navigator.storage.estimate()) as {
+		quota?: number
+		usage?: number
+		usageDetails?: { indexedDB?: number }
+	}
+	const usageMB =
+		(size.usageDetails?.indexedDB || size.usage || 0) / 1000 / 1000
+	const avgElemMB = usageMB / (fetchElems + apolloElems)
+	const numElemsToRemove = (usageMB - CLEANUP_THRESHOLD_MB) / avgElemMB
+	const numFetchElemsToRemove = (fetchElems / totalElems) * numElemsToRemove
+	const numApolloElemsToRemove = (apolloElems / totalElems) * numElemsToRemove
+	for (let i = 1; i < numFetchElemsToRemove; ++i) {
+		const toDelete = await db.fetch.limit(1).first()
+		if (toDelete) {
+			await db.fetch.delete(toDelete.key)
+		}
+	}
+	for (let i = 1; i < numApolloElemsToRemove; ++i) {
+		const toDelete = await db.apollo.limit(1).first()
+		if (toDelete) {
+			await db.apollo.delete(toDelete.key)
+		}
+	}
+	if (numFetchElemsToRemove > 1 || numApolloElemsToRemove > 1) {
+		window.setTimeout(cleanup, CLEANUP_DELAY_MS)
+	} else {
+		window.setTimeout(cleanup, CLEANUP_CHECK_MS)
+	}
+}
+window.setTimeout(cleanup, CLEANUP_CHECK_MS)

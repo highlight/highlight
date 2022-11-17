@@ -17,7 +17,7 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useMemo, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 2
+const CONCURRENT_PRELOADS = 1
 
 export const usePreloadData = function () {
 	const { project_id } = useParams<{
@@ -178,6 +178,7 @@ export const usePreloadData = function () {
 		}
 		await Promise.all(promises)
 	}, [
+		fetchEnhanced,
 		fetchEventChunkURL,
 		fetchEventChunks,
 		fetchIndicatorEvents,
@@ -185,9 +186,8 @@ export const usePreloadData = function () {
 		fetchSession,
 		fetchSessionComments,
 		fetchSessionPayload,
-		fetchEnhanced,
 		fetchWebVitals,
 		project_id,
-		sessions?.sessions_opensearch.sessions,
+		sessions,
 	]).then()
 }
