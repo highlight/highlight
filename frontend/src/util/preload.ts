@@ -25,7 +25,7 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useMemo, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 2
+const CONCURRENT_PRELOADS = 1
 
 export const usePreloadSessions = function () {
 	const { project_id } = useParams<{
@@ -213,7 +213,19 @@ export const usePreloadErrors = function () {
 			must: [
 				{
 					bool: {
-						must: [],
+						must: [
+							{
+								bool: {
+									should: [
+										{
+											term: {
+												'state.keyword': 'OPEN',
+											},
+										},
+									],
+								},
+							},
+						],
 					},
 				},
 				{
