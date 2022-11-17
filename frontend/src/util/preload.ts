@@ -17,7 +17,7 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useMemo, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 1
+const CONCURRENT_PRELOADS = 2
 
 export const usePreloadData = function () {
 	const { project_id } = useParams<{
