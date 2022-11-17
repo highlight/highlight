@@ -63,7 +63,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<Text color="neutral500">Instances</Text>
 							</Box>
 							<Text>
-								<TextLink href="#latest">Latest {'>'}</TextLink>
+								<TextLink
+									href={`${window.location.pathname}${window.location.search}#error-instance-container`}
+								>
+									Latest {'>'}
+								</TextLink>
 							</Text>
 						</>
 					}

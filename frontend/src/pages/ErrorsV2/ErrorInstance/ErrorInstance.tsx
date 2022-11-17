@@ -67,7 +67,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
-		<Box>
+		<Box id="error-instance-container">
 			<Box mt="28" mb="32" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Error Instance</Heading>
