@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,8 +33,13 @@ type fetcher interface {
 }
 
 func init() {
-	if util.IsDevEnv() {
+	if util.IsTestEnv() {
 		fetch = DiskFetcher{}
+	} else if util.IsDevEnv() {
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		client := &http.Client{Transport: customTransport}
+		fetch = NetworkFetcher{client: client}
 	} else {
 		fetch = NetworkFetcher{}
 	}
@@ -51,7 +57,9 @@ func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
 	return inputBytes, nil
 }
 
-type NetworkFetcher struct{}
+type NetworkFetcher struct {
+	client *http.Client
+}
 
 func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	// check if source is a URL
@@ -60,11 +68,19 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 		return nil, err
 	}
 	// get minified file
-	res, err := http.Get(href)
+	if n.client == nil {
+		n.client = http.DefaultClient
+	}
+	res, err := n.client.Get(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting source file")
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Errorf("failed to close network reader %+v", err)
+		}
+	}(res.Body)
 	if res.StatusCode != http.StatusOK {
 		return nil, e.New("status code not OK")
 	}
