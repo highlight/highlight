@@ -12,6 +12,11 @@ export const variants = recipe({
 			border: 'none',
 			borderRadius: 6,
 			outline: 'none',
+			selectors: {
+				'&:hover': {
+					cursor: 'pointer',
+				},
+			},
 		},
 	],
 
