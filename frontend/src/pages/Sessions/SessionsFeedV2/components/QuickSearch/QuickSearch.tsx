@@ -95,7 +95,7 @@ export const styleProps: Styles<any, false> = {
 		fontSize: '12px',
 		background: 'none',
 		flexDirection: 'row-reverse',
-		minHeight: '32px',
+		minHeight: '28px',
 		'&:hover': {
 			borderColor: 'var(--color-purple) !important',
 		},
@@ -109,7 +109,7 @@ export const styleProps: Styles<any, false> = {
 	valueContainer: (provided) => ({
 		...provided,
 		padding: '0 12px',
-		height: '32px',
+		height: '28px',
 		cursor: 'text',
 	}),
 	noOptionsMessage: (provided) => ({

@@ -3,6 +3,7 @@ import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
 	IconBriefcase,
@@ -17,7 +18,7 @@ import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { useHistory, useLocation } from 'react-router-dom'
+import { Link, useHistory, useLocation } from 'react-router-dom'
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 
@@ -104,26 +105,34 @@ const ProjectPicker = () => {
 					<Menu.List>
 						{projectOptions}
 						<Menu.Divider />
-						<Menu.Item
-							onClick={() => {
-								history.push(`/w/${currentWorkspace?.id}/new`)
-							}}
+						<Link
+							to={`/w/${currentWorkspace?.id}/new`}
+							className={linkStyle}
 						>
-							<Box display="flex" alignItems="center" gap="4">
-								<IconPlusSm size="14" />
-								Create new project
-							</Box>
-						</Menu.Item>
-						<Menu.Item
-							onClick={() => {
-								history.push(`/${project_id}/settings`)
-							}}
+							<Menu.Item>
+								<Box display="flex" alignItems="center" gap="4">
+									<IconPlusSm
+										size="14"
+										color={vars.color.neutral300}
+									/>
+									Create new project
+								</Box>
+							</Menu.Item>
+						</Link>
+						<Link
+							to={`/${project_id}/settings`}
+							className={linkStyle}
 						>
-							<Box display="flex" alignItems="center" gap="4">
-								<IconDotsHorizontal size="14" />
-								Project settings
-							</Box>
-						</Menu.Item>
+							<Menu.Item>
+								<Box display="flex" alignItems="center" gap="4">
+									<IconDotsHorizontal
+										size="14"
+										color={vars.color.neutral300}
+									/>
+									Project settings
+								</Box>
+							</Menu.Item>
+						</Link>
 					</Menu.List>
 				</Menu>
 			</div>

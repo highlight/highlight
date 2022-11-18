@@ -37,7 +37,9 @@ import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/Q
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
+import { client } from '@util/graph'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -46,7 +48,7 @@ import classNames from 'classnames/bind'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
-import { Link, useHistory, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
@@ -63,14 +65,27 @@ export const Header = () => {
 			: project_id
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const history = useHistory()
 	const workspaceId = currentWorkspace?.id
 	const currentPage = location.pathname.split('/').pop()
+	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+
 	const pages = [
-		{ key: 'home', icon: <IconHome size="14" /> },
-		{ key: 'errors', icon: <IconXCircle size="14" /> },
-		{ key: 'sessions', icon: <IconPlayCircle size="14" /> },
-		{ key: 'dashboards', icon: <IconViewGrid size="14" /> },
+		{
+			key: 'home',
+			icon: IconHome,
+		},
+		{
+			key: 'errors',
+			icon: IconXCircle,
+		},
+		{
+			key: 'sessions',
+			icon: IconPlayCircle,
+		},
+		{
+			key: 'dashboards',
+			icon: IconViewGrid,
+		},
 	]
 
 	return (
@@ -79,7 +94,6 @@ export const Header = () => {
 			<Box background="neutral50" borderBottom="neutral">
 				{!!project_id && getBanner(project_id) /** ZANETODO: banner? */}
 				<Box
-					height="45"
 					display="flex"
 					alignItems="center"
 					px="12"
@@ -101,7 +115,18 @@ export const Header = () => {
 									{pages.map((p) => {
 										return (
 											<LinkButton
-												iconLeft={p.icon}
+												iconLeft={
+													<p.icon
+														size="14"
+														color={
+															currentPage ===
+															p.key
+																? undefined
+																: vars.color
+																		.neutral700
+														}
+													/>
+												}
 												emphasis={
 													currentPage === p.key
 														? 'high'
@@ -124,56 +149,74 @@ export const Header = () => {
 											emphasis="low"
 											kind="secondary"
 										>
-											<IconDotsHorizontal size="14" />
+											<IconDotsHorizontal
+												size="14"
+												color={vars.color.neutral500}
+											/>
 										</Menu.Button>
 										<Menu.List>
-											<Menu.Item
-												onClick={() => {
-													history.push(
-														`/${project_id}/alerts`,
-													)
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
+											<Menu.Item>
+												<Link
+													to={`/${project_id}/alerts`}
+													className={linkStyle}
 												>
-													<IconSpeakerphone size="14" />
-													Alerts
-												</Box>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSpeakerphone
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Alerts
+													</Box>
+												</Link>
 											</Menu.Item>
-											<Menu.Item
-												onClick={() => {
-													history.push(
-														`/${project_id}/integrations`,
-													)
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
+											<Menu.Item>
+												<Link
+													to={`/${project_id}/integrations`}
+													className={linkStyle}
 												>
-													<IconViewGridAdd size="14" />
-													Integrations
-												</Box>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconViewGridAdd
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Integrations
+													</Box>
+												</Link>
 											</Menu.Item>
-											<Menu.Item
-												onClick={() => {
-													history.push(
-														`/${project_id}/setup`,
-													)
-												}}
-											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
+											<Menu.Item>
+												<Link
+													to={`/${project_id}/setup`}
+													className={linkStyle}
 												>
-													<IconDesktopComputer size="14" />
-													Setup
-												</Box>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconDesktopComputer
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Setup
+													</Box>
+												</Link>
 											</Menu.Item>
 										</Menu.List>
 									</Menu>
@@ -209,53 +252,55 @@ export const Header = () => {
 							/>
 							<Menu>
 								<Menu.Button emphasis="low" kind="secondary">
-									<IconCog size="14" />
+									<IconCog
+										size="14"
+										color={vars.color.neutral500}
+									/>
 								</Menu.Button>
 								<Menu.List>
-									<Menu.Item
-										onClick={() => {
-											history.push(
-												`/w/${workspaceId}/settings`,
-											)
-										}}
+									<Link
+										to={`/w/${workspaceId}/settings`}
+										className={linkStyle}
 									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconOfficeBuilding
-												size="14"
-												color={vars.color.neutral300}
-											/>
-											Workspace settings
-										</Box>
-									</Menu.Item>
-									<Menu.Item
-										onClick={() => {
-											history.push(
-												`/w/${workspaceId}/account`,
-											)
-										}}
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconOfficeBuilding
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Workspace settings
+											</Box>
+										</Menu.Item>
+									</Link>
+									<Link
+										to={`/w/${workspaceId}/account`}
+										className={linkStyle}
 									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconUserCircle
-												size="14"
-												color={vars.color.neutral300}
-											/>
-											Account settings
-										</Box>
-									</Menu.Item>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconUserCircle
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Account settings
+											</Box>
+										</Menu.Item>
+									</Link>
 									<Menu.Divider />
-									<Menu.Item>
-										<Link
-											to="/switch"
-											className={linkStyle}
-										>
+									<Link to="/switch" className={linkStyle}>
+										<Menu.Item>
 											<Box
 												display="flex"
 												alignItems="center"
@@ -269,50 +314,52 @@ export const Header = () => {
 												/>
 												Switch workspace
 											</Box>
-										</Link>
-									</Menu.Item>
-									<Menu.Item
-										onClick={() => {
-											history.push(
-												`/${project_id}/alerts`,
-											)
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
+										</Menu.Item>
+									</Link>
+									<Menu.Item>
+										<a
+											href="https://feedback.canny.io"
+											className={linkStyle}
 										>
-											<IconQuestionMarkCircle
-												size="14"
-												color={vars.color.neutral300}
-											/>
-											Feedback
-										</Box>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconQuestionMarkCircle
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Feedback
+											</Box>
+										</a>
 									</Menu.Item>
-									<Menu.Item
-										onClick={() => {
-											history.push(
-												`/${project_id}/alerts`,
-											)
-										}}
+									<a
+										href={'https://www.highlight.io/docs'}
+										className={linkStyle}
 									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconDocumentText
-												size="14"
-												color={vars.color.neutral300}
-											/>
-											Documentation
-										</Box>
-									</Menu.Item>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconDocumentText
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Documentation
+											</Box>
+										</Menu.Item>
+									</a>
 									<Menu.Item
 										onClick={() => {
-											history.push(
-												`/${project_id}/alerts`,
+											toggleShowKeyboardShortcutsGuide(
+												true,
 											)
 										}}
 									>
@@ -330,10 +377,13 @@ export const Header = () => {
 									</Menu.Item>
 									<Menu.Divider />
 									<Menu.Item
-										onClick={() => {
-											history.push(
-												`/${project_id}/alerts`,
-											)
+										onClick={async () => {
+											try {
+												auth.signOut()
+											} catch (e) {
+												console.log(e)
+											}
+											await client.clearStore()
 										}}
 									>
 										<Box
@@ -355,7 +405,6 @@ export const Header = () => {
 }
 
 const getBanner = (project_id: string) => {
-	return <DemoWorkspaceBanner />
 	if (isOnPrem) {
 		return <OnPremiseBanner />
 	} else if (project_id === DEMO_WORKSPACE_APPLICATION_ID) {
