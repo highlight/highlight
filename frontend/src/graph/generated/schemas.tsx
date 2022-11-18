@@ -443,6 +443,7 @@ export type ErrorTrace = {
 	lineNumber?: Maybe<Scalars['Int']>
 	linesAfter?: Maybe<Scalars['String']>
 	linesBefore?: Maybe<Scalars['String']>
+	sourceMappingErrorMetadata?: Maybe<SourceMappingError>
 }
 
 export type ErrorsHistogram = {
@@ -2023,6 +2024,36 @@ export enum SocialType {
 	LinkedIn = 'LinkedIn',
 	Site = 'Site',
 	Twitter = 'Twitter',
+}
+
+export type SourceMappingError = {
+	__typename?: 'SourceMappingError'
+	actualMinifiedFetchedPath?: Maybe<Scalars['String']>
+	actualSourcemapFetchedPath?: Maybe<Scalars['String']>
+	errorCode?: Maybe<SourceMappingErrorCode>
+	mappedColumnNumber?: Maybe<Scalars['Int']>
+	mappedLineNumber?: Maybe<Scalars['Int']>
+	minifiedColumnNumber?: Maybe<Scalars['Int']>
+	minifiedFetchStrategy?: Maybe<Scalars['String']>
+	minifiedFileSize?: Maybe<Scalars['String']>
+	minifiedLineNumber?: Maybe<Scalars['Int']>
+	sourceMapURL?: Maybe<Scalars['String']>
+	sourcemapFetchStrategy?: Maybe<Scalars['String']>
+	sourcemapFileSize?: Maybe<Scalars['String']>
+	stackTraceFileURL?: Maybe<Scalars['String']>
+}
+
+export enum SourceMappingErrorCode {
+	ErrorParsingStackTraceFileUrl = 'Error_Parsing_Stack_Trace_File_Url',
+	FileNameMissingFromSourcePath = 'File_Name_Missing_From_Source_Path',
+	InvalidSourceMapUrl = 'Invalid_SourceMapURL',
+	MinifiedFileLarger = 'Minified_File_Larger',
+	MinifiedFileMissingInS3AndUrl = 'Minified_File_Missing_In_S3_And_URL',
+	MissingSourceMapFileInS3 = 'Missing_Source_Map_File_In_S3',
+	SourceMapFileLarger = 'Source_Map_File_Larger',
+	SourcemapFileMissingInS3AndUrl = 'Sourcemap_File_Missing_In_S3_And_URL',
+	SourcemapLibraryCouldntParse = 'Sourcemap_Library_Couldnt_Parse',
+	SourcemapLibraryCouldntRetrieveSource = 'Sourcemap_Library_Couldnt_Retrieve_Source',
 }
 
 export type Subscription = {

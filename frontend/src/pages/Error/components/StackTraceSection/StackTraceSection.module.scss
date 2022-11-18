@@ -89,3 +89,14 @@
 .fillerText {
 	color: var(--color-gray-500);
 }
+
+.stackTraceErrorMessage {
+	height: fit-content;
+	width: fit-content;
+	p {
+		color: var(--color-secondary-background);
+	}
+	li {
+		color: var(--color-secondary-background);
+	}
+}

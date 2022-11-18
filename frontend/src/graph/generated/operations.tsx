@@ -2535,7 +2535,28 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 							| 'linesBefore'
 							| 'linesAfter'
 							| 'error'
-						>
+						> & {
+								sourceMappingErrorMetadata?: Types.Maybe<
+									{
+										__typename?: 'SourceMappingError'
+									} & Pick<
+										Types.SourceMappingError,
+										| 'errorCode'
+										| 'stackTraceFileURL'
+										| 'sourcemapFetchStrategy'
+										| 'sourceMapURL'
+										| 'minifiedFetchStrategy'
+										| 'actualMinifiedFetchedPath'
+										| 'minifiedLineNumber'
+										| 'minifiedColumnNumber'
+										| 'actualSourcemapFetchedPath'
+										| 'sourcemapFileSize'
+										| 'minifiedFileSize'
+										| 'mappedLineNumber'
+										| 'mappedColumnNumber'
+									>
+								>
+							}
 					>
 				>
 				fields?: Types.Maybe<

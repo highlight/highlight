@@ -6,7 +6,9 @@
 	"author": "Highlight",
 	"license": "MIT",
 	"dependencies": {
-		"concurrently": "^6.5.1"
+		"@highlight-run/react": "^1.2.1",
+		"concurrently": "^6.5.1",
+		"highlight.run": "workspace:^"
 	},
 	"workspaces": [
 		"packages/*",
