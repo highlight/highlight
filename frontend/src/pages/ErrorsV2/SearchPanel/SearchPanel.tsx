@@ -88,10 +88,10 @@ const SearchPanel = () => {
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
 
 	useEffect(() => {
-		if (searchResultsLoading === false) {
+		if (!searchResultsLoading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
-			}, 5000)
+			}, 3000)
 			return () => {
 				clearTimeout(timer)
 			}
