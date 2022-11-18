@@ -13,6 +13,8 @@ import (
 )
 
 func TestEnhanceStackTrace(t *testing.T) {
+	stackTraceErrorCode := modelInput.SourceMappingErrorCodeMinifiedFileMissingInS3AndURL
+
 	// construct table of sub-tests to run
 	tests := map[string]struct {
 		stackFrameInput     []*publicModelInput.StackFrameInput
@@ -109,6 +111,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
 					Error:        util.MakeStringPointer("error fetching file: ./test-files/foo.js: error fetching file from disk: open ./test-files/foo.js: no such file or directory"),
+					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
+						ErrorCode:                 &stackTraceErrorCode,
+						StackTraceFileURL:         util.MakeStringPointer("./test-files/foo.js"),
+						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
+						ActualMinifiedFetchedPath: util.MakeStringPointer("./test-files/foo.js"),
+					},
 				},
 			},
 			fetcher: DiskFetcher{},
@@ -128,6 +136,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
 					Error:        util.MakeStringPointer("error fetching file: https://cdnjs.cloudflare.com/ajax/libs/lodash.js: status code not OK"),
+					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
+						ErrorCode:                 &stackTraceErrorCode,
+						StackTraceFileURL:         util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
+						ActualMinifiedFetchedPath: util.MakeStringPointer("ajax/libs/lodash.js"),
+					},
 				},
 			},
 			fetcher: NetworkFetcher{},
@@ -147,6 +161,12 @@ func TestEnhanceStackTrace(t *testing.T) {
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
 					Error:        util.MakeStringPointer(`error fetching file: /file/local/domain.js: error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+					SourceMappingErrorMetadata: &modelInput.SourceMappingError{
+						ErrorCode:                 &stackTraceErrorCode,
+						StackTraceFileURL:         util.MakeStringPointer("/file/local/domain.js"),
+						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
+						ActualMinifiedFetchedPath: util.MakeStringPointer("file/local/domain.js"),
+					},
 				},
 			},
 			fetcher: NetworkFetcher{},
