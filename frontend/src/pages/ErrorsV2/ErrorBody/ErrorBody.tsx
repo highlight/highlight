@@ -28,7 +28,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
 			project_id,
-			error_group_secure_ids: [errorGroup?.secure_id || ''],
+			error_group_secure_id: errorGroup?.secure_id || '',
 			params: {
 				date_range: {
 					start_date: moment(endDate.current)
@@ -45,7 +45,6 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 		frequencies?.errorGroupFrequencies
 			.filter((x) => x?.name === 'count')
 			.map((x) => x?.value || 0) || []
-	console.log('vadim', { frequencies, countBuckets })
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -173,13 +172,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
-							<div style={{ width: 256, height: 32 }}>
-								<BarChart
-									data={countBuckets}
-									height={32}
-									width={256}
-								/>
-							</div>
+							<BarChart
+								data={countBuckets}
+								height={30}
+								width={300}
+							/>
 						</Box>
 					</>
 				</Stat>

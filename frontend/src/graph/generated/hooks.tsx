@@ -10362,12 +10362,12 @@ export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
 export const GetErrorGroupFrequenciesDocument = gql`
 	query GetErrorGroupFrequencies(
 		$project_id: ID!
-		$error_group_secure_ids: [String!]!
+		$error_group_secure_id: String!
 		$params: ErrorGroupFrequenciesParamsInput!
 	) {
 		errorGroupFrequencies(
 			project_id: $project_id
-			error_group_secure_ids: $error_group_secure_ids
+			error_group_secure_id: $error_group_secure_id
 			params: $params
 		) {
 			error_group_id
@@ -10391,7 +10391,7 @@ export const GetErrorGroupFrequenciesDocument = gql`
  * const { data, loading, error } = useGetErrorGroupFrequenciesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      error_group_secure_ids: // value for 'error_group_secure_ids'
+ *      error_group_secure_id: // value for 'error_group_secure_id'
  *      params: // value for 'params'
  *   },
  * });

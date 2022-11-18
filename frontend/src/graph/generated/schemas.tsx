@@ -1364,7 +1364,7 @@ export type QueryErrorDistributionArgs = {
 }
 
 export type QueryErrorGroupFrequenciesArgs = {
-	error_group_secure_ids: Array<Scalars['String']>
+	error_group_secure_id: Scalars['String']
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
 }

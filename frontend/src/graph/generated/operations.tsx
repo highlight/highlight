@@ -3653,9 +3653,7 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	error_group_secure_ids:
-		| Array<Types.Scalars['String']>
-		| Types.Scalars['String']
+	error_group_secure_id: Types.Scalars['String']
 	params: Types.ErrorGroupFrequenciesParamsInput
 }>
 

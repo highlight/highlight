@@ -4036,14 +4036,10 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 }
 
 // ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
-	var errorGroupIDs []string
-	for _, egSecureID := range errorGroupSecureIds {
-		errorGroup, err := r.canAdminViewErrorGroup(ctx, egSecureID, false)
-		if err != nil {
-			return nil, e.Wrap(err, "admin not error group owner")
-		}
-		errorGroupIDs = append(errorGroupIDs, strconv.Itoa(errorGroup.ID))
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureID string, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not error group owner")
 	}
 
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
@@ -4051,12 +4047,12 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
       from(bucket: "%[1]s")
 		|> range(start: %[2]s, stop: %[3]s)
 		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> filter(fn: (r) => contains(value: r.ErrorGroupID, set: %[5]q))
+		|> filter(fn: (r) => r.ErrorGroupID == "%[5]s")
 		|> aggregateWindow(every: %[6]dh, fn: sum, createEmpty: true)
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupIDs, params.ResolutionHours)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, strconv.Itoa(errorGroup.ID), params.ResolutionHours)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
 	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupIDs", errorGroupSecureIds)
+	span.SetTag("errorGroupID", errorGroup.ID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
