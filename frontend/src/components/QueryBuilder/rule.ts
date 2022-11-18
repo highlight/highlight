@@ -1,4 +1,5 @@
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
+import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { Admin, Field } from '@graph/schemas'
 import moment, { unitOfTime } from 'moment'
 
@@ -139,7 +140,10 @@ export class Rule {
 	}
 
 	get isErrorSpecific(): boolean {
-		return this.type === CustomFieldType.ERROR_FIELD
+		return (
+			this.type === CustomFieldType.ERROR_FIELD ||
+			this.type === CustomFieldType.ERROR
+		)
 	}
 
 	getCustomOptions(customFields?: CustomField[]): FieldOptions | undefined {
@@ -311,7 +315,7 @@ export function parseRule(rule: Rule, metadata?: RuleMetadata): any {
 		return {
 			bool: {
 				should: rule.val?.options.map(({ value }) => {
-					_parseRuleBody(rule, { ...metadata, value })
+					return _parseRuleBody(rule, { ...metadata, value })
 				}),
 			},
 		}
@@ -329,7 +333,8 @@ export function parseFilter(
 	metadata?: RuleMetadata,
 ): OpenSearchQuery {
 	const condition = isAnd ? 'must' : 'should'
-	const filterErrors = rules.some((r) => r.isErrorSpecific)
+	const filterErrors =
+		rules.some((r) => r.isErrorSpecific) || timeRangeRule.isErrorSpecific
 
 	const timeRangeRuleParsed = parseRule(timeRangeRule, metadata)
 
@@ -351,20 +356,21 @@ export function parseFilter(
 		}
 		const errorObjectFilter = {
 			bool: {
-				must: [
-					timeRangeRuleParsed,
-					{
-						bool: {
-							[condition]: errorObjectRules,
-						},
-					},
-				],
+				must: [timeRangeRuleParsed],
 			},
 		}
+
+		if (errorObjectRules.length) {
+			errorObjectFilter.bool.must.push({
+				bool: {
+					[condition]: errorObjectRules,
+				},
+			})
+		}
+
 		request.query = {
 			bool: {
 				must: [
-					errorGroupFilter,
 					{
 						has_child: {
 							type: 'child',
@@ -374,31 +380,34 @@ export function parseFilter(
 				],
 			},
 		}
+
 		request.childQuery = {
 			bool: {
-				must: [
-					{
-						has_parent: {
-							parent_type: 'parent',
-							query: errorGroupFilter,
-						},
-					},
-					errorObjectFilter,
-				],
+				must: [errorObjectFilter],
 			},
+		}
+
+		if (standardRules.length) {
+			request.query.bool.must.push(errorGroupFilter)
+			request.childQuery.bool.must.push({
+				has_parent: {
+					parent_type: 'parent',
+					query: errorGroupFilter,
+				},
+			})
 		}
 	} else {
 		request.query = {
 			bool: {
-				must: [
-					timeRangeRuleParsed,
-					{
-						bool: {
-							[condition]: standardRules,
-						},
-					},
-				],
+				must: [timeRangeRuleParsed],
 			},
+		}
+		if (standardRules.length) {
+			request.query.bool.must.push({
+				bool: {
+					[condition]: standardRules,
+				},
+			})
 		}
 	}
 	return request
@@ -406,20 +415,31 @@ export function parseFilter(
 
 export function parseQuery(
 	rules: Rule[],
-	timeRangeRule: Rule,
 	isAnd: boolean,
+	defaultTimeRangeRule: Rule,
 	metadata?: RuleMetadata,
-) {
-	const timeRange = (timeRangeRule.val as MultiselectOption)?.options[0].value
+): BackendSearchQuery {
+	let timeRangeRule = rules.find(
+		(rule) => rule.field?.value === defaultTimeRangeRule.field!.value,
+	)
+	if (!timeRangeRule) {
+		timeRangeRule = defaultTimeRangeRule
+	}
+
+	const timeRange = (timeRangeRule?.val as MultiselectOption).options[0].value
+
 	const startDate = moment(getAbsoluteStartTime(timeRange))
 	const endDate = moment(getAbsoluteEndTime(timeRange))
 
-	const searchQuery = parseFilter(rules, timeRangeRule, isAnd, metadata)
+	const { query, childQuery } = parseFilter(
+		rules,
+		timeRangeRule,
+		isAnd,
+		metadata,
+	)
 	return {
-		searchQuery: JSON.stringify(searchQuery.query),
-		childSearchQuery: searchQuery.childQuery
-			? JSON.stringify(searchQuery.childQuery)
-			: undefined,
+		searchQuery: JSON.stringify(query),
+		childSearchQuery: childQuery ? JSON.stringify(childQuery) : undefined,
 		startDate,
 		endDate,
 		histogramBucketSize: GetHistogramBucketSize(
@@ -428,12 +448,12 @@ export function parseQuery(
 	}
 }
 
-interface Operator {
+export interface Operator {
 	name: OperatorName
 	negated?: boolean
 }
 
-enum OperatorName {
+export enum OperatorName {
 	IS = 'IS',
 	CONTAINS = 'CONTAINS',
 	EXISTS = 'EXISTS',
@@ -443,18 +463,18 @@ enum OperatorName {
 	MATCHES = 'MATCHES',
 }
 
-enum OptionKind {
+export enum OptionKind {
 	SINGLE = 'SINGLE',
 	MULTI = 'MULTI',
 }
 
-interface SelectOption {
+export interface SelectOption {
 	kind: OptionKind.SINGLE
 	label: string
 	value: string
 }
 
-interface MultiselectOption {
+export interface MultiselectOption {
 	kind: OptionKind.MULTI
 	options: readonly {
 		label: string

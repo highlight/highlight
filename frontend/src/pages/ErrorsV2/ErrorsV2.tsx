@@ -1,7 +1,15 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
-import { Rule } from '@components/QueryBuilder/rule'
+import {
+	CustomField,
+	CustomFieldType,
+	OperatorName,
+	OptionKind,
+	parseQuery,
+	Rule,
+	SelectOption,
+} from '@components/QueryBuilder/rule'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
@@ -36,16 +44,74 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import { H } from 'highlight.run'
 import moment from 'moment'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHistory } from 'react-router'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 import { NumberParam, useQueryParams } from 'use-query-params'
 
 import styles from './ErrorsV2.module.scss'
 
+const TIME_RANGE_FIELD: SelectOption = {
+	kind: OptionKind.SINGLE,
+	label: 'timestamp',
+	value: 'error-field_timestamp',
+}
+
+const CUSTOM_FIELDS: CustomField[] = [
+	{
+		type: CustomFieldType.ERROR,
+		name: 'Type',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR,
+		name: 'Event',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR,
+		name: 'state',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR_FIELD,
+		name: 'browser',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR_FIELD,
+		name: 'os_name',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR_FIELD,
+		name: 'visited_url',
+		options: {
+			type: 'text',
+		},
+	},
+	{
+		type: CustomFieldType.ERROR_FIELD,
+		name: 'environment',
+		options: {
+			type: 'text',
+		},
+	},
+]
+
 const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
-	const { error_secure_id, project_id } = useParams<{
+	const { error_secure_id, project_id: projectId } = useParams<{
 		error_secure_id: string
 		project_id: string
 	}>()
@@ -72,7 +138,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		useLocalStorage<ErrorSearchParamsInput>(
 			`cachedErrorParams-v2-${
 				segmentName || 'no-selected-segment'
-			}-${project_id}`,
+			}-${projectId}`,
 			{},
 		)
 	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
@@ -194,6 +260,40 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 	const [rules, setRules] = useState<Rule[]>([])
+	const [isAnd, toggleIsAnd] = useToggle(true)
+
+	const defaultTimeRangeRule: Rule = useMemo(() => {
+		const period =
+			projectId === '0'
+				? {
+						label: 'Last 5 years',
+						value: '5 years',
+				  }
+				: {
+						label: 'Last 30 days',
+						value: '30 days',
+				  }
+
+		return new Rule(
+			TIME_RANGE_FIELD,
+			{ name: OperatorName.BETWEEN_DATE },
+			{
+				kind: OptionKind.MULTI,
+				options: [period],
+			},
+		)
+	}, [projectId])
+
+	const { admin } = useAuthContext()
+
+	const update = useCallback(() => {
+		const parsedQuery = parseQuery(rules, isAnd, defaultTimeRangeRule, {
+			admin,
+			customFields: CUSTOM_FIELDS,
+		})
+		setBackendSearchQuery(parsedQuery)
+	}, [admin, defaultTimeRangeRule, isAnd, rules, setBackendSearchQuery])
+
 	return (
 		<ErrorSearchContextProvider
 			value={{
@@ -212,6 +312,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				setSearchResultsLoading,
 				rules,
 				setRules,
+				isAnd,
+				toggleIsAnd,
+				update,
 			}}
 		>
 			<Helmet>

@@ -32,4 +32,6 @@ export type BaseSearchContext<T> = {
 	setSearchResultsLoading: React.Dispatch<React.SetStateAction<boolean>>
 	rules: Rule[]
 	setRules: React.Dispatch<React.SetStateAction<Rule[]>>
+	isAnd: boolean
+	toggleIsAnd: (val?: boolean) => void
 }

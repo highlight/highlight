@@ -34,7 +34,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router'
-import { useLocalStorage } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 import {
 	Bar,
 	BarChart,
@@ -233,6 +233,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 	}, [searchParams, setPage])
 
 	const [rules, setRules] = useState<Rule[]>([])
+	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	return (
 		<ErrorSearchContextProvider
@@ -251,6 +252,9 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 				setSearchResultsLoading,
 				rules,
 				setRules,
+				isAnd,
+				toggleIsAnd,
+				update: () => {},
 			}}
 		>
 			<Helmet>

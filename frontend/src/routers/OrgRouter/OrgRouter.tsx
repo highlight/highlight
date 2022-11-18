@@ -310,14 +310,16 @@ export const ProjectRouter = () => {
 	}, [])
 
 	const [rules, setRules] = useState<Rule[]>([])
-	if (loading || integratedLoading) {
-		return null
-	}
+	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(project_id))
 		?.pop()
+
+	if (loading || integratedLoading) {
+		return null
+	}
 
 	return (
 		<GlobalContextProvider
@@ -360,6 +362,8 @@ export const ProjectRouter = () => {
 						setSearchResultsLoading,
 						rules,
 						setRules,
+						isAnd,
+						toggleIsAnd,
 					}}
 				>
 					<Switch>
