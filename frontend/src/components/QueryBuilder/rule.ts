@@ -1,3 +1,4 @@
+import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Admin, Field } from '@graph/schemas'
 import moment, { unitOfTime } from 'moment'
 
@@ -7,6 +8,11 @@ export enum CustomFieldType {
 	ERROR = 'error',
 	ERROR_FIELD = 'error-field',
 }
+type OpenSearchQuery = {
+	query: any
+	childQuery?: any
+}
+
 const TIME_MAX_LENGTH = 60
 const RANGE_MAX_LENGTH = 200
 
@@ -137,7 +143,13 @@ export class Rule {
 	}
 
 	getCustomOptions(customFields?: CustomField[]): FieldOptions | undefined {
-		if (!this.field || !this.type || !(this.type in CustomFieldType)) {
+		if (
+			!this.field ||
+			!this.type ||
+			!Object.values(CustomFieldType).includes(
+				this.type as CustomFieldType,
+			)
+		) {
 			return
 		}
 		return customFields?.find((f) => f.name === this.field?.label)?.options
@@ -314,7 +326,107 @@ export function parseFilter(
 	rules: Rule[],
 	timeRangeRule: Rule,
 	isAnd: boolean,
-) {}
+	metadata?: RuleMetadata,
+): OpenSearchQuery {
+	const condition = isAnd ? 'must' : 'should'
+	const filterErrors = rules.some((r) => r.isErrorSpecific)
+
+	const timeRangeRuleParsed = parseRule(timeRangeRule, metadata)
+
+	const errorObjectRules = rules
+		.filter((rule) => rule.isErrorSpecific && rule !== timeRangeRule)
+		.map((rule) => parseRule(rule, metadata))
+
+	const standardRules = rules
+		.filter((rule) => !rule.isErrorSpecific && rule !== timeRangeRule)
+		.map((rule) => parseRule(rule, metadata))
+
+	const request: OpenSearchQuery = { query: {} }
+
+	if (filterErrors) {
+		const errorGroupFilter = {
+			bool: {
+				[condition]: standardRules,
+			},
+		}
+		const errorObjectFilter = {
+			bool: {
+				must: [
+					timeRangeRuleParsed,
+					{
+						bool: {
+							[condition]: errorObjectRules,
+						},
+					},
+				],
+			},
+		}
+		request.query = {
+			bool: {
+				must: [
+					errorGroupFilter,
+					{
+						has_child: {
+							type: 'child',
+							query: errorObjectFilter,
+						},
+					},
+				],
+			},
+		}
+		request.childQuery = {
+			bool: {
+				must: [
+					{
+						has_parent: {
+							parent_type: 'parent',
+							query: errorGroupFilter,
+						},
+					},
+					errorObjectFilter,
+				],
+			},
+		}
+	} else {
+		request.query = {
+			bool: {
+				must: [
+					timeRangeRuleParsed,
+					{
+						bool: {
+							[condition]: standardRules,
+						},
+					},
+				],
+			},
+		}
+	}
+	return request
+}
+
+export function parseQuery(
+	rules: Rule[],
+	timeRangeRule: Rule,
+	isAnd: boolean,
+	metadata?: RuleMetadata,
+) {
+	const timeRange = (timeRangeRule.val as MultiselectOption)?.options[0].value
+	const startDate = moment(getAbsoluteStartTime(timeRange))
+	const endDate = moment(getAbsoluteEndTime(timeRange))
+
+	const searchQuery = parseFilter(rules, timeRangeRule, isAnd, metadata)
+	return {
+		searchQuery: JSON.stringify(searchQuery.query),
+		childSearchQuery: searchQuery.childQuery
+			? JSON.stringify(searchQuery.childQuery)
+			: undefined,
+		startDate,
+		endDate,
+		histogramBucketSize: GetHistogramBucketSize(
+			moment.duration(endDate.diff(startDate)),
+		),
+	}
+}
 
 interface Operator {
 	name: OperatorName

@@ -1,3 +1,4 @@
+import { parseQuery } from '@components/QueryBuilder/rule'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import SearchPagination, {
 	DEFAULT_PAGE_SIZE,
@@ -36,10 +37,13 @@ const SearchPanel = () => {
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 	const {
 		backendSearchQuery,
+		setBackendSearchQuery,
 		page,
 		setPage,
 		searchResultsLoading,
 		setSearchResultsLoading,
+		rules,
+		setRules,
 	} = useErrorSearchContext()
 
 	useEffect(() => {
@@ -99,6 +103,7 @@ const SearchPanel = () => {
 		}
 	}, [searchResultsLoading])
 
+	useEffect(() => {}, [])
 	return (
 		<Box
 			display="flex"
@@ -143,6 +148,9 @@ const SearchPanel = () => {
 						emphasis="low"
 						icon={<IconRefresh size={14} />}
 						disabled={syncButtonDisabled}
+						onClick={() => {
+							setBackendSearchQuery(parseQuery(rules))
+						}}
 					/>
 					<ButtonIcon
 						kind="secondary"

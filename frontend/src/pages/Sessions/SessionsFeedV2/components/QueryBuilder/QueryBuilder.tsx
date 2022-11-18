@@ -1948,7 +1948,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 							content={
 								currentRule?.field === undefined ? (
 									<PopoutContent
-										key={'popover-step-1'}
 										value={undefined}
 										setVisible={() => {
 											setCurrentStep(undefined)
@@ -1969,7 +1968,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 									/>
 								) : currentRule?.op === undefined ? (
 									<PopoutContent
-										key={'popover-step-2'}
 										value={undefined}
 										setVisible={() => {
 											setCurrentStep(2)
@@ -2001,7 +1999,6 @@ function QueryBuilder<T extends SearchContextTypes>(
 									/>
 								) : (
 									<PopoutContent
-										key={'popover-step-3'}
 										value={undefined}
 										setVisible={() => {
 											setCurrentStep(undefined)
