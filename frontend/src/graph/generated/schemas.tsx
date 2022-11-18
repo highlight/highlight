@@ -244,6 +244,11 @@ export type DateRangeInput = {
 	start_date?: Maybe<Scalars['Timestamp']>
 }
 
+export type DateRangeRequiredInput = {
+	end_date: Scalars['Timestamp']
+	start_date: Scalars['Timestamp']
+}
+
 export type DiscordChannel = {
 	__typename?: 'DiscordChannel'
 	id: Scalars['String']
@@ -300,6 +305,8 @@ export type ErrorComment = {
 
 export type ErrorDistributionItem = {
 	__typename?: 'ErrorDistributionItem'
+	date: Scalars['Timestamp']
+	error_group_id: Scalars['String']
 	name: Scalars['String']
 	value: Scalars['Int64']
 }
@@ -328,6 +335,18 @@ export type ErrorGroup = {
 	state: ErrorState
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
+}
+
+export type ErrorGroupFrequenciesParamsInput = {
+	date_range: DateRangeRequiredInput
+	resolution_hours: Scalars['Int']
+}
+
+export type ErrorInstance = {
+	__typename?: 'ErrorInstance'
+	error_object: ErrorObject
+	next_id?: Maybe<Scalars['ID']>
+	previous_id?: Maybe<Scalars['ID']>
 }
 
 export type ErrorMetadata = {
@@ -1177,6 +1196,7 @@ export type Query = {
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
+	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	error_alerts: Array<Maybe<ErrorAlert>>
 	error_comments: Array<Maybe<ErrorComment>>
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
@@ -1185,6 +1205,7 @@ export type Query = {
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
 	error_groups_opensearch: ErrorResults
+	error_instance?: Maybe<ErrorInstance>
 	error_object?: Maybe<ErrorObject>
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
@@ -1341,6 +1362,12 @@ export type QueryErrorDistributionArgs = {
 	property: Scalars['String']
 }
 
+export type QueryErrorGroupFrequenciesArgs = {
+	error_group_secure_ids: Array<Scalars['String']>
+	params: ErrorGroupFrequenciesParamsInput
+	project_id: Scalars['ID']
+}
+
 export type QueryError_AlertsArgs = {
 	project_id: Scalars['ID']
 }
@@ -1376,6 +1403,11 @@ export type QueryError_Groups_OpensearchArgs = {
 	page?: Maybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryError_InstanceArgs = {
+	error_group_secure_id: Scalars['String']
+	error_object_id?: Maybe<Scalars['ID']>
 }
 
 export type QueryError_ObjectArgs = {

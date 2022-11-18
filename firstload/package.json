@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "5.1.0",
+	"version": "5.1.2",
 	"scripts": {
 		"build": "yarn typegen && rollup -c",
 		"dev": "doppler run -- rollup -c -w",

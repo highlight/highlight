@@ -5,6 +5,7 @@ export const lineClampStyles: ComplexStyleRule = {
 	display: '-webkit-box',
 	WebkitBoxOrient: 'vertical',
 	overflow: 'hidden',
+	wordBreak: 'break-all',
 }
 
 export const variants = recipe({
