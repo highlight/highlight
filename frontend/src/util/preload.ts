@@ -19,11 +19,12 @@ import {
 import { OpenSearchCalendarInterval } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { IndexedDBFetch } from '@util/db'
+import { indexedDBFetch } from '@util/db'
+import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 const CONCURRENT_PRELOADS = 1
 
@@ -113,7 +114,7 @@ export const usePreloadSessions = function () {
 		const promises: Promise<void>[] = []
 		for (const _s of sessions?.sessions_opensearch.sessions || []) {
 			const preloadPromise = (async (secureID: string) => {
-				console.log(`preloading session ${secureID}`)
+				log('preload.ts', `preloading session ${secureID}`)
 				try {
 					const session = await fetchSession({
 						variables: {
@@ -123,13 +124,13 @@ export const usePreloadSessions = function () {
 					const sess = session?.data?.session
 					if (!sess) return
 					if (sess.resources_url) {
-						await IndexedDBFetch(sess.resources_url)
+						await indexedDBFetch(sess.resources_url)
 					}
 					if (sess.messages_url) {
-						await IndexedDBFetch(sess.messages_url)
+						await indexedDBFetch(sess.messages_url)
 					}
 					if (sess.direct_download_url) {
-						await IndexedDBFetch(sess.direct_download_url)
+						await indexedDBFetch(sess.direct_download_url)
 					}
 					fetchIntervals({
 						variables: {
@@ -171,8 +172,8 @@ export const usePreloadSessions = function () {
 						secure_id: secureID,
 						index: 0,
 					})
-					await IndexedDBFetch(response.data.event_chunk_url)
-					console.log(`preloaded session ${secureID}`)
+					await indexedDBFetch(response.data.event_chunk_url)
+					log('preload.ts', `preloaded session ${secureID}`)
 				} catch (e: any) {
 					const msg = `failed to preload session ${secureID}`
 					console.warn(msg)
@@ -299,59 +300,62 @@ export const usePreloadErrors = function () {
 	const [fetchRecentErrors] = useGetRecentErrorsLazyQuery()
 	const [fetchErrorGroupDistribution] = useGetErrorDistributionLazyQuery()
 
-	useMemo(async () => {
-		if (
-			!fetchErrorGroup ||
-			!fetchRecentErrors ||
-			!fetchErrorGroupDistribution ||
-			!errors?.error_groups_opensearch.error_groups.length ||
-			preloadedPage.current === pageToLoad
-		)
-			return false
-		preloadedPage.current = pageToLoad
-		const promises: Promise<void>[] = []
-		for (const _eg of errors?.error_groups_opensearch.error_groups || []) {
-			const preloadPromise = (async (secureID: string) => {
-				console.log(`preloading error group ${secureID}`)
-				try {
-					await fetchErrorGroup({
-						variables: {
-							secure_id: secureID,
-						},
-					})
-					await fetchRecentErrors({
-						variables: {
-							secure_id: secureID,
-						},
-					})
-					await fetchErrorGroupDistribution({
-						variables: {
-							error_group_secure_id: secureID,
-							project_id,
-							property: 'os',
-						},
-					})
-					await fetchErrorGroupDistribution({
-						variables: {
-							error_group_secure_id: secureID,
-							project_id,
-							property: 'browser',
-						},
-					})
-					console.log(`preloaded error group ${secureID}`)
-				} catch (e: any) {
-					const msg = `failed to preload error group ${secureID}`
-					console.warn(msg)
-					H.consumeError(e, msg)
+	useEffect(() => {
+		;(async () => {
+			if (
+				!fetchErrorGroup ||
+				!fetchRecentErrors ||
+				!fetchErrorGroupDistribution ||
+				!errors?.error_groups_opensearch.error_groups.length ||
+				preloadedPage.current === pageToLoad
+			)
+				return false
+			preloadedPage.current = pageToLoad
+			const promises: Promise<void>[] = []
+			for (const _eg of errors?.error_groups_opensearch.error_groups ||
+				[]) {
+				const preloadPromise = (async (secureID: string) => {
+					log('preload.ts', `preloading error group ${secureID}`)
+					try {
+						await fetchErrorGroup({
+							variables: {
+								secure_id: secureID,
+							},
+						})
+						await fetchRecentErrors({
+							variables: {
+								secure_id: secureID,
+							},
+						})
+						await fetchErrorGroupDistribution({
+							variables: {
+								error_group_secure_id: secureID,
+								project_id,
+								property: 'os',
+							},
+						})
+						await fetchErrorGroupDistribution({
+							variables: {
+								error_group_secure_id: secureID,
+								project_id,
+								property: 'browser',
+							},
+						})
+						log('preload.ts', `preloaded error group ${secureID}`)
+					} catch (e: any) {
+						const msg = `failed to preload error group ${secureID}`
+						console.warn(msg)
+						H.consumeError(e, msg)
+					}
+				})(_eg.secure_id)
+				promises.push(preloadPromise)
+				if (promises.length === CONCURRENT_PRELOADS) {
+					await Promise.all(promises)
+					promises.length = 0
 				}
-			})(_eg.secure_id)
-			promises.push(preloadPromise)
-			if (promises.length === CONCURRENT_PRELOADS) {
-				await Promise.all(promises)
-				promises.length = 0
 			}
-		}
-		await Promise.all(promises)
+			await Promise.all(promises)
+		})()
 	}, [
 		project_id,
 		errors,
@@ -359,5 +363,5 @@ export const usePreloadErrors = function () {
 		fetchRecentErrors,
 		fetchErrorGroupDistribution,
 		pageToLoad,
-	]).then()
+	])
 }

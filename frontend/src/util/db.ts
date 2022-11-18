@@ -6,6 +6,7 @@ import {
 	Operation,
 } from '@apollo/client'
 import Dexie, { Table } from 'dexie'
+import moment from 'moment'
 
 const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
@@ -14,10 +15,12 @@ const CLEANUP_THRESHOLD_MB = 4000
 export class DB extends Dexie {
 	apollo!: Table<{
 		key: string
+		updated: string
 		data: FetchResult<Record<string, any>>
 	}>
 	fetch!: Table<{
 		key: string
+		updated: string
 		blob: Blob
 		options: {
 			status: number
@@ -28,9 +31,9 @@ export class DB extends Dexie {
 
 	constructor() {
 		super('highlight')
-		this.version(1).stores({
-			apollo: 'key',
-			fetch: 'key',
+		this.version(2).stores({
+			apollo: 'key,updated',
+			fetch: 'key,updated',
 		})
 	}
 }
@@ -41,6 +44,9 @@ export class IndexedDBCache {
 	getItem: (key: string) => Promise<FetchResult<Record<string, any>> | null> =
 		async function (key: string) {
 			const result = await db.apollo.where('key').equals(key).first()
+			if (result) {
+				db.apollo.update(result.key, { updated: moment().format() })
+			}
 			return result?.data ?? null
 		}
 	setItem: (
@@ -48,7 +54,11 @@ export class IndexedDBCache {
 		value: FetchResult<Record<string, any>>,
 	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
 		async function (key: string, value: FetchResult<Record<string, any>>) {
-			await db.apollo.put({ key, data: value })
+			await db.apollo.put({
+				key,
+				updated: moment().format(),
+				data: value,
+			})
 		}
 	removeItem: (
 		key: string,
@@ -97,7 +107,7 @@ export class IndexedDBLink extends ApolloLink {
 	}
 }
 
-export const IndexedDBFetch = async function (
+export const indexedDBFetch = async function (
 	input: RequestInfo,
 	init?: RequestInit | undefined,
 ) {
@@ -112,6 +122,7 @@ export const IndexedDBFetch = async function (
 		})
 		await db.fetch.put({
 			key: cacheKey,
+			updated: moment().format(),
 			blob: await response.blob(),
 			options: {
 				status: response.status,
@@ -121,6 +132,7 @@ export const IndexedDBFetch = async function (
 		})
 		return ret
 	} else {
+		db.fetch.update(cached.key, { updated: moment().format() })
 		return new Response(cached.blob, cached.options)
 	}
 }
@@ -141,13 +153,13 @@ const cleanup = async () => {
 	const numFetchElemsToRemove = (fetchElems / totalElems) * numElemsToRemove
 	const numApolloElemsToRemove = (apolloElems / totalElems) * numElemsToRemove
 	for (let i = 1; i < numFetchElemsToRemove; ++i) {
-		const toDelete = await db.fetch.limit(1).first()
+		const toDelete = await db.fetch.orderBy('updated').limit(1).first()
 		if (toDelete) {
 			await db.fetch.delete(toDelete.key)
 		}
 	}
 	for (let i = 1; i < numApolloElemsToRemove; ++i) {
-		const toDelete = await db.apollo.limit(1).first()
+		const toDelete = await db.apollo.orderBy('updated').limit(1).first()
 		if (toDelete) {
 			await db.apollo.delete(toDelete.key)
 		}

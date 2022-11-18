@@ -3,7 +3,7 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
-import { IndexedDBFetch } from '@util/db'
+import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message as AntDesignMessage } from 'antd'
@@ -62,7 +62,7 @@ export const ConsolePage = React.memo(({ time }: { time: number }) => {
 			!!session?.messages_url
 		) {
 			setLoading(true)
-			IndexedDBFetch(session.messages_url)
+			indexedDBFetch(session.messages_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setParsedMessages(

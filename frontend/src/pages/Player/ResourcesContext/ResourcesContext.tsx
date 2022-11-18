@@ -3,7 +3,7 @@ import { Session } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
-import { IndexedDBFetch } from '@util/db'
+import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
@@ -94,7 +94,7 @@ export const useResources = (
 			!!session?.resources_url
 		) {
 			setResourcesLoading(true)
-			IndexedDBFetch(session.resources_url)
+			indexedDBFetch(session.resources_url)
 				.then((response) => response.json())
 				.then((data) => {
 					setResources(
