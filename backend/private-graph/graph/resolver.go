@@ -397,6 +397,81 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
+func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupIDs []int, params modelInputs.ErrorGroupFrequenciesParamsInput, metric string) ([]*modelInputs.ErrorDistributionItem, error) {
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
+	var errorGroupFilters []string
+	for _, errorGroupID := range errorGroupIDs {
+		errorGroupFilters = append(errorGroupFilters, fmt.Sprintf(`r.ErrorGroupID == "%d"`, errorGroupID))
+	}
+	errorGroupFilter := fmt.Sprintf(`|> filter(fn: (r) => %s)`, strings.Join(errorGroupFilters, " or "))
+	extraFilter := ""
+	if metric != "" {
+		extraFilter = fmt.Sprintf(`|> filter(fn: (r) => r._field == "%s")`, metric)
+	}
+	query := fmt.Sprintf(`
+      from(bucket: "%[1]s")
+		|> range(start: %[2]s, stop: %[3]s)
+		|> filter(fn: (r) => r._measurement == "%[4]s")
+		%[5]s
+		%[6]s
+		|> aggregateWindow(every: %[7]dh, fn: sum, createEmpty: true)
+		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionHours)
+	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetTag("projectID", projectID)
+	span.SetTag("errorGroupIDs", errorGroupIDs)
+	results, err := r.TDB.Query(ctx, query)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	}
+	var response []*modelInputs.ErrorDistributionItem
+	for _, r := range results {
+		field := r.Values["_field"]
+		if field != nil {
+			var value int64
+			if r.Value != nil {
+				value = r.Value.(int64)
+			}
+			var id string
+			if r.Values["ErrorGroupID"] != nil {
+				id = r.Values["ErrorGroupID"].(string)
+			}
+			response = append(response, &modelInputs.ErrorDistributionItem{
+				ErrorGroupID: id,
+				Date:         r.Time,
+				Name:         field.(string),
+				Value:        value,
+			})
+		}
+	}
+	return response, nil
+}
+
+func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+	params := modelInputs.ErrorGroupFrequenciesParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
+			EndDate:   time.Now(),
+		},
+		ResolutionHours: 24,
+	}
+	var errorGroupMap = make(map[string]*model.ErrorGroup)
+	var errorGroupIDs []int
+	for _, errorGroup := range errorGroups {
+		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
+		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+	}
+	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "count")
+	if err != nil {
+		return err
+	}
+	for _, r := range results {
+		eg := errorGroupMap[r.ErrorGroupID]
+		eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+	}
+	return nil
+}
+
 func (r *Resolver) SetErrorFrequencies(errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
 	endDate := time.Now().UTC()
 	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)

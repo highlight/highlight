@@ -666,12 +666,14 @@ query GetErrorGroupsOpenSearch(
 	$count: Int!
 	$query: String!
 	$page: Int
+	$influx: Boolean!
 ) {
 	error_groups_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
 		page: $page
+		influx: $influx
 	) {
 		error_groups {
 			created_at
@@ -1699,12 +1701,12 @@ query GetOAuthClientMetadata($client_id: String!) {
 
 query GetErrorGroupFrequencies(
 	$project_id: ID!
-	$error_group_secure_id: String!
+	$error_group_secure_ids: [String!]!
 	$params: ErrorGroupFrequenciesParamsInput!
 ) {
 	errorGroupFrequencies(
 		project_id: $project_id
-		error_group_secure_id: $error_group_secure_id
+		error_group_secure_ids: $error_group_secure_ids
 		params: $params
 	) {
 		error_group_id

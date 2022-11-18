@@ -5850,12 +5850,14 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$count: Int!
 		$query: String!
 		$page: Int
+		$influx: Boolean!
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
 			page: $page
+			influx: $influx
 		) {
 			error_groups {
 				created_at
@@ -5896,6 +5898,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      page: // value for 'page'
+ *      influx: // value for 'influx'
  *   },
  * });
  */
@@ -10362,12 +10365,12 @@ export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
 export const GetErrorGroupFrequenciesDocument = gql`
 	query GetErrorGroupFrequencies(
 		$project_id: ID!
-		$error_group_secure_id: String!
+		$error_group_secure_ids: [String!]!
 		$params: ErrorGroupFrequenciesParamsInput!
 	) {
 		errorGroupFrequencies(
 			project_id: $project_id
-			error_group_secure_id: $error_group_secure_id
+			error_group_secure_ids: $error_group_secure_ids
 			params: $params
 		) {
 			error_group_id
@@ -10391,7 +10394,7 @@ export const GetErrorGroupFrequenciesDocument = gql`
  * const { data, loading, error } = useGetErrorGroupFrequenciesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
- *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      error_group_secure_ids: // value for 'error_group_secure_ids'
  *      params: // value for 'params'
  *   },
  * });

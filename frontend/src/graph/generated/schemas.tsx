@@ -1364,7 +1364,8 @@ export type QueryErrorDistributionArgs = {
 }
 
 export type QueryErrorGroupFrequenciesArgs = {
-	error_group_secure_id: Scalars['String']
+	error_group_secure_ids?: InputMaybe<Array<Scalars['String']>>
+	metric?: InputMaybe<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
 }
@@ -1401,6 +1402,7 @@ export type QueryError_GroupArgs = {
 
 export type QueryError_Groups_OpensearchArgs = {
 	count: Scalars['Int']
+	influx: Scalars['Boolean']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: Scalars['String']

@@ -581,8 +581,8 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureID string, params model.ErrorGroupFrequenciesParamsInput) int
-		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
+		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) int
+		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int, influx bool) int
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorObject                  func(childComplexity int, id int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
@@ -1070,7 +1070,7 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model1.ErrorResults, error)
+	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, influx bool) (*model1.ErrorResults, error)
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
@@ -1100,7 +1100,7 @@ type QueryResolver interface {
 	DailyErrorsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
 	ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*model.ErrorDistributionItem, error)
-	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureID string, params model.ErrorGroupFrequenciesParamsInput) ([]*model.ErrorDistributionItem, error)
+	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) ([]*model.ErrorDistributionItem, error)
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -4269,7 +4269,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupFrequencies(childComplexity, args["project_id"].(int), args["error_group_secure_id"].(string), args["params"].(model.ErrorGroupFrequenciesParamsInput)), true
+		return e.complexity.Query.ErrorGroupFrequencies(childComplexity, args["project_id"].(int), args["error_group_secure_ids"].([]string), args["params"].(model.ErrorGroupFrequenciesParamsInput), args["metric"].(*string)), true
 
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
@@ -4281,7 +4281,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int)), true
+		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int), args["influx"].(bool)), true
 
 	case "Query.error_instance":
 		if e.complexity.Query.ErrorInstance == nil {
@@ -7708,6 +7708,7 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
+		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
@@ -7761,8 +7762,9 @@ type Query {
 	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
-		error_group_secure_id: String!
+		error_group_secure_ids: [String!]
 		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
@@ -11023,15 +11025,15 @@ func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.C
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["error_group_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 []string
+	if tmp, ok := rawArgs["error_group_secure_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_ids"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_group_secure_id"] = arg1
+	args["error_group_secure_ids"] = arg1
 	var arg2 model.ErrorGroupFrequenciesParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
@@ -11041,6 +11043,15 @@ func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.C
 		}
 	}
 	args["params"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["metric"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric"] = arg3
 	return args, nil
 }
 
@@ -11227,6 +11238,15 @@ func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context
 		}
 	}
 	args["page"] = arg3
+	var arg4 bool
+	if tmp, ok := rawArgs["influx"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("influx"))
+		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["influx"] = arg4
 	return args, nil
 }
 
@@ -30221,7 +30241,7 @@ func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["page"].(*int))
+		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["page"].(*int), fc.Args["influx"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32275,7 +32295,7 @@ func (ec *executionContext) _Query_errorGroupFrequencies(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupFrequencies(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_id"].(string), fc.Args["params"].(model.ErrorGroupFrequenciesParamsInput))
+		return ec.resolvers.Query().ErrorGroupFrequencies(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_ids"].([]string), fc.Args["params"].(model.ErrorGroupFrequenciesParamsInput), fc.Args["metric"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

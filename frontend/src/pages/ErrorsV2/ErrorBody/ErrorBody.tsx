@@ -28,7 +28,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
 			project_id,
-			error_group_secure_id: errorGroup?.secure_id || '',
+			error_group_secure_ids: [errorGroup?.secure_id || ''],
 			params: {
 				date_range: {
 					start_date: moment(endDate.current)

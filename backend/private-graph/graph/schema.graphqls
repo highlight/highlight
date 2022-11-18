@@ -1045,6 +1045,7 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
+		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
@@ -1098,8 +1099,9 @@ type Query {
 	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
-		error_group_secure_id: String!
+		error_group_secure_ids: [String!]
 		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
