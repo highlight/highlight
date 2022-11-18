@@ -7110,19 +7110,19 @@ type ErrorTrace {
 }
 
 type SourceMappingError {
-	errorCode: SourceMappingErrorCode!
-	stackTraceFileURL: String!
-	sourcemapFetchStrategy: String!
-	sourceMapURL: String!
-	minifiedFetchStrategy: String!
-	actualMinifiedFetchedPath: String!
-	minifiedLineNumber: Int!
-	minifiedColumnNumber: Int!
-	actualSourcemapFetchedPath: String!
-	sourcemapFileSize: String!
-	minifiedFileSize: String!
-	mappedLineNumber: Int!
-	mappedColumnNumber: Int!
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: String
+	minifiedFileSize: String
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
@@ -42914,14 +42914,11 @@ func (ec *executionContext) _SourceMappingError_errorCode(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(model.SourceMappingErrorCode)
+	res := resTmp.(*model.SourceMappingErrorCode)
 	fc.Result = res
-	return ec.marshalNSourceMappingErrorCode2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx, field.Selections, res)
+	return ec.marshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_errorCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -42958,14 +42955,11 @@ func (ec *executionContext) _SourceMappingError_stackTraceFileURL(ctx context.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_stackTraceFileURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43002,14 +42996,11 @@ func (ec *executionContext) _SourceMappingError_sourcemapFetchStrategy(ctx conte
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFetchStrategy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43046,14 +43037,11 @@ func (ec *executionContext) _SourceMappingError_sourceMapURL(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_sourceMapURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43090,14 +43078,11 @@ func (ec *executionContext) _SourceMappingError_minifiedFetchStrategy(ctx contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_minifiedFetchStrategy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43134,14 +43119,11 @@ func (ec *executionContext) _SourceMappingError_actualMinifiedFetchedPath(ctx co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_actualMinifiedFetchedPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43178,14 +43160,11 @@ func (ec *executionContext) _SourceMappingError_minifiedLineNumber(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_minifiedLineNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43222,14 +43201,11 @@ func (ec *executionContext) _SourceMappingError_minifiedColumnNumber(ctx context
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_minifiedColumnNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43266,14 +43242,11 @@ func (ec *executionContext) _SourceMappingError_actualSourcemapFetchedPath(ctx c
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_actualSourcemapFetchedPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43310,14 +43283,11 @@ func (ec *executionContext) _SourceMappingError_sourcemapFileSize(ctx context.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43354,14 +43324,11 @@ func (ec *executionContext) _SourceMappingError_minifiedFileSize(ctx context.Con
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_minifiedFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43398,14 +43365,11 @@ func (ec *executionContext) _SourceMappingError_mappedLineNumber(ctx context.Con
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_mappedLineNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -43442,14 +43406,11 @@ func (ec *executionContext) _SourceMappingError_mappedColumnNumber(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_mappedColumnNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -56013,93 +55974,54 @@ func (ec *executionContext) _SourceMappingError(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._SourceMappingError_errorCode(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "stackTraceFileURL":
 
 			out.Values[i] = ec._SourceMappingError_stackTraceFileURL(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "sourcemapFetchStrategy":
 
 			out.Values[i] = ec._SourceMappingError_sourcemapFetchStrategy(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "sourceMapURL":
 
 			out.Values[i] = ec._SourceMappingError_sourceMapURL(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "minifiedFetchStrategy":
 
 			out.Values[i] = ec._SourceMappingError_minifiedFetchStrategy(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "actualMinifiedFetchedPath":
 
 			out.Values[i] = ec._SourceMappingError_actualMinifiedFetchedPath(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "minifiedLineNumber":
 
 			out.Values[i] = ec._SourceMappingError_minifiedLineNumber(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "minifiedColumnNumber":
 
 			out.Values[i] = ec._SourceMappingError_minifiedColumnNumber(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "actualSourcemapFetchedPath":
 
 			out.Values[i] = ec._SourceMappingError_actualSourcemapFetchedPath(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "sourcemapFileSize":
 
 			out.Values[i] = ec._SourceMappingError_sourcemapFileSize(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "minifiedFileSize":
 
 			out.Values[i] = ec._SourceMappingError_minifiedFileSize(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "mappedLineNumber":
 
 			out.Values[i] = ec._SourceMappingError_mappedLineNumber(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "mappedColumnNumber":
 
 			out.Values[i] = ec._SourceMappingError_mappedColumnNumber(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -59423,16 +59345,6 @@ func (ec *executionContext) marshalNSocialType2githubᚗcomᚋhighlightᚑrunᚋ
 	return v
 }
 
-func (ec *executionContext) unmarshalNSourceMappingErrorCode2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, v interface{}) (model.SourceMappingErrorCode, error) {
-	var res model.SourceMappingErrorCode
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNSourceMappingErrorCode2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, sel ast.SelectionSet, v model.SourceMappingErrorCode) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -61570,6 +61482,22 @@ func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlig
 		return graphql.Null
 	}
 	return ec._SourceMappingError(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, v interface{}) (*model.SourceMappingErrorCode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SourceMappingErrorCode)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingErrorCode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

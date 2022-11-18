@@ -405,19 +405,19 @@ type ErrorTrace {
 }
 
 type SourceMappingError {
-	errorCode: SourceMappingErrorCode!
-	stackTraceFileURL: String!
-	sourcemapFetchStrategy: String!
-	sourceMapURL: String!
-	minifiedFetchStrategy: String!
-	actualMinifiedFetchedPath: String!
-	minifiedLineNumber: Int!
-	minifiedColumnNumber: Int!
-	actualSourcemapFetchedPath: String!
-	sourcemapFileSize: String!
-	minifiedFileSize: String!
-	mappedLineNumber: Int!
-	mappedColumnNumber: Int!
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: String
+	minifiedFileSize: String
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
