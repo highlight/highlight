@@ -1,21 +1,51 @@
+import BarChart from '@components/BarChart/BarChart'
+import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
+import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
 interface Props {
-	errorGroup?: Maybe<Pick<ErrorGroup, 'event'>>
+	errorGroup?: Maybe<Pick<ErrorGroup, 'event' | 'secure_id'>>
 }
 
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
 	const [truncated, setTruncated] = React.useState(true)
 	const [truncateable, setTruncateable] = React.useState(true)
 	const body = getErrorBody(errorGroup?.event)
 	const bodyRef = React.useRef<HTMLElement | undefined>()
+	const endDate = React.useRef<moment.Moment>(moment())
+
+	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
+		variables: {
+			project_id,
+			error_group_secure_ids: [errorGroup?.secure_id || ''],
+			params: {
+				date_range: {
+					start_date: moment(endDate.current)
+						.subtract(30, 'days')
+						.format(),
+					end_date: endDate.current.format(),
+				},
+				resolution_hours: 24,
+			},
+		},
+		skip: !errorGroup?.secure_id,
+	})
+	const countBuckets =
+		frequencies?.errorGroupFrequencies
+			.filter((x) => x?.name === 'count')
+			.map((x) => x?.value || 0) || []
+	console.log('vadim', { frequencies, countBuckets })
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -143,7 +173,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						</Box>
 
 						<Box display="flex" gap="4" alignItems="center">
-							TODO: Histogram
+							<div style={{ width: 256, height: 32 }}>
+								<BarChart
+									data={countBuckets}
+									height={32}
+									width={256}
+								/>
+							</div>
 						</Box>
 					</>
 				</Stat>

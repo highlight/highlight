@@ -1696,3 +1696,20 @@ query GetOAuthClientMetadata($client_id: String!) {
 		app_name
 	}
 }
+
+query GetErrorGroupFrequencies(
+	$project_id: ID!
+	$error_group_secure_ids: [String!]!
+	$params: ErrorGroupFrequenciesParamsInput!
+) {
+	errorGroupFrequencies(
+		project_id: $project_id
+		error_group_secure_ids: $error_group_secure_ids
+		params: $params
+	) {
+		error_group_id
+		date
+		name
+		value
+	}
+}
