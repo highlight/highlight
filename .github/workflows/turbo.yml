@@ -13,6 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         # configures turborepo Remote Caching
         env:
+            ENVIRONMENT: prod
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
