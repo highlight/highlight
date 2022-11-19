@@ -64,5 +64,5 @@
 			"env": ["HIGHLIGHT_API_KEY"]
 		}
 	},
-	"globalEnv": ["DOPPLER_TOKEN"]
+	"globalEnv": ["ENVIRONMENT", "DOPPLER_TOKEN"]
 }

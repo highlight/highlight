@@ -43,8 +43,10 @@ const basePlugins = [
 		inline: development,
 		loadPath: development
 			? ''
-			: `https://static.highlight.io/v${packageJson.version}/`,
-		sourceMap,
+			: `https://static.highlight.io/v${packageJson.version}/highlight-client-worker.js`,
+		preserveSource: true,
+		preserveFileNames: true,
+		sourcemap: sourceMap,
 	}),
 	commonjs({}),
 	esbuild({
