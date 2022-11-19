@@ -72,14 +72,41 @@ export const indexeddbCache = new IndexedDBCache()
 
 export class IndexedDBLink extends ApolloLink {
 	httpLink: ApolloLink
+	static cachedOperations = new Set<string>([
+		'GetEnhancedUserDetails',
+		'GetErrorDistribution',
+		'GetErrorGroup',
+		'GetErrorGroupsOpenSearch',
+		'GetErrorsHistogram',
+		'GetEventChunks',
+		'GetEventChunkUrl',
+		'GetRecentErrors',
+		'GetSessionComments',
+		'GetSessionIntervals',
+		'GetSession',
+		'GetSessionPayload',
+		'GetSessionsOpenSearch',
+		'GetTimelineIndicatorEvents',
+		'GetWebVitals',
+	])
+
 	constructor(httpLink: ApolloLink) {
 		super()
 		this.httpLink = httpLink
 	}
+
+	static isCached(operation: Operation) {
+		return IndexedDBLink.cachedOperations.has(operation.operationName)
+	}
+
 	request(
 		operation: Operation,
 		forward?: NextLink,
 	): Observable<FetchResult<Record<string, any>>> | null {
+		if (!IndexedDBLink.isCached(operation)) {
+			return this.httpLink.request(operation, forward)
+		}
+
 		return new Observable((observer) => {
 			const cacheKey = JSON.stringify({
 				operation: operation.operationName,
