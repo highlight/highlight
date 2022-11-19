@@ -1,0 +1,17 @@
+diff --git a/src/plugin/load.js b/src/plugin/load.js
+index 5a2bb6970dcfb491c5ffd2bfa1e9da63b55fc5ea..7d937107ccfc34d2a6b865be8a5de3728c7ca5ef 100644
+--- a/src/plugin/load.js
++++ b/src/plugin/load.js
+@@ -50,7 +50,11 @@ function handleBundleGenerated(state, config, addWatchFile, id, workerID, result
+             }
+         } else {
+             const workerPath = path.posix.join(config.outputFolder, workerID);
+-            source = path.posix.join(config.loadPath, workerPath);
++            if (config.loadPath.indexOf('https://') !== -1) {
++                source = config.loadPath;
++            } else {
++                source = path.posix.join(config.loadPath, workerPath);
++            }
+             chunk.fileName = workerPath;
+             state.idMap.get(id).chunk = chunk;
+         }

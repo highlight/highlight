@@ -79,6 +79,7 @@
 		"tmpl": "1.0.5",
 		"trim-newlines": "3.0.1",
 		"trim": "0.0.3",
-		"minimatch": "3.0.5"
+		"minimatch": "3.0.5",
+		"rollup-plugin-web-worker-loader@^1.6.1": "patch:rollup-plugin-web-worker-loader@npm%3A1.6.1#./.yarn/patches/rollup-plugin-web-worker-loader-npm-1.6.1-ee2e4494aa.patch"
 	}
 }
