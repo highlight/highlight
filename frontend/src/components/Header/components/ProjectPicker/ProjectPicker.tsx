@@ -6,9 +6,10 @@ import {
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
+	IconArrowSmLeft,
 	IconBriefcase,
 	IconCheck,
-	IconDotsHorizontal,
+	IconCog,
 	IconPlusSm,
 	Menu,
 	Text,
@@ -85,9 +86,8 @@ const ProjectPicker = () => {
 		: []
 
 	const headerDisplayValue = isWorkspaceLevel
-		? currentWorkspace?.name
-		: !isLoggedIn &&
-		  projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+		? 'Back to Project'
+		: isInDemoProject
 		? DEMO_PROJECT_NAME
 		: currentProject?.name
 
@@ -96,43 +96,62 @@ const ProjectPicker = () => {
 			<div>
 				<Menu>
 					<Menu.Button kind="secondary" style={{ maxWidth: 200 }}>
-						<IconBriefcase
-							size="14"
-							color={vars.color.neutral700}
-						/>
-						test
+						{isWorkspaceLevel ? (
+							<IconArrowSmLeft
+								size="14"
+								color={vars.color.neutral700}
+							/>
+						) : (
+							<IconBriefcase
+								size="14"
+								color={vars.color.neutral700}
+							/>
+						)}
+						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
-						<Menu.Divider />
-						<Link
-							to={`/w/${currentWorkspace?.id}/new`}
-							className={linkStyle}
-						>
-							<Menu.Item>
-								<Box display="flex" alignItems="center" gap="4">
-									<IconPlusSm
-										size="14"
-										color={vars.color.neutral300}
-									/>
-									Create new project
-								</Box>
-							</Menu.Item>
-						</Link>
-						<Link
-							to={`/${project_id}/settings`}
-							className={linkStyle}
-						>
-							<Menu.Item>
-								<Box display="flex" alignItems="center" gap="4">
-									<IconDotsHorizontal
-										size="14"
-										color={vars.color.neutral300}
-									/>
-									Project settings
-								</Box>
-							</Menu.Item>
-						</Link>
+						{project_id && project_id !== '0' && (
+							<>
+								<Menu.Divider />
+								<Link
+									to={`/w/${currentWorkspace?.id}/new`}
+									className={linkStyle}
+								>
+									<Menu.Item>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconPlusSm
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Create new project
+										</Box>
+									</Menu.Item>
+								</Link>
+								<Link
+									to={`/${project_id}/settings`}
+									className={linkStyle}
+								>
+									<Menu.Item>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+										>
+											<IconCog
+												size="14"
+												color={vars.color.neutral300}
+											/>
+											Project settings
+										</Box>
+									</Menu.Item>
+								</Link>
+							</>
+						)}
 					</Menu.List>
 				</Menu>
 			</div>

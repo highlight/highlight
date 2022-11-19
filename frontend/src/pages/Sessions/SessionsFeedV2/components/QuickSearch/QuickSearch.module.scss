@@ -78,12 +78,15 @@
 }
 
 .container {
+	display: inline-block;
+	max-width: 240px;
 	position: relative;
-	width: 240px;
+	transition: all 0.1s ease-in-out;
+	width: 100%;
 
-	// &:focus {
-	// 	background-color: red;
-	// }
+	&:focus-within {
+		max-width: 550px;
+	}
 }
 
 .dropdownPlaceholder {

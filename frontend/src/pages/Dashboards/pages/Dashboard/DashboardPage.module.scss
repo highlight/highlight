@@ -1,5 +1,5 @@
 .gridContainer {
-	padding: 30px;
+	padding: 30px 80px;
 	&.isEditing {
 		:global(.react-resizable-handle) {
 			opacity: 1;
@@ -44,7 +44,7 @@
 	border-bottom: var(--color-gray-300) 1px solid;
 	display: flex;
 	flex-direction: column;
-	padding: 20px 30px;
+	padding: 40px 80px 30px;
 	position: sticky;
 	z-index: 1000;
 }

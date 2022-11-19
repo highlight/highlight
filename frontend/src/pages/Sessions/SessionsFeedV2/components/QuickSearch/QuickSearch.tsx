@@ -72,8 +72,8 @@ export const styleProps: Styles<any, false> = {
 		borderRadius: 'var(--border-radius)',
 		boxShadow: 'var(--box-shadow)',
 		border: '1px solid var(--color-gray-300)',
-		width: '550px',
-		marginLeft: '-240px',
+		minWidth: '400px',
+		right: 0,
 	}),
 	menuList: (provided) => ({
 		...provided,

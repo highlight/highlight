@@ -6,10 +6,6 @@
 
 	display: flex;
 	width: 100%;
-
-	&.withErrorState {
-		padding-top: var(--header-height);
-	}
 }
 
 .detailsContainer {

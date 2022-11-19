@@ -14,6 +14,7 @@ export const menuList = style({
 	width: 'fit-content',
 	maxWidth: 300,
 	minWidth: 200,
+	boxShadow: '0 6px 12px -2px rgba(59, 59, 59, .12)',
 })
 
 export const menuItemVariants = recipe({

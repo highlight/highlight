@@ -134,8 +134,9 @@
 	display: flex;
 	flex-grow: 1;
 	height: 28px;
+	justify-content: flex-end;
 	margin-left: var(--size-medium);
-	max-width: 550px;
+	max-width: 400px;
 }
 
 .hideableButtonContainer {

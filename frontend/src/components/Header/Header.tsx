@@ -108,6 +108,7 @@ export const Header = () => {
 							alignItems="center"
 							gap="12"
 							style={{ zIndex: 20000 }}
+							width="full"
 						>
 							<ProjectPicker />
 							{project_id && (
@@ -155,11 +156,11 @@ export const Header = () => {
 											/>
 										</Menu.Button>
 										<Menu.List>
-											<Menu.Item>
-												<Link
-													to={`/${project_id}/alerts`}
-													className={linkStyle}
-												>
+											<Link
+												to={`/${project_id}/alerts`}
+												className={linkStyle}
+											>
+												<Menu.Item>
 													<Box
 														display="flex"
 														alignItems="center"
@@ -174,13 +175,13 @@ export const Header = () => {
 														/>
 														Alerts
 													</Box>
-												</Link>
-											</Menu.Item>
-											<Menu.Item>
-												<Link
-													to={`/${project_id}/integrations`}
-													className={linkStyle}
-												>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/integrations`}
+												className={linkStyle}
+											>
+												<Menu.Item>
 													<Box
 														display="flex"
 														alignItems="center"
@@ -195,13 +196,13 @@ export const Header = () => {
 														/>
 														Integrations
 													</Box>
-												</Link>
-											</Menu.Item>
-											<Menu.Item>
-												<Link
-													to={`/${project_id}/setup`}
-													className={linkStyle}
-												>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/setup`}
+												className={linkStyle}
+											>
+												<Menu.Item>
 													<Box
 														display="flex"
 														alignItems="center"
@@ -216,8 +217,8 @@ export const Header = () => {
 														/>
 														Setup
 													</Box>
-												</Link>
-											</Menu.Item>
+												</Menu.Item>
+											</Link>
 										</Menu.List>
 									</Menu>
 								</Box>
@@ -233,171 +234,190 @@ export const Header = () => {
 							</Link>
 						</Box>
 					)}
-					<Box
-						display="flex"
-						alignItems="center"
-						gap="12"
-						style={{ zIndex: 20000 }}
-					>
-						{!!project_id && (
-							<Box className={styles.quicksearchWrapper}>
-								<QuickSearch />
-							</Box>
-						)}
-						<Box display="flex" alignItems="center" gap="4">
-							<Button
-								iconLeft={<IconBell size="14" />}
-								emphasis="low"
-								kind="secondary"
-							/>
-							<Menu>
-								<Menu.Button emphasis="low" kind="secondary">
-									<IconCog
-										size="14"
-										color={vars.color.neutral500}
-									/>
-								</Menu.Button>
-								<Menu.List>
-									<Link
-										to={`/w/${workspaceId}/settings`}
-										className={linkStyle}
+					{isLoggedIn && (
+						<Box
+							display="flex"
+							justifyContent="flex-end"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+							width="full"
+						>
+							{!!project_id && (
+								<Box className={styles.quicksearchWrapper}>
+									<QuickSearch />
+								</Box>
+							)}
+							<Box display="flex" alignItems="center" gap="4">
+								<Button
+									iconLeft={<IconBell size="14" />}
+									emphasis="low"
+									kind="secondary"
+								/>
+								<Menu>
+									<Menu.Button
+										emphasis="low"
+										kind="secondary"
 									>
-										<Menu.Item>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconOfficeBuilding
-													size="14"
-													color={
-														vars.color.neutral300
-													}
-												/>
-												Workspace settings
-											</Box>
-										</Menu.Item>
-									</Link>
-									<Link
-										to={`/w/${workspaceId}/account`}
-										className={linkStyle}
-									>
-										<Menu.Item>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconUserCircle
-													size="14"
-													color={
-														vars.color.neutral300
-													}
-												/>
-												Account settings
-											</Box>
-										</Menu.Item>
-									</Link>
-									<Menu.Divider />
-									<Link to="/switch" className={linkStyle}>
-										<Menu.Item>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconSwitchHorizontal
-													size="14"
-													color={
-														vars.color.neutral300
-													}
-												/>
-												Switch workspace
-											</Box>
-										</Menu.Item>
-									</Link>
-									<Menu.Item>
-										<a
-											href="https://feedback.canny.io"
+										<IconCog
+											size="14"
+											color={vars.color.neutral500}
+										/>
+									</Menu.Button>
+									<Menu.List>
+										<Link
+											to={`/w/${workspaceId}/settings`}
 											className={linkStyle}
 										>
-											<Box
-												display="flex"
-												alignItems="center"
-												gap="4"
-											>
-												<IconQuestionMarkCircle
-													size="14"
-													color={
-														vars.color.neutral300
-													}
-												/>
-												Feedback
-											</Box>
-										</a>
-									</Menu.Item>
-									<a
-										href={'https://www.highlight.io/docs'}
-										className={linkStyle}
-									>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconOfficeBuilding
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Workspace settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Link
+											to={`/w/${workspaceId}/account`}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconUserCircle
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Account settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Menu.Divider />
+										<Link
+											to="/switch"
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSwitchHorizontal
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Switch workspace
+												</Box>
+											</Menu.Item>
+										</Link>
 										<Menu.Item>
+											<a
+												href="https://feedback.highlight.run"
+												className={linkStyle}
+											>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconQuestionMarkCircle
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Feedback
+												</Box>
+											</a>
+										</Menu.Item>
+										<a
+											href={
+												'https://www.highlight.io/docs'
+											}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconDocumentText
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Documentation
+												</Box>
+											</Menu.Item>
+										</a>
+										<Menu.Item
+											onClick={() => {
+												toggleShowKeyboardShortcutsGuide(
+													true,
+												)
+											}}
+										>
 											<Box
 												display="flex"
 												alignItems="center"
 												gap="4"
 											>
-												<IconDocumentText
+												<IconAtSymbol
 													size="14"
 													color={
 														vars.color.neutral300
 													}
 												/>
-												Documentation
+												Shortcuts
 											</Box>
 										</Menu.Item>
-									</a>
-									<Menu.Item
-										onClick={() => {
-											toggleShowKeyboardShortcutsGuide(
-												true,
-											)
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
+										<Menu.Divider />
+										<Menu.Item
+											onClick={async () => {
+												try {
+													auth.signOut()
+												} catch (e) {
+													console.log(e)
+												}
+												await client.clearStore()
+											}}
 										>
-											<IconAtSymbol
-												size="14"
-												color={vars.color.neutral300}
-											/>
-											Shortcuts
-										</Box>
-									</Menu.Item>
-									<Menu.Divider />
-									<Menu.Item
-										onClick={async () => {
-											try {
-												auth.signOut()
-											} catch (e) {
-												console.log(e)
-											}
-											await client.clearStore()
-										}}
-									>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											Log out
-										</Box>
-									</Menu.Item>
-								</Menu.List>
-							</Menu>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												Log out
+											</Box>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
+							</Box>
 						</Box>
-					</Box>
+					)}
 				</Box>
 			</Box>
 		</>
