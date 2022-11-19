@@ -62,9 +62,8 @@ func main() {
 				})
 			}
 		}
-		bucket := tdb.GetBucket(strconv.Itoa(projectID), timeseries.Errors) + timeseries.Error.DownsampleBucketSuffix
-		log.Infof("writing %d points for project %d to %s", len(points), projectID, bucket)
-		tdb.Write(bucket, timeseries.Error.AggName, points)
+		log.Infof("writing %d points for project %d", len(points), projectID)
+		tdb.Write(strconv.Itoa(projectID), timeseries.Error.AggName, points)
 	}
 
 	_ = opensearchClient.Close()

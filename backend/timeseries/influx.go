@@ -118,6 +118,8 @@ func (i *InfluxDB) GetBucket(bucket string, measurement Measurement) string {
 	switch measurement {
 	case Configs["metrics"].Name:
 		return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+	case Configs["errors"].AggName:
+		return fmt.Sprintf("%s-%s-errors/downsampled", i.BucketPrefix, bucket)
 	}
 	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, bucket, measurement)
 }
