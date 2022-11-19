@@ -900,6 +900,12 @@ type ErrorGroup struct {
 	ErrorFrequency   []int64 `gorm:"-"`
 }
 
+type ErrorInstance struct {
+	ErrorObject ErrorObject `json:"error_object"`
+	NextID      *int        `json:"next_id"`
+	PreviousID  *int        `json:"previous_id"`
+}
+
 type ErrorField struct {
 	Model
 	OrganizationID int

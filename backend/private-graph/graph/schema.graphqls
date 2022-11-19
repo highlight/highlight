@@ -206,6 +206,19 @@ enum ErrorState {
 	IGNORED
 }
 
+enum SourceMappingErrorCode {
+	File_Name_Missing_From_Source_Path
+	Error_Parsing_Stack_Trace_File_Url
+	Missing_Source_Map_File_In_S3
+	Minified_File_Missing_In_S3_And_URL
+	Sourcemap_File_Missing_In_S3_And_URL
+	Minified_File_Larger
+	Source_Map_File_Larger
+	Invalid_SourceMapURL
+	Sourcemap_Library_Couldnt_Parse
+	Sourcemap_Library_Couldnt_Retrieve_Source
+}
+
 enum AdminRole {
 	ADMIN
 	MEMBER
@@ -339,6 +352,12 @@ type ErrorObject {
 	session: Session
 }
 
+type ErrorInstance {
+	error_object: ErrorObject!
+	next_id: ID
+	previous_id: ID
+}
+
 type ErrorField {
 	project_id: Int
 	name: String!
@@ -385,9 +404,26 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+}
+
+type SourceMappingError {
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: String
+	minifiedFileSize: String
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
@@ -462,6 +498,11 @@ input HistogramParamsInput {
 	max_percentile: Float
 	units: String
 	filters: [MetricTagFilterInput!]
+}
+
+input ErrorGroupFrequenciesParamsInput {
+	date_range: DateRangeRequiredInput!
+	resolution_hours: Int!
 }
 
 enum MetricTagFilterOp {
@@ -584,6 +625,11 @@ type DateRange {
 input DateRangeInput {
 	start_date: Timestamp
 	end_date: Timestamp
+}
+
+input DateRangeRequiredInput {
+	start_date: Timestamp!
+	end_date: Timestamp!
 }
 
 type LengthRange {
@@ -757,6 +803,8 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
+	error_group_id: String!
+	date: Timestamp!
 	name: String!
 	value: Int64!
 }
@@ -1035,6 +1083,10 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_instance(
+		error_group_secure_id: String!
+		error_object_id: ID
+	): ErrorInstance
 	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
@@ -1073,6 +1125,11 @@ type Query {
 		project_id: ID!
 		error_group_secure_id: String!
 		property: String!
+	): [ErrorDistributionItem]!
+	errorGroupFrequencies(
+		project_id: ID!
+		error_group_secure_ids: [String!]!
+		params: ErrorGroupFrequenciesParamsInput!
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount

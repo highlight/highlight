@@ -282,9 +282,9 @@ export const CustomTooltip = ({
 }) => {
 	return (
 		<>
-			<p className={styles.tooltipEntry}>
+			<p className="mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll">
 				{payload[0].payload.date && (
-					<div className={styles.tooltipRow}>
+					<div className="mb-4 flex w-full flex-row items-center justify-around gap-x-4">
 						{moment(payload[0].payload.date).format(
 							'MMMM Do YYYY, h:mm A',
 						)}
@@ -351,7 +351,7 @@ export const CustomLegend = ({
 }) => {
 	const { payload }: { payload: any[] } = props
 	return (
-		<div className={styles.legendContainer}>
+		<div className="mt-1 flex w-full items-center justify-center gap-x-2 overflow-x-scroll">
 			{payload?.map((entry, index) => (
 				<Button
 					trackingId="LineChartLegendFilter"
@@ -369,7 +369,9 @@ export const CustomLegend = ({
 							}
 						})
 					}}
-					className={classNames(styles.legendItem)}
+					className={
+						'flex items-center gap-x-1 p-0 text-xs text-gray-500'
+					}
 				>
 					<div
 						className={classNames(styles.legendIcon, {
