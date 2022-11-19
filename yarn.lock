@@ -37610,12 +37610,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-web-worker-loader@npm:^1.6.1":
+"rollup-plugin-web-worker-loader@npm:1.6.1":
   version: 1.6.1
   resolution: "rollup-plugin-web-worker-loader@npm:1.6.1"
   peerDependencies:
     rollup: ^1.9.2 || ^2.0.0
   checksum: 1239c2657bfaea5d3c7a0df901cfc8016cc306dc0a9eb3945b0750e48aec45b0fa0f9e587164e94187e0a84a3fe842bf71697c76a475c66d5e36fbff97fd8730
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-web-worker-loader@patch:rollup-plugin-web-worker-loader@npm%3A1.6.1#./.yarn/patches/rollup-plugin-web-worker-loader-npm-1.6.1-ee2e4494aa.patch::locator=highlight%40workspace%3A.":
+  version: 1.6.1
+  resolution: "rollup-plugin-web-worker-loader@patch:rollup-plugin-web-worker-loader@npm%3A1.6.1#./.yarn/patches/rollup-plugin-web-worker-loader-npm-1.6.1-ee2e4494aa.patch::version=1.6.1&hash=cd6a70&locator=highlight%40workspace%3A."
+  peerDependencies:
+    rollup: ^1.9.2 || ^2.0.0
+  checksum: 0f96d696cf9102c12815b1ecae51c47910c0dc1a03f263b197c08174c7a5288ec4961cfc080067f0e3214f1d00c9a2df91f786255dd703486e2776c7946a39ed
   languageName: node
   linkType: hard
 
