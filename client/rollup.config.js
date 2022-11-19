@@ -10,6 +10,7 @@ import webWorkerLoader from 'rollup-plugin-web-worker-loader'
 import pkg from './package.json'
 import consts from 'rollup-plugin-consts'
 import replace from '@rollup/plugin-replace'
+import packageJson from '../firstload/package.json'
 
 const development = process.env.ENVIRONMENT === 'dev'
 const sourceMap = true
@@ -39,7 +40,10 @@ const basePlugins = [
 	}),
 	webWorkerLoader({
 		targetPlatform: 'browser',
-		inline: true,
+		inline: development,
+		loadPath: development
+			? ''
+			: `https://static.highlight.io/v${packageJson.version}/`,
 		sourceMap,
 	}),
 	commonjs({}),
