@@ -6,12 +6,14 @@ import (
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"os"
 	"strconv"
 	"time"
 )
 
 const LookbackDays = 30
+const BatchSize = 10000
 
 func main() {
 	log.Info("setting up infra")
@@ -38,32 +40,37 @@ func main() {
 
 	for _, project := range projects {
 		projectID := project.ID
-		var errorGroups []*model.ErrorGroup
-		if err := db.Debug().Model(&model.ErrorGroup{}).Where(&model.ErrorGroup{ProjectID: projectID}).Scan(&errorGroups).Error; err != nil {
-			log.Fatalf("error getting error groups: %v", err)
-		}
 
-		err = pri.SetErrorFrequencies(errorGroups, LookbackDays)
-		if err != nil {
-			log.Fatalf("failed to get opensearch error group frequencies: %v", err)
-		}
-
-		var points []timeseries.Point
-		for _, errorGroup := range errorGroups {
-			for i, f := range errorGroup.ErrorFrequency {
-				points = append(points, timeseries.Point{
-					Time: time.Now().Add(-24 * time.Hour * time.Duration(LookbackDays-i)),
-					Tags: map[string]string{
-						"ErrorGroupID": strconv.Itoa(errorGroup.ID),
-					},
-					Fields: map[string]interface{}{
-						"count": f,
-					},
-				})
+		errorGroups := &[]*model.ErrorGroup{}
+		inner := func(tx *gorm.DB, batch int) error {
+			err = pri.SetErrorFrequencies(*errorGroups, LookbackDays)
+			if err != nil {
+				return err
 			}
+
+			for _, errorGroup := range *errorGroups {
+				var points []timeseries.Point
+				for i, f := range errorGroup.ErrorFrequency {
+					point := timeseries.Point{
+						Time: time.Now().Add(-24 * time.Hour * time.Duration(LookbackDays-i)),
+						Tags: map[string]string{
+							"ErrorGroupID": strconv.Itoa(errorGroup.ID),
+						},
+						Fields: map[string]interface{}{
+							"count": f,
+						},
+					}
+					points = append(points, point)
+				}
+				log.Infof("writing %d points for project %d eg %d", len(points), projectID, errorGroup.ID)
+				tdb.Write(strconv.Itoa(projectID), timeseries.Error.AggName, points)
+			}
+			return nil
 		}
-		log.Infof("writing %d points for project %d", len(points), projectID)
-		tdb.Write(strconv.Itoa(projectID), timeseries.Error.AggName, points)
+
+		if err := db.Debug().Model(&model.ErrorGroup{}).Where(&model.ErrorGroup{ProjectID: projectID}).FindInBatches(errorGroups, BatchSize, inner).Error; err != nil {
+			log.Fatalf("error processing error groups: %v", err)
+		}
 	}
 
 	_ = opensearchClient.Close()
