@@ -21,8 +21,8 @@ export const Stack: React.FC<Props> = ({
 	justify,
 	wrap,
 }) => {
-	if (typeof wrap === 'boolean' && wrap) {
-		wrap = 'wrap'
+	if (typeof wrap === 'boolean') {
+		wrap = wrap ? 'wrap' : undefined
 	}
 
 	return (

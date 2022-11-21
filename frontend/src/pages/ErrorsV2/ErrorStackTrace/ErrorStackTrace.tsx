@@ -1,6 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { GetErrorObjectQuery } from '@graph/operations'
+import { Maybe } from '@graph/schemas'
 import {
 	Box,
 	Button,
@@ -113,10 +114,10 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							longestLineNumberCharacterLength={
 								longestLineNumberCharacterLength
 							}
-							lineContent={e?.lineContent ?? undefined}
-							linesBefore={e?.linesBefore ?? undefined}
-							linesAfter={e?.linesAfter ?? undefined}
-							error={e?.error ?? undefined}
+							lineContent={e?.lineContent}
+							linesBefore={e?.linesBefore}
+							linesAfter={e?.linesAfter}
+							error={e?.error}
 							isFirst={i === 0}
 							isLast={i >= structuredStackTrace.length - 1}
 							compact={false}
@@ -134,22 +135,24 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 
 export default ErrorStackTrace
 
-type StackSectionProps = {
+export type StackSectionProps = {
 	fileName?: string
 	functionName?: string
 	lineNumber?: number
 	columnNumber?: number
 	longestLineNumberCharacterLength?: number
-	lineContent?: string
-	linesBefore?: string
-	linesAfter?: string
-	error?: string
+	lineContent?: Maybe<string>
+	linesBefore?: Maybe<string>
+	linesAfter?: Maybe<string>
+	error?: Maybe<string>
 	compact: boolean
 	isFirst: boolean
 	isLast: boolean
 }
 
-const getErrorMessage = (error: string | undefined): string | undefined => {
+const getErrorMessage = (
+	error?: Maybe<string> | undefined,
+): string | undefined => {
 	if (!error) {
 		return undefined
 	}

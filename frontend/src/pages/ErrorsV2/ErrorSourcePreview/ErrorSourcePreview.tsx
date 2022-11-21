@@ -1,18 +1,20 @@
+import { Maybe } from '@graph/schemas'
+import { StackSectionProps } from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import React from 'react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 
 type ErrorSourcePreviewProps = {
-	lineContent: string
-	fileName?: string
-	lineNumber?: number
-	columnNumber?: number
-	functionName?: string
-	linesBefore?: string
-	linesAfter?: string
+	lineContent: StackSectionProps['lineContent']
+	fileName?: StackSectionProps['fileName']
+	lineNumber?: StackSectionProps['lineNumber']
+	columnNumber?: StackSectionProps['columnNumber']
+	functionName?: StackSectionProps['functionName']
+	linesBefore?: StackSectionProps['linesBefore']
+	linesAfter?: StackSectionProps['linesAfter']
 	showLineNumbers?: boolean
 }
 
-const normalize = (linesStr: string | undefined): string[] => {
+const normalize = (linesStr: Maybe<string> | undefined): string[] => {
 	const arr = (linesStr ?? '')?.split('\n')
 	const last = arr.pop()
 	if (last !== undefined && last !== '') {
