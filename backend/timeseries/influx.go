@@ -58,10 +58,9 @@ var IgnoredTags = map[string]bool{
 }
 
 type Point struct {
-	Measurement Measurement
-	Time        time.Time
-	Tags        map[string]string
-	Fields      map[string]interface{}
+	Time   time.Time
+	Tags   map[string]string
+	Fields map[string]interface{}
 }
 
 type Result struct {
@@ -119,6 +118,8 @@ func (i *InfluxDB) GetBucket(bucket string, measurement Measurement) string {
 	switch measurement {
 	case Configs["metrics"].Name:
 		return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+	case Configs["errors"].AggName:
+		return fmt.Sprintf("%s-%s-errors/downsampled", i.BucketPrefix, bucket)
 	}
 	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, bucket, measurement)
 }
@@ -191,7 +192,7 @@ func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point)
 	start := time.Now()
 	writeAPI := i.getWriteAPI(bucket, measurement)
 	for _, point := range points {
-		p := influxdb2.NewPointWithMeasurement(string(point.Measurement))
+		p := influxdb2.NewPointWithMeasurement(string(measurement))
 		for k, v := range point.Tags {
 			if ok := IgnoredTags[k]; ok {
 				continue

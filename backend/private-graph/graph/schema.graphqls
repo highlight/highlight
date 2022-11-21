@@ -206,6 +206,19 @@ enum ErrorState {
 	IGNORED
 }
 
+enum SourceMappingErrorCode {
+	File_Name_Missing_From_Source_Path
+	Error_Parsing_Stack_Trace_File_Url
+	Missing_Source_Map_File_In_S3
+	Minified_File_Missing_In_S3_And_URL
+	Sourcemap_File_Missing_In_S3_And_URL
+	Minified_File_Larger
+	Source_Map_File_Larger
+	Invalid_SourceMapURL
+	Sourcemap_Library_Couldnt_Parse
+	Sourcemap_Library_Couldnt_Retrieve_Source
+}
+
 enum AdminRole {
 	ADMIN
 	MEMBER
@@ -391,9 +404,26 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+}
+
+type SourceMappingError {
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: String
+	minifiedFileSize: String
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
@@ -1045,6 +1075,7 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
+		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
@@ -1098,8 +1129,9 @@ type Query {
 	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
-		error_group_secure_ids: [String!]!
+		error_group_secure_ids: [String!]
 		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
