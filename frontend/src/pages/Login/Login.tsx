@@ -10,7 +10,6 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
-import * as analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -39,6 +38,7 @@ import styles from './Login.module.scss'
 export const AuthAdminRouter = () => {
 	const { isAuthLoading, admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
+
 	useEffect(() => {
 		if (admin) {
 			const { email, id, name } = admin
@@ -60,13 +60,6 @@ export const AuthAdminRouter = () => {
 				}
 			}
 			H.identify(email, identifyMetadata)
-			analytics.identify({
-				$avatar: identifyMetadata.avatar,
-				$distinct_id: email,
-				$name: name,
-				$email: email,
-				'User ID': id,
-			})
 			window.analytics.identify(email, identifyMetadata)
 			H.getSessionURL()
 				.then((sessionUrl) => {

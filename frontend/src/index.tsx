@@ -197,7 +197,6 @@ const App = () => {
 const AuthenticationRoleRouter = () => {
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
-	const [getProjectQuery] = useGetProjectLazyQuery()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -275,12 +274,44 @@ const AuthenticationRoleRouter = () => {
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
+	const [getProjectQuery] = useGetProjectLazyQuery()
+	const history = useHistory()
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
-	const history = useHistory()
 
 	useEffect(() => {
+		// Wait until auth is finished loading otherwise this request can fail.
+		if (!adminData || !projectId || isAuthLoading(authRole)) {
+			return
+		}
+
+		getProjectQuery({
+			variables: {
+				id: projectId,
+			},
+			onCompleted: (data) => {
+				if (!data.project || !adminData) {
+					return
+				}
+
+				analytics.identify(adminData.email, {
+					$avatar: adminData.photo_url ?? undefined,
+					$distinct_id: adminData.email,
+					$name: adminData.name,
+					$email: adminData.email,
+					'User ID': adminData.id,
+					'Project ID': data.project?.id,
+					'Workspace ID': data.workspace?.id,
+				})
+			},
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [adminData, authRole, projectId])
+
+	useEffect(() => {
+		analytics.page('pageView', history.location.pathname)
+
 		return history.listen((location: any) => {
 			analytics.page('pageView', location.pathname)
 		})
@@ -351,31 +382,6 @@ const AuthenticationRoleRouter = () => {
 			)
 		}
 	}, [authRole, setLoadingState])
-
-	useEffect(() => {
-		// Wait until auth is finished loading otherwise this request can fail.
-		if (!projectId || isAuthLoading(authRole)) {
-			return
-		}
-
-		getProjectQuery({
-			variables: {
-				id: projectId,
-			},
-			onCompleted: (data) => {
-				if (!data.project) {
-					return
-				}
-
-				// TODO: Confirm equivalent call of mixpanel.register and that it is
-				// additive (can be called multiple times).
-				analytics.identify({
-					'Project ID': data.project?.id,
-					'Workspace ID': data.workspace?.id,
-				})
-			},
-		})
-	}, [getProjectQuery, projectId, authRole])
 
 	const [enableStaffView] = useLocalStorage(
 		`highlight-enable-staff-view`,
