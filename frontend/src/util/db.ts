@@ -12,6 +12,13 @@ const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
 
+if (localStorage.getItem('highlight-indexeddb-dev-enabled') === undefined) {
+	localStorage.setItem('highlight-indexeddb-dev-enabled', 'false')
+}
+const devEnabled =
+	localStorage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+const enabled = !import.meta.env.DEV || devEnabled
+
 export class DB extends Dexie {
 	apollo!: Table<{
 		key: string
@@ -96,7 +103,10 @@ export class IndexedDBLink extends ApolloLink {
 	}
 
 	static isCached(operation: Operation) {
-		return IndexedDBLink.cachedOperations.has(operation.operationName)
+		return (
+			enabled &&
+			IndexedDBLink.cachedOperations.has(operation.operationName)
+		)
 	}
 
 	request(
@@ -138,6 +148,9 @@ export const indexedDBFetch = async function (
 	input: RequestInfo,
 	init?: RequestInit | undefined,
 ) {
+	if (!enabled) {
+		return await fetch(input, init)
+	}
 	const cacheKey = JSON.stringify({ input, init })
 	const cached = await db.fetch.where('key').equals(cacheKey).first()
 	if (!cached) {
@@ -197,4 +210,6 @@ const cleanup = async () => {
 		setTimeout(cleanup, CLEANUP_CHECK_MS)
 	}
 }
-setTimeout(cleanup, CLEANUP_CHECK_MS)
+if (enabled) {
+	setTimeout(cleanup, CLEANUP_CHECK_MS)
+}
