@@ -12,7 +12,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { JsonOrTextCard } from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
-import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useHistory } from 'react-router-dom'
@@ -114,10 +113,10 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							longestLineNumberCharacterLength={
 								longestLineNumberCharacterLength
 							}
-							lineContent={e?.lineContent}
-							linesBefore={e?.linesBefore}
-							linesAfter={e?.linesAfter}
-							error={e?.error}
+							lineContent={e?.lineContent ?? undefined}
+							linesBefore={e?.linesBefore ?? undefined}
+							linesAfter={e?.linesAfter ?? undefined}
+							error={e?.error ?? undefined}
 							isFirst={i === 0}
 							isLast={i >= structuredStackTrace.length - 1}
 							compact={false}
@@ -141,10 +140,10 @@ type StackSectionProps = {
 	lineNumber?: number
 	columnNumber?: number
 	longestLineNumberCharacterLength?: number
-	lineContent?: Maybe<string>
-	linesBefore?: Maybe<string>
-	linesAfter?: Maybe<string>
-	error?: Maybe<string>
+	lineContent?: string
+	linesBefore?: string
+	linesAfter?: string
+	error?: string
 	compact: boolean
 	isFirst: boolean
 	isLast: boolean
