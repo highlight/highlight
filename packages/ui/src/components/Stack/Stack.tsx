@@ -1,61 +1,48 @@
 import React from 'react'
-import {
-	mapResponsiveValue,
-	OptionalResponsiveObject,
-} from '../../css/sprinkles.css'
 import { Box, BoxProps } from '../Box/Box'
-
-const directionToFlexDirectionLookup = {
-	horizontal: 'row',
-	vertical: 'column',
-} as const
-
-const wrapFlexWrapLookup = {
-	true: 'wrap',
-	false: 'nowrap',
-} as const
 
 type Props = React.PropsWithChildren & {
 	as?: BoxProps['as']
 	align?: BoxProps['alignItems']
-	direction?: OptionalResponsiveObject<'horizontal' | 'vertical'>
+	direction?: BoxProps['flexDirection']
 	flex?: BoxProps['flex']
 	gap?: BoxProps['gap']
 	justify?: BoxProps['justifyContent']
-	wrap?: OptionalResponsiveObject<true | false>
+	wrap?: boolean | BoxProps['flexWrap']
 }
 
 export const Stack: React.FC<Props> = ({
-	as = 'div',
+	as,
 	align,
 	children,
-	direction = 'vertical',
+	direction,
 	flex,
-	gap = '16',
+	gap,
 	justify,
 	wrap,
 }) => {
-	const flexDirection = mapResponsiveValue(
-		direction,
-		(value) => directionToFlexDirectionLookup[value],
-	)
-	const flexWrap = mapResponsiveValue(
-		wrap,
-		(value) => wrapFlexWrapLookup[String(value)],
-	)
+	if (typeof wrap === 'boolean') {
+		wrap = wrap ? 'wrap' : undefined
+	}
 
 	return (
 		<Box
 			as={as}
 			alignItems={align}
 			display="flex"
-			flexDirection={flexDirection}
+			flexDirection={direction}
 			flex={flex}
 			justifyContent={justify}
 			gap={gap}
-			flexWrap={flexWrap}
+			flexWrap={wrap}
 		>
 			{children}
 		</Box>
 	)
+}
+
+Stack.defaultProps = {
+	as: 'div',
+	gap: '16',
+	direction: 'column',
 }

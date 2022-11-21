@@ -113,7 +113,7 @@ const SearchPagination = ({
 			pb="12"
 		>
 			<ButtonIcon
-				variant="secondary"
+				kind="secondary"
 				shape="thin"
 				disabled={currentPage <= START_PAGE}
 				onClick={() => {
@@ -134,7 +134,7 @@ const SearchPagination = ({
 						case ExpandAction.Back:
 							return (
 								<ButtonIcon
-									variant="secondary"
+									kind="secondary"
 									size="small"
 									shape="thin"
 									emphasis="medium"
@@ -171,7 +171,7 @@ const SearchPagination = ({
 				})}
 			</Box>
 			<ButtonIcon
-				variant="secondary"
+				kind="secondary"
 				shape="thin"
 				disabled={currentPage >= maxPage}
 				onClick={() => {

@@ -46,14 +46,14 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 			>
 				<ButtonIcon
 					onClick={() => zoom(PERCENTAGE_STEP)}
-					variant="secondary"
+					kind="secondary"
 					size="minimal"
 					emphasis="none"
 					icon={<IconPlusSm />}
 				/>
 				<ButtonIcon
 					onClick={() => zoom(-PERCENTAGE_STEP)}
-					variant="secondary"
+					kind="secondary"
 					size="minimal"
 					emphasis="none"
 					icon={<IconMinusSm />}
