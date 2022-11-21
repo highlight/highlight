@@ -17,11 +17,12 @@ import {
 	useGetWebVitalsLazyQuery,
 } from '@graph/hooks'
 import { OpenSearchCalendarInterval } from '@graph/schemas'
+import { indexeddbEnabled } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { worker } from '../index'
 
@@ -93,110 +94,113 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 		skip: true,
 	})
 
-	useMemo(async () => {
-		if (
-			!sessions?.sessions_opensearch.sessions.length ||
-			!fetchEventChunkURL ||
-			!fetchEventChunks ||
-			!fetchIndicatorEvents ||
-			!fetchIntervals ||
-			!fetchSession ||
-			!fetchSessionComments ||
-			!fetchSessionPayload ||
-			!fetchEnhanced ||
-			!fetchWebVitals ||
-			preloadedPage.current === pageToLoad
-		)
-			return false
-		preloadedPage.current = pageToLoad
-		const promises: Promise<void>[] = []
-		for (const _s of sessions?.sessions_opensearch.sessions || []) {
-			const preloadPromise = (async (secureID: string) => {
-				log('preload.ts', `preloading session ${secureID}`)
-				try {
-					const session = await fetchSession({
-						variables: {
+	useEffect(() => {
+		;(async () => {
+			if (
+				!indexeddbEnabled ||
+				!sessions?.sessions_opensearch.sessions.length ||
+				!fetchEventChunkURL ||
+				!fetchEventChunks ||
+				!fetchIndicatorEvents ||
+				!fetchIntervals ||
+				!fetchSession ||
+				!fetchSessionComments ||
+				!fetchSessionPayload ||
+				!fetchEnhanced ||
+				!fetchWebVitals ||
+				preloadedPage.current === pageToLoad
+			)
+				return false
+			preloadedPage.current = pageToLoad
+			const promises: Promise<void>[] = []
+			for (const _s of sessions?.sessions_opensearch.sessions || []) {
+				const preloadPromise = (async (secureID: string) => {
+					log('preload.ts', `preloading session ${secureID}`)
+					try {
+						const session = await fetchSession({
+							variables: {
+								secure_id: secureID,
+							},
+						})
+						const sess = session?.data?.session
+						if (!sess) return
+						if (sess.resources_url) {
+							worker.postMessage({
+								type: 'fetch',
+								url: sess.resources_url,
+							})
+						}
+						if (sess.messages_url) {
+							worker.postMessage({
+								type: 'fetch',
+								url: sess.messages_url,
+							})
+						}
+						if (sess.direct_download_url) {
+							worker.postMessage({
+								type: 'fetch',
+								url: sess.direct_download_url,
+							})
+						}
+						fetchIntervals({
+							variables: {
+								session_secure_id: secureID,
+							},
+						})
+						fetchIndicatorEvents({
+							variables: {
+								session_secure_id: secureID,
+							},
+						})
+						fetchEventChunks({
+							variables: {
+								secure_id: secureID,
+							},
+						})
+						fetchSessionComments({
+							variables: {
+								session_secure_id: secureID,
+							},
+						})
+						fetchSessionPayload({
+							variables: {
+								session_secure_id: secureID,
+								skip_events: true,
+							},
+						})
+						fetchEnhanced({
+							variables: {
+								session_secure_id: secureID,
+							},
+						})
+						fetchWebVitals({
+							variables: {
+								session_secure_id: secureID,
+							},
+						})
+						const response = await fetchEventChunkURL({
 							secure_id: secureID,
-						},
-					})
-					const sess = session?.data?.session
-					if (!sess) return
-					if (sess.resources_url) {
+							index: 0,
+						})
 						worker.postMessage({
 							type: 'fetch',
-							url: sess.resources_url,
+							url: response.data.event_chunk_url,
 						})
+						log('preload.ts', `preloaded session ${secureID}`)
+					} catch (e: any) {
+						const msg = `failed to preload session ${secureID}`
+						console.warn(msg)
+						H.consumeError(e, msg)
 					}
-					if (sess.messages_url) {
-						worker.postMessage({
-							type: 'fetch',
-							url: sess.messages_url,
-						})
-					}
-					if (sess.direct_download_url) {
-						worker.postMessage({
-							type: 'fetch',
-							url: sess.direct_download_url,
-						})
-					}
-					fetchIntervals({
-						variables: {
-							session_secure_id: secureID,
-						},
-					})
-					fetchIndicatorEvents({
-						variables: {
-							session_secure_id: secureID,
-						},
-					})
-					fetchEventChunks({
-						variables: {
-							secure_id: secureID,
-						},
-					})
-					fetchSessionComments({
-						variables: {
-							session_secure_id: secureID,
-						},
-					})
-					fetchSessionPayload({
-						variables: {
-							session_secure_id: secureID,
-							skip_events: true,
-						},
-					})
-					fetchEnhanced({
-						variables: {
-							session_secure_id: secureID,
-						},
-					})
-					fetchWebVitals({
-						variables: {
-							session_secure_id: secureID,
-						},
-					})
-					const response = await fetchEventChunkURL({
-						secure_id: secureID,
-						index: 0,
-					})
-					worker.postMessage({
-						type: 'fetch',
-						url: response.data.event_chunk_url,
-					})
-					log('preload.ts', `preloaded session ${secureID}`)
-				} catch (e: any) {
-					const msg = `failed to preload session ${secureID}`
-					console.warn(msg)
-					H.consumeError(e, msg)
+				})(_s.secure_id)
+				promises.push(preloadPromise)
+				if (promises.length === CONCURRENT_PRELOADS) {
+					await Promise.all(promises)
+					promises.length = 0
 				}
-			})(_s.secure_id)
-			promises.push(preloadPromise)
-			if (promises.length === CONCURRENT_PRELOADS) {
-				await Promise.all(promises)
-				promises.length = 0
 			}
-		}
-		await Promise.all(promises)
+			await Promise.all(promises)
+		})()
 	}, [
 		fetchEnhanced,
 		fetchEventChunkURL,
@@ -209,7 +213,7 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 		fetchWebVitals,
 		pageToLoad,
 		sessions,
-	]).then()
+	])
 }
 
 export const usePreloadErrors = function ({ page }: { page: number }) {
@@ -322,6 +326,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 	useEffect(() => {
 		;(async () => {
 			if (
+				!indexeddbEnabled ||
 				!fetchErrorGroup ||
 				!fetchRecentErrors ||
 				!fetchErrorGroupDistribution ||
