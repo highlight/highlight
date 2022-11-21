@@ -27,11 +27,6 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 	const history = useHistory()
 	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
-	console.log(
-		'::: errorObject.structured_stack_trace',
-		errorObject?.structured_stack_trace,
-	)
-	console.log('::: errorObject.stack_trace', errorObject?.stack_trace)
 
 	/**
 	 * The length of the longest line number in all the stack frames.

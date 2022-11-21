@@ -4,6 +4,7 @@ let rudderstackInitialized = false
 
 export const initialize = () => {
 	if (rudderstackInitialized) {
+		console.warn('Rudderstack already initialized.')
 		return
 	}
 
@@ -12,9 +13,7 @@ export const initialize = () => {
 	rudderanalytics.load(
 		'2HMp4bSqggu0Z8W1cn6G5nydUxg',
 		'https://highlightwjh.dataplane.rudderstack.com',
-		{
-			integrations: { All: true }, // load call options
-		},
+		{ integrations: { All: true } },
 	)
 }
 

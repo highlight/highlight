@@ -46,7 +46,7 @@ import {
 	BrowserRouter as Router,
 	Route,
 	Switch,
-	useLocation,
+	useHistory,
 } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
@@ -278,7 +278,13 @@ const AuthenticationRoleRouter = () => {
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
-	const location = useLocation()
+	const history = useHistory()
+
+	useEffect(() => {
+		return history.listen((location: any) => {
+			analytics.page('pageView', location.pathname)
+		})
+	}, [history])
 
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
@@ -347,10 +353,6 @@ const AuthenticationRoleRouter = () => {
 	}, [authRole, setLoadingState])
 
 	useEffect(() => {
-		analytics.page('pageView', location.pathname)
-	}, [location.pathname])
-
-	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
 		if (!projectId || isAuthLoading(authRole)) {
 			return
@@ -406,38 +408,36 @@ get in contact with us!
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
-				<Router>
-					<Switch>
-						<Route path="/:project_id(0)/*" exact>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route path="/">
-							<LoginForm />
-						</Route>
-					</Switch>
-				</Router>
+				<Switch>
+					<Route path="/:project_id(0)/*" exact>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route path="/">
+						<LoginForm />
+					</Route>
+				</Switch>
 			)}
 		</AuthContextProvider>
 	)
