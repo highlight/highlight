@@ -10,6 +10,7 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
+import * as analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -59,15 +60,13 @@ export const AuthAdminRouter = () => {
 				}
 			}
 			H.identify(email, identifyMetadata)
-			if (window.mixpanel && typeof window.mixpanel.people === 'object') {
-				window.mixpanel.people.set({
-					$avatar: identifyMetadata.avatar,
-					$distinct_id: email,
-					$name: name,
-					$email: email,
-					'User ID': id,
-				})
-			}
+			analytics.identify({
+				$avatar: identifyMetadata.avatar,
+				$distinct_id: email,
+				$name: name,
+				$email: email,
+				'User ID': id,
+			})
 			window.analytics.identify(email, identifyMetadata)
 			H.getSessionURL()
 				.then((sessionUrl) => {

@@ -31,6 +31,7 @@ import {
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
+import * as analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -41,11 +42,17 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import {
+	BrowserRouter as Router,
+	Route,
+	Switch,
+	useLocation,
+} from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
 
+analytics.initialize()
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
@@ -62,9 +69,6 @@ const options: HighlightOptions = {
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
-		mixpanel: {
-			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
-		},
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
 		},
@@ -274,6 +278,7 @@ const AuthenticationRoleRouter = () => {
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
+	const location = useLocation()
 
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
@@ -342,13 +347,12 @@ const AuthenticationRoleRouter = () => {
 	}, [authRole, setLoadingState])
 
 	useEffect(() => {
+		analytics.page('pageView', location.pathname)
+	}, [location.pathname])
+
+	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
-		if (
-			!window.mixpanel ||
-			typeof window.mixpanel.register !== 'function' ||
-			!projectId ||
-			isAuthLoading(authRole)
-		) {
+		if (!projectId || isAuthLoading(authRole)) {
 			return
 		}
 
@@ -361,7 +365,9 @@ const AuthenticationRoleRouter = () => {
 					return
 				}
 
-				window.mixpanel.register({
+				// TODO: Confirm equivalent call of mixpanel.register and that it is
+				// additive (can be called multiple times).
+				analytics.identify({
 					'Project ID': data.project?.id,
 					'Workspace ID': data.workspace?.id,
 				})
