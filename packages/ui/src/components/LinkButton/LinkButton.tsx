@@ -8,9 +8,8 @@ import * as buttonStyles from '../Button/styles.css'
 import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren &
-	Partial<Pick<buttonStyles.Variants, 'kind' | 'size' | 'emphasis'>> & {
+	buttonStyles.Variants & {
 		href: string
-	} & {
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 	}
@@ -41,9 +40,9 @@ export const LinkButton: React.FC<Props> = ({
 						as="span"
 						display="inline-flex"
 						className={buttonStyles.iconVariants({
+							kind,
 							size,
 							emphasis,
-							kind,
 						})}
 					>
 						{iconLeft}
@@ -55,9 +54,9 @@ export const LinkButton: React.FC<Props> = ({
 						as="span"
 						display="inline-flex"
 						className={buttonStyles.iconVariants({
+							kind,
 							size,
 							emphasis,
-							kind,
 						})}
 					>
 						{iconRight}

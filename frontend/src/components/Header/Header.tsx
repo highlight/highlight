@@ -4,14 +4,13 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
+import NotificationsV2 from '@components/Header/Notifications/NotificationsV2'
 import { linkStyle } from '@components/Header/styles.css'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	IconAtSymbol,
-	IconBell,
 	IconCog,
 	IconDesktopComputer,
 	IconDocumentText,
@@ -249,11 +248,7 @@ export const Header = () => {
 								</Box>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
-								<Button
-									iconLeft={<IconBell size="14" />}
-									emphasis="low"
-									kind="secondary"
-								/>
+								{isLoggedIn && <NotificationsV2 />}
 								<Menu>
 									<Menu.Button
 										emphasis="low"
