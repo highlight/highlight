@@ -29,7 +29,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	iconRight,
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
-	variant = styles.defaultVariant,
+	kind = styles.defaultKind,
 	className,
 	...buttonProps
 }) => {
@@ -42,7 +42,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 			className={clsx([
 				className,
 				styles.variants({
-					variant,
+					kind,
 					size,
 					shape,
 				}),
@@ -53,7 +53,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, variant })}
+					className={styles.iconVariants({ size, kind })}
 				>
 					{icon}
 				</Box>
@@ -67,7 +67,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as="span"
 					display="inline-flex"
-					className={styles.iconVariants({ size, variant })}
+					className={styles.iconVariants({ size, kind })}
 				>
 					{iconRight}
 				</Box>

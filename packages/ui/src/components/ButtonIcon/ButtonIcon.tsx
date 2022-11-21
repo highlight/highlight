@@ -13,7 +13,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 
 export const ButtonIcon: React.FC<Props> = ({
 	icon,
-	variant,
+	kind,
 	shape,
 	emphasis,
 	size,
@@ -27,7 +27,7 @@ export const ButtonIcon: React.FC<Props> = ({
 			as="button"
 			display="inline-flex"
 			cssClass={clsx(
-				styles.variants({ variant, shape, emphasis, size }),
+				styles.variants({ kind, shape, emphasis, size }),
 				className,
 				cssClass,
 			)}
