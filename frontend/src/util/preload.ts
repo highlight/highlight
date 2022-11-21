@@ -17,18 +17,17 @@ import {
 	useGetWebVitalsLazyQuery,
 } from '@graph/hooks'
 import { OpenSearchCalendarInterval } from '@graph/schemas'
-import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import { indexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useMemo, useRef } from 'react'
 
+import { worker } from '../index'
+
 const CONCURRENT_PRELOADS = 1
 
-export const usePreloadSessions = function () {
+export const usePreloadSessions = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -37,7 +36,6 @@ export const usePreloadSessions = function () {
 	)
 	const preloadedPage = useRef<number>()
 
-	const { page } = useSearchContext()
 	const pageToLoad = page ?? 1
 	const query = JSON.stringify({
 		bool: {
@@ -124,13 +122,22 @@ export const usePreloadSessions = function () {
 					const sess = session?.data?.session
 					if (!sess) return
 					if (sess.resources_url) {
-						await indexedDBFetch(sess.resources_url)
+						worker.postMessage({
+							type: 'fetch',
+							url: sess.resources_url,
+						})
 					}
 					if (sess.messages_url) {
-						await indexedDBFetch(sess.messages_url)
+						worker.postMessage({
+							type: 'fetch',
+							url: sess.messages_url,
+						})
 					}
 					if (sess.direct_download_url) {
-						await indexedDBFetch(sess.direct_download_url)
+						worker.postMessage({
+							type: 'fetch',
+							url: sess.direct_download_url,
+						})
 					}
 					fetchIntervals({
 						variables: {
@@ -172,7 +179,10 @@ export const usePreloadSessions = function () {
 						secure_id: secureID,
 						index: 0,
 					})
-					await indexedDBFetch(response.data.event_chunk_url)
+					worker.postMessage({
+						type: 'fetch',
+						url: response.data.event_chunk_url,
+					})
 					log('preload.ts', `preloaded session ${secureID}`)
 				} catch (e: any) {
 					const msg = `failed to preload session ${secureID}`
@@ -202,7 +212,7 @@ export const usePreloadSessions = function () {
 	]).then()
 }
 
-export const usePreloadErrors = function () {
+export const usePreloadErrors = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -211,7 +221,6 @@ export const usePreloadErrors = function () {
 	)
 	const preloadedPage = useRef<number>()
 
-	const { page } = useErrorSearchContext()
 	const pageToLoad = page ?? 1
 	const query = JSON.stringify({
 		bool: {

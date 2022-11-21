@@ -192,9 +192,9 @@ const cleanup = async () => {
 		}
 	}
 	if (numFetchElemsToRemove > 1 || numApolloElemsToRemove > 1) {
-		window.setTimeout(cleanup, CLEANUP_DELAY_MS)
+		setTimeout(cleanup, CLEANUP_DELAY_MS)
 	} else {
-		window.setTimeout(cleanup, CLEANUP_CHECK_MS)
+		setTimeout(cleanup, CLEANUP_CHECK_MS)
 	}
 }
-window.setTimeout(cleanup, CLEANUP_CHECK_MS)
+setTimeout(cleanup, CLEANUP_CHECK_MS)

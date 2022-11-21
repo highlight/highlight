@@ -84,6 +84,9 @@ export default defineConfig(({ mode }) => {
 				clientPort: 3000,
 			},
 		},
+		worker: {
+			format: 'es',
+		},
 		build: {
 			outDir: 'build',
 			// Vite sourcemaps are totally broken
