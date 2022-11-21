@@ -11,15 +11,15 @@ export default {
 	component: ButtonIcon,
 } as ComponentMeta<typeof ButtonIcon>
 
-export const ButtonIconVariants = () => {
-	const variant: Variants['variant'][] = ['primary', 'secondary']
+export const AllVariants = () => {
+	const variant: Variants['kind'][] = ['primary', 'secondary']
 	const shape: Variants['shape'][] = ['square', 'thin']
 	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
 	const size: Variants['size'][] = ['medium', 'small', 'tiny']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
-			{variant.map(($variant, idx) => (
+			{variant.map(($kind, idx) => (
 				<Box key={idx} display="flex" gap="6" flexDirection="column">
 					{emphasis.map(($emphasis, jdx) => (
 						<Box
@@ -33,7 +33,7 @@ export const ButtonIconVariants = () => {
 									<ButtonIcon
 										icon={<IconCaretDown />}
 										size={$size}
-										variant={$variant}
+										kind={$kind}
 										emphasis={$emphasis}
 										shape={$shape}
 										key={`${idx}-${jdx}-${kdx}-${ldx}`}
@@ -42,13 +42,6 @@ export const ButtonIconVariants = () => {
 							)}
 						</Box>
 					))}
-					<ButtonIcon
-						variant={$variant}
-						emphasis="none"
-						key={`b-${idx}-m`}
-						size="minimal"
-						icon={<IconCaretDown />}
-					/>
 				</Box>
 			))}
 		</Box>
