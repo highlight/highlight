@@ -6,19 +6,8 @@
 	width: 100%;
 
 	&.bannerShown {
-		animation: accomodate-banner 0.5s forwards;
+		animation: 0.5s forwards;
 		height: calc(100% - var(--header-height) - var(--banner-height));
-		// overflow-x: hidden;
-	}
-}
-
-@keyframes accomodate-banner {
-	0% {
-		// top: 0;
-	}
-
-	100% {
-		// top: var(--banner-height);
 	}
 }
 

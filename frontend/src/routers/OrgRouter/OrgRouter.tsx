@@ -349,11 +349,6 @@ export const ProjectRouter = () => {
 						</Route>
 						<Route>
 							<Header />
-							{/* {(isLoggedIn ||
-								projectIdRemapped ===
-									DEMO_WORKSPACE_PROXY_APPLICATION_ID) && (
-								<Sidebar />
-							)} */}
 							<div
 								className={classNames(
 									commonStyles.bodyWrapper,
