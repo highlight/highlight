@@ -8,7 +8,7 @@ type Props = React.PropsWithChildren & {
 	jsonOrText: string
 }
 
-const JsonOrTextCard: React.FC<Props> = ({ jsonOrText }) => {
+export const JsonOrTextCard: React.FC<Props> = ({ jsonOrText }) => {
 	const content = parseOptionalJSON(jsonOrText || '')
 
 	return (
@@ -24,5 +24,3 @@ const JsonOrTextCard: React.FC<Props> = ({ jsonOrText }) => {
 		</Box>
 	)
 }
-
-export default JsonOrTextCard

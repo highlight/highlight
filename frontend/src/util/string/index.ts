@@ -79,6 +79,8 @@ export function parseOptionalJSON(text: string): any {
 		const json = JSON.parse(text)
 		if (typeof json === 'object') {
 			parsed = json
+		} else if (typeof json === 'string') {
+			return parseOptionalJSON(json)
 		}
 	} catch {
 		parsed = text

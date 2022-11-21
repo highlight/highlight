@@ -11,7 +11,8 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
-import JsonOrTextCard from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
+import { JsonOrTextCard } from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
+import { Maybe } from 'graphql/jsutils/Maybe'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useHistory } from 'react-router-dom'
@@ -26,6 +27,11 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 	const history = useHistory()
 	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
+	console.log(
+		'::: errorObject.structured_stack_trace',
+		errorObject?.structured_stack_trace,
+	)
+	console.log('::: errorObject.stack_trace', errorObject?.stack_trace)
 
 	/**
 	 * The length of the longest line number in all the stack frames.
@@ -108,10 +114,10 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							longestLineNumberCharacterLength={
 								longestLineNumberCharacterLength
 							}
-							lineContent={e?.lineContent ?? undefined}
-							linesBefore={e?.linesBefore ?? undefined}
-							linesAfter={e?.linesAfter ?? undefined}
-							error={e?.error ?? undefined}
+							lineContent={e?.lineContent}
+							linesBefore={e?.linesBefore}
+							linesAfter={e?.linesAfter}
+							error={e?.error}
 							isFirst={i === 0}
 							isLast={i >= structuredStackTrace.length - 1}
 							compact={false}
@@ -135,10 +141,10 @@ type StackSectionProps = {
 	lineNumber?: number
 	columnNumber?: number
 	longestLineNumberCharacterLength?: number
-	lineContent?: string
-	linesBefore?: string
-	linesAfter?: string
-	error?: string
+	lineContent?: Maybe<string>
+	linesBefore?: Maybe<string>
+	linesAfter?: Maybe<string>
+	error?: Maybe<string>
 	compact: boolean
 	isFirst: boolean
 	isLast: boolean
@@ -290,10 +296,10 @@ const StackTraceSectionCollapsible: React.FC<
 	)
 }
 
-const truncateFileName = (fileName: string, number_of_levels_to_go_up = 3) => {
+const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 3) => {
 	const tokens = fileName.split('/')
 
 	return `${'../'.repeat(
-		Math.max(tokens.length - number_of_levels_to_go_up, 0),
-	)}${tokens.splice(tokens.length - number_of_levels_to_go_up).join('/')}`
+		Math.max(tokens.length - numberOfLevelsToGoUp, 0),
+	)}${tokens.splice(tokens.length - numberOfLevelsToGoUp).join('/')}`
 }
