@@ -2684,6 +2684,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// put errors in db
 		putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
 			tracer.ResourceName("db.errors"), tracer.Tag("project_id", projectID))
+		groupedErrors := make(map[int][]*model.ErrorObject)
 		groups := make(map[int]struct {
 			Group      *model.ErrorGroup
 			VisitedURL string
@@ -2727,7 +2728,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				VisitedURL string
 				SessionObj *model.Session
 			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
+			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
+
+		influxSpan := tracer.StartSpan("public-graph.recordErrorGroupMetrics", tracer.ChildOf(putErrorsToDBSpan.Context()),
+			tracer.ResourceName("influx.errors"))
+		for groupID, errorObjects := range groupedErrors {
+			errorGroup := groups[groupID].Group
+			if err := r.RecordErrorGroupMetrics(errorGroup, errorObjects); err != nil {
+				log.WithFields(log.Fields{
+					"project_id":     projectID,
+					"error_group_id": groupID,
+				}).Error(err)
+			}
+		}
+		influxSpan.Finish()
 
 		for _, data := range groups {
 			r.sendErrorAlert(data.Group.ProjectID, data.SessionObj, data.Group, data.VisitedURL)
