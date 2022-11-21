@@ -295,12 +295,11 @@ const AuthenticationRoleRouter = () => {
 					return
 				}
 
-				analytics.identify(adminData.email, {
+				analytics.identify(adminData.id, {
 					$avatar: adminData.photo_url ?? undefined,
 					$distinct_id: adminData.email,
 					$name: adminData.name,
 					$email: adminData.email,
-					'User ID': adminData.id,
 					'Project ID': data.project?.id,
 					'Workspace ID': data.workspace?.id,
 				})
