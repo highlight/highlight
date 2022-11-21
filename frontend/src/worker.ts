@@ -1,5 +1,7 @@
-import { indexedDBFetch } from '@util/db'
-import log from '@util/log'
+// noinspection ES6PreferShortImport
+
+import { indexedDBFetch } from './util/db'
+import log from './util/log'
 
 export interface RequestWorker {
 	postMessage: (message: WorkerParams) => void
