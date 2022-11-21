@@ -5,11 +5,13 @@ import { parseOptionalJSON } from '@util/string'
 import React from 'react'
 
 type Props = React.PropsWithChildren & {
-	jsonOrText: string
+	stackTrace: string
 }
 
-export const JsonOrTextCard: React.FC<Props> = ({ jsonOrText }) => {
-	const content = parseOptionalJSON(jsonOrText || '')
+export const UnstructuredStackTrace: React.FC<Props> = ({
+	stackTrace = '',
+}) => {
+	const content = parseOptionalJSON(stackTrace)
 
 	return (
 		<Box border="neutral" p="12" borderRadius="5">

@@ -12,7 +12,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
-import { JsonOrTextCard } from '@pages/ErrorsV2/JsonOrTextCard/JsonOrTextCard'
+import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useHistory } from 'react-router-dom'
@@ -124,8 +124,8 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 						/>
 					))
 				) : (
-					<JsonOrTextCard
-						jsonOrText={errorObject?.stack_trace || ''}
+					<UnstructuredStackTrace
+						stackTrace={errorObject?.stack_trace || ''}
 					/>
 				)}
 			</Box>
