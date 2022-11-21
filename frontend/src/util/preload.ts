@@ -267,11 +267,21 @@ export const usePreloadErrors = function () {
 			],
 		},
 	})
+	const {} = useGetErrorGroupsOpenSearchQuery({
+		variables: {
+			query,
+			count: DEFAULT_PAGE_SIZE,
+			page: pageToLoad,
+			influx: true,
+			project_id,
+		},
+	})
 	const { data: errors } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query,
 			count: DEFAULT_PAGE_SIZE,
 			page: pageToLoad,
+			influx: false,
 			project_id,
 		},
 	})
