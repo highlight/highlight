@@ -1,5 +1,5 @@
 .gridContainer {
-	padding: 30px;
+	padding: 30px 80px;
 	&.isEditing {
 		:global(.react-resizable-handle) {
 			opacity: 1;
@@ -31,7 +31,6 @@
 
 .customLeadAlignLayout {
 	margin: 0;
-	padding: 80px 0 0;
 }
 
 .headerPanel {
@@ -45,9 +44,8 @@
 	border-bottom: var(--color-gray-300) 1px solid;
 	display: flex;
 	flex-direction: column;
-	padding: 20px 30px;
+	padding: 40px 80px 30px;
 	position: sticky;
-	top: 80px;
 	z-index: 1000;
 }
 

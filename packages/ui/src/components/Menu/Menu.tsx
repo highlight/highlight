@@ -1,6 +1,5 @@
 import {
 	MenuButton,
-	MenuButtonArrow,
 	MenuItem,
 	MenuItemProps,
 	Menu as AriakitMenu,
@@ -12,6 +11,8 @@ import {
 	MenuButtonProps,
 } from 'ariakit'
 import React, { useContext } from 'react'
+import { Box } from '../Box/Box'
+import { IconProps } from '../icons'
 
 import * as styles from './styles.css'
 
@@ -51,7 +52,6 @@ const Button: React.FC<
 			{...props}
 		>
 			{children}
-			<MenuButtonArrow />
 		</MenuButton>
 	)
 }
@@ -69,7 +69,10 @@ const List: React.FC<React.PropsWithChildren & Partial<MenuProps>> = ({
 }
 
 const Item: React.FC<MenuItemProps> = ({ children, ...props }) => (
-	<MenuItem className={styles.menuItem} {...props}>
+	<MenuItem
+		className={styles.menuItemVariants({ selected: false })}
+		{...props}
+	>
 		{children}
 	</MenuItem>
 )

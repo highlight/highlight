@@ -306,7 +306,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showHistogram}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconChartBar size={14} />}
+							iconLeft={<IconChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<ExplanatoryPopover
@@ -327,7 +327,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconTerminal size={14} />}
+							iconLeft={<IconTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
