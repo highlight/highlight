@@ -10,6 +10,7 @@ import {
 import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useRef, useState } from 'react'

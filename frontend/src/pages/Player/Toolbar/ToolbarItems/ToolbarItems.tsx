@@ -18,6 +18,7 @@ import {
 	ToolbarItem,
 	useToolbarItemsContext,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import analytics from '@util/analytics'
 import { Dropdown, Menu } from 'antd'
 import classNames from 'classnames'
 import React from 'react'

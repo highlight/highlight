@@ -1,4 +1,5 @@
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
