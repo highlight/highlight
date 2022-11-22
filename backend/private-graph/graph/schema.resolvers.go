@@ -2971,7 +2971,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		FROM workspaces w
 		INNER JOIN projects p
 		ON p.workspace_id = w.id
-		INNER JOIN daily_session_counts_view sc
+		LEFT OUTER JOIN daily_session_counts_view sc
 		ON sc.project_id = p.id
 		group by 1, 2
 	`).Scan(&accounts).Error; err != nil {
@@ -3295,7 +3295,8 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, influx bool) (*model.ErrorResults, error) {
+	const lookbackPeriod = 5
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3327,11 +3328,19 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
 	}
 
-	errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+	if influx {
+		errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-	err = r.SetErrorFrequencies(asErrorGroups, 5)
-	errorFrequencyOpensearchSpan.Finish()
+		err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, lookbackPeriod)
+		errorFrequencyInfluxSpan.Finish()
+	} else {
+		errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+
+		err = r.SetErrorFrequencies(asErrorGroups, lookbackPeriod)
+		errorFrequencyOpensearchSpan.Finish()
+	}
 
 	if err != nil {
 		return nil, err
@@ -4033,6 +4042,22 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 	}
 
 	return errorDistribution, nil
+}
+
+// ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+	var errorGroupIDs []int
+	for _, errorGroupSecureID := range errorGroupSecureIds {
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
+		if err != nil {
+			return nil, e.Wrap(err, "admin not error group owner")
+		}
+		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
+	}
+	if metric == nil {
+		metric = pointy.String("")
+	}
+	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
 // Referrers is the resolver for the referrers field.
@@ -5637,7 +5662,7 @@ func (r *queryResolver) SuggestedMetrics(ctx context.Context, projectID int, pre
 		  |> group(columns: ["_field"])
 		  |> distinct(column: "_field")
 		  |> yield(name: "distinct")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, filter)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, filter)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.querySuggestedMetrics")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	results, err := r.TDB.Query(ctx, query)
@@ -5660,7 +5685,7 @@ func (r *queryResolver) MetricTags(ctx context.Context, projectID int, metricNam
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagKeys(bucket: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTags")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5690,7 +5715,7 @@ func (r *queryResolver) MetricTagValues(ctx context.Context, projectID int, metr
 	query := fmt.Sprintf(`
 		import "influxdata/influxdb/schema"
 		schema.tagValues(bucket: "%s", tag: "%s", predicate: (r) => r["_measurement"] == "%s" and r["_field"] == "%s")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), tagName, timeseries.Metrics, metricName)
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), tagName, timeseries.Metrics, metricName)
 	tdbQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryMetricTagValues")
 	tdbQuerySpan.SetTag("projectID", projectID)
 	tdbQuerySpan.SetTag("metricName", metricName)
@@ -5720,7 +5745,7 @@ func (r *queryResolver) MetricsHistogram(ctx context.Context, projectID int, met
 		return nil, err
 	}
 
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID)), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
+	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), timeseries.Metrics, params.DateRange.EndDate.Sub(*params.DateRange.StartDate))
 	div := CalculateMetricUnitConversion(MetricOriginalUnits(metricName), params.Units)
 	tagFilters := GetTagFilters(params.Filters)
 	if params.MinValue == nil || params.MaxValue == nil {
@@ -5857,7 +5882,7 @@ func (r *queryResolver) NetworkHistogram(ctx context.Context, projectID int, par
 		  |> sort(desc: true)
           |> limit(n: 10)
 		  |> yield(name: "count")
-	`, r.TDB.GetBucket(strconv.Itoa(projectID)), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
+	`, r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Metrics), days, timeseries.Metrics, extraFiltersStr, params.Attribute.String())
 	networkHistogramSpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
 	networkHistogramSpan.SetTag("projectID", projectID)
 	networkHistogramSpan.SetTag("attribute", params.Attribute.String())

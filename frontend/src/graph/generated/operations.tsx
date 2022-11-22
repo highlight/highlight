@@ -2024,6 +2024,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
 	page?: Types.Maybe<Types.Scalars['Int']>
+	influx: Types.Scalars['Boolean']
 }>
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -3651,6 +3652,25 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	error_group_secure_ids:
+		| Array<Types.Scalars['String']>
+		| Types.Scalars['String']
+	params: Types.ErrorGroupFrequenciesParamsInput
+}>
+
+export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
+	errorGroupFrequencies: Array<
+		Types.Maybe<
+			{ __typename?: 'ErrorDistributionItem' } & Pick<
+				Types.ErrorDistributionItem,
+				'error_group_id' | 'date' | 'name' | 'value'
+			>
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -3755,6 +3775,7 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
+		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

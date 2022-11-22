@@ -312,7 +312,7 @@ export const variants = recipe({
 	],
 	defaultVariants: {
 		kind: 'primary',
-		emphasis: 'medium',
+		emphasis: 'high',
 		size: defaultSize,
 	},
 })

@@ -2,7 +2,6 @@ import {
 	defineProperties,
 	createSprinkles,
 	createMapValueFn,
-	ConditionalValue,
 } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
 import { Breakpoint, mediaQueries } from './breakpoints'
@@ -15,6 +14,10 @@ const responsiveProperties = defineProperties({
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
+		borderTopLeftRadius: vars.borderRadius,
+		borderTopRightRadius: vars.borderRadius,
+		borderBottomLeftRadius: vars.borderRadius,
+		borderBottomRightRadius: vars.borderRadius,
 		display: [
 			'none',
 			'flex',
@@ -60,6 +63,10 @@ const responsiveProperties = defineProperties({
 	},
 	shorthands: {
 		align: ['alignItems'],
+		btr: ['borderTopLeftRadius', 'borderTopRightRadius'],
+		bbr: ['borderBottomLeftRadius', 'borderBottomRightRadius'],
+		brr: ['borderTopRightRadius', 'borderBottomRightRadius'],
+		blr: ['borderTopLeftRadius', 'borderBottomLeftRadius'],
 		p: ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
 		px: ['paddingLeft', 'paddingRight'],
 		py: ['paddingTop', 'paddingBottom'],

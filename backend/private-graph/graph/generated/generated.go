@@ -248,8 +248,10 @@ type ComplexityRoot struct {
 	}
 
 	ErrorDistributionItem struct {
-		Name  func(childComplexity int) int
-		Value func(childComplexity int) int
+		Date         func(childComplexity int) int
+		ErrorGroupID func(childComplexity int) int
+		Name         func(childComplexity int) int
+		Value        func(childComplexity int) int
 	}
 
 	ErrorField struct {
@@ -345,14 +347,15 @@ type ComplexityRoot struct {
 	}
 
 	ErrorTrace struct {
-		ColumnNumber func(childComplexity int) int
-		Error        func(childComplexity int) int
-		FileName     func(childComplexity int) int
-		FunctionName func(childComplexity int) int
-		LineContent  func(childComplexity int) int
-		LineNumber   func(childComplexity int) int
-		LinesAfter   func(childComplexity int) int
-		LinesBefore  func(childComplexity int) int
+		ColumnNumber               func(childComplexity int) int
+		Error                      func(childComplexity int) int
+		FileName                   func(childComplexity int) int
+		FunctionName               func(childComplexity int) int
+		LineContent                func(childComplexity int) int
+		LineNumber                 func(childComplexity int) int
+		LinesAfter                 func(childComplexity int) int
+		LinesBefore                func(childComplexity int) int
+		SourceMappingErrorMetadata func(childComplexity int) int
 	}
 
 	ErrorsHistogram struct {
@@ -579,7 +582,8 @@ type ComplexityRoot struct {
 		ErrorFieldSuggestion         func(childComplexity int, projectID int, name string, query string) int
 		ErrorFieldsOpensearch        func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		ErrorGroup                   func(childComplexity int, secureID string) int
-		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int) int
+		ErrorGroupFrequencies        func(childComplexity int, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) int
+		ErrorGroupsOpensearch        func(childComplexity int, projectID int, count int, query string, page *int, influx bool) int
 		ErrorInstance                func(childComplexity int, errorGroupSecureID string, errorObjectID *int) int
 		ErrorObject                  func(childComplexity int, id int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
@@ -855,6 +859,22 @@ type ComplexityRoot struct {
 		Type func(childComplexity int) int
 	}
 
+	SourceMappingError struct {
+		ActualMinifiedFetchedPath  func(childComplexity int) int
+		ActualSourcemapFetchedPath func(childComplexity int) int
+		ErrorCode                  func(childComplexity int) int
+		MappedColumnNumber         func(childComplexity int) int
+		MappedLineNumber           func(childComplexity int) int
+		MinifiedColumnNumber       func(childComplexity int) int
+		MinifiedFetchStrategy      func(childComplexity int) int
+		MinifiedFileSize           func(childComplexity int) int
+		MinifiedLineNumber         func(childComplexity int) int
+		SourceMapURL               func(childComplexity int) int
+		SourcemapFetchStrategy     func(childComplexity int) int
+		SourcemapFileSize          func(childComplexity int) int
+		StackTraceFileURL          func(childComplexity int) int
+	}
+
 	Subscription struct {
 		SessionPayloadAppended func(childComplexity int, sessionSecureID string, initialEventsCount int) int
 	}
@@ -1067,7 +1087,7 @@ type QueryResolver interface {
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.RageClickEventForProject, error)
-	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model1.ErrorResults, error)
+	ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, influx bool) (*model1.ErrorResults, error)
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
@@ -1097,6 +1117,7 @@ type QueryResolver interface {
 	DailyErrorsCount(ctx context.Context, projectID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error)
 	ErrorDistribution(ctx context.Context, projectID int, errorGroupSecureID string, property string) ([]*model.ErrorDistributionItem, error)
+	ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params model.ErrorGroupFrequenciesParamsInput, metric *string) ([]*model.ErrorDistributionItem, error)
 	Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
@@ -2098,6 +2119,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorComment.UpdatedAt(childComplexity), true
 
+	case "ErrorDistributionItem.date":
+		if e.complexity.ErrorDistributionItem.Date == nil {
+			break
+		}
+
+		return e.complexity.ErrorDistributionItem.Date(childComplexity), true
+
+	case "ErrorDistributionItem.error_group_id":
+		if e.complexity.ErrorDistributionItem.ErrorGroupID == nil {
+			break
+		}
+
+		return e.complexity.ErrorDistributionItem.ErrorGroupID(childComplexity), true
+
 	case "ErrorDistributionItem.name":
 		if e.complexity.ErrorDistributionItem.Name == nil {
 			break
@@ -2643,6 +2678,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorTrace.LinesBefore(childComplexity), true
+
+	case "ErrorTrace.sourceMappingErrorMetadata":
+		if e.complexity.ErrorTrace.SourceMappingErrorMetadata == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.SourceMappingErrorMetadata(childComplexity), true
 
 	case "ErrorsHistogram.bucket_times":
 		if e.complexity.ErrorsHistogram.BucketTimes == nil {
@@ -4241,6 +4283,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorGroup(childComplexity, args["secure_id"].(string)), true
 
+	case "Query.errorGroupFrequencies":
+		if e.complexity.Query.ErrorGroupFrequencies == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errorGroupFrequencies_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorGroupFrequencies(childComplexity, args["project_id"].(int), args["error_group_secure_ids"].([]string), args["params"].(model.ErrorGroupFrequenciesParamsInput), args["metric"].(*string)), true
+
 	case "Query.error_groups_opensearch":
 		if e.complexity.Query.ErrorGroupsOpensearch == nil {
 			break
@@ -4251,7 +4305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int)), true
+		return e.complexity.Query.ErrorGroupsOpensearch(childComplexity, args["project_id"].(int), args["count"].(int), args["query"].(string), args["page"].(*int), args["influx"].(bool)), true
 
 	case "Query.error_instance":
 		if e.complexity.Query.ErrorInstance == nil {
@@ -6141,6 +6195,97 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SocialLink.Type(childComplexity), true
 
+	case "SourceMappingError.actualMinifiedFetchedPath":
+		if e.complexity.SourceMappingError.ActualMinifiedFetchedPath == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.ActualMinifiedFetchedPath(childComplexity), true
+
+	case "SourceMappingError.actualSourcemapFetchedPath":
+		if e.complexity.SourceMappingError.ActualSourcemapFetchedPath == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.ActualSourcemapFetchedPath(childComplexity), true
+
+	case "SourceMappingError.errorCode":
+		if e.complexity.SourceMappingError.ErrorCode == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.ErrorCode(childComplexity), true
+
+	case "SourceMappingError.mappedColumnNumber":
+		if e.complexity.SourceMappingError.MappedColumnNumber == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MappedColumnNumber(childComplexity), true
+
+	case "SourceMappingError.mappedLineNumber":
+		if e.complexity.SourceMappingError.MappedLineNumber == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MappedLineNumber(childComplexity), true
+
+	case "SourceMappingError.minifiedColumnNumber":
+		if e.complexity.SourceMappingError.MinifiedColumnNumber == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MinifiedColumnNumber(childComplexity), true
+
+	case "SourceMappingError.minifiedFetchStrategy":
+		if e.complexity.SourceMappingError.MinifiedFetchStrategy == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MinifiedFetchStrategy(childComplexity), true
+
+	case "SourceMappingError.minifiedFileSize":
+		if e.complexity.SourceMappingError.MinifiedFileSize == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MinifiedFileSize(childComplexity), true
+
+	case "SourceMappingError.minifiedLineNumber":
+		if e.complexity.SourceMappingError.MinifiedLineNumber == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.MinifiedLineNumber(childComplexity), true
+
+	case "SourceMappingError.sourceMapURL":
+		if e.complexity.SourceMappingError.SourceMapURL == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.SourceMapURL(childComplexity), true
+
+	case "SourceMappingError.sourcemapFetchStrategy":
+		if e.complexity.SourceMappingError.SourcemapFetchStrategy == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.SourcemapFetchStrategy(childComplexity), true
+
+	case "SourceMappingError.sourcemapFileSize":
+		if e.complexity.SourceMappingError.SourcemapFileSize == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.SourcemapFileSize(childComplexity), true
+
+	case "SourceMappingError.stackTraceFileURL":
+		if e.complexity.SourceMappingError.StackTraceFileURL == nil {
+			break
+		}
+
+		return e.complexity.SourceMappingError.StackTraceFileURL(childComplexity), true
+
 	case "Subscription.session_payload_appended":
 		if e.complexity.Subscription.SessionPayloadAppended == nil {
 			break
@@ -6538,7 +6683,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDateHistogramBucketSize,
 		ec.unmarshalInputDateHistogramOptions,
 		ec.unmarshalInputDateRangeInput,
+		ec.unmarshalInputDateRangeRequiredInput,
 		ec.unmarshalInputDiscordChannelInput,
+		ec.unmarshalInputErrorGroupFrequenciesParamsInput,
 		ec.unmarshalInputErrorSearchParamsInput,
 		ec.unmarshalInputHistogramParamsInput,
 		ec.unmarshalInputLengthRangeInput,
@@ -6837,6 +6984,19 @@ enum ErrorState {
 	IGNORED
 }
 
+enum SourceMappingErrorCode {
+	File_Name_Missing_From_Source_Path
+	Error_Parsing_Stack_Trace_File_Url
+	Missing_Source_Map_File_In_S3
+	Minified_File_Missing_In_S3_And_URL
+	Sourcemap_File_Missing_In_S3_And_URL
+	Minified_File_Larger
+	Source_Map_File_Larger
+	Invalid_SourceMapURL
+	Sourcemap_Library_Couldnt_Parse
+	Sourcemap_Library_Couldnt_Retrieve_Source
+}
+
 enum AdminRole {
 	ADMIN
 	MEMBER
@@ -7022,9 +7182,26 @@ type ErrorTrace {
 	functionName: String
 	columnNumber: Int
 	error: String
+	sourceMappingErrorMetadata: SourceMappingError
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+}
+
+type SourceMappingError {
+	errorCode: SourceMappingErrorCode
+	stackTraceFileURL: String
+	sourcemapFetchStrategy: String
+	sourceMapURL: String
+	minifiedFetchStrategy: String
+	actualMinifiedFetchedPath: String
+	minifiedLineNumber: Int
+	minifiedColumnNumber: Int
+	actualSourcemapFetchedPath: String
+	sourcemapFileSize: String
+	minifiedFileSize: String
+	mappedLineNumber: Int
+	mappedColumnNumber: Int
 }
 
 type S3File {
@@ -7099,6 +7276,11 @@ input HistogramParamsInput {
 	max_percentile: Float
 	units: String
 	filters: [MetricTagFilterInput!]
+}
+
+input ErrorGroupFrequenciesParamsInput {
+	date_range: DateRangeRequiredInput!
+	resolution_hours: Int!
 }
 
 enum MetricTagFilterOp {
@@ -7221,6 +7403,11 @@ type DateRange {
 input DateRangeInput {
 	start_date: Timestamp
 	end_date: Timestamp
+}
+
+input DateRangeRequiredInput {
+	start_date: Timestamp!
+	end_date: Timestamp!
 }
 
 type LengthRange {
@@ -7394,6 +7581,8 @@ type DailyErrorCount {
 }
 
 type ErrorDistributionItem {
+	error_group_id: String!
+	date: Timestamp!
 	name: String!
 	value: Int64!
 }
@@ -7664,6 +7853,7 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
+		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
@@ -7714,6 +7904,12 @@ type Query {
 		project_id: ID!
 		error_group_secure_id: String!
 		property: String!
+	): [ErrorDistributionItem]!
+	errorGroupFrequencies(
+		project_id: ID!
+		error_group_secure_ids: [String!]
+		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
@@ -10962,6 +11158,48 @@ func (ec *executionContext) field_Query_errorDistribution_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_errorGroupFrequencies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["error_group_secure_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_group_secure_ids"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_group_secure_ids"] = arg1
+	var arg2 model.ErrorGroupFrequenciesParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg2, err = ec.unmarshalNErrorGroupFrequenciesParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupFrequenciesParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["metric"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metric"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metric"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -11145,6 +11383,15 @@ func (ec *executionContext) field_Query_error_groups_opensearch_args(ctx context
 		}
 	}
 	args["page"] = arg3
+	var arg4 bool
+	if tmp, ok := rawArgs["influx"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("influx"))
+		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["influx"] = arg4
 	return args, nil
 }
 
@@ -18185,6 +18432,94 @@ func (ec *executionContext) fieldContext_ErrorComment_replies(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorDistributionItem_error_group_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorDistributionItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorDistributionItem_error_group_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorGroupID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorDistributionItem_error_group_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorDistributionItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorDistributionItem_date(ctx context.Context, field graphql.CollectedField, obj *model.ErrorDistributionItem) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorDistributionItem_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorDistributionItem_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorDistributionItem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorDistributionItem_name(ctx context.Context, field graphql.CollectedField, obj *model.ErrorDistributionItem) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorDistributionItem_name(ctx, field)
 	if err != nil {
@@ -18715,6 +19050,8 @@ func (ec *executionContext) fieldContext_ErrorGroup_structured_stack_trace(ctx c
 				return ec.fieldContext_ErrorTrace_columnNumber(ctx, field)
 			case "error":
 				return ec.fieldContext_ErrorTrace_error(ctx, field)
+			case "sourceMappingErrorMetadata":
+				return ec.fieldContext_ErrorTrace_sourceMappingErrorMetadata(ctx, field)
 			case "lineContent":
 				return ec.fieldContext_ErrorTrace_lineContent(ctx, field)
 			case "linesBefore":
@@ -20431,6 +20768,8 @@ func (ec *executionContext) fieldContext_ErrorObject_structured_stack_trace(ctx 
 				return ec.fieldContext_ErrorTrace_columnNumber(ctx, field)
 			case "error":
 				return ec.fieldContext_ErrorTrace_error(ctx, field)
+			case "sourceMappingErrorMetadata":
+				return ec.fieldContext_ErrorTrace_sourceMappingErrorMetadata(ctx, field)
 			case "lineContent":
 				return ec.fieldContext_ErrorTrace_lineContent(ctx, field)
 			case "linesBefore":
@@ -21635,6 +21974,75 @@ func (ec *executionContext) fieldContext_ErrorTrace_error(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorTrace_sourceMappingErrorMetadata(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorTrace_sourceMappingErrorMetadata(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SourceMappingErrorMetadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SourceMappingError)
+	fc.Result = res
+	return ec.marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorTrace_sourceMappingErrorMetadata(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "errorCode":
+				return ec.fieldContext_SourceMappingError_errorCode(ctx, field)
+			case "stackTraceFileURL":
+				return ec.fieldContext_SourceMappingError_stackTraceFileURL(ctx, field)
+			case "sourcemapFetchStrategy":
+				return ec.fieldContext_SourceMappingError_sourcemapFetchStrategy(ctx, field)
+			case "sourceMapURL":
+				return ec.fieldContext_SourceMappingError_sourceMapURL(ctx, field)
+			case "minifiedFetchStrategy":
+				return ec.fieldContext_SourceMappingError_minifiedFetchStrategy(ctx, field)
+			case "actualMinifiedFetchedPath":
+				return ec.fieldContext_SourceMappingError_actualMinifiedFetchedPath(ctx, field)
+			case "minifiedLineNumber":
+				return ec.fieldContext_SourceMappingError_minifiedLineNumber(ctx, field)
+			case "minifiedColumnNumber":
+				return ec.fieldContext_SourceMappingError_minifiedColumnNumber(ctx, field)
+			case "actualSourcemapFetchedPath":
+				return ec.fieldContext_SourceMappingError_actualSourcemapFetchedPath(ctx, field)
+			case "sourcemapFileSize":
+				return ec.fieldContext_SourceMappingError_sourcemapFileSize(ctx, field)
+			case "minifiedFileSize":
+				return ec.fieldContext_SourceMappingError_minifiedFileSize(ctx, field)
+			case "mappedLineNumber":
+				return ec.fieldContext_SourceMappingError_mappedLineNumber(ctx, field)
+			case "mappedColumnNumber":
+				return ec.fieldContext_SourceMappingError_mappedColumnNumber(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SourceMappingError", field.Name)
 		},
 	}
 	return fc, nil
@@ -30051,7 +30459,7 @@ func (ec *executionContext) _Query_error_groups_opensearch(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["page"].(*int))
+		return ec.resolvers.Query().ErrorGroupsOpensearch(rctx, fc.Args["project_id"].(int), fc.Args["count"].(int), fc.Args["query"].(string), fc.Args["page"].(*int), fc.Args["influx"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32065,6 +32473,10 @@ func (ec *executionContext) fieldContext_Query_errorDistribution(ctx context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "error_group_id":
+				return ec.fieldContext_ErrorDistributionItem_error_group_id(ctx, field)
+			case "date":
+				return ec.fieldContext_ErrorDistributionItem_date(ctx, field)
 			case "name":
 				return ec.fieldContext_ErrorDistributionItem_name(ctx, field)
 			case "value":
@@ -32081,6 +32493,71 @@ func (ec *executionContext) fieldContext_Query_errorDistribution(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_errorDistribution_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_errorGroupFrequencies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_errorGroupFrequencies(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorGroupFrequencies(rctx, fc.Args["project_id"].(int), fc.Args["error_group_secure_ids"].([]string), fc.Args["params"].(model.ErrorGroupFrequenciesParamsInput), fc.Args["metric"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ErrorDistributionItem)
+	fc.Result = res
+	return ec.marshalNErrorDistributionItem2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorDistributionItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_errorGroupFrequencies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "error_group_id":
+				return ec.fieldContext_ErrorDistributionItem_error_group_id(ctx, field)
+			case "date":
+				return ec.fieldContext_ErrorDistributionItem_date(ctx, field)
+			case "name":
+				return ec.fieldContext_ErrorDistributionItem_name(ctx, field)
+			case "value":
+				return ec.fieldContext_ErrorDistributionItem_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ErrorDistributionItem", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_errorGroupFrequencies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -42980,6 +43457,539 @@ func (ec *executionContext) fieldContext_SocialLink_link(ctx context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _SourceMappingError_errorCode(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_errorCode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SourceMappingErrorCode)
+	fc.Result = res
+	return ec.marshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_errorCode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SourceMappingErrorCode does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_stackTraceFileURL(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_stackTraceFileURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StackTraceFileURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_stackTraceFileURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_sourcemapFetchStrategy(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_sourcemapFetchStrategy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SourcemapFetchStrategy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFetchStrategy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_sourceMapURL(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_sourceMapURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SourceMapURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_sourceMapURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_minifiedFetchStrategy(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_minifiedFetchStrategy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinifiedFetchStrategy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_minifiedFetchStrategy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_actualMinifiedFetchedPath(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_actualMinifiedFetchedPath(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActualMinifiedFetchedPath, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_actualMinifiedFetchedPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_minifiedLineNumber(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_minifiedLineNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinifiedLineNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_minifiedLineNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_minifiedColumnNumber(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_minifiedColumnNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinifiedColumnNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_minifiedColumnNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_actualSourcemapFetchedPath(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_actualSourcemapFetchedPath(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActualSourcemapFetchedPath, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_actualSourcemapFetchedPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_sourcemapFileSize(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_sourcemapFileSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SourcemapFileSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_minifiedFileSize(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_minifiedFileSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinifiedFileSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_minifiedFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_mappedLineNumber(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_mappedLineNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MappedLineNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_mappedLineNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SourceMappingError_mappedColumnNumber(ctx context.Context, field graphql.CollectedField, obj *model.SourceMappingError) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SourceMappingError_mappedColumnNumber(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MappedColumnNumber, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SourceMappingError_mappedColumnNumber(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SourceMappingError",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Subscription_session_payload_appended(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	fc, err := ec.fieldContext_Subscription_session_payload_appended(ctx, field)
 	if err != nil {
@@ -47615,6 +48625,42 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDateRangeRequiredInput(ctx context.Context, obj interface{}) (model.DateRangeRequiredInput, error) {
+	var it model.DateRangeRequiredInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"start_date", "end_date"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "start_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
+			it.StartDate, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_date":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
+			it.EndDate, err = ec.unmarshalNTimestamp2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputDiscordChannelInput(ctx context.Context, obj interface{}) (model.DiscordChannelInput, error) {
 	var it model.DiscordChannelInput
 	asMap := map[string]interface{}{}
@@ -47642,6 +48688,42 @@ func (ec *executionContext) unmarshalInputDiscordChannelInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx context.Context, obj interface{}) (model.ErrorGroupFrequenciesParamsInput, error) {
+	var it model.ErrorGroupFrequenciesParamsInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"date_range", "resolution_hours"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
+			it.DateRange, err = ec.unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "resolution_hours":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_hours"))
+			it.ResolutionHours, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -49766,6 +50848,20 @@ func (ec *executionContext) _ErrorDistributionItem(ctx context.Context, sel ast.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ErrorDistributionItem")
+		case "error_group_id":
+
+			out.Values[i] = ec._ErrorDistributionItem_error_group_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "date":
+
+			out.Values[i] = ec._ErrorDistributionItem_date(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 
 			out.Values[i] = ec._ErrorDistributionItem_name(ctx, field, obj)
@@ -50485,6 +51581,10 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 		case "error":
 
 			out.Values[i] = ec._ErrorTrace_error(ctx, field, obj)
+
+		case "sourceMappingErrorMetadata":
+
+			out.Values[i] = ec._ErrorTrace_sourceMappingErrorMetadata(ctx, field, obj)
 
 		case "lineContent":
 
@@ -52666,6 +53766,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_errorDistribution(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "errorGroupFrequencies":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errorGroupFrequencies(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -55566,6 +56689,79 @@ func (ec *executionContext) _SocialLink(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var sourceMappingErrorImplementors = []string{"SourceMappingError"}
+
+func (ec *executionContext) _SourceMappingError(ctx context.Context, sel ast.SelectionSet, obj *model.SourceMappingError) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sourceMappingErrorImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SourceMappingError")
+		case "errorCode":
+
+			out.Values[i] = ec._SourceMappingError_errorCode(ctx, field, obj)
+
+		case "stackTraceFileURL":
+
+			out.Values[i] = ec._SourceMappingError_stackTraceFileURL(ctx, field, obj)
+
+		case "sourcemapFetchStrategy":
+
+			out.Values[i] = ec._SourceMappingError_sourcemapFetchStrategy(ctx, field, obj)
+
+		case "sourceMapURL":
+
+			out.Values[i] = ec._SourceMappingError_sourceMapURL(ctx, field, obj)
+
+		case "minifiedFetchStrategy":
+
+			out.Values[i] = ec._SourceMappingError_minifiedFetchStrategy(ctx, field, obj)
+
+		case "actualMinifiedFetchedPath":
+
+			out.Values[i] = ec._SourceMappingError_actualMinifiedFetchedPath(ctx, field, obj)
+
+		case "minifiedLineNumber":
+
+			out.Values[i] = ec._SourceMappingError_minifiedLineNumber(ctx, field, obj)
+
+		case "minifiedColumnNumber":
+
+			out.Values[i] = ec._SourceMappingError_minifiedColumnNumber(ctx, field, obj)
+
+		case "actualSourcemapFetchedPath":
+
+			out.Values[i] = ec._SourceMappingError_actualSourcemapFetchedPath(ctx, field, obj)
+
+		case "sourcemapFileSize":
+
+			out.Values[i] = ec._SourceMappingError_sourcemapFileSize(ctx, field, obj)
+
+		case "minifiedFileSize":
+
+			out.Values[i] = ec._SourceMappingError_minifiedFileSize(ctx, field, obj)
+
+		case "mappedLineNumber":
+
+			out.Values[i] = ec._SourceMappingError_mappedLineNumber(ctx, field, obj)
+
+		case "mappedColumnNumber":
+
+			out.Values[i] = ec._SourceMappingError_mappedColumnNumber(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var subscriptionImplementors = []string{"Subscription"}
 
 func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func(ctx context.Context) graphql.Marshaler {
@@ -57035,6 +58231,11 @@ func (ec *executionContext) unmarshalNDateRangeInput2ᚖgithubᚗcomᚋhighlight
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {
+	res, err := ec.unmarshalInputDateRangeRequiredInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.DiscordChannel) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -57271,6 +58472,11 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋhighlightᚑrun
 	}
 
 	return ret
+}
+
+func (ec *executionContext) unmarshalNErrorGroupFrequenciesParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorGroupFrequenciesParamsInput(ctx context.Context, v interface{}) (model.ErrorGroupFrequenciesParamsInput, error) {
+	res, err := ec.unmarshalInputErrorGroupFrequenciesParamsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorMetadata) graphql.Marshaler {
@@ -61019,6 +62225,29 @@ func (ec *executionContext) marshalOSocialLink2ᚖgithubᚗcomᚋhighlightᚑrun
 		return graphql.Null
 	}
 	return ec._SocialLink(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSourceMappingError2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingError(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingError) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SourceMappingError(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, v interface{}) (*model.SourceMappingErrorCode, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SourceMappingErrorCode)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSourceMappingErrorCode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSourceMappingErrorCode(ctx context.Context, sel ast.SelectionSet, v *model.SourceMappingErrorCode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

@@ -67,7 +67,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
-		<Box>
+		<Box id="error-instance-container">
 			<Box mt="28" mb="32" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Error Instance</Heading>
@@ -180,23 +180,23 @@ const Metadata: React.FC<{
 			<Box>
 				<Column.Container gap="16">
 					<Column span="4">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text
 									color="neutral500"
 									transform="capitalize"
 									align="left"
 								>
-									{tag.key.replace('_', ' ')}
+									{meta.key.replace('_', ' ')}
 								</Text>
 							</Box>
 						))}
 					</Column>
 					<Column span="8">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text align="left" lines="1">
-									{tag.label}
+									{meta.label}
 								</Text>
 							</Box>
 						))}

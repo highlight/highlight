@@ -99,7 +99,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						<Box display="flex" gap="4" alignItems="center">
 							<Tag
 								shape="basic"
-								variant={
+								kind={
 									errorGroup?.state === ErrorState.Resolved
 										? 'primary'
 										: errorGroup?.state ===
@@ -114,26 +114,26 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							</Tag>
 							<Tag
 								shape="basic"
-								variant="transparent"
+								kind="transparent"
 								iconLeft={<IconUsers size={12} />}
 							>
 								<Text>{userCount}</Text>
 							</Tag>
 							<Tag
 								shape="basic"
-								variant="transparent"
+								kind="transparent"
 								iconLeft={<IconViewGrid size={12} />}
 							>
 								<Text>{errorCount}</Text>
 							</Tag>
 						</Box>
 						<Box display="flex" gap="4" alignItems="center">
-							<Tag shape="basic" variant="grey">
+							<Tag shape="basic" kind="grey">
 								{updatedDate}
 							</Tag>
 							<Tag
 								shape="basic"
-								variant="grey"
+								kind="grey"
 								iconLeft={<IconSparkles size={12} />}
 							>
 								{createdDate}
