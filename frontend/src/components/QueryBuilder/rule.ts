@@ -1,14 +1,17 @@
 import {
+	CustomField,
 	CustomFieldType,
+	FieldOptions,
 	MultiselectOption,
 	OptionKind,
 	SelectOption,
 } from '@components/QueryBuilder/field'
+import { Operator, OperatorName } from '@components/QueryBuilder/operator'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
-import { Admin, Field } from '@graph/schemas'
+import { Admin } from '@graph/schemas'
 import { getAbsoluteEndTime, getAbsoluteStartTime } from '@util/time'
-import moment, { unitOfTime } from 'moment'
+import moment from 'moment'
 
 type OpenSearchQuery = {
 	query: any
@@ -17,15 +20,6 @@ type OpenSearchQuery = {
 
 const TIME_MAX_LENGTH = 60
 const RANGE_MAX_LENGTH = 200
-
-interface FieldOptions {
-	operators?: Operator[]
-	type?: string
-}
-
-export type CustomField = Pick<Field, 'type' | 'name'> & {
-	options?: FieldOptions
-}
 
 export class Rule {
 	field?: SelectOption
@@ -422,19 +416,4 @@ export function parseQuery(
 			moment.duration(endDate.diff(startDate)),
 		),
 	}
-}
-
-export interface Operator {
-	name: OperatorName
-	negated?: boolean
-}
-
-export enum OperatorName {
-	IS = 'IS',
-	CONTAINS = 'CONTAINS',
-	EXISTS = 'EXISTS',
-	BETWEEN = 'BETWEEN',
-	BETWEEN_TIME = 'BETWEEN_TIME',
-	BETWEEN_DATE = 'BETWEEN_DATE',
-	MATCHES = 'MATCHES',
 }

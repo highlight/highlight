@@ -4,12 +4,17 @@ import {
 	Box,
 	Button,
 	ButtonIcon,
+	IconChevronDown,
 	IconPlusSm,
 	IconSave,
 	IconSegment,
 	Text,
 } from '@highlight-run/ui'
-import { useMemo, useState } from 'react'
+import { omitBy } from 'lodash'
+import identity from 'lodash/identity'
+import isEqual from 'lodash/isEqual'
+import pickBy from 'lodash/pickBy'
+import { useEffect, useMemo, useState } from 'react'
 
 enum QueryBuilderState {
 	EMPTY = 'EMPTY',
@@ -18,20 +23,53 @@ enum QueryBuilderState {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
-export interface QueryBuilderProps<T> {
-	searchContext: BaseSearchContext<T>
+export interface QueryBuilderProps<SearchParams, SegmentData> {
+	searchContext: BaseSearchContext<SearchParams>
 	readonly?: boolean
 }
 
 type SearchContextTypes = SearchParamsInput | ErrorSearchParamsInput
 
-function QueryBuilder<T extends SearchContextTypes>({
+function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 	searchContext,
 	readonly,
-}: QueryBuilderProps<T>) {
+}: QueryBuilderProps<SearchParams, SegmentData>) {
 	const [builderState, setBuilderState] = useState<QueryBuilderState>(
 		QueryBuilderState.EMPTY,
 	)
+
+	const {
+		rules,
+		searchParams,
+		existingParams,
+		segmentName,
+		isAnd,
+		toggleIsAnd,
+	} = searchContext
+	const [areParamsDifferent, setAreParamsDifferent] = useState(false)
+	useEffect(() => {
+		// Compares original params and current search params to check if they are different
+		// Removes undefined, null fields, and empty arrays when comparing
+		const normalize = (params: SearchContextTypes) =>
+			omitBy(
+				pickBy(params, identity),
+				(val) => Array.isArray(val) && val.length === 0,
+			)
+		setAreParamsDifferent(
+			!isEqual(normalize(searchParams), normalize(existingParams)),
+		)
+	}, [searchParams, existingParams])
+
+	useEffect(() => {
+		if (!!segmentName) {
+			if (areParamsDifferent) {
+				setBuilderState(QueryBuilderState.SEGMENT_UPDATE)
+			} else {
+				setBuilderState(QueryBuilderState.SEGMENT)
+			}
+		}
+	}, [areParamsDifferent, segmentName])
+
 	const actionButton = useMemo(() => {
 		switch (builderState) {
 			case QueryBuilderState.EMPTY:
@@ -62,25 +100,52 @@ function QueryBuilder<T extends SearchContextTypes>({
 						Save
 					</Button>
 				)
-		}
-	}, [builderState])
-
-	const filterSection = useMemo(() => {
-		switch (builderState) {
-			case QueryBuilderState.EMPTY:
-				return null
-			default:
+			case QueryBuilderState.SEGMENT:
 				return (
-					<Box
-						p="4"
-						paddingBottom="8"
-						background="white"
-						borderBottom="neutral"
+					<Button
+						kind="secondary"
+						size="xSmall"
+						emphasis="medium"
+						iconLeft={<IconSegment size={12} />}
+						iconRight={<IconChevronDown size={12} />}
+						onClick={() => {}}
 					>
-						test
-					</Box>
+						{segmentName}
+					</Button>
+				)
+			case QueryBuilderState.SEGMENT_UPDATE:
+				return (
+					<Button
+						kind="primary"
+						size="xSmall"
+						emphasis="high"
+						iconLeft={<IconSegment size={12} />}
+						iconRight={<IconChevronDown size={12} />}
+						onClick={() => {}}
+					>
+						{segmentName}
+					</Button>
 				)
 		}
+	}, [builderState, segmentName])
+
+	const filterSection = useMemo(() => {
+		if (builderState === QueryBuilderState.EMPTY) {
+			return null
+		}
+
+		return (
+			<Box
+				p="4"
+				paddingBottom="8"
+				background="white"
+				borderBottom="neutral"
+			>
+				{rules.map((rule, idx) => (
+					<>{idx !== 0 && <Button>{isAnd ? 'and' : 'or'}</Button>}</>
+				))}
+			</Box>
+		)
 	}, [builderState])
 
 	return (

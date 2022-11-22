@@ -1,47 +1,74 @@
-import QueryRuleSelect from '@components/QueryBuilder/components/QueryRuleSelect/QueryRuleSelect'
+import QueryRuleSelect, {
+	LoadOptions,
+	OnChange,
+	pickQueryRuleSelectType,
+	QueryRuleSelectType,
+} from '@components/QueryBuilder/components/QueryRuleSelect/QueryRuleSelect'
+import { OptionKind } from '@components/QueryBuilder/field'
+import { OperatorName } from '@components/QueryBuilder/operator'
 import { Rule } from '@components/QueryBuilder/rule'
-import { Box } from '@highlight-run/ui'
+import { Box, Button, IconXCircle } from '@highlight-run/ui'
 
 interface Props {
 	rule: Rule
 	readonly?: boolean
+	onChangeKey: OnChange
+	getKeyOptions: LoadOptions
+	onChangeOperator: OnChange
+	getOperatorOptions: LoadOptions
+	onChangeValue: OnChange
+	getValueOptions: LoadOptions
+	onRemove: () => void
 }
 
-const QueryRule = ({ rule, readonly }: Props) => {
+const QueryRule = ({
+	rule,
+	readonly,
+	onChangeKey,
+	getKeyOptions,
+	onChangeOperator,
+	getOperatorOptions,
+	onChangeValue,
+	getValueOptions,
+	onRemove,
+}: Props) => {
 	return (
 		<Box>
 			<QueryRuleSelect
 				value={rule.field}
 				onChange={onChangeKey}
 				loadOptions={getKeyOptions}
-				type="select"
+				type={QueryRuleSelectType.SINGLE}
 				disabled={readonly}
 			/>
 			<QueryRuleSelect
-				value={getOperator(rule.op, rule.val)}
+				value={{
+					kind: OptionKind.SINGLE,
+					value: JSON.stringify(rule.op),
+					label: rule.label,
+				}}
 				onChange={onChangeOperator}
 				loadOptions={getOperatorOptions}
-				type="select"
+				type={QueryRuleSelectType.SINGLE}
 				disabled={readonly}
 			/>
-			{!!rule.op && hasArguments(rule.op) && (
+			{!!rule.op && rule.op.name !== OperatorName.EXISTS && (
 				<QueryRuleSelect
 					value={rule.val}
 					onChange={onChangeValue}
 					loadOptions={getValueOptions}
-					type={getPopoutType(rule.op)}
+					type={pickQueryRuleSelectType(rule.op)}
 					disabled={readonly}
 				/>
 			)}
 			{!readonly && (
 				<Button
-					trackingId="SessionsQueryRemoveRule"
-					className={classNames(styles.ruleItem, styles.removeRule)}
+					// className={c(styles.ruleItem, styles.removeRule)}
 					onClick={() => {
 						onRemove()
 					}}
 				>
-					<SvgXIcon />
+					<IconXCircle />
 				</Button>
 			)}
 		</Box>

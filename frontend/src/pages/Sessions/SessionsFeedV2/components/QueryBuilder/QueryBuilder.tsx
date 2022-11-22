@@ -248,6 +248,7 @@ const ScrolledTextHighlighter = ({
 		/>
 	)
 }
+
 const getDateLabel = (value: string): string => {
 	if (!value.includes('_')) {
 		// Value is a duration such as '7 days'

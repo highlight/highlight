@@ -1,5 +1,6 @@
 import Popover from '@components/Popover/Popover'
 import { DateInput } from '@components/QueryBuilder/components/DateInput/DateInput'
+import FieldMultiselectOption from '@components/QueryBuilder/components/FieldMultiselectOption/FieldMultiselectOption'
 import FieldSingleOption from '@components/QueryBuilder/components/FieldSingleOption/FieldSingleOption'
 import { LengthInput } from '@components/QueryBuilder/components/LengthInput/LengthInput'
 import {
@@ -8,6 +9,7 @@ import {
 	OptionKind,
 	SelectOption,
 } from '@components/QueryBuilder/field'
+import { Operator, OperatorName } from '@components/QueryBuilder/operator'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { Button } from '@highlight-run/ui'
 import {
@@ -25,7 +27,7 @@ import Creatable from 'react-select/creatable'
 const TIME_MAX_LENGTH = 60
 const RANGE_MAX_LENGTH = 200
 
-enum QueryRuleSelectType {
+export enum QueryRuleSelectType {
 	SINGLE = 'SINGLE',
 	MULTI = 'MULTI',
 	CREATABLE = 'CREATABLE',
@@ -34,8 +36,24 @@ enum QueryRuleSelectType {
 	RANGE = 'RANGE',
 }
 
-type LoadOptions = (input: string, callback: any) => Promise<any>
-type OnChange = (val?: SelectOption | MultiselectOption) => void
+export function pickQueryRuleSelectType(op?: Operator) {
+	switch (op?.name) {
+		case OperatorName.EXISTS:
+		case OperatorName.MATCHES:
+			return QueryRuleSelectType.CREATABLE
+		case OperatorName.BETWEEN_DATE:
+			return QueryRuleSelectType.DATE_RANGE
+		case OperatorName.BETWEEN_TIME:
+			return QueryRuleSelectType.TIME_RANGE
+		case OperatorName.BETWEEN:
+			return QueryRuleSelectType.RANGE
+		default:
+			return QueryRuleSelectType.MULTI
+	}
+}
+
+export type LoadOptions = (input: string, callback: any) => Promise<any>
+export type OnChange = (val?: SelectOption | MultiselectOption) => void
 
 interface Props {
 	disabled?: boolean
@@ -90,7 +108,7 @@ const QueryRuleSelect = ({
 										// className={styles.menuListContainer}
 										maxHeight={400}
 										{...props}
-									></components.MenuList>
+									/>
 								)
 							},
 							Option: FieldSingleOption,
@@ -147,10 +165,10 @@ const QueryRuleSelect = ({
 										// className={styles.menuListContainer}
 										maxHeight={400}
 										{...props}
-									></components.MenuList>
+									/>
 								)
 							},
-							Option: getMultiselectOption,
+							Option: FieldMultiselectOption,
 							LoadingIndicator: () => {
 								return <></>
 							},
@@ -204,10 +222,10 @@ const QueryRuleSelect = ({
 										// className={styles.menuListContainer}
 										maxHeight={400}
 										{...props}
-									></components.MenuList>
+									/>
 								)
 							},
-							Option: getMultiselectOption,
+							Option: FieldMultiselectOption,
 						}}
 						noOptionsMessage={() => null}
 						onChange={(item) => {
@@ -330,7 +348,7 @@ const QueryRuleSelect = ({
 					/>
 				)
 		}
-	}, [])
+	}, [loadOptions, onChange, props, styleProps, type, value])
 
 	return (
 		<Popover

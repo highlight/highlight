@@ -4,12 +4,11 @@ import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import {
 	CustomField,
 	CustomFieldType,
-	OperatorName,
 	OptionKind,
-	parseQuery,
-	Rule,
 	SelectOption,
-} from '@components/QueryBuilder/rule'
+} from '@components/QueryBuilder/field'
+import { OperatorName } from '@components/QueryBuilder/operator'
+import { parseQuery, Rule } from '@components/QueryBuilder/rule'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {

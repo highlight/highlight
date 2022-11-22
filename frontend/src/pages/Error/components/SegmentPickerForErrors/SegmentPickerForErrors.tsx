@@ -177,12 +177,11 @@ const SegmentPickerForErrors = () => {
 				trackingId="CreateErrorSegment"
 				onClick={() => {
 					if (showUpdateSegmentOption && selectedSegment) {
-						const { ...restOfSearchParams } = searchParams
 						editSegment({
 							variables: {
 								project_id,
 								id: selectedSegment.id,
-								params: restOfSearchParams,
+								params: searchParams,
 							},
 						})
 							.then(() => {

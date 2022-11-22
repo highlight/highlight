@@ -1,7 +1,7 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import {
 	CustomFieldType,
-	Field,
+	FieldData,
 	getFieldDisplayName,
 	getFieldType,
 	getFieldTypeDisplayName,
@@ -10,7 +10,7 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useMemo } from 'react'
 import { components, OptionProps } from 'react-select'
 
-type Props = OptionProps<Field, false>
+type Props = OptionProps<FieldData, false>
 
 const DEFAULT_TOOLTIP_MESSAGE =
 	'This property was automatically collected by Highlight'

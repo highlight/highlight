@@ -1,3 +1,14 @@
+import { Operator } from '@components/QueryBuilder/operator'
+import { Field } from '@graph/schemas'
+
+export interface FieldOptions {
+	operators?: Operator[]
+	type?: string
+}
+
+export type CustomField = Pick<Field, 'type' | 'name'> & {
+	options?: FieldOptions
+}
 export enum CustomFieldType {
 	CUSTOM = 'custom',
 	SESSION = 'session',
@@ -5,18 +16,18 @@ export enum CustomFieldType {
 	ERROR_FIELD = 'error-field',
 }
 
-export interface Field {
+export interface FieldData {
 	label: string
 	value: string
 }
 
-export interface SelectOption extends Field {
+export interface SelectOption extends FieldData {
 	kind: OptionKind.SINGLE
 }
 
 export interface MultiselectOption {
 	kind: OptionKind.MULTI
-	options: readonly Field[]
+	options: readonly FieldData[]
 }
 
 export interface SelectProps {
@@ -61,11 +72,11 @@ const FieldName: { [key: string]: string } = {
 	exit_page: 'Exit Page',
 } as const
 
-export function getFieldDisplayName(field: Field) {
+export function getFieldDisplayName(field: FieldData) {
 	return FieldName[field?.label] ?? field.label
 }
 
-export function getFieldType(field: Field) {
+export function getFieldType(field: FieldData) {
 	return field?.value.split('_')[0]
 }
 
