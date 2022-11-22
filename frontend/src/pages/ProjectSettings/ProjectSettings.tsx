@@ -16,7 +16,7 @@ import styles from './ProjectSettings.module.scss'
 const ProjectSettings = () => {
 	const match = useRouteMatch()
 
-	useEffect(() => analytics.page(), [])
+	useEffect(() => analytics.page(), [match])
 
 	return (
 		<>
