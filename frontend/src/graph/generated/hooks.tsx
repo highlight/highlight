@@ -7079,6 +7079,8 @@ export const GetErrorGroupDocument = gql`
 			}
 			error_frequency
 			is_public
+			last_occurrence
+			first_occurrence
 		}
 	}
 `

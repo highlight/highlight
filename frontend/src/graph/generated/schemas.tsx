@@ -326,8 +326,10 @@ export type ErrorGroup = {
 	error_frequency: Array<Scalars['Int64']>
 	event: Array<Maybe<Scalars['String']>>
 	fields?: Maybe<Array<Maybe<ErrorField>>>
+	first_occurrence: Scalars['Timestamp']
 	id: Scalars['ID']
 	is_public: Scalars['Boolean']
+	last_occurrence: Scalars['Timestamp']
 	mapped_stack_trace?: Maybe<Scalars['String']>
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']

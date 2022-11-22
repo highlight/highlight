@@ -2523,6 +2523,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'stack_trace'
 			| 'error_frequency'
 			| 'is_public'
+			| 'last_occurrence'
+			| 'first_occurrence'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<

@@ -999,6 +999,8 @@ query GetErrorGroup($secure_id: String!) {
 		}
 		error_frequency
 		is_public
+		last_occurrence
+		first_occurrence
 	}
 }
 

@@ -266,8 +266,10 @@ type ComplexityRoot struct {
 		ErrorFrequency       func(childComplexity int) int
 		Event                func(childComplexity int) int
 		Fields               func(childComplexity int) int
+		FirstOccurrence      func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		IsPublic             func(childComplexity int) int
+		LastOccurrence       func(childComplexity int) int
 		MappedStackTrace     func(childComplexity int) int
 		MetadataLog          func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
@@ -2203,6 +2205,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Fields(childComplexity), true
 
+	case "ErrorGroup.first_occurrence":
+		if e.complexity.ErrorGroup.FirstOccurrence == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.FirstOccurrence(childComplexity), true
+
 	case "ErrorGroup.id":
 		if e.complexity.ErrorGroup.ID == nil {
 			break
@@ -2216,6 +2225,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.IsPublic(childComplexity), true
+
+	case "ErrorGroup.last_occurrence":
+		if e.complexity.ErrorGroup.LastOccurrence == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.LastOccurrence(childComplexity), true
 
 	case "ErrorGroup.mapped_stack_trace":
 		if e.complexity.ErrorGroup.MappedStackTrace == nil {
@@ -7158,6 +7174,8 @@ type ErrorGroup {
 	environments: String
 	error_frequency: [Int64!]!
 	is_public: Boolean!
+	first_occurrence: Timestamp!
+	last_occurrence: Timestamp!
 }
 
 type ErrorMetadata {
@@ -19441,6 +19459,94 @@ func (ec *executionContext) fieldContext_ErrorGroup_is_public(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorGroup_first_occurrence(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstOccurrence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_first_occurrence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorGroup_last_occurrence(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastOccurrence, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_last_occurrence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorInstance_error_object(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorInstance) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorInstance_error_object(ctx, field)
 	if err != nil {
@@ -21238,6 +21344,10 @@ func (ec *executionContext) fieldContext_ErrorResults_error_groups(ctx context.C
 				return ec.fieldContext_ErrorGroup_error_frequency(ctx, field)
 			case "is_public":
 				return ec.fieldContext_ErrorGroup_is_public(ctx, field)
+			case "first_occurrence":
+				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+			case "last_occurrence":
+				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -25277,6 +25387,10 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupState(ctx cont
 				return ec.fieldContext_ErrorGroup_error_frequency(ctx, field)
 			case "is_public":
 				return ec.fieldContext_ErrorGroup_is_public(ctx, field)
+			case "first_occurrence":
+				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+			case "last_occurrence":
+				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -28410,6 +28524,10 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupIsPublic(ctx c
 				return ec.fieldContext_ErrorGroup_error_frequency(ctx, field)
 			case "is_public":
 				return ec.fieldContext_ErrorGroup_is_public(ctx, field)
+			case "first_occurrence":
+				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+			case "last_occurrence":
+				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -30633,6 +30751,10 @@ func (ec *executionContext) fieldContext_Query_error_group(ctx context.Context, 
 				return ec.fieldContext_ErrorGroup_error_frequency(ctx, field)
 			case "is_public":
 				return ec.fieldContext_ErrorGroup_is_public(ctx, field)
+			case "first_occurrence":
+				return ec.fieldContext_ErrorGroup_first_occurrence(ctx, field)
+			case "last_occurrence":
+				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -51077,6 +51199,20 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 		case "is_public":
 
 			out.Values[i] = ec._ErrorGroup_is_public(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "first_occurrence":
+
+			out.Values[i] = ec._ErrorGroup_first_occurrence(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "last_occurrence":
+
+			out.Values[i] = ec._ErrorGroup_last_occurrence(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

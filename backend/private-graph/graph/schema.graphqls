@@ -380,6 +380,8 @@ type ErrorGroup {
 	environments: String
 	error_frequency: [Int64!]!
 	is_public: Boolean!
+	first_occurrence: Timestamp!
+	last_occurrence: Timestamp!
 }
 
 type ErrorMetadata {

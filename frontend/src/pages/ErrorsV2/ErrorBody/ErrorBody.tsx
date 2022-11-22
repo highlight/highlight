@@ -10,7 +10,12 @@ import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
 interface Props {
-	errorGroup?: Maybe<Pick<ErrorGroup, 'event' | 'secure_id'>>
+	errorGroup?: Maybe<
+		Pick<
+			ErrorGroup,
+			'event' | 'secure_id' | 'last_occurrence' | 'first_occurrence'
+		>
+	>
 }
 
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
@@ -41,10 +46,14 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 		},
 		skip: !errorGroup?.secure_id,
 	})
-	const countBuckets =
-		frequencies?.errorGroupFrequencies
-			.filter((x) => x?.name === 'count')
-			.map((x) => x?.value || 0) || []
+	const countBuckets = frequencies?.errorGroupFrequencies
+		.filter((x) => x?.name === 'count')
+		.map((x) => x?.value || 0)
+	const countTotal = countBuckets?.reduce((a, b) => a + b, 0)
+	const countUsers = frequencies?.errorGroupFrequencies
+		.filter((x) => x?.name === 'identifierCount')
+		.map((x) => x?.value || 0)
+		?.reduce((a, b) => a + b, 0)
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -72,7 +81,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<Box display="flex" gap="4" alignItems="center">
 						<Text color="black" size="large" weight="bold">
-							25
+							{countUsers}
 						</Text>
 						<Tag>
 							<>+23.7% since Sep 15</>
@@ -103,7 +112,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<Box display="flex" gap="4" alignItems="center">
 						<Text color="black" size="large" weight="bold">
-							32
+							{countTotal}
 						</Text>
 						<Tag>
 							<>+23.7% since Sep 15</>
@@ -117,11 +126,23 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<Box display="flex" gap="4" alignItems="center">
 						<Text color="black" size="large" weight="bold">
-							25
+							{moment
+								.duration(
+									moment().diff(
+										moment(errorGroup?.last_occurrence),
+									),
+								)
+								.humanize()}
 						</Text>
 						<Text color="neutral500" size="large" weight="bold">
-							{' '}
-							/ Sep 13
+							{' / '}
+							{moment
+								.duration(
+									moment().diff(
+										moment(errorGroup?.first_occurrence),
+									),
+								)
+								.humanize()}
 						</Text>
 					</Box>
 				</Stat>
@@ -140,7 +161,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					noBorder
 				>
 					<Box display="flex" gap="4" alignItems="center">
-						<BarChart data={countBuckets} height={30} width={300} />
+						<BarChart
+							data={countBuckets || []}
+							height={30}
+							width={300}
+						/>
 					</Box>
 				</Stat>
 			</Box>
