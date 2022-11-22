@@ -2,7 +2,7 @@ import * as rudderanalytics from 'rudder-sdk-js'
 
 let rudderstackInitialized = false
 
-export const initialize = () => {
+const initialize = () => {
 	if (rudderstackInitialized) {
 		console.warn('Rudderstack already initialized.')
 		return
@@ -17,6 +17,11 @@ export const initialize = () => {
 	)
 }
 
-export const identify = rudderanalytics.identify
-export const track = rudderanalytics.track
-export const page = rudderanalytics.page
+const analytics = {
+	initialize,
+	identify: rudderanalytics.identify,
+	track: rudderanalytics.track,
+	page: rudderanalytics.page,
+}
+
+export default analytics

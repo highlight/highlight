@@ -10,6 +10,7 @@ import AboutYouPage from '@pages/AboutYou/AboutYouCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
+import analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -60,7 +61,6 @@ export const AuthAdminRouter = () => {
 				}
 			}
 			H.identify(email, identifyMetadata)
-			window.analytics.identify(email, identifyMetadata)
 			H.getSessionURL()
 				.then((sessionUrl) => {
 					window.Intercom('boot', {
@@ -223,6 +223,16 @@ export default function LoginForm() {
 			setFormState(LoginFormState.SignIn)
 		}
 	}, [admin, admin?.email_verified, formState, isLoggedIn])
+
+	useEffect(() => {
+		// This is loaded on every page, but we only want to track pageviews when we
+		// are on the login page.
+		if (isAuthLoading || isLoggedIn) {
+			return
+		}
+
+		analytics.page(`/login`, { page: LoginFormState[formState] })
+	}, [formState, isAuthLoading, isLoggedIn])
 
 	if (isAuthLoading) {
 		return null

@@ -20,6 +20,7 @@ import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -181,6 +182,8 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		}
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
+
+	useEffect(() => analytics.page(), [error_secure_id])
 
 	return (
 		<ErrorSearchContextProvider

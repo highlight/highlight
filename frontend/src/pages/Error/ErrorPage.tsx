@@ -24,6 +24,7 @@ import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
@@ -230,6 +231,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		}
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
+
+	useEffect(() => analytics.page(), [error_secure_id])
 
 	return (
 		<ErrorSearchContextProvider

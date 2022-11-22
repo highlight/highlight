@@ -31,7 +31,7 @@ import {
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
-import * as analytics from '@util/analytics'
+import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -42,12 +42,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import {
-	BrowserRouter as Router,
-	Route,
-	Switch,
-	useHistory,
-} from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
@@ -275,7 +270,6 @@ const AuthenticationRoleRouter = () => {
 
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
-	const history = useHistory()
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
@@ -307,12 +301,6 @@ const AuthenticationRoleRouter = () => {
 		})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
-
-	useEffect(() => {
-		analytics.page()
-
-		return history.listen(() => analytics.page())
-	}, [history])
 
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
