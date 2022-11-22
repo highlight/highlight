@@ -66,7 +66,7 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 export const FRAME_MS = 1000 / 120
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
-export const LOOKAHEAD_MS = 1000 * 60 * 3
+export const LOOKAHEAD_MS = 1000 * 60
 export const MAX_CHUNK_COUNT = 8
 
 export enum SessionViewability {
