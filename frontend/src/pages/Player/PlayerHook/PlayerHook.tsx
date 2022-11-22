@@ -862,18 +862,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 					.get(lastLoadedChunk)
 					?.map((e) => e.timestamp) || []),
 			) - state.sessionMetadata.startTime
-		if (lastLoadedEventTimestamp - state.time < LOOKAHEAD_MS) {
-			console.log('vadim', 'lookahead', {
-				lastLoadedChunk,
-				lastLoadedEventTimestamp,
-				ts:
-					chunkEventsRef.current
-						.get(lastLoadedChunk)
-						?.map((e) => e.timestamp) || [],
-				start: state.sessionMetadata.startTime,
-				time: state.time,
-			})
-		}
 		ensureChunksLoaded(
 			state.time,
 			state.time + LOOKAHEAD_MS,
