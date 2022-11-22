@@ -309,11 +309,9 @@ const AuthenticationRoleRouter = () => {
 	}, [adminData, authRole, projectId])
 
 	useEffect(() => {
-		analytics.page('pageView', history.location.pathname)
+		analytics.page()
 
-		return history.listen((location: any) => {
-			analytics.page('pageView', location.pathname)
-		})
+		return history.listen(() => analytics.page())
 	}, [history])
 
 	useEffect(() => {
