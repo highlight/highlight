@@ -66,7 +66,7 @@ const PROJECTS_WITH_CSS_ANIMATIONS: string[] = ['1', '1020', '1021']
 export const FRAME_MS = 1000 / 120
 
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
-export const LOOKAHEAD_MS = 1000 * 60 * 3
+export const LOOKAHEAD_MS = 1000 * 60
 export const MAX_CHUNK_COUNT = 8
 
 export enum SessionViewability {
@@ -375,7 +375,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.loadSession:
-			s.session_secure_id = action.data!.session!.secure_id
+			s.session_secure_id = action.data!.session?.secure_id ?? ''
 			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session

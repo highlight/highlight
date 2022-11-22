@@ -24,7 +24,6 @@ import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -210,11 +209,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				<title>Errors</title>
 			</Helmet>
 
-			<div
-				className={classNames(styles.container, {
-					[styles.withErrorState]: errorQueryingErrorGroup,
-				})}
-			>
+			<div className={styles.container}>
 				<SearchPanel />
 
 				<div className={styles.detailsContainer}>

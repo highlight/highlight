@@ -1,7 +1,9 @@
-import { recipe } from '@vanilla-extract/recipes'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { shadows } from '../Button/styles.css'
+
+export const defaultSize = 'small'
 
 export const variants = recipe({
 	base: [
@@ -74,3 +76,5 @@ export const variants = recipe({
 		variant: 'unchecked',
 	},
 })
+
+export type Variants = RecipeVariants<typeof variants>

@@ -1,11 +1,34 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
+import NotificationsV2 from '@components/Header/Notifications/NotificationsV2'
+import { linkStyle } from '@components/Header/styles.css'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
+import {
+	Box,
+	IconAtSymbol,
+	IconCog,
+	IconDesktopComputer,
+	IconDocumentText,
+	IconDotsHorizontal,
+	IconHome,
+	IconOfficeBuilding,
+	IconPlayCircle,
+	IconQuestionMarkCircle,
+	IconSpeakerphone,
+	IconSwitchHorizontal,
+	IconUserCircle,
+	IconViewGrid,
+	IconViewGridAdd,
+	IconXCircle,
+	LinkButton,
+	Menu,
+} from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
@@ -14,11 +37,15 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import analytics from '@util/analytics'
+import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
+import { client } from '@util/graph'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
+import { titleCaseString } from '@util/string'
 import classNames from 'classnames/bind'
+import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -26,16 +53,11 @@ import { useSessionStorage } from 'react-use'
 
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { CommandBar } from './CommandBar/CommandBar'
-import ApplicationPicker from './components/ApplicationPicker/ApplicationPicker'
-import FeedbackButton from './components/FeedbackButton/FeedbackButton'
-import HeaderActions from './components/HeaderActions'
 import styles from './Header.module.scss'
-import { UserDropdown } from './UserDropdown/UserDropdown'
 
 export const Header = () => {
-	const { project_id, workspace_id } = useParams<{
+	const { project_id } = useParams<{
 		project_id: string
-		workspace_id: string
 	}>()
 	const projectIdRemapped =
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
@@ -43,68 +65,368 @@ export const Header = () => {
 			: project_id
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { showBanner } = useGlobalContext()
-	const isWorkspaceLevel = workspace_id !== undefined
+	const workspaceId = currentWorkspace?.id
+	const currentPage = location.pathname.split('/').pop()
+	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+	const { admin } = useAuthContext()
+
+	const pages = [
+		{
+			key: 'home',
+			icon: IconHome,
+		},
+		{
+			key: 'errors',
+			icon: IconXCircle,
+		},
+		{
+			key: 'sessions',
+			icon: IconPlayCircle,
+		},
+		{
+			key: 'dashboards',
+			icon: IconViewGrid,
+		},
+	]
 
 	return (
 		<>
 			<CommandBar />
-			<div
-				className={classNames(styles.header, {
-					[styles.guest]:
-						!isLoggedIn &&
-						projectIdRemapped !==
-							DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-					[styles.bannerShown]: showBanner,
-					[styles.sidebarHidden]: isWorkspaceLevel,
-				})}
-			>
-				{!!project_id && getBanner(project_id)}
-				<div className={styles.headerContent}>
+			<Box background="neutral50" borderBottom="neutral">
+				{!!project_id && getBanner(project_id) /** ZANETODO: banner? */}
+				<Box
+					display="flex"
+					alignItems="center"
+					px="12"
+					py="8"
+					justifyContent="space-between"
+				>
 					{isLoggedIn ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
-						<div className={styles.applicationPickerContainer}>
-							<ApplicationPicker />
-
-							{!!project_id && (
-								<div className={styles.quicksearchWrapper}>
-									<QuickSearch />
-								</div>
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+							width="full"
+						>
+							<ProjectPicker />
+							{project_id && (
+								<Box display="flex" alignItems="center" gap="4">
+									{pages.map((p) => {
+										return (
+											<LinkButton
+												iconLeft={
+													<p.icon
+														size="14"
+														color={
+															currentPage ===
+															p.key
+																? undefined
+																: vars.color
+																		.neutral700
+														}
+													/>
+												}
+												emphasis={
+													currentPage === p.key
+														? 'high'
+														: 'low'
+												}
+												kind={
+													currentPage === p.key
+														? 'primary'
+														: 'secondary'
+												}
+												href={`/${project_id}/${p.key}`}
+												key={p.key}
+											>
+												{titleCaseString(p.key)}
+											</LinkButton>
+										)
+									})}
+									<Menu>
+										<Menu.Button
+											emphasis="low"
+											kind="secondary"
+										>
+											<IconDotsHorizontal
+												size="14"
+												color={vars.color.neutral500}
+											/>
+										</Menu.Button>
+										<Menu.List>
+											<Link
+												to={`/${project_id}/alerts`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSpeakerphone
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Alerts
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/integrations`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconViewGridAdd
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Integrations
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${project_id}/setup`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconDesktopComputer
+															size="14"
+															color={
+																vars.color
+																	.neutral300
+															}
+														/>
+														Setup
+													</Box>
+												</Menu.Item>
+											</Link>
+										</Menu.List>
+									</Menu>
+								</Box>
 							)}
-						</div>
+						</Box>
 					) : (
-						<div className={styles.logoWrapper}>
+						<Box className={styles.logoWrapper}>
 							<Link
 								className={styles.homeLink}
 								to={`/${projectIdRemapped}/home`}
 							>
 								<HighlightLogo />
 							</Link>
-						</div>
+						</Box>
 					)}
-
-					<div className={styles.rightHeader}>
-						<HeaderActions />
-						<div className={styles.hideableButtonContainer}>
-							{!isLoggedIn ? (
-								<ButtonLink
-									className={styles.upsellButton}
-									trackingId="DemoProjectSignUp"
-									to="/?sign_up=1"
-								>
-									Try Highlight for Free!
-								</ButtonLink>
-							) : (
-								<FeedbackButton />
+					{isLoggedIn && (
+						<Box
+							display="flex"
+							justifyContent="flex-end"
+							alignItems="center"
+							gap="12"
+							style={{ zIndex: 20000 }}
+							width="full"
+						>
+							{!!project_id && (
+								<Box className={styles.quicksearchWrapper}>
+									<QuickSearch />
+								</Box>
 							)}
-						</div>
-						{isLoggedIn && (
-							<UserDropdown workspaceId={currentWorkspace?.id} />
-						)}
-					</div>
-				</div>
-			</div>
+							<Box display="flex" alignItems="center" gap="4">
+								{isLoggedIn && <NotificationsV2 />}
+								<Menu>
+									<Menu.Button
+										emphasis="low"
+										kind="secondary"
+									>
+										<IconCog
+											size="14"
+											color={vars.color.neutral500}
+										/>
+									</Menu.Button>
+									<Menu.List>
+										<Link
+											to={`/w/${workspaceId}/team`}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconOfficeBuilding
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Workspace settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Link
+											to={`/w/${workspaceId}/account`}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconUserCircle
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Account settings
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Menu.Divider />
+										<Link
+											to="/switch"
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconSwitchHorizontal
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Switch workspace
+												</Box>
+											</Menu.Item>
+										</Link>
+										<Menu.Item
+											onClick={async () => {
+												const sessionId =
+													await H.getSessionURL()
+
+												window.Intercom('boot', {
+													app_id: 'gm6369ty',
+													alignment: 'right',
+													hide_default_launcher: true,
+													email: admin?.email,
+													sessionId,
+												})
+												window.Intercom(
+													'showNewMessage',
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconQuestionMarkCircle
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Feedback
+											</Box>
+										</Menu.Item>
+										<a
+											href={
+												'https://www.highlight.io/docs'
+											}
+											className={linkStyle}
+										>
+											<Menu.Item>
+												<Box
+													display="flex"
+													alignItems="center"
+													gap="4"
+												>
+													<IconDocumentText
+														size="14"
+														color={
+															vars.color
+																.neutral300
+														}
+													/>
+													Documentation
+												</Box>
+											</Menu.Item>
+										</a>
+										<Menu.Item
+											onClick={() => {
+												toggleShowKeyboardShortcutsGuide(
+													true,
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconAtSymbol
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Shortcuts
+											</Box>
+										</Menu.Item>
+										<Menu.Divider />
+										<Menu.Item
+											onClick={async () => {
+												try {
+													auth.signOut()
+												} catch (e) {
+													console.log(e)
+												}
+												await client.clearStore()
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												Log out
+											</Box>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
+							</Box>
+						</Box>
+					)}
+				</Box>
+			</Box>
 		</>
 	)
 }
