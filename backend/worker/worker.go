@@ -104,44 +104,61 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 	return nil
 }
 
-func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
+func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.PayloadManager, eventObject *model.EventsObject, s *model.Session) error {
 	events, err := parse.EventsFromString(eventObject.Events)
 	if err != nil {
 		return errors.Wrap(err, "error parsing events from string")
 	}
-	var timestamp int64
-	if len(events.Events) > 0 {
-		timestamp = int64(events.Events[0].TimestampRaw)
-	}
-	if timestamp != 0 {
-		sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
-		if manager.EventsChunked != nil {
-			manager.EventsChunked.Close()
+
+	chunkIdx := 0
+	var eventChunks [][]*parse.ReplayEvent
+	for _, event := range events.Events {
+		if event.Type == parse.FullSnapshot {
+			chunkIdx++
 		}
-		curChunkedFile := manager.GetFile(payload.EventsChunked)
-		if curChunkedFile != nil {
-			curOffset := manager.ChunkIndex
-			_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
-			if err != nil {
-				return errors.Wrap(err, "error pushing event chunk file to s3")
+		if len(eventChunks) <= chunkIdx {
+			eventChunks = append(eventChunks, []*parse.ReplayEvent{})
+		}
+		eventChunks[chunkIdx] = append(eventChunks[chunkIdx], event)
+	}
+	for idx, events := range eventChunks {
+		if len(events) == 0 {
+			continue
+		}
+		if idx > 0 {
+			sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
+			if manager.EventsChunked != nil {
+				manager.EventsChunked.Close()
+			}
+			curChunkedFile := manager.GetFile(payload.EventsChunked)
+			if curChunkedFile != nil {
+				curOffset := manager.ChunkIndex
+				_, err = w.S3Client.PushCompressedFileToS3(ctx, s.ID, s.ProjectID, curChunkedFile, storage.S3SessionsPayloadBucketName, storage.GetChunkedPayloadType(curOffset))
+				if err != nil {
+					return errors.Wrap(err, "error pushing event chunk file to s3")
+				}
+			}
+			if err := manager.NewChunkedFile(sessionIdString); err != nil {
+				return errors.Wrap(err, "error creating new chunked events file")
+			}
+			eventChunk := &model.EventChunk{
+				SessionID:  s.ID,
+				ChunkIndex: manager.ChunkIndex,
+				Timestamp:  int64(events[0].TimestampRaw),
+			}
+			if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
+				return errors.Wrap(err, "error saving event chunk metadata")
 			}
 		}
-		if err := manager.NewChunkedFile(sessionIdString); err != nil {
-			return errors.Wrap(err, "error creating new chunked events file")
+		eventsBytes, err := json.Marshal(&parse.ReplayEvents{Events: events})
+		if err != nil {
+			return errors.Wrap(err, "error marshalling chunked events")
 		}
-		eventChunk := &model.EventChunk{
-			SessionID:  s.ID,
-			ChunkIndex: manager.ChunkIndex,
-			Timestamp:  int64(timestamp),
-		}
-		if err := w.Resolver.DB.Create(eventChunk).Error; err != nil {
-			return errors.Wrap(err, "error saving event chunk metadata")
-		}
-	}
-	if manager.GetFile(payload.EventsChunked) != nil {
-		if err := manager.EventsChunked.WriteObject(eventObject, &payload.EventsUnmarshalled{}); err != nil {
-			if err != nil {
-				return errors.Wrap(err, "error writing chunked event")
+		if manager.GetFile(payload.EventsChunked) != nil {
+			if err := manager.EventsChunked.WriteObject(&model.EventsObject{Events: string(eventsBytes)}, &payload.EventsUnmarshalled{}); err != nil {
+				if err != nil {
+					return errors.Wrap(err, "error writing chunked event")
+				}
 			}
 		}
 	}
@@ -182,7 +199,7 @@ func (w *Worker) fetchEventsSql(ctx context.Context, manager *payload.PayloadMan
 			}
 			numberOfRows += 1
 			if writeChunks {
-				if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+				if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
 					return errors.Wrap(err, "error writing event chunk")
 				}
 			}
@@ -223,7 +240,7 @@ func (w *Worker) fetchEventsRedis(ctx context.Context, manager *payload.PayloadM
 		}
 		numberOfRows += 1
 		if writeChunks {
-			if err := w.writeEventChunk(ctx, manager, &eventObject, s); err != nil {
+			if err := w.writeToEventChunk(ctx, manager, &eventObject, s); err != nil {
 				return errors.Wrap(err, "error writing event chunk")
 			}
 		}
