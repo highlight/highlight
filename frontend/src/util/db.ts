@@ -12,16 +12,25 @@ const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
 
-if (
-	localStorage &&
-	localStorage.getItem('highlight-indexeddb-dev-enabled') === null
-) {
-	localStorage.setItem('highlight-indexeddb-dev-enabled', 'false')
+const getLocalStorage = function (): Storage | undefined {
+	try {
+		return localStorage ?? undefined
+	} catch (e) {
+		return undefined
+	}
 }
-const devEnabled = localStorage
-	? localStorage.getItem('highlight-indexeddb-dev-enabled') === 'true'
-	: false
-export const indexeddbEnabled = !import.meta.env.DEV || devEnabled
+
+const isEnabledInDev = function () {
+	const storage = getLocalStorage()
+	if (!storage) {
+		return false
+	}
+	if (storage.getItem('highlight-indexeddb-dev-enabled') === null) {
+		storage.setItem('highlight-indexeddb-dev-enabled', 'false')
+	}
+	return storage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+}
+export const indexeddbEnabled = !import.meta.env.DEV || isEnabledInDev()
 
 export class DB extends Dexie {
 	apollo!: Table<{
