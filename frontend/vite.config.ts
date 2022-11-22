@@ -88,10 +88,12 @@ export default defineConfig(({ mode }) => {
 			format: 'es',
 		},
 		build: {
+			minify: 'esbuild',
 			outDir: 'build',
 			// Vite sourcemaps are totally broken
 			// https://github.com/highlight-run/highlight/pull/3171
-			sourcemap: mode !== 'development',
+			// sourcemaps significantly slow build and cause build to OOM
+			sourcemap: false,
 		},
 		test: {
 			globals: true,
