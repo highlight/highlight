@@ -1,17 +1,11 @@
 @import 'src/static/shared.scss';
 
 .container {
-	--header-height: 80px;
+	--header-height: 45px;
 	--left-panel-width: 475px;
-	--top-padding: 80px;
 
 	display: flex;
-	padding-top: var(--header-height);
 	width: 100%;
-
-	&.withErrorState {
-		padding-top: var(--header-height);
-	}
 }
 
 .detailsContainer {

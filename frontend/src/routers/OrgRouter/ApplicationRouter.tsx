@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
@@ -30,7 +29,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 	return (
 		<>
-			<KeyboardShortcutsEducation />
 			<Switch>
 				{/* These two routes do not require login */}
 				<Route path="/:project_id/sessions/:session_secure_id?" exact>

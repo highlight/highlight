@@ -23,7 +23,6 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import classNames from 'classnames'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
@@ -204,11 +203,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				<title>Errors</title>
 			</Helmet>
 
-			<div
-				className={classNames(styles.container, {
-					[styles.withErrorState]: errorQueryingErrorGroup,
-				})}
-			>
+			<div className={styles.container}>
 				<SearchPanel />
 
 				<div className={styles.detailsContainer}>
