@@ -1,4 +1,4 @@
-import moment from 'moment'
+import moment, { unitOfTime } from 'moment'
 
 export function MillisToMinutesAndSeconds(millis: number) {
 	const minutes = Math.floor(millis / 60000)
@@ -78,4 +78,52 @@ export const serializeAbsoluteTimeRange = (
 	const startIso = moment(start).toISOString()
 	const endIso = moment(end).toISOString()
 	return `${startIso}_${endIso}`
+}
+
+export const isAbsoluteTimeRange = (value?: string): boolean => {
+	return !!value && value.includes('_')
+}
+
+export const getAbsoluteStartTime = (value?: string): string | null => {
+	if (!value) return null
+	if (!isAbsoluteTimeRange(value)) {
+		// value is a relative duration such as '7 days', subtract it from current time
+		const amount = parseInt(value.split(' ')[0])
+		const unit = value.split(' ')[1].toLowerCase()
+		return moment()
+			.subtract(amount, unit as unitOfTime.DurationConstructor)
+			.toISOString()
+	}
+	return value!.split('_')[0]
+}
+export const getAbsoluteEndTime = (value?: string): string | null => {
+	if (!value) return null
+	if (!isAbsoluteTimeRange(value)) {
+		// value is a relative duration such as '7 days', use current time as end of range
+		return moment().toISOString()
+	}
+	return value!.split('_')[1]
+}
+
+export const displayDate = (value: string): string => {
+	if (!value.includes('_')) {
+		// Value is a duration such as '7 days'
+		return 'Last ' + value
+	}
+	const split = value.split('_')
+	const start = split[0]
+	const end = split[1]
+	const startStr = moment(start).format('MMM D h:mm a')
+	const endStr = moment(end).format('MMM D h:mm a')
+	return `${startStr} to ${endStr}`
+}
+
+export const displayTime = (value: string): string => {
+	const split = value.split('_')
+	const start = Number(split[0])
+	const end = Number(split[1])
+	const ints = Number.isInteger(start) && Number.isInteger(end)
+	return ints
+		? `${start} and ${end} minutes`
+		: `${start * 60} and ${end * 60} seconds`
 }

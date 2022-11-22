@@ -18,16 +18,17 @@ enum QueryBuilderState {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
-interface Props<T> {
+export interface QueryBuilderProps<T> {
 	searchContext: BaseSearchContext<T>
 	readonly?: boolean
 }
 
 type SearchContextTypes = SearchParamsInput | ErrorSearchParamsInput
+
 function QueryBuilder<T extends SearchContextTypes>({
 	searchContext,
 	readonly,
-}: Props<T>) {
+}: QueryBuilderProps<T>) {
 	const [builderState, setBuilderState] = useState<QueryBuilderState>(
 		QueryBuilderState.EMPTY,
 	)
