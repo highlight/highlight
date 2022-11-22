@@ -110,11 +110,8 @@ func (w *Worker) writeEventChunk(ctx context.Context, manager *payload.PayloadMa
 		return errors.Wrap(err, "error parsing events from string")
 	}
 	var timestamp int64
-	for _, event := range events.Events {
-		if event.Type == parse.FullSnapshot {
-			timestamp = int64(event.TimestampRaw)
-			break
-		}
+	if len(events.Events) > 0 {
+		timestamp = int64(events.Events[0].TimestampRaw)
 	}
 	if timestamp != 0 {
 		sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
