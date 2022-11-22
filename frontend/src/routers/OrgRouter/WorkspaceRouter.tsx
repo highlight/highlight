@@ -1,6 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -84,6 +85,7 @@ export const WorkspaceRouter = () => {
 				}}
 			>
 				<Header />
+				<KeyboardShortcutsEducation />
 				<div className={commonStyles.bodyWrapper}>
 					{isLoggedIn && joinableWorkspace ? (
 						<ErrorState

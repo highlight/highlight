@@ -1,12 +1,9 @@
 import 'firebase/auth'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
+import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -56,11 +53,6 @@ export const ProjectRouter = () => {
 		project_id: string
 	}>()
 	const { setLoadingState } = useAppLoadingContext()
-
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
 
 	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id },
@@ -349,6 +341,7 @@ export const ProjectRouter = () => {
 						</Route>
 						<Route>
 							<Header />
+							<KeyboardShortcutsEducation />
 							<div
 								className={classNames(
 									commonStyles.bodyWrapper,

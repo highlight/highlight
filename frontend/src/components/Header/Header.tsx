@@ -67,6 +67,7 @@ export const Header = () => {
 	const workspaceId = currentWorkspace?.id
 	const currentPage = location.pathname.split('/').pop()
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
+	const { admin } = useAuthContext()
 
 	const pages = [
 		{
@@ -261,7 +262,7 @@ export const Header = () => {
 									</Menu.Button>
 									<Menu.List>
 										<Link
-											to={`/w/${workspaceId}/settings`}
+											to={`/w/${workspaceId}/team`}
 											className={linkStyle}
 										>
 											<Menu.Item>
@@ -324,26 +325,36 @@ export const Header = () => {
 												</Box>
 											</Menu.Item>
 										</Link>
-										<Menu.Item>
-											<a
-												href="https://feedback.highlight.run"
-												className={linkStyle}
+										<Menu.Item
+											onClick={async () => {
+												const sessionId =
+													await H.getSessionURL()
+
+												window.Intercom('boot', {
+													app_id: 'gm6369ty',
+													alignment: 'right',
+													hide_default_launcher: true,
+													email: admin?.email,
+													sessionId,
+												})
+												window.Intercom(
+													'showNewMessage',
+												)
+											}}
+										>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
 											>
-												<Box
-													display="flex"
-													alignItems="center"
-													gap="4"
-												>
-													<IconQuestionMarkCircle
-														size="14"
-														color={
-															vars.color
-																.neutral300
-														}
-													/>
-													Feedback
-												</Box>
-											</a>
+												<IconQuestionMarkCircle
+													size="14"
+													color={
+														vars.color.neutral300
+													}
+												/>
+												Feedback
+											</Box>
 										</Menu.Item>
 										<a
 											href={
