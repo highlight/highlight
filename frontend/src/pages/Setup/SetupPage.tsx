@@ -19,7 +19,6 @@ import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import { Spin } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { FunctionComponent, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
@@ -379,7 +378,7 @@ const ClientSetup = ({
 						<CodeBlock
 							language="javascript"
 							onCopy={() => {
-								H.track(
+								analytics.track(
 									'Copied Code Snippet (Highlight Event)',
 									{ copied: 'code snippet' },
 								)
@@ -410,7 +409,7 @@ const ClientSetup = ({
 								<CodeBlock
 									language="javascript"
 									onCopy={() => {
-										H.track(
+										analytics.track(
 											'Copied Code Snippet (Highlight Event)',
 											{ copied: 'code snippet' },
 										)
@@ -916,7 +915,7 @@ const HtmlInstructions = ({
 				<CodeBlock
 					language="html"
 					onCopy={() => {
-						H.track('Copied Script (Highlight Event)', {
+						analytics.track('Copied Script (Highlight Event)', {
 							copied: 'script',
 						})
 					}}
@@ -1063,7 +1062,7 @@ const ExpressBackendInstructions = () => {
 				<p>
 					<CodeBlock
 						language="javascript"
-						text={`const highlightOptions = {}; 
+						text={`const highlightOptions = {};
 const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 `}
 					/>
@@ -1075,7 +1074,7 @@ const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 
 const app = express();
 
-const highlightOptions = {}; 
+const highlightOptions = {};
 const highlightHandler = Highlight.Handlers.errorHandler(highlightOptions);
 
 // This should be before any other error middleware and after all controllers

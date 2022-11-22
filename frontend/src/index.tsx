@@ -352,7 +352,7 @@ const AuthenticationRoleRouter = () => {
 			} else if (adminData) {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-			H.track('Authenticated')
+			analytics.track('Authenticated')
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}

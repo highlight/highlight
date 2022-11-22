@@ -13,12 +13,12 @@ import QuickSearch from '@pages/Sessions/SessionsFeedV2/components/QuickSearch/Q
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames/bind'
-import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -139,7 +139,7 @@ const BillingBanner = () => {
 			!hasReportedTrialExtension &&
 			data?.workspace_for_project?.trial_extension_enabled
 		) {
-			H.track('TrialExtensionEnabled', {
+			analytics.track('TrialExtensionEnabled', {
 				project_id,
 				workspace_id: data?.workspace_for_project.id,
 			})
@@ -267,7 +267,7 @@ const BillingBanner = () => {
 			{hasTrial && (
 				<button
 					onClick={() => {
-						H.track('TemporarilyHideFreePlanBanner', {
+						analytics.track('TemporarilyHideFreePlanBanner', {
 							hasTrial,
 						})
 						setTemporarilyHideBanner(true)

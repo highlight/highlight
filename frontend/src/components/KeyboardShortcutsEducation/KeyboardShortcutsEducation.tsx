@@ -5,9 +5,9 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import SvgSearchIcon from '@icons/SearchIcon'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
 import classNames from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
-import { H } from 'highlight.run'
 import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation } from 'react-router'
@@ -35,7 +35,7 @@ const KeyboardShortcutsEducation = () => {
 			}
 
 			if (showKeyboardShortcutsGuide) {
-				H.track('ViewedKeyboardShortcutsGuide')
+				analytics.track('ViewedKeyboardShortcutsGuide')
 			}
 			toggleShowKeyboardShortcutsGuide()
 		},

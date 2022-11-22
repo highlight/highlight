@@ -438,7 +438,6 @@ export const PlayerReducer = (
 						.catch(console.error)
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
-				H.track('Viewed session', { is_guest: !s.isLoggedIn })
 			} else {
 				s.sessionViewability = SessionViewability.OVER_BILLING_QUOTA
 			}

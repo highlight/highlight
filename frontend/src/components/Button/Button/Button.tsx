@@ -1,6 +1,6 @@
+import analytics from '@util/analytics'
 import { Button as AntDesignButton, ButtonProps } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import styles from './Button.module.scss'
@@ -32,7 +32,7 @@ const Button = ({
 				if (props.onClick) {
 					props.onClick(e)
 				}
-				H.track(`Button-${trackingId}`, trackProperties)
+				analytics.track(`Button-${trackingId}`, trackProperties)
 			}}
 			className={classNames(props.className, styles.buttonBase, {
 				[styles.iconButton]: iconButton,

@@ -25,7 +25,6 @@ import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -51,9 +50,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	} = useGetErrorGroupQuery({
 		variables: { secure_id: error_secure_id },
 		skip: !error_secure_id,
-		onCompleted: () => {
-			H.track('Viewed error', { is_guest: !isLoggedIn })
-		},
 	})
 
 	const history = useHistory()
@@ -183,7 +179,14 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
 
-	useEffect(() => analytics.page(), [error_secure_id])
+	useEffect(() => {
+		if (!error_secure_id) {
+			return
+		}
+
+		analytics.page({ is_guest: !isLoggedIn })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error_secure_id])
 
 	return (
 		<ErrorSearchContextProvider
