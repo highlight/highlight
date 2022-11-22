@@ -16,18 +16,20 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import React, { useState } from 'react'
+import { useParams } from '@util/react-router/useParams'
+import React from 'react'
 import { FiExternalLink } from 'react-icons/fi'
-import { useHistory } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const [currentErrorObjectId, setCurrentErrorObjectId] = useState<
-		string | undefined
-	>()
+	const { error_object_id, error_secure_id } = useParams<{
+		error_secure_id: string
+		error_object_id: string
+	}>()
 	const { projectId } = useProjectId()
 	const history = useHistory()
 
@@ -39,7 +41,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
-			error_object_id: currentErrorObjectId,
+			error_object_id,
 		},
 		onCompleted: (data) => {
 			const previousErrorObjectId = data?.error_instance?.previous_id
@@ -81,35 +83,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						<Button
-							disabled={Number(errorInstance.previous_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							onClick={() => {
-								if (errorInstance?.previous_id) {
-									setCurrentErrorObjectId(
-										errorInstance.previous_id,
-									)
-								}
-							}}
+						{/* TODO: Handle button styles/disabled */}
+						<Link
+							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.previous_id}`}
 						>
 							Older
-						</Button>
+						</Link>
 						<Box borderRight="neutral" style={{ height: 18 }} />
-						<Button
-							disabled={Number(errorInstance.next_id) === 0}
-							kind="secondary"
-							emphasis="low"
-							onClick={() => {
-								if (errorInstance?.next_id) {
-									setCurrentErrorObjectId(
-										errorInstance.next_id,
-									)
-								}
-							}}
+						<Link
+							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.next_id}`}
 						>
 							Newer
-						</Button>
+						</Link>
 						<Button
 							kind="secondary"
 							emphasis="high"
