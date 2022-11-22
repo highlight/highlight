@@ -12,11 +12,15 @@ const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
 
-if (localStorage.getItem('highlight-indexeddb-dev-enabled') === null) {
+if (
+	localStorage &&
+	localStorage.getItem('highlight-indexeddb-dev-enabled') === null
+) {
 	localStorage.setItem('highlight-indexeddb-dev-enabled', 'false')
 }
-const devEnabled =
-	localStorage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+const devEnabled = localStorage
+	? localStorage.getItem('highlight-indexeddb-dev-enabled') === 'true'
+	: false
 export const indexeddbEnabled = !import.meta.env.DEV || devEnabled
 
 export class DB extends Dexie {
