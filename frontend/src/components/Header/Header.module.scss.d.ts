@@ -16,7 +16,6 @@ export const productHunt: string
 export const quicksearchWrapper: string
 export const rightHeader: string
 export const searchBar: string
-export const sidebarHidden: string
 export const trialCloseStyle: string
 export const trialLink: string
 export const trialTimeText: string

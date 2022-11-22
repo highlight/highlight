@@ -1,8 +1,7 @@
 @import 'src/static/shared.scss';
 
 .container {
-	--header-height: 80px;
-	--top-padding: 80px;
+	--header-height: 45px;
 
 	display: flex;
 	margin-top: var(--header-height);

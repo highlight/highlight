@@ -1,5 +1,4 @@
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
-import classNames from 'classnames'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 
@@ -13,18 +12,12 @@ const UserSettings: React.FC = () => {
 				<title>User Settings</title>
 			</Helmet>
 
-			<div
-				className={classNames(
-					commonStyles.bodyWrapper,
-					commonStyles.sidebarHidden,
-				)}
-			>
+			<div className={commonStyles.bodyWrapper}>
 				<div>
-					<div>
-						<h2>User Settings</h2>
-					</div>
-
 					<LeadAlignLayout>
+						<div>
+							<h2>User Settings</h2>
+						</div>
 						<Auth />
 					</LeadAlignLayout>
 				</div>

@@ -415,7 +415,7 @@ function AlertsPageLoaded({
 				)}
 			</div>
 			{alertsPayload && (
-				<Card noPadding style={{ width: 1200 }}>
+				<Card noPadding>
 					<Table
 						columns={TABLE_COLUMNS}
 						dataSource={alertsAsTableRows}
