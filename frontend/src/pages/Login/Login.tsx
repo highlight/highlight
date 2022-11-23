@@ -43,24 +43,23 @@ export const AuthAdminRouter = () => {
 	useEffect(() => {
 		if (admin) {
 			const { email, id, name } = admin
-			let identifyMetadata: {
+			const identifyMetadata: {
 				id: string
 				avatar?: string
 				name: string
-				highlightDisplayName?: string
 				email?: string
 			} = {
+				email,
 				id,
 				name,
 			}
 
 			if (admin.photo_url) {
-				identifyMetadata = {
-					...identifyMetadata,
-					avatar: admin.photo_url,
-				}
+				identifyMetadata.avatar = admin.photo_url
 			}
-			analytics.identify(email, identifyMetadata)
+
+			analytics.identify(admin.uid, identifyMetadata)
+
 			H.getSessionURL()
 				.then((sessionUrl) => {
 					window.Intercom('boot', {

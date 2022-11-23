@@ -19,9 +19,9 @@ const initialize = () => {
 	)
 }
 
-const identify = (email: string, metadata: rudderanalytics.apiObject) => {
-	H.identify(email, metadata as Metadata)
-	rudderanalytics.identify(email, metadata)
+const identify = (userId: string, metadata: rudderanalytics.apiObject) => {
+	H.identify(userId, metadata as Metadata)
+	rudderanalytics.identify(userId, metadata)
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
