@@ -87,9 +87,9 @@ export const useBillingHook = ({
 			!subscriptionLoading &&
 			subscriptionData?.subscription_details.lastInvoice?.status
 				?.length &&
-			subscriptionData.subscription_details.lastInvoice.status !==
-				'paid' &&
-			subscriptionData.subscription_details.lastInvoice.status !== 'void',
+			!['paid', 'void', 'draft'].includes(
+				subscriptionData.subscription_details.lastInvoice.status,
+			),
 	}
 }
 
