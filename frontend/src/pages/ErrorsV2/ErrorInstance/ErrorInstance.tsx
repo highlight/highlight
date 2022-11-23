@@ -254,7 +254,7 @@ const User: React.FC<{
 							style={{ height: 28, width: 28 }}
 							customImage={avatarImage}
 						/>
-						<Text>{session.identifier}</Text>
+						<Text>{displayName}</Text>
 					</Box>
 
 					<Button

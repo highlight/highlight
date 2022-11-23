@@ -297,7 +297,7 @@ const AuthenticationRoleRouter = () => {
 					return
 				}
 
-				analytics.identify(adminData.uid, {
+				analytics.identify(adminData.email, {
 					'Project ID': data.project?.id,
 					'Workspace ID': data.workspace?.id,
 				})

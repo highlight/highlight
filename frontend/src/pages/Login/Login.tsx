@@ -16,6 +16,7 @@ import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
+import { omit } from 'lodash'
 import React, {
 	FormEvent,
 	ReactNode,
@@ -58,7 +59,12 @@ export const AuthAdminRouter = () => {
 				identifyMetadata.avatar = admin.photo_url
 			}
 
-			analytics.identify(admin.uid, identifyMetadata)
+			H.identify(email, identifyMetadata)
+
+			// `id` is a reserved keyword in rudderstack and it's recommended to use a
+			// static property for the user ID rather than something that could change
+			// over time, like an email address.
+			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
 
 			H.getSessionURL()
 				.then((sessionUrl) => {

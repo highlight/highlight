@@ -19,11 +19,6 @@ const initialize = () => {
 	)
 }
 
-const identify = (userId: string, metadata: rudderanalytics.apiObject) => {
-	H.identify(userId, metadata as Metadata)
-	rudderanalytics.identify(userId, metadata)
-}
-
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 	H.track(event, metadata as Metadata)
 	rudderanalytics.track(event, metadata)
@@ -31,8 +26,8 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 
 const analytics = {
 	initialize,
-	identify,
 	track,
+	identify: rudderanalytics.identify,
 	page: rudderanalytics.page,
 }
 
