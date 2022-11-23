@@ -182,7 +182,7 @@ const PlayerPage = ({ integrated }: Props) => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 200)
+		}, 1000 / 60)
 		return () => {
 			i && clearInterval(i)
 		}
