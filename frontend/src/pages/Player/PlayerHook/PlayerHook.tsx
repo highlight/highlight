@@ -28,6 +28,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { indexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
@@ -333,7 +334,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 									secure_id: session_secure_id,
 									index: _i,
 								})
-								const chunkResponse = await fetch(
+								const chunkResponse = await indexedDBFetch(
 									response.data.event_chunk_url,
 								)
 								chunkEventsSet(
