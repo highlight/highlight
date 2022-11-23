@@ -13,6 +13,19 @@
 	}
 }
 
+.buttonV2 {
+	display: block;
+}
+
+.iconContainerV2 {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin-left: 10px;
+	margin-top: -14px;
+	position: absolute;
+}
+
 .popover {
 	margin-top: var(--size-xxSmall);
 	width: 320px;

@@ -1,5 +1,4 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
-import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { shadows } from '../Button/styles.css'
 
@@ -11,6 +10,7 @@ export const variants = recipe({
 			justifyContent: 'center',
 			border: 'none',
 			borderRadius: 6,
+			padding: 0,
 			outline: 'none',
 			selectors: {
 				'&:hover': {
@@ -32,32 +32,22 @@ export const variants = recipe({
 			none: {},
 		},
 		size: {
-			tiny: [
-				sprinkles({ py: '6' }),
-				{
-					height: 24,
-				},
-			],
-			small: [
-				sprinkles({ py: '7' }),
-				{
-					height: 28,
-				},
-			],
-			medium: [
-				sprinkles({ py: '9' }),
-				{
-					height: 32,
-				},
-			],
+			tiny: {
+				height: 24,
+			},
+			small: {
+				height: 28,
+			},
+			medium: {
+				height: 32,
+			},
 			minimal: {
 				height: 20,
 				width: 20,
 				borderRadius: 4,
-				padding: 2,
 			},
 		},
-		variant: {
+		kind: {
 			primary: {},
 			secondary: {},
 		},
@@ -70,7 +60,6 @@ export const variants = recipe({
 				shape: 'thin',
 			},
 			style: [
-				sprinkles({ px: '2' }),
 				{
 					width: 16,
 				},
@@ -82,7 +71,6 @@ export const variants = recipe({
 				shape: 'square',
 			},
 			style: [
-				sprinkles({ px: '6' }),
 				{
 					width: 24,
 				},
@@ -94,7 +82,6 @@ export const variants = recipe({
 				shape: 'thin',
 			},
 			style: [
-				sprinkles({ px: '2' }),
 				{
 					width: 18,
 				},
@@ -106,7 +93,6 @@ export const variants = recipe({
 				shape: 'square',
 			},
 			style: [
-				sprinkles({ px: '7' }),
 				{
 					width: 28,
 				},
@@ -118,7 +104,6 @@ export const variants = recipe({
 				shape: 'thin',
 			},
 			style: [
-				sprinkles({ px: '3' }),
 				{
 					width: 20,
 				},
@@ -130,7 +115,6 @@ export const variants = recipe({
 				shape: 'square',
 			},
 			style: [
-				sprinkles({ px: '9' }),
 				{
 					width: 28,
 				},
@@ -139,7 +123,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'high',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: vars.color.purple500,
@@ -165,7 +149,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'medium',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: 'transparent',
@@ -193,7 +177,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'low',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: 'transparent',
@@ -217,7 +201,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'high',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: vars.color.neutral100,
@@ -243,7 +227,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'medium',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -270,7 +254,7 @@ export const variants = recipe({
 		{
 			variants: {
 				emphasis: 'low',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -294,7 +278,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'minimal',
-				variant: 'primary',
+				kind: 'primary',
 			},
 			style: {
 				background: vars.color.purple500,
@@ -318,7 +302,7 @@ export const variants = recipe({
 		{
 			variants: {
 				size: 'minimal',
-				variant: 'secondary',
+				kind: 'secondary',
 			},
 			style: {
 				background: 'transparent',
@@ -343,7 +327,7 @@ export const variants = recipe({
 	],
 
 	defaultVariants: {
-		variant: 'primary',
+		kind: 'primary',
 		emphasis: 'medium',
 		shape: 'square',
 		size: 'small',

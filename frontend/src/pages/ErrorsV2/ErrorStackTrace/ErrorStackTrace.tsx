@@ -1,27 +1,37 @@
-import Alert from '@components/Alert/Alert'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
-import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { GetErrorObjectQuery } from '@graph/operations'
-import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
-import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
-import { useParams } from '@util/react-router/useParams'
+import { Maybe } from '@graph/schemas'
+import {
+	Box,
+	Button,
+	Callout,
+	IconCaretDown,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
+import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
+import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import React from 'react'
-import Skeleton from 'react-loading-skeleton'
+import ReactCollapsible from 'react-collapsible'
+import { useHistory } from 'react-router-dom'
 
-import ErrorPageStyles from '../../Error/ErrorPage.module.scss'
-import styles from './ErrorStackTrace.module.scss'
+import * as styles from './ErrorStackTrace.css'
 
 interface Props {
 	errorObject?: GetErrorObjectQuery['error_object']
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {
-	const { project_id } = useParams<{ project_id: string }>()
-
+	const history = useHistory()
+	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
+	console.log(
+		'::: errorObject.structured_stack_trace',
+		errorObject?.structured_stack_trace,
+	)
+	console.log('::: errorObject.stack_trace', errorObject?.stack_trace)
 
 	/**
 	 * The length of the longest line number in all the stack frames.
@@ -51,92 +61,98 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 		(!errorObject?.structured_stack_trace || everyFrameHasError)
 
 	return (
-		<div className={styles.stackTraceCard}>
+		<Stack gap="12">
 			{showStackFrameNotUseful && (
-				<Alert
-					trackingId="PrivacySourceMapEducation"
-					className={styles.alert}
-					message="These stack frames don't look that useful 😢"
-					type="info"
-					description={
-						<>
-							Are there sourcemaps tied to your javascript code?
-							If yes, you can upload them to Highlight in CI/CD to
-							get enhanced stack traces.
-							<div className={styles.sourcemapActions}>
-								<ButtonLink
-									anchor
-									trackingId="stackFrameLearnMoreAboutPrivateSourcemaps"
-									href="https://docs.highlight.run/sourcemaps"
-								>
-									Learn More
-								</ButtonLink>
-								<ButtonLink
-									trackingId="stackFrameSourcemapSettings"
-									to={`/${project_id}/settings/errors`}
-									type="default"
-								>
-									Sourcemap Settings
-								</ButtonLink>
-							</div>
-						</>
-					}
-				/>
+				<Callout
+					title="These stack frames don't look that useful 😢"
+					kind="warning"
+				>
+					<Text>
+						Are there sourcemaps tied to your javascript code? If
+						yes, you can upload them to Highlight in CI/CD to get
+						enhanced stack traces.
+					</Text>
+
+					<Stack direction="row" gap="8">
+						{/*
+						TODO: Swap these out for LinkButtons once they are created - coming
+						in a PR from Zane soon.
+						*/}
+						<Button
+							kind="secondary"
+							onClick={() => {
+								window.open(
+									'https://docs.highlight.run/sourcemaps',
+									'_blank',
+								)
+							}}
+						>
+							Learn More
+						</Button>
+						<Button
+							kind="secondary"
+							emphasis="low"
+							onClick={() =>
+								history.push(`/${projectId}/settings/errors`)
+							}
+						>
+							Sourcemap Settings
+						</Button>
+					</Stack>
+				</Callout>
 			)}
-			{/* TODO: Loading? */}
-			{false ? (
-				Array(5)
-					.fill(0)
-					.map((_, index) => (
-						<Skeleton key={index} className={styles.skeleton} />
+
+			<Box width="full">
+				{structuredStackTrace?.length ? (
+					structuredStackTrace?.map((e, i) => (
+						<StackSection
+							key={i}
+							fileName={e?.fileName ?? ''}
+							functionName={e?.functionName ?? ''}
+							lineNumber={e?.lineNumber ?? 0}
+							columnNumber={e?.columnNumber ?? 0}
+							longestLineNumberCharacterLength={
+								longestLineNumberCharacterLength
+							}
+							lineContent={e?.lineContent}
+							linesBefore={e?.linesBefore}
+							linesAfter={e?.linesAfter}
+							error={e?.error}
+							isFirst={i === 0}
+							isLast={i >= structuredStackTrace.length - 1}
+							compact={false}
+						/>
 					))
-			) : structuredStackTrace?.length ? (
-				structuredStackTrace?.map((e, i) => (
-					<StackSection
-						key={i}
-						fileName={e?.fileName ?? ''}
-						functionName={e?.functionName ?? ''}
-						lineNumber={e?.lineNumber ?? 0}
-						columnNumber={e?.columnNumber ?? 0}
-						longestLineNumberCharacterLength={
-							longestLineNumberCharacterLength
-						}
-						lineContent={e?.lineContent ?? undefined}
-						linesBefore={e?.linesBefore ?? undefined}
-						linesAfter={e?.linesAfter ?? undefined}
-						error={e?.error ?? undefined}
-						index={i}
-						compact={false}
+				) : (
+					<UnstructuredStackTrace
+						stackTrace={errorObject?.stack_trace || ''}
 					/>
-				))
-			) : (
-				<div className={styles.stackTraceCard}>
-					<JsonOrTextCard
-						jsonOrText={errorObject?.stack_trace || ''}
-					/>
-				</div>
-			)}
-		</div>
+				)}
+			</Box>
+		</Stack>
 	)
 }
 
 export default ErrorStackTrace
 
-type StackSectionProps = {
+export type StackSectionProps = {
 	fileName?: string
 	functionName?: string
 	lineNumber?: number
 	columnNumber?: number
 	longestLineNumberCharacterLength?: number
-	lineContent?: string
-	linesBefore?: string
-	linesAfter?: string
-	error?: string
-	index: number
+	lineContent?: Maybe<string>
+	linesBefore?: Maybe<string>
+	linesAfter?: Maybe<string>
+	error?: Maybe<string>
 	compact: boolean
+	isFirst: boolean
+	isLast: boolean
 }
 
-const getErrorMessage = (error: string | undefined): string | undefined => {
+const getErrorMessage = (
+	error?: Maybe<string> | undefined,
+): string | undefined => {
 	if (!error) {
 		return undefined
 	}
@@ -168,11 +184,13 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	linesBefore,
 	linesAfter,
 	error,
-	index,
+	isFirst,
+	isLast,
 }) => {
+	const [expanded, setExpanded] = React.useState(isFirst)
+
 	const trigger = (
-		<div className={ErrorPageStyles.triggerWrapper}>
-			<hr />
+		<Box p="12">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -184,9 +202,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					linesAfter={linesAfter}
 				/>
 			) : (
-				<div className={styles.editor}>
-					<span
-						className={styles.lineNumber}
+				<Text family="monospace" as="div">
+					<Box
+						as="span"
+						cssClass={styles.lineNumber}
+						mr="24"
 						style={
 							{
 								'--longest-character-length':
@@ -195,62 +215,93 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 						}
 					>
 						{lineNumber}
-					</span>
+					</Box>
 					<Tooltip mouseEnterDelay={0.1} title={functionName}>
-						<span className={styles.functionName}>
-							{functionName}
-						</span>
+						<span>{functionName}</span>
 					</Tooltip>
-					<span className={styles.tooltip}>
+					<span>
 						<InfoTooltip
 							size="large"
 							title={getErrorMessage(error)}
 						/>
 					</span>
-				</div>
+				</Text>
 			)}
-		</div>
+		</Box>
 	)
 
 	const stackTraceTitle = (
-		<>
-			{truncateFileName(fileName || '')}
-			<span className={styles.fillerText}>
-				{functionName ? ' in ' : ''}
+		<Box
+			background="neutral100"
+			p="12"
+			bt={isFirst ? 'neutral' : undefined}
+			br="neutral"
+			bb="neutral"
+			bl="neutral"
+			btr={isFirst ? '6' : undefined}
+			display="flex"
+			justifyContent="space-between"
+			alignItems="center"
+		>
+			<Box display="flex" gap="4">
+				<Text>{truncateFileName(fileName || '')}</Text>
+				<Text color="neutral500" as="span">
+					{functionName ? ' in ' : ''}
+				</Text>
+				<Text>{functionName}</Text>
+				<Text color="neutral500" as="span">
+					{lineNumber ? ' at line ' : ''}
+				</Text>
+				<Text>{lineNumber}</Text>
+			</Box>
+
+			<span className={styles.iconCaret({ open: expanded })}>
+				<IconCaretDown />
 			</span>
-			{functionName}
-			<span className={styles.fillerText}>
-				{lineNumber ? ' at line ' : ''}
-			</span>
-			{lineNumber}
-		</>
+		</Box>
 	)
 
 	return (
-		<div className={CollapsibleStyles.section}>
-			<div className={styles.collapsibleWrapper}>
-				{
-					<StatelessCollapsible
-						title={stackTraceTitle}
-						key={index}
-						defaultOpen={index === 0}
-						contentClassName={styles.contentWrapper}
-						stacked={true}
-					>
-						<div className={ErrorPageStyles.collapsible}>
-							{trigger}
-						</div>
-					</StatelessCollapsible>
-				}
-			</div>
-		</div>
+		<Box>
+			<StackTraceSectionCollapsible
+				title={stackTraceTitle}
+				expanded={expanded}
+				setExpanded={setExpanded}
+				isLast={isLast}
+			>
+				{trigger}
+			</StackTraceSectionCollapsible>
+		</Box>
 	)
 }
 
-const truncateFileName = (fileName: string, number_of_levels_to_go_up = 5) => {
+const StackTraceSectionCollapsible: React.FC<
+	React.PropsWithChildren<{
+		expanded: boolean
+		setExpanded: (expanded: boolean) => void
+		isLast: boolean
+		title: string | React.ReactElement
+	}>
+> = ({ children, expanded, setExpanded, isLast, title }) => {
+	return (
+		<ReactCollapsible
+			trigger={title}
+			open={expanded}
+			handleTriggerClick={() => setExpanded(!expanded)}
+			transitionTime={150}
+			contentInnerClassName={styles.collapsibleContent({
+				rounded: isLast,
+			})}
+		>
+			{children}
+		</ReactCollapsible>
+	)
+}
+
+const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 3) => {
 	const tokens = fileName.split('/')
 
 	return `${'../'.repeat(
-		Math.max(tokens.length - number_of_levels_to_go_up, 0),
-	)}${tokens.splice(tokens.length - number_of_levels_to_go_up).join('/')}`
+		Math.max(tokens.length - numberOfLevelsToGoUp, 0),
+	)}${tokens.splice(tokens.length - numberOfLevelsToGoUp).join('/')}`
 }

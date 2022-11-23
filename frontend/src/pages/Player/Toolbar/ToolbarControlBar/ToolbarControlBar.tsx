@@ -129,7 +129,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -172,7 +172,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -200,7 +200,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			{showLiveToggle && (
@@ -208,7 +208,7 @@ const ToolbarControls = () => {
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
-					variant={isLiveMode ? 'primary' : 'grey'}
+					kind={isLiveMode ? 'primary' : 'grey'}
 					disabled={disableControls}
 				>
 					Live
@@ -278,7 +278,7 @@ const ToolbarControls = () => {
 						}
 					>
 						<Tag
-							variant="grey"
+							kind="grey"
 							onClick={() => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
@@ -306,7 +306,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showHistogram}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconChartBar size={14} />}
+							iconLeft={<IconChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<ExplanatoryPopover
@@ -327,7 +327,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconTerminal size={14} />}
+							iconLeft={<IconTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
@@ -363,7 +363,7 @@ const ToolbarControls = () => {
 								size="small"
 								shape="square"
 								emphasis="low"
-								variant="secondary"
+								kind="secondary"
 							/>
 						</Box>
 					</Popover>
@@ -378,7 +378,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</Box>
 		</div>

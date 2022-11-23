@@ -136,8 +136,6 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 						!error_secure_id ||
 						errorQueryingErrorGroup ||
 						errorQueryingRecentErrors,
-					[styles.withErrorState]:
-						errorQueryingErrorGroup || errorQueryingRecentErrors,
 				})}
 			>
 				<div

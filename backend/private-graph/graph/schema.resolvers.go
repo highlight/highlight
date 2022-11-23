@@ -2971,7 +2971,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		FROM workspaces w
 		INNER JOIN projects p
 		ON p.workspace_id = w.id
-		INNER JOIN daily_session_counts_view sc
+		LEFT OUTER JOIN daily_session_counts_view sc
 		ON sc.project_id = p.id
 		group by 1, 2
 	`).Scan(&accounts).Error; err != nil {

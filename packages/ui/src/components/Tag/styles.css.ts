@@ -9,7 +9,7 @@ export const shadows = {
 
 export const defaultShape = 'rounded'
 export const defaultSize = 'medium'
-export const defaultVariant = 'primary'
+export const defaultKind = 'primary'
 
 export const iconVariants = recipe({
 	base: {
@@ -25,7 +25,7 @@ export const iconVariants = recipe({
 			medium: { height: 12, width: 12 },
 			large: { height: 16, width: 16 },
 		},
-		variant: {
+		kind: {
 			transparent: {
 				color: vars.color.neutral500,
 				selectors: {
@@ -74,7 +74,7 @@ export const iconVariants = recipe({
 	},
 	defaultVariants: {
 		size: defaultSize,
-		variant: defaultVariant,
+		kind: defaultKind,
 	},
 })
 
@@ -114,7 +114,7 @@ export const variants = recipe({
 			rounded: {},
 			basic: {},
 		},
-		variant: {
+		kind: {
 			transparent: {
 				background: 'none',
 				color: vars.color.neutral700,
@@ -233,7 +233,7 @@ export const variants = recipe({
 		},
 	],
 	defaultVariants: {
-		variant: defaultVariant,
+		kind: defaultKind,
 		size: defaultSize,
 		shape: defaultShape,
 	},
