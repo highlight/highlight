@@ -26,47 +26,45 @@ export const LinkButton: React.FC<Props> = ({
 	iconRight,
 }) => {
 	return (
-		<Link to={to}>
-			<Box
-				as="span"
-				disabled={disabled}
-				cssClass={clsx(
-					styles.base,
-					buttonStyles.variants({
+		<Link
+			to={disabled ? null : to}
+			disabled={disabled}
+			className={clsx(
+				styles.base,
+				buttonStyles.variants({
+					kind,
+					size,
+					emphasis,
+				}),
+			)}
+		>
+			{iconLeft && (
+				<Box
+					as="span"
+					display="inline-flex"
+					className={buttonStyles.iconVariants({
 						kind,
 						size,
 						emphasis,
-					}),
-				)}
-			>
-				{iconLeft && (
-					<Box
-						as="span"
-						display="inline-flex"
-						className={buttonStyles.iconVariants({
-							kind,
-							size,
-							emphasis,
-						})}
-					>
-						{iconLeft}
-					</Box>
-				)}
-				{children}
-				{iconRight && (
-					<Box
-						as="span"
-						display="inline-flex"
-						className={buttonStyles.iconVariants({
-							kind,
-							size,
-							emphasis,
-						})}
-					>
-						{iconRight}
-					</Box>
-				)}
-			</Box>
+					})}
+				>
+					{iconLeft}
+				</Box>
+			)}
+			{children}
+			{iconRight && (
+				<Box
+					as="span"
+					display="inline-flex"
+					className={buttonStyles.iconVariants({
+						kind,
+						size,
+						emphasis,
+					})}
+				>
+					{iconRight}
+				</Box>
+			)}
 		</Link>
 	)
 }
