@@ -1,9 +1,11 @@
-import { QueryBuilderInput } from '@components/QueryBuilder/QueryBuilder'
 import { Rule } from '@components/QueryBuilder/rule'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
-import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
+import {
+	QueryBuilderInput,
+	SearchContextProvider,
+} from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
 import isEqual from 'lodash/isEqual'

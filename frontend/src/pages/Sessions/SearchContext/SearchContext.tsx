@@ -5,7 +5,7 @@ import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/Que
 import { createContext } from '@util/context/context'
 import React from 'react'
 
-type QueryBuilderInput =
+export type QueryBuilderInput =
 	| (QueryBuilderState & { type: QueryBuilderType })
 	| undefined
 
