@@ -897,10 +897,16 @@ type ErrorGroup struct {
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
-	IsPublic         bool       `gorm:"default:false"`
-	ErrorFrequency   []int64    `gorm:"-"`
-	FirstOccurrence  *time.Time `gorm:"-"`
-	LastOccurrence   *time.Time `gorm:"-"`
+	IsPublic         bool    `gorm:"default:false"`
+	ErrorFrequency   []int64 `gorm:"-"`
+	ErrorMetrics     []*struct {
+		ErrorGroupID int
+		Date         time.Time
+		Name         string
+		Value        int64
+	} `gorm:"-"`
+	FirstOccurrence *time.Time `gorm:"-"`
+	LastOccurrence  *time.Time `gorm:"-"`
 }
 
 type ErrorInstance struct {

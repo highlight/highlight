@@ -417,6 +417,9 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, nil, e.Wrap(err, "failed to perform tdb query for error group occurrences")
 	}
+	if len(results) < 2 {
+		return nil, nil, nil
+	}
 	return &results[0].Time, &results[1].Time, nil
 }
 
@@ -481,16 +484,30 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 	var errorGroupMap = make(map[string]*model.ErrorGroup)
 	var errorGroupIDs []int
 	for _, errorGroup := range errorGroups {
+		errorGroup.ErrorMetrics = []*struct {
+			ErrorGroupID int
+			Date         time.Time
+			Name         string
+			Value        int64
+		}{}
 		errorGroupMap[strconv.Itoa(errorGroup.ID)] = errorGroup
 		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
 	}
-	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "count")
+	results, err := r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, "")
 	if err != nil {
 		return err
 	}
 	for _, r := range results {
 		eg := errorGroupMap[r.ErrorGroupID]
-		eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+		if r.Name == "count" {
+			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+		}
+		eg.ErrorMetrics = append(eg.ErrorMetrics, &struct {
+			ErrorGroupID int
+			Date         time.Time
+			Name         string
+			Value        int64
+		}{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
 	}
 	return nil
 }

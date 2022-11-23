@@ -324,12 +324,13 @@ export type ErrorGroup = {
 	created_at: Scalars['Timestamp']
 	environments?: Maybe<Scalars['String']>
 	error_frequency: Array<Scalars['Int64']>
+	error_metrics: Array<ErrorDistributionItem>
 	event: Array<Maybe<Scalars['String']>>
 	fields?: Maybe<Array<Maybe<ErrorField>>>
-	first_occurrence: Scalars['Timestamp']
+	first_occurrence?: Maybe<Scalars['Timestamp']>
 	id: Scalars['ID']
 	is_public: Scalars['Boolean']
-	last_occurrence: Scalars['Timestamp']
+	last_occurrence?: Maybe<Scalars['Timestamp']>
 	mapped_stack_trace?: Maybe<Scalars['String']>
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']
@@ -338,6 +339,7 @@ export type ErrorGroup = {
 	state: ErrorState
 	structured_stack_trace: Array<Maybe<ErrorTrace>>
 	type: Scalars['String']
+	updated_at: Scalars['Timestamp']
 }
 
 export type ErrorGroupFrequenciesParamsInput = {
