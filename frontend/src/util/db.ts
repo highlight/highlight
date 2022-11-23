@@ -23,7 +23,7 @@ const getLocalStorage = function (): Storage | undefined {
 const isEnabledInDev = function () {
 	const storage = getLocalStorage()
 	if (!storage) {
-		return false
+		return true
 	}
 	if (storage.getItem('highlight-indexeddb-dev-enabled') === null) {
 		storage.setItem('highlight-indexeddb-dev-enabled', 'false')
@@ -183,12 +183,12 @@ export const indexedDBFetch = async function (
 	init?: RequestInit | undefined,
 ) {
 	if (!indexeddbEnabled) {
-		return await fetch(input, { mode: 'no-cors', ...init })
+		return await fetch(input, init)
 	}
 	const cacheKey = JSON.stringify({ input, init })
 	const cached = await db.fetch.where('key').equals(cacheKey).first()
 	if (!cached) {
-		const response = await fetch(input, { mode: 'no-cors', ...init })
+		const response = await fetch(input, init)
 		const ret = response.clone()
 		const headers: { [key: string]: string } = {}
 		response.headers.forEach((value: string, key: string) => {
@@ -208,7 +208,10 @@ export const indexedDBFetch = async function (
 		return ret
 	} else {
 		db.fetch.update(cached.key, { updated: moment().format() })
-		return new Response(cached.blob, cached.options)
+		return new Response(cached.blob, {
+			...cached.options,
+			status: cached.options.status || 200,
+		})
 	}
 }
 
