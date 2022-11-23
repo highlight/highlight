@@ -9,14 +9,14 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import * as style from './ErrorFeedCard.css'
 interface Props {
-	errorGroup: Maybe<ErrorGroup>
+	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 	urlParams?: string
 }
 export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
@@ -25,31 +25,10 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 		error_secure_id?: string
 	}>()
 	const body = getErrorBody(errorGroup?.event)
-	const createdDate = errorGroup?.created_at
-		? `${new Date(errorGroup.created_at).toLocaleString('en-us', {
-				day: 'numeric',
-				month: 'short',
-				year:
-					new Date().getFullYear() !==
-					new Date(errorGroup.created_at).getFullYear()
-						? 'numeric'
-						: undefined,
-		  })}`
-		: ''
+	const createdDate = formatErrorGroupDate(errorGroup?.created_at)
+	const updatedDate = formatErrorGroupDate(errorGroup?.updated_at)
 
-	const [frequencies, setFrequencies] = useState<Array<number>>(
-		Array(6).fill(0),
-	)
-	useEffect(() => {
-		if (errorGroup?.error_frequency.length) {
-			setFrequencies(errorGroup.error_frequency)
-		}
-	}, [errorGroup?.error_frequency])
-
-	// TODO: replace this with the data from the new backend
-	const errorCount = frequencies.reduce((acc, curr) => acc + curr, 0)
-	const userCount = 5
-	const updatedDate = 'Yesterday'
+	const { totalCount, userCount } = getErrorGroupStats(errorGroup)
 
 	return (
 		<Link
@@ -124,7 +103,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 								kind="transparent"
 								iconLeft={<IconViewGrid size={12} />}
 							>
-								<Text>{errorCount}</Text>
+								<Text>{totalCount}</Text>
 							</Tag>
 						</Box>
 						<Box display="flex" gap="4" alignItems="center">
@@ -141,7 +120,11 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
-						<BarChart data={frequencies} height={34} width={51} />
+						<BarChart
+							data={errorGroup?.error_frequency || []}
+							height={34}
+							width={80}
+						/>
 					</Box>
 				</Box>
 			</Box>

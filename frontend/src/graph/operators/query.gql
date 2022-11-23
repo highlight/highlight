@@ -677,6 +677,7 @@ query GetErrorGroupsOpenSearch(
 	) {
 		error_groups {
 			created_at
+			updated_at
 			id
 			secure_id
 			type
@@ -692,6 +693,14 @@ query GetErrorGroupsOpenSearch(
 				columnNumber
 			}
 			error_frequency
+			error_metrics {
+				error_group_id
+				date
+				name
+				value
+			}
+			is_public
+			project_id
 		}
 		totalCount
 	}
@@ -975,6 +984,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 query GetErrorGroup($secure_id: String!) {
 	error_group(secure_id: $secure_id) {
 		created_at
+		updated_at
 		id
 		secure_id
 		type
@@ -998,7 +1008,15 @@ query GetErrorGroup($secure_id: String!) {
 			value
 		}
 		error_frequency
+		error_metrics {
+			error_group_id
+			date
+			name
+			value
+		}
 		is_public
+		last_occurrence
+		first_occurrence
 	}
 }
 
@@ -1696,22 +1714,5 @@ query GetOAuthClientMetadata($client_id: String!) {
 		id
 		created_at
 		app_name
-	}
-}
-
-query GetErrorGroupFrequencies(
-	$project_id: ID!
-	$error_group_secure_ids: [String!]!
-	$params: ErrorGroupFrequenciesParamsInput!
-) {
-	errorGroupFrequencies(
-		project_id: $project_id
-		error_group_secure_ids: $error_group_secure_ids
-		params: $params
-	) {
-		error_group_id
-		date
-		name
-		value
 	}
 }

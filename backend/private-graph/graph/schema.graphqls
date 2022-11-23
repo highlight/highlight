@@ -366,6 +366,7 @@ type ErrorField {
 
 type ErrorGroup {
 	created_at: Timestamp!
+	updated_at: Timestamp!
 	id: ID!
 	secure_id: String!
 	project_id: Int!
@@ -379,7 +380,10 @@ type ErrorGroup {
 	state: ErrorState!
 	environments: String
 	error_frequency: [Int64!]!
+	error_metrics: [ErrorDistributionItem!]!
 	is_public: Boolean!
+	first_occurrence: Timestamp
+	last_occurrence: Timestamp
 }
 
 type ErrorMetadata {
