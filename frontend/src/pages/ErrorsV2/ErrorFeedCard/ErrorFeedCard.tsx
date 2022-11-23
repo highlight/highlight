@@ -28,7 +28,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 	const createdDate = formatErrorGroupDate(errorGroup?.created_at)
 	const updatedDate = formatErrorGroupDate(errorGroup?.updated_at)
 
-	const { counts, totalCount, userCount } = getErrorGroupStats(errorGroup)
+	const { totalCount, userCount } = getErrorGroupStats(errorGroup)
 
 	return (
 		<Link
@@ -120,7 +120,11 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 						</Box>
 					</Box>
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
-						<BarChart data={counts || []} height={34} width={51} />
+						<BarChart
+							data={errorGroup?.error_frequency || []}
+							height={34}
+							width={51}
+						/>
 					</Box>
 				</Box>
 			</Box>

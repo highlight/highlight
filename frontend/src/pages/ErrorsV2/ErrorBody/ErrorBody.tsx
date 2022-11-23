@@ -1,7 +1,7 @@
 import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
-import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
+import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import moment from 'moment'
 import React from 'react'
@@ -20,7 +20,14 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const body = getErrorBody(errorGroup?.event)
 	const bodyRef = React.useRef<HTMLElement | undefined>()
 
-	const { counts, totalCount, userCount } = getErrorGroupStats(errorGroup)
+	const { startDate, weekly, counts, totalCount, userCount } =
+		getErrorGroupStats(errorGroup)
+	const usersChange = weekly.users[0]
+		? ((weekly.users[3] - weekly.users[0]) / weekly.users[0]) * 100
+		: 0
+	const countChange = weekly.count[0]
+		? ((weekly.count[3] - weekly.count[0]) / weekly.count[0]) * 100
+		: 0
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -51,7 +58,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{userCount}
 						</Text>
 						<Tag>
-							<>+23.7% since Sep 15</>
+							<>
+								{usersChange > 0 ? '+' : ''}
+								{usersChange.toFixed(1)}% since{' '}
+								{formatErrorGroupDate(startDate.format())}
+							</>
 						</Tag>
 					</Box>
 				</Stat>
@@ -82,7 +93,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{totalCount}
 						</Text>
 						<Tag>
-							<>+23.7% since Sep 15</>
+							<>
+								{countChange > 0 ? '+' : ''}
+								{countChange.toFixed(1)}% since{' '}
+								{formatErrorGroupDate(startDate.format())}
+							</>
 						</Tag>
 					</Box>
 				</Stat>

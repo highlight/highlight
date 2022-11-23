@@ -476,7 +476,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
 	params := modelInputs.ErrorGroupFrequenciesParamsInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
-			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
+			StartDate: time.Now().Add(time.Duration(-24*(lookbackPeriod-1)) * time.Hour),
 			EndDate:   time.Now(),
 		},
 		ResolutionHours: 24,
