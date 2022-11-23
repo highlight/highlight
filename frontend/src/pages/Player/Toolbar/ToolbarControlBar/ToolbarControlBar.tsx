@@ -53,11 +53,11 @@ import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToke
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
 import React from 'react'
 import { useState } from 'react'
 
@@ -120,7 +120,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('PlayerSkipLeft')
+						analytics.track('PlayerSkipLeft')
 						const prevTime = Math.max(time - 5000, 0)
 						setTime(prevTime)
 					}}
@@ -148,7 +148,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('Player Play/Pause Button')
+						analytics.track('Player Play/Pause Button')
 						if (isPlaybackComplete) {
 							pause(time)
 							const newTime = 0
@@ -191,7 +191,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('PlayerSkipRight')
+						analytics.track('PlayerSkipRight')
 						const newTime = Math.max(time + 5000, 0)
 						setTime(newTime)
 					}}

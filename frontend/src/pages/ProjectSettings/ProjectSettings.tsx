@@ -6,7 +6,8 @@ import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/Excl
 import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
-import React from 'react'
+import analytics from '@util/analytics'
+import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 
@@ -14,6 +15,8 @@ import styles from './ProjectSettings.module.scss'
 
 const ProjectSettings = () => {
 	const match = useRouteMatch()
+
+	useEffect(() => analytics.page(), [match])
 
 	return (
 		<>

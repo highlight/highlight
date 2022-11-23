@@ -1,10 +1,10 @@
 import SvgXIcon from '@icons/XIcon'
+import analytics from '@util/analytics'
 import {
 	Alert as AntDesignAlert,
 	AlertProps as AntDesignAlertProps,
 } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 import { useSessionStorage } from 'react-use'
 
@@ -49,7 +49,7 @@ const Alert = ({
 				if (props.onClose) {
 					props.onClose(e)
 				}
-				H.track(`AlertClose-${trackingId}`)
+				analytics.track(`AlertClose-${trackingId}`)
 				setTemporarilyHideAlert(true)
 			}}
 		></AntDesignAlert>

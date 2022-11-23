@@ -7954,6 +7954,7 @@ __metadata:
     react-virtualized-auto-sizer: ^1.0.6
     react-virtuoso: ^2.13.1
     recharts: ^2.1.13
+    rudder-sdk-js: ^2.20.0
     sass: ^1.54.8
     source-map-explorer: ^2.5.2
     stacktrace-js: ^2.0.2
@@ -37707,6 +37708,13 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.1.2
   checksum: 6b7744328f932a2457f7e01c170c7df5bfe5de7c3ebbb42a69800fdc4c1983a0534178e956c3535bbbe52464fb387d385dceae470105a4f62dc26f953b89f653
+  languageName: node
+  linkType: hard
+
+"rudder-sdk-js@npm:^2.20.0":
+  version: 2.20.0
+  resolution: "rudder-sdk-js@npm:2.20.0"
+  checksum: a6f255c6f5e27aa2cf928f3792358247a204de7f5b447f540e3ab437d7eade4fc9eefa01005211c3091e71a6603e7a7b679104a728392d6014fd7b44b40ee173
   languageName: node
   linkType: hard
 

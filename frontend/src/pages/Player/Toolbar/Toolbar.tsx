@@ -20,6 +20,7 @@ import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import ToolbarMenu from '@pages/Player/Toolbar/ToolbarMenu/ToolbarMenu'
 import { useLocalStorage } from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import {
@@ -28,7 +29,6 @@ import {
 } from '@util/time'
 import { timerStart } from '@util/timer/timer'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import Skeleton from 'react-loading-skeleton'
@@ -188,7 +188,7 @@ export const Toolbar = ({ width }: Props) => {
 				<button
 					className={classNames(styles.undoSection, styles.button)}
 					onClick={() => {
-						H.track('PlayerSkipToPreviousSession')
+						analytics.track('PlayerSkipToPreviousSession')
 						const prevTime = Math.max(time - 5000, 0)
 						setTime(prevTime)
 					}}
@@ -206,7 +206,7 @@ export const Toolbar = ({ width }: Props) => {
 					className={classNames(styles.playSection, styles.button)}
 					disabled={disableControls}
 					onClick={() => {
-						H.track('Player Play/Pause Button')
+						analytics.track('Player Play/Pause Button')
 						if (disablePlayButton) {
 							pause(time)
 							const newTime = 0
@@ -249,7 +249,7 @@ export const Toolbar = ({ width }: Props) => {
 				<button
 					className={classNames(styles.redoSection, styles.button)}
 					onClick={() => {
-						H.track('PlayerSkipToNextSession')
+						analytics.track('PlayerSkipToNextSession')
 
 						const nextTime = Math.min(time + 5000, max)
 						setTime(nextTime)

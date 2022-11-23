@@ -4,10 +4,10 @@ import PopConfirm from '@components/PopConfirm/PopConfirm'
 import { useGetAdminQuery, useGetOnboardingStepsQuery } from '@graph/hooks'
 import SvgCloseIcon from '@icons/CloseIcon'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import Confetti from 'react-confetti'
 import { useHistory } from 'react-router'
@@ -197,7 +197,7 @@ const OnboardingBubble = () => {
 				trigger={['click']}
 				onVisibleChange={(visible) => {
 					if (visible) {
-						H.track('Viewed onboarding bubble')
+						analytics.track('Viewed onboarding bubble')
 					}
 				}}
 				popoverClassName={styles.popover}
