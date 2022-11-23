@@ -1,21 +1,50 @@
+import BarChart from '@components/BarChart/BarChart'
+import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
+import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
 interface Props {
-	errorGroup?: Maybe<Pick<ErrorGroup, 'event'>>
+	errorGroup?: Maybe<Pick<ErrorGroup, 'event' | 'secure_id'>>
 }
 
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
 	const [truncated, setTruncated] = React.useState(true)
 	const [truncateable, setTruncateable] = React.useState(true)
 	const body = getErrorBody(errorGroup?.event)
 	const bodyRef = React.useRef<HTMLElement | undefined>()
+	const endDate = React.useRef<moment.Moment>(moment())
+
+	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
+		variables: {
+			project_id,
+			error_group_secure_ids: [errorGroup?.secure_id || ''],
+			params: {
+				date_range: {
+					start_date: moment(endDate.current)
+						.subtract(30, 'days')
+						.format(),
+					end_date: endDate.current.format(),
+				},
+				resolution_hours: 24,
+			},
+		},
+		skip: !errorGroup?.secure_id,
+	})
+	const countBuckets =
+		frequencies?.errorGroupFrequencies
+			.filter((x) => x?.name === 'count')
+			.map((x) => x?.value || 0) || []
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -28,74 +57,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<Box border="neutral" borderRadius="6">
 			<Box display="flex">
-				<Stat>
-					<>
-						<Box
-							display="flex"
-							justifyContent="space-between"
-							flexDirection="row"
-							alignItems="center"
-						>
-							<Box
-								color="neutral300"
-								display="flex"
-								alignItems="center"
-								gap="4"
-							>
-								<FaUsers />
-								<Text>Users</Text>
-							</Box>
-							<Text>
-								<TextLink href="#metrics">
-									Metrics {'>'}
-								</TextLink>
-							</Text>
-						</Box>
-
-						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large" weight="bold">
-								25
-							</Text>
-							<Tag>
-								<>+23.7% since Sep 15</>
-							</Tag>
-						</Box>
-					</>
-				</Stat>
-				<Stat>
-					<>
-						<Box
-							display="flex"
-							justifyContent="space-between"
-							flexDirection="row"
-							alignItems="center"
-						>
-							<Box
-								color="neutral300"
-								display="flex"
-								alignItems="center"
-								gap="4"
-							>
-								<BsGridFill />
-								<Text>Instances</Text>
-							</Box>
-							<Text>
-								<TextLink href="#latest">Latest {'>'}</TextLink>
-							</Text>
-						</Box>
-
-						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large" weight="bold">
-								32
-							</Text>
-							<Tag>
-								<>+23.7% since Sep 15</>
-							</Tag>
-						</Box>
-					</>
-				</Stat>
-				<Stat>
-					<>
+				<Stat
+					title={
 						<Box
 							color="neutral300"
 							display="flex"
@@ -103,49 +66,82 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							gap="4"
 						>
 							<FaUsers />
-							<Text>Users</Text>
+							<Text color="neutral500">Users</Text>
 						</Box>
-
-						<Box display="flex" gap="4" alignItems="center">
-							<Text color="black" size="large" weight="bold">
-								25
-							</Text>
-							<Text color="neutral500" size="large" weight="bold">
-								{' '}
-								/ Sep 13
-							</Text>
-						</Box>
-					</>
+					}
+				>
+					<Box display="flex" gap="4" alignItems="center">
+						<Text color="black" size="large" weight="bold">
+							25
+						</Text>
+						<Tag>
+							<>+23.7% since Sep 15</>
+						</Tag>
+					</Box>
 				</Stat>
-
-				<Stat noBorder>
-					<>
-						<Box
-							display="flex"
-							justifyContent="space-between"
-							flexDirection="row"
-							alignItems="center"
-						>
+				<Stat
+					title={
+						<>
 							<Box
 								color="neutral300"
 								display="flex"
 								alignItems="center"
 								gap="4"
 							>
-								<FaUsers />
-								<Text>Last 30 days</Text>
+								<BsGridFill />
+								<Text color="neutral500">Instances</Text>
 							</Box>
 							<Text>
-								<TextLink href="#metrics">
-									Metrics {'>'}
+								<TextLink
+									href={`${window.location.pathname}${window.location.search}#error-instance-container`}
+								>
+									Latest {'>'}
 								</TextLink>
 							</Text>
-						</Box>
+						</>
+					}
+				>
+					<Box display="flex" gap="4" alignItems="center">
+						<Text color="black" size="large" weight="bold">
+							32
+						</Text>
+						<Tag>
+							<>+23.7% since Sep 15</>
+						</Tag>
+					</Box>
+				</Stat>
+				<Stat
+					title={
+						<Text color="neutral500">Last/first occurrence</Text>
+					}
+				>
+					<Box display="flex" gap="4" alignItems="center">
+						<Text color="black" size="large" weight="bold">
+							25
+						</Text>
+						<Text color="neutral500" size="large" weight="bold">
+							{' '}
+							/ Sep 13
+						</Text>
+					</Box>
+				</Stat>
 
-						<Box display="flex" gap="4" alignItems="center">
-							TODO: Histogram
+				<Stat
+					title={
+						<Box
+							color="neutral300"
+							display="flex"
+							alignItems="center"
+							gap="4"
+						>
+							<Text color="neutral500">Last 30 days</Text>
 						</Box>
-					</>
+					}
+					noBorder
+				>
+					<Box display="flex" gap="4" alignItems="center">
+						<BarChart data={countBuckets} height={30} width={300} />
+					</Box>
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
@@ -169,10 +165,9 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	)
 }
 
-const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
-	children,
-	noBorder = false,
-}) => (
+const Stat: React.FC<
+	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
+> = ({ title, children, noBorder = false }) => (
 	<Box
 		borderBottom="neutral"
 		borderRight={noBorder ? undefined : 'neutral'}
@@ -183,11 +178,22 @@ const Stat: React.FC<{ children: React.ReactElement; noBorder?: boolean }> = ({
 		<Box
 			display="flex"
 			flexDirection="column"
-			gap="6"
+			gap="12"
 			justifyContent="space-between"
 			style={{ height: '100%' }}
 		>
-			{children}
+			<Box
+				display="flex"
+				justifyContent="space-between"
+				flexDirection="row"
+				alignItems="center"
+			>
+				{title}
+			</Box>
+
+			<Box display="flex" alignItems="center" style={{ height: 24 }}>
+				{children}
+			</Box>
 		</Box>
 	</Box>
 )

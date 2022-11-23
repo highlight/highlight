@@ -1,29 +1,13 @@
 .bodyWrapper {
 	display: flex;
-	height: 100%;
-	padding-left: var(--sidebar-width);
-	position: absolute;
+	height: calc(100% - var(--header-height));
+	overflow-x: hidden;
+	position: relative;
 	width: 100%;
 
 	&.bannerShown {
-		animation: accomodate-banner 0.5s forwards;
-		height: calc(100% - var(--banner-height));
-		overflow-x: hidden;
-	}
-
-	&.sidebarHidden {
-		overflow-x: hidden;
-		padding-left: 0;
-	}
-}
-
-@keyframes accomodate-banner {
-	0% {
-		top: 0;
-	}
-
-	100% {
-		top: var(--banner-height);
+		animation: 0.5s forwards;
+		height: calc(100% - var(--header-height) - var(--banner-height));
 	}
 }
 

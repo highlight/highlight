@@ -4,9 +4,8 @@
 	display: flex;
 	flex-direction: column;
 	height: var(--header-height);
-	margin-left: var(--sidebar-width);
 	position: fixed;
-	width: calc(100% - var(--sidebar-width));
+	width: 100%;
 	z-index: 99999999;
 
 	&.guest {
@@ -15,11 +14,6 @@
 
 	&.bannerShown {
 		animation: accomodate-banner 0.5s forwards;
-	}
-
-	&.sidebarHidden {
-		margin-left: 0;
-		width: 100%;
 	}
 }
 
@@ -60,8 +54,6 @@
 	display: flex;
 	height: var(--banner-height);
 	justify-content: center;
-	position: fixed;
-	top: calc(-1 * var(--banner-height));
 	width: 100%;
 	z-index: 1000;
 
@@ -141,8 +133,10 @@
 	align-items: center;
 	display: flex;
 	flex-grow: 1;
+	height: 28px;
+	justify-content: flex-end;
 	margin-left: var(--size-medium);
-	max-width: 550px;
+	max-width: 400px;
 }
 
 .hideableButtonContainer {

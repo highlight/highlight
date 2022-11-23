@@ -3,6 +3,8 @@ import { IconProps } from '../icons'
 import { Checkbox, CheckboxProps, useCheckboxState } from 'ariakit/checkbox'
 
 import * as styles from './styles.css'
+import { Box } from '../Box/Box'
+import { Text, Props as TextProps } from '../Text/Text'
 
 export type SwitchChangeEventHandler = (
 	checked: boolean,
@@ -10,13 +12,16 @@ export type SwitchChangeEventHandler = (
 ) => void
 
 type Props = CheckboxProps & {
-	icon: React.ReactElement<IconProps>
+	iconLeft?: React.ReactElement<IconProps>
+	iconRight?: React.ReactElement<IconProps>
 }
 
-export const SwitchButton: React.FC<Props> = ({
-	icon,
+export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	onChange,
 	checked,
+	iconLeft,
+	iconRight,
+	children,
 	...rest
 }) => {
 	const className = styles.variants({
@@ -32,7 +37,17 @@ export const SwitchButton: React.FC<Props> = ({
 			checked={checked}
 			{...rest}
 		>
-			{icon}
+			{iconLeft && (
+				<Box as="span" display="inline-flex">
+					{iconLeft}
+				</Box>
+			)}
+			{children && <Text>{children}</Text>}
+			{iconRight && (
+				<Box as="span" display="inline-flex">
+					{iconRight}
+				</Box>
+			)}
 		</Checkbox>
 	)
 }

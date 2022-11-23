@@ -1,7 +1,7 @@
 import { useGetProjectQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorObject } from '@graph/schemas'
-import { Badge, Box, Heading, Tag, Text } from '@highlight-run/ui'
+import { Box, Heading, Tag, Text } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import ErrorIssueButton from '@pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
@@ -9,7 +9,7 @@ import { ErrorStateSelect } from '@pages/ErrorsV2/ErrorStateSelect/ErrorStateSel
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
-import { FaArrowRight, FaMapMarker } from 'react-icons/fa'
+import { FaMapMarker } from 'react-icons/fa'
 
 interface Props {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -52,7 +52,7 @@ const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
 					<Box alignItems="center" display="flex" gap="10">
 						<Tag
 							iconLeft={<FaMapMarker />}
-							variant="grey"
+							kind="grey"
 							size="medium"
 							shape="basic"
 						>
