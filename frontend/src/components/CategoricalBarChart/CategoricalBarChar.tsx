@@ -124,6 +124,7 @@ const CategoricalBarChart = ({
 								<RechartTooltip
 									render={(payload: any[]) => (
 										<CustomTooltip
+											hideZeroValues
 											payload={payload}
 											yAxisLabel={yAxisLabel}
 											referenceLines={referenceLines}
@@ -140,7 +141,7 @@ const CategoricalBarChart = ({
 					{!hideLegend && (
 						<Legend
 							verticalAlign="bottom"
-							height={18}
+							height={(Math.floor(yAxisKeys.length / 4) + 1) * 16}
 							iconType={'square'}
 							iconSize={8}
 							content={(props) => (
