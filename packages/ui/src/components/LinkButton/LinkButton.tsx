@@ -25,10 +25,11 @@ export const LinkButton: React.FC<Props> = ({
 	iconLeft,
 	iconRight,
 }) => {
+	const Component = disabled ? DisabledLink : Link
+
 	return (
-		<Link
-			to={disabled ? null : to}
-			disabled={disabled}
+		<Component
+			to={disabled ? undefined : to}
 			className={clsx(
 				styles.base,
 				buttonStyles.variants({
@@ -65,6 +66,12 @@ export const LinkButton: React.FC<Props> = ({
 					{iconRight}
 				</Box>
 			)}
-		</Link>
+		</Component>
 	)
 }
+
+const DisabledLink: React.FC<Props> = ({ children, ...props }) => (
+	<button disabled aria-disabled {...props}>
+		{children}
+	</button>
+)
