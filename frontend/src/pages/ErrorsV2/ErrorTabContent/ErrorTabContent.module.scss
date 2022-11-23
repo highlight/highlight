@@ -2,7 +2,6 @@
 
 .tabs {
 	margin-top: var(--size-xxLarge);
-	color: #6f6e77;
 
 	:global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
 		color: var(--color-purple) !important;
