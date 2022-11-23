@@ -28,7 +28,7 @@ export const Basic = () => (
 
 export const Horizontal = () => (
 	<>
-		<Stack direction="horizontal" gap="24">
+		<Stack direction="row" gap="24">
 			<Content>Horizontal</Content>
 			<Content>Horizontal</Content>
 			<Content>Horizontal</Content>
@@ -39,7 +39,7 @@ export const Horizontal = () => (
 
 export const Wrapped = () => (
 	<>
-		<Stack direction="horizontal" gap="24" wrap>
+		<Stack direction="row" gap="24" wrap>
 			<Content>Horizontal / Wrapped</Content>
 			<Content>Horizontal / Wrapped</Content>
 			<Content>Horizontal / Wrapped</Content>
@@ -59,7 +59,7 @@ export const Wrapped = () => (
 
 export const Responsive = () => (
 	<Stack
-		direction={{ tablet: 'horizontal', mobile: 'vertical' }}
+		direction={{ tablet: 'row', mobile: 'column' }}
 		gap={{ desktop: '24', tablet: '16', mobile: '12' }}
 	>
 		<Content>Responsive</Content>
