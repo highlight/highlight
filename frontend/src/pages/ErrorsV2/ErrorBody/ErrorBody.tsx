@@ -23,10 +23,10 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const { startDate, weekly, counts, totalCount, userCount } =
 		getErrorGroupStats(errorGroup)
 	const usersChange = weekly.users[0]
-		? ((weekly.users[3] - weekly.users[0]) / weekly.users[0]) * 100
+		? ((weekly.users[1] - weekly.users[0]) / weekly.users[0]) * 100
 		: 0
 	const countChange = weekly.count[0]
-		? ((weekly.count[3] - weekly.count[0]) / weekly.count[0]) * 100
+		? ((weekly.count[1] - weekly.count[0]) / weekly.count[0]) * 100
 		: 0
 
 	React.useEffect(() => {

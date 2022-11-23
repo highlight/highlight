@@ -19,16 +19,17 @@ export const getErrorGroupStats = function (
 		count: [],
 		users: [],
 	}
-	for (let i = 0; i < 4; i++) {
-		const weekCounts = errorGroup?.error_metrics.slice(i * 7, (i + 1) * 7)
+	for (let i = 0; i < 2; i++) {
 		weekly.count.push(
-			weekCounts
+			errorGroup?.error_metrics
 				?.filter((x) => x?.name === 'count')
+				?.slice(i * 7, (i + 1) * 14)
 				?.reduce((a, b) => a + b.value, 0) || 0,
 		)
 		weekly.users.push(
-			weekCounts
+			errorGroup?.error_metrics
 				?.filter((x) => x?.name === 'identifierCount')
+				?.slice(i * 7, (i + 1) * 14)
 				?.reduce((a, b) => a + b.value, 0) || 0,
 		)
 	}
