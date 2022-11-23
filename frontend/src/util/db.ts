@@ -65,6 +65,7 @@ export const db = new DB()
 export class IndexedDBCache {
 	static expiryMS: { [op: string]: number } = {
 		GetEventChunkURL: moment.duration(5, 'minutes').asMilliseconds(),
+		GetSession: moment.duration(5, 'minutes').asMilliseconds(),
 	}
 	getItem = async function (key: { operation: string; variables: any }) {
 		const result = await db.apollo
@@ -182,12 +183,12 @@ export const indexedDBFetch = async function (
 	init?: RequestInit | undefined,
 ) {
 	if (!indexeddbEnabled) {
-		return await fetch(input, init)
+		return await fetch(input, { mode: 'no-cors', ...init })
 	}
 	const cacheKey = JSON.stringify({ input, init })
 	const cached = await db.fetch.where('key').equals(cacheKey).first()
 	if (!cached) {
-		const response = await fetch(input, init)
+		const response = await fetch(input, { mode: 'no-cors', ...init })
 		const ret = response.clone()
 		const headers: { [key: string]: string } = {}
 		response.headers.forEach((value: string, key: string) => {
