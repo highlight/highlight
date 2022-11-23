@@ -1,13 +1,9 @@
+import { QueryBuilderInput } from '@components/QueryBuilder/QueryBuilder'
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
 import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
 import React from 'react'
-
-type QueryBuilderType = 'sessions' | 'errors'
-export type QueryBuilderInput =
-	| (QueryBuilderState & { type: QueryBuilderType })
-	| undefined
 
 type SearchContext = BaseSearchContext<SearchParamsInput> & {
 	showStarredSessions: boolean

@@ -24,6 +24,11 @@ enum QueryBuilderState {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+type QueryBuilderType = 'sessions' | 'errors'
+export type QueryBuilderInput =
+	| (QueryBuilderState & { type: QueryBuilderType })
+	| undefined
+
 export interface QueryBuilderProps<SearchParams, SegmentData> {
 	searchContext: BaseSearchContext<SearchParams>
 	readonly?: boolean

@@ -13,6 +13,7 @@ import {
 	IconExitRight,
 } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
@@ -78,6 +79,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 
 	return (
 		<>

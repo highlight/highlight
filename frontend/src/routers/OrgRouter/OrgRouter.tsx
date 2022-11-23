@@ -4,49 +4,24 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
-import { RESET_PAGE_MS, STARTING_PAGE } from '@components/Pagination/Pagination'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
-import { ErrorSearchParamsInput, SearchParamsInput } from '@graph/schemas'
-import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
-import { SessionPageSearchParams } from '@pages/Player/utils/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
-import {
-	QueryBuilderInput,
-	SearchContextProvider,
-	useSearchContext,
-} from '@pages/Sessions/SearchContext/SearchContext'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
+import { WithErrorSearchContext } from '@routers/OrgRouter/WithErrorSearchContext'
+import { WithSessionSearchContext } from '@routers/OrgRouter/WithSessionSearchContext'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
-import { message } from 'antd'
 import classNames from 'classnames'
 import Firebase from 'firebase/app'
-import _ from 'lodash'
-import moment from 'moment/moment'
-import { Rule } from 'postcss'
-import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router'
-import { Route, Switch, useRouteMatch } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Switch } from 'react-router-dom'
 import { useToggle } from 'react-use'
-import {
-	ArrayParam,
-	BooleanParam,
-	JsonParam,
-	NumberParam,
-	StringParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
 
 import commonStyles from '../../Common.module.scss'
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble'
@@ -167,8 +142,8 @@ export const ProjectRouter = () => {
 					workspaces: data?.workspaces || [],
 				}}
 			>
-				<SearchContext>
-					<ErrorSearchContext>
+				<WithSessionSearchContext>
+					<WithErrorSearchContext>
 						<Switch>
 							<Route path="/:project_id/front" exact>
 								<FrontPlugin />
@@ -221,357 +196,9 @@ export const ProjectRouter = () => {
 								</div>
 							</Route>
 						</Switch>
-					</ErrorSearchContext>
-				</SearchContext>
+					</WithErrorSearchContext>
+				</WithSessionSearchContext>
 			</ApplicationContextProvider>
 		</GlobalContextProvider>
-	)
-}
-
-const InitialSearchParamsForUrl = {
-	browser: undefined,
-	date_range: undefined,
-	device_id: undefined,
-	excluded_properties: undefined,
-	excluded_track_properties: undefined,
-	first_time: undefined,
-	hide_viewed: undefined,
-	identified: undefined,
-	length_range: undefined,
-	os: undefined,
-	referrer: undefined,
-	track_properties: undefined,
-	user_properties: undefined,
-	visited_url: undefined,
-	show_live_sessions: undefined,
-	environments: undefined,
-	app_versions: undefined,
-}
-
-const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
-	children,
-}) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const [segmentName, setSegmentName] = useState<string | null>(null)
-	const [showStarredSessions, setShowStarredSessions] =
-		useState<boolean>(false)
-	const [searchParams, setSearchParams] = useState<SearchParamsInput>(
-		EmptySessionsSearchParams,
-	)
-	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
-	const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false)
-
-	const [page, setPage] = useState<number>()
-
-	const [selectedSegment, setSelectedSegment] = useLocalStorage<
-		{ value: string; id: string } | undefined
-	>(
-		`highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
-		undefined,
-	)
-
-	const [backendSearchQuery, setBackendSearchQuery] =
-		useState<BackendSearchQuery>(undefined)
-
-	const [queryBuilderInput, setQueryBuilderInput] =
-		useState<QueryBuilderInput>(undefined)
-
-	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
-		EmptySessionsSearchParams,
-	)
-
-	const sessionSearchContext = {
-		searchParams,
-		setSearchParams,
-		existingParams,
-		setExistingParams,
-		segmentName,
-		setSegmentName,
-		showStarredSessions,
-		setShowStarredSessions,
-		selectedSegment,
-		setSelectedSegment,
-		backendSearchQuery,
-		setBackendSearchQuery,
-		queryBuilderInput,
-		setQueryBuilderInput,
-		isQuickSearchOpen,
-		setIsQuickSearchOpen,
-		page,
-		setPage,
-		searchResultsLoading,
-		setSearchResultsLoading,
-	}
-
-	// Params and hooks for SearchContextProvider
-
-	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-		useQueryParams({
-			user_properties: FieldArrayParam,
-			identified: BooleanParam,
-			browser: StringParam,
-			date_range: JsonParam,
-			excluded_properties: FieldArrayParam,
-			hide_viewed: BooleanParam,
-			length_range: JsonParam,
-			os: StringParam,
-			referrer: StringParam,
-			track_properties: FieldArrayParam,
-			excluded_track_properties: FieldArrayParam,
-			visited_url: StringParam,
-			first_time: BooleanParam,
-			device_id: StringParam,
-			show_live_sessions: BooleanParam,
-			environments: ArrayParam,
-			app_versions: ArrayParam,
-			query: QueryBuilderStateParam,
-		})
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
-	)
-
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
-
-	const sessionsMatch = useRouteMatch('/:project_id/sessions')
-
-	useEffect(() => {
-		const areAnySearchParamsSet = !_.isEqual(
-			EmptySessionsSearchParams,
-			searchParams,
-		)
-
-		// Handles the case where the user is loading the page from a link shared from another user that has search params in the URL.
-		if (!segmentName && areAnySearchParamsSet) {
-			// `undefined` values will not be persisted to the URL.
-			// Because of that, we only want to change the values from `undefined`
-			// to the actual value when the value is different to the empty state.
-			const searchParamsToReflectInUrl = { ...InitialSearchParamsForUrl }
-			Object.keys(searchParams).forEach((key) => {
-				// @ts-expect-error
-				const currentSearchParam = searchParams[key]
-				// @ts-expect-error
-				const emptySearchParam = EmptySessionsSearchParams[key]
-				if (Array.isArray(currentSearchParam)) {
-					if (currentSearchParam.length !== emptySearchParam.length) {
-						// @ts-expect-error
-						searchParamsToReflectInUrl[key] = currentSearchParam
-					}
-				} else if (currentSearchParam !== emptySearchParam) {
-					// @ts-expect-error
-					searchParamsToReflectInUrl[key] = currentSearchParam
-				}
-			})
-
-			// Only do this on the session page.
-			// We don't do this on other pages because we use search params to represent state
-			// For example, on the /alerts page we use `code` to store the Slack code when the OAuth redirect.
-			// If we run this, it'll remove the code and the integration will fail.
-			if (sessionsMatch) {
-				setSearchParamsToUrlParams(
-					{
-						...searchParamsToReflectInUrl,
-					},
-					'replaceIn',
-				)
-			}
-		}
-	}, [setSearchParamsToUrlParams, searchParams, segmentName, sessionsMatch])
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-		}
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	// Session Segment Deep Linking
-	useEffect(() => {
-		// Only this effect on the sessions page
-		if (!sessionsMatch) {
-			return
-		}
-
-		if (selectedSegment && selectedSegment.id && selectedSegment.value) {
-			if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replace')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam])
-
-	useEffect(() => {
-		if (activeSegmentUrlParam) {
-			setSelectedSegment(activeSegmentUrlParam)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	return (
-		<SearchContextProvider value={sessionSearchContext}>
-			{children}
-		</SearchContextProvider>
-	)
-}
-
-const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
-	children,
-}) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const [segmentName, setSegmentName] = useState<string | null>(null)
-
-	const [cachedParams, setCachedParams] =
-		useLocalStorage<ErrorSearchParamsInput>(
-			`cachedErrorParams-v2-${
-				segmentName || 'no-selected-segment'
-			}-${project_id}`,
-			{},
-		)
-	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
-		cachedParams || EmptyErrorsSearchParams,
-	)
-	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
-	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>({})
-	const dateFromSearchParams = new URLSearchParams(location.search).get(
-		SessionPageSearchParams.date,
-	)
-	const searchParamsChanged = useRef<Date>()
-
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
-
-	const [backendSearchQuery, setBackendSearchQuery] =
-		useState<BackendSearchQuery>(undefined)
-
-	const history = useHistory()
-	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
-	const [page, setPage] = useState<number>()
-	const [rules, setRules] = useState<Rule[]>([])
-	const [isAnd, toggleIsAnd] = useToggle(true)
-
-	const errorSearchContext = {
-		searchParams,
-		setSearchParams,
-		existingParams,
-		setExistingParams,
-		segmentName,
-		setSegmentName,
-		backendSearchQuery,
-		setBackendSearchQuery,
-		page,
-		setPage,
-		searchResultsLoading,
-		setSearchResultsLoading,
-	}
-
-	useEffect(
-		() => setCachedParams(searchParams),
-		[searchParams, setCachedParams],
-	)
-
-	useEffect(() => {
-		if (dateFromSearchParams) {
-			const start_date = moment(
-				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
-			)
-			const end_date = moment(
-				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
-			)
-
-			setSearchParams(() => ({
-				// We are explicitly clearing any existing search params so the only
-				// applied search param is the date range.
-				...EmptyErrorsSearchParams,
-				date_range: {
-					start_date: start_date
-						.startOf('day')
-						.subtract(1, 'days')
-						.format(),
-					end_date: end_date.endOf('day').format(),
-				},
-			}))
-			message.success(
-				`Showing errors that were thrown on ${dateFromSearchParams}`,
-			)
-			history.replace({ search: '' })
-		}
-	}, [history, dateFromSearchParams, setSearchParams])
-
-	useEffect(() => {
-		if (queryBuilderInput?.type === 'errors') {
-			setSearchParams({
-				...EmptyErrorsSearchParams,
-				query: JSON.stringify(queryBuilderInput),
-			})
-			setQueryBuilderInput(undefined)
-		}
-	}, [queryBuilderInput, setQueryBuilderInput])
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	useEffect(() => {
-		// we just loaded the page for the first time
-		if (
-			searchParamsChanged.current &&
-			new Date().getTime() - searchParamsChanged.current.getTime() >
-				RESET_PAGE_MS
-		) {
-			// the search query actually changed, reset the page
-			setPage(STARTING_PAGE)
-		}
-		searchParamsChanged.current = new Date()
-	}, [searchParams, setPage])
-
-	return (
-		<ErrorSearchContextProvider value={errorSearchContext}>
-			{children}
-		</ErrorSearchContextProvider>
 	)
 }
