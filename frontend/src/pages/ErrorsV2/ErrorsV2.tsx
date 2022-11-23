@@ -40,6 +40,7 @@ import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import clsx from 'clsx'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -323,7 +324,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				<SearchPanel />
 
 				<div
-					className={classNames(styles.detailsContainer, {
+					className={clsx(styles.detailsContainer, {
 						[styles.moveDetailsRight]: showLeftPanel,
 					})}
 				>
