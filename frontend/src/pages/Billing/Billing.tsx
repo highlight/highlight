@@ -23,6 +23,7 @@ import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
+import analytics from '@util/analytics'
 import {
 	Authorization,
 	useAuthorization,
@@ -212,6 +213,11 @@ const BillingPage = () => {
 							newPlan,
 						)
 
+						analytics.track('Billing plan change', {
+							newPlan,
+							previousPlan,
+						})
+
 						if (upgradedPlan) {
 							setRainConfetti(true)
 							message.success(
@@ -221,6 +227,7 @@ const BillingPage = () => {
 						} else {
 							setRainConfetti(false)
 							message.success('Billing change applied!', 5)
+							analytics.track('Plan changed', { newPlan })
 						}
 						refetch().then(() => {
 							setLoadingPlanType(null)
