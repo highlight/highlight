@@ -138,7 +138,7 @@ export const Header = () => {
 														? 'primary'
 														: 'secondary'
 												}
-												href={`/${project_id}/${p.key}`}
+												to={`/${project_id}/${p.key}`}
 												key={p.key}
 											>
 												{titleCaseString(p.key)}

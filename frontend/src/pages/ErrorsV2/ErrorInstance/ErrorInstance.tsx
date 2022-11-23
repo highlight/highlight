@@ -5,7 +5,15 @@ import {
 	useGetProjectQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Button,
+	Column,
+	Heading,
+	IconPlay,
+	LinkButton,
+	Text,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { getProjectPrefix } from '@pages/ErrorsV2/utils'
@@ -19,7 +27,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { FiExternalLink } from 'react-icons/fi'
-import { Link, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -83,18 +91,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						{/* TODO: Handle button styles/disabled */}
-						<Link
+						<LinkButton
 							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.previous_id}`}
+							disabled={Number(errorInstance.previous_id) === 0}
+							kind="secondary"
+							emphasis="low"
 						>
 							Older
-						</Link>
+						</LinkButton>
 						<Box borderRight="neutral" style={{ height: 18 }} />
-						<Link
+						<LinkButton
 							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.next_id}`}
+							disabled={Number(errorInstance.next_id) === 0}
+							kind="secondary"
+							emphasis="low"
 						>
 							Newer
-						</Link>
+						</LinkButton>
 						<Button
 							kind="secondary"
 							emphasis="high"

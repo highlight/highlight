@@ -2,21 +2,23 @@ import clsx from 'clsx'
 import React from 'react'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-import { Link } from 'react-router-dom'
+import { Link, LinkProps } from 'react-router-dom'
 
 import * as buttonStyles from '../Button/styles.css'
 import * as styles from './styles.css'
 
 type Props = React.PropsWithChildren &
 	buttonStyles.Variants & {
-		href: string
+		to: LinkProps['to']
+		disabled?: boolean
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 	}
 
 export const LinkButton: React.FC<Props> = ({
 	children,
-	href,
+	disabled,
+	to,
 	kind,
 	size,
 	emphasis,
@@ -24,8 +26,10 @@ export const LinkButton: React.FC<Props> = ({
 	iconRight,
 }) => {
 	return (
-		<Link to={href}>
+		<Link to={to}>
 			<Box
+				as="button"
+				disabled={disabled}
 				cssClass={clsx(
 					styles.base,
 					buttonStyles.variants({
