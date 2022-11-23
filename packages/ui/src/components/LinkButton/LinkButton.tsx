@@ -28,7 +28,7 @@ export const LinkButton: React.FC<Props> = ({
 	return (
 		<Link to={to}>
 			<Box
-				as="button"
+				as="span"
 				disabled={disabled}
 				cssClass={clsx(
 					styles.base,
