@@ -7,12 +7,12 @@ import styles from './Histogram.module.scss'
 
 export interface Series {
 	label: string
-	color: string // Color as a css var e.g. --color-green-300
+	color: string // hex color string
 	counts: number[]
 }
 
 const POPOVER_TIMEOUT_MS = 300
-const BAR_RADIUS_PX = 2
+const BAR_RADIUS_PX = 4
 
 interface Props {
 	bucketTimes: number[]
@@ -162,7 +162,8 @@ const Histogram = React.memo(
 						{({ height, width }) => (
 							<BarChart
 								data={chartData}
-								barGap={0}
+								barGap={2.4}
+								barCategoryGap={2.4}
 								margin={{
 									top: 0,
 									right: 0,
@@ -241,7 +242,7 @@ const Histogram = React.memo(
 										key={s.label}
 										dataKey={s.label}
 										stackId="a"
-										fill={`var(${s.color})`}
+										fill={s.color}
 									>
 										{chartData.map((entry, i) => {
 											const isFirst =
