@@ -31,6 +31,7 @@ import {
 import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
@@ -54,6 +55,7 @@ export const worker: RequestWorker = new Worker(
 	},
 )
 
+analytics.initialize()
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {
 	debug: { clientInteractions: true, domRecording: true },
@@ -70,9 +72,6 @@ const options: HighlightOptions = {
 	},
 	tracingOrigins: ['highlight.run', 'localhost'],
 	integrations: {
-		mixpanel: {
-			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
-		},
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
 		},
@@ -201,7 +200,6 @@ const App = () => {
 const AuthenticationRoleRouter = () => {
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(window.location.pathname)?.pop()
-	const [getProjectQuery] = useGetProjectLazyQuery()
 	const [
 		getAdminWorkspaceRoleQuery,
 		{
@@ -279,9 +277,34 @@ const AuthenticationRoleRouter = () => {
 	}
 
 	const { setLoadingState } = useAppLoadingContext()
+	const [getProjectQuery] = useGetProjectLazyQuery()
 
 	const [user, setUser] = useState<any>()
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
+
+	useEffect(() => {
+		// Wait until auth is finished loading otherwise this request can fail.
+		if (!adminData || !projectId || isAuthLoading(authRole)) {
+			return
+		}
+
+		getProjectQuery({
+			variables: {
+				id: projectId,
+			},
+			onCompleted: (data) => {
+				if (!data.project || !adminData) {
+					return
+				}
+
+				analytics.identify(adminData.id, {
+					'Project ID': data.project?.id,
+					'Workspace ID': data.workspace?.id,
+				})
+			},
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [adminData, authRole, projectId])
 
 	useEffect(() => {
 		const variables: Partial<{ workspace_id: string; project_id: string }> =
@@ -333,7 +356,7 @@ const AuthenticationRoleRouter = () => {
 			} else if (adminData) {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-			H.track('Authenticated')
+			analytics.track('Authenticated')
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
@@ -348,34 +371,6 @@ const AuthenticationRoleRouter = () => {
 			)
 		}
 	}, [authRole, setLoadingState])
-
-	useEffect(() => {
-		// Wait until auth is finished loading otherwise this request can fail.
-		if (
-			!window.mixpanel ||
-			typeof window.mixpanel.register !== 'function' ||
-			!projectId ||
-			isAuthLoading(authRole)
-		) {
-			return
-		}
-
-		getProjectQuery({
-			variables: {
-				id: projectId,
-			},
-			onCompleted: (data) => {
-				if (!data.project) {
-					return
-				}
-
-				window.mixpanel.register({
-					'Project ID': data.project?.id,
-					'Workspace ID': data.workspace?.id,
-				})
-			},
-		})
-	}, [getProjectQuery, projectId, authRole])
 
 	const [enableStaffView] = useLocalStorage(
 		`highlight-enable-staff-view`,
@@ -408,38 +403,36 @@ get in contact with us!
 					errorString={JSON.stringify(adminError)}
 				/>
 			) : (
-				<Router>
-					<Switch>
-						<Route path="/:project_id(0)/*" exact>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route
-							path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
-							exact
-						>
-							{/* Allow guests to access this route without being asked to log in */}
-							<AuthAdminRouter />
-						</Route>
-						<Route path="/">
-							<LoginForm />
-						</Route>
-					</Switch>
-				</Router>
+				<Switch>
+					<Route path="/:project_id(0)/*" exact>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path={`/:project_id(${DEMO_WORKSPACE_PROXY_APPLICATION_ID})/*`}
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/sessions/:session_secure_id(\w+)"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route
+						path="/:project_id(\d+)/errors/:error_secure_id(\w+)"
+						exact
+					>
+						{/* Allow guests to access this route without being asked to log in */}
+						<AuthAdminRouter />
+					</Route>
+					<Route path="/">
+						<LoginForm />
+					</Route>
+				</Switch>
 			)}
 		</AuthContextProvider>
 	)

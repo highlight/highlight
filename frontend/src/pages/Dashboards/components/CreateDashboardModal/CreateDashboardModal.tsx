@@ -7,9 +7,9 @@ import SvgPlusIcon from '@icons/PlusIcon'
 import alertStyles from '@pages/Alerts/Alerts.module.scss'
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Form } from 'antd'
-import { H } from 'highlight.run'
 import React, { useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
@@ -95,7 +95,7 @@ const CreateDashboardModal = () => {
 				className={alertStyles.callToAction}
 				onClick={() => {
 					setShowModal(true)
-					H.track(`CreateDashboardModal-Open`)
+					analytics.track(`CreateDashboardModal-Open`)
 				}}
 			>
 				New Dashboard

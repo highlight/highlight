@@ -16,7 +16,8 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import React, { useState } from 'react'
+import analytics from '@util/analytics'
+import React, { useEffect, useState } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -56,6 +57,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			}
 		},
 	})
+
+	useEffect(() => analytics.page(), [])
 
 	const errorInstance = data?.error_instance
 
@@ -251,7 +254,7 @@ const User: React.FC<{
 							style={{ height: 28, width: 28 }}
 							customImage={avatarImage}
 						/>
-						<Text>{session.identifier}</Text>
+						<Text>{displayName}</Text>
 					</Box>
 
 					<Button

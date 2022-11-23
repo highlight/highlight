@@ -3,8 +3,8 @@ import SvgHashtagIcon from '@icons/HashtagIcon'
 import SvgLinkedIcon from '@icons/LinkedIcon'
 import SvgLinkIcon from '@icons/LinkIcon'
 import SvgMapIcon from '@icons/MapIcon'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { H } from 'highlight.run'
 import React from 'react'
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select'
 import AsyncSelect from 'react-select/async'
@@ -167,7 +167,7 @@ export const DeviceIdInput = () => {
 		current: ValueType<{ label: string; value: string }, false>,
 	) => {
 		setSearchParams((params) => ({ ...params, device_id: current?.value }))
-		H.track('DeviceIDFilter')
+		analytics.track('DeviceIDFilter')
 	}
 
 	return (
@@ -229,7 +229,7 @@ export const ReferrerInput = () => {
 		current: ValueType<{ label: string; value: string }, false>,
 	) => {
 		setSearchParams((params) => ({ ...params, referrer: current?.value }))
-		H.track('ReferrerFilter')
+		analytics.track('ReferrerFilter')
 	}
 
 	return (
@@ -294,7 +294,7 @@ export const VisitedUrlInput = () => {
 			...params,
 			visited_url: current?.value,
 		}))
-		H.track('VisitedUrlFilter')
+		analytics.track('VisitedUrlFilter')
 	}
 
 	return (
@@ -340,7 +340,7 @@ export const EnvironmentInput = () => {
 
 	const onChange = (current: string[]) => {
 		setSearchParams((params) => ({ ...params, environments: current }))
-		H.track('EnvironmentsFilter')
+		analytics.track('EnvironmentsFilter')
 	}
 
 	return (
@@ -376,7 +376,7 @@ export const AppVersionInput = () => {
 
 	const onChange = (current: string[]) => {
 		setSearchParams((params) => ({ ...params, app_versions: current }))
-		H.track('AppVersionFilter')
+		analytics.track('AppVersionFilter')
 	}
 
 	return (

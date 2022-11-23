@@ -1,6 +1,6 @@
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { ButtonProps } from 'antd'
-import { H } from 'highlight.run'
 import React, { useState } from 'react'
 
 import { useAuthContext } from '../../../authentication/AuthContext'
@@ -27,7 +27,7 @@ const SessionShareButton = (props: ButtonProps) => {
 				{...props}
 				trackingId="sessionShareButton"
 				onClick={() => {
-					H.track('Clicked share button')
+					analytics.track('Clicked share button')
 					setShowModal(true)
 				}}
 			>
@@ -98,7 +98,7 @@ const ExternalSharingToggle = () => {
 				loading={!session}
 				checked={!!session?.is_public}
 				onChange={(checked: boolean) => {
-					H.track('Toggled session isPublic', {
+					analytics.track('Toggled session isPublic', {
 						is_public: checked,
 					})
 					updateSessionIsPublic({

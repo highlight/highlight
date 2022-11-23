@@ -22,11 +22,11 @@ import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
+import analytics from '@util/analytics'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHistory } from 'react-router'
@@ -47,9 +47,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	} = useGetErrorGroupQuery({
 		variables: { secure_id: error_secure_id },
 		skip: !error_secure_id,
-		onCompleted: () => {
-			H.track('Viewed error', { is_guest: !isLoggedIn })
-		},
 	})
 
 	const history = useHistory()
@@ -80,6 +77,15 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
 	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+
+	useEffect(() => {
+		if (!error_secure_id) {
+			return
+		}
+
+		analytics.page({ is_guest: !isLoggedIn })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error_secure_id])
 
 	return (
 		<>

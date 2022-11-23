@@ -20,10 +20,10 @@ import { ErrorDistributionChart } from '@pages/Error/components/ErrorDistributio
 import ErrorShareButton from '@pages/Error/components/ErrorShareButton/ErrorShareButton'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -69,7 +69,7 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		variables: { secure_id: error_secure_id },
 		skip: !error_secure_id,
 		onCompleted: () => {
-			H.track('Viewed error', { is_guest: !isLoggedIn })
+			analytics.track('Viewed error', { is_guest: !isLoggedIn })
 		},
 	})
 
@@ -122,6 +122,8 @@ const ErrorPage = ({ integrated }: { integrated: boolean }) => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
+
+	useEffect(() => analytics.page(), [error_secure_id])
 
 	return (
 		<>
