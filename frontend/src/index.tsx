@@ -45,6 +45,14 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 
 import LoginForm, { AuthAdminRouter } from './pages/Login/Login'
+import { RequestWorker } from './worker'
+
+export const worker: RequestWorker = new Worker(
+	new URL('./worker.ts', import.meta.url),
+	{
+		type: 'module',
+	},
+)
 
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {

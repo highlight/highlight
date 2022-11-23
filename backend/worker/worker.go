@@ -111,24 +111,31 @@ func (w *Worker) writeToEventChunk(ctx context.Context, manager *payload.Payload
 	}
 
 	chunkIdx := 0
+	hadFullSnapshot := false
 	var eventChunks [][]*parse.ReplayEvent
 	for _, event := range events.Events {
 		if event.Type == parse.FullSnapshot {
-			chunkIdx++
+			if hadFullSnapshot {
+				chunkIdx++
+			}
+			hadFullSnapshot = true
 		}
 		if len(eventChunks) <= chunkIdx {
 			eventChunks = append(eventChunks, []*parse.ReplayEvent{})
 		}
 		eventChunks[chunkIdx] = append(eventChunks[chunkIdx], event)
 	}
-	for idx, events := range eventChunks {
+	for _, events := range eventChunks {
 		if len(events) == 0 {
 			continue
 		}
-		if idx > 0 {
+		if hadFullSnapshot {
 			sessionIdString := os.Getenv("SESSION_FILE_PATH_PREFIX") + strconv.FormatInt(int64(s.ID), 10)
 			if manager.EventsChunked != nil {
-				manager.EventsChunked.Close()
+				// close the chunk file
+				if err := manager.EventsChunked.Close(); err != nil {
+					return errors.Wrap(err, "error closing chunked events writer")
+				}
 			}
 			curChunkedFile := manager.GetFile(payload.EventsChunked)
 			if curChunkedFile != nil {

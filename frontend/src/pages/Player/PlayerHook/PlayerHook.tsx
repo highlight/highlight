@@ -28,6 +28,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { indexedDBFetch } from '@util/db'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
 import { timerEnd } from '@util/timer/timer'
@@ -333,7 +334,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 									secure_id: session_secure_id,
 									index: _i,
 								})
-								const chunkResponse = await fetch(
+								const chunkResponse = await indexedDBFetch(
 									response.data.event_chunk_url,
 								)
 								chunkEventsSet(
@@ -342,14 +343,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 										await chunkResponse.json(),
 									),
 								)
-								loadingChunks.current.delete(_i)
 								log('PlayerHook.tsx', 'set data for chunk', _i)
 							} catch (e: any) {
 								H.consumeError(
 									e,
 									'Error direct downloading session payload',
+									{ chunk: `${_i}` },
 								)
 								return [_i, []]
+							} finally {
+								loadingChunks.current.delete(_i)
 							}
 						})(i),
 					)
@@ -369,8 +372,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				await Promise.all(promises)
-			}
-			if (!loadingChunks.current.size && promises.length) {
 				log(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
@@ -383,7 +384,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					},
 				)
 				dispatchAction(lastTimeRef.current)
-			} else if (action) {
+			} else if (!loadingChunks.current.size && action) {
 				log(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
