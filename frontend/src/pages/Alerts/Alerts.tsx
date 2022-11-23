@@ -208,10 +208,9 @@ const TABLE_COLUMNS = [
 					<div className={styles.innerChart}>
 						{hasData ? (
 							<BarChart
-								sharedMaxNum={frequency}
+								maxValue={frequency}
 								height={30}
 								data={record.DailyFrequency}
-								showBase={false}
 							/>
 						) : (
 							<p className={styles.frequencyGraphEmptyMessage}>

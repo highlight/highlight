@@ -11,11 +11,13 @@ export const colors = {
 	neutral700: '#444444',
 	neutral800: '#2C2C2C',
 	neutral900: '#1A1A1A',
+	neutralN9: '#908E96',
 
 	purple100: '#B19CFF',
 	purple500: '#6C37F4',
 	purple700: '#5420D1',
 	purple900: '#0D0225',
+	purpleP9: '#744ED4',
 
 	blue100: '#D6F0FF',
 	blue300: '#96D5F8',
