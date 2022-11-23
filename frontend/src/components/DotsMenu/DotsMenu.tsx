@@ -1,5 +1,5 @@
+import analytics from '@util/analytics'
 import { Dropdown, DropDownProps } from 'antd'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import SvgDotsHorizontalIcon from '../../static/DotsHorizontalIcon'
@@ -36,7 +36,7 @@ const DotsMenu = ({
 			<button
 				className={styles.button}
 				onClick={() => {
-					H.track(trackingId)
+					analytics.track(trackingId)
 				}}
 			>
 				{icon}

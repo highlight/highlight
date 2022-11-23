@@ -1,7 +1,7 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { H } from 'highlight.run'
 import { useEffect, useState } from 'react'
 
 interface Config {
@@ -111,7 +111,7 @@ const useFeatureFlag = (feature: Feature, override?: boolean) => {
 		).then((_isOn) => {
 			const on = override ?? _isOn
 			setIsOn(on)
-			H.track(Feature[feature], {
+			analytics.track(Feature[feature], {
 				[`FeatureFlag-${Feature[feature]}-on`]: on,
 			})
 		})

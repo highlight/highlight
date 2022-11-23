@@ -1,10 +1,10 @@
+import analytics from '@util/analytics'
 import {
 	// eslint-disable-next-line no-restricted-imports
 	Select as AntDesignSelect,
 	SelectProps as AntDesignSelectProps,
 } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon'
@@ -50,7 +50,7 @@ const TextSelect = ({
 			<h2
 				className={styles.displayValue}
 				onClick={() => {
-					H.track('TextSelectDisplayValue')
+					analytics.track('TextSelectDisplayValue')
 				}}
 			>
 				{displayValue}

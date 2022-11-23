@@ -13,10 +13,10 @@ import SvgFileText2Icon from '@icons/FileText2Icon'
 import SvgTrashIcon from '@icons/TrashIcon'
 import { ErrorCommentButton } from '@pages/Error/components/ErrorComments/ErrorCommentButton/ErrorCommentButton'
 import { LINEAR_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
+import analytics from '@util/analytics'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { Menu } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 
 import CommentTextBody from '../../../Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
@@ -102,7 +102,7 @@ const ErrorCommentHeader = ({ comment, children, errorGroup }: any) => {
 		<MenuItem
 			icon={<SvgFileText2Icon />}
 			onClick={() => {
-				H.track('Create Issue from Comment')
+				analytics.track('Create Issue from Comment')
 				setShowNewIssueModal(true)
 			}}
 		>
