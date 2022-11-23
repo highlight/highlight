@@ -1040,7 +1040,7 @@ export interface QueryBuilderState {
 }
 
 export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
-	const ruleGroups = rules
+	return rules
 		.map((rule) => {
 			const ret: QueryBuilderRule = []
 
@@ -1067,8 +1067,6 @@ export const serializeRules = (rules: RuleProps[]): QueryBuilderRule[] => {
 			return ret
 		})
 		.filter((ruleGroup) => !!ruleGroup && ruleGroup.length > 0)
-
-	return ruleGroups
 }
 
 const LABEL_FUNC_MAP: { [K in string]: (x: string) => string } = {
@@ -1106,12 +1104,10 @@ export const deserializeGroup = (
 }
 
 const deserializeRules = (ruleGroups: any): RuleProps[] => {
-	const rules = ruleGroups.map((group: any[]) => {
+	return ruleGroups.map((group: any[]) => {
 		const [field, op, ...vals] = group
 		return deserializeGroup(field, op, vals)
 	})
-
-	return rules
 }
 
 const isComplete = (rule: RuleProps) =>
@@ -1600,7 +1596,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const getKeyOptions = async (input: string) => {
-		const results = customFields
+		return customFields
 			.concat(fieldData?.field_types ?? [])
 			.map((ft) => ({
 				label: ft.name,
@@ -1624,16 +1620,19 @@ function QueryBuilder<T extends SearchContextTypes>(
 					return 1
 				}
 			})
-		return results
 	}
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
 			const startDate = moment(
-				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
+				moment(
+					getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
+				).format('MM/DD/YYYY HH:mm'),
 			)
 			const endDate = moment(
-				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
+				moment(
+					getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
+				).format('MM/DD/YYYY HH:mm'),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
 			serializedQuery.current = {
@@ -1736,7 +1735,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
 
 	useEffect(() => {
-		if (searchResultsLoading === false) {
+		if (!searchResultsLoading) {
 			const timer = setTimeout(() => {
 				setSyncButtonDisabled(false)
 			}, 5000)
