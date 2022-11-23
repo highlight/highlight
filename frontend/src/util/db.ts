@@ -35,11 +35,13 @@ export const indexeddbEnabled = !import.meta.env.DEV || isEnabledInDev()
 export class DB extends Dexie {
 	apollo!: Table<{
 		key: string
+		created: string
 		updated: string
 		data: FetchResult<Record<string, any>>
 	}>
 	fetch!: Table<{
 		key: string
+		created: string
 		updated: string
 		blob: Blob
 		options: {
@@ -51,7 +53,7 @@ export class DB extends Dexie {
 
 	constructor() {
 		super('highlight')
-		this.version(2).stores({
+		this.version(3).stores({
 			apollo: 'key,updated',
 			fetch: 'key,updated',
 		})
@@ -61,31 +63,42 @@ export class DB extends Dexie {
 export const db = new DB()
 
 export class IndexedDBCache {
-	getItem: (key: string) => Promise<FetchResult<Record<string, any>> | null> =
-		async function (key: string) {
-			const result = await db.apollo.where('key').equals(key).first()
-			if (result) {
-				db.apollo.update(result.key, { updated: moment().format() })
+	static expiryMS: { [op: string]: number } = {
+		GetEventChunkURL: moment.duration(5, 'minutes').asMilliseconds(),
+	}
+	getItem = async function (key: { operation: string; variables: any }) {
+		const result = await db.apollo
+			.where('key')
+			.equals(JSON.stringify(key))
+			.first()
+		if (result) {
+			if (IndexedDBCache.expiryMS[key.operation]) {
+				if (
+					moment().diff(moment(result.created)) >=
+					IndexedDBCache.expiryMS[key.operation]
+				) {
+					db.apollo.delete(result.key)
+					return null
+				}
 			}
-			return result?.data ?? null
+			db.apollo.update(result.key, { updated: moment().format() })
 		}
-	setItem: (
-		key: string,
+		return result?.data ?? null
+	}
+	setItem = async function (
+		key: {
+			operation: string
+			variables: any
+		},
 		value: FetchResult<Record<string, any>>,
-	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
-		async function (key: string, value: FetchResult<Record<string, any>>) {
-			await db.apollo.put({
-				key,
-				updated: moment().format(),
-				data: value,
-			})
-		}
-	removeItem: (
-		key: string,
-	) => Promise<FetchResult<Record<string, any>>> | Promise<void> =
-		async function (key: string) {
-			await db.apollo.delete(key)
-		}
+	) {
+		await db.apollo.put({
+			key: JSON.stringify(key),
+			created: moment().format(),
+			updated: moment().format(),
+			data: value,
+		})
+	}
 }
 
 export const indexeddbCache = new IndexedDBCache()
@@ -131,28 +144,35 @@ export class IndexedDBLink extends ApolloLink {
 		}
 
 		return new Observable((observer) => {
-			const cacheKey = JSON.stringify({
-				operation: operation.operationName,
-				variables: operation.variables,
-			})
-			indexeddbCache.getItem(cacheKey).then((result) => {
-				if (result) {
-					observer.next(result)
-					observer.complete()
-				} else {
-					const req = this.httpLink.request(operation, forward)
-					if (req) {
-						req.subscribe((result) => {
-							indexeddbCache
-								.setItem(cacheKey, result)
-								.then(() => {
-									observer.next(result)
-									observer.complete()
-								})
-						})
+			indexeddbCache
+				.getItem({
+					operation: operation.operationName,
+					variables: operation.variables,
+				})
+				.then((result) => {
+					if (result) {
+						observer.next(result)
+						observer.complete()
+					} else {
+						const req = this.httpLink.request(operation, forward)
+						if (req) {
+							req.subscribe((result) => {
+								indexeddbCache
+									.setItem(
+										{
+											operation: operation.operationName,
+											variables: operation.variables,
+										},
+										result,
+									)
+									.then(() => {
+										observer.next(result)
+										observer.complete()
+									})
+							})
+						}
 					}
-				}
-			})
+				})
 		})
 	}
 }
@@ -175,6 +195,7 @@ export const indexedDBFetch = async function (
 		})
 		await db.fetch.put({
 			key: cacheKey,
+			created: moment().format(),
 			updated: moment().format(),
 			blob: await response.blob(),
 			options: {

@@ -167,7 +167,6 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 							},
 						})
 						const response = await client.query({
-							partialRefetch: true,
 							query: GetEventChunkUrlDocument,
 							variables: {
 								secure_id: secureID,
