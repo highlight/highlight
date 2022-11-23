@@ -99,7 +99,7 @@ export class IndexedDBLink extends ApolloLink {
 		'GetErrorGroupsOpenSearch',
 		'GetErrorsHistogram',
 		'GetEventChunks',
-		'GetEventChunkUrl',
+		'GetEventChunkURL',
 		'GetRecentErrors',
 		'GetSessionComments',
 		'GetSessionIntervals',
