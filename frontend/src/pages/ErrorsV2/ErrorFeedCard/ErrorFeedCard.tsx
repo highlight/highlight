@@ -16,7 +16,7 @@ import { Link } from 'react-router-dom'
 
 import * as style from './ErrorFeedCard.css'
 interface Props {
-	errorGroup: Maybe<ErrorGroup>
+	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 	urlParams?: string
 }
 export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {

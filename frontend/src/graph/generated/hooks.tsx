@@ -5883,6 +5883,8 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 					name
 					value
 				}
+				is_public
+				project_id
 			}
 			totalCount
 		}

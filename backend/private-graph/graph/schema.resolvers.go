@@ -3400,6 +3400,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 		return nil, err
 	}
 	eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID)
+	r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 5)
 	return eg, err
 }
 

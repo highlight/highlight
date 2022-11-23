@@ -2045,6 +2045,8 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
+					| 'is_public'
+					| 'project_id'
 				> & {
 						structured_stack_trace: Array<
 							Types.Maybe<

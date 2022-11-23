@@ -699,6 +699,8 @@ query GetErrorGroupsOpenSearch(
 				name
 				value
 			}
+			is_public
+			project_id
 		}
 		totalCount
 	}
