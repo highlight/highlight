@@ -116,17 +116,30 @@ export class Rule {
 		)
 	}
 
+	update(params: any) {
+		if (Object.hasOwn(params, 'field')) {
+			this.field = params.field
+		}
+		if (Object.hasOwn(params, 'op')) {
+			this.op = params.op
+		}
+		if (Object.hasOwn(params, 'val')) {
+			this.val = params.val
+		}
+	}
+
 	getCustomOptions(customFields?: CustomField[]): FieldOptions | undefined {
 		if (
-			!this.field ||
-			!this.type ||
-			!Object.values(CustomFieldType).includes(
+			this.field &&
+			this.type &&
+			Object.values(CustomFieldType).includes(
 				this.type as CustomFieldType,
 			)
 		) {
-			return
+			return customFields?.find(
+				(field) => field.name === this.field?.label,
+			)?.options
 		}
-		return customFields?.find((f) => f.name === this.field?.label)?.options
 	}
 }
 

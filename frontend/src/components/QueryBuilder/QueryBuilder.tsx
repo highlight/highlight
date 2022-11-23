@@ -1,3 +1,5 @@
+import QueryRule from '@components/QueryBuilder/components/QueryRule/QueryRule'
+import { Rule } from '@components/QueryBuilder/rule'
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { ErrorSearchParamsInput, SearchParamsInput } from '@graph/schemas'
 import {
@@ -15,7 +17,7 @@ import { omitBy } from 'lodash'
 import identity from 'lodash/identity'
 import isEqual from 'lodash/isEqual'
 import pickBy from 'lodash/pickBy'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 enum QueryBuilderState {
 	EMPTY = 'EMPTY',
@@ -42,6 +44,7 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 
 	const {
 		rules,
+		setRules,
 		searchParams,
 		existingParams,
 		segmentName,
@@ -131,6 +134,42 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 		}
 	}, [builderState, segmentName])
 
+	const [currentStep, setCurrentStep] = useState<number | undefined>(
+		undefined,
+	)
+
+	const [currentRule, setCurrentRule] = useState<Rule | undefined>()
+
+	const createNewRule = () => {
+		setCurrentRule(new Rule())
+		setCurrentStep(1)
+	}
+	const addRule = useCallback(
+		(rule: Rule) => {
+			setRules((rules) => [...rules, rule])
+			setCurrentRule(undefined)
+		},
+		[setRules],
+	)
+	const removeRule = useCallback(
+		(targetRule: Rule) =>
+			setRules((rules) => rules.filter((rule) => rule !== targetRule)),
+		[setRules],
+	)
+	const updateRule = useCallback(
+		(targetRule: Rule, newProps: any) => {
+			setRules((rules) =>
+				rules.map((rule) => {
+					if (rule === targetRule) {
+						rule.update(newProps)
+					}
+					return rule
+				}),
+			)
+		},
+		[setRules],
+	)
+
 	const filterSection = useMemo(() => {
 		if (builderState === QueryBuilderState.EMPTY) {
 			return null
@@ -144,11 +183,33 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 				borderBottom="neutral"
 			>
 				{rules.map((rule, idx) => (
-					<>{idx !== 0 && <Tag>{isAnd ? 'and' : 'or'}</Tag>}</>
+					<>
+						{idx !== 0 && (
+							<Tag onClick={() => toggleIsAnd()}>
+								{isAnd ? 'and' : 'or'}
+							</Tag>
+						)}
+						<QueryRule
+							key={idx}
+							rule={rule}
+							readonly={readonly}
+							onChangeKey={(val) => {
+								// Default to 'is' when rule is not defined yet
+								if (rule.op === undefined) {
+									updateRule(rule, {
+										field: val,
+										op: getDefaultOperator(rule.field),
+									})
+								} else {
+									updateRule(rule, { field: val })
+								}
+							}}
+						/>
+					</>
 				))}
 			</Box>
 		)
-	}, [builderState, isAnd, rules])
+	}, [builderState, isAnd, readonly, rules, toggleIsAnd, updateRule])
 
 	return (
 		<Box
