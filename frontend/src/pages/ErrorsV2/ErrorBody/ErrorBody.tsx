@@ -8,6 +8,8 @@ import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
+const showChangeThresholdPercent = 1
+
 interface Props {
 	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 }
@@ -57,13 +59,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{userCount}
 						</Text>
-						<Tag>
-							<>
-								{usersChange > 0 ? '+' : ''}
-								{usersChange.toFixed(1)}% since{' '}
-								{formatErrorGroupDate(startDate.format())}
-							</>
-						</Tag>
+						{Math.abs(usersChange) > showChangeThresholdPercent ? (
+							<Tag>
+								<>
+									{usersChange > 0 ? '+' : ''}
+									{usersChange.toFixed(0)}% since{' '}
+									{formatErrorGroupDate(startDate.format())}
+								</>
+							</Tag>
+						) : null}
 					</Box>
 				</Stat>
 				<Stat
@@ -92,13 +96,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 						<Text color="black" size="large" weight="bold">
 							{totalCount}
 						</Text>
-						<Tag>
-							<>
-								{countChange > 0 ? '+' : ''}
-								{countChange.toFixed(1)}% since{' '}
-								{formatErrorGroupDate(startDate.format())}
-							</>
-						</Tag>
+						{Math.abs(countChange) > showChangeThresholdPercent ? (
+							<Tag>
+								<>
+									{countChange > 0 ? '+' : ''}
+									{countChange.toFixed(0)}% since{' '}
+									{formatErrorGroupDate(startDate.format())}
+								</>
+							</Tag>
+						) : null}
 					</Box>
 				</Stat>
 				<Stat
@@ -109,27 +115,13 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<Box display="flex" gap="4" alignItems="center">
 						{errorGroup?.last_occurrence && (
 							<Text color="black" size="large" weight="bold">
-								{moment
-									.duration(
-										moment().diff(
-											moment(errorGroup?.last_occurrence),
-										),
-									)
-									.humanize()}
+								{moment(errorGroup?.last_occurrence).fromNow()}
 							</Text>
 						)}
 						{errorGroup?.first_occurrence && (
 							<Text color="neutral500" size="large" weight="bold">
 								{' / '}
-								{moment
-									.duration(
-										moment().diff(
-											moment(
-												errorGroup?.first_occurrence,
-											),
-										),
-									)
-									.humanize()}
+								{moment(errorGroup?.first_occurrence).fromNow()}
 							</Text>
 						)}
 					</Box>
@@ -208,7 +200,7 @@ const Stat: React.FC<
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" background="neutral100" borderRadius="4" p="4">
+	<Box as="span" backgroundColor="neutral100" borderRadius="4" p="4">
 		<Text color="black">{children}</Text>
 	</Box>
 )

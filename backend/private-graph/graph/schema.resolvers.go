@@ -3307,7 +3307,6 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
 func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, influx bool) (*model.ErrorResults, error) {
-	const lookbackPeriod = 5
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3343,13 +3342,13 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-		err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, lookbackPeriod)
+		err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
 		errorFrequencyInfluxSpan.Finish()
 	} else {
 		errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 			tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
 
-		err = r.SetErrorFrequencies(asErrorGroups, lookbackPeriod)
+		err = r.SetErrorFrequencies(asErrorGroups, ErrorGroupLookbackDays)
 		errorFrequencyOpensearchSpan.Finish()
 	}
 
@@ -3400,7 +3399,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 		return nil, err
 	}
 	eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID)
-	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 5); err != nil {
+	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
 		return nil, err
 	}
 	return eg, err
