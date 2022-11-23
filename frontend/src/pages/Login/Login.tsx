@@ -60,7 +60,7 @@ export const AuthAdminRouter = () => {
 					avatar: admin.photo_url,
 				}
 			}
-			H.identify(email, identifyMetadata)
+			analytics.identify(email, identifyMetadata)
 			H.getSessionURL()
 				.then((sessionUrl) => {
 					window.Intercom('boot', {
