@@ -17,9 +17,13 @@
 }
 
 .iconContainer {
+	display: inline-flex;
 	margin-right: var(--size-xxSmall);
+	padding-bottom: 4px;
+	vertical-align: middle;
 }
 
 .titleContainer {
-	padding: 0 var(--size-xSmall);
+	font-size: 13px;
+	padding: 0 6px;
 }

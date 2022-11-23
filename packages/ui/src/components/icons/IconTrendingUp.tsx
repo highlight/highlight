@@ -6,7 +6,7 @@ type Props = IconProps & {
 	size?: number | string
 }
 
-export const IconTrendingUp: React.FC<Props> = ({ size = 12, color }) => {
+export const IconTrendingUp: React.FC<Props> = ({ size = 14, color }) => {
 	color = color ?? 'currentColor'
 	return (
 		<svg

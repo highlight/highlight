@@ -43,7 +43,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						key: 'instances',
 						title: (
 							<TabTitle
-								icon={<IconTerminal size={12} />}
+								icon={<IconTerminal size={14} />}
 								label={'Instances'}
 							/>
 						),
@@ -74,7 +74,7 @@ type TabTitleProps = {
 const TabTitle: React.FC<TabTitleProps> = ({ icon, label }) => {
 	return (
 		<span className={styles.titleContainer}>
-			<span className={styles.iconContainer}>{icon}</span>
+			<div className={styles.iconContainer}>{icon}</div>
 			{label}
 		</span>
 	)
