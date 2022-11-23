@@ -4,7 +4,9 @@ import moment from 'moment/moment'
 export const getProjectPrefix = (project?: Maybe<Pick<Project, 'name'>>) =>
 	project?.name.slice(0, 3).toUpperCase() || 'HIG'
 
-export const getErrorGroupStats = function (errorGroup: Maybe<ErrorGroup>) {
+export const getErrorGroupStats = function (
+	errorGroup?: Maybe<Pick<ErrorGroup, 'error_metrics' | 'created_at'>>,
+) {
 	const lookbackDays = 30
 	const counts = errorGroup?.error_metrics
 		?.filter((x) => x?.name === 'count')

@@ -9,7 +9,7 @@ import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
 interface Props {
-	errorGroup: Maybe<ErrorGroup>
+	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 }
 
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({

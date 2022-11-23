@@ -2520,6 +2520,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
 			| 'created_at'
+			| 'updated_at'
 			| 'id'
 			| 'secure_id'
 			| 'type'

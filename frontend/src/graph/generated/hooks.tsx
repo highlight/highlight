@@ -7062,6 +7062,7 @@ export const GetErrorGroupDocument = gql`
 	query GetErrorGroup($secure_id: String!) {
 		error_group(secure_id: $secure_id) {
 			created_at
+			updated_at
 			id
 			secure_id
 			type
