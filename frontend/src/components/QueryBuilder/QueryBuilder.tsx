@@ -8,6 +8,7 @@ import {
 	IconPlusSm,
 	IconSave,
 	IconSegment,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { omitBy } from 'lodash'
@@ -142,11 +143,11 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 				borderBottom="neutral"
 			>
 				{rules.map((rule, idx) => (
-					<>{idx !== 0 && <Button>{isAnd ? 'and' : 'or'}</Button>}</>
+					<>{idx !== 0 && <Tag>{isAnd ? 'and' : 'or'}</Tag>}</>
 				))}
 			</Box>
 		)
-	}, [builderState])
+	}, [builderState, isAnd, rules])
 
 	return (
 		<Box
