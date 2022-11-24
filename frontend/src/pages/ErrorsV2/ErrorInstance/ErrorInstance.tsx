@@ -87,7 +87,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
 						<LinkButton
-							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.previous_id}`}
+							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.previous_id}${history.location.search}`}
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
@@ -96,7 +96,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</LinkButton>
 						<Box borderRight="neutral" style={{ height: 18 }} />
 						<LinkButton
-							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.next_id}`}
+							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.next_id}${history.location.search}`}
 							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
