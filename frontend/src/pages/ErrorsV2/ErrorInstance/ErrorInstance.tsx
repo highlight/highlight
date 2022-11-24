@@ -53,14 +53,23 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 		onCompleted: (data) => {
 			const previousErrorObjectId = data?.error_instance?.previous_id
+			const nextErrorObjectId = data?.error_instance?.next_id
 
+			// Prefetch the next/previous error objects so they are in the cache.
 			if (previousErrorObjectId) {
-				// Prefetch the next error object so it's in the cache and transitions
-				// are fast.
 				getErrorInstanceLazyQuery({
 					variables: {
 						error_group_secure_id: String(errorGroup?.secure_id),
 						error_object_id: previousErrorObjectId,
+					},
+				})
+			}
+
+			if (nextErrorObjectId) {
+				getErrorInstanceLazyQuery({
+					variables: {
+						error_group_secure_id: String(errorGroup?.secure_id),
+						error_object_id: nextErrorObjectId,
 					},
 				})
 			}
