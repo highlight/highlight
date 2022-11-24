@@ -56,6 +56,7 @@ const ErrorFeed = () => {
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId,
+			influx: true,
 		},
 		onCompleted: (r) => {
 			const results = r?.error_groups_opensearch

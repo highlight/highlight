@@ -5850,15 +5850,18 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$count: Int!
 		$query: String!
 		$page: Int
+		$influx: Boolean!
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
 			page: $page
+			influx: $influx
 		) {
 			error_groups {
 				created_at
+				updated_at
 				id
 				secure_id
 				type
@@ -5874,6 +5877,14 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 					columnNumber
 				}
 				error_frequency
+				error_metrics {
+					error_group_id
+					date
+					name
+					value
+				}
+				is_public
+				project_id
 			}
 			totalCount
 		}
@@ -5896,6 +5907,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      page: // value for 'page'
+ *      influx: // value for 'influx'
  *   },
  * });
  */
@@ -7052,6 +7064,7 @@ export const GetErrorGroupDocument = gql`
 	query GetErrorGroup($secure_id: String!) {
 		error_group(secure_id: $secure_id) {
 			created_at
+			updated_at
 			id
 			secure_id
 			type
@@ -7090,7 +7103,15 @@ export const GetErrorGroupDocument = gql`
 				value
 			}
 			error_frequency
+			error_metrics {
+				error_group_id
+				date
+				name
+				value
+			}
 			is_public
+			last_occurrence
+			first_occurrence
 		}
 	}
 `

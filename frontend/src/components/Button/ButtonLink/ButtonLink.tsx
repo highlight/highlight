@@ -1,7 +1,7 @@
 import Button from '@components/Button/Button/Button'
+import analytics from '@util/analytics'
 import { ButtonType } from 'antd/lib/button'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 import { Link, LinkProps } from 'react-router-dom'
 
@@ -63,7 +63,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 					[styles.defaultButtonStyles]: type === 'default',
 				})}
 				onClick={(e) => {
-					H.track(`Link-${trackingId}`)
+					analytics.track(`Link-${trackingId}`)
 					onClick && onClick(e)
 				}}
 				target="_blank"
@@ -88,7 +88,7 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 				[styles.defaultButtonStyles]: type === 'default',
 			})}
 			onClick={(e) => {
-				H.track(`Link-${trackingId}`)
+				analytics.track(`Link-${trackingId}`)
 				onClick && onClick(e)
 			}}
 		>

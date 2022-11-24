@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import DashboardsRouter from '@pages/Dashboards/DashboardsRouter'
 import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
@@ -12,6 +11,10 @@ import { Redirect, Route, Switch } from 'react-router-dom'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
+import { usePreloadErrors, usePreloadSessions } from '@util/preload'
+
 import ErrorPage from '../../pages/Error/ErrorPage'
 import PlayerPage from '../../pages/Player/PlayerPage'
 import ProjectSettings from '../../pages/ProjectSettings/ProjectSettings'
@@ -21,6 +24,10 @@ interface Props {
 }
 
 const ApplicationRouter = ({ integrated }: Props) => {
+	const { page } = useSearchContext()
+	const { page: errorPage } = useErrorSearchContext()
+	usePreloadSessions({ page: page || 1 })
+	usePreloadErrors({ page: errorPage || 1 })
 	const { project_id } = useParams<{ project_id: string }>()
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const [newErrorsPageEnabled] = useLocalStorage(
@@ -30,7 +37,6 @@ const ApplicationRouter = ({ integrated }: Props) => {
 
 	return (
 		<>
-			<KeyboardShortcutsEducation />
 			<Switch>
 				{/* These two routes do not require login */}
 				<Route path="/:project_id/sessions/:session_secure_id?" exact>

@@ -666,15 +666,18 @@ query GetErrorGroupsOpenSearch(
 	$count: Int!
 	$query: String!
 	$page: Int
+	$influx: Boolean!
 ) {
 	error_groups_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
 		page: $page
+		influx: $influx
 	) {
 		error_groups {
 			created_at
+			updated_at
 			id
 			secure_id
 			type
@@ -690,6 +693,14 @@ query GetErrorGroupsOpenSearch(
 				columnNumber
 			}
 			error_frequency
+			error_metrics {
+				error_group_id
+				date
+				name
+				value
+			}
+			is_public
+			project_id
 		}
 		totalCount
 	}
@@ -973,6 +984,7 @@ query GetSubscriptionDetails($workspace_id: ID!) {
 query GetErrorGroup($secure_id: String!) {
 	error_group(secure_id: $secure_id) {
 		created_at
+		updated_at
 		id
 		secure_id
 		type
@@ -1011,7 +1023,15 @@ query GetErrorGroup($secure_id: String!) {
 			value
 		}
 		error_frequency
+		error_metrics {
+			error_group_id
+			date
+			name
+			value
+		}
 		is_public
+		last_occurrence
+		first_occurrence
 	}
 }
 

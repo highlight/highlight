@@ -9,7 +9,7 @@ on:
 jobs:
     build:
         name: Build Yarn Turborepo
-        timeout-minutes: 15
+        timeout-minutes: 30
         runs-on: ubuntu-latest
         # configures turborepo Remote Caching
         env:

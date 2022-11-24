@@ -7885,11 +7885,12 @@ __metadata:
     "@vanilla-extract/vite-plugin": ^3.6.1
     "@vitejs/plugin-react": ^2.2.0
     antd: ^4.17.0
-    apollo3-cache-persist: ^0.14.0
     autoprefixer: ^10.4.8
     babel-plugin-react-wrapped-display-name: ^1.0.0
     classnames: ^2.3.1
     color-hash: ^2.0.1
+    dexie: ^3.2.2
+    dexie-react-hooks: ^1.1.1
     dinero.js: ^2.0.0-alpha.8
     eslint: ^7.0.0
     eslint-config-prettier: ^7.2.0
@@ -7953,6 +7954,7 @@ __metadata:
     react-virtualized-auto-sizer: ^1.0.6
     react-virtuoso: ^2.13.1
     recharts: ^2.1.13
+    rudder-sdk-js: ^2.20.0
     sass: ^1.54.8
     source-map-explorer: ^2.5.2
     stacktrace-js: ^2.0.2
@@ -15166,15 +15168,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"apollo3-cache-persist@npm:^0.14.0":
-  version: 0.14.0
-  resolution: "apollo3-cache-persist@npm:0.14.0"
-  peerDependencies:
-    "@apollo/client": ^3.2.5
-  checksum: 28a3a5cb51a4d10993b9ee0ec1c2f771e96f5eda30b01ef9438d079fe5e86eea3d0a65ed42febb9812c7c6a7e619c27b0b8a27a9436ffdd3adc48fc07af155c1
-  languageName: node
-  linkType: hard
-
 "app-root-dir@npm:^1.0.2":
   version: 1.0.2
   resolution: "app-root-dir@npm:1.0.2"
@@ -19935,6 +19928,24 @@ __metadata:
   version: 0.0.981744
   resolution: "devtools-protocol@npm:0.0.981744"
   checksum: 609901bff551f5fbe98e272bdda7269de527e28fab138de371ffd7e9a06fa68ca2eec2e961bd1cd6fd98223ccee562c55b7ce3235d4e37cc8d85d6681bc45593
+  languageName: node
+  linkType: hard
+
+"dexie-react-hooks@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "dexie-react-hooks@npm:1.1.1"
+  peerDependencies:
+    "@types/react": ">=16"
+    dexie: ">=3.1.0-alpha.1 <5.0.0"
+    react: ">=16"
+  checksum: 09e1b1d4ebc248d103eb13c8f77733f4c140478350d2b8f3989af2fedb45e0d4ae7a07df9281ade162a3264ff621db35899b47d6edf5bf532ba22d571f6f1496
+  languageName: node
+  linkType: hard
+
+"dexie@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "dexie@npm:3.2.2"
+  checksum: 7a21079f7ab139ebd724a009917f9293f2b01c341e2a3cd51d2455dda4d4e78b9ca7de0373e963108395cf1921ce7f6556cac967c1e957005a3c7c11794ceccf
   languageName: node
   linkType: hard
 
@@ -37697,6 +37708,13 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.1.2
   checksum: 6b7744328f932a2457f7e01c170c7df5bfe5de7c3ebbb42a69800fdc4c1983a0534178e956c3535bbbe52464fb387d385dceae470105a4f62dc26f953b89f653
+  languageName: node
+  linkType: hard
+
+"rudder-sdk-js@npm:^2.20.0":
+  version: 2.20.0
+  resolution: "rudder-sdk-js@npm:2.20.0"
+  checksum: a6f255c6f5e27aa2cf928f3792358247a204de7f5b447f540e3ab437d7eade4fc9eefa01005211c3091e71a6603e7a7b679104a728392d6014fd7b44b40ee173
   languageName: node
   linkType: hard
 

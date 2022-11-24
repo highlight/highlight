@@ -212,6 +212,17 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	}
 }
 
+// ErrorMetrics is the resolver for the error_metrics field.
+func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorDistributionItem, error) {
+	return r.GetErrorGroupFrequencies(ctx, obj.ProjectID, []int{obj.ID}, modelInputs.ErrorGroupFrequenciesParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(-24 * 30 * time.Hour),
+			EndDate:   time.Now(),
+		},
+		ResolutionHours: 24,
+	}, "")
+}
+
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -2971,7 +2982,7 @@ func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, e
 		FROM workspaces w
 		INNER JOIN projects p
 		ON p.workspace_id = w.id
-		INNER JOIN daily_session_counts_view sc
+		LEFT OUTER JOIN daily_session_counts_view sc
 		ON sc.project_id = p.id
 		group by 1, 2
 	`).Scan(&accounts).Error; err != nil {
@@ -3295,7 +3306,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int, influx bool) (*model.ErrorResults, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -3327,11 +3338,19 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
 	}
 
-	errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+	if influx {
+		errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
 
-	err = r.SetErrorFrequencies(asErrorGroups, 5)
-	errorFrequencyOpensearchSpan.Finish()
+		err = r.SetErrorFrequenciesInflux(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
+		errorFrequencyInfluxSpan.Finish()
+	} else {
+		errorFrequencyOpensearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
+			tracer.ResourceName("resolver.errorFrequencyOpensearch"), tracer.Tag("project_id", projectID))
+
+		err = r.SetErrorFrequencies(asErrorGroups, ErrorGroupLookbackDays)
+		errorFrequencyOpensearchSpan.Finish()
+	}
 
 	if err != nil {
 		return nil, err
@@ -3375,7 +3394,15 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 
 // ErrorGroup is the resolver for the error_group field.
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
-	return r.canAdminViewErrorGroup(ctx, secureID, true)
+	eg, err := r.canAdminViewErrorGroup(ctx, secureID, true)
+	if err != nil {
+		return nil, err
+	}
+	eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID)
+	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, err
+	}
+	return eg, err
 }
 
 // ErrorObject is the resolver for the error_object field.
@@ -4036,52 +4063,19 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 }
 
 // ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
-	var errorGroupIDs []string
-	for _, egSecureID := range errorGroupSecureIds {
-		errorGroup, err := r.canAdminViewErrorGroup(ctx, egSecureID, false)
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+	var errorGroupIDs []int
+	for _, errorGroupSecureID := range errorGroupSecureIds {
+		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID, false)
 		if err != nil {
 			return nil, e.Wrap(err, "admin not error group owner")
 		}
-		errorGroupIDs = append(errorGroupIDs, strconv.Itoa(errorGroup.ID))
+		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
 	}
-
-	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, params.DateRange.EndDate.Sub(params.DateRange.StartDate))
-	query := fmt.Sprintf(`
-      from(bucket: "%[1]s")
-		|> range(start: %[2]s, stop: %[3]s)
-		|> filter(fn: (r) => r._measurement == "%[4]s")
-		|> filter(fn: (r) => contains(value: r.ErrorGroupID, set: %[5]q))
-		|> aggregateWindow(every: %[6]dh, fn: sum, createEmpty: true)
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupIDs, params.ResolutionHours)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupIDs", errorGroupSecureIds)
-	results, err := r.TDB.Query(ctx, query)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to perform tdb query for error group frequencies")
+	if metric == nil {
+		metric = pointy.String("")
 	}
-	var response []*modelInputs.ErrorDistributionItem
-	for _, r := range results {
-		field := r.Values["_field"]
-		if field != nil {
-			var value int64
-			if r.Value != nil {
-				value = r.Value.(int64)
-			}
-			var id string
-			if r.Values["ErrorGroupID"] != nil {
-				id = r.Values["ErrorGroupID"].(string)
-			}
-			response = append(response, &modelInputs.ErrorDistributionItem{
-				ErrorGroupID: id,
-				Date:         r.Time,
-				Name:         field.(string),
-				Value:        value,
-			})
-		}
-	}
-	return response, nil
+	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
 // Referrers is the resolver for the referrers field.

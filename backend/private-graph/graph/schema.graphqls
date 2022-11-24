@@ -366,6 +366,7 @@ type ErrorField {
 
 type ErrorGroup {
 	created_at: Timestamp!
+	updated_at: Timestamp!
 	id: ID!
 	secure_id: String!
 	project_id: Int!
@@ -379,7 +380,10 @@ type ErrorGroup {
 	state: ErrorState!
 	environments: String
 	error_frequency: [Int64!]!
+	error_metrics: [ErrorDistributionItem!]!
 	is_public: Boolean!
+	first_occurrence: Timestamp
+	last_occurrence: Timestamp
 }
 
 type ErrorMetadata {
@@ -1075,6 +1079,7 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
+		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
@@ -1128,8 +1133,9 @@ type Query {
 	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
-		error_group_secure_ids: [String!]!
+		error_group_secure_ids: [String!]
 		params: ErrorGroupFrequenciesParamsInput!
+		metric: String
 	): [ErrorDistributionItem]!
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount

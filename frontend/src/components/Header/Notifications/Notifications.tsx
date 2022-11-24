@@ -9,10 +9,10 @@ import SvgMailOpenIcon from '@icons/MailOpenIcon'
 import SvgSearchIcon from '@icons/SearchIcon'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Menu } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import Lottie from 'lottie-react'
 import React, { useEffect, useMemo, useState } from 'react'
 
@@ -86,7 +86,7 @@ const Notifications = () => {
 											) => {
 												setShowPopover(false)
 												if (notification.id) {
-													H.track(
+													analytics.track(
 														'Clicked on notification item',
 														{},
 													)
@@ -142,7 +142,7 @@ const Notifications = () => {
 											) => {
 												setShowPopover(false)
 												if (notification.id) {
-													H.track(
+													analytics.track(
 														'Clicked on notification item',
 														{},
 													)
@@ -220,7 +220,7 @@ const Notifications = () => {
 			}
 			onVisibleChange={(visible) => {
 				if (visible) {
-					H.track('Viewed notifications')
+					analytics.track('Viewed notifications')
 				}
 				setShowPopover(visible)
 			}}

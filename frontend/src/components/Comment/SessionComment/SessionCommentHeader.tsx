@@ -19,10 +19,10 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
+import analytics from '@util/analytics'
 import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { Menu, message } from 'antd'
-import { H } from 'highlight.run'
 import React, { PropsWithChildren, useMemo, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 
@@ -75,7 +75,7 @@ const SessionCommentHeader = ({
 		<MenuItem
 			icon={<SvgFileText2Icon />}
 			onClick={() => {
-				H.track('Create Issue from Comment')
+				analytics.track('Create Issue from Comment')
 				setShowNewIssueModal(true)
 			}}
 		>

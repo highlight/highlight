@@ -42,6 +42,7 @@ import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import { useApplicationContext } from '@routers/OrgRouter/ApplicationContext'
+import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
@@ -181,7 +182,7 @@ const PlayerPage = ({ integrated }: Props) => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 200)
+		}, 1000 / 60)
 		return () => {
 			i && clearInterval(i)
 		}
@@ -202,6 +203,8 @@ const PlayerPage = ({ integrated }: Props) => {
 		playerBoundingClientRectWidth,
 		playerBoundingClientRectHeight,
 	])
+
+	useEffect(() => analytics.page(), [session_secure_id])
 
 	const showLeftPanel =
 		showLeftPanelPreference &&

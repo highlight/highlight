@@ -53,11 +53,11 @@ import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToke
 import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getTimelineEventDisplayName } from '@pages/Player/Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
+import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import clsx from 'clsx'
-import { H } from 'highlight.run'
 import React from 'react'
 import { useState } from 'react'
 
@@ -120,7 +120,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('PlayerSkipLeft')
+						analytics.track('PlayerSkipLeft')
 						const prevTime = Math.max(time - 5000, 0)
 						setTime(prevTime)
 					}}
@@ -129,7 +129,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -148,7 +148,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('Player Play/Pause Button')
+						analytics.track('Player Play/Pause Button')
 						if (isPlaybackComplete) {
 							pause(time)
 							const newTime = 0
@@ -172,7 +172,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			<ExplanatoryPopover
@@ -191,7 +191,7 @@ const ToolbarControls = () => {
 			>
 				<ButtonIcon
 					onClick={() => {
-						H.track('PlayerSkipRight')
+						analytics.track('PlayerSkipRight')
 						const newTime = Math.max(time + 5000, 0)
 						setTime(newTime)
 					}}
@@ -200,7 +200,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</ExplanatoryPopover>
 			{showLiveToggle && (
@@ -208,7 +208,7 @@ const ToolbarControls = () => {
 					onClick={() => {
 						setIsLiveMode((isLive) => !isLive)
 					}}
-					variant={isLiveMode ? 'primary' : 'grey'}
+					kind={isLiveMode ? 'primary' : 'grey'}
 					disabled={disableControls}
 				>
 					Live
@@ -278,7 +278,7 @@ const ToolbarControls = () => {
 						}
 					>
 						<Tag
-							variant="grey"
+							kind="grey"
 							onClick={() => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
@@ -306,7 +306,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showHistogram}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconChartBar size={14} />}
+							iconLeft={<IconChartBar size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<ExplanatoryPopover
@@ -327,7 +327,7 @@ const ToolbarControls = () => {
 							}}
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
-							icon={<IconTerminal size={14} />}
+							iconLeft={<IconTerminal size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
@@ -363,7 +363,7 @@ const ToolbarControls = () => {
 								size="small"
 								shape="square"
 								emphasis="low"
-								variant="secondary"
+								kind="secondary"
 							/>
 						</Box>
 					</Popover>
@@ -378,7 +378,7 @@ const ToolbarControls = () => {
 					size="small"
 					shape="square"
 					emphasis="low"
-					variant="secondary"
+					kind="secondary"
 				/>
 			</Box>
 		</div>

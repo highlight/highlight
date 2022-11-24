@@ -16,11 +16,11 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
+import analytics from '@util/analytics'
 import { client } from '@util/graph'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Redirect, useLocation } from 'react-router-dom'
@@ -86,7 +86,7 @@ const NewProjectPage = () => {
 				},
 			})
 			const createdWorkspaceId = result.data?.createWorkspace?.id
-			H.track('CreateWorkspace', { name })
+			analytics.track('CreateWorkspace', { name })
 			await client.cache.reset()
 			setName('')
 			if (createdWorkspaceId && autoJoinDomains?.length) {
@@ -111,7 +111,7 @@ const NewProjectPage = () => {
 					namedOperations.Query.GetProjectsAndWorkspaces,
 				],
 			})
-			H.track('CreateProject', { name })
+			analytics.track('CreateProject', { name })
 			await client.cache.reset()
 			setName('')
 		}

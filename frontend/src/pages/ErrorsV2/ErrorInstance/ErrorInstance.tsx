@@ -16,7 +16,8 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
-import React, { useState } from 'react'
+import analytics from '@util/analytics'
+import React, { useEffect, useState } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -57,6 +58,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
+	useEffect(() => analytics.page(), [])
+
 	const errorInstance = data?.error_instance
 
 	if (!errorInstance || !errorInstance?.error_object) {
@@ -67,7 +70,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const projectPrefix = getProjectPrefix(projectData?.project)
 
 	return (
-		<Box>
+		<Box id="error-instance-container">
 			<Box mt="28" mb="32" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Error Instance</Heading>
@@ -180,23 +183,23 @@ const Metadata: React.FC<{
 			<Box>
 				<Column.Container gap="16">
 					<Column span="4">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text
 									color="neutral500"
 									transform="capitalize"
 									align="left"
 								>
-									{tag.key.replace('_', ' ')}
+									{meta.key.replace('_', ' ')}
 								</Text>
 							</Box>
 						))}
 					</Column>
 					<Column span="8">
-						{metadata.map((tag) => (
-							<Box py="10" key={tag.key}>
+						{metadata.map((meta) => (
+							<Box py="10" key={meta.key}>
 								<Text align="left" lines="1">
-									{tag.label}
+									{meta.label}
 								</Text>
 							</Box>
 						))}
@@ -251,7 +254,7 @@ const User: React.FC<{
 							style={{ height: 28, width: 28 }}
 							customImage={avatarImage}
 						/>
-						<Text>{session.identifier}</Text>
+						<Text>{displayName}</Text>
 					</Box>
 
 					<Button

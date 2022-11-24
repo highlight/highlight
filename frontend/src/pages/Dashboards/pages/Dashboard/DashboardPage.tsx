@@ -29,6 +29,7 @@ import {
 	LAYOUT_CHART_WIDTH,
 	LAYOUT_ROW_WIDTH,
 } from '@pages/Dashboards/Metrics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Dropdown, Menu, message } from 'antd'
 import classNames from 'classnames'
@@ -87,6 +88,8 @@ const DashboardPage = ({
 	useEffect(() => {
 		setNewDashboardCardIdx(undefined)
 	}, [dashboard])
+
+	useEffect(() => analytics.page(), [])
 
 	const [, setNewMetrics] = useState<DashboardMetricConfig[]>([])
 

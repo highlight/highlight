@@ -2024,6 +2024,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
 	page?: Types.Maybe<Types.Scalars['Int']>
+	influx: Types.Scalars['Boolean']
 }>
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
@@ -2035,6 +2036,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 				{ __typename?: 'ErrorGroup' } & Pick<
 					Types.ErrorGroup,
 					| 'created_at'
+					| 'updated_at'
 					| 'id'
 					| 'secure_id'
 					| 'type'
@@ -2043,6 +2045,8 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
+					| 'is_public'
+					| 'project_id'
 				> & {
 						structured_stack_trace: Array<
 							Types.Maybe<
@@ -2053,6 +2057,12 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 									| 'functionName'
 									| 'columnNumber'
 								>
+							>
+						>
+						error_metrics: Array<
+							{ __typename?: 'ErrorDistributionItem' } & Pick<
+								Types.ErrorDistributionItem,
+								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
 					}
@@ -2512,6 +2522,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
 			| 'created_at'
+			| 'updated_at'
 			| 'id'
 			| 'secure_id'
 			| 'type'
@@ -2522,6 +2533,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'stack_trace'
 			| 'error_frequency'
 			| 'is_public'
+			| 'last_occurrence'
+			| 'first_occurrence'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<
@@ -2567,6 +2580,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 								'name' | 'value'
 							>
 						>
+					>
+				>
+				error_metrics: Array<
+					{ __typename?: 'ErrorDistributionItem' } & Pick<
+						Types.ErrorDistributionItem,
+						'error_group_id' | 'date' | 'name' | 'value'
 					>
 				>
 			}

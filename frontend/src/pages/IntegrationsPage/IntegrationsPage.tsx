@@ -10,8 +10,9 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -83,6 +84,8 @@ const IntegrationsPage = () => {
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
 	])
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<>

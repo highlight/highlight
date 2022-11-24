@@ -18,9 +18,9 @@ import {
 	ToolbarItem,
 	useToolbarItemsContext,
 } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
+import analytics from '@util/analytics'
 import { Dropdown, Menu } from 'antd'
 import classNames from 'classnames'
-import { H } from 'highlight.run'
 import React from 'react'
 
 import toolbarStyles from '../Toolbar.module.scss'
@@ -85,7 +85,7 @@ const ToolbarItemComponent = React.memo(
 								<MenuItem
 									icon={<SvgCloseIcon />}
 									onClick={() => {
-										H.track(
+										analytics.track(
 											`ToolbarMenuItemPin ${trackingId}`,
 											{
 												isPinned: false,
@@ -118,9 +118,12 @@ const ToolbarItemComponent = React.memo(
 							className={styles.pinButton}
 							toggled={configuration.isPinned}
 							onClick={() => {
-								H.track(`ToolbarMenuItemUPin ${trackingId}`, {
-									isPinned: !configuration.isPinned,
-								})
+								analytics.track(
+									`ToolbarMenuItemUPin ${trackingId}`,
+									{
+										isPinned: !configuration.isPinned,
+									},
+								)
 								onPinToggle()
 							}}
 						>

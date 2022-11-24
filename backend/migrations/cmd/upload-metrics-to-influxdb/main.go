@@ -56,10 +56,9 @@ func main() {
 				pointsByProject[mg.ProjectID] = []timeseries.Point{}
 			}
 			pointsByProject[mg.ProjectID] = append(pointsByProject[mg.ProjectID], timeseries.Point{
-				Measurement: timeseries.Metrics,
-				Time:        firstTime,
-				Tags:        tags,
-				Fields:      fields,
+				Time:   firstTime,
+				Tags:   tags,
+				Fields: fields,
 			})
 		}
 		for projectID, points := range pointsByProject {

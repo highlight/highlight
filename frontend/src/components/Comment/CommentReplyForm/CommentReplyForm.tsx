@@ -19,10 +19,10 @@ import { namedOperations } from '@graph/operations'
 import { SanitizedAdminInput, SanitizedSlackChannelInput } from '@graph/schemas'
 import SvgArrowRightIcon from '@icons/ArrowRightIcon'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
+import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
 import { Form, message } from 'antd'
-import { H } from 'highlight.run'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 
@@ -81,7 +81,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 	>([])
 
 	const submitReply = async () => {
-		H.track('Reply to Comment', {
+		analytics.track('Reply to Comment', {
 			numHighlightAdminMentions: mentionedAdmins.length,
 			numSlackMentions: mentionedSlackUsers.length,
 		})
@@ -104,7 +104,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 			setCommentText('')
 		} catch (_e) {
 			const e = _e as Error
-			H.track('Reply to Comment Failed', { error: e.toString() })
+			analytics.track('Reply to Comment Failed', { error: e.toString() })
 			message.error(
 				<>
 					Failed to reply to the comment, please try again. If this
