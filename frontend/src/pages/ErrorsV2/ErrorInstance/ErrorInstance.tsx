@@ -16,7 +16,6 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
-import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
@@ -76,20 +75,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		return null
 	}
 
-	const errorObject = errorInstance?.error_object
-	const projectPrefix = getProjectPrefix(projectData?.project)
+	const errorObject = errorInstance.error_object
 
 	return (
 		<Box id="error-instance-container">
-			<Box mt="28" mb="32" display="flex" justifyContent="space-between">
+			<Box my="28" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Error Instance</Heading>
-
-					<Text>
-						Error groups {'>'} {projectPrefix}-
-						{errorObject.error_group_id} {' > '}
-						{projectPrefix}-Ins-{errorObject.id}
-					</Text>
 				</Box>
 
 				<Box>
@@ -130,7 +122,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Box
 				display="flex"
 				flexDirection={{ desktop: 'row', mobile: 'column' }}
-				my="40"
+				mb="40"
 				gap="40"
 			>
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
