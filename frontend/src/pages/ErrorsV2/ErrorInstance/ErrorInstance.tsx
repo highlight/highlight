@@ -1,8 +1,8 @@
+import { useApolloClient } from '@apollo/client'
 import { Avatar } from '@components/Avatar/Avatar'
 import {
-	useGetErrorInstanceLazyQuery,
+	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
-	useGetProjectQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import {
@@ -40,12 +40,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	}>()
 	const { projectId } = useProjectId()
 	const history = useHistory()
+	const client = useApolloClient()
 
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: projectId },
-	})
-
-	const [getErrorInstanceLazyQuery] = useGetErrorInstanceLazyQuery()
 	const { data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
@@ -56,8 +52,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			const nextErrorObjectId = data?.error_instance?.next_id
 
 			// Prefetch the next/previous error objects so they are in the cache.
+			// Using client directly because the lazy query had issues with canceling
+			// multiple requests: https://github.com/apollographql/apollo-client/issues/9755
 			if (previousErrorObjectId) {
-				getErrorInstanceLazyQuery({
+				client.query({
+					query: GetErrorInstanceDocument,
 					variables: {
 						error_group_secure_id: String(errorGroup?.secure_id),
 						error_object_id: previousErrorObjectId,
@@ -66,7 +65,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			}
 
 			if (nextErrorObjectId) {
-				getErrorInstanceLazyQuery({
+				client.query({
+					query: GetErrorInstanceDocument,
 					variables: {
 						error_group_secure_id: String(errorGroup?.secure_id),
 						error_object_id: nextErrorObjectId,
