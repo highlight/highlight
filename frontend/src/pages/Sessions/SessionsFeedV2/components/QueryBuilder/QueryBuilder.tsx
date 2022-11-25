@@ -1930,7 +1930,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 									rule.val,
 								)}
 								onChangeValue={(val) => {
-									updateRule(rule, { val: val })
+									updateRule(rule, { val })
 								}}
 								getValueOptions={getValueOptionsCallback(
 									rule.field,

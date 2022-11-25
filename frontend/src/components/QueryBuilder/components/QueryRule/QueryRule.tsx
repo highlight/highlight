@@ -45,7 +45,7 @@ const QueryRule = ({
 				value={{
 					kind: OptionKind.SINGLE,
 					value: JSON.stringify(rule.op),
-					label: rule.label,
+					label: rule.operatorLabel,
 				}}
 				onChange={onChangeOperator}
 				loadOptions={getOperatorOptions}

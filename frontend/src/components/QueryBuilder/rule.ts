@@ -48,63 +48,6 @@ export class Rule {
 		)
 	}
 
-	get label(): string {
-		const parts = []
-		switch (this.op?.name) {
-			case OperatorName.IS:
-				parts.push('is')
-				if (this.op?.negated) {
-					parts.push('not')
-				}
-				break
-			case OperatorName.CONTAINS:
-				if (this.op?.negated) {
-					parts.push('does not contain')
-				} else {
-					parts.push('contains')
-				}
-				break
-			case OperatorName.EXISTS:
-				if (this.op?.negated) {
-					parts.push('does not exist')
-				} else {
-					parts.push('exists')
-				}
-				break
-			case OperatorName.BETWEEN:
-			case OperatorName.BETWEEN_DATE:
-			case OperatorName.BETWEEN_TIME:
-				parts.push('is')
-				if (this.op?.negated) {
-					parts.push('not')
-				}
-				parts.push('between')
-				break
-			case OperatorName.MATCHES:
-				if (this.op?.negated) {
-					parts.push('does not match')
-				} else {
-					parts.push('matches')
-				}
-				break
-		}
-
-		if (
-			this.val?.kind === OptionKind.MULTI &&
-			this.val.options.length > 1
-		) {
-			switch (this.op?.name) {
-				case OperatorName.IS:
-				case OperatorName.CONTAINS:
-				case OperatorName.MATCHES:
-					parts.push('any of')
-					break
-			}
-		}
-
-		return parts.join(' ')
-	}
-
 	get type(): string | undefined {
 		return this.field?.value.split('_')[0]
 	}
@@ -136,9 +79,8 @@ export class Rule {
 				this.type as CustomFieldType,
 			)
 		) {
-			return customFields?.find(
-				(field) => field.name === this.field?.label,
-			)?.options
+			return customFields?.find((f) => f.name === this.field?.label)
+				?.options
 		}
 	}
 }
