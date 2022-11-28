@@ -31,6 +31,8 @@ import { AxisDomain } from 'recharts/types/util/types'
 import styles from './LineChart.module.scss'
 
 export const CLICK_NEARBY_THRESHOLD = 4
+export const MAX_LEGEND_ITEMS = 16
+export const MAX_TOOLTIP_ITEMS = 5
 
 export interface Reference {
 	value: number
@@ -285,6 +287,7 @@ export const CustomTooltip = ({
 	const filteredPayloads = payload
 		?.filter((p) => !hideZeroValues || p.value)
 		.reverse()
+		.slice(0, MAX_TOOLTIP_ITEMS)
 	if (hideZeroValues && filteredPayloads.length === 0) {
 		return null
 	}
@@ -357,7 +360,7 @@ export const CustomLegend = ({
 	return (
 		<div className="flex h-full w-full justify-center align-middle">
 			<div className="mt-1 grid w-11/12 grid-cols-4 items-center justify-center gap-x-2 overflow-x-scroll">
-				{payload?.map((entry, index) => (
+				{payload?.slice(0, MAX_LEGEND_ITEMS)?.map((entry, index) => (
 					<Button
 						trackingId="LineChartLegendFilter"
 						key={`item-${index}`}
