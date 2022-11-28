@@ -1,12 +1,8 @@
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
+import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
-import {
-	ErrorGroup,
-	ErrorObject,
-	Maybe,
-	SourceMappingError,
-} from '@graph/schemas'
+import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas'
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
 import { useParams } from '@util/react-router/useParams'
@@ -87,12 +83,6 @@ const StackTraceSection = ({
 							Are there sourcemaps tied to your javascript code?
 							If yes, you can upload them to Highlight in CI/CD to
 							get enhanced stack traces.
-							{/* <div>
-								{errorGroup?.structured_stack_trace.map(
-									(value) =>
-										JSON.stringify(value?.errorObject),
-								)}
-							</div> */}
 							<div className={styles.sourcemapActions}>
 								<ButtonLink
 									anchor
@@ -134,9 +124,6 @@ const StackTraceSection = ({
 						linesBefore={e?.linesBefore ?? undefined}
 						linesAfter={e?.linesAfter ?? undefined}
 						error={e?.error ?? undefined}
-						sourceMappingErrorMetadata={
-							e?.sourceMappingErrorMetadata ?? undefined
-						}
 						index={i}
 						compact={compact}
 					/>
@@ -164,7 +151,6 @@ type StackSectionProps = {
 	linesBefore?: string
 	linesAfter?: string
 	error?: string
-	sourceMappingErrorMetadata?: SourceMappingError
 	index: number
 	compact: boolean
 }
@@ -201,7 +187,6 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	linesBefore,
 	linesAfter,
 	error,
-	sourceMappingErrorMetadata,
 	index,
 	compact,
 }) => {
@@ -236,6 +221,12 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 							{functionName}
 						</span>
 					</Tooltip>
+					<span className={styles.tooltip}>
+						<InfoTooltip
+							size="large"
+							title={getErrorMessage(error)}
+						/>
+					</span>
 				</div>
 			)}
 		</div>
