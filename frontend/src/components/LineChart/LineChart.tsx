@@ -282,6 +282,9 @@ export const CustomTooltip = ({
 	payload: any[]
 	hideZeroValues?: boolean
 }) => {
+	if (hideZeroValues && payload.length === 0) {
+		return null
+	}
 	return (
 		<>
 			<p className="mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll">
@@ -308,27 +311,25 @@ export const CustomTooltip = ({
 										background: entry.color,
 									}}
 								></div>
-								<span>
-									<span className={styles.tooltipValue}>
-										{entry.value?.toFixed
-											? entry.value.toFixed(precision)
-											: entry.value}
-									</span>{' '}
-									{yAxisLabel}
-									{entry?.payload.range_start ? (
-										<>
-											{' in '}
-											{entry.payload.range_start.toFixed(
-												precision,
-											)}
-											{units} -{' '}
-											{entry.payload.range_end.toFixed(
-												precision,
-											)}
-											{units}
-										</>
-									) : null}
-								</span>
+								<span className={styles.tooltipValue}>
+									{entry.value?.toFixed
+										? entry.value.toFixed(precision)
+										: entry.value}
+								</span>{' '}
+								{yAxisLabel}
+								{entry?.payload.range_start ? (
+									<>
+										{' in '}
+										{entry.payload.range_start.toFixed(
+											precision,
+										)}
+										{units} -{' '}
+										{entry.payload.range_end.toFixed(
+											precision,
+										)}
+										{units}
+									</>
+								) : null}
 								{referenceLines?.length &&
 								referenceLines?.length >= 2
 									? getScoreIcon(
@@ -380,9 +381,7 @@ export const CustomLegend = ({
 								}
 							})
 						}}
-						className={
-							'flex items-center gap-x-1 p-0 text-xs text-gray-500'
-						}
+						className="flex items-center gap-x-1 p-0 text-xs text-gray-500"
 					>
 						<div
 							className={classNames(styles.legendIcon, {
