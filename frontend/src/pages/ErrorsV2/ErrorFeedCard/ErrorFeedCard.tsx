@@ -122,8 +122,9 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 					<Box paddingTop="2" display="flex" alignItems="flex-end">
 						<BarChart
 							data={errorGroup?.error_frequency || []}
-							height={34}
+							height={38}
 							width={80}
+							selected={errorGroup?.secure_id === error_secure_id}
 						/>
 					</Box>
 				</Box>

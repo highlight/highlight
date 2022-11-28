@@ -11,11 +11,13 @@ export const colors = {
 	neutral700: '#444444',
 	neutral800: '#2C2C2C',
 	neutral900: '#1A1A1A',
+	neutralN9: '#908E96',
 
 	purple100: '#B19CFF',
 	purple500: '#6C37F4',
 	purple700: '#5420D1',
 	purple900: '#0D0225',
+	purpleP9: '#744ED4',
 
 	blue100: '#D6F0FF',
 	blue300: '#96D5F8',
@@ -25,6 +27,9 @@ export const colors = {
 	green100: '#EBFF5E',
 	green500: '#8DC31A',
 
+	redR7: '#F3AEAF',
+	redR8: '#EB9091',
+	redR9: '#E5484D',
 	red500: '#FF5377',
 	orange500: '#FF9457',
 	teal500: '#36E79B',

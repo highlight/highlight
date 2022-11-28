@@ -16,6 +16,7 @@ import {
 	Maybe,
 } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorQueryBuilder, {
 	TIME_RANGE_FIELD,
@@ -77,7 +78,7 @@ const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
 				seriesList = [
 					{
 						label: 'Errors logged',
-						color: '--color-purple',
+						color: colors.neutralN9,
 						counts: histogramData.error_objects,
 					},
 				]
