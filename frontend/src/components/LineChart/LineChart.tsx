@@ -282,68 +282,63 @@ export const CustomTooltip = ({
 	payload: any[]
 	hideZeroValues?: boolean
 }) => {
-	if (hideZeroValues && payload.length === 0) {
+	const filteredPayloads = payload
+		?.filter((p) => !hideZeroValues || p.value)
+		.reverse()
+	if (hideZeroValues && filteredPayloads.length === 0) {
 		return null
 	}
 	return (
 		<>
 			<p className="mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll">
-				{payload[0].payload.date && (
+				{filteredPayloads[0].payload.date && (
 					<div className="mb-4 flex w-full flex-row items-center justify-around gap-x-4">
-						{moment(payload[0].payload.date).format(
+						{moment(filteredPayloads[0].payload.date).format(
 							'MMMM Do YYYY, h:mm A',
 						)}
 					</div>
 				)}
-				{payload
-					?.filter((p) => !hideZeroValues || p.value)
-					.reverse()
-					.map((entry: any) => {
-						return (
+				{filteredPayloads.map((entry: any) => {
+					return (
+						<div key={entry.dataKey} className={styles.tooltipGrid}>
+							<span>{entry.dataKey}</span>
 							<div
-								key={entry.dataKey}
-								className={styles.tooltipGrid}
-							>
-								<span>{entry.dataKey}</span>
-								<div
-									className={styles.legendIcon}
-									style={{
-										background: entry.color,
-									}}
-								></div>
-								<span className={styles.tooltipValue}>
-									{entry.value?.toFixed
-										? entry.value.toFixed(precision)
-										: entry.value}
-								</span>{' '}
-								{yAxisLabel}
-								{entry?.payload.range_start ? (
-									<>
-										{' in '}
-										{entry.payload.range_start.toFixed(
-											precision,
-										)}
-										{units} -{' '}
-										{entry.payload.range_end.toFixed(
-											precision,
-										)}
-										{units}
-									</>
-								) : null}
-								{referenceLines?.length &&
-								referenceLines?.length >= 2
-									? getScoreIcon(
-											getMetricValueScore(entry.value, {
-												max_good_value:
-													referenceLines![0].value,
-												max_needs_improvement_value:
-													referenceLines![1].value,
-											}),
-									  )
-									: undefined}
-							</div>
-						)
-					})}
+								className={styles.legendIcon}
+								style={{
+									background: entry.color,
+								}}
+							></div>
+							<span className={styles.tooltipValue}>
+								{entry.value?.toFixed
+									? entry.value.toFixed(precision)
+									: entry.value}
+							</span>{' '}
+							{yAxisLabel}
+							{entry?.payload.range_start ? (
+								<>
+									{' in '}
+									{entry.payload.range_start.toFixed(
+										precision,
+									)}
+									{units} -{' '}
+									{entry.payload.range_end.toFixed(precision)}
+									{units}
+								</>
+							) : null}
+							{referenceLines?.length &&
+							referenceLines?.length >= 2
+								? getScoreIcon(
+										getMetricValueScore(entry.value, {
+											max_good_value:
+												referenceLines![0].value,
+											max_needs_improvement_value:
+												referenceLines![1].value,
+										}),
+								  )
+								: undefined}
+						</div>
+					)
+				})}
 			</p>
 		</>
 	)
