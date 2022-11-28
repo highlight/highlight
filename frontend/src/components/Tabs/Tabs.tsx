@@ -13,6 +13,7 @@ export interface TabItem {
 	key: string
 	title?: string | React.ReactNode // If undefined, `key` will be used as the title
 	panelContent: React.ReactNode
+	disabled?: boolean
 }
 
 type Props = Pick<
@@ -102,13 +103,14 @@ const Tabs = ({
 				[styles.noHeaderPadding]: noHeaderPadding,
 			})}
 		>
-			{tabs.map(({ panelContent, title, key }) => (
+			{tabs.map(({ panelContent, title, key, disabled }) => (
 				<TabPane
 					key={key}
 					tab={title ?? key}
 					className={classNames(styles.tabPane, {
 						[styles.withPadding]: !noPadding,
 					})}
+					disabled={disabled}
 				>
 					{panelContent}
 				</TabPane>

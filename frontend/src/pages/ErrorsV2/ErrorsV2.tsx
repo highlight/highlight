@@ -7,7 +7,7 @@ import {
 } from '@graph/hooks'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
-import ErrorInstance from '@pages/ErrorsV2/ErrorInstance/ErrorInstance'
+import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
@@ -128,7 +128,7 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												errorGroup={data?.error_group}
 											/>
 
-											<ErrorInstance
+											<ErrorTabContent
 												errorGroup={data?.error_group}
 											/>
 										</>
