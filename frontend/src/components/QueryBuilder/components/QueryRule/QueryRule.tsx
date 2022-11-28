@@ -4,8 +4,10 @@ import QueryRuleSelect, {
 	pickQueryRuleSelectType,
 	QueryRuleSelectType,
 } from '@components/QueryBuilder/components/QueryRuleSelect/QueryRuleSelect'
-import { OptionKind } from '@components/QueryBuilder/field'
-import { OperatorName } from '@components/QueryBuilder/operator'
+import {
+	getOperatorAsOption,
+	OperatorName,
+} from '@components/QueryBuilder/operator'
 import { Rule } from '@components/QueryBuilder/rule'
 import { Box, Button, IconXCircle } from '@highlight-run/ui'
 
@@ -42,11 +44,7 @@ const QueryRule = ({
 				disabled={readonly}
 			/>
 			<QueryRuleSelect
-				value={{
-					kind: OptionKind.SINGLE,
-					value: JSON.stringify(rule.op),
-					label: rule.operatorLabel,
-				}}
+				value={getOperatorAsOption(rule.op)}
 				onChange={onChangeOperator}
 				loadOptions={getOperatorOptions}
 				type={QueryRuleSelectType.SINGLE}

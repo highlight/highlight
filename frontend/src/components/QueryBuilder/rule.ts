@@ -344,12 +344,10 @@ export function parseQuery(
 	defaultTimeRangeRule: Rule,
 	metadata?: RuleMetadata,
 ): BackendSearchQuery {
-	let timeRangeRule = rules.find(
-		(rule) => rule.field?.value === defaultTimeRangeRule.field!.value,
-	)
-	if (!timeRangeRule) {
-		timeRangeRule = defaultTimeRangeRule
-	}
+	const timeRangeRule =
+		rules.find(
+			(rule) => rule.field?.value === defaultTimeRangeRule.field!.value,
+		) ?? defaultTimeRangeRule
 
 	const timeRange = (timeRangeRule?.val as MultiselectOption).options[0].value
 

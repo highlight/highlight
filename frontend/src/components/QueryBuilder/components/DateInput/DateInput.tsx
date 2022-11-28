@@ -3,8 +3,6 @@ import { DatePicker } from 'antd'
 import moment from 'moment'
 import React from 'react'
 
-import inputStyles from './InputStyles.module.scss'
-
 const { RangePicker } = DatePicker
 
 interface DateInputProps {
@@ -33,7 +31,6 @@ export const DateInput = ({ startDate, endDate, onChange }: DateInputProps) => {
 				}}
 				value={[moment(startDate), moment(endDate)]}
 				suffixIcon={<SvgCalendarIcon height="16px" width="16px" />}
-				className={inputStyles.datePicker}
 				onChange={(_date: any, dateStrings: [string, string]) => {
 					// Dates in local timezone.
 					const start_date = dateStrings[0]

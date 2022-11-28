@@ -7,8 +7,6 @@ import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useToggle } from 'react-use'
 
-import styles from './LengthInput.module.scss'
-
 interface LengthInputProps {
 	start: number
 	end: number
@@ -44,9 +42,9 @@ export const LengthInput = ({
 	}, [start, end])
 
 	return (
-		<div className={styles.sessionLengthInput}>
-			<div className={styles.headerContainer}>
-				<span className={styles.sessionLengthInputLabel}>
+		<div>
+			<div>
+				<span>
 					Length{' '}
 					{isTime && (!showAdvanced ? '(minutes)' : '(seconds)')}
 				</span>
@@ -77,7 +75,6 @@ export const LengthInput = ({
 			) : (
 				<Slider
 					range
-					className={styles.slider}
 					tooltipPlacement={'bottom'}
 					getTooltipPopupContainer={() =>
 						document.querySelector('.ant-slider-step')!
@@ -93,11 +90,10 @@ export const LengthInput = ({
 					}}
 				/>
 			)}
-			<div className={styles.buttonContainer}>
+			<div>
 				<Button
 					type="primary"
 					trackingId="QueryBuilderSetLength"
-					className={styles.advancedLengthInput}
 					onClick={updateSearchParams}
 				>
 					Ok
@@ -133,8 +129,8 @@ const AdvancedLengthInput = ({ start, end, onChange }: LengthInputProps) => {
 	)
 
 	return (
-		<div className={styles.advancedLengthInput}>
-			<div className={styles.group}>
+		<div>
+			<div>
 				<Input
 					type="number"
 					placeholder="Min"
@@ -145,7 +141,7 @@ const AdvancedLengthInput = ({ start, end, onChange }: LengthInputProps) => {
 					}}
 				/>
 			</div>
-			<div className={styles.group}>
+			<div>
 				<Input
 					type="number"
 					placeholder="Max"

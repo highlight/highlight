@@ -58,10 +58,12 @@ export function getOperatorLabel(op: Operator) {
 	return parts.join(' ')
 }
 
-export function getOperatorAsOption(op: Operator): SelectOption {
-	return {
-		kind: OptionKind.SINGLE,
-		label: getOperatorLabel(op),
-		value: JSON.stringify(op),
+export function getOperatorAsOption(op?: Operator): SelectOption | undefined {
+	if (op) {
+		return {
+			kind: OptionKind.SINGLE,
+			label: getOperatorLabel(op),
+			value: JSON.stringify(op),
+		}
 	}
 }

@@ -32,6 +32,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { TIME_RANGE_FIELD } from '@routers/OrgRouter/WithErrorSearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { capitalize, omitBy } from 'lodash'
 import identity from 'lodash/identity'
@@ -136,6 +137,7 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 						iconLeft={<IconPlusSm size={12} />}
 						onClick={() => {
 							setBuilderState(QueryBuilderState.CUSTOM)
+							createNewRule()
 						}}
 					>
 						Add filter
@@ -356,67 +358,53 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 		],
 	)
 
-	const filterSection = useMemo(() => {
-		if (builderState === QueryBuilderState.EMPTY) {
-			return null
-		}
-
-		return (
-			<Box
-				p="4"
-				paddingBottom="8"
-				background="white"
-				borderBottom="neutral"
-			>
-				{rules.map((rule, idx) => (
-					<>
-						{idx !== 0 && (
-							<Tag onClick={() => toggleIsAnd()}>
-								{isAnd ? 'and' : 'or'}
-							</Tag>
-						)}
-						<QueryRule
-							key={idx}
-							rule={rule}
-							readonly={readonly}
-							onChangeKey={(val) => {
-								// Default to 'is' when rule is not defined yet
-								if (rule.op === undefined) {
-									updateRule(rule, {
-										field: val,
-										op: rule
-											.getCustomOptions(customFields)
-											?.operators?.at(0) ?? {
-											name: OperatorName.IS,
-										},
-									})
-								} else {
-									updateRule(rule, { field: val })
-								}
-							}}
-							getKeyOptions={getKeyOptions}
-							onChangeOperator={(val) => {
-								if (val?.kind === OptionKind.SINGLE) {
-									updateRule(rule, {
-										op: JSON.parse(val.value),
-									})
-								}
-							}}
-							getOperatorOptions={getOperatorOptionsCallback(
-								rule,
-							)}
-							onChangeValue={(val) => {
-								updateRule(rule, { val })
-							}}
-							getValueOptions={getValueOptionsCallback(rule)}
-							onRemove={() => removeRule(rule)}
-						/>
-					</>
-				))}
-			</Box>
-		)
+	const existingRules = useMemo(() => {
+		return rules
+			.filter((r) => r.field?.value !== TIME_RANGE_FIELD.value)
+			.map((rule, idx) => (
+				<>
+					{idx !== 0 && (
+						<Tag onClick={() => toggleIsAnd()}>
+							{isAnd ? 'and' : 'or'}
+						</Tag>
+					)}
+					<QueryRule
+						key={idx}
+						rule={rule}
+						readonly={readonly}
+						onChangeKey={(val) => {
+							// Default to 'is' when rule is not defined yet
+							if (rule.op === undefined) {
+								updateRule(rule, {
+									field: val,
+									op: rule
+										.getCustomOptions(customFields)
+										?.operators?.at(0) ?? {
+										name: OperatorName.IS,
+									},
+								})
+							} else {
+								updateRule(rule, { field: val })
+							}
+						}}
+						getKeyOptions={getKeyOptions}
+						onChangeOperator={(val) => {
+							if (val?.kind === OptionKind.SINGLE) {
+								updateRule(rule, {
+									op: JSON.parse(val.value),
+								})
+							}
+						}}
+						getOperatorOptions={getOperatorOptionsCallback(rule)}
+						onChangeValue={(val) => {
+							updateRule(rule, { val })
+						}}
+						getValueOptions={getValueOptionsCallback(rule)}
+						onRemove={() => removeRule(rule)}
+					/>
+				</>
+			))
 	}, [
-		builderState,
 		customFields,
 		getKeyOptions,
 		getOperatorOptionsCallback,
@@ -437,7 +425,16 @@ function QueryBuilder<SearchParams extends SearchContextTypes, SegmentData>({
 			flexDirection="column"
 			overflow="hidden"
 		>
-			{filterSection}
+			{builderState !== QueryBuilderState.EMPTY && (
+				<Box
+					p="4"
+					paddingBottom="8"
+					background="white"
+					borderBottom="neutral"
+				>
+					{existingRules}
+				</Box>
+			)}
 			<Box
 				display="flex"
 				p="8"

@@ -119,9 +119,6 @@ export const WithErrorSearchContext: React.FC<
 	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 	const [page, setPage] = useState<number>()
 
-	const [rules, setRules] = useState<Rule[]>([])
-	const [isAnd, toggleIsAnd] = useToggle(true)
-
 	const defaultTimeRangeRule: Rule = useMemo(() => {
 		const period =
 			projectId === '0'
@@ -143,6 +140,9 @@ export const WithErrorSearchContext: React.FC<
 			},
 		)
 	}, [projectId])
+
+	const [rules, setRules] = useState<Rule[]>([defaultTimeRangeRule])
+	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const { admin } = useAuthContext()
 
@@ -172,6 +172,7 @@ export const WithErrorSearchContext: React.FC<
 		isAnd,
 		toggleIsAnd,
 		update,
+		customFields: CUSTOM_FIELDS,
 	}
 
 	useEffect(
