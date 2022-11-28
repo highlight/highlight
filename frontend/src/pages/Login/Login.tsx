@@ -179,6 +179,12 @@ export default function LoginForm() {
 			auth.createUserWithEmailAndPassword(email, password)
 				.then(() => {
 					auth.currentUser?.sendEmailVerification()
+
+					if (auth.currentUser?.email) {
+						analytics.track('Sign up', {
+							email: auth.currentUser.email,
+						})
+					}
 				})
 				.catch((error) => {
 					setError(error.toString())
