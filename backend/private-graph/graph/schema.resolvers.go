@@ -243,7 +243,15 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 
 // StructuredStackTrace is the resolver for the structured_stack_trace field.
 func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorObject) ([]*modelInputs.ErrorTrace, error) {
-	return r.UnmarshalStackTrace(*obj.StackTrace)
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && *obj.StackTrace == "" {
+		return nil, nil
+	}
+	stackTraceString := *obj.StackTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" && *obj.MappedStackTrace != "null" {
+		stackTraceString = *obj.MappedStackTrace
+	}
+
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 // Session is the resolver for the session field.

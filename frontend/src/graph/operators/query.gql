@@ -1000,21 +1000,6 @@ query GetErrorGroup($secure_id: String!) {
 			linesBefore
 			linesAfter
 			error
-			sourceMappingErrorMetadata {
-				errorCode
-				stackTraceFileURL
-				sourcemapFetchStrategy
-				sourceMapURL
-				minifiedFetchStrategy
-				actualMinifiedFetchedPath
-				minifiedLineNumber
-				minifiedColumnNumber
-				actualSourcemapFetchedPath
-				sourcemapFileSize
-				minifiedFileSize
-				mappedLineNumber
-				mappedColumnNumber
-			}
 		}
 		mapped_stack_trace
 		stack_trace
@@ -1113,6 +1098,21 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 				linesBefore
 				linesAfter
 				error
+				sourceMappingErrorMetadata {
+					errorCode
+					stackTraceFileURL
+					sourcemapFetchStrategy
+					sourceMapURL
+					minifiedFetchStrategy
+					actualMinifiedFetchedPath
+					minifiedLineNumber
+					minifiedColumnNumber
+					actualSourcemapFetchedPath
+					sourcemapFileSize
+					minifiedFileSize
+					mappedLineNumber
+					mappedColumnNumber
+				}
 			}
 			timestamp
 			payload

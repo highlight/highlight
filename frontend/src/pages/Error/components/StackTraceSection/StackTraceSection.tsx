@@ -1,13 +1,11 @@
 import { StatelessCollapsible } from '@components/Collapsible/Collapsible'
 import CollapsibleStyles from '@components/Collapsible/Collapsible.module.scss'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	ErrorGroup,
 	ErrorObject,
 	Maybe,
 	SourceMappingError,
-	SourceMappingErrorCode,
 } from '@graph/schemas'
 import ErrorSourcePreview from '@pages/Error/components/ErrorSourcePreview/ErrorSourcePreview'
 import JsonOrTextCard from '@pages/Error/components/JsonOrTextCard/JsonOrTextCard'
@@ -238,16 +236,6 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 							{functionName}
 						</span>
 					</Tooltip>
-					<span className={styles.tooltip}>
-						{sourceMappingErrorMetadata && (
-							<InfoTooltip
-								size={'large'}
-								title={getStackSectionError(
-									sourceMappingErrorMetadata,
-								)}
-							/>
-						)}
-					</span>
 				</div>
 			)}
 		</div>
@@ -278,214 +266,6 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			{lineNumber}
 		</>
 	)
-
-	function getStackSectionError(e: SourceMappingError) {
-		const originalFileError =
-			'There was an issue accessing the original file for this error'
-		const sourcemapFileError =
-			'There was an issue accessing the sourcemap file for this error'
-		const fileSizeLimitError =
-			'We couldn’t fetch these files due to size limits'
-		if (
-			e.errorCode == SourceMappingErrorCode.MinifiedFileMissingInS3AndUrl
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{originalFileError}. <br />
-						We couldn’t find the minified file in Highlight storage
-						at path <u>{e.actualMinifiedFetchedPath}</u> or at URL{' '}
-						<u>{e.stackTraceFileURL}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode == SourceMappingErrorCode.FileNameMissingFromSourcePath
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{originalFileError}. <br />
-						We couldn’t find a filename associated with this stack
-						frame
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode == SourceMappingErrorCode.ErrorParsingStackTraceFileUrl
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{originalFileError}. <br />
-						We couldn’t parse the stack trace file name{' '}
-						<u>{e.stackTraceFileURL}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode == SourceMappingErrorCode.MissingSourceMapFileInS3
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{sourcemapFileError}. <br />
-						We couldn’t find sourcemap file using the 'file://'
-						syntax in cloud storage at path <u>{e.sourceMapURL}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode == SourceMappingErrorCode.SourcemapFileMissingInS3AndUrl
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{sourcemapFileError}. <br />
-						We couldn’t find the sourcemap file in Highlight storage
-						at path <u>{e.actualSourcemapFetchedPath}</u> or at URL{' '}
-						<u>{e.sourceMapURL}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (e.errorCode == SourceMappingErrorCode.InvalidSourceMapUrl) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{sourcemapFileError}. <br />
-						We couldn’t parse the sourcemap filename X{' '}
-						<u>{e.actualSourcemapFetchedPath}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (e.errorCode == SourceMappingErrorCode.MinifiedFileLarger) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{fileSizeLimitError}. <br />
-						Minified file <u>{e.actualMinifiedFetchedPath}</u>{' '}
-						larger than our max supported size 128MB
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (e.errorCode == SourceMappingErrorCode.SourceMapFileLarger) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						{fileSizeLimitError}. <br />
-						Sourcemap file <u>
-							{e.actualSourcemapFetchedPath}
-						</u>{' '}
-						larger than our max supported size 128MB
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode == SourceMappingErrorCode.SourcemapLibraryCouldntParse
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						There was an error parsing the source map file{' '}
-						<u>{e.sourceMapURL}</u>{' '}
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		} else if (
-			e.errorCode ==
-			SourceMappingErrorCode.SourcemapLibraryCouldntRetrieveSource
-		) {
-			return (
-				<div className={styles.stackTraceErrorMessage}>
-					<p>
-						Sourcemap library didn’t find a valid mapping to the
-						original source with line <u>{e.mappedLineNumber}</u>{' '}
-						and col <u>{e.mappedColumnNumber}</u>
-						{getFormatedStackSectionError(e)}
-					</p>
-				</div>
-			)
-		}
-	}
-
-	function getFormatedStackSectionError(e: SourceMappingError) {
-		return (
-			<p>
-				{e.stackTraceFileURL && (
-					<li>
-						<u>Stack Trace File URL:</u> {e.stackTraceFileURL}
-					</li>
-				)}
-				{e.actualMinifiedFetchedPath && (
-					<li>
-						<u>Minified Path:</u> {e.actualMinifiedFetchedPath}
-					</li>
-				)}
-				{e.minifiedFetchStrategy && (
-					<li>
-						<u>Minified Fetch Strategy:</u>{' '}
-						{e.minifiedFetchStrategy}
-					</li>
-				)}
-				{e.minifiedFileSize && (
-					<li>
-						<u>Minified File Size:</u> {e.minifiedFileSize}
-					</li>
-				)}
-				{e.minifiedLineNumber && (
-					<li>
-						<u>Minified Line Number:</u> {e.minifiedLineNumber}
-					</li>
-				)}
-				{e.minifiedColumnNumber && (
-					<li>
-						<u>Minified Column Number:</u> {e.minifiedColumnNumber}
-					</li>
-				)}
-				{e.sourceMapURL && (
-					<li>
-						<u>Sourcemap URL:</u> {e.sourceMapURL}
-					</li>
-				)}
-				{e.sourcemapFetchStrategy && (
-					<li>
-						<u>Sourcemap Fetch Strategy:</u>{' '}
-						{e.sourcemapFetchStrategy}
-					</li>
-				)}
-				{e.sourcemapFileSize && (
-					<li>
-						<u>Sourcemap File Size:</u> {e.sourcemapFileSize}
-					</li>
-				)}
-				{e.actualSourcemapFetchedPath && (
-					<li>
-						<u>Sourcemap Fetched Path:</u>{' '}
-						{e.actualSourcemapFetchedPath}
-					</li>
-				)}
-				{e.mappedLineNumber && (
-					<li>
-						<u>Mapped Line Number:</u> {e.mappedLineNumber}
-					</li>
-				)}
-				{e.mappedColumnNumber && (
-					<li>
-						<u>Mapped Column Number:</u> {e.mappedColumnNumber}
-					</li>
-				)}
-			</p>
-		)
-	}
 
 	return (
 		<div className={CollapsibleStyles.section}>

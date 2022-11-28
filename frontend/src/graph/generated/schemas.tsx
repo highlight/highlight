@@ -2042,11 +2042,11 @@ export type SourceMappingError = {
 	mappedLineNumber?: Maybe<Scalars['Int']>
 	minifiedColumnNumber?: Maybe<Scalars['Int']>
 	minifiedFetchStrategy?: Maybe<Scalars['String']>
-	minifiedFileSize?: Maybe<Scalars['String']>
+	minifiedFileSize?: Maybe<Scalars['Int']>
 	minifiedLineNumber?: Maybe<Scalars['Int']>
 	sourceMapURL?: Maybe<Scalars['String']>
 	sourcemapFetchStrategy?: Maybe<Scalars['String']>
-	sourcemapFileSize?: Maybe<Scalars['String']>
+	sourcemapFileSize?: Maybe<Scalars['Int']>
 	stackTraceFileURL?: Maybe<Scalars['String']>
 }
 

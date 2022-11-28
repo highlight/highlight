@@ -198,14 +198,14 @@ func getURLSourcemap(projectId int, version *string, stackTraceFileURL string, s
 			log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFilePath))
 		}
 	}
-	minifiedFileSize := string(minifiedFileBytes)
+	minifiedFileSize := len(minifiedFileBytes)
 	stackTraceError.MinifiedFileSize = &minifiedFileSize
-	if len(minifiedFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+	if minifiedFileSize > SOURCE_MAP_MAX_FILE_SIZE {
 		// SOURCEMAP_ERROR: minified file larger than 128MB
 		// (user-facing error message  should include actual size)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeMinifiedFileLarger
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, len(minifiedFileBytes))
+		err := e.Errorf("minified source file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFileURL, minifiedFileSize)
 		return "", nil, err
 	}
 
@@ -332,14 +332,14 @@ func processStackFrame(projectId int, version *string, stackTrace publicModel.St
 			return nil, err, stackTraceError
 		}
 	}
-	sourceMapFileSize := string(sourceMapFileBytes)
+	sourceMapFileSize := len(sourceMapFileBytes)
 	stackTraceError.SourcemapFileSize = &sourceMapFileSize
-	if len(sourceMapFileBytes) > SOURCE_MAP_MAX_FILE_SIZE {
+	if sourceMapFileSize > SOURCE_MAP_MAX_FILE_SIZE {
 		// SOURCEMAP_ERROR: source map file larger than our max supported size (128MB)
 		// (might be good to include actual size in the user-facing error message)
 		stackTraceErrorCode = privateModel.SourceMappingErrorCodeSourceMapFileLarger
 		stackTraceError.ErrorCode = &stackTraceErrorCode
-		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFilePath, len(sourceMapFileBytes))
+		err := e.Errorf("source map file over %dmb: %v, size: %v", int(SOURCE_MAP_MAX_FILE_SIZE/1e6), stackTraceFilePath, sourceMapFileSize)
 		return nil, err, stackTraceError
 	}
 	smap, err := sourcemap.Parse(sourceMapURL, sourceMapFileBytes)
