@@ -12,7 +12,7 @@ type Props = ButtonProps &
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
 		onPress?: () => void
-		cssClass?: ClassValue[]
+		cssClass?: ClassValue | ClassValue[]
 	}
 
 const buttonToTextSize = {
