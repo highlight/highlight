@@ -14,6 +14,7 @@ interface Config {
 
 export enum Feature {
 	HistogramTimelineV2,
+	SessionPlayerV2,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -34,6 +35,10 @@ export const FeatureConfig: { [key: number]: Config } = {
 			// Synder
 			'1031',
 		]),
+	},
+	[Feature.SessionPlayerV2]: {
+		workspace: true,
+		percent: 0,
 	},
 } as const
 

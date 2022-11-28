@@ -1,4 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import DevToolsWindowV2 from '@pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import ToolbarControlBar from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar'
 import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
@@ -14,7 +15,6 @@ import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerP
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks'
 import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext'
-import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow'
 import styles from './Toolbar.module.scss'
 
 export const TimelineAnnotationColors: {
@@ -133,11 +133,7 @@ export const Toolbar = ({ width }: Props) => {
 
 				{!isLiveMode && (
 					<div id={PlayerPageProductTourSelectors.DevToolsPanel}>
-						<DevToolsWindow
-							time={(sessionMetadata.startTime ?? 0) + time}
-							startTime={sessionMetadata.startTime ?? 0}
-							width={width}
-						/>
+						<DevToolsWindowV2 width={width} />
 					</div>
 				)}
 			</DevToolsContextProvider>
