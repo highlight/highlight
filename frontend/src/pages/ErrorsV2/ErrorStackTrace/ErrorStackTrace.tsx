@@ -4,9 +4,9 @@ import { GetErrorObjectQuery } from '@graph/operations'
 import { Maybe } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	Callout,
 	IconCaretDown,
+	LinkButton,
 	Stack,
 	Text,
 } from '@highlight-run/ui'
@@ -69,30 +69,19 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 					</Text>
 
 					<Stack direction="row" gap="8">
-						{/*
-						TODO: Swap these out for LinkButtons once they are created - coming
-						in a PR from Zane soon.
-						*/}
-						<Button
+						<LinkButton
 							kind="secondary"
-							onClick={() => {
-								window.open(
-									'https://docs.highlight.run/sourcemaps',
-									'_blank',
-								)
-							}}
+							to="https://docs.highlight.run/sourcemaps"
 						>
 							Learn More
-						</Button>
-						<Button
+						</LinkButton>
+						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							onClick={() =>
-								history.push(`/${projectId}/settings/errors`)
-							}
+							to="/${projectId}/settings/errors"
 						>
 							Sourcemap Settings
-						</Button>
+						</LinkButton>
 					</Stack>
 				</Callout>
 			)}
