@@ -53,7 +53,7 @@ export class DB extends Dexie {
 
 	constructor() {
 		super('highlight')
-		this.version(3).stores({
+		this.version(4).stores({
 			apollo: 'key,updated',
 			fetch: 'key,updated',
 		})

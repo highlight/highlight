@@ -2036,6 +2036,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 				{ __typename?: 'ErrorGroup' } & Pick<
 					Types.ErrorGroup,
 					| 'created_at'
+					| 'updated_at'
 					| 'id'
 					| 'secure_id'
 					| 'type'
@@ -2044,6 +2045,8 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'environments'
 					| 'stack_trace'
 					| 'error_frequency'
+					| 'is_public'
+					| 'project_id'
 				> & {
 						structured_stack_trace: Array<
 							Types.Maybe<
@@ -2054,6 +2057,12 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 									| 'functionName'
 									| 'columnNumber'
 								>
+							>
+						>
+						error_metrics: Array<
+							{ __typename?: 'ErrorDistributionItem' } & Pick<
+								Types.ErrorDistributionItem,
+								'error_group_id' | 'date' | 'name' | 'value'
 							>
 						>
 					}
@@ -2513,6 +2522,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'ErrorGroup' } & Pick<
 			Types.ErrorGroup,
 			| 'created_at'
+			| 'updated_at'
 			| 'id'
 			| 'secure_id'
 			| 'type'
@@ -2523,6 +2533,8 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'stack_trace'
 			| 'error_frequency'
 			| 'is_public'
+			| 'last_occurrence'
+			| 'first_occurrence'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<
@@ -2547,6 +2559,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 								'name' | 'value'
 							>
 						>
+					>
+				>
+				error_metrics: Array<
+					{ __typename?: 'ErrorDistributionItem' } & Pick<
+						Types.ErrorDistributionItem,
+						'error_group_id' | 'date' | 'name' | 'value'
 					>
 				>
 			}
@@ -3652,25 +3670,6 @@ export type GetOAuthClientMetadataQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	error_group_secure_ids:
-		| Array<Types.Scalars['String']>
-		| Types.Scalars['String']
-	params: Types.ErrorGroupFrequenciesParamsInput
-}>
-
-export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
-	errorGroupFrequencies: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorDistributionItem' } & Pick<
-				Types.ErrorDistributionItem,
-				'error_group_id' | 'date' | 'name' | 'value'
-			>
-		>
-	>
-}
-
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -3775,7 +3774,6 @@ export const namedOperations = {
 		GetSourcemapFiles: 'GetSourcemapFiles' as const,
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
-		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,

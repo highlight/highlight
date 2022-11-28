@@ -5,15 +5,7 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
-import {
-	Box,
-	Button,
-	Column,
-	Heading,
-	IconPlay,
-	LinkButton,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -95,23 +87,33 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						<LinkButton
-							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.previous_id}${history.location.search}`}
+						<Button
+							onClick={() => {
+								history.push({
+									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
+									search: window.location.search,
+								})
+							}}
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
 						>
 							Older
-						</LinkButton>
+						</Button>
 						<Box borderRight="neutral" style={{ height: 18 }} />
-						<LinkButton
-							to={`/${projectId}/errors/${error_secure_id}/${errorInstance.next_id}${history.location.search}`}
+						<Button
+							onClick={() => {
+								history.push({
+									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
+									search: window.location.search,
+								})
+							}}
 							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
 						>
 							Newer
-						</LinkButton>
+						</Button>
 						<Button
 							kind="secondary"
 							emphasis="high"

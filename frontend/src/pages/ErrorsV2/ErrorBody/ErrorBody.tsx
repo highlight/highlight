@@ -1,50 +1,35 @@
 import BarChart from '@components/BarChart/BarChart'
-import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
+import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
-import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
 
+const showChangeThresholdPercent = 1
+
 interface Props {
-	errorGroup?: Maybe<Pick<ErrorGroup, 'event' | 'secure_id'>>
+	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 }
 
 const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	errorGroup,
 }) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
 	const [truncated, setTruncated] = React.useState(true)
 	const [truncateable, setTruncateable] = React.useState(true)
 	const body = getErrorBody(errorGroup?.event)
 	const bodyRef = React.useRef<HTMLElement | undefined>()
-	const endDate = React.useRef<moment.Moment>(moment())
 
-	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
-		variables: {
-			project_id,
-			error_group_secure_ids: [errorGroup?.secure_id || ''],
-			params: {
-				date_range: {
-					start_date: moment(endDate.current)
-						.subtract(30, 'days')
-						.format(),
-					end_date: endDate.current.format(),
-				},
-				resolution_hours: 24,
-			},
-		},
-		skip: !errorGroup?.secure_id,
-	})
-	const countBuckets =
-		frequencies?.errorGroupFrequencies
-			.filter((x) => x?.name === 'count')
-			.map((x) => x?.value || 0) || []
+	const { startDate, weekly, counts, totalCount, userCount } =
+		getErrorGroupStats(errorGroup)
+	const usersChange = weekly.users[0]
+		? ((weekly.users[1] - weekly.users[0]) / weekly.users[0]) * 100
+		: 0
+	const countChange = weekly.count[0]
+		? ((weekly.count[1] - weekly.count[0]) / weekly.count[0]) * 100
+		: 0
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -72,11 +57,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<Box display="flex" gap="4" alignItems="center">
 						<Text color="black" size="large" weight="bold">
-							25
+							{userCount}
 						</Text>
-						<Tag>
-							<>+23.7% since Sep 15</>
-						</Tag>
+						{Math.abs(usersChange) > showChangeThresholdPercent ? (
+							<Tag>
+								<>
+									{usersChange > 0 ? '+' : ''}
+									{usersChange.toFixed(0)}% since{' '}
+									{formatErrorGroupDate(startDate.format())}
+								</>
+							</Tag>
+						) : null}
 					</Box>
 				</Stat>
 				<Stat
@@ -103,11 +94,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<Box display="flex" gap="4" alignItems="center">
 						<Text color="black" size="large" weight="bold">
-							32
+							{totalCount}
 						</Text>
-						<Tag>
-							<>+23.7% since Sep 15</>
-						</Tag>
+						{Math.abs(countChange) > showChangeThresholdPercent ? (
+							<Tag>
+								<>
+									{countChange > 0 ? '+' : ''}
+									{countChange.toFixed(0)}% since{' '}
+									{formatErrorGroupDate(startDate.format())}
+								</>
+							</Tag>
+						) : null}
 					</Box>
 				</Stat>
 				<Stat
@@ -116,13 +113,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					}
 				>
 					<Box display="flex" gap="4" alignItems="center">
-						<Text color="black" size="large" weight="bold">
-							25
-						</Text>
-						<Text color="neutral500" size="large" weight="bold">
-							{' '}
-							/ Sep 13
-						</Text>
+						{errorGroup?.last_occurrence && (
+							<Text color="black" size="large" weight="bold">
+								{moment(errorGroup?.last_occurrence).fromNow()}
+							</Text>
+						)}
+						{errorGroup?.first_occurrence && (
+							<Text color="neutral500" size="large" weight="bold">
+								{' / '}
+								{moment(errorGroup?.first_occurrence).fromNow()}
+							</Text>
+						)}
 					</Box>
 				</Stat>
 
@@ -140,7 +141,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					noBorder
 				>
 					<Box display="flex" gap="4" alignItems="center">
-						<BarChart data={countBuckets} height={30} width={300} />
+						<BarChart data={counts || []} height={24} width={337} />
 					</Box>
 				</Stat>
 			</Box>
@@ -199,7 +200,7 @@ const Stat: React.FC<
 )
 
 const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" background="neutral100" borderRadius="4" p="4">
+	<Box as="span" backgroundColor="neutral100" borderRadius="4" p="4">
 		<Text color="black">{children}</Text>
 	</Box>
 )
