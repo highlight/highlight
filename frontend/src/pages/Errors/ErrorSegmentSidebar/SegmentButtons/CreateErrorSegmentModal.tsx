@@ -40,31 +40,33 @@ const CreateErrorSegmentModal = ({
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
-		createSegment({
-			variables: {
-				project_id,
-				name: newSegmentName,
-				params: searchParams,
-			},
-		}).then((r) => {
-			setExistingParams(searchParams)
-			if (afterCreateHandler) {
-				afterCreateHandler(
-					r.data?.createErrorSegment?.id as string,
-					r.data?.createErrorSegment?.name as string,
+		if (newSegmentName) {
+			createSegment({
+				variables: {
+					project_id,
+					name: newSegmentName,
+					params: searchParams,
+				},
+			}).then((r) => {
+				setExistingParams(searchParams)
+				if (afterCreateHandler) {
+					afterCreateHandler(
+						r.data?.createErrorSegment?.id as string,
+						r.data?.createErrorSegment?.name as string,
+					)
+				} else {
+					history.push(
+						`/${project_id}/errors/segment/${r.data?.createErrorSegment?.id}`,
+					)
+				}
+				onHideModal()
+				setNewSegmentName('')
+				message.success(
+					`Created '${r.data?.createErrorSegment?.name}' segment`,
+					5,
 				)
-			} else {
-				history.push(
-					`/${project_id}/errors/segment/${r.data?.createErrorSegment?.id}`,
-				)
-			}
-			onHideModal()
-			setNewSegmentName('')
-			message.success(
-				`Created '${r.data?.createErrorSegment?.name}' segment`,
-				5,
-			)
-		})
+			})
+		}
 	}
 
 	return (
@@ -103,6 +105,7 @@ const CreateErrorSegmentModal = ({
 						}}
 						type="primary"
 						htmlType="submit"
+						disabled={!newSegmentName}
 					>
 						{loading ? (
 							<CircularSpinner
