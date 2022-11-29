@@ -1,6 +1,7 @@
 package hubspot
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/aws/smithy-go/ptr"
@@ -92,6 +93,17 @@ func (h *HubspotApi) CreateContactForAdmin(adminID int, email string, userDefine
 		return nil, e.Wrap(err, "error updating workspace HubspotContactID")
 	}
 	return &hubspotContactId, nil
+}
+
+func (h *HubspotApi) FetchContact(email string) error {
+	r := CustomContactsResponse{}
+	err := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r)
+	if err != nil {
+		fmt.Printf("error: %+v", err)
+		return err
+	}
+	fmt.Printf("contact: %+v\n", r)
+	return nil
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociation(adminID int, workspaceID int) error {

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
+	"github.com/leonelquinteros/hubspot"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -10,15 +13,10 @@ import (
 
 func main() {
 	log.Info("setting up db")
-	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
-	if err != nil {
-		log.Fatalf("error setting up db: %+v", err)
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatalf("error getting raw db: %+v", err)
-	}
-	if err := sqlDB.Ping(); err != nil {
-		log.Fatalf("error pinging db: %+v", err)
-	}
+	db, _ := model.SetupDB(os.Getenv("PSQL_DB"))
+
+	api := hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db)
+	fmt.Printf("api: %+v\n", api)
+
+	api.FetchContact("chris@highlight.io")
 }
