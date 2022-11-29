@@ -6,7 +6,9 @@ export const highlighterStyles: string
 export const invalid: string
 export const label: string
 export const labelTypeContainer: string
+export const menuList: string
 export const menuListContainer: string
+export const menuTrigger: string
 export const nameLabel: string
 export const optionCheckbox: string
 export const optionLabelContainer: string

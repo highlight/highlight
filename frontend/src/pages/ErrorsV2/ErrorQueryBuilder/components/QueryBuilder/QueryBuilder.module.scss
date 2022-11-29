@@ -292,3 +292,15 @@ span:last-child {
 	flex-shrink: 0;
 	height: 44px;
 }
+
+.menuTrigger {
+	background: none;
+	box-shadow: none;
+	height: auto;
+	padding: 0;
+}
+
+.menuList {
+	padding-top: 0;
+	z-index: 5;
+}

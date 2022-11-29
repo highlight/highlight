@@ -27,9 +27,12 @@ import {
 	IconRefresh,
 	IconSave,
 	IconSegment,
+	IconTrash,
+	Menu,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import SvgXIcon from '@icons/XIcon'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
@@ -2133,37 +2136,38 @@ function QueryBuilder(props: QueryBuilderProps) {
 					</Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
+				const updateSegment = () => {
+					if (selectedSegment) {
+						editSegment({
+							variables: {
+								project_id: projectId,
+								id: selectedSegment.id,
+								params: searchParams,
+							},
+						})
+							.then(() => {
+								message.success(
+									`Updated '${selectedSegment.value}'`,
+									5,
+								)
+								setExistingParams(searchParams)
+							})
+							.catch(() => {
+								message.error('Error updating segment!', 5)
+							})
+					}
+				}
 				return (
 					<Button
 						kind="primary"
 						size="xSmall"
 						emphasis="high"
 						iconLeft={<IconSegment size={12} />}
-						iconRight={<IconChevronDown size={12} />}
-						onClick={() => {
-							if (selectedSegment) {
-								editSegment({
-									variables: {
-										project_id: projectId,
-										id: selectedSegment.id,
-										params: searchParams,
-									},
-								})
-									.then(() => {
-										message.success(
-											`Updated '${selectedSegment.value}'`,
-											5,
-										)
-										setExistingParams(searchParams)
-									})
-									.catch(() => {
-										message.error(
-											'Error updating segment!',
-											5,
-										)
-									})
-							}
+						onIconLeftClick={(evt) => {
+							evt.stopPropagation()
+							updateSegment()
 						}}
+						iconRight={<IconChevronDown size={12} />}
 					>
 						{segmentName}
 					</Button>
@@ -2379,14 +2383,71 @@ function QueryBuilder(props: QueryBuilderProps) {
 						300 results
 					</Text>
 					<Box display="flex" gap="4">
-						{actionButton}
-						<ButtonIcon
-							kind="secondary"
-							size="tiny"
-							emphasis="high"
-							shape="square"
-							icon={<IconSegment size={12} />}
-						/>
+						<Menu placement="bottom-end">
+							<Menu.Button
+								as="div"
+								kind="secondary"
+								cssClass={styles.menuTrigger}
+							>
+								{actionButton}
+							</Menu.Button>
+							<Menu.List cssClass={styles.menuList}>
+								<Box
+									background="neutral50"
+									borderBottom="neutral"
+									p="8"
+								>
+									<Text
+										weight="medium"
+										size="xxSmall"
+										color="neutral500"
+										userSelect="none"
+									>
+										Segment settings
+									</Text>
+								</Box>
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										setSegmentToDelete({
+											id: currentSegment?.id,
+											name: currentSegment?.name,
+										})
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconTrash
+											size={12}
+											color={colors.neutral300}
+										/>
+										<Box>Delete segment</Box>
+									</Box>
+								</Menu.Item>
+							</Menu.List>
+						</Menu>
+						<Menu>
+							<Menu.Button
+								as="div"
+								kind="secondary"
+								cssClass={styles.menuTrigger}
+							>
+								<ButtonIcon
+									kind="secondary"
+									size="tiny"
+									emphasis="high"
+									shape="square"
+									icon={<IconSegment size={12} />}
+								/>
+							</Menu.Button>
+							<Menu.List>
+								<Menu.Item>Test</Menu.Item>
+							</Menu.List>
+						</Menu>
 					</Box>
 				</Box>
 			</Box>
