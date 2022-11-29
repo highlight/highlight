@@ -13,7 +13,6 @@ type Props = ButtonProps &
 		icon?: React.ReactElement<IconProps>
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
-		onPress?: () => void
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
 	}

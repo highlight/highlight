@@ -906,16 +906,18 @@ export const TimeRangeFilter = ({
 				iconRight={!!onReset ? <IconX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
 			>
-				<Text
-					size="xSmall"
-					weight="medium"
-					color="neutral300"
-					userSelect="none"
-				>
-					{value &&
-						value.options.length === 1 &&
-						value.options[0].label}
-				</Text>
+				<Box onClick={() => setVisible((visible) => !visible)}>
+					<Text
+						size="xSmall"
+						weight="medium"
+						color="neutral300"
+						userSelect="none"
+					>
+						{value &&
+							value.options.length === 1 &&
+							value.options[0].label}
+					</Text>
+				</Box>
 			</Tag>
 		</Box>
 	)
