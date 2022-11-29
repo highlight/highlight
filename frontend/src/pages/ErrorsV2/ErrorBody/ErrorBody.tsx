@@ -141,7 +141,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					noBorder
 				>
 					<Box display="flex" gap="4" alignItems="center">
-						<BarChart data={counts || []} height={30} width={300} />
+						<BarChart data={counts || []} height={24} width={337} />
 					</Box>
 				</Stat>
 			</Box>

@@ -21,6 +21,7 @@ import {
 import { GetSessionsOpenSearchQuery } from '@graph/operations'
 import { DateHistogramBucketSize, PlanType } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer'
 import {
 	QueryBuilderState,
@@ -96,12 +97,12 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 				seriesList = [
 					{
 						label: 'Sessions without errors',
-						color: '--color-purple',
+						color: colors.neutralN9,
 						counts: histogramData.sessions_without_errors,
 					},
 					{
 						label: 'Sessions with errors',
-						color: '--color-red-600',
+						color: colors.redR8,
 						counts: histogramData.sessions_with_errors,
 					},
 				]

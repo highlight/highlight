@@ -231,7 +231,7 @@ export class Highlight {
 			options.sessionSecureID = GenerateSecureID()
 		}
 		// default to inlining stylesheets to help with recording accuracy
-		options.inlineStylesheet = true
+		options.inlineStylesheet = options.inlineStylesheet ?? true
 		this.options = options
 		if (typeof this.options?.debug === 'boolean') {
 			this.debugOptions = this.options.debug
@@ -380,6 +380,10 @@ export class Highlight {
 			this.organizationID = options.organizationID
 		} else {
 			this.organizationID = options.organizationID.toString()
+		}
+		// disable inline stylesheets for aerotime
+		if (this.organizationID === 'jgoqo9el') {
+			this.inlineStylesheet = false
 		}
 		this.isRunningOnHighlight =
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
