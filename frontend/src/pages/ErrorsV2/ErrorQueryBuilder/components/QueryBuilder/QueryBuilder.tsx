@@ -23,7 +23,9 @@ import {
 	ButtonIcon,
 	IconChevronDown,
 	IconClock,
+	IconCloudUpload,
 	IconLogout,
+	IconPlusCircle,
 	IconPlusSm,
 	IconRefresh,
 	IconSave,
@@ -2279,6 +2281,62 @@ function QueryBuilder(props: QueryBuilderProps) {
 		updateSerializedQuery,
 	])
 
+	const alteredSegmentSettings = useMemo(() => {
+		return (
+			<>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						updateSegment()
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconCloudUpload size={16} color={colors.neutral300} />
+						Push segment changes
+					</Box>
+				</Menu.Item>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						setShowCreateSegmentModal(true)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconPlusCircle size={16} color={colors.neutral300} />
+						Duplicate
+					</Box>
+				</Menu.Item>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						selectSegment(currentSegment)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconRefresh size={16} color={colors.neutral300} />
+						Reset changes
+					</Box>
+				</Menu.Item>
+
+				<Menu.Divider />
+			</>
+		)
+	}, [currentSegment, selectSegment, updateSegment])
 	useEffect(() => {
 		if (filterRules.length === 0 && !segmentName) {
 			setMode(QueryBuilderMode.EMPTY)
@@ -2449,6 +2507,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 										Segment settings
 									</Text>
 								</Box>
+								{mode === QueryBuilderMode.SEGMENT_UPDATE
+									? alteredSegmentSettings
+									: null}
 
 								<Menu.Item
 									onClick={(e) => {
@@ -2466,10 +2527,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 										userSelect="none"
 									>
 										<IconTrash
-											size={12}
+											size={16}
 											color={colors.neutral300}
 										/>
-										<Box>Delete segment</Box>
+										Delete segment
 									</Box>
 								</Menu.Item>
 							</Menu.List>
