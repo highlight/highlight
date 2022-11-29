@@ -16,7 +16,6 @@ import { gqlSanitize } from '@util/gqlSanitize'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { useLocalStorage } from 'react-use'
 
 import * as style from './SearchPanel.css'
 
@@ -26,34 +25,25 @@ const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
 	const {
 		backendSearchQuery,
+		setBackendSearchQuery,
 		page,
 		setPage,
 		searchResultsLoading,
 		setSearchResultsLoading,
+		searchResultsCount,
+		setSearchResultsCount,
 	} = useErrorSearchContext()
-
-	useEffect(() => {
-		if (backendSearchQuery) {
-			setSearchResultsLoading(true)
-		}
-	}, [backendSearchQuery, page, setSearchResultsLoading])
 
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const [$errorCount, setErrorCount] = useLocalStorage<number>(
-		`errorsCount-project-${projectId}`,
-		0,
-	)
-
-	const errorCount = $errorCount ?? 0
-	const useCachedErrors = errorCount > PAGE_SIZE
+	const useCachedErrors = searchResultsCount > PAGE_SIZE
 
 	const [fetchedData, setFetchedData] = useState<ErrorResults>({
 		error_groups: [],
 		totalCount: 0,
 	})
 
-	useGetErrorGroupsOpenSearchQuery({
+	const { loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
@@ -61,19 +51,26 @@ const SearchPanel = () => {
 			project_id: projectId,
 			influx: true,
 		},
+		onError: () => {
+			setSearchResultsLoading(false)
+		},
 		onCompleted: (r) => {
+			setSearchResultsLoading(false)
 			const results = r?.error_groups_opensearch
 			if (results) {
 				setFetchedData(gqlSanitize(results))
-				setErrorCount(results.totalCount)
+				setSearchResultsCount(results.totalCount)
 			}
-			setSearchResultsLoading(false)
 		},
 		skip: !backendSearchQuery,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
 
-	const showHistogram = searchResultsLoading || errorCount > 0
+	useEffect(() => {
+		setSearchResultsLoading(loading)
+	}, [loading, setSearchResultsLoading])
+
+	const showHistogram = searchResultsLoading || searchResultsCount > 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
@@ -151,7 +148,7 @@ const SearchPanel = () => {
 			<SearchPagination
 				page={page}
 				setPage={setPage}
-				totalCount={errorCount}
+				totalCount={searchResultsCount}
 				pageSize={PAGE_SIZE}
 			/>
 		</Box>

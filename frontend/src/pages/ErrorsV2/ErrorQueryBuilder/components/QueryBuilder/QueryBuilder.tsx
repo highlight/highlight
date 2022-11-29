@@ -3,6 +3,7 @@ import ButtonV1 from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
@@ -42,6 +43,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { gqlSanitize } from '@util/gqlSanitize'
+import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox, message } from 'antd'
@@ -1272,6 +1274,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		setExistingParams,
 		segmentName,
 		setSegmentName,
+		searchResultsCount,
+		setSearchResultsCount,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -2374,14 +2378,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 					justifyContent="space-between"
 					alignItems="center"
 				>
-					<Text
-						size="xSmall"
-						weight="medium"
-						color="neutral300"
-						userSelect="none"
-					>
-						300 results
-					</Text>
+					{searchResultsLoading ? (
+						<Skeleton width="100px" />
+					) : (
+						<Text
+							size="xSmall"
+							weight="medium"
+							color="neutral300"
+							userSelect="none"
+						>
+							{formatNumber(searchResultsCount)} results
+						</Text>
+					)}
 					<Box display="flex" gap="4">
 						<Menu placement="bottom-end">
 							<Menu.Button
@@ -2396,6 +2404,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 									background="neutral50"
 									borderBottom="neutral"
 									p="8"
+									mb="4"
 								>
 									<Text
 										weight="medium"
@@ -2406,6 +2415,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										Segment settings
 									</Text>
 								</Box>
+
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()

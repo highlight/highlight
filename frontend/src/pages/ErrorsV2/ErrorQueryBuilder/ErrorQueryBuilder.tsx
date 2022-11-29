@@ -114,7 +114,7 @@ export const getQueryFromParams = (
 	}
 }
 
-const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
+const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 	const { refetch } = useGetErrorFieldsOpensearchQuery({
 		skip: true,
 	})
@@ -128,7 +128,7 @@ const ErrorQueryBuilder = ({ readonly }: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			getQueryFromParams={getQueryFromParams}
-			readonly={readonly}
+			{...props}
 		/>
 	)
 }
