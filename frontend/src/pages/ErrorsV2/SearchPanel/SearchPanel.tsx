@@ -25,7 +25,6 @@ const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
 	const {
 		backendSearchQuery,
-		setBackendSearchQuery,
 		page,
 		setPage,
 		searchResultsLoading,

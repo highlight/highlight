@@ -1275,7 +1275,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		segmentName,
 		setSegmentName,
 		searchResultsCount,
-		setSearchResultsCount,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1343,10 +1342,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 				: -1,
 		)
 
-	useEffect(() => {
-		if (currentSegment) {
+	const selectSegment = useCallback(
+		(segment: typeof currentSegment) => {
 			const segmentParameters = gqlSanitize({
-				...currentSegment?.params,
+				...segment?.params,
 			})
 			if (!segmentParameters.query) {
 				segmentParameters.query = JSON.stringify(
@@ -1356,14 +1355,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setExistingParams(segmentParameters)
 			setSearchParams(segmentParameters)
 			setSegmentName(currentSegment?.name || null)
+		},
+		[
+			currentSegment?.name,
+			getQueryFromParams,
+			setExistingParams,
+			setSearchParams,
+			setSegmentName,
+		],
+	)
+
+	useEffect(() => {
+		if (currentSegment) {
+			selectSegment(currentSegment)
 		}
-	}, [
-		currentSegment,
-		getQueryFromParams,
-		setExistingParams,
-		setSearchParams,
-		setSegmentName,
-	])
+	}, [currentSegment, selectSegment])
 
 	const [mode, setMode] = useState<QueryBuilderMode>(QueryBuilderMode.EMPTY)
 
@@ -1924,13 +1930,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchParams.query, toggleIsAnd, qbState])
 
+	const areRulesValid = rules.every(isComplete)
 	useEffect(() => {
-		if (rules.every(isComplete)) {
+		if (areRulesValid) {
 			// For relative time ranges, the serialized query will be different every time you serialize,
 			// so serialize once and only once every time the rules list changes
 			updateSerializedQuery(isAnd, rules)
 		}
-	}, [isAnd, rules, updateSerializedQuery])
+	}, [areRulesValid, isAnd, rules, updateSerializedQuery])
 
 	useEffect(() => {
 		// Only update the external state if not readonly
@@ -2108,6 +2115,36 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 	])
 
+	const canUpdateSegment =
+		!!selectedSegment && filterRules.length > 0 && areRulesValid
+
+	const updateSegment = useCallback(() => {
+		if (canUpdateSegment) {
+			editSegment({
+				variables: {
+					project_id: projectId,
+					id: selectedSegment.id,
+					params: searchParams,
+				},
+			})
+				.then(() => {
+					message.success(`Updated '${selectedSegment.value}'`, 5)
+					setExistingParams(searchParams)
+				})
+				.catch(() => {
+					message.error('Error updating segment!', 5)
+				})
+		}
+	}, [
+		canUpdateSegment,
+		editSegment,
+		projectId,
+		searchParams,
+		selectedSegment?.id,
+		selectedSegment?.value,
+		setExistingParams,
+	])
+
 	const actionButton = useMemo(() => {
 		switch (mode) {
 			case QueryBuilderMode.EMPTY:
@@ -2122,6 +2159,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						onClick={() => {
 							setShowCreateSegmentModal(true)
 						}}
+						disabled={!areRulesValid}
 					>
 						Save
 					</Button>
@@ -2140,27 +2178,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 					</Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
-				const updateSegment = () => {
-					if (selectedSegment) {
-						editSegment({
-							variables: {
-								project_id: projectId,
-								id: selectedSegment.id,
-								params: searchParams,
-							},
-						})
-							.then(() => {
-								message.success(
-									`Updated '${selectedSegment.value}'`,
-									5,
-								)
-								setExistingParams(searchParams)
-							})
-							.catch(() => {
-								message.error('Error updating segment!', 5)
-							})
-					}
-				}
 				return (
 					<Button
 						kind="primary"
@@ -2177,16 +2194,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					</Button>
 				)
 		}
-	}, [
-		addFilterButton,
-		editSegment,
-		mode,
-		projectId,
-		searchParams,
-		segmentName,
-		selectedSegment,
-		setExistingParams,
-	])
+	}, [addFilterButton, areRulesValid, mode, segmentName, updateSegment])
 
 	const controlBar = useMemo(() => {
 		return (
@@ -2396,6 +2404,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								as="div"
 								kind="secondary"
 								cssClass={styles.menuTrigger}
+								disabled={!areRulesValid}
 							>
 								{actionButton}
 							</Menu.Button>
@@ -2445,6 +2454,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								as="div"
 								kind="secondary"
 								cssClass={styles.menuTrigger}
+								disabled={segmentsLoading}
 							>
 								<ButtonIcon
 									kind="secondary"
@@ -2454,8 +2464,32 @@ function QueryBuilder(props: QueryBuilderProps) {
 									icon={<IconSegment size={12} />}
 								/>
 							</Menu.Button>
-							<Menu.List>
-								<Menu.Item>Test</Menu.Item>
+							<Menu.List cssClass={styles.menuList}>
+								<Box
+									background="neutral50"
+									borderBottom="neutral"
+									p="8"
+									mb="4"
+								>
+									<Text
+										weight="medium"
+										size="xxSmall"
+										color="neutral500"
+										userSelect="none"
+									>
+										Segments
+									</Text>
+								</Box>
+								{segmentOptions.map((segment, idx) => (
+									<Menu.Item
+										key={idx}
+										onClick={() =>
+											setSelectedSegment(segment)
+										}
+									>
+										{segment.displayValue}
+									</Menu.Item>
+								))}
 							</Menu.List>
 						</Menu>
 					</Box>
