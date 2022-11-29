@@ -17,7 +17,7 @@ import {
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { OpenSearchCalendarInterval } from '@graph/schemas'
-import { indexeddbEnabled } from '@util/db'
+import { indexeddbEnabled, IndexedDBLink } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
@@ -27,7 +27,7 @@ import { useEffect, useRef } from 'react'
 
 import { worker } from '../index'
 
-const CONCURRENT_PRELOADS = 8
+const CONCURRENT_PRELOADS = 1
 
 export const usePreloadSessions = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
@@ -95,6 +95,15 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 			const promises: Promise<void>[] = []
 			for (const _s of sessions?.sessions_opensearch.sessions || []) {
 				const preloadPromise = (async (secureID: string) => {
+					if (
+						await IndexedDBLink.has('GetSession', {
+							secure_id: secureID,
+						})
+					) {
+						log('preload.ts', `skipping loaded session ${secureID}`)
+						return
+					}
+					const start = window.performance.now()
 					log('preload.ts', `preloading session ${secureID}`)
 					try {
 						const session = await client.query({
@@ -177,7 +186,25 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 							type: 'fetch',
 							url: response.data.event_chunk_url,
 						})
-						log('preload.ts', `preloaded session ${secureID}`)
+						const preloadTime = window.performance.now() - start
+						log(
+							'preload.ts',
+							`preloaded session ${secureID} in ${
+								preloadTime / 1000
+							} s.`,
+						)
+						H.metrics([
+							{
+								name: 'preload-session-ms',
+								value: preloadTime,
+								tags: [
+									{
+										name: 'SecureID',
+										value: secureID,
+									},
+								],
+							},
+						])
 					} catch (e: any) {
 						const msg = `failed to preload session ${secureID}`
 						console.warn(msg)
@@ -314,6 +341,18 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 			for (const _eg of errors?.error_groups_opensearch.error_groups ||
 				[]) {
 				const preloadPromise = (async (secureID: string) => {
+					if (
+						await IndexedDBLink.has('GetErrorGroup', {
+							secure_id: secureID,
+						})
+					) {
+						log(
+							'preload.ts',
+							`skipping loaded error group ${secureID}`,
+						)
+						return
+					}
+					const start = window.performance.now()
 					log('preload.ts', `preloading error group ${secureID}`)
 					try {
 						await client.query({
@@ -344,7 +383,25 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 								property: 'browser',
 							},
 						})
-						log('preload.ts', `preloaded error group ${secureID}`)
+						const preloadTime = window.performance.now() - start
+						log(
+							'preload.ts',
+							`preloaded error group ${secureID} in ${
+								preloadTime / 1000
+							} s.`,
+						)
+						H.metrics([
+							{
+								name: 'preload-error-ms',
+								value: preloadTime,
+								tags: [
+									{
+										name: 'SecureID',
+										value: secureID,
+									},
+								],
+							},
+						])
 					} catch (e: any) {
 						const msg = `failed to preload error group ${secureID}`
 						console.warn(msg)
