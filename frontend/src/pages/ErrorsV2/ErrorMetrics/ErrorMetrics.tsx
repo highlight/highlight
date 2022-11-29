@@ -12,6 +12,16 @@ type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
 
+type FrequencyDataPoint = {
+	date: string | undefined
+	[name: string]: number | undefined
+}
+
+type TimelineTickInfo = {
+	ticks: string[]
+	format: string
+}
+
 const TICK_FORMAT = 'D MMM'
 const TICK_EVERY_BUCKETS = 15
 const NUM_BUCKETS_TIMELINE = 30
@@ -25,12 +35,14 @@ const LINE_COLORS = {
 }
 
 const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
-	const [errorFrequencyData, setErrorFrequencyData] = useState([])
+	const [errorFrequencyData, setErrorFrequencyData] = useState<
+		FrequencyDataPoint[]
+	>([])
 	const [errorFrequencyTotal, setErrorFrequencyTotal] = useState(0)
-	const [timelineTicks, setTimelineTicks] = useState<{
-		ticks: string[]
-		format: string
-	}>({ ticks: [], format: '' })
+	const [timelineTicks, setTimelineTicks] = useState<TimelineTickInfo>({
+		ticks: [],
+		format: '',
+	})
 
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
@@ -81,15 +93,15 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	const buildFormatedData = () => {
 		const dataSet = frequencies?.errorGroupFrequencies || []
 		let runningTotal = 0
-		const newErrorFrequencyData = []
+		const newErrorFrequencyData: FrequencyDataPoint[] = []
 
 		dataSet.forEach((dataPoint) => {
 			runningTotal += dataPoint?.value || 0
-			// TODO(spenny): dynamically set "Errors" key when multiple envs supported
+			// TODO(spenny): dynamically set "Occurrances" key when multiple envs supported
 			newErrorFrequencyData.push({
 				date: dataPoint?.date,
 				Occurrances: dataPoint?.value,
-			})
+			} as FrequencyDataPoint)
 		})
 
 		setErrorFrequencyTotal(runningTotal)
