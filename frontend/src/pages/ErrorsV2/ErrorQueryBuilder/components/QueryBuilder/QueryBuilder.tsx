@@ -29,6 +29,7 @@ import {
 	IconSave,
 	IconSegment,
 	IconTrash,
+	IconX,
 	Menu,
 	Tag,
 	Text,
@@ -856,9 +857,11 @@ const QueryRule = ({
 export const TimeRangeFilter = ({
 	rule,
 	onChangeValue,
+	onReset,
 }: {
 	rule: RuleProps
 	onChangeValue: OnChange
+	onReset?: () => void
 }) => {
 	const { val: value } = rule
 	const [visible, setVisible] = useState(!value)
@@ -897,14 +900,23 @@ export const TimeRangeFilter = ({
 					iconRight={<IconChevronDown size={14} />}
 				/>
 			</Popover>
-			<Text
-				size="xSmall"
-				weight="medium"
-				color="neutral300"
-				userSelect="none"
+			<Tag
+				kind="transparent"
+				shape="basic"
+				iconRight={!!onReset ? <IconX size={12} /> : undefined}
+				onIconRightClick={!!onReset ? onReset : undefined}
 			>
-				{value && value.options.length === 1 && value.options[0].label}
-			</Text>
+				<Text
+					size="xSmall"
+					weight="medium"
+					color="neutral300"
+					userSelect="none"
+				>
+					{value &&
+						value.options.length === 1 &&
+						value.options[0].label}
+				</Text>
+			</Tag>
 		</Box>
 	)
 }
@@ -2208,6 +2220,16 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<TimeRangeFilter
 					rule={timeRangeRule}
 					onChangeValue={(val) => updateRule(timeRangeRule, { val })}
+					onReset={
+						!readonly &&
+						timeRangeRule.val?.options[0].value !==
+							defaultTimeRangeRule.val?.options[0].value
+							? () =>
+									updateRule(timeRangeRule, {
+										val: defaultTimeRangeRule.val,
+									})
+							: undefined
+					}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					{!readonly &&
@@ -2243,6 +2265,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			</Box>
 		)
 	}, [
+		defaultTimeRangeRule.val,
 		isAnd,
 		readonly,
 		rules,
