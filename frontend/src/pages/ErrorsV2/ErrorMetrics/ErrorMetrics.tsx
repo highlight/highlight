@@ -14,7 +14,8 @@ type Props = {
 
 type FrequencyDataPoint = {
 	date: string | undefined
-	[name: string]: number | undefined
+	// TODO(spenny): dynamically set "Occurrances" key when multiple counts supported
+	Occurrances: number | undefined
 }
 
 type TimelineTickInfo = {
@@ -29,7 +30,7 @@ const NUM_BUCKETS_TIMELINE = 30
 const NUMBER_OF_DAYS = 30
 const LOOKBACK_MINUTES = 24 * 60 * NUMBER_OF_DAYS
 
-// TODO(spenny): dynamically set colors when multiple envs supported
+// TODO(spenny): dynamically set colors when multiple counts supported
 const LINE_COLORS = {
 	Occurrances: '#6b48c7',
 }
@@ -97,7 +98,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 
 		dataSet.forEach((dataPoint) => {
 			runningTotal += dataPoint?.value || 0
-			// TODO(spenny): dynamically set "Occurrances" key when multiple envs supported
+			// TODO(spenny): dynamically set "Occurrances" key when multiple counts supported
 			newErrorFrequencyData.push({
 				date: dataPoint?.date,
 				Occurrances: dataPoint?.value,
