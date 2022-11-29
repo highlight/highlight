@@ -40,9 +40,10 @@ const DevToolsControlBar: React.FC<
 			<Button
 				iconRight={<IconCaretDown />}
 				kind={'secondary'}
-				onClick={() => {
+				options={[Tab.Errors]}
+				onSelectOption={(value: string) => {
 					// TODO(vkorolik)
-					props.setTab(Tab.Console)
+					// props.setTab(value)
 				}}
 			>
 				Errors
@@ -85,8 +86,6 @@ const ErrorRow: React.FC<
 		<Box className={styles.errorRow}>
 			<span>{body}</span>
 			<span>{context}</span>
-			<span>{error.source}</span>
-			<span>{error.lineNumber}</span>
 			<Tag kind={'grey'}>{error.type}</Tag>
 		</Box>
 	)

@@ -3,7 +3,7 @@ import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
 } from 'ariakit/button'
-import { Text, Props as TextProps } from '../Text/Text'
+import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -12,14 +12,16 @@ import clsx, { ClassValue } from 'clsx'
 
 export type ButtonProps = React.PropsWithChildren &
 	AriakitButtonProps &
-	styles.Variants & {
-		iconLeft?: React.ReactElement<IconProps>
-		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
-		iconRight?: React.ReactElement<IconProps>
-		onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
-		onPress?: () => void
-		cssClass?: ClassValue | ClassValue[]
-	}
+		styles.Variants & {
+			iconLeft?: React.ReactElement<IconProps>
+			onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
+			iconRight?: React.ReactElement<IconProps>
+			onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
+			onPress?: () => void
+			cssClass?: ClassValue | ClassValue[]
+			options?: string[]
+			onSelectOption?: (value: string) => void
+		}
 
 const buttonToTextSize = {
 	xSmall: 'xSmall',
@@ -44,6 +46,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			display,
 			onIconLeftClick,
 			onIconRightClick,
+			options,
 			...buttonProps
 		},
 		ref,
@@ -83,11 +86,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 						{iconLeft}
 					</Box>
 				)}
-				{children && (
-					<Text userSelect="none" size={textSize}>
-						{children}
-					</Text>
-				)}
+				{options
+					? options.map((o) => (
+							<Text userSelect="none" size={textSize} key={o}>
+								{o}
+							</Text>
+					  ))
+					: children && (
+							<Text userSelect="none" size={textSize}>
+								{children}
+							</Text>
+					  )}
 				{iconRight && (
 					<Box
 						as={hasInternalButtons ? 'div' : 'span'}
