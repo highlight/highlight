@@ -19,8 +19,6 @@ export type ButtonProps = React.PropsWithChildren &
 			onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
 			onPress?: () => void
 			cssClass?: ClassValue | ClassValue[]
-			options?: string[]
-			onSelectOption?: (value: string) => void
 		}
 
 const buttonToTextSize = {
@@ -46,7 +44,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			display,
 			onIconLeftClick,
 			onIconRightClick,
-			options,
 			...buttonProps
 		},
 		ref,
@@ -86,17 +83,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 						{iconLeft}
 					</Box>
 				)}
-				{options
-					? options.map((o) => (
-							<Text userSelect="none" size={textSize} key={o}>
-								{o}
-							</Text>
-					  ))
-					: children && (
-							<Text userSelect="none" size={textSize}>
-								{children}
-							</Text>
-					  )}
+				{children && (
+					<Text userSelect="none" size={textSize}>
+						{children}
+					</Text>
+				)}
 				{iconRight && (
 					<Box
 						as={hasInternalButtons ? 'div' : 'span'}

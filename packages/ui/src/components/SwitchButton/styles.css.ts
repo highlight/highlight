@@ -29,6 +29,12 @@ export const variants = recipe({
 	],
 
 	variants: {
+		width: {
+			full: {
+				height: 24,
+				width: '100%',
+			},
+		},
 		variant: {
 			checked: {
 				background: vars.theme.interactive.fill.primary.enabled,

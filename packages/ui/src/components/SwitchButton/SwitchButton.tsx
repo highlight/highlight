@@ -7,6 +7,7 @@ import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
 
 type Props = Omit<CheckboxProps, 'size'> &
+	styles.Variants &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
@@ -18,10 +19,12 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	iconLeft,
 	iconRight,
 	children,
+	width,
 	...rest
 }) => {
 	const className = styles.variants({
 		variant: checked ? 'checked' : 'unchecked',
+		width,
 	})
 	const checkbox = useCheckboxState()
 

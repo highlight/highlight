@@ -15,7 +15,7 @@ export const devToolsWindowV2 = style({
 
 export const errorsBox = style({
 	maxHeight: 200,
-	overflowX: 'scroll',
+	overflowY: 'scroll',
 	width: '100%',
 	padding: '0 8px',
 })
@@ -36,4 +36,12 @@ export const errorRow = style({
 		},
 	},
 	width: '100%',
+})
+
+export const switchInverted = style({
+	transform: 'rotate(90deg)',
+})
+
+export const autoScroll = style({
+	padding: '0 4px',
 })

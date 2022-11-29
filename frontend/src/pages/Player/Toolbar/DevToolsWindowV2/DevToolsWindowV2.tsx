@@ -2,10 +2,11 @@ import { ErrorObject } from '@graph/schemas'
 import {
 	Box,
 	Button,
-	IconCaretDown,
-	IconDotsHorizontal,
-	IconPlusSm,
+	DropdownButton,
+	IconSearch,
+	IconSwitchHorizontal,
 	Stack,
+	SwitchButton,
 	Tag,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
@@ -25,7 +26,10 @@ enum Tab {
 
 const DevToolsControlBar: React.FC<
 	React.PropsWithChildren & {
+		tab: Tab
 		setTab: React.Dispatch<React.SetStateAction<Tab>>
+		autoScroll: boolean
+		setAutoScroll: React.Dispatch<React.SetStateAction<boolean>>
 	}
 > = (props) => {
 	return (
@@ -37,17 +41,22 @@ const DevToolsControlBar: React.FC<
 			justifyContent={'space-between'}
 			align={'center'}
 		>
-			<Button
-				iconRight={<IconCaretDown />}
-				kind={'secondary'}
-				options={[Tab.Errors]}
-				onSelectOption={(value: string) => {
-					// TODO(vkorolik)
-					// props.setTab(value)
-				}}
-			>
-				Errors
-			</Button>
+			<Box gap={'6'} display={'flex'}>
+				{[Tab.Errors, Tab.Console, Tab.Network, Tab.Performance].map(
+					(t) => (
+						<Button
+							key={t}
+							size={'xSmall'}
+							kind={t === props.tab ? 'primary' : 'secondary'}
+							onClick={() => {
+								props.setTab(t)
+							}}
+						>
+							{Tab[t]}
+						</Button>
+					),
+				)}
+			</Box>
 			<Box
 				display={'inline-flex'}
 				justifyContent={'space-between'}
@@ -60,10 +69,28 @@ const DevToolsControlBar: React.FC<
 					gap={'4'}
 					align={'center'}
 				>
-					<IconPlusSm color={colors.neutral300} />
-					<span>Add filter</span>
+					<IconSearch color={colors.neutral300} />
+					<DropdownButton
+						size={'xSmall'}
+						options={['All', 'Info', 'Log', 'Warn', 'Error']}
+						onChange={() => {}}
+					/>
+					<SwitchButton
+						style={{ padding: '0 4px' }}
+						width={'full'}
+						iconRight={
+							<IconSwitchHorizontal
+								className={styles.switchInverted}
+							/>
+						}
+						checked={props.autoScroll}
+						onChange={() => {
+							props.setAutoScroll((a) => !a)
+						}}
+					>
+						Auto scroll
+					</SwitchButton>
 				</Box>
-				<IconDotsHorizontal color={colors.neutral300} />
 			</Box>
 		</Box>
 	)
@@ -91,7 +118,10 @@ const ErrorRow: React.FC<
 	)
 }
 
-const ErrorsPage: React.FC = () => {
+const ErrorsPage: React.FC<React.PropsWithChildren<{ autoScroll: boolean }>> = (
+	props,
+) => {
+	// TODO(vkorolik) implement scrolling
 	const { errors } = useReplayerContext()
 	return (
 		<Box className={styles.errorsBox}>
@@ -110,14 +140,20 @@ const DevToolsWindowV2: React.FC<
 	}
 > = (props) => {
 	const [tab, setTab] = React.useState<Tab>(Tab.Errors)
+	const [autoScroll, setAutoScroll] = React.useState<boolean>(false)
 	let page: React.ReactNode = null
 	switch (tab) {
 		case Tab.Errors:
-			page = <ErrorsPage />
+			page = <ErrorsPage autoScroll={autoScroll} />
 	}
 	return (
 		<div className={styles.devToolsWindowV2} style={{ width: props.width }}>
-			<DevToolsControlBar setTab={setTab} />
+			<DevToolsControlBar
+				tab={tab}
+				setTab={setTab}
+				autoScroll={autoScroll}
+				setAutoScroll={setAutoScroll}
+			/>
 			{page}
 		</div>
 	)
