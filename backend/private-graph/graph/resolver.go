@@ -726,7 +726,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if err = r.DB.Where(&model.Session{SecureID: session_secure_id}).First(&session).Error; err != nil {
+	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
 	}
 
