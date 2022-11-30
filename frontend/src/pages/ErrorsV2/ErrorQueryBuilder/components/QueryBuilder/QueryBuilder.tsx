@@ -1328,9 +1328,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		})
 
 	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
-		useLocalStorage<{ value: string; id: string } | undefined>(
+		useLocalStorage<{ value: string; id: string }>(
 			`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
-			undefined,
 		)
 
 	useEffect(() => {

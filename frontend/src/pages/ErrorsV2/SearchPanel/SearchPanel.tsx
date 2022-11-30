@@ -42,7 +42,7 @@ const SearchPanel = () => {
 		totalCount: 0,
 	})
 
-	const { loading } = useGetErrorGroupsOpenSearchQuery({
+	useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: PAGE_SIZE,
@@ -65,8 +65,10 @@ const SearchPanel = () => {
 	})
 
 	useEffect(() => {
-		setSearchResultsLoading(loading)
-	}, [loading, setSearchResultsLoading])
+		if (!!backendSearchQuery) {
+			setSearchResultsLoading(true)
+		}
+	}, [backendSearchQuery, setSearchResultsLoading])
 
 	const showHistogram = searchResultsLoading || searchResultsCount > 0
 
