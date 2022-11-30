@@ -7,6 +7,7 @@ export const vars = {
 	breakpoint: breakpoints,
 	color: colors,
 	space: spaces,
+	margin: { auto: 'auto', ...spaces },
 	border: borders,
 	borderRadius: borderRadii,
 	borderWidth: borderWidths,

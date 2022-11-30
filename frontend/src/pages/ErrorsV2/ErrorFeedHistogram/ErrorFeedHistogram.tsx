@@ -15,8 +15,12 @@ interface Props {
 }
 const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 	const { project_id: projectId } = useParams<{ project_id: string }>()
-	const { backendSearchQuery, searchParams, setSearchParams } =
-		useErrorSearchContext()
+	const {
+		backendSearchQuery,
+		searchParams,
+		setSearchParams,
+		searchResultsLoading,
+	} = useErrorSearchContext()
 	const [histogram, setHistogram] = useState<{
 		seriesList: Series[]
 		bucketTimes: number[]
@@ -86,7 +90,7 @@ const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 			seriesList={histogram.seriesList}
 			bucketTimes={histogram.bucketTimes}
 			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
+			loading={loading || searchResultsLoading}
 			updateTimeRange={updateTimeRange}
 		/>
 	)

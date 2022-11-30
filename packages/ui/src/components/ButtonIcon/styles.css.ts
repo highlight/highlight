@@ -13,6 +13,9 @@ export const variants = recipe({
 			padding: 0,
 			outline: 'none',
 			selectors: {
+				'&:disabled, &:disabled:hover, &:disabled:focus': {
+					cursor: 'not-allowed',
+				},
 				'&:hover': {
 					cursor: 'pointer',
 				},

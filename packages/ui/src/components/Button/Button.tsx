@@ -10,9 +10,11 @@ import clsx, { ClassValue } from 'clsx'
 type Props = ButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
+		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
 		iconRight?: React.ReactElement<IconProps>
+		onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
 		onPress?: () => void
-		cssClass?: ClassValue[]
+		cssClass?: ClassValue | ClassValue[]
 	}
 
 const buttonToTextSize = {
@@ -32,13 +34,16 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	emphasis,
 	className,
 	cssClass,
+	onIconLeftClick,
+	onIconRightClick,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
 
+	const hasInternalButtons = !!onIconLeftClick || !!onIconRightClick
 	return (
 		<AriakitButton
-			as="button"
+			as={hasInternalButtons ? 'div' : 'button'}
 			className={clsx(
 				styles.variants({
 					kind,
@@ -52,13 +57,14 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 		>
 			{iconLeft && (
 				<Box
-					as="span"
+					as={hasInternalButtons ? 'div' : 'span'}
 					display="inline-flex"
 					className={styles.iconVariants({
 						size,
 						emphasis,
 						kind,
 					})}
+					onClick={onIconLeftClick}
 				>
 					{iconLeft}
 				</Box>
@@ -70,13 +76,14 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 			)}
 			{iconRight && (
 				<Box
-					as="span"
+					as={hasInternalButtons ? 'div' : 'span'}
 					display="inline-flex"
 					className={styles.iconVariants({
 						size,
 						emphasis,
 						kind,
 					})}
+					onClick={onIconRightClick}
 				>
 					{iconRight}
 				</Box>

@@ -29,5 +29,7 @@ export type BaseSearchContext<T> = {
 	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
 	searchResultsLoading: boolean
 	setSearchResultsLoading: React.Dispatch<React.SetStateAction<boolean>>
+	searchResultsCount: number
+	setSearchResultsCount: React.Dispatch<React.SetStateAction<number>>
 	query?: string
 }
