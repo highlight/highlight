@@ -80,6 +80,8 @@ const DevToolsControlBar: React.FC<
 						width={'full'}
 						iconRight={
 							<IconSwitchHorizontal
+								width={12}
+								height={12}
 								className={styles.switchInverted}
 							/>
 						}
@@ -118,9 +120,9 @@ const ErrorRow: React.FC<
 	)
 }
 
-const ErrorsPage: React.FC<React.PropsWithChildren<{ autoScroll: boolean }>> = (
-	props,
-) => {
+const ErrorsPage: React.FC<
+	React.PropsWithChildren<{ autoScroll: boolean }>
+> = () => {
 	// TODO(vkorolik) implement scrolling
 	const { errors } = useReplayerContext()
 	return (
