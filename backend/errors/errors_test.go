@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-test/deep"
@@ -117,8 +116,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 						StackTraceFileURL:         util.MakeStringPointer("./test-files/foo.js"),
 						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
 						ActualMinifiedFetchedPath: util.MakeStringPointer("./test-files/foo.js"),
-						SourcemapFileSize:         nil,
-						MinifiedFileSize:          nil,
 					},
 				},
 			},
@@ -144,8 +141,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 						StackTraceFileURL:         util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
 						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
 						ActualMinifiedFetchedPath: util.MakeStringPointer("ajax/libs/lodash.js"),
-						MinifiedFileSize:          nil,
-						SourcemapFileSize:         nil,
 					},
 				},
 			},
@@ -171,33 +166,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 						StackTraceFileURL:         util.MakeStringPointer("/file/local/domain.js"),
 						MinifiedFetchStrategy:     util.MakeStringPointer("S3 and URL"),
 						ActualMinifiedFetchedPath: util.MakeStringPointer("file/local/domain.js"),
-						MinifiedFileSize:          nil,
-						SourcemapFileSize:         nil,
 					},
-				},
-			},
-			fetcher: NetworkFetcher{},
-			err:     e.New(""),
-		},
-		// TODO: Write test that asserts the file size attributes are set correctly.
-		"test sourcemap metadata file sizes": {
-			stackFrameInput: []*publicModelInput.StackFrameInput{
-				{
-					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
-					LineNumber:   util.MakeIntPointer(1),
-					ColumnNumber: util.MakeIntPointer(4223), //
-				},
-			},
-			expectedStackTrace: []modelInput.ErrorTrace{
-				{
-					FileName:                   util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
-					LineNumber:                 util.MakeIntPointer(13),
-					ColumnNumber:               util.MakeIntPointer(30),
-					FunctionName:               util.MakeStringPointer(""),
-					LineContent:                util.MakeStringPointer("                        throw new Error('errors page');\n"),
-					LinesBefore:                util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-					LinesAfter:                 util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
-					SourceMappingErrorMetadata: nil,
 				},
 			},
 			fetcher: NetworkFetcher{},
@@ -225,14 +194,13 @@ func TestEnhanceStackTrace(t *testing.T) {
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:                   util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
-					LineNumber:                 util.MakeIntPointer(13),
-					ColumnNumber:               util.MakeIntPointer(30),
-					FunctionName:               util.MakeStringPointer(""),
-					LineContent:                util.MakeStringPointer("                        throw new Error('errors page');\n"),
-					LinesBefore:                util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-					LinesAfter:                 util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
-					SourceMappingErrorMetadata: nil,
+					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
+					LineNumber:   util.MakeIntPointer(13),
+					ColumnNumber: util.MakeIntPointer(30),
+					FunctionName: util.MakeStringPointer(""),
+					LineContent:  util.MakeStringPointer("                        throw new Error('errors page');\n"),
+					LinesBefore:  util.MakeStringPointer("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
+					LinesAfter:   util.MakeStringPointer("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
 				},
 			},
 			fetcher: DiskFetcher{},
@@ -258,7 +226,6 @@ func TestEnhanceStackTrace(t *testing.T) {
 			}
 			diff := deep.Equal(&mappedStackTrace, &tc.expectedStackTrace)
 			if len(diff) > 0 {
-				fmt.Printf("::: mappedStackTrace: %+v\n", &mappedStackTrace[0].SourceMappingErrorMetadata)
 				t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
 			}
 		})
