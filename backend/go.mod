@@ -57,7 +57,7 @@ require (
 	github.com/goware/emailproviders v0.0.0-20200728124719-451ef785cf29
 	github.com/highlight-run/highlight-go v0.5.3
 	github.com/highlight-run/workerpool v1.3.0
-	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/influxdata/influxdb-client-go/v2 v2.12.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
@@ -179,7 +179,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	github.com/tdewolff/parse v2.3.4+incompatible
 	github.com/tinylib/msgp v1.1.2 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
@@ -198,6 +198,5 @@ require (
 	google.golang.org/genproto v0.0.0-20210916144049-3192f974c780 // indirect
 	google.golang.org/grpc v1.40.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
