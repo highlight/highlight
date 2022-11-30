@@ -31,6 +31,8 @@ import { AxisDomain } from 'recharts/types/util/types'
 import styles from './LineChart.module.scss'
 
 export const CLICK_NEARBY_THRESHOLD = 4
+export const MAX_LEGEND_ITEMS = 16
+export const MAX_TOOLTIP_ITEMS = 5
 
 export interface Reference {
 	value: number
@@ -273,24 +275,38 @@ export const CustomTooltip = ({
 	precision,
 	units,
 	payload,
+	hideZeroValues,
 }: {
 	yAxisLabel: string
 	referenceLines?: Reference[]
 	precision: number
 	units: string
 	payload: any[]
+	hideZeroValues?: boolean
 }) => {
+	const filteredPayloads = payload
+		?.filter((p) => !hideZeroValues || p.value)
+		.reverse()
+		.slice(0, MAX_TOOLTIP_ITEMS)
+	if (hideZeroValues && filteredPayloads.length === 0) {
+		return null
+	}
 	return (
 		<>
-			<p className="mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll">
-				{payload[0].payload.date && (
+			<p
+				className={classNames(
+					'mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll whitespace-nowrap',
+					styles.text,
+				)}
+			>
+				{filteredPayloads[0].payload.date && (
 					<div className="mb-4 flex w-full flex-row items-center justify-around gap-x-4">
-						{moment(payload[0].payload.date).format(
+						{moment(filteredPayloads[0].payload.date).format(
 							'MMMM Do YYYY, h:mm A',
 						)}
 					</div>
 				)}
-				{payload.reverse().map((entry: any) => {
+				{filteredPayloads.map((entry: any) => {
 					return (
 						<div key={entry.dataKey} className={styles.tooltipGrid}>
 							<span>{entry.dataKey}</span>
@@ -300,27 +316,23 @@ export const CustomTooltip = ({
 									background: entry.color,
 								}}
 							></div>
-							<span>
-								<span className={styles.tooltipValue}>
-									{entry.value?.toFixed
-										? entry.value.toFixed(precision)
-										: entry.value}
-								</span>{' '}
-								{yAxisLabel}
-								{entry?.payload.range_start ? (
-									<>
-										{' in '}
-										{entry.payload.range_start.toFixed(
-											precision,
-										)}
-										{units} -{' '}
-										{entry.payload.range_end.toFixed(
-											precision,
-										)}
-										{units}
-									</>
-								) : null}
-							</span>
+							<span className={styles.tooltipValue}>
+								{entry.value?.toFixed
+									? entry.value.toFixed(precision)
+									: entry.value}
+							</span>{' '}
+							{yAxisLabel}
+							{entry?.payload.range_start ? (
+								<>
+									{' in '}
+									{entry.payload.range_start.toFixed(
+										precision,
+									)}
+									{units} -{' '}
+									{entry.payload.range_end.toFixed(precision)}
+									{units}
+								</>
+							) : null}
 							{referenceLines?.length &&
 							referenceLines?.length >= 2
 								? getScoreIcon(
@@ -351,49 +363,51 @@ export const CustomLegend = ({
 }) => {
 	const { payload }: { payload: any[] } = props
 	return (
-		<div className="mt-1 flex w-full items-center justify-center gap-x-2 overflow-x-scroll">
-			{payload?.map((entry, index) => (
-				<Button
-					trackingId="LineChartLegendFilter"
-					key={`item-${index}`}
-					type="text"
-					size="small"
-					onClick={() => {
-						setDataTypesToShow((previous) => {
-							// Toggle off
-							if (previous.includes(entry.value)) {
-								return previous.filter((e) => e !== entry.value)
-							} else {
-								// Toggle on
-								return [...previous, entry.value]
-							}
-						})
-					}}
-					className={
-						'flex items-center gap-x-1 p-0 text-xs text-gray-500'
-					}
-				>
-					<div
-						className={classNames(styles.legendIcon, {
-							[styles.notShowing]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
-						style={{
-							background: entry.color,
+		<div className="flex h-full w-full justify-center align-middle">
+			<div className="mt-1 grid w-11/12 grid-cols-4 items-center justify-center gap-x-2 overflow-x-auto">
+				{payload?.slice(0, MAX_LEGEND_ITEMS)?.map((entry, index) => (
+					<Button
+						trackingId="LineChartLegendFilter"
+						key={`item-${index}`}
+						type="text"
+						size="small"
+						onClick={() => {
+							setDataTypesToShow((previous) => {
+								// Toggle off
+								if (previous.includes(entry.value)) {
+									return previous.filter(
+										(e) => e !== entry.value,
+									)
+								} else {
+									// Toggle on
+									return [...previous, entry.value]
+								}
+							})
 						}}
-					></div>
-					<span
-						className={classNames(styles.legendValue, {
-							[styles.notShowing]: !dataTypesToShow.includes(
-								entry.value,
-							),
-						})}
+						className="flex items-center gap-x-1 overflow-hidden p-0 text-xs text-gray-500"
 					>
-						{entry.value}
-					</span>
-				</Button>
-			))}
+						<div
+							className={classNames(styles.legendIcon, {
+								[styles.notShowing]: !dataTypesToShow.includes(
+									entry.value,
+								),
+							})}
+							style={{
+								background: entry.color,
+							}}
+						></div>
+						<span
+							className={classNames(styles.legendValue, {
+								[styles.notShowing]: !dataTypesToShow.includes(
+									entry.value,
+								),
+							})}
+						>
+							{entry.value}
+						</span>
+					</Button>
+				))}
+			</div>
 		</div>
 	)
 }
