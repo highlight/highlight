@@ -1,14 +1,13 @@
+import { useApolloClient } from '@apollo/client'
 import { Avatar } from '@components/Avatar/Avatar'
 import {
-	useGetErrorInstanceLazyQuery,
+	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
-	useGetProjectQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
-import { getProjectPrefix } from '@pages/ErrorsV2/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
@@ -17,7 +16,8 @@ import {
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
-import React, { useEffect, useState } from 'react'
+import { useParams } from '@util/react-router/useParams'
+import React, { useEffect } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
@@ -26,32 +26,42 @@ type Props = React.PropsWithChildren & {
 }
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const [currentErrorObjectId, setCurrentErrorObjectId] = useState<
-		string | undefined
-	>()
+	const { error_object_id, error_secure_id } = useParams<{
+		error_secure_id: string
+		error_object_id: string
+	}>()
 	const { projectId } = useProjectId()
 	const history = useHistory()
+	const client = useApolloClient()
 
-	const { data: projectData } = useGetProjectQuery({
-		variables: { id: projectId },
-	})
-
-	const [getErrorInstanceLazyQuery] = useGetErrorInstanceLazyQuery()
 	const { data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
-			error_object_id: currentErrorObjectId,
+			error_object_id,
 		},
 		onCompleted: (data) => {
 			const previousErrorObjectId = data?.error_instance?.previous_id
+			const nextErrorObjectId = data?.error_instance?.next_id
 
+			// Prefetch the next/previous error objects so they are in the cache.
+			// Using client directly because the lazy query had issues with canceling
+			// multiple requests: https://github.com/apollographql/apollo-client/issues/9755
 			if (previousErrorObjectId) {
-				// Prefetch the next error object so it's in the cache and transitions
-				// are fast.
-				getErrorInstanceLazyQuery({
+				client.query({
+					query: GetErrorInstanceDocument,
 					variables: {
 						error_group_secure_id: String(errorGroup?.secure_id),
 						error_object_id: previousErrorObjectId,
+					},
+				})
+			}
+
+			if (nextErrorObjectId) {
+				client.query({
+					query: GetErrorInstanceDocument,
+					variables: {
+						error_group_secure_id: String(errorGroup?.secure_id),
+						error_object_id: nextErrorObjectId,
 					},
 				})
 			}
@@ -66,50 +76,41 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		return null
 	}
 
-	const errorObject = errorInstance?.error_object
-	const projectPrefix = getProjectPrefix(projectData?.project)
+	const errorObject = errorInstance.error_object
 
 	return (
 		<Box id="error-instance-container">
-			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
+			<Box my="28" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Error Instance</Heading>
-
-					<Text>
-						Error groups {'>'} {projectPrefix}-
-						{errorObject.error_group_id} {' > '}
-						{projectPrefix}-Ins-{errorObject.id}
-					</Text>
 				</Box>
 
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
 						<Button
+							onClick={() => {
+								history.push({
+									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
+									search: window.location.search,
+								})
+							}}
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
 							emphasis="low"
-							onClick={() => {
-								if (errorInstance?.previous_id) {
-									setCurrentErrorObjectId(
-										errorInstance.previous_id,
-									)
-								}
-							}}
 						>
 							Older
 						</Button>
 						<Box borderRight="neutral" style={{ height: 18 }} />
 						<Button
+							onClick={() => {
+								history.push({
+									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
+									search: window.location.search,
+								})
+							}}
 							disabled={Number(errorInstance.next_id) === 0}
 							kind="secondary"
 							emphasis="low"
-							onClick={() => {
-								if (errorInstance?.next_id) {
-									setCurrentErrorObjectId(
-										errorInstance.next_id,
-									)
-								}
-							}}
 						>
 							Newer
 						</Button>
@@ -132,7 +133,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Box
 				display="flex"
 				flexDirection={{ desktop: 'row', mobile: 'column' }}
-				my="40"
+				mb="40"
 				gap="40"
 			>
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>

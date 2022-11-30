@@ -43,7 +43,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
 					<PlayerPage integrated={integrated} />
 				</Route>
 				<Route
-					path="/:project_id/errors/:error_secure_id?/:error_tab_key?"
+					path="/:project_id/errors/:error_secure_id?/:error_tab_key?/:error_object_id?"
 					exact
 				>
 					{isHighlightAdmin && newErrorsPageEnabled ? (
