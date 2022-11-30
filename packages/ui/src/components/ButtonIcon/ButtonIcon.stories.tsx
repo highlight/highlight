@@ -28,18 +28,29 @@ export const AllVariants = () => {
 							gap="4"
 							key={`emp-${idx}-${jdx}`}
 						>
-							{size.map(($size, kdx) =>
-								shape.map(($shape, ldx) => (
+							{size.map(($size, kdx) => (
+								<>
+									{shape.map(($shape, ldx) => (
+										<ButtonIcon
+											icon={<IconCaretDown />}
+											size={$size}
+											kind={$kind}
+											emphasis={$emphasis}
+											shape={$shape}
+											key={`${idx}-${jdx}-${kdx}-${ldx}`}
+										/>
+									))}
+
 									<ButtonIcon
+										disabled
 										icon={<IconCaretDown />}
 										size={$size}
 										kind={$kind}
 										emphasis={$emphasis}
-										shape={$shape}
-										key={`${idx}-${jdx}-${kdx}-${ldx}`}
+										key={`${idx}-${jdx}-${kdx}-disabled`}
 									/>
-								)),
-							)}
+								</>
+							))}
 						</Box>
 					))}
 				</Box>

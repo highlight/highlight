@@ -15,6 +15,12 @@ export const iconVariants = recipe({
 		alignItems: 'center',
 		display: 'inline-flex',
 		justifyContent: 'center',
+		selectors: {
+			'&[disabled]': {
+				pointerEvents: 'none',
+				userSelect: 'none',
+			},
+		},
 	},
 
 	variants: {
@@ -58,7 +64,7 @@ export const iconVariants = recipe({
 			style: {
 				color: vars.color.neutral700,
 				selectors: {
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 					},
 				},
@@ -72,7 +78,7 @@ export const iconVariants = recipe({
 			style: {
 				color: vars.color.neutral700,
 				selectors: {
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 					},
 				},
@@ -92,7 +98,7 @@ export const iconVariants = recipe({
 					'&:focus, &:active': {
 						color: vars.color.neutral500,
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 					},
 				},
@@ -120,6 +126,10 @@ export const variants = recipe({
 			selectors: {
 				'&:hover': {
 					cursor: 'pointer',
+				},
+				'&[disabled]': {
+					pointerEvents: 'none',
+					userSelect: 'none',
 				},
 			},
 		},
@@ -176,7 +186,7 @@ export const variants = recipe({
 						background: vars.color.purple700,
 						boxShadow: 'none',
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						background: vars.color.purple100,
 						color: vars.color.neutral50,
 						boxShadow: 'none',
@@ -202,7 +212,7 @@ export const variants = recipe({
 						border: vars.border.purple,
 						color: vars.color.purple700,
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						border: vars.border.purpleLight,
 						color: vars.color.purple100,
 					},
@@ -227,7 +237,7 @@ export const variants = recipe({
 						color: vars.color.purple700,
 						background: vars.color.neutral200,
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						color: vars.color.purple100,
 					},
 				},
@@ -250,7 +260,7 @@ export const variants = recipe({
 						background: vars.color.neutral200,
 						boxShadow: 'none',
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						background: vars.color.neutral50,
 						color: vars.color.neutral300,
 						boxShadow: 'none',
@@ -275,7 +285,8 @@ export const variants = recipe({
 						border: vars.border.neutralDark,
 						background: vars.color.neutral100,
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						background: 'transparent',
 						border: vars.border.neutral,
 						color: vars.color.neutral300,
 					},
@@ -293,14 +304,15 @@ export const variants = recipe({
 				border: vars.border.none,
 				selectors: {
 					'&:hover': {
-						color: vars.color.neutral800,
 						background: vars.color.neutral200,
+						color: vars.color.neutral800,
 					},
 					'&:focus, &:active': {
-						color: vars.color.neutral800,
 						background: vars.color.neutral200,
+						color: vars.color.neutral800,
 					},
-					'&:disabled, &:disabled:hover, &:disabled:focus': {
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						background: 'transparent',
 						color: vars.color.neutral300,
 					},
 				},
