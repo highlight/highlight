@@ -17,7 +17,7 @@ import (
 type Handlers interface {
 	GetProjectIds(context.Context, utils.DigestsInput) ([]utils.ProjectIdResponse, error)
 	GetDigestData(context.Context, utils.ProjectIdResponse) (*utils.DigestDataResponse, error)
-	SendEmail(context.Context, utils.DigestDataResponse) error
+	SendDigestEmail(context.Context, utils.DigestDataResponse) error
 }
 
 type handlers struct {
@@ -261,6 +261,6 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	}, nil
 }
 
-func (h *handlers) SendEmail(ctx context.Context, input utils.DigestDataResponse) error {
+func (h *handlers) SendDigestEmail(ctx context.Context, input utils.DigestDataResponse) error {
 	return nil
 }
