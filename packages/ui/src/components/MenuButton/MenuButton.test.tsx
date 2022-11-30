@@ -1,12 +1,12 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 
-import { DropdownButton } from '@components'
+import { MenuButton } from '@components'
 
 describe('DropdownButton', () => {
 	it('exists', async () => {
 		render(
-			<DropdownButton
+			<MenuButton
 				options={['Hello!']}
 				onChange={(v) => {
 					console.log(v)

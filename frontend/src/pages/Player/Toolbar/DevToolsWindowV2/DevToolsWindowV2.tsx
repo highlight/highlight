@@ -2,9 +2,9 @@ import { ErrorObject } from '@graph/schemas'
 import {
 	Box,
 	Button,
-	DropdownButton,
 	IconSearch,
 	IconSwitchHorizontal,
+	MenuButton,
 	Stack,
 	SwitchButton,
 	Tag,
@@ -25,12 +25,21 @@ enum Tab {
 	Performance = 'Performance',
 }
 
+enum LogLevel {
+	All = 'All',
+	Info = 'Info',
+	Log = 'Log',
+	Warn = 'Warn',
+	Error = 'Error',
+}
+
 const DevToolsControlBar: React.FC<
 	React.PropsWithChildren & {
 		tab: Tab
 		setTab: React.Dispatch<React.SetStateAction<Tab>>
 		autoScroll: boolean
 		setAutoScroll: React.Dispatch<React.SetStateAction<boolean>>
+		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
 	}
 > = (props) => {
 	return (
@@ -90,10 +99,12 @@ const DevToolsControlBar: React.FC<
 					{/*TODO(vkorolik) actual component */}
 					<Text>Search</Text>
 
-					<DropdownButton
+					<MenuButton
 						size={'medium'}
-						options={['All', 'Info', 'Log', 'Warn', 'Error']}
-						onChange={() => {}}
+						options={Object.values(LogLevel)}
+						onChange={(ll: string) =>
+							props.setLogLevel(ll as LogLevel)
+						}
 					/>
 					<SwitchButton
 						style={{ padding: '0 4px' }}
@@ -162,6 +173,7 @@ const DevToolsWindowV2: React.FC<
 	}
 > = (props) => {
 	const [tab, setTab] = React.useState<Tab>(Tab.Errors)
+	const [, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const [autoScroll, setAutoScroll] = React.useState<boolean>(false)
 	let page: React.ReactNode = null
 	switch (tab) {
@@ -175,6 +187,7 @@ const DevToolsWindowV2: React.FC<
 				setTab={setTab}
 				autoScroll={autoScroll}
 				setAutoScroll={setAutoScroll}
+				setLogLevel={setLogLevel}
 			/>
 			{page}
 		</div>
