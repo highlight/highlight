@@ -22,9 +22,10 @@ export const LinkButton: React.FC<Props> = ({
 	emphasis,
 	iconLeft,
 	iconRight,
+	target,
 }) => {
 	return (
-		<Link to={href}>
+		<Link to={{ pathname: href }} target={target}>
 			<Box
 				cssClass={clsx(
 					styles.base,
