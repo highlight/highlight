@@ -293,7 +293,12 @@ export const CustomTooltip = ({
 	}
 	return (
 		<>
-			<p className="mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll">
+			<p
+				className={classNames(
+					'mb-0 flex max-h-48 flex-col items-center gap-x-4 overflow-y-scroll whitespace-nowrap',
+					styles.text,
+				)}
+			>
 				{filteredPayloads[0].payload.date && (
 					<div className="mb-4 flex w-full flex-row items-center justify-around gap-x-4">
 						{moment(filteredPayloads[0].payload.date).format(

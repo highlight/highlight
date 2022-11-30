@@ -130,9 +130,11 @@ const CategoricalBarChart = ({
 					/>
 					<Tooltip
 						position={{ y: 0 }}
+						wrapperStyle={{ outline: 'none' }}
 						content={
 							showTooltip ? (
 								<RechartTooltip
+									hideZeroValues
 									render={(payload: any[]) => (
 										<CustomTooltip
 											hideZeroValues

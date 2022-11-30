@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .legendValue {
 	color: var(--color-gray-500) !important;
 
@@ -44,4 +46,8 @@
 	color: var(--text-primary);
 	font-size: 12px;
 	line-height: initial;
+}
+
+.text {
+	@include hide-scrollbar;
 }
