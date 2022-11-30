@@ -10,16 +10,15 @@ import {
 	MenuProps,
 	MenuButtonProps,
 } from 'ariakit'
+import clsx, { ClassValue } from 'clsx'
 import React, { useContext } from 'react'
-import { Box } from '../Box/Box'
-import { IconProps } from '../icons'
 
 import * as styles from './styles.css'
 
 const MenuContext = React.createContext<MenuState>({} as MenuState)
 const useMenu = () => useContext(MenuContext)
 
-type Props = React.PropsWithChildren
+type Props = React.PropsWithChildren<Partial<MenuState>>
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
@@ -28,27 +27,30 @@ type MenuComponent = React.FC<Props> & {
 	Divider: typeof Divider
 }
 
-export const Menu: MenuComponent = ({ children }: Props) => {
-	const menu = useMenuState({ gutter: 6 })
+export const Menu: MenuComponent = ({ children, ...props }: Props) => {
+	const menu = useMenuState({ gutter: 6, ...props })
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
 
 const Button: React.FC<
-	React.PropsWithChildren &
+	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
 		styles.ButtonVariants &
 		Omit<MenuButtonProps, 'state'>
-> = ({ children, size, kind, emphasis, ...props }) => {
+> = ({ children, size, kind, emphasis, cssClass, ...props }) => {
 	const menu = useMenu()
 
 	return (
 		<MenuButton
 			state={menu}
-			className={styles.buttonVariants({
-				kind,
-				size,
-				emphasis,
-			})}
+			className={clsx(
+				styles.buttonVariants({
+					kind,
+					size,
+					emphasis,
+				}),
+				cssClass,
+			)}
 			{...props}
 		>
 			{children}
@@ -56,13 +58,14 @@ const Button: React.FC<
 	)
 }
 
-const List: React.FC<React.PropsWithChildren & Partial<MenuProps>> = ({
-	children,
-}) => {
+const List: React.FC<
+	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
+		Partial<MenuProps>
+> = ({ children, cssClass }) => {
 	const menu = useMenu()
 
 	return (
-		<AriakitMenu state={menu} className={styles.menuList}>
+		<AriakitMenu state={menu} className={clsx([styles.menuList, cssClass])}>
 			{children}
 		</AriakitMenu>
 	)

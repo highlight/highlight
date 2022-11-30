@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
@@ -19,7 +18,7 @@ import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { Link, useHistory, useLocation } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 
 import { useApplicationContext } from '../../../../routers/OrgRouter/ApplicationContext'
 
@@ -34,10 +33,8 @@ const ProjectPicker = () => {
 		project_id === DEMO_WORKSPACE_APPLICATION_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
-	const { isLoggedIn } = useAuthContext()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const history = useHistory()
-	const { pathname } = useLocation()
 	const isInDemoProject =
 		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
