@@ -63,6 +63,7 @@ import useResizeAware from 'react-resize-aware'
 import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './PlayerPage.module.scss'
 import * as style from './styles.css'
+import { DevTools } from './Toolbar/DevTools'
 import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
 import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
@@ -265,13 +266,9 @@ const PlayerPage = ({ integrated }: Props) => {
 					</>
 				)}
 				<div
-					className={classNames(
-						styles.playerBody,
-						styles.gridBackground,
-						{
-							[styles.withLeftPanel]: showLeftPanel,
-						},
-					)}
+					className={classNames(styles.playerBody, {
+						[styles.withLeftPanel]: showLeftPanel,
+					})}
 				>
 					<div
 						className={classNames(style.playerLeftPanel, {
@@ -463,6 +460,11 @@ const PlayerPage = ({ integrated }: Props) => {
 																}
 															/>
 														</div>
+														<DevTools
+															width={
+																controllerWidth
+															}
+														/>
 													</DevToolsContextProvider>
 												</ToolbarItemsContextProvider>
 											</ResourcesContextProvider>

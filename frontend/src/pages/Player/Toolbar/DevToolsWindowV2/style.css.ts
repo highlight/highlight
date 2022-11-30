@@ -3,10 +3,9 @@ import { style } from '@vanilla-extract/css'
 
 export const devToolsWindowV2 = style({
 	alignItems: 'center',
-	backgroundColor: colors.white,
-	border: `1px solid ${colors.neutral100}`,
-	borderBottom: 0,
-	borderRadius: '2px 2px 0 0',
+	backgroundColor: colors.neutralN2,
+	border: `1px solid ${colors.neutralN6}`,
+	borderRadius: 8,
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,

@@ -1,20 +1,15 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import DevToolsWindowV2 from '@pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import ToolbarControlBar from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar'
-import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
-import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 import classNames from 'classnames'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
 import usePlayerConfiguration, {
 	PLAYBACK_SPEED_OPTIONS,
 } from '../PlayerHook/utils/usePlayerConfiguration'
-import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks'
-import { DevToolsContextProvider } from './DevToolsContext/DevToolsContext'
 import styles from './Toolbar.module.scss'
 
 export const TimelineAnnotationColors: {
@@ -44,6 +39,7 @@ export function getAnnotationColor(
 interface Props {
 	width: number
 }
+
 export const Toolbar = ({ width }: Props) => {
 	const {
 		replayer,
@@ -61,14 +57,10 @@ export const Toolbar = ({ width }: Props) => {
 	const {
 		playerSpeedIdx,
 		showDevTools,
-		setShowDevTools,
-		selectedDevToolsTab,
-		setSelectedDevToolsTab,
 		autoPlayVideo,
 		enableInspectElement,
 		selectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
-	const toolbarItems = useToolbarItems()
 	const { isLoggedIn } = useAuthContext()
 
 	useEffect(() => {
@@ -115,28 +107,7 @@ export const Toolbar = ({ width }: Props) => {
 	])
 
 	return (
-		<ToolbarItemsContextProvider value={toolbarItems}>
-			<DevToolsContextProvider
-				value={{
-					openDevTools: showDevTools,
-					setOpenDevTools: setShowDevTools,
-					devToolsTab: selectedDevToolsTab,
-					setDevToolsTab: setSelectedDevToolsTab,
-				}}
-			>
-				<TimelineIndicatorsBarGraph
-					selectedTimelineAnnotationTypes={
-						selectedTimelineAnnotationTypes
-					}
-					width={width}
-				/>
-
-				{!isLiveMode && (
-					<div id={PlayerPageProductTourSelectors.DevToolsPanel}>
-						<DevToolsWindowV2 width={width} />
-					</div>
-				)}
-			</DevToolsContextProvider>
+		<>
 			<div
 				className={classNames(styles.toolbarSection, {
 					[styles.devToolsOpen]: showDevTools,
@@ -145,6 +116,12 @@ export const Toolbar = ({ width }: Props) => {
 			>
 				<ToolbarControlBar />
 			</div>
-		</ToolbarItemsContextProvider>
+			<TimelineIndicatorsBarGraph
+				selectedTimelineAnnotationTypes={
+					selectedTimelineAnnotationTypes
+				}
+				width={width}
+			/>
+		</>
 	)
 }

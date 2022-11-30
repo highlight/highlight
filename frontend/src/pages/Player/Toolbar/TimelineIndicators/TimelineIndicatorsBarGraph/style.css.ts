@@ -14,10 +14,7 @@ export const TIMELINE_MARGIN = 8
 
 export const timelineContainer = style({
 	alignItems: 'center',
-	backgroundColor: 'var(--color-primary-background)',
-	border: '1px solid var(--color-neutral-100)',
-	borderBottom: 0,
-	borderRadius: '2px 2px 0 0',
+	backgroundColor: 'none',
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,
