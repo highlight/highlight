@@ -170,13 +170,18 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 									Highlight in CI/CD to get enhanced stack
 									traces.
 								</Text>
-								<LinkButton
-									kind="secondary"
-									href="https://www.highlight.io/docs/product-features/environments"
-									target="_blank"
-								>
-									Learn more
-								</LinkButton>
+								<div>
+									<LinkButton
+										kind="secondary"
+										to={{
+											pathname:
+												'https://www.highlight.io/docs/product-features/environments',
+										}}
+										target="_blank"
+									>
+										Learn more
+									</LinkButton>
+								</div>
 							</Box>
 						</Box>
 					</div>
