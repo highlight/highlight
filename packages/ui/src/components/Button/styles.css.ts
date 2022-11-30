@@ -117,6 +117,10 @@ export const variants = recipe({
 			},
 		},
 		size: {
+			xxSmall: [
+				sprinkles({ borderRadius: '6', gap: '4', px: '4' }),
+				{ height: 22 },
+			],
 			xSmall: [
 				sprinkles({ borderRadius: '4', gap: '4', px: '6' }),
 				{ height: 24 },

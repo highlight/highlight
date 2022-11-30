@@ -8,6 +8,7 @@ import {
 	Stack,
 	SwitchButton,
 	Tag,
+	Text,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -40,14 +41,20 @@ const DevToolsControlBar: React.FC<
 			width={'full'}
 			justifyContent={'space-between'}
 			align={'center'}
+			borderBottom={'neutral'}
 		>
 			<Box gap={'6'} display={'flex'}>
 				{[Tab.Errors, Tab.Console, Tab.Network, Tab.Performance].map(
 					(t) => (
 						<Button
 							key={t}
-							size={'xSmall'}
+							size={'xxSmall'}
 							kind={t === props.tab ? 'primary' : 'secondary'}
+							className={
+								t !== props.tab
+									? styles.controlBarButtonDeselected
+									: undefined
+							}
 							onClick={() => {
 								props.setTab(t)
 							}}
@@ -69,9 +76,22 @@ const DevToolsControlBar: React.FC<
 					gap={'4'}
 					align={'center'}
 				>
-					<IconSearch color={colors.neutral300} />
+					<Button
+						size={'xxSmall'}
+						kind={'secondary'}
+						iconRight={
+							<IconSearch
+								color={colors.neutral300}
+								height={16}
+								width={16}
+							/>
+						}
+					/>
+					{/*TODO(vkorolik) actual component */}
+					<Text>Search</Text>
+
 					<DropdownButton
-						size={'xSmall'}
+						size={'medium'}
 						options={['All', 'Info', 'Log', 'Warn', 'Error']}
 						onChange={() => {}}
 					/>

@@ -31,7 +31,7 @@ export const variants = recipe({
 	variants: {
 		width: {
 			full: {
-				height: 24,
+				height: 20,
 				width: '100%',
 			},
 		},

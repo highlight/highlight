@@ -1,19 +1,28 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { typographyStyles } from '../Text/styles.css'
+import { colors } from '../../css/colors'
 
 export const variants = recipe({
+	base: {
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: colors.white,
+		border: `1px solid ${colors.neutralN6}`,
+		boxShadow: 'none',
+		padding: 0,
+	},
 	variants: {
 		size: {
-			xSmall: { height: 16, width: 16, ...typographyStyles.size.xSmall },
-			small: { height: 16, width: 16, ...typographyStyles.size.small },
-			medium: { height: 16, width: 16, ...typographyStyles.size.small },
-			large: { height: 16, width: 16, ...typographyStyles.size.small },
-			xLarge: { height: 16, width: 16, ...typographyStyles.size.large },
+			medium: {
+				height: 22,
+				...typographyStyles.size.small,
+			},
 		},
 	},
 
 	defaultVariants: {
-		size: 'small',
+		size: 'medium',
 	},
 })
 

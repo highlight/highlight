@@ -3,7 +3,7 @@ import { style } from '@vanilla-extract/css'
 
 export const devToolsWindowV2 = style({
 	alignItems: 'center',
-	backgroundColor: colors.neutralN2,
+	backgroundColor: colors.white,
 	border: `1px solid ${colors.neutralN6}`,
 	borderRadius: 8,
 	display: 'flex',
@@ -13,10 +13,16 @@ export const devToolsWindowV2 = style({
 })
 
 export const errorsBox = style({
-	maxHeight: 200,
+	// TODO(vkorolik) resizable
+	maxHeight: 300,
 	overflowY: 'scroll',
 	width: '100%',
 	padding: '0 8px',
+})
+
+export const controlBarButtonDeselected = style({
+	backgroundColor: 'white',
+	boxShadow: 'none',
 })
 
 export const errorRow = style({
