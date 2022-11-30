@@ -16,12 +16,10 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import React from 'react'
 import ReactCollapsible from 'react-collapsible'
-import { useHistory } from 'react-router-dom'
 
 import * as styles from './ErrorStackTrace.css'
 
@@ -30,8 +28,6 @@ interface Props {
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {
-	const history = useHistory()
-	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
 
 	/**
@@ -95,9 +91,6 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 			<Box width="full">
 				{structuredStackTrace?.length ? (
 					structuredStackTrace?.map((e, i) => (
-						// TODO: Pass down sourceMappingErrorMetadata and render the error
-						// details.
-						// https://localhost:3000/1/errors/jjhjUDt4ytt67Gnq0Ra3AT2ZM17c?page=1
 						<StackSection
 							key={i}
 							fileName={e?.fileName ?? ''}
