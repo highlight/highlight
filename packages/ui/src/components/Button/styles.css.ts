@@ -98,7 +98,7 @@ export const iconVariants = recipe({
 					'&:focus, &:active': {
 						color: vars.color.neutral500,
 					},
-					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 					},
 				},
