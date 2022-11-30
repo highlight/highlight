@@ -1327,12 +1327,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 			variables: { project_id: projectId },
 		})
 
-	const [selectedSegment, setSelectedSegment] = useLocalStorage<
-		{ value: string; id: string } | undefined
-	>(
-		`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
-		undefined,
-	)
+	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
+		useLocalStorage<{ value: string; id: string } | undefined>(
+			`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
+			undefined,
+		)
 
 	useEffect(() => {
 		setSegmentName(selectedSegment?.value || null)
@@ -1376,12 +1375,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			setExistingParams(segmentParameters)
 			setSearchParams(segmentParameters)
-			setSelectedSegment(
-				!!segment ? { id: segment.id, value: segment.name } : undefined,
-			)
+			if (segment) {
+				setSelectedSegment({ id: segment.id, value: segment.name })
+			} else {
+				removeSelectedSegment()
+			}
 		},
 		[
 			getQueryFromParams,
+			removeSelectedSegment,
 			setExistingParams,
 			setSearchParams,
 			setSelectedSegment,
@@ -2390,8 +2392,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						segmentToDelete &&
 						segmentName === segmentToDelete.name
 					) {
-						setSelectedSegment(undefined)
-						setSegmentName(null)
+						removeSelectedSegment()
 						setSearchParams(EmptyErrorsSearchParams)
 					}
 				}}
@@ -2520,8 +2521,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()
-										setSelectedSegment(undefined)
-										setSegmentName(null)
+										removeSelectedSegment()
 										setSearchParams(EmptyErrorsSearchParams)
 									}}
 								>
