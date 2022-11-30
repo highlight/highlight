@@ -13,7 +13,8 @@ type Props = ButtonProps &
 		icon?: React.ReactElement<IconProps>
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
-		onPress?: () => void
+		onIconLeftClick?: () => void
+		onIconRightClick?: () => void
 	}
 
 const buttonToTextSize = {
@@ -31,6 +32,8 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
 	className,
+	onIconLeftClick,
+	onIconRightClick,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -54,6 +57,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					as="span"
 					display="inline-flex"
 					className={styles.iconVariants({ size, kind })}
+					onClick={onIconLeftClick}
 				>
 					{icon}
 				</Box>
@@ -68,6 +72,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					as="span"
 					display="inline-flex"
 					className={styles.iconVariants({ size, kind })}
+					onClick={onIconRightClick}
 				>
 					{iconRight}
 				</Box>

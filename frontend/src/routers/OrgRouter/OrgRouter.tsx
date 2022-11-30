@@ -262,6 +262,7 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
+	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
 	const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false)
 
 	const [page, setPage] = useState<number>()
@@ -304,6 +305,8 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		setPage,
 		searchResultsLoading,
 		setSearchResultsLoading,
+		searchResultsCount,
+		setSearchResultsCount,
 	}
 
 	// Params and hooks for SearchContextProvider
@@ -458,6 +461,9 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
 		useState<boolean>(false)
+
+	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
+
 	const [existingParams, setExistingParams] =
 		useState<ErrorSearchParamsInput>({})
 	const dateFromSearchParams = new URLSearchParams(location.search).get(
@@ -489,6 +495,8 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		setPage,
 		searchResultsLoading,
 		setSearchResultsLoading,
+		searchResultsCount,
+		setSearchResultsCount,
 	}
 
 	useEffect(

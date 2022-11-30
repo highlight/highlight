@@ -2,20 +2,19 @@
 
 .container {
 	--header-height: 45px;
-	--left-panel-width: 475px;
 
 	display: flex;
 	width: 100%;
 }
 
 .detailsContainer {
-	align-items: space-around;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
 	height: 100%;
 
 	.errorDetails {
+		margin-left: 0;
 		padding: var(--size-large) var(--size-xxLarge);
 		width: 100%;
 	}
@@ -25,4 +24,13 @@
 		gap: var(--size-medium);
 		margin-top: var(--size-medium);
 	}
+}
+
+.moveDetailsRight {
+	margin-left: 340px;
+}
+
+.sessionSwitchButton {
+	border: 0 !important;
+	border-radius: 0;
 }

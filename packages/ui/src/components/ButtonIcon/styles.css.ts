@@ -10,11 +10,12 @@ export const variants = recipe({
 			justifyContent: 'center',
 			border: 'none',
 			borderRadius: 6,
+			cursor: 'pointer',
 			padding: 0,
 			outline: 'none',
 			selectors: {
-				'&:hover:enabled': {
-					cursor: 'pointer',
+				'&:disabled': {
+					cursor: 'not-allowed',
 				},
 			},
 		},
