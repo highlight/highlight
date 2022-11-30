@@ -216,6 +216,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	const stackTraceTitle = (
 		<Box
 			background="neutral100"
+			cursor="pointer"
 			p="12"
 			bt={isFirst ? 'neutral' : undefined}
 			br="neutral"
