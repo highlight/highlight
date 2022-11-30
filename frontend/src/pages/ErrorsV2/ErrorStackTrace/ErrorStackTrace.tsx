@@ -234,6 +234,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			bb="neutral"
 			bl="neutral"
 			btr={isFirst ? '6' : undefined}
+			bbr={isLast && !expanded ? '6' : undefined}
 			display="flex"
 			justifyContent="space-between"
 			alignItems="center"
