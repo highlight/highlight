@@ -73,14 +73,14 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 					<Stack direction="row" gap="8">
 						<LinkButton
 							kind="secondary"
-							href="https://docs.highlight.run/sourcemaps"
+							to="https://docs.highlight.run/sourcemaps"
 						>
 							Learn More
 						</LinkButton>
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							href="/${projectId}/settings/errors"
+							to="/${projectId}/settings/errors"
 						>
 							Sourcemap Settings
 						</LinkButton>
