@@ -64,8 +64,8 @@ export const db = new DB()
 
 export class IndexedDBCache {
 	static expiryMS: { [op: string]: number } = {
-		GetEventChunkURL: moment.duration(5, 'minutes').asMilliseconds(),
-		GetSession: moment.duration(5, 'minutes').asMilliseconds(),
+		GetEventChunkURL: moment.duration(15, 'minutes').asMilliseconds(),
+		GetSession: moment.duration(15, 'minutes').asMilliseconds(),
 	}
 	getItem = async function (key: { operation: string; variables: any }) {
 		const result = await db.apollo
@@ -134,6 +134,13 @@ export class IndexedDBLink extends ApolloLink {
 			indexeddbEnabled &&
 			IndexedDBLink.cachedOperations.has(operation.operationName)
 		)
+	}
+
+	static async has(operationName: string, variables: any) {
+		return !!(await indexeddbCache.getItem({
+			operation: operationName,
+			variables: variables,
+		}))
 	}
 
 	request(
