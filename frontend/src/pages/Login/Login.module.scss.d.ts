@@ -10,3 +10,4 @@ export const loginTitle: string
 export const loginTitleWrapper: string
 export const otherSigninText: string
 export const resetPasswordText: string
+export const signinButton: string

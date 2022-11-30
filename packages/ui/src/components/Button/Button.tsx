@@ -7,13 +7,16 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-type Props = ButtonProps &
-	styles.Variants & {
-		iconLeft?: React.ReactElement<IconProps>
-		iconRight?: React.ReactElement<IconProps>
-		onPress?: () => void
-		cssClass?: ClassValue[]
-	}
+export type HighlightButtonProps = React.PropsWithChildren<
+	ButtonProps &
+		styles.Variants & {
+			iconLeft?: React.ReactElement<IconProps>
+			iconRight?: React.ReactElement<IconProps>
+			loading?: boolean
+			onPress?: () => void
+			cssClass?: ClassValue[]
+		}
+>
 
 const buttonToTextSize = {
 	xSmall: 'xSmall',
@@ -23,7 +26,7 @@ const buttonToTextSize = {
 	xLarge: 'large',
 } as const
 
-export const Button: React.FC<React.PropsWithChildren<Props>> = ({
+export const Button: React.FC<HighlightButtonProps> = ({
 	children,
 	iconLeft,
 	iconRight,
@@ -32,6 +35,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	emphasis,
 	className,
 	cssClass,
+	loading,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -50,36 +54,42 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 			)}
 			{...buttonProps}
 		>
-			{iconLeft && (
-				<Box
-					as="span"
-					display="inline-flex"
-					className={styles.iconVariants({
-						size,
-						emphasis,
-						kind,
-					})}
-				>
-					{iconLeft}
-				</Box>
-			)}
-			{children && (
-				<Text userSelect="none" size={textSize}>
-					{children}
-				</Text>
-			)}
-			{iconRight && (
-				<Box
-					as="span"
-					display="inline-flex"
-					className={styles.iconVariants({
-						size,
-						emphasis,
-						kind,
-					})}
-				>
-					{iconRight}
-				</Box>
+			{loading ? (
+				<Text>loading...</Text>
+			) : (
+				<>
+					{iconLeft && (
+						<Box
+							as="span"
+							display="inline-flex"
+							className={styles.iconVariants({
+								size,
+								emphasis,
+								kind,
+							})}
+						>
+							{iconLeft}
+						</Box>
+					)}
+					{children && (
+						<Text userSelect="none" size={textSize}>
+							{children}
+						</Text>
+					)}
+					{iconRight && (
+						<Box
+							as="span"
+							display="inline-flex"
+							className={styles.iconVariants({
+								size,
+								emphasis,
+								kind,
+							})}
+						>
+							{iconRight}
+						</Box>
+					)}
+				</>
 			)}
 		</AriakitButton>
 	)

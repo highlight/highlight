@@ -1,0 +1,23 @@
+.input {
+	background-color: white;
+	border: 1px solid #dcdbdd;
+	border-radius: 6px;
+	font-size: 13px;
+	height: 28px;
+	padding: 4px 6px;
+	width: 100%;
+
+	&:focus,
+	&:hover,
+	&::selection {
+		border: 1px solid #c9b9f3;
+		outline: 0;
+	}
+}
+
+.inputLabel {
+	color: #908e96;
+	font-size: 11px;
+	font-weight: 500;
+	margin-bottom: 6px;
+}

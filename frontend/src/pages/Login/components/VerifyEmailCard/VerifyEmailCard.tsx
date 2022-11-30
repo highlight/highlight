@@ -1,13 +1,12 @@
-import Button from '@components/Button/Button/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import Card from '@components/Card/Card'
-import Dot from '@components/Dot/Dot'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetAdminQuery } from '@graph/hooks'
+import { Button as HighlightButton } from '@highlight-run/ui'
 import { Landing } from '@pages/Landing/Landing'
+import OnboardingCard from '@pages/Login/components/OnboardingCard/OnboardingCard'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
@@ -50,7 +49,77 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
 
 	return (
 		<Landing>
-			<Card className={styles.card}>
+			<OnboardingCard
+				title={!isEmailVerified ? 'Verifying Email' : 'Email Verified!'}
+				button={
+					isEmailVerified ? (
+						<ButtonLink
+							className={styles.startButton}
+							trackingId="VerifyEmailStart"
+							to="/"
+							onClick={onStartHandler}
+						>
+							Start Highlighting
+						</ButtonLink>
+					) : (
+						<HighlightButton
+							className="align-center w-full justify-center"
+							kind="primary"
+							loading={sendingVerificationEmailLoading}
+							onClick={() => {
+								setSendingVerificationEmailLoading(true)
+								auth.currentUser
+									?.sendEmailVerification()
+									.then(() => {
+										message.success(
+											`Sent another email to ${data?.admin?.email}!`,
+										)
+										setSendingVerificationEmailLoading(
+											false,
+										)
+									})
+									.catch((_e) => {
+										const e = _e as {
+											code: string
+										}
+										let msg = ''
+
+										switch (e.code) {
+											case 'auth/too-many-requests':
+												msg = `We've already sent another email recently. If you can't find it please try again later or reach out to us.`
+												break
+
+											default:
+												msg =
+													"There was a problem sending another email. Please try again. If you're still having trouble please reach out to us!"
+												break
+										}
+										setSendingVerificationEmailLoading(
+											false,
+										)
+										message.error(msg)
+									})
+							}}
+							// loading={sendingVerificationEmailLoading}
+						>
+							Resend Email
+						</HighlightButton>
+					)
+				}
+			>
+				{isEmailVerified ? (
+					<p>
+						Awesome! You've verified your email. Let's get started
+						now 😉
+					</p>
+				) : (
+					<p>
+						We sent a link to your email at ({data?.admin?.email}).
+						Visit that link to continue.
+					</p>
+				)}
+			</OnboardingCard>
+			{/* <Card className={styles.card}>
 				<h2>
 					<span>
 						{!isEmailVerified
@@ -129,7 +198,7 @@ const VerifyEmailCard = ({ onStartHandler }: Props) => {
 						</div>
 					</>
 				)}
-			</Card>
+			</Card> */}
 		</Landing>
 	)
 }

@@ -1,18 +1,27 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Alert from '@components/Alert/Alert'
-import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { Button as HighlightButton } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui'
+import { Form, useFormState } from '@highlight-run/ui/src/components/Form/Form'
+import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import AboutYouPage from '@pages/AboutYou/AboutYouCard'
+import OnboardingCard from '@pages/Login/components/OnboardingCard/OnboardingCard'
 import VerifyEmailCard from '@pages/Login/components/VerifyEmailCard/VerifyEmailCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
 import { message } from 'antd'
+// import {
+// 	Form as AriaKitForm,
+// 	FormInput as AriaKitFormInput,
+// 	useFormState as useAriaKitFormState,
+// } from 'ariakit/form'
 import classNames from 'classnames'
 import firebase from 'firebase'
 import { H } from 'highlight.run'
@@ -121,7 +130,66 @@ enum LoginFormState {
 	EnterMultiFactorCode,
 }
 
+type LoginFormValues = {
+	email: string
+	password: string
+}
+
 export default function LoginForm() {
+	const form = useFormState<LoginFormValues>({
+		defaultValues: { email: '', password: '' },
+	})
+	form.useSubmit(async () => {
+		const { email, password } = form.values
+		console.log('got values:', email, password)
+		setIsLoadingFirebase(true)
+		if (formState === LoginFormState.SignIn) {
+			auth.signInWithEmailAndPassword(email, password)
+				.then(() => {})
+				.catch((error: firebase.auth.MultiFactorError) => {
+					if (error.code == 'auth/multi-factor-auth-required') {
+						setResolver(error.resolver)
+						setFormState(LoginFormState.EnterMultiFactorCode)
+					} else {
+						setError(error.toString())
+					}
+				})
+				.finally(() => setIsLoadingFirebase(false))
+		} else if (formState === LoginFormState.ResetPassword) {
+			if (!email.length) {
+				message.warning('Please enter your email.')
+				return
+			}
+			auth.sendPasswordResetEmail(email)
+				.catch(() => {
+					// swallow error if user does not exist
+				})
+				.finally(() => {
+					message.success(
+						'Password reset email sent (if a user exists)!',
+					)
+					setIsLoadingFirebase(false)
+					setTimeout(() => {
+						setFormState(LoginFormState.SignIn)
+					}, 1000)
+				})
+		} else {
+			auth.createUserWithEmailAndPassword(email, password)
+				.then(() => {
+					auth.currentUser?.sendEmailVerification()
+				})
+				.catch((error) => {
+					setError(error.toString())
+				})
+				.finally(() => setIsLoadingFirebase(false))
+
+			// Redirect the user to their initial path instead to creating a new workspace.
+			// We do this because this happens when a new user clicks on a Highlight link that was shared to them and they don't have an account yet.
+			if (history.location.state?.previousPathName) {
+				history.push(history.location.state.previousPathName)
+			}
+		}
+	})
 	const [signUpParam] = useQueryParam('sign_up', BooleanParam)
 	const [nextParam] = useQueryParam('next', StringParam)
 	const [configurationIdParam] = useQueryParam('configurationId', StringParam)
@@ -136,9 +204,9 @@ export default function LoginForm() {
 	const [firebaseError, setFirebaseError] = useState('')
 	const { setLoadingState: setIsLoading } = useAppLoadingContext()
 	const [isLoadingFirebase, setIsLoadingFirebase] = useState(false)
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [passwordConfirmation, setPasswordConfirmation] = useState('')
+	// const [email, setEmail] = useState('')
+	// const [password, setPassword] = useState('')
+	// const [passwordConfirmation, setPasswordConfirmation] = useState('')
 	const [error, setError] = useState<string | null>(null)
 	const history = useHistory<{ previousPathName?: string }>()
 
@@ -272,14 +340,55 @@ export default function LoginForm() {
 			return 'Reset your password'
 		}
 		if (formState === LoginFormState.SignIn) {
-			return 'Welcome back to Highlight.'
+			return 'Welcome back.'
 		}
 		return 'Welcome to Highlight.'
 	}
 
-	const getLoginDescriptionText = () => {
-		if (formState === LoginFormState.SignUp) {
-			return "It's time to squash some bugs."
+	function getLoginDescriptionText(): ReactNode {
+		if (formState === LoginFormState.SignIn) {
+			return (
+				<>
+					New here?{' '}
+					<span
+						onClick={() => {
+							changeState(LoginFormState.SignUp)
+						}}
+						className={styles.loginStateSwitcher}
+					>
+						Create an account.
+					</span>
+				</>
+			)
+		} else if (formState === LoginFormState.ResetPassword) {
+			return (
+				<>
+					Want to{' '}
+					<span
+						onClick={() => {
+							changeState(LoginFormState.SignIn)
+						}}
+						className={styles.loginStateSwitcher}
+					>
+						sign in
+					</span>{' '}
+					again?
+				</>
+			)
+		} else {
+			return (
+				<>
+					Have an account?{' '}
+					<span
+						onClick={() => {
+							changeState(LoginFormState.SignIn)
+						}}
+						className={styles.loginStateSwitcher}
+					>
+						Sign in.
+					</span>
+				</>
+			)
 		}
 	}
 
@@ -289,57 +398,200 @@ export default function LoginForm() {
 
 	return (
 		<Landing>
+			<Box
+				display="flex"
+				flexDirection="row"
+				alignItems={'center'}
+				justifyContent="center"
+				cssClass="w-[1000px] gap-[60px]"
+			>
+				<OnboardingCard>
+					<Form state={form}>
+						<OnboardingCard.Header>
+							<Box
+								display="flex"
+								flexDirection="column"
+								gap="8"
+								alignItems="center"
+								justifyContent="center"
+								cssClass="pb-[18px]"
+							>
+								<Box display="flex" cssClass="my-[12px]">
+									<SvgHighlightLogoOnLight
+										width={48}
+										height={48}
+									/>
+								</Box>
+								<Text
+									as="h4"
+									cssClass="font-medium text-[20px]"
+								>
+									{getLoginTitleText()}
+								</Text>
+								<h2 className="text-4xl tracking-wide text-black"></h2>
+								<Text size="small" color="neutral500">
+									{getLoginDescriptionText()}
+								</Text>
+							</Box>
+						</OnboardingCard.Header>
+						<OnboardingCard.Body>
+							<Box
+								display="flex"
+								gap="16"
+								flexDirection="column"
+								width="full"
+							>
+								<Form.Input
+									name={form.names.email}
+									required
+									type="email"
+									label="Email"
+								></Form.Input>
+								<Form.Input
+									name={form.names.password}
+									required
+									label="Password"
+									type="password"
+								></Form.Input>
+							</Box>
+						</OnboardingCard.Body>
+						<OnboardingCard.Footer>
+							<Box
+								width="full"
+								gap="6"
+								cssClass="px-[20px] py-[12px]"
+							>
+								<Form.Submit
+									emphasis="high"
+									style={{
+										width: '100%',
+										justifyContent: 'center',
+									}}
+								>
+									{formState === LoginFormState.SignIn
+										? 'Sign In'
+										: formState === LoginFormState.SignUp
+										? 'Sign Up'
+										: 'Reset Password'}
+								</Form.Submit>
+								{formState !== LoginFormState.ResetPassword && (
+									<>
+										<HighlightButton
+											emphasis="high"
+											style={{
+												width: '100%',
+												justifyContent: 'center',
+											}}
+											kind={'secondary'}
+											iconRight={
+												<GoogleLogo
+													className={
+														styles.googleLogoStyle
+													}
+												/>
+											}
+											onClick={() => {
+												auth.signInWithPopup(
+													googleProvider,
+												).catch(
+													(
+														error: firebase.auth.MultiFactorError,
+													) => {
+														if (
+															error.code ===
+															'auth/multi-factor-auth-required'
+														) {
+															setResolver(
+																error.resolver,
+															)
+															setFormState(
+																LoginFormState.EnterMultiFactorCode,
+															)
+														} else {
+															setFirebaseError(
+																JSON.stringify(
+																	error.message,
+																),
+															)
+														}
+													},
+												)
+											}}
+										>
+											Or sign in with Google
+										</HighlightButton>
+										<div
+											className={
+												commonStyles.errorMessage
+											}
+										>
+											{firebaseError}
+										</div>
+									</>
+								)}
+							</Box>
+						</OnboardingCard.Footer>
+					</Form>
+				</OnboardingCard>
+			</Box>
 			<AuthPageLayout
 				title={getLoginTitleText()}
-				description={getLoginDescriptionText()}
+				subText={getLoginDescriptionText()}
 				showTestimonial={formState === LoginFormState.SignUp}
 			>
+				{/* <Form state={form}>
+					<Box display="flex" flexDirection="column" gap="12">
+						<Form.Input
+							label="Email"
+							className={formStyles.input}
+							name={form.names.email}
+							required
+						></Form.Input>
+						{formState !== LoginFormState.ResetPassword && (
+							<Form.Input
+								label="Password"
+								className={formStyles.input}
+								name={form.names.password}
+								type="password"
+								required
+							></Form.Input>
+						)}
+						{formState === LoginFormState.SignUp && (
+							<Form.Input
+								placeholder={'Confirm Password'}
+								type="password"
+								name="confirm-password"
+								required
+								value={passwordConfirmation}
+								onChange={(e) => {
+									setPasswordConfirmation(e.target.value)
+								}}
+							/>
+						)}
+						{error && (
+							<div className={commonStyles.errorMessage}>
+								{error}
+							</div>
+						)}
+						{formState !== LoginFormState.ResetPassword && (
+							<span
+								onClick={() => {
+									changeState(LoginFormState.ResetPassword)
+								}}
+								className={classNames(
+									styles.loginStateSwitcher,
+									styles.resetPasswordText,
+								)}
+							>
+								Forgot your password?
+							</span>
+						)}
+					</Box>
+				</Form> */}
 				<form onSubmit={onSubmit} className={styles.loginForm}>
-					<div className={styles.loginTitleWrapper}>
-						<p className={styles.loginSubTitle}>
-							{formState === LoginFormState.SignIn ? (
-								<>
-									New here?{' '}
-									<span
-										onClick={() => {
-											changeState(LoginFormState.SignUp)
-										}}
-										className={styles.loginStateSwitcher}
-									>
-										Create an account.
-									</span>
-								</>
-							) : formState === LoginFormState.ResetPassword ? (
-								<>
-									Want to{' '}
-									<span
-										onClick={() => {
-											changeState(LoginFormState.SignIn)
-										}}
-										className={styles.loginStateSwitcher}
-									>
-										sign in
-									</span>{' '}
-									again?
-								</>
-							) : (
-								<>
-									Already have an account?{' '}
-									<span
-										onClick={() => {
-											changeState(LoginFormState.SignIn)
-										}}
-										className={styles.loginStateSwitcher}
-									>
-										Sign in.
-									</span>
-								</>
-							)}
-						</p>
-					</div>
 					<div className={styles.inputContainer}>
-						<Input
-							placeholder={'Email'}
+						<Form.Input
+							label={'Email'}
 							name="email"
 							type={'email'}
 							value={email}
@@ -350,8 +602,8 @@ export default function LoginForm() {
 							required
 						/>
 						{formState !== LoginFormState.ResetPassword && (
-							<Input
-								placeholder={'Password'}
+							<Form.Input
+								label={'Password'}
 								type="password"
 								name="password"
 								value={password}
@@ -362,59 +614,87 @@ export default function LoginForm() {
 							/>
 						)}
 						{formState === LoginFormState.SignUp && (
-							<>
-								<Input
-									placeholder={'Confirm Password'}
-									type="password"
-									name="confirm-password"
-									required
-									value={passwordConfirmation}
-									onChange={(e) => {
-										setPasswordConfirmation(e.target.value)
-									}}
-								/>
-							</>
+							<Form.Input
+								label={'Confirm Password'}
+								type="password"
+								name="confirm-password"
+								required
+								value={passwordConfirmation}
+								onChange={(e) => {
+									setPasswordConfirmation(e.target.value)
+								}}
+							/>
+						)}
+						{error && (
+							<div className={commonStyles.errorMessage}>
+								{error}
+							</div>
+						)}
+						{formState !== LoginFormState.ResetPassword && (
+							<span
+								onClick={() => {
+									changeState(LoginFormState.ResetPassword)
+								}}
+								className={classNames(
+									styles.loginStateSwitcher,
+									styles.resetPasswordText,
+								)}
+							>
+								Forgot your password?
+							</span>
 						)}
 					</div>
-					{error && (
-						<div className={commonStyles.errorMessage}>{error}</div>
-					)}
-					{formState !== LoginFormState.ResetPassword && (
-						<span
-							onClick={() => {
-								changeState(LoginFormState.ResetPassword)
-							}}
-							className={classNames(
-								styles.loginStateSwitcher,
-								styles.resetPasswordText,
-							)}
+					<Box className="w-full rounded-[8px] bg-[#F9F8F9] px-[20px]">
+						<HighlightButton
+							type="submit"
+							className={styles.signinButton}
+							emphasis="high"
+							loading={isLoadingFirebase}
 						>
-							Forgot your password?
-						</span>
-					)}
-					<Button
-						block
-						trackingId="LoginSignInUp"
-						className="mt-2"
-						type="primary"
-						htmlType="submit"
-						loading={isLoadingFirebase}
-					>
-						{formState === LoginFormState.SignIn
-							? 'Sign In'
-							: formState === LoginFormState.SignUp
-							? 'Sign Up'
-							: 'Reset Password'}
-					</Button>
+							{formState === LoginFormState.SignIn
+								? 'Sign In'
+								: formState === LoginFormState.SignUp
+								? 'Sign Up'
+								: 'Reset Password'}
+						</HighlightButton>
+					</Box>
 				</form>
 				{formState !== LoginFormState.ResetPassword && (
-					<>
-						<p className={styles.otherSigninText}>
-							or sign{' '}
-							{formState === LoginFormState.SignIn ? 'in' : 'up'}{' '}
-							with
-						</p>
-						<Button
+					<Box className="w-full rounded-[8px] bg-[#F9F8F9] px-[20px]">
+						<HighlightButton
+							className={styles.googleButton}
+							emphasis="high"
+							size="small"
+							kind={'secondary'}
+							loading={isLoadingFirebase}
+							iconRight={
+								<GoogleLogo
+									className={styles.googleLogoStyle}
+								/>
+							}
+							onClick={() => {
+								auth.signInWithPopup(googleProvider).catch(
+									(error: firebase.auth.MultiFactorError) => {
+										if (
+											error.code ===
+											'auth/multi-factor-auth-required'
+										) {
+											setResolver(error.resolver)
+											setFormState(
+												LoginFormState.EnterMultiFactorCode,
+											)
+										} else {
+											setFirebaseError(
+												JSON.stringify(error.message),
+											)
+										}
+									},
+								)
+							}}
+						>
+							Or sign in with Google
+						</HighlightButton>
+						{/* <Button
 							trackingId="LoginWithGoogle"
 							className={classNames(
 								commonStyles.secondaryButton,
@@ -448,11 +728,11 @@ export default function LoginForm() {
 									? 'In'
 									: 'Up'}
 							</span>
-						</Button>
+						</Button> */}
 						<div className={commonStyles.errorMessage}>
 							{firebaseError}
 						</div>
-					</>
+					</Box>
 				)}
 			</AuthPageLayout>
 		</Landing>
@@ -540,7 +820,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 		<Landing>
 			<AuthPageLayout
 				title="Verify via SMS"
-				description="Enter the code we sent to your phone."
+				subText="Enter the code we sent to your phone."
 				showTestimonial={false}
 			>
 				<form onSubmit={handleSubmit}>
@@ -556,7 +836,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({ resolver }) => {
 						)}
 
 						<div className={styles.inputContainer}>
-							<Input
+							<Form.Input
 								placeholder="Verification code"
 								name="verification_code"
 								value={verificationCode}
@@ -590,37 +870,55 @@ function AuthPageLayout({
 	title,
 	showTestimonial = false,
 	children,
-	description,
+	subText,
 }: {
 	title: string
 	showTestimonial: boolean
 	children: ReactNode
-	description?: string
+	subText?: ReactNode
 }) {
 	const heroBugClass = classNames(
 		'pointer-events-none absolute h-56 w-56 object-contain hidden xl:block',
 	)
 
 	return (
-		<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
-			<section className="flex w-full max-w-md flex-col items-center gap-6">
-				<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
-					<h2 className="text-4xl tracking-wide text-white">
+		<Box
+			display="flex"
+			flexDirection="row"
+			alignItems={'center'}
+			justifyContent="center"
+			cssClass="w-[1000px] gap-[60px]"
+		>
+			<OnboardingCard>
+				<div
+					style={{
+						backgroundColor: '#f9f8f9',
+						width: '100%',
+					}}
+					className="font-poppins flex flex-col items-center gap-2 pb-[18px] text-center font-bold"
+				>
+					<Box display="flex" cssClass="my-[12px]">
+						<SvgHighlightLogoOnLight width={48} height={48} />
+					</Box>
+					<Text as="h4" cssClass="font-medium text-[20px]">
 						{title}
-					</h2>
-
-					{!!description && (
-						<p className="text-xl tracking-wider text-white">
-							{description}
-						</p>
+					</Text>
+					<h2 className="text-4xl tracking-wide text-black"></h2>
+					{!!subText && (
+						<Text size="small" color="neutral500">
+							{subText}
+						</Text>
 					)}
 				</div>
 
-				<div className="w-full rounded-md bg-white px-8 py-6">
+				<Box
+					display="flex"
+					flexDirection="column"
+					cssClass="w-full pb-[12px]"
+				>
 					{children}
-				</div>
-			</section>
-
+				</Box>
+			</OnboardingCard>
 			{showTestimonial && (
 				<>
 					<img
@@ -642,14 +940,14 @@ function AuthPageLayout({
 					</div>
 				</>
 			)}
-		</div>
+		</Box>
 	)
 }
 
 function Testimonial() {
 	return (
 		<div className="font-poppins flex flex-col gap-8 tracking-wide text-white">
-			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
+			<p className="text-2xl font-bold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size
 				</span>

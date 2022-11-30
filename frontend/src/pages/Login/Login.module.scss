@@ -41,31 +41,46 @@
 }
 
 .googleLogoStyle {
-	height: 20px;
-	width: 20px;
+	height: 14px;
+	width: 14px;
 }
 
 .googleText {
 	margin-left: 10px;
 }
 
+.signinButton {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	margin-top: 12px;
+	width: 100%;
+}
+
 .googleButton {
 	align-items: center;
-	color: var(--color-text-primary);
+	border-radius: 8px;
 	display: flex;
+	justify-content: center;
+	margin-top: 6px;
+	width: 100%;
 }
 
 .inputContainer {
+	border-bottom: 1px solid #dcdbdd;
 	display: flex;
 	flex-direction: column;
-	margin-bottom: var(--size-xSmall);
+	padding-bottom: 12px;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 12px;
 	row-gap: var(--size-medium);
 	width: 100%;
 }
 
 .resetPasswordText {
 	align-self: flex-start;
-	margin: 0.5em 0;
+	font-size: 13px;
 	padding: 0;
 	text-align: left;
 }

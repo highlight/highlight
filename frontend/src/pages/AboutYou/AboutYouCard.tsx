@@ -7,7 +7,6 @@ import Card, {
 	CardSubHeader,
 } from '@components/Card/Card'
 import CardSelect from '@components/CardSelect/CardSelect'
-import Input from '@components/Input/Input'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -16,7 +15,12 @@ import {
 	useGetAdminLazyQuery,
 	useUpdateAdminAboutYouDetailsMutation,
 } from '@graph/hooks'
+import {
+	Button as HighlightButton,
+	Form as HighlightForm,
+} from '@highlight-run/ui'
 import { Landing } from '@pages/Landing/Landing'
+import OnboardingCard from '@pages/Login/components/OnboardingCard/OnboardingCard'
 import useLocalStorage from '@rehooks/local-storage'
 import { message } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -107,6 +111,109 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 
 	return (
 		<Landing>
+			<OnboardingCard>
+				<OnboardingCard.Header title="Tell us a bit more" />
+				<OnboardingCard.Body>
+					<CardForm onSubmit={onFormSubmit}>
+						<HighlightForm.Input
+							label="First Name"
+							name="First Name"
+							value={firstName}
+							onChange={(e) => {
+								setFirstName(e.target.value)
+							}}
+							autoFocus
+						/>
+						<HighlightForm.Input
+							label="Last Name"
+							name="Last Name"
+							value={lastName}
+							onChange={(e) => {
+								setLastName(e.target.value)
+							}}
+						/>
+						<HighlightForm.Input
+							label="Organization / Team"
+							name="Organization / Team"
+							value={lastName}
+							onChange={(e) => {
+								setLastName(e.target.value)
+							}}
+						/>
+						<HighlightForm.Input
+							label="Phone #"
+							name="Phone #"
+							type={'tel'}
+							value={phone}
+							onChange={(e) => {
+								setPhone(e.target.value)
+							}}
+							autoFocus
+						/>
+
+						<HighlightForm.Input
+							name="Role"
+							label="Role"
+							value={role}
+							onChange={(e) => {
+								setRole(e.target.value)
+							}}
+							autoComplete="off"
+						/>
+
+						<section className={styles.section}>
+							<h3>What's your use case for Highlight?</h3>
+							<div className={styles.roleContainer}>
+								<CardSelect
+									title="Product / Support"
+									description={`I'll be using Highlight for product and support.`}
+									isSelected={isProductRole}
+									onClick={toggleIsProductRole}
+								/>
+								<CardSelect
+									title="Engineering"
+									description={`I’ll be using Highlight for debugging and monitoring.`}
+									isSelected={isEngineeringRole}
+									onClick={toggleIsEngineeringRole}
+								/>
+							</div>
+						</section>
+						<CardFormActionsContainer>
+							<Button
+								trackingId="AboutYouPageNext"
+								type="primary"
+								block
+								loading={loading || adminDataLoading}
+								htmlType="submit"
+								disabled={
+									firstName.length === 0 ||
+									lastName.length === 0 ||
+									role.length === 0 ||
+									(phone.length > 0 && phone.length < 10) ||
+									(!isEngineeringRole && !isProductRole)
+								}
+							>
+								Let's Go!
+							</Button>
+						</CardFormActionsContainer>
+					</CardForm>
+					hello
+				</OnboardingCard.Body>
+				<OnboardingCard.Footer>
+					<HighlightButton
+						loading={loading || adminDataLoading}
+						disabled={
+							firstName.length === 0 ||
+							lastName.length === 0 ||
+							role.length === 0 ||
+							(phone.length > 0 && phone.length < 10) ||
+							(!isEngineeringRole && !isProductRole)
+						}
+					>
+						Let's Go!
+					</HighlightButton>
+				</OnboardingCard.Footer>
+			</OnboardingCard>
 			<Helmet>
 				<title>About You</title>
 			</Helmet>
@@ -116,93 +223,6 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 					If you don't mind, a few quick questions before we get you
 					Highlighting!
 				</CardSubHeader>
-
-				<CardForm onSubmit={onFormSubmit}>
-					<section className={styles.section}>
-						<h3>What's your name?</h3>
-						<div className={styles.name}>
-							<Input
-								placeholder="First Name"
-								name="First Name"
-								value={firstName}
-								onChange={(e) => {
-									setFirstName(e.target.value)
-								}}
-								autoFocus
-							/>
-							<Input
-								placeholder="Last Name"
-								name="Last Name"
-								value={lastName}
-								onChange={(e) => {
-									setLastName(e.target.value)
-								}}
-							/>
-						</div>
-					</section>
-					<section className={styles.section}>
-						<h3>What's your phone number?</h3>
-						<Input
-							placeholder="Phone #"
-							name="Phone #"
-							type={'tel'}
-							value={phone}
-							onChange={(e) => {
-								setPhone(e.target.value)
-							}}
-							autoFocus
-						/>
-					</section>
-
-					<section className={styles.section}>
-						<h3>What's your role?</h3>
-						<Input
-							placeholder="Your Role (e.g. CEO, CTO, Engineer, Product Manager)"
-							name="Role"
-							value={role}
-							onChange={(e) => {
-								setRole(e.target.value)
-							}}
-							autoComplete="off"
-						/>
-					</section>
-
-					<section className={styles.section}>
-						<h3>What's your use case for Highlight?</h3>
-						<div className={styles.roleContainer}>
-							<CardSelect
-								title="Product / Support"
-								description={`I'll be using Highlight for product and support.`}
-								isSelected={isProductRole}
-								onClick={toggleIsProductRole}
-							/>
-							<CardSelect
-								title="Engineering"
-								description={`I’ll be using Highlight for debugging and monitoring.`}
-								isSelected={isEngineeringRole}
-								onClick={toggleIsEngineeringRole}
-							/>
-						</div>
-					</section>
-					<CardFormActionsContainer>
-						<Button
-							trackingId="AboutYouPageNext"
-							type="primary"
-							block
-							loading={loading || adminDataLoading}
-							htmlType="submit"
-							disabled={
-								firstName.length === 0 ||
-								lastName.length === 0 ||
-								role.length === 0 ||
-								(phone.length > 0 && phone.length < 10) ||
-								(!isEngineeringRole && !isProductRole)
-							}
-						>
-							Let's Go!
-						</Button>
-					</CardFormActionsContainer>
-				</CardForm>
 			</Card>
 		</Landing>
 	)
