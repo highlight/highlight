@@ -2,6 +2,8 @@
 
 .legendValue {
 	color: var(--color-gray-500) !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
 
 	&.notShowing {
 		text-decoration: line-through;

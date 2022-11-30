@@ -364,7 +364,7 @@ export const CustomLegend = ({
 	const { payload }: { payload: any[] } = props
 	return (
 		<div className="flex h-full w-full justify-center align-middle">
-			<div className="mt-1 grid w-11/12 grid-cols-4 items-center justify-center gap-x-2 overflow-x-scroll">
+			<div className="mt-1 grid w-11/12 grid-cols-4 items-center justify-center gap-x-2 overflow-x-auto">
 				{payload?.slice(0, MAX_LEGEND_ITEMS)?.map((entry, index) => (
 					<Button
 						trackingId="LineChartLegendFilter"
