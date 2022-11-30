@@ -384,7 +384,7 @@ export const CustomLegend = ({
 								}
 							})
 						}}
-						className="flex items-center gap-x-1 p-0 text-xs text-gray-500"
+						className="flex items-center gap-x-1 overflow-hidden p-0 text-xs text-gray-500"
 					>
 						<div
 							className={classNames(styles.legendIcon, {
