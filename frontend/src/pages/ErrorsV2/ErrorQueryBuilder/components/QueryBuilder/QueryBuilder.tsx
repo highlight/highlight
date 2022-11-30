@@ -32,6 +32,7 @@ import {
 	IconSegment,
 	IconTrash,
 	IconX,
+	IconXCircle,
 	Menu,
 	Tag,
 	Text,
@@ -1332,6 +1333,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
 		undefined,
 	)
+
+	useEffect(() => {
+		setSegmentName(selectedSegment?.value || null)
+	}, [selectedSegment, selectedSegment?.value, setSegmentName])
+
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
@@ -1370,14 +1376,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			setExistingParams(segmentParameters)
 			setSearchParams(segmentParameters)
-			setSegmentName(currentSegment?.name || null)
+			setSelectedSegment(
+				!!segment ? { id: segment.id, value: segment.name } : undefined,
+			)
 		},
 		[
-			currentSegment?.name,
 			getQueryFromParams,
 			setExistingParams,
 			setSearchParams,
-			setSegmentName,
+			setSelectedSegment,
 		],
 	)
 
@@ -2369,7 +2376,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 							id: segmentId,
 							value: segmentName,
 						})
-						setSegmentName(segmentName)
 					}
 				}}
 			/>
@@ -2511,6 +2517,28 @@ function QueryBuilder(props: QueryBuilderProps) {
 									? alteredSegmentSettings
 									: null}
 
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										setSelectedSegment(undefined)
+										setSegmentName(null)
+										setSearchParams(EmptyErrorsSearchParams)
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconXCircle
+											size={16}
+											color={colors.neutral300}
+										/>
+										Clear selection
+									</Box>
+								</Menu.Item>
+								<Menu.Divider />
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()
