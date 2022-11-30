@@ -52,14 +52,13 @@ const SearchPanel = () => {
 		},
 		onError: () => {
 			setSearchResultsLoading(false)
+			setSearchResultsCount(0)
 		},
 		onCompleted: (r) => {
 			setSearchResultsLoading(false)
 			const results = r?.error_groups_opensearch
-			if (results) {
-				setFetchedData(gqlSanitize(results))
-				setSearchResultsCount(results.totalCount)
-			}
+			setFetchedData(gqlSanitize(results))
+			setSearchResultsCount(results.totalCount)
 		},
 		skip: !backendSearchQuery,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
@@ -126,7 +125,7 @@ const SearchPanel = () => {
 					/>
 				) : (
 					<>
-						{fetchedData.error_groups.length === 0 ? (
+						{searchResultsCount === 0 ? (
 							<SearchEmptyState item="errors" />
 						) : (
 							fetchedData.error_groups?.map(
