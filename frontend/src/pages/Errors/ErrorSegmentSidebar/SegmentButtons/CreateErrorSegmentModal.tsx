@@ -40,6 +40,9 @@ const CreateErrorSegmentModal = ({
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
+		if (!newSegmentName) {
+			return
+		}
 		createSegment({
 			variables: {
 				project_id,
@@ -103,6 +106,7 @@ const CreateErrorSegmentModal = ({
 						}}
 						type="primary"
 						htmlType="submit"
+						disabled={!newSegmentName}
 					>
 						{loading ? (
 							<CircularSpinner

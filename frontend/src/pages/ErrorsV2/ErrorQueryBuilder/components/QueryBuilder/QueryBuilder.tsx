@@ -1,32 +1,58 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Button from '@components/Button/Button/Button'
+import ButtonV1 from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
 } from '@context/BaseSearchContext'
-import { useGetAppVersionsQuery } from '@graph/hooks'
-import { GetFieldTypesQuery } from '@graph/operations'
 import {
-	ErrorSearchParamsInput,
-	Exact,
-	Field,
-	SearchParamsInput,
-} from '@graph/schemas'
-import Reload from '@icons/Reload'
+	useEditErrorSegmentMutation,
+	useGetAppVersionsQuery,
+	useGetErrorSegmentsQuery,
+} from '@graph/hooks'
+import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
+import { ErrorSearchParamsInput, Exact, Field } from '@graph/schemas'
+import {
+	Box,
+	Button,
+	ButtonIcon,
+	IconChevronDown,
+	IconClock,
+	IconCloudUpload,
+	IconLogout,
+	IconPlusCircle,
+	IconPlusSm,
+	IconRefresh,
+	IconSave,
+	IconSegment,
+	IconTrash,
+	IconX,
+	IconXCircle,
+	Menu,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import SvgXIcon from '@icons/XIcon'
+import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
+import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
+import { gqlSanitize } from '@util/gqlSanitize'
+import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { serializeAbsoluteTimeRange } from '@util/time'
-import { Checkbox } from 'antd'
+import { Checkbox, message } from 'antd'
 import classNames from 'classnames'
-import _ from 'lodash'
+import _, { identity, isEqual, omitBy, pickBy } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { components } from 'react-select'
@@ -34,7 +60,7 @@ import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useToggle } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 
 import styles from './QueryBuilder.module.scss'
 
@@ -718,6 +744,7 @@ const SelectPopout = ({
 
 	return (
 		<Popover
+			showArrow={false}
 			trigger="click"
 			content={
 				<PopoutContent
@@ -740,24 +767,22 @@ const SelectPopout = ({
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
 			>
-				<span>
-					<Button
-						trackingId={`SessionsQuerySelect`}
-						className={classNames(styles.ruleItem, {
-							[styles.invalid]: invalid && !visible,
-						})}
-						disabled={disabled}
-					>
-						{invalid && '--'}
-						{value?.kind === 'single' && getNameLabel(value.label)}
-						{value?.kind === 'multi' &&
-							value.options.length > 1 &&
-							`${value.options.length} selections`}
-						{value?.kind === 'multi' &&
-							value.options.length === 1 &&
-							value.options[0].label}
-					</Button>
-				</span>
+				<ButtonV1
+					trackingId={`SessionsQuerySelect`}
+					className={classNames(styles.ruleItem, {
+						[styles.invalid]: invalid && !visible,
+					})}
+					disabled={disabled}
+				>
+					{invalid && '--'}
+					{value?.kind === 'single' && getNameLabel(value.label)}
+					{value?.kind === 'multi' &&
+						value.options.length > 1 &&
+						`${value.options.length} selections`}
+					{value?.kind === 'multi' &&
+						value.options.length === 1 &&
+						value.options[0].label}
+				</ButtonV1>
 			</Tooltip>
 		</Popover>
 	)
@@ -818,7 +843,7 @@ const QueryRule = ({
 				/>
 			)}
 			{!readonly && (
-				<Button
+				<ButtonV1
 					trackingId="SessionsQueryRemoveRule"
 					className={classNames(styles.ruleItem, styles.removeRule)}
 					onClick={() => {
@@ -826,7 +851,7 @@ const QueryRule = ({
 					}}
 				>
 					<SvgXIcon />
-				</Button>
+				</ButtonV1>
 			)}
 		</div>
 	)
@@ -835,18 +860,69 @@ const QueryRule = ({
 export const TimeRangeFilter = ({
 	rule,
 	onChangeValue,
+	onReset,
 }: {
 	rule: RuleProps
 	onChangeValue: OnChange
+	onReset?: () => void
 }) => {
+	const { val: value } = rule
+	const [visible, setVisible] = useState(!value)
+	const onSetVisible = (val: boolean) => {
+		setVisible(val)
+	}
+
 	return (
-		<SelectPopout
-			value={rule.val}
-			onChange={onChangeValue}
-			loadOptions={() => Promise.resolve([])}
-			type={'date_range'}
-			disabled={false}
-		/>
+		<Box display="flex" gap="8" alignItems="center">
+			<Popover
+				showArrow={false}
+				trigger="click"
+				content={
+					<PopoutContent
+						value={value}
+						setVisible={onSetVisible}
+						type="date_range"
+						onChange={onChangeValue}
+						loadOptions={() => Promise.resolve([])}
+					/>
+				}
+				placement="bottomLeft"
+				contentContainerClassName={styles.contentContainer}
+				popoverClassName={styles.popoverContainer}
+				onVisibleChange={(isVisible) => {
+					setVisible(isVisible)
+				}}
+				visible={visible}
+				destroyTooltipOnHide
+			>
+				<Button
+					kind="secondary"
+					size="small"
+					emphasis="high"
+					iconLeft={<IconClock size={14} />}
+					iconRight={<IconChevronDown size={14} />}
+				/>
+			</Popover>
+			<Tag
+				kind="transparent"
+				shape="basic"
+				iconRight={!!onReset ? <IconX size={12} /> : undefined}
+				onIconRightClick={!!onReset ? onReset : undefined}
+			>
+				<Box onClick={() => setVisible((visible) => !visible)}>
+					<Text
+						size="xSmall"
+						weight="medium"
+						color="neutral300"
+						userSelect="none"
+					>
+						{value &&
+							value.options.length === 1 &&
+							value.options[0].label}
+					</Text>
+				</Box>
+			</Tag>
+		</Box>
 	)
 }
 
@@ -1178,10 +1254,8 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-type SearchContextTypes = SearchParamsInput | ErrorSearchParamsInput
-
-interface QueryBuilderProps<T> {
-	searchContext: BaseSearchContext<T>
+interface QueryBuilderProps {
+	searchContext: BaseSearchContext<ErrorSearchParamsInput>
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
@@ -1190,9 +1264,14 @@ interface QueryBuilderProps<T> {
 	readonly?: boolean
 }
 
-function QueryBuilder<T extends SearchContextTypes>(
-	props: QueryBuilderProps<T>,
-) {
+enum QueryBuilderMode {
+	EMPTY = 'EMPTY',
+	CUSTOM = 'CUSTOM',
+	SEGMENT = 'SEGMENT',
+	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
+}
+
+function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
 		timeRangeField,
@@ -1208,7 +1287,115 @@ function QueryBuilder<T extends SearchContextTypes>(
 		searchParams,
 		setSearchParams,
 		searchResultsLoading,
+		existingParams,
+		setExistingParams,
+		segmentName,
+		setSegmentName,
+		searchResultsCount,
 	} = searchContext
+
+	const { project_id: projectId } = useParams<{
+		project_id: string
+	}>()
+
+	const [areParamsDifferent, setAreParamsDifferent] = useState(false)
+	useEffect(() => {
+		// Compares original params and current search params to check if they are different
+		// Removes undefined, null fields, and empty arrays when comparing
+		const normalize = (params: ErrorSearchParamsInput) =>
+			omitBy(
+				pickBy(params, identity),
+				(val) => Array.isArray(val) && val.length === 0,
+			)
+		setAreParamsDifferent(
+			!isEqual(normalize(searchParams), normalize(existingParams)),
+		)
+	}, [searchParams, existingParams])
+
+	useEffect(() => {
+		if (!!segmentName) {
+			if (areParamsDifferent) {
+				setMode(QueryBuilderMode.SEGMENT_UPDATE)
+			} else {
+				setMode(QueryBuilderMode.SEGMENT)
+			}
+		}
+	}, [areParamsDifferent, segmentName])
+
+	const { loading: segmentsLoading, data: segmentData } =
+		useGetErrorSegmentsQuery({
+			variables: { project_id: projectId },
+		})
+
+	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
+		useLocalStorage<{ value: string; id: string }>(
+			`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
+		)
+
+	useEffect(() => {
+		setSegmentName(selectedSegment?.value || null)
+	}, [selectedSegment, selectedSegment?.value, setSegmentName])
+
+	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
+	const [segmentToDelete, setSegmentToDelete] = useState<{
+		name?: string
+		id?: string
+	} | null>(null)
+	const [editSegment] = useEditErrorSegmentMutation({
+		refetchQueries: [namedOperations.Query.GetErrorSegments],
+	})
+
+	const currentSegment = segmentData?.error_segments?.find(
+		(s) => s?.id === selectedSegment?.id,
+	)
+
+	const showUpdateSegmentOption = areParamsDifferent && segmentName
+	const segmentOptions = (segmentData?.error_segments || [])
+		.map((segment) => ({
+			displayValue: segment?.name || '',
+			value: segment?.name || '',
+			id: segment?.id || '',
+		}))
+		.sort((a, b) =>
+			a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
+				? 1
+				: -1,
+		)
+
+	const selectSegment = useCallback(
+		(segment: typeof currentSegment) => {
+			const segmentParameters = gqlSanitize({
+				...segment?.params,
+			})
+			if (!segmentParameters.query) {
+				segmentParameters.query = JSON.stringify(
+					getQueryFromParams(segmentParameters),
+				)
+			}
+			setExistingParams(segmentParameters)
+			setSearchParams(segmentParameters)
+			if (segment) {
+				setSelectedSegment({ id: segment.id, value: segment.name })
+			} else {
+				removeSelectedSegment()
+			}
+		},
+		[
+			getQueryFromParams,
+			removeSelectedSegment,
+			setExistingParams,
+			setSearchParams,
+			setSelectedSegment,
+		],
+	)
+
+	useEffect(() => {
+		if (currentSegment) {
+			selectSegment(currentSegment)
+		}
+	}, [currentSegment, selectSegment])
+
+	const [mode, setMode] = useState<QueryBuilderMode>(QueryBuilderMode.EMPTY)
 
 	const { admin } = useAuthContext()
 	const getCustomFieldOptions = useCallback(
@@ -1413,18 +1600,14 @@ function QueryBuilder<T extends SearchContextTypes>(
 		},
 		[parseRuleImpl],
 	)
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
 	const { data: appVersionData } = useGetAppVersionsQuery({
-		variables: { project_id },
+		variables: { project_id: projectId },
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period =
-			project_id === '0'
+			projectId === '0'
 				? {
 						label: 'Last 5 years',
 						value: '5 years',
@@ -1442,7 +1625,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 				options: [period],
 			},
 		}
-	}, [timeRangeField, project_id])
+	}, [timeRangeField, projectId])
 
 	const getFilterRules = useCallback(
 		(rules: RuleProps[]) =>
@@ -1554,7 +1737,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 	const setRules = (rules: RuleProps[]) => {
 		setRulesImpl(rules)
 	}
-	const newRule = () => {
+	const addNewRule = () => {
 		setCurrentRule({
 			field: undefined,
 			op: undefined,
@@ -1599,32 +1782,35 @@ function QueryBuilder<T extends SearchContextTypes>(
 
 	const [isAnd, toggleIsAnd] = useToggle(true)
 
-	const getKeyOptions = async (input: string) => {
-		return customFields
-			.concat(fieldData?.field_types ?? [])
-			.map((ft) => ({
-				label: ft.name,
-				value: ft.type + '_' + ft.name,
-			}))
-			.filter((ft) =>
-				(
-					getTypeLabel(ft.value)?.toLowerCase() +
-					':' +
-					getNameLabel(ft.label).toLowerCase()
-				).includes(input.toLowerCase()),
-			)
-			.sort((a, b) => {
-				const aLower = getNameLabel(a.label).toLowerCase()
-				const bLower = getNameLabel(b.label).toLowerCase()
-				if (aLower < bLower) {
-					return -1
-				} else if (aLower === bLower) {
-					return 0
-				} else {
-					return 1
-				}
-			})
-	}
+	const getKeyOptions = useCallback(
+		async (input: string) => {
+			return customFields
+				.concat(fieldData?.field_types ?? [])
+				.map((ft) => ({
+					label: ft.name,
+					value: ft.type + '_' + ft.name,
+				}))
+				.filter((ft) =>
+					(
+						getTypeLabel(ft.value)?.toLowerCase() +
+						':' +
+						getNameLabel(ft.label).toLowerCase()
+					).includes(input.toLowerCase()),
+				)
+				.sort((a, b) => {
+					const aLower = getNameLabel(a.label).toLowerCase()
+					const bLower = getNameLabel(b.label).toLowerCase()
+					if (aLower < bLower) {
+						return -1
+					} else if (aLower === bLower) {
+						return 0
+					} else {
+						return 1
+					}
+				})
+		},
+		[customFields, fieldData?.field_types],
+	)
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
@@ -1667,73 +1853,81 @@ function QueryBuilder<T extends SearchContextTypes>(
 		}
 	}
 
-	const getValueOptionsCallback = (field: SelectOption | undefined) => {
-		return async (input: string) => {
-			if (field === undefined) {
-				return
-			}
+	const getValueOptionsCallback = useCallback(
+		(field: SelectOption | undefined) => {
+			return async (input: string) => {
+				if (field === undefined) {
+					return
+				}
 
-			let options: { label: string; value: string }[] = []
-			if (field.value === 'custom_app_version') {
-				options =
-					appVersionData?.app_version_suggestion
-						.filter((val) => !!val)
-						.map((val) => ({
-							label: val as string,
-							value: val as string,
-						})) ?? []
-			} else if (field.value === 'custom_processed') {
-				options = ['true', 'false'].map((v) => ({
-					label: getProcessedLabel(v),
-					value: v,
-				}))
-			} else if (field.value === 'error_state') {
-				options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
-					label: getStateLabel(v),
-					value: v,
-				}))
-			} else if (field.value === 'error_Type') {
-				options = [
-					'Backend',
-					'console.error',
-					'window.onerror',
-					'custom',
-				].map((v) => ({
-					label: v,
-					value: v,
-				}))
-			} else if (getCustomFieldOptions(field)?.type === 'boolean') {
-				options = ['true', 'false'].map((v) => ({
-					label: v,
-					value: v,
-				}))
-			}
+				let options: { label: string; value: string }[] = []
+				if (field.value === 'custom_app_version') {
+					options =
+						appVersionData?.app_version_suggestion
+							.filter((val) => !!val)
+							.map((val) => ({
+								label: val as string,
+								value: val as string,
+							})) ?? []
+				} else if (field.value === 'custom_processed') {
+					options = ['true', 'false'].map((v) => ({
+						label: getProcessedLabel(v),
+						value: v,
+					}))
+				} else if (field.value === 'error_state') {
+					options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
+						label: getStateLabel(v),
+						value: v,
+					}))
+				} else if (field.value === 'error_Type') {
+					options = [
+						'Backend',
+						'console.error',
+						'window.onerror',
+						'custom',
+					].map((v) => ({
+						label: v,
+						value: v,
+					}))
+				} else if (getCustomFieldOptions(field)?.type === 'boolean') {
+					options = ['true', 'false'].map((v) => ({
+						label: v,
+						value: v,
+					}))
+				}
 
-			if (options.length > 0) {
-				return options.filter((opt) =>
-					opt.label?.toLowerCase().includes(input.toLowerCase()),
-				)
-			}
+				if (options.length > 0) {
+					return options.filter((opt) =>
+						opt.label?.toLowerCase().includes(input.toLowerCase()),
+					)
+				}
 
-			let label = field.label
-			if (field.value === 'error_Event') {
-				label = 'event'
-			}
+				let label = field.label
+				if (field.value === 'error_Event') {
+					label = 'event'
+				}
 
-			return await fetchFields({
-				project_id,
-				count: 10,
-				field_type: getType(field.value),
-				field_name: label,
-				query: input,
-			}).then((res) => {
-				return res.map((val) => ({
-					label: val,
-					value: val,
-				}))
-			})
-		}
-	}
+				return await fetchFields({
+					project_id: projectId,
+					count: 10,
+					field_type: getType(field.value),
+					field_name: label,
+					query: input,
+				}).then((res) => {
+					return res.map((val) => ({
+						label: val,
+						value: val,
+					}))
+				})
+			}
+		},
+		[
+			appVersionData?.app_version_suggestion,
+			fetchFields,
+			getCustomFieldOptions,
+			projectId,
+		],
+	)
 
 	// Track the current state of the query builder to detect changes
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
@@ -1760,13 +1954,14 @@ function QueryBuilder<T extends SearchContextTypes>(
 		}
 	}, [searchParams.query, toggleIsAnd, qbState])
 
+	const areRulesValid = rules.every(isComplete)
 	useEffect(() => {
-		if (rules.every(isComplete)) {
+		if (areRulesValid) {
 			// For relative time ranges, the serialized query will be different every time you serialize,
 			// so serialize once and only once every time the rules list changes
 			updateSerializedQuery(isAnd, rules)
 		}
-	}, [isAnd, rules, updateSerializedQuery])
+	}, [areRulesValid, isAnd, rules, updateSerializedQuery])
 
 	useEffect(() => {
 		// Only update the external state if not readonly
@@ -1825,88 +2020,415 @@ function QueryBuilder<T extends SearchContextTypes>(
 		undefined,
 	)
 
+	const { setShowLeftPanel } = useErrorPageConfiguration()
+
+	const addFilterButton = useMemo(() => {
+		if (readonly) {
+			return null
+		}
+
+		return (
+			<Popover
+				showArrow={false}
+				trigger="click"
+				content={
+					currentRule?.field === undefined ? (
+						<PopoutContent
+							key={'popover-step-1'}
+							value={undefined}
+							setVisible={() => {
+								setCurrentStep(undefined)
+							}}
+							onChange={(val) => {
+								const field = val as SelectOption | undefined
+								addRule({
+									field: field,
+									op: undefined,
+									val: undefined,
+								})
+							}}
+							loadOptions={getKeyOptions}
+							type="select"
+							placeholder="Filter..."
+						/>
+					) : currentRule?.op === undefined ? (
+						<PopoutContent
+							key={'popover-step-2'}
+							value={undefined}
+							setVisible={() => {
+								setCurrentStep(3)
+							}}
+							onChange={(val) => {
+								const op = (val as SelectOption)
+									.value as Operator
+								if (!hasArguments(op)) {
+									setCurrentStep(undefined)
+									addRule({
+										...currentRule,
+										op,
+									})
+								} else {
+									setCurrentRule({
+										...currentRule,
+										op,
+									})
+								}
+							}}
+							loadOptions={getOperatorOptionsCallback(
+								getCustomFieldOptions(currentRule.field),
+								currentRule.val,
+							)}
+							type="select"
+							placeholder="Select..."
+						/>
+					) : (
+						<PopoutContent
+							key={'popover-step-3'}
+							value={undefined}
+							setVisible={() => {
+								setCurrentStep(undefined)
+							}}
+							onChange={(val) => {
+								addRule({
+									...currentRule,
+									val: val as MultiselectOption | undefined,
+								})
+							}}
+							loadOptions={getValueOptionsCallback(
+								currentRule.field,
+							)}
+							type={getPopoutType(currentRule.op)}
+							placeholder={`Select...`}
+						/>
+					)
+				}
+				placement="bottomLeft"
+				contentContainerClassName={styles.contentContainer}
+				popoverClassName={styles.popoverContainer}
+				destroyTooltipOnHide
+				onVisibleChange={(isVisible) => {
+					if (!isVisible) {
+						setCurrentStep(undefined)
+					}
+				}}
+				visible={
+					currentStep === 1 ||
+					(currentStep === 2 && !!currentRule?.field) ||
+					(currentStep === 3 && !!currentRule?.op)
+				}
+			>
+				<Button
+					kind="secondary"
+					size="xSmall"
+					emphasis="low"
+					iconLeft={<IconPlusSm size={12} />}
+					onClick={addNewRule}
+				>
+					{mode === QueryBuilderMode.EMPTY ? 'Add filter' : null}
+				</Button>
+			</Popover>
+		)
+	}, [
+		addRule,
+		currentRule,
+		currentStep,
+		getCustomFieldOptions,
+		getKeyOptions,
+		getValueOptionsCallback,
+		mode,
+		readonly,
+	])
+
+	const canUpdateSegment =
+		!!selectedSegment && filterRules.length > 0 && areRulesValid
+
+	const updateSegment = useCallback(() => {
+		if (canUpdateSegment) {
+			editSegment({
+				variables: {
+					project_id: projectId,
+					id: selectedSegment.id,
+					params: searchParams,
+				},
+			})
+				.then(() => {
+					message.success(`Updated '${selectedSegment.value}'`, 5)
+					setExistingParams(searchParams)
+				})
+				.catch(() => {
+					message.error('Error updating segment!', 5)
+				})
+		}
+	}, [
+		canUpdateSegment,
+		editSegment,
+		projectId,
+		searchParams,
+		selectedSegment?.id,
+		selectedSegment?.value,
+		setExistingParams,
+	])
+
+	const actionButton = useMemo(() => {
+		switch (mode) {
+			case QueryBuilderMode.EMPTY:
+				return addFilterButton
+			case QueryBuilderMode.CUSTOM:
+				return (
+					<Button
+						kind="secondary"
+						size="xSmall"
+						emphasis="medium"
+						iconLeft={<IconSave size={12} />}
+						onClick={() => {
+							setShowCreateSegmentModal(true)
+						}}
+						disabled={!areRulesValid}
+					>
+						Save
+					</Button>
+				)
+			case QueryBuilderMode.SEGMENT:
+				return (
+					<Button
+						kind="secondary"
+						size="xSmall"
+						emphasis="medium"
+						iconLeft={<IconSegment size={12} />}
+						iconRight={<IconChevronDown size={12} />}
+						onClick={() => {}}
+					>
+						{segmentName}
+					</Button>
+				)
+			case QueryBuilderMode.SEGMENT_UPDATE:
+				return (
+					<Button
+						kind="primary"
+						size="xSmall"
+						emphasis="high"
+						iconLeft={<IconSegment size={12} />}
+						onIconLeftClick={(evt) => {
+							evt.stopPropagation()
+							updateSegment()
+						}}
+						iconRight={<IconChevronDown size={12} />}
+					>
+						{segmentName}
+					</Button>
+				)
+		}
+	}, [addFilterButton, areRulesValid, mode, segmentName, updateSegment])
+
+	const controlBar = useMemo(() => {
+		return (
+			<Box
+				display="flex"
+				alignItems="center"
+				px="12"
+				borderBottom="neutral"
+				cssClass={styles.controlBar}
+			>
+				<TimeRangeFilter
+					rule={timeRangeRule}
+					onChangeValue={(val) => updateRule(timeRangeRule, { val })}
+					onReset={
+						!readonly &&
+						timeRangeRule.val?.options[0].value !==
+							defaultTimeRangeRule.val?.options[0].value
+							? () =>
+									updateRule(timeRangeRule, {
+										val: defaultTimeRangeRule.val,
+									})
+							: undefined
+					}
+				/>
+				<Box marginLeft="auto" display="flex" gap="4">
+					{!readonly &&
+						!isAbsoluteTimeRange(
+							timeRangeRule.val?.options[0].value,
+						) && (
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis="low"
+								icon={<IconRefresh size={14} />}
+								disabled={syncButtonDisabled}
+								onClick={() => {
+									// Re-generate the absolute times used in the serialized query
+									updateSerializedQuery(isAnd, rules)
+									setBackendSearchQuery(
+										serializedQuery.current,
+									)
+								}}
+							/>
+						)}
+
+					<ButtonIcon
+						kind="secondary"
+						size="small"
+						shape="square"
+						emphasis="medium"
+						icon={<IconLogout size={14} />}
+						onClick={() => setShowLeftPanel(false)}
+					/>
+				</Box>
+			</Box>
+		)
+	}, [
+		defaultTimeRangeRule.val,
+		isAnd,
+		readonly,
+		rules,
+		setBackendSearchQuery,
+		setShowLeftPanel,
+		syncButtonDisabled,
+		timeRangeRule,
+		updateRule,
+		updateSerializedQuery,
+	])
+
+	const alteredSegmentSettings = useMemo(() => {
+		return (
+			<>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						updateSegment()
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconCloudUpload size={16} color={colors.neutral300} />
+						Push segment changes
+					</Box>
+				</Menu.Item>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						setShowCreateSegmentModal(true)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconPlusCircle size={16} color={colors.neutral300} />
+						Duplicate
+					</Box>
+				</Menu.Item>
+				<Menu.Item
+					onClick={(e) => {
+						e.stopPropagation()
+						selectSegment(currentSegment)
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						gap="4"
+						userSelect="none"
+					>
+						<IconRefresh size={16} color={colors.neutral300} />
+						Reset changes
+					</Box>
+				</Menu.Item>
+
+				<Menu.Divider />
+			</>
+		)
+	}, [currentSegment, selectSegment, updateSegment])
+	useEffect(() => {
+		if (filterRules.length === 0 && !segmentName) {
+			setMode(QueryBuilderMode.EMPTY)
+		} else if (!!segmentName) {
+			if (showUpdateSegmentOption) {
+				setMode(QueryBuilderMode.SEGMENT_UPDATE)
+			} else {
+				setMode(QueryBuilderMode.SEGMENT)
+			}
+		} else {
+			setMode(QueryBuilderMode.CUSTOM)
+		}
+	}, [filterRules.length, segmentName, showUpdateSegmentOption])
+
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
 		return null
 	}
 
 	return (
-		<div className={styles.builderContainer}>
-			<div className={styles.rulesContainer}>
-				<div
-					className={classNames(
-						styles.ruleContainer,
-						styles.timeRangeContainer,
-					)}
-				>
-					<TimeRangeFilter
-						rule={timeRangeRule}
-						onChangeValue={(val) =>
-							updateRule(timeRangeRule, { val })
-						}
-					/>
-					{!readonly &&
-						timeRangeRule.val?.options[0].value !==
-							defaultTimeRangeRule.val?.options[0].value && (
-							<Button
-								trackingId="resetTimeRangeRule"
-								className={classNames(
-									styles.ruleItem,
-									styles.removeRule,
-								)}
-								onClick={() =>
-									updateRule(timeRangeRule, {
-										val: defaultTimeRangeRule.val,
-									})
-								}
-							>
-								<SvgXIcon />
-							</Button>
-						)}
-				</div>
-				{!readonly &&
-					!isAbsoluteTimeRange(
-						timeRangeRule.val?.options[0].value,
-					) && (
-						<Button
-							className={classNames(
-								styles.ruleItem,
-								styles.syncButton,
-							)}
-							onClick={() => {
-								// Re-generate the absolute times used in the serialized query
-								updateSerializedQuery(isAnd, rules)
-								setBackendSearchQuery(serializedQuery.current)
-							}}
-							disabled={syncButtonDisabled}
-							trackingId={'RefreshSearchResults'}
-						>
-							<Tooltip
-								title={
-									'Refetch the latest results of your query.'
-								}
-							>
-								<Reload width="1em" height="1em" />
-							</Tooltip>
-						</Button>
-					)}
-			</div>
-			<div>
-				{filterRules.length > 0 && (
-					<div className={styles.rulesContainer}>
+		<>
+			<CreateErrorSegmentModal
+				showModal={showCreateSegmentModal}
+				onHideModal={() => {
+					setShowCreateSegmentModal(false)
+				}}
+				afterCreateHandler={(segmentId, segmentName) => {
+					if (segmentData?.error_segments) {
+						setSelectedSegment({
+							id: segmentId,
+							value: segmentName,
+						})
+					}
+				}}
+			/>
+			<DeleteErrorSegmentModal
+				showModal={!!segmentToDelete}
+				hideModalHandler={() => {
+					setSegmentToDelete(null)
+				}}
+				segmentToDelete={segmentToDelete}
+				afterDeleteHandler={() => {
+					if (
+						segmentToDelete &&
+						segmentName === segmentToDelete.name
+					) {
+						removeSelectedSegment()
+						setSearchParams(EmptyErrorsSearchParams)
+					}
+				}}
+			/>
+			{controlBar}
+			<Box
+				border="neutral"
+				borderRadius="8"
+				display="flex"
+				flexDirection="column"
+				overflow="hidden"
+				flexShrink={0}
+				m="8"
+			>
+				{mode !== QueryBuilderMode.EMPTY && (
+					<Box
+						p="4"
+						paddingBottom="8"
+						background="white"
+						borderBottom="neutral"
+						display="flex"
+						alignItems="center"
+						flexWrap="wrap"
+						gap="4"
+					>
 						{filterRules.flatMap((rule, index) => [
 							...(index != 0
 								? [
-										<Button
-											className={styles.separator}
-											trackingId="SessionsQuerySeparatorToggle"
+										<Tag
+											shape="basic"
+											kind="transparent"
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
-											type="dashed"
 											disabled={readonly}
 										>
 											{isAnd ? 'and' : 'or'}
-										</Button>,
+										</Tag>,
 								  ]
 								: []),
 							<QueryRule
@@ -1943,115 +2465,150 @@ function QueryBuilder<T extends SearchContextTypes>(
 								readonly={readonly ?? false}
 							/>,
 						])}
-					</div>
+						{addFilterButton}
+					</Box>
 				)}
-				{!readonly && (
-					<Popover
-						trigger="click"
-						content={
-							currentRule?.field === undefined ? (
-								<PopoutContent
-									key={'popover-step-1'}
-									value={undefined}
-									setVisible={() => {
-										setCurrentStep(undefined)
-									}}
-									onChange={(val) => {
-										const field = val as
-											| SelectOption
-											| undefined
-										addRule({
-											field: field,
-											op: undefined,
-											val: undefined,
-										})
-									}}
-									loadOptions={getKeyOptions}
-									type="select"
-									placeholder="Filter..."
-								/>
-							) : currentRule?.op === undefined ? (
-								<PopoutContent
-									key={'popover-step-2'}
-									value={undefined}
-									setVisible={() => {
-										setCurrentStep(3)
-									}}
-									onChange={(val) => {
-										const op = (val as SelectOption)
-											.value as Operator
-										if (!hasArguments(op)) {
-											setCurrentStep(undefined)
-											addRule({
-												...currentRule,
-												op,
-											})
-										} else {
-											setCurrentRule({
-												...currentRule,
-												op,
-											})
-										}
-									}}
-									loadOptions={getOperatorOptionsCallback(
-										getCustomFieldOptions(
-											currentRule.field,
-										),
-										currentRule.val,
-									)}
-									type="select"
-									placeholder="Select..."
-								/>
-							) : (
-								<PopoutContent
-									key={'popover-step-3'}
-									value={undefined}
-									setVisible={() => {
-										setCurrentStep(undefined)
-									}}
-									onChange={(val) => {
-										addRule({
-											...currentRule,
-											val: val as
-												| MultiselectOption
-												| undefined,
-										})
-									}}
-									loadOptions={getValueOptionsCallback(
-										currentRule.field,
-									)}
-									type={getPopoutType(currentRule.op)}
-									placeholder={`Select...`}
-								/>
-							)
-						}
-						placement="bottomLeft"
-						contentContainerClassName={styles.contentContainer}
-						popoverClassName={styles.popoverContainer}
-						destroyTooltipOnHide
-						onVisibleChange={(isVisible) => {
-							if (!isVisible) {
-								setCurrentStep(undefined)
-							}
-						}}
-						visible={
-							currentStep === 1 ||
-							(currentStep === 2 && !!currentRule?.field) ||
-							(currentStep === 3 && !!currentRule?.op)
-						}
-					>
-						<Button
-							className={styles.addFilter}
-							trackingId="SessionsQueryAddRule2"
-							onClick={newRule}
-							type="dashed"
+				<Box
+					display="flex"
+					p="8"
+					paddingRight="4"
+					justifyContent="space-between"
+					alignItems="center"
+				>
+					{searchResultsLoading ? (
+						<Skeleton width="100px" />
+					) : (
+						<Text
+							size="xSmall"
+							weight="medium"
+							color="neutral300"
+							userSelect="none"
 						>
-							+ Filter
-						</Button>
-					</Popover>
-				)}
-			</div>
-		</div>
+							{formatNumber(searchResultsCount)} results
+						</Text>
+					)}
+					<Box display="flex" gap="4">
+						<Menu placement="bottom-end">
+							<Menu.Button
+								as="div"
+								kind="secondary"
+								cssClass={styles.menuTrigger}
+								disabled={!areRulesValid}
+							>
+								{actionButton}
+							</Menu.Button>
+							<Menu.List cssClass={styles.menuList}>
+								<Box
+									background="neutral50"
+									borderBottom="neutral"
+									p="8"
+									mb="4"
+								>
+									<Text
+										weight="medium"
+										size="xxSmall"
+										color="neutral500"
+										userSelect="none"
+									>
+										Segment settings
+									</Text>
+								</Box>
+								{mode === QueryBuilderMode.SEGMENT_UPDATE
+									? alteredSegmentSettings
+									: null}
+
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										removeSelectedSegment()
+										setSearchParams(EmptyErrorsSearchParams)
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconXCircle
+											size={16}
+											color={colors.neutral300}
+										/>
+										Clear selection
+									</Box>
+								</Menu.Item>
+								<Menu.Divider />
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										setSegmentToDelete({
+											id: currentSegment?.id,
+											name: currentSegment?.name,
+										})
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconTrash
+											size={16}
+											color={colors.neutral300}
+										/>
+										Delete segment
+									</Box>
+								</Menu.Item>
+							</Menu.List>
+						</Menu>
+						<Menu>
+							<Menu.Button
+								as="div"
+								kind="secondary"
+								cssClass={styles.menuTrigger}
+								disabled={segmentsLoading}
+							>
+								<ButtonIcon
+									kind="secondary"
+									size="tiny"
+									emphasis="high"
+									shape="square"
+									icon={<IconSegment size={12} />}
+								/>
+							</Menu.Button>
+							<Menu.List cssClass={styles.menuList}>
+								<Box
+									background="neutral50"
+									borderBottom="neutral"
+									p="8"
+									mb="4"
+								>
+									<Text
+										weight="medium"
+										size="xxSmall"
+										color="neutral500"
+										userSelect="none"
+									>
+										Segments
+									</Text>
+								</Box>
+								{segmentOptions.map((segment, idx) => (
+									<Menu.Item
+										key={idx}
+										onClick={() =>
+											setSelectedSegment(segment)
+										}
+									>
+										{segment.displayValue}
+									</Menu.Item>
+								))}
+							</Menu.List>
+						</Menu>
+					</Box>
+				</Box>
+			</Box>
+		</>
 	)
 }
 

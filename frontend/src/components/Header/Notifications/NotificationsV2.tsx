@@ -230,7 +230,7 @@ const NotificationsV2 = () => {
 				className={styles.buttonV2}
 			>
 				<div className={styles.iconContainerV2}>
-					{inboxNotifications.length === 0 && (
+					{inboxNotifications.length !== 0 && (
 						<div className={styles.dotContainer}>
 							<Dot pulse />
 						</div>

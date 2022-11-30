@@ -57,7 +57,7 @@ const SearchPagination = ({
 		// startIdx | dots | siblings | currentIdx | siblings | dots | endIdx
 		const totalItemCount = 2 + $siblingCount + 1 + $siblingCount + 2
 		if (totalPageCount <= totalItemCount) {
-			return range(START_PAGE, totalPageCount)
+			return range(START_PAGE, totalPageCount + 1)
 		}
 
 		const leftmostSiblingPage = Math.max(

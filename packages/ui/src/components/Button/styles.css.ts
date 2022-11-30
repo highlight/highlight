@@ -137,23 +137,23 @@ export const variants = recipe({
 		},
 		size: {
 			xSmall: [
-				sprinkles({ borderRadius: '6', gap: '4', px: '6' }),
+				sprinkles({ borderRadius: '6', gap: '4', px: '4' }),
 				{ height: 24 },
 			],
 			small: [
-				sprinkles({ borderRadius: '6', gap: '4', px: '6' }),
+				sprinkles({ borderRadius: '6', gap: '4', px: '4' }),
 				{ height: 28 },
 			],
 			medium: [
-				sprinkles({ borderRadius: '6', gap: '6', px: '8' }),
+				sprinkles({ borderRadius: '6', gap: '6', px: '6' }),
 				{ height: 32 },
 			],
 			large: [
-				sprinkles({ borderRadius: '6', gap: '6', px: '10' }),
+				sprinkles({ borderRadius: '6', gap: '6', px: '8' }),
 				{ height: 36 },
 			],
 			xLarge: [
-				sprinkles({ borderRadius: '8', gap: '8', px: '12' }),
+				sprinkles({ borderRadius: '8', gap: '8', px: '10' }),
 				{ height: 40 },
 			],
 		},
