@@ -302,6 +302,8 @@ const StackTraceSectionCollapsible: React.FC<
 const SourcemapError: React.FC<{ metadata?: Maybe<SourceMappingError> }> = ({
 	metadata,
 }) => {
+	// TODO: Replace custom dialog with a tooltip component. Need to build tooltip
+	// in UI library.
 	const [open, setOpen] = React.useState(false)
 
 	if (!metadata) {
@@ -329,9 +331,15 @@ const SourcemapError: React.FC<{ metadata?: Maybe<SourceMappingError> }> = ({
 					border="neutral"
 					padding="12"
 					position="absolute"
-					style={{ top: 'calc(100% + 5px)', right: 0, zIndex: 1 }}
+					overflow="scroll"
+					style={{
+						maxWidth: 500,
+						top: 'calc(100% + 5px)',
+						right: 0,
+						zIndex: 1,
+					}}
 				>
-					<StackSectionError error={metadata} />
+					<SourcemapErrorDetails error={metadata} />
 				</Box>
 			)}
 		</Box>
@@ -346,7 +354,7 @@ const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 3) => {
 	)}${tokens.splice(tokens.length - numberOfLevelsToGoUp).join('/')}`
 }
 
-const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
+const SourcemapErrorDetails: React.FC<{ error: SourceMappingError }> = ({
 	error,
 }) => {
 	const originalFileError =
@@ -355,6 +363,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 		'There was an issue accessing the sourcemap file for this error'
 	const fileSizeLimitError =
 		"We couldn't fetch these files due to size limits"
+
 	if (
 		error.errorCode == SourceMappingErrorCode.MinifiedFileMissingInS3AndUrl
 	) {
@@ -362,8 +371,8 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 			<div>
 				{originalFileError}. <br />
 				We couldn't find the minified file in Highlight storage at path{' '}
-				<u>{error.actualMinifiedFetchedPath}</u> or at URL{' '}
-				<u>{error.stackTraceFileURL}</u>
+				<b>{error.actualMinifiedFetchedPath}</b> or at URL{' '}
+				<b>{error.stackTraceFileURL}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
@@ -384,7 +393,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 			<div>
 				{originalFileError}. <br />
 				We couldn't parse the stack trace file name{' '}
-				<u>{error.stackTraceFileURL}</u>
+				<b>{error.stackTraceFileURL}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
@@ -395,7 +404,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 			<div>
 				{sourcemapFileError}. <br />
 				We couldn't find sourcemap file using the 'file://' syntax in
-				cloud storage at path <u>{error.sourceMapURL}</u>
+				cloud storage at path <b>{error.sourceMapURL}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
@@ -406,8 +415,8 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 			<div>
 				{sourcemapFileError}. <br />
 				We couldn't find the sourcemap file in Highlight storage at path{' '}
-				<u>{error.actualSourcemapFetchedPath}</u> or at URL{' '}
-				<u>{error.sourceMapURL}</u>
+				<b>{error.actualSourcemapFetchedPath}</b> or at URL{' '}
+				<b>{error.sourceMapURL}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
@@ -416,7 +425,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 			<div>
 				{sourcemapFileError}. <br />
 				We couldn't parse the sourcemap filename X{' '}
-				<u>{error.actualSourcemapFetchedPath}</u>
+				<b>{error.actualSourcemapFetchedPath}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
@@ -424,7 +433,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 		return (
 			<div>
 				{fileSizeLimitError}. <br />
-				Minified file <u>{error.actualMinifiedFetchedPath}</u> larger
+				Minified file <b>{error.actualMinifiedFetchedPath}</b> larger
 				than our max supported size 128MB
 				{getFormatedStackSectionError(error)}
 			</div>
@@ -433,7 +442,7 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 		return (
 			<div>
 				{fileSizeLimitError}. <br />
-				Sourcemap file <u>{error.actualSourcemapFetchedPath}</u> larger
+				Sourcemap file <b>{error.actualSourcemapFetchedPath}</b> larger
 				than our max supported size 128MB
 				{getFormatedStackSectionError(error)}
 			</div>
@@ -444,93 +453,93 @@ const StackSectionError: React.FC<{ error: SourceMappingError }> = ({
 		return (
 			<div>
 				There was an error parsing the source map file{' '}
-				<u>{error.sourceMapURL}</u>{' '}
+				<b>{error.sourceMapURL}</b>{' '}
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
-	}
-	// } else if (
-	// 	error.errorCode ==
-	// 	SourceMappingErrorCode.SourcemapLibraryCouldntRetrieveSource
-	// )
-	else {
+	} else if (
+		error.errorCode ==
+		SourceMappingErrorCode.SourcemapLibraryCouldntRetrieveSource
+	) {
 		return (
 			<div>
 				Sourcemap library didn't find a valid mapping to the original
-				source with line <u>{error.mappedLineNumber}</u> and col{' '}
-				<u>{error.mappedColumnNumber}</u>
+				source with line <b>{error.mappedLineNumber}</b> and col{' '}
+				<b>{error.mappedColumnNumber}</b>
 				{getFormatedStackSectionError(error)}
 			</div>
 		)
+	} else {
+		return null
 	}
 }
 
 function getFormatedStackSectionError(error: SourceMappingError) {
 	return (
-		<div>
+		<>
 			{error.stackTraceFileURL && (
 				<div>
-					<u>Stack Trace File URL:</u> {error.stackTraceFileURL}
+					<b>Stack Trace File URL:</b> {error.stackTraceFileURL}
 				</div>
 			)}
 			{error.actualMinifiedFetchedPath && (
 				<div>
-					<u>Minified Path:</u> {error.actualMinifiedFetchedPath}
+					<b>Minified Path:</b> {error.actualMinifiedFetchedPath}
 				</div>
 			)}
 			{error.minifiedFetchStrategy && (
 				<div>
-					<u>Minified Fetch Strategy:</u>{' '}
+					<b>Minified Fetch Strategy:</b>{' '}
 					{error.minifiedFetchStrategy}
 				</div>
 			)}
 			{error.minifiedFileSize && (
 				<div>
-					<u>Minified File Size:</u> {error.minifiedFileSize}
+					<b>Minified File Size:</b> {error.minifiedFileSize}
 				</div>
 			)}
 			{error.minifiedLineNumber && (
 				<div>
-					<u>Minified Line Number:</u> {error.minifiedLineNumber}
+					<b>Minified Line Number:</b> {error.minifiedLineNumber}
 				</div>
 			)}
 			{error.minifiedColumnNumber && (
 				<div>
-					<u>Minified Column Number:</u> {error.minifiedColumnNumber}
+					<b>Minified Column Number:</b> {error.minifiedColumnNumber}
 				</div>
 			)}
 			{error.sourceMapURL && (
 				<div>
-					<u>Sourcemap URL:</u> {error.sourceMapURL}
+					<b>Sourcemap URL:</b> {error.sourceMapURL}
 				</div>
 			)}
 			{error.sourcemapFetchStrategy && (
 				<div>
-					<u>Sourcemap Fetch Strategy:</u>{' '}
+					<b>Sourcemap Fetch Strategy:</b>{' '}
 					{error.sourcemapFetchStrategy}
 				</div>
 			)}
 			{error.sourcemapFileSize && (
 				<div>
-					<u>Sourcemap File Size:</u> {error.sourcemapFileSize}
+					<b>Sourcemap File Size:</b> {error.sourcemapFileSize}
 				</div>
 			)}
 			{error.actualSourcemapFetchedPath && (
 				<div>
-					<u>Sourcemap Fetched Path:</u>{' '}
+					<b>Sourcemap Fetched Path:</b>{' '}
 					{error.actualSourcemapFetchedPath}
 				</div>
 			)}
 			{error.mappedLineNumber && (
 				<div>
-					<u>Mapped Line Number:</u> {error.mappedLineNumber}
+					<b>Mapped Line Number:</b> {error.mappedLineNumber}
 				</div>
 			)}
 			{error.mappedColumnNumber && (
 				<div>
-					<u>Mapped Column Number:</u> {error.mappedColumnNumber}
+					<b>Mapped Column Number:</b> {error.mappedColumnNumber}
 				</div>
 			)}
-		</div>
+		</>
 	)
 }
