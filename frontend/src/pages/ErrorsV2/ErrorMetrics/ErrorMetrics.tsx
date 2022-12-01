@@ -3,13 +3,12 @@ import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
+	Callout,
 	Heading,
-	IconInformationCircle,
 	IconZigZag,
 	LinkButton,
 	Text,
 } from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
@@ -145,22 +144,12 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						<Text>{errorFrequencyTotal}</Text>
 					</Box>
 
-					<div className={styles.environmentCard}>
-						<Box display="flex" flexDirection="row" gap="8">
-							<div className={styles.infoIconContainer}>
-								<IconInformationCircle
-									color={vars.color.neutralN9}
-									size={12}
-								/>
-							</div>
-							<Box display="flex" flexDirection="column" gap="8">
-								<Text
-									weight="bold"
-									size="medium"
-									cssClass={styles.bodyTitle}
-								>
-									Only see one environment version?
-								</Text>
+					<div className={styles.calloutContainer}>
+						<Callout
+							title="Only see one environment version?"
+							kind="info"
+						>
+							<Box display="flex" flexDirection="column">
 								<Text
 									color="neutral500"
 									cssClass={styles.bodyText}
@@ -183,7 +172,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 									</LinkButton>
 								</div>
 							</Box>
-						</Box>
+						</Callout>
 					</div>
 				</div>
 
