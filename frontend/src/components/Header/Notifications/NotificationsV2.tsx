@@ -4,9 +4,8 @@ import PersonalNotificationButton from '@components/Header/components/PersonalNo
 import Input from '@components/Input/Input'
 import MenuItem from '@components/Menu/MenuItem'
 import Tabs from '@components/Tabs/Tabs'
-import { Button, IconBell } from '@highlight-run/ui'
+import { Box, Button, IconBell, IconFilter, Text } from '@highlight-run/ui'
 import SvgEmailPlusIcon from '@icons/EmailPlusIcon'
-import SvgFilterIcon from '@icons/FilterIcon'
 import SvgMailOpenIcon from '@icons/MailOpenIcon'
 import SvgSearchIcon from '@icons/SearchIcon'
 import SessionCommentTagSelect from '@pages/Player/Toolbar/NewCommentForm/SessionCommentTagSelect/SessionCommentTagSelect'
@@ -15,7 +14,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { Menu } from 'antd'
 import Lottie from 'lottie-react'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks'
 import NotificationAnimation from '../../../lottie/waiting.json'
@@ -26,7 +25,7 @@ import styles from './Notification.module.scss'
 import NotificationItem from './NotificationItem/NotificationItem'
 import { NotificationType, processNotifications } from './utils/utils'
 
-const NotificationsV2 = () => {
+const Notifications = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const [allNotifications, setAllNotifications] = useState<any[]>([])
 	const [inboxNotifications, setInboxNotifications] = useState<any[]>([])
@@ -241,7 +240,7 @@ const NotificationsV2 = () => {
 	)
 }
 
-export default NotificationsV2
+export default Notifications
 
 interface ListProps {
 	notifications: any[]
@@ -386,8 +385,12 @@ const List = ({
 								/>
 							</section>
 							<section>
-								<label>
-									Tags
+								<Box
+									display="flex"
+									flexDirection="column"
+									gap="8"
+								>
+									<Text size="xSmall">Tags</Text>
 									<SessionCommentTagSelect
 										allowClear
 										className={styles.tagsSelect}
@@ -398,7 +401,7 @@ const List = ({
 										tagClosable={false}
 										placeholder="signups, userflow, bug, error"
 									/>
-								</label>
+								</Box>
 							</section>
 							<section>
 								<Button
@@ -417,9 +420,15 @@ const List = ({
 						</main>
 					}
 				>
-					<Button className={styles.filtersButton}>
-						<SvgFilterIcon />
-						Filters ({filtersCount})
+					<Button
+						kind={filtersCount > 0 ? 'primary' : 'secondary'}
+						iconLeft={<IconFilter size={12} />}
+						cssClass={styles.filtersButton}
+					>
+						<Text lines="1">
+							Filters
+							{filtersCount > 0 ? ` (${filtersCount})` : ''}
+						</Text>
 					</Button>
 				</Popover>
 			</div>
