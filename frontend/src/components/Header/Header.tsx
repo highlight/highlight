@@ -148,14 +148,17 @@ export const Header = () => {
 									})}
 									<Menu>
 										<Menu.Button
+											icon={
+												<IconDotsHorizontal
+													size="14"
+													color={
+														vars.color.neutral500
+													}
+												/>
+											}
 											emphasis="low"
 											kind="secondary"
-										>
-											<IconDotsHorizontal
-												size="14"
-												color={vars.color.neutral500}
-											/>
-										</Menu.Button>
+										/>
 										<Menu.List>
 											<Link
 												to={`/${project_id}/alerts`}
@@ -255,12 +258,13 @@ export const Header = () => {
 									<Menu.Button
 										emphasis="low"
 										kind="secondary"
-									>
-										<IconCog
-											size="14"
-											color={vars.color.neutral500}
-										/>
-									</Menu.Button>
+										icon={
+											<IconCog
+												size="14"
+												color={vars.color.neutral500}
+											/>
+										}
+									/>
 									<Menu.List>
 										<Link
 											to={`/w/${workspaceId}/team`}
