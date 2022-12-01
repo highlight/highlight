@@ -183,8 +183,8 @@ type ErrorDistributionItem struct {
 }
 
 type ErrorGroupFrequenciesParamsInput struct {
-	DateRange       *DateRangeRequiredInput `json:"date_range"`
-	ResolutionHours int                     `json:"resolution_hours"`
+	DateRange         *DateRangeRequiredInput `json:"date_range"`
+	ResolutionMinutes int                     `json:"resolution_minutes"`
 }
 
 type ErrorMetadata struct {
