@@ -87,6 +87,7 @@ const responsiveProperties = defineProperties({
 const staticProperties = defineProperties({
 	properties: {
 		visibility: ['hidden', 'visible'],
+		cursor: ['pointer'],
 		textTransform: [
 			'none',
 			'capitalize',

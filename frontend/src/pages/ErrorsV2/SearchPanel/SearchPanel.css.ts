@@ -9,6 +9,9 @@ export const searchPanel = style({
 	position: 'fixed',
 	height: 'calc(100vh - var(--header-height))',
 })
+export const searchPanelWithBanner = style({
+	height: 'calc(100vh - var(--header-height) - var(--banner-height))',
+})
 export const searchPanelHidden = style({
 	position: 'fixed',
 	transform: `translateX(-${ERROR_FEED_LEFT_PANEL_WIDTH}px)`,

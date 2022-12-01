@@ -17,6 +17,7 @@ import {
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
+import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
@@ -65,6 +66,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						error_object_id: nextErrorObjectId,
 					},
 				})
+			}
+
+			// Prefetch session data.
+			if (data?.error_instance?.error_object?.session) {
+				loadSession(data.error_instance.error_object.session.secure_id)
 			}
 		},
 	})
@@ -260,39 +266,41 @@ const User: React.FC<{
 							style={{ height: 28, width: 28 }}
 							customImage={avatarImage}
 						/>
-						<Text>{displayName}</Text>
+						<Text lines="1">{displayName}</Text>
 					</Box>
 
-					<Button
-						kind="secondary"
-						emphasis="high"
-						iconRight={<FiExternalLink />}
-						onClick={() => {
-							// Logic taken from Metadata box. There may be a cleaner way.
-							const searchParams = {
-								...EmptySessionsSearchParams,
-							}
+					<Box flexShrink={0} display="flex">
+						<Button
+							kind="secondary"
+							emphasis="high"
+							iconRight={<FiExternalLink />}
+							onClick={() => {
+								// Logic taken from Metadata box. There may be a cleaner way.
+								const searchParams = {
+									...EmptySessionsSearchParams,
+								}
 
-							if (session.identifier && field !== null) {
-								searchParams.user_properties = [
-									{
-										id: '0',
-										name: field,
-										value: displayName,
-									},
-								]
-							} else if (session?.fingerprint) {
-								searchParams.device_id = String(
-									session.fingerprint,
-								)
-							}
+								if (session.identifier && field !== null) {
+									searchParams.user_properties = [
+										{
+											id: '0',
+											name: field,
+											value: displayName,
+										},
+									]
+								} else if (session?.fingerprint) {
+									searchParams.device_id = String(
+										session.fingerprint,
+									)
+								}
 
-							history.push(`/${projectId}/sessions`)
-							setSearchParams(searchParams)
-						}}
-					>
-						All sessions for this user
-					</Button>
+								history.push(`/${projectId}/sessions`)
+								setSearchParams(searchParams)
+							}}
+						>
+							All sessions for this user
+						</Button>
+					</Box>
 				</Box>
 
 				<Box py="8" px="12">

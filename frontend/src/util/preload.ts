@@ -236,7 +236,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 	}, [project_id, pageToLoad, query])
 }
 
-const loadSession = async function (secureID: string) {
+export const loadSession = async function (secureID: string) {
 	if (
 		await IndexedDBLink.has('GetSession', {
 			secure_id: secureID,

@@ -12,6 +12,7 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
 import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -23,6 +24,7 @@ const PAGE_SIZE = DEFAULT_PAGE_SIZE
 
 const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
+	const { showBanner } = useGlobalContext()
 	const {
 		backendSearchQuery,
 		page,
@@ -96,6 +98,7 @@ const SearchPanel = () => {
 			position="relative"
 			cssClass={clsx(style.searchPanel, {
 				[style.searchPanelHidden]: !showLeftPanel,
+				[style.searchPanelWithBanner]: showBanner,
 			})}
 			background="neutral50"
 		>

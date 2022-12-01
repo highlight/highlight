@@ -5,7 +5,7 @@ import { IconProps } from '../icons'
 
 import * as styles from './styles.css'
 
-type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
+export type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 	styles.Variants & {
 		icon: React.ReactElement<IconProps>
 		cssClass?: string
