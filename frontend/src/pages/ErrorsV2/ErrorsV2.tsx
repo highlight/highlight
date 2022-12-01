@@ -8,6 +8,7 @@ import {
 import {
 	Box,
 	ButtonIcon,
+	Container,
 	IconChevronDown,
 	IconChevronUp,
 	IconExitRight,
@@ -163,41 +164,49 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									</title>
 								</Helmet>
 
-								<div className={styles.errorDetails}>
-									{loading ? (
-										<>
-											<Skeleton
-												count={1}
-												style={{
-													width: 300,
-													height: 37,
-												}}
-											/>
+								<Container>
+									<div className={styles.errorDetails}>
+										{loading ? (
+											<>
+												<Skeleton
+													count={1}
+													style={{
+														width: 300,
+														height: 37,
+													}}
+												/>
 
-											<Skeleton
-												count={1}
-												style={{
-													height: '2ch',
-													marginBottom: 0,
-												}}
-											/>
-										</>
-									) : (
-										<div>
-											<ErrorTitle
-												errorGroup={data?.error_group}
-											/>
+												<Skeleton
+													count={1}
+													style={{
+														height: '2ch',
+														marginBottom: 0,
+													}}
+												/>
+											</>
+										) : (
+											<div>
+												<ErrorTitle
+													errorGroup={
+														data?.error_group
+													}
+												/>
 
-											<ErrorBody
-												errorGroup={data?.error_group}
-											/>
+												<ErrorBody
+													errorGroup={
+														data?.error_group
+													}
+												/>
 
-											<ErrorTabContent
-												errorGroup={data?.error_group}
-											/>
-										</div>
-									)}
-								</div>
+												<ErrorTabContent
+													errorGroup={
+														data?.error_group
+													}
+												/>
+											</div>
+										)}
+									</div>
+								</Container>
 							</>
 						) : errorQueryingErrorGroup ? (
 							<ErrorState
