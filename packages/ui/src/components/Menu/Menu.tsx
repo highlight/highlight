@@ -12,7 +12,13 @@ import {
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
 import React, { useContext } from 'react'
+import { Box } from '../Box/Box'
+import {
+	Button as OriginalButton,
+	Props as ButtonProps,
+} from '../Button/Button'
 
+import * as buttonStyles from '../Button/styles.css'
 import * as styles from './styles.css'
 
 const MenuContext = React.createContext<MenuState>({} as MenuState)
@@ -35,24 +41,14 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 
 const Button: React.FC<
 	React.PropsWithChildren<{ cssClass?: ClassValue | ClassValue[] }> &
-		styles.ButtonVariants &
-		Omit<MenuButtonProps, 'state'>
-> = ({ children, size, kind, emphasis, cssClass, ...props }) => {
+		buttonStyles.Variants &
+		Omit<MenuButtonProps, 'state'> &
+		Pick<ButtonProps, 'iconLeft' | 'iconRight'>
+> = ({ children, ...props }) => {
 	const menu = useMenu()
 
 	return (
-		<MenuButton
-			state={menu}
-			className={clsx(
-				styles.buttonVariants({
-					kind,
-					size,
-					emphasis,
-				}),
-				cssClass,
-			)}
-			{...props}
-		>
+		<MenuButton as={OriginalButton} state={menu} {...props}>
 			{children}
 		</MenuButton>
 	)
