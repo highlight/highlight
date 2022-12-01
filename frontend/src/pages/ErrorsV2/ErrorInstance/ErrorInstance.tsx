@@ -210,7 +210,7 @@ const Metadata: React.FC<{
 					<Column span="8">
 						{metadata.map((meta) => (
 							<Box py="10" key={meta.key}>
-								<Text align="left" lines="1">
+								<Text align="left" wrap="always">
 									{meta.label}
 								</Text>
 							</Box>
