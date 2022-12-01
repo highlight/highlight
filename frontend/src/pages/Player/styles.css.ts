@@ -17,7 +17,6 @@ export const playerWrapperV2 = style({
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
-	marginBottom: 8,
 })
 
 export const playerCenterPanel = style({

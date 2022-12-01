@@ -22,8 +22,6 @@ export const switchInverted = style({
 })
 
 export const pageWrapper = style({
-	// TODO(vkorolik) implement resizing
-	maxHeight: 300,
 	overflowY: 'scroll',
 	width: '100%',
 })
