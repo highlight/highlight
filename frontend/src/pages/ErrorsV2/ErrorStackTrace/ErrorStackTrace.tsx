@@ -16,6 +16,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import React from 'react'
