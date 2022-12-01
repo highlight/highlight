@@ -61,7 +61,7 @@ const CategoricalBarChart = ({
 	for (const x of data) {
 		dateGroups[x.date] = { ...dateGroups[x.date], ...x }
 	}
-	let groupedData: any[] = Object.values(dateGroups)
+	const groupedData: any[] = Object.values(dateGroups)
 	const allYAxisKeys =
 		data.length > 0
 			? Object.keys(groupedData[0]).filter(
@@ -71,15 +71,6 @@ const CategoricalBarChart = ({
 			  )
 			: []
 	const yAxisKeys = allYAxisKeys.slice(0, MAX_LEGEND_ITEMS)
-	groupedData = groupedData.map((x) => {
-		const o: { [k: string]: any } = {}
-		for (const [k, v] of Object.entries(x)) {
-			if (yAxisKeys.indexOf(k) !== -1) {
-				o[k] = v
-			}
-		}
-		return o
-	})
 	const gridColor = 'none'
 	const labelColor = 'var(--color-gray-500)'
 
