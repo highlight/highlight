@@ -1,14 +1,17 @@
 import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarChar'
+import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import {
 	Box,
-	Callout,
 	Heading,
+	IconInformationCircle,
 	IconZigZag,
 	LinkButton,
 	Text,
 } from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
+import useDataTimeRange from '@hooks/useDataTimeRange'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
@@ -29,12 +32,8 @@ type TimelineTickInfo = {
 	format: string
 }
 
-const TICK_FORMAT = 'D MMM'
 const TICK_EVERY_BUCKETS = 10
 const NUM_BUCKETS_TIMELINE = 30
-// TODO(spenny): allow user selected timeframe in follow up
-const NUMBER_OF_DAYS = 30
-const LOOKBACK_MINUTES = 24 * 60 * NUMBER_OF_DAYS
 
 // TODO(spenny): dynamically set colors when multiple counts supported
 const LINE_COLORS = {
@@ -50,6 +49,11 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		ticks: [],
 		format: '',
 	})
+	const { timeRange, setTimeRange } = useDataTimeRange()
+	const [referenceArea, setReferenceArea] = useState<{
+		start: string
+		end: string
+	}>({ start: '', end: '' })
 
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
@@ -57,12 +61,12 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 			error_group_secure_ids: [errorGroup?.secure_id || ''],
 			params: {
 				date_range: {
-					start_date: moment()
-						.subtract(NUMBER_OF_DAYS, 'days')
-						.format(),
-					end_date: moment().format(),
+					start_date: timeRange.start_date,
+					end_date: timeRange.end_date,
 				},
-				resolution_hours: LOOKBACK_MINUTES / 60 / NUM_BUCKETS_TIMELINE,
+				resolution_minutes: Math.ceil(
+					timeRange.lookback / NUM_BUCKETS_TIMELINE,
+				),
 			},
 			metric: 'count',
 		},
@@ -73,30 +77,61 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		const ticks: string[] = []
 		const seenDays: Set<string> = new Set<string>()
 		let lastDate: moment.Moment | undefined = undefined
+		const tickFormat = timeRange.lookback > 24 * 60 ? 'D MMM' : 'HH:mm'
 
 		for (const dataPoint of frequencies?.errorGroupFrequencies || []) {
 			const pointDate = dataPoint?.date
-
 			if (pointDate) {
 				const newDate = moment(pointDate)
 				if (
 					lastDate &&
 					newDate.diff(lastDate, 'minutes') <
-						(LOOKBACK_MINUTES / NUM_BUCKETS_TIMELINE) *
+						(timeRange.lookback / NUM_BUCKETS_TIMELINE) *
 							TICK_EVERY_BUCKETS
 				) {
 					continue
 				}
 				lastDate = moment(newDate)
-				const formattedDate = newDate.format(TICK_FORMAT)
+				const formattedDate = newDate.format(tickFormat)
 				if (!seenDays.has(formattedDate)) {
 					ticks.push(pointDate)
 					seenDays.add(formattedDate)
 				}
 			}
 		}
+		setTimelineTicks({ ticks, format: tickFormat })
+	}
 
-		setTimelineTicks({ ticks, format: TICK_FORMAT })
+	const onMouseUp = () => {
+		if (Object.values(referenceArea).includes('')) {
+			return
+		}
+
+		const { start, end } = referenceArea
+
+		if (end > start) {
+			setTimeRange(start, end, true)
+		} else {
+			setTimeRange(end, start, true)
+		}
+
+		setReferenceArea({ start: '', end: '' })
+	}
+	const onMouseMove = (e?: any) => {
+		e?.activeLabel &&
+			referenceArea.start &&
+			setReferenceArea({
+				start: referenceArea.start,
+				end: e.activeLabel,
+			})
+	}
+
+	const onMouseDown = (e?: any) => {
+		e?.activeLabel &&
+			setReferenceArea({
+				start: e.activeLabel,
+				end: referenceArea.end,
+			})
 	}
 
 	const buildFormatedData = () => {
@@ -128,6 +163,9 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		<Box>
 			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
 				<Heading level="h4">Metrics</Heading>
+				<div className={styles.timePickerContainer}>
+					<TimeRangePicker />
+				</div>
 			</Box>
 
 			<Box mb="24" display="flex">
@@ -146,12 +184,23 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						<Text>{errorFrequencyTotal}</Text>
 					</Box>
 
-					<div className={styles.calloutContainer}>
-						<Callout
-							title="Only see one environment version?"
-							kind="info"
-						>
-							<Box display="flex" flexDirection="column">
+					{/* Callout component */}
+					<div className={styles.environmentCard}>
+						<Box display="flex" flexDirection="row" gap="8">
+							<div className={styles.infoIconContainer}>
+								<IconInformationCircle
+									color={vars.color.neutralN9}
+									size={12}
+								/>
+							</div>
+							<Box display="flex" flexDirection="column" gap="8">
+								<Text
+									weight="bold"
+									size="medium"
+									cssClass={styles.bodyTitle}
+								>
+									Only see one environment version?
+								</Text>
 								<Text
 									color="neutral500"
 									cssClass={styles.bodyText}
@@ -161,20 +210,15 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 									Highlight in CI/CD to get enhanced stack
 									traces.
 								</Text>
-								<div>
-									<LinkButton
-										kind="secondary"
-										to={{
-											pathname:
-												'https://www.highlight.io/docs/product-features/environments',
-										}}
-										target="_blank"
-									>
-										Learn more
-									</LinkButton>
-								</div>
+								<LinkButton
+									kind="secondary"
+									href="https://www.highlight.io/docs/product-features/environments"
+									target="_blank"
+								>
+									Learn more
+								</LinkButton>
 							</Box>
-						</Callout>
+						</Box>
 					</div>
 				</div>
 
@@ -195,6 +239,13 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						}}
 						yAxisLabel=""
 						barColorMapping={LINE_COLORS}
+						referenceAreaProps={{
+							x1: referenceArea.start,
+							x2: referenceArea.end,
+						}}
+						onMouseDown={onMouseDown}
+						onMouseMove={onMouseMove}
+						onMouseUp={onMouseUp}
 						stacked
 						hideLegend
 					/>

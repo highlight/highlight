@@ -16,12 +16,31 @@
 	display: flex;
 }
 
-.calloutContainer {
+.environmentCard {
 	background-color: #f9f8f9;
-	margin-top: var(--size-medium);
+	border-radius: 8px;
+	margin-top: 16px;
+	padding: 8px;
+
+	.infoIconContainer {
+		align-items: flex-start;
+		background: #eeedef;
+		border-radius: 5px;
+		display: flex;
+		height: fit-content;
+		padding: var(--size-xxSmall);
+	}
+
+	.bodyTitle {
+		margin-bottom: var(--size-xxSmall);
+		padding-top: 6px;
+	}
 
 	.bodyText {
 		line-height: 20px;
-		margin-bottom: var(--size-small);
 	}
+}
+
+.timePickerContainer {
+	z-index: 10;
 }
