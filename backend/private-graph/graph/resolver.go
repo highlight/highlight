@@ -442,7 +442,7 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		|> filter(fn: (r) => r._measurement == "%[4]s")
 		%[5]s
 		%[6]s
-		|> aggregateWindow(every: %[7]dh, fn: sum, createEmpty: true)
+		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
 		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")

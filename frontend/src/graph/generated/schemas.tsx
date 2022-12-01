@@ -344,7 +344,7 @@ export type ErrorGroup = {
 
 export type ErrorGroupFrequenciesParamsInput = {
 	date_range: DateRangeRequiredInput
-	resolution_hours: Scalars['Int']
+	resolution_minutes: Scalars['Int']
 }
 
 export type ErrorInstance = {
