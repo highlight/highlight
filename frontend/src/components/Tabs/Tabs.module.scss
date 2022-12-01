@@ -5,6 +5,10 @@
 	&.withPadding {
 		padding: var(--size-small) var(--size-medium);
 	}
+
+	&.unsetOverflowY {
+		overflow-y: unset;
+	}
 }
 
 .extraContentContainer {
