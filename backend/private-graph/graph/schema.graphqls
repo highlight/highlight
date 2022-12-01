@@ -424,8 +424,8 @@ type SourceMappingError {
 	minifiedLineNumber: Int
 	minifiedColumnNumber: Int
 	actualSourcemapFetchedPath: String
-	sourcemapFileSize: String
-	minifiedFileSize: String
+	sourcemapFileSize: Int
+	minifiedFileSize: Int
 	mappedLineNumber: Int
 	mappedColumnNumber: Int
 }

@@ -5,6 +5,7 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
+import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
 import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
@@ -151,7 +152,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				Stack trace
 			</Text>
 			<Box bt="neutral" mt="12" pt="16">
-				<ErrorStackTrace errorObject={errorObject} />
+				<ErrorStackTrace
+					errorObject={
+						errorObject as ErrorInstanceType['error_object']
+					}
+				/>
 			</Box>
 		</Box>
 	)

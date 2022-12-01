@@ -7281,6 +7281,21 @@ export const GetErrorInstanceDocument = gql`
 					linesBefore
 					linesAfter
 					error
+					sourceMappingErrorMetadata {
+						errorCode
+						stackTraceFileURL
+						sourcemapFetchStrategy
+						sourceMapURL
+						minifiedFetchStrategy
+						actualMinifiedFetchedPath
+						minifiedLineNumber
+						minifiedColumnNumber
+						actualSourcemapFetchedPath
+						sourcemapFileSize
+						minifiedFileSize
+						mappedLineNumber
+						mappedColumnNumber
+					}
 				}
 				timestamp
 				payload
