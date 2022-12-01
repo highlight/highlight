@@ -29,6 +29,122 @@ import { worker } from '../index'
 
 const CONCURRENT_PRELOADS = 1
 
+export const preloadSession = async (secureID: string) => {
+	if (
+		await IndexedDBLink.has('GetSession', {
+			secure_id: secureID,
+		})
+	) {
+		log('preload.ts', `skipping loaded session ${secureID}`)
+		return
+	}
+	const start = window.performance.now()
+	log('preload.ts', `preloading session ${secureID}`)
+	try {
+		const session = await client.query({
+			query: GetSessionDocument,
+			variables: {
+				secure_id: secureID,
+			},
+		})
+		const sess = session?.data?.session
+		if (!sess) return
+		if (sess.resources_url) {
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.resources_url,
+			})
+		}
+		if (sess.messages_url) {
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.messages_url,
+			})
+		}
+		if (sess.direct_download_url) {
+			worker.postMessage({
+				type: 'fetch',
+				url: sess.direct_download_url,
+			})
+		}
+		await client.query({
+			query: GetSessionIntervalsDocument,
+			variables: {
+				session_secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetTimelineIndicatorEventsDocument,
+			variables: {
+				session_secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetEventChunksDocument,
+			variables: {
+				secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetSessionCommentsDocument,
+			variables: {
+				session_secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetSessionPayloadDocument,
+			variables: {
+				session_secure_id: secureID,
+				skip_events: true,
+			},
+		})
+		await client.query({
+			query: GetEnhancedUserDetailsDocument,
+			variables: {
+				session_secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetWebVitalsDocument,
+			variables: {
+				session_secure_id: secureID,
+			},
+		})
+		const response = await client.query({
+			query: GetEventChunkUrlDocument,
+			variables: {
+				secure_id: secureID,
+				index: 0,
+			},
+		})
+		worker.postMessage({
+			type: 'fetch',
+			url: response.data.event_chunk_url,
+		})
+		const preloadTime = window.performance.now() - start
+		log(
+			'preload.ts',
+			`preloaded session ${secureID} in ${preloadTime / 1000} s.`,
+		)
+		H.metrics([
+			{
+				name: 'preload-session-ms',
+				value: preloadTime,
+				tags: [
+					{
+						name: 'SecureID',
+						value: secureID,
+					},
+				],
+			},
+		])
+	} catch (e: any) {
+		const msg = `failed to preload session ${secureID}`
+		console.warn(msg)
+		H.consumeError(e, msg)
+	}
+}
+
 export const usePreloadSessions = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
@@ -94,123 +210,7 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 
 			const promises: Promise<void>[] = []
 			for (const _s of sessions?.sessions_opensearch.sessions || []) {
-				const preloadPromise = (async (secureID: string) => {
-					if (
-						await IndexedDBLink.has('GetSession', {
-							secure_id: secureID,
-						})
-					) {
-						log('preload.ts', `skipping loaded session ${secureID}`)
-						return
-					}
-					const start = window.performance.now()
-					log('preload.ts', `preloading session ${secureID}`)
-					try {
-						const session = await client.query({
-							query: GetSessionDocument,
-							variables: {
-								secure_id: secureID,
-							},
-						})
-						const sess = session?.data?.session
-						if (!sess) return
-						if (sess.resources_url) {
-							worker.postMessage({
-								type: 'fetch',
-								url: sess.resources_url,
-							})
-						}
-						if (sess.messages_url) {
-							worker.postMessage({
-								type: 'fetch',
-								url: sess.messages_url,
-							})
-						}
-						if (sess.direct_download_url) {
-							worker.postMessage({
-								type: 'fetch',
-								url: sess.direct_download_url,
-							})
-						}
-						await client.query({
-							query: GetSessionIntervalsDocument,
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						await client.query({
-							query: GetTimelineIndicatorEventsDocument,
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						await client.query({
-							query: GetEventChunksDocument,
-							variables: {
-								secure_id: secureID,
-							},
-						})
-						await client.query({
-							query: GetSessionCommentsDocument,
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						await client.query({
-							query: GetSessionPayloadDocument,
-							variables: {
-								session_secure_id: secureID,
-								skip_events: true,
-							},
-						})
-						await client.query({
-							query: GetEnhancedUserDetailsDocument,
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						await client.query({
-							query: GetWebVitalsDocument,
-							variables: {
-								session_secure_id: secureID,
-							},
-						})
-						const response = await client.query({
-							query: GetEventChunkUrlDocument,
-							variables: {
-								secure_id: secureID,
-								index: 0,
-							},
-						})
-						worker.postMessage({
-							type: 'fetch',
-							url: response.data.event_chunk_url,
-						})
-						const preloadTime = window.performance.now() - start
-						log(
-							'preload.ts',
-							`preloaded session ${secureID} in ${
-								preloadTime / 1000
-							} s.`,
-						)
-						H.metrics([
-							{
-								name: 'preload-session-ms',
-								value: preloadTime,
-								tags: [
-									{
-										name: 'SecureID',
-										value: secureID,
-									},
-								],
-							},
-						])
-					} catch (e: any) {
-						const msg = `failed to preload session ${secureID}`
-						console.warn(msg)
-						H.consumeError(e, msg)
-					}
-				})(_s.secure_id)
+				const preloadPromise = preloadSession(_s.secure_id)
 				promises.push(preloadPromise)
 				if (promises.length === CONCURRENT_PRELOADS) {
 					await Promise.all(promises)

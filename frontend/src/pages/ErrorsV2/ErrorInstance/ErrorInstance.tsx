@@ -16,6 +16,7 @@ import {
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
+import { preloadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
@@ -64,6 +65,13 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						error_object_id: nextErrorObjectId,
 					},
 				})
+			}
+
+			// Prefetch session data.
+			if (data?.error_instance?.error_object?.session) {
+				preloadSession(
+					data.error_instance.error_object.session.secure_id,
+				)
 			}
 		},
 	})
