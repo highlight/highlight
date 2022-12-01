@@ -181,9 +181,11 @@ export const variants = recipe({
 				selectors: {
 					'&:hover': {
 						background: vars.color.purple700,
+						color: vars.color.white,
 					},
 					'&:focus, &:active': {
 						background: vars.color.purple700,
+						color: vars.color.white,
 						boxShadow: 'none',
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
@@ -255,9 +257,11 @@ export const variants = recipe({
 				selectors: {
 					'&:hover': {
 						background: vars.color.neutral200,
+						color: vars.color.neutral800,
 					},
 					'&:focus, &:active': {
 						background: vars.color.neutral200,
+						color: vars.color.neutral800,
 						boxShadow: 'none',
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
@@ -280,10 +284,12 @@ export const variants = recipe({
 				selectors: {
 					'&:hover': {
 						border: vars.border.neutralDark,
+						color: vars.color.neutral800,
 					},
 					'&:focus, &:active': {
 						border: vars.border.neutralDark,
 						background: vars.color.neutral100,
+						color: vars.color.neutral800,
 					},
 					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
 						background: 'transparent',
