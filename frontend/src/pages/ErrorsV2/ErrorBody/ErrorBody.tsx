@@ -7,6 +7,7 @@ import moment from 'moment'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 const showChangeThresholdPercent = 1
 
@@ -115,13 +116,17 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<Box display="flex" gap="4" alignItems="center">
 						{errorGroup?.last_occurrence && (
 							<Text color="black" size="large" weight="bold">
-								{moment(errorGroup?.last_occurrence).fromNow()}
+								{moment(errorGroup?.last_occurrence).fromNow(
+									true,
+								)}
 							</Text>
 						)}
 						{errorGroup?.first_occurrence && (
 							<Text color="neutral500" size="large" weight="bold">
 								{' / '}
-								{moment(errorGroup?.first_occurrence).fromNow()}
+								{moment(errorGroup?.first_occurrence).fromNow(
+									true,
+								)}
 							</Text>
 						)}
 					</Box>
@@ -140,9 +145,16 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					}
 					noBorder
 				>
-					<Box display="flex" gap="4" alignItems="center">
-						<BarChart data={counts || []} height={24} width={337} />
-					</Box>
+					<AutoSizer disableHeight>
+						{({ width }) => (
+							<BarChart
+								data={counts || []}
+								height={24}
+								width={width}
+								minBarHeight={5}
+							/>
+						)}
+					</AutoSizer>
 				</Stat>
 			</Box>
 			<Box py="12" px="16">

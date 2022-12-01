@@ -125,6 +125,7 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 							height={38}
 							width={80}
 							selected={errorGroup?.secure_id === error_secure_id}
+							minBarHeight={5}
 						/>
 					</Box>
 				</Box>
