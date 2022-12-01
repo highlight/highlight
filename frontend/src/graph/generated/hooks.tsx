@@ -10395,3 +10395,75 @@ export type GetOAuthClientMetadataQueryResult = Apollo.QueryResult<
 	Types.GetOAuthClientMetadataQuery,
 	Types.GetOAuthClientMetadataQueryVariables
 >
+export const GetErrorGroupFrequenciesDocument = gql`
+	query GetErrorGroupFrequencies(
+		$project_id: ID!
+		$error_group_secure_ids: [String!]!
+		$params: ErrorGroupFrequenciesParamsInput!
+		$metric: String!
+	) {
+		errorGroupFrequencies(
+			project_id: $project_id
+			error_group_secure_ids: $error_group_secure_ids
+			params: $params
+			metric: $metric
+		) {
+			error_group_id
+			date
+			name
+			value
+		}
+	}
+`
+
+/**
+ * __useGetErrorGroupFrequenciesQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupFrequenciesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupFrequenciesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupFrequenciesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      error_group_secure_ids: // value for 'error_group_secure_ids'
+ *      params: // value for 'params'
+ *      metric: // value for 'metric'
+ *   },
+ * });
+ */
+export function useGetErrorGroupFrequenciesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorGroupFrequenciesQuery,
+		Types.GetErrorGroupFrequenciesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorGroupFrequenciesQuery,
+		Types.GetErrorGroupFrequenciesQueryVariables
+	>(GetErrorGroupFrequenciesDocument, baseOptions)
+}
+export function useGetErrorGroupFrequenciesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorGroupFrequenciesQuery,
+		Types.GetErrorGroupFrequenciesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorGroupFrequenciesQuery,
+		Types.GetErrorGroupFrequenciesQueryVariables
+	>(GetErrorGroupFrequenciesDocument, baseOptions)
+}
+export type GetErrorGroupFrequenciesQueryHookResult = ReturnType<
+	typeof useGetErrorGroupFrequenciesQuery
+>
+export type GetErrorGroupFrequenciesLazyQueryHookResult = ReturnType<
+	typeof useGetErrorGroupFrequenciesLazyQuery
+>
+export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
+	Types.GetErrorGroupFrequenciesQuery,
+	Types.GetErrorGroupFrequenciesQueryVariables
+>

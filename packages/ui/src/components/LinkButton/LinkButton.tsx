@@ -14,6 +14,7 @@ type Props = React.PropsWithChildren &
 		disabled?: boolean
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
+		target?: LinkProps['target']
 	}
 
 export const LinkButton: React.FC<Props> = ({
@@ -26,6 +27,7 @@ export const LinkButton: React.FC<Props> = ({
 	emphasis,
 	iconLeft,
 	iconRight,
+	target,
 }) => {
 	const Component = disabled ? DisabledLink : Link
 
