@@ -1,21 +1,17 @@
-import { ErrorObject } from '@graph/schemas'
 import {
 	Box,
 	Button,
 	IconSearch,
 	IconSwitchHorizontal,
 	MenuButton,
-	Stack,
 	SwitchButton,
-	Tag,
 	Text,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { getErrorBody } from '@util/errors/errorUtils'
-import { parseOptionalJSON } from '@util/string'
-import React, { useMemo } from 'react'
+import React, { useState } from 'react'
 
+import { ConsolePage } from './ConsolePage/ConsolePage'
+import ErrorsPage from './ErrorsPage/ErrorsPage'
 import * as styles from './style.css'
 
 enum Tab {
@@ -25,7 +21,7 @@ enum Tab {
 	Performance = 'Performance',
 }
 
-enum LogLevel {
+export enum LogLevel {
 	All = 'All',
 	Info = 'Info',
 	Log = 'Log',
@@ -40,6 +36,8 @@ const DevToolsControlBar: React.FC<
 		autoScroll: boolean
 		setAutoScroll: React.Dispatch<React.SetStateAction<boolean>>
 		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
+		filter: string
+		setFilter: React.Dispatch<React.SetStateAction<string>>
 	}
 > = (props) => {
 	return (
@@ -129,67 +127,42 @@ const DevToolsControlBar: React.FC<
 	)
 }
 
-const ErrorRow: React.FC<
-	React.PropsWithChildren & {
-		error: ErrorObject
-	}
-> = ({ error }) => {
-	const body = useMemo(
-		() => parseOptionalJSON(getErrorBody(error.event)),
-		[error.event],
-	)
-	const context = useMemo(() => {
-		const data = parseOptionalJSON(error.payload || '')
-		return data === 'null' ? '' : data
-	}, [error.payload])
-	return (
-		<Box className={styles.errorRow}>
-			<span>{body}</span>
-			<span>{context}</span>
-			<Tag kind={'grey'}>{error.type}</Tag>
-		</Box>
-	)
-}
-
-const ErrorsPage: React.FC<
-	React.PropsWithChildren<{ autoScroll: boolean }>
-> = () => {
-	// TODO(vkorolik) implement scrolling
-	const { errors } = useReplayerContext()
-	return (
-		<Box className={styles.errorsBox}>
-			<Stack gap={'0'}>
-				{errors.map((e) => (
-					<ErrorRow key={e.error_group_secure_id} error={e} />
-				))}
-			</Stack>
-		</Box>
-	)
-}
-
 const DevToolsWindowV2: React.FC<
 	React.PropsWithChildren & {
 		width: number
 	}
 > = (props) => {
+	const [filter, setFilter] = useState('')
 	const [tab, setTab] = React.useState<Tab>(Tab.Errors)
-	const [, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
+	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const [autoScroll, setAutoScroll] = React.useState<boolean>(false)
 	let page: React.ReactNode = null
 	switch (tab) {
 		case Tab.Errors:
-			page = <ErrorsPage autoScroll={autoScroll} />
+			page = <ErrorsPage autoScroll={autoScroll} filter={filter} />
+			break
+		case Tab.Console:
+			page = (
+				<ConsolePage
+					autoScroll={autoScroll}
+					logLevel={logLevel}
+					filter={filter}
+				/>
+			)
+			break
 	}
 	return (
 		<div className={styles.devToolsWindowV2} style={{ width: props.width }}>
 			<DevToolsControlBar
+				filter={filter}
+				setFilter={setFilter}
 				tab={tab}
 				setTab={setTab}
 				autoScroll={autoScroll}
 				setAutoScroll={setAutoScroll}
 				setLogLevel={setLogLevel}
 			/>
-			{page}
+			<Box className={styles.pageWrapper}>{page}</Box>
 		</div>
 	)
 }
