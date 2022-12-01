@@ -7318,7 +7318,7 @@ input HistogramParamsInput {
 
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
-	resolution_hours: Int!
+	resolution_minutes: Int!
 }
 
 enum MetricTagFilterOp {
@@ -48954,7 +48954,7 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"date_range", "resolution_hours"}
+	fieldsInOrder := [...]string{"date_range", "resolution_minutes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -48969,11 +48969,11 @@ func (ec *executionContext) unmarshalInputErrorGroupFrequenciesParamsInput(ctx c
 			if err != nil {
 				return it, err
 			}
-		case "resolution_hours":
+		case "resolution_minutes":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_hours"))
-			it.ResolutionHours, err = ec.unmarshalNInt2int(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolution_minutes"))
+			it.ResolutionMinutes, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
