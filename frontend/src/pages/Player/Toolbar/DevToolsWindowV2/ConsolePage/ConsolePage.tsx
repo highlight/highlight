@@ -167,7 +167,7 @@ export const ConsolePage = React.memo(
 
 		return (
 			<Box className={styles.consoleBox}>
-				<Stack gap={'0'}>
+				<Stack gap={'12'}>
 					{messagesToRender.map((m) => (
 						<MessageRow key={m.id} message={m} />
 					))}
@@ -179,15 +179,18 @@ export const ConsolePage = React.memo(
 
 const MessageRow = function ({ message }: { message: ParsedMessage }) {
 	return (
-		<Box
-			className={clsx(
-				styles.consoleRow,
-				styles.variants({
-					type: message.type,
-				}),
-			)}
-		>
-			<span>{message.value}</span>
+		<Box className={clsx(styles.consoleRow)}>
+			<div
+				className={clsx(
+					styles.consoleBar,
+					styles.variants({
+						type: message.type,
+					}),
+				)}
+			>
+				&nbsp;
+			</div>
+			<div>{message.value}</div>
 		</Box>
 	)
 }

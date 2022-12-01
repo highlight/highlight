@@ -7,32 +7,34 @@ export const consoleBox = style({
 	padding: '0 8px',
 })
 
+export const consoleBar = style({
+	width: 2,
+	borderRadius: 4,
+	marginRight: 4,
+})
+
 export const consoleRow = style({
-	alignItems: 'center',
 	backgroundColor: colors.white,
-	borderBottom: `1px solid ${colors.neutralN6}`,
-	borderRadius: 6,
-	boxShadow: colors.innerShadowOnGrey,
 	display: 'flex',
 	flexDirection: 'row',
-	justifyContent: 'space-between',
-	padding: 8,
+	justifyContent: 'flex-start',
+	padding: '2px 4px',
 	selectors: {
 		'&:focus, &:active &:hover': {
 			backgroundColor: colors.neutral100,
 		},
 	},
-	width: '100%',
 })
 
 export const variants = recipe({
 	variants: {
 		type: {
-			trace: { borderLeft: '4px solid red' },
-			info: { borderLeft: '4px solid cyan' },
-			log: { borderLeft: '4px solid rgba(26, 21, 35, 0.72)' },
-			warn: { borderLeft: '4px solid orange' },
-			error: { borderLeft: '4px solid blue' },
+			trace: { backgroundColor: 'green' },
+			info: { backgroundColor: 'cyan' },
+			log: { backgroundColor: 'rgba(26, 21, 35, 0.72)' },
+			warn: { backgroundColor: 'orange' },
+			error: { backgroundColor: 'red' },
+			assert: { backgroundColor: 'red' },
 		},
 	},
 
