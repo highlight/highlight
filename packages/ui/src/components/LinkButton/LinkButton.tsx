@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import React, { AnchorHTMLAttributes } from 'react'
+import React from 'react'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import { Link, LinkProps } from 'react-router-dom'
@@ -10,7 +10,6 @@ import * as styles from './styles.css'
 type Props = React.PropsWithChildren &
 	buttonStyles.Variants & {
 		to: LinkProps['to']
-		target?: AnchorHTMLAttributes<unknown>['target']
 		disabled?: boolean
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
@@ -21,7 +20,6 @@ export const LinkButton: React.FC<Props> = ({
 	children,
 	disabled,
 	to,
-	target,
 	kind,
 	size,
 	emphasis,
