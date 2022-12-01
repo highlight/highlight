@@ -2,6 +2,7 @@ import {
 	CLICK_NEARBY_THRESHOLD,
 	CustomLegend,
 	CustomTooltip,
+	MAX_LEGEND_ITEMS,
 	Props as LineChartProps,
 } from '@components/LineChart/LineChart'
 import { RechartTooltip } from '@components/recharts/RechartTooltip/RechartTooltip'
@@ -60,8 +61,8 @@ const CategoricalBarChart = ({
 	for (const x of data) {
 		dateGroups[x.date] = { ...dateGroups[x.date], ...x }
 	}
-	const groupedData: any[] = Object.values(dateGroups)
-	const yAxisKeys =
+	let groupedData: any[] = Object.values(dateGroups)
+	const allYAxisKeys =
 		data.length > 0
 			? Object.keys(groupedData[0]).filter(
 					(keyName) =>
@@ -69,6 +70,16 @@ const CategoricalBarChart = ({
 						keyName !== '__typename',
 			  )
 			: []
+	const yAxisKeys = allYAxisKeys.slice(0, MAX_LEGEND_ITEMS)
+	groupedData = groupedData.map((x) => {
+		const o: { [k: string]: any } = {}
+		for (const [k, v] of Object.entries(x)) {
+			if (yAxisKeys.indexOf(k) !== -1) {
+				o[k] = v
+			}
+		}
+		return o
+	})
 	const gridColor = 'none'
 	const labelColor = 'var(--color-gray-500)'
 
@@ -119,11 +130,14 @@ const CategoricalBarChart = ({
 					/>
 					<Tooltip
 						position={{ y: 0 }}
+						wrapperStyle={{ outline: 'none' }}
 						content={
 							showTooltip ? (
 								<RechartTooltip
+									hideZeroValues
 									render={(payload: any[]) => (
 										<CustomTooltip
+											hideZeroValues
 											payload={payload}
 											yAxisLabel={yAxisLabel}
 											referenceLines={referenceLines}
@@ -140,7 +154,16 @@ const CategoricalBarChart = ({
 					{!hideLegend && (
 						<Legend
 							verticalAlign="bottom"
-							height={18}
+							height={
+								(Math.floor(
+									Math.min(
+										MAX_LEGEND_ITEMS,
+										yAxisKeys.length,
+									) / 4,
+								) +
+									1) *
+								20
+							}
 							iconType={'square'}
 							iconSize={8}
 							content={(props) => (

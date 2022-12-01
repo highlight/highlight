@@ -110,6 +110,7 @@ export class IndexedDBLink extends ApolloLink {
 		'GetEnhancedUserDetails',
 		'GetErrorDistribution',
 		'GetErrorGroup',
+		'GetErrorInstance',
 		'GetErrorGroupsOpenSearch',
 		'GetErrorsHistogram',
 		'GetEventChunks',

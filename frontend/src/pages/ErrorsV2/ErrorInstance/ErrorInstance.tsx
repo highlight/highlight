@@ -5,6 +5,7 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
+import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
 import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
@@ -16,7 +17,7 @@ import {
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import analytics from '@util/analytics'
-import { preloadSession } from '@util/preload'
+import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
@@ -69,9 +70,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 			// Prefetch session data.
 			if (data?.error_instance?.error_object?.session) {
-				preloadSession(
-					data.error_instance.error_object.session.secure_id,
-				)
+				loadSession(data.error_instance.error_object.session.secure_id)
 			}
 		},
 	})
@@ -159,7 +158,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				Stack trace
 			</Text>
 			<Box bt="neutral" mt="12" pt="16">
-				<ErrorStackTrace errorObject={errorObject} />
+				<ErrorStackTrace
+					errorObject={
+						errorObject as ErrorInstanceType['error_object']
+					}
+				/>
 			</Box>
 		</Box>
 	)
