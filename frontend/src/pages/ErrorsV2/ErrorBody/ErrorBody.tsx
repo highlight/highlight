@@ -1,6 +1,12 @@
 import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, Maybe } from '@graph/schemas'
-import { Box, ButtonLink, Text, TextLink } from '@highlight-run/ui'
+import {
+	Box,
+	ButtonLink,
+	IconChevronRight,
+	Text,
+	TextLink,
+} from '@highlight-run/ui'
 import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import moment from 'moment'
@@ -87,7 +93,14 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<TextLink
 									href={`${window.location.pathname}${window.location.search}#error-instance-container`}
 								>
-									Latest {'>'}
+									<Box
+										display="flex"
+										alignItems="center"
+										as="span"
+									>
+										<span>Latest</span>{' '}
+										<IconChevronRight size={16} />
+									</Box>
 								</TextLink>
 							</Text>
 						</>
