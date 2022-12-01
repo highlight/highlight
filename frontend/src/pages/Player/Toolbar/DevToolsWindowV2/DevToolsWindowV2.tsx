@@ -1,11 +1,11 @@
 import {
 	Box,
 	Button,
+	Form,
 	IconSearch,
 	IconSwitchHorizontal,
 	MenuButton,
 	SwitchButton,
-	Text,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
@@ -45,6 +45,7 @@ const DevToolsControlBar: React.FC<
 		setFilter: React.Dispatch<React.SetStateAction<string>>
 	}
 > = (props) => {
+	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	return (
 		<Box
 			px={'8'}
@@ -77,30 +78,50 @@ const DevToolsControlBar: React.FC<
 				)}
 			</Box>
 			<Box
-				display={'inline-flex'}
+				display={'flex'}
 				justifyContent={'space-between'}
 				gap={'6'}
 				align={'center'}
 			>
 				<Box
-					display={'inline-flex'}
+					display={'flex'}
 					justifyContent={'space-between'}
 					gap={'4'}
 					align={'center'}
 				>
-					<Button
-						size={'xxSmall'}
-						kind={'secondary'}
-						iconRight={
-							<IconSearch
-								color={colors.neutral300}
-								height={16}
-								width={16}
-							/>
-						}
-					/>
-					{/*TODO(vkorolik) actual component */}
-					<Text>Search</Text>
+					<Form>
+						<label>
+							<Box
+								display={'flex'}
+								justifyContent={'space-between'}
+								align={'center'}
+							>
+								<Box
+									display={'flex'}
+									align={'center'}
+									onClick={() => {
+										setSearchShown((s) => !s)
+									}}
+								>
+									<IconSearch
+										color={colors.neutral300}
+										height={16}
+										width={16}
+									/>
+								</Box>
+								<Form.Input
+									id="search"
+									name={'Search'}
+									placeholder={'Search'}
+									size={'xSmall'}
+									collapsed={!searchShown}
+									onChange={(e) =>
+										props.setFilter(e.target.value)
+									}
+								/>
+							</Box>
+						</label>
+					</Form>
 
 					<MenuButton
 						size={'medium'}
