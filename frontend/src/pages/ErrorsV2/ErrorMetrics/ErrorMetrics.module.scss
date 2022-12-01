@@ -1,0 +1,27 @@
+@import 'src/static/shared.scss';
+
+.metricsDistributionContainer {
+	min-height: 240px;
+	margin-left: 40px;
+	border: 0.6px solid #6b48c7;
+}
+
+.iconContainer {
+	margin-right: var(--size-xSmall);
+	padding-top: 4px;
+}
+
+.titleContainer {
+	align-items: center;
+	display: flex;
+}
+
+.calloutContainer {
+	background-color: #f9f8f9;
+	margin-top: var(--size-medium);
+
+	.bodyText {
+		line-height: 20px;
+		margin-bottom: var(--size-small);
+	}
+}
