@@ -8,6 +8,11 @@ import {
 	Text,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
+import { useWindowSize } from '@hooks/useWindowSize'
+import {
+	DEV_TOOLS_MIN_HEIGHT,
+	ResizePanel,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import React, { useState } from 'react'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -136,6 +141,10 @@ const DevToolsWindowV2: React.FC<
 	const [tab, setTab] = React.useState<Tab>(Tab.Errors)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const [autoScroll, setAutoScroll] = React.useState<boolean>(false)
+	const { height } = useWindowSize()
+	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
+	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
+
 	let page: React.ReactNode = null
 	switch (tab) {
 		case Tab.Errors:
@@ -151,19 +160,43 @@ const DevToolsWindowV2: React.FC<
 			)
 			break
 	}
+
 	return (
-		<div className={styles.devToolsWindowV2} style={{ width: props.width }}>
-			<DevToolsControlBar
-				filter={filter}
-				setFilter={setFilter}
-				tab={tab}
-				setTab={setTab}
-				autoScroll={autoScroll}
-				setAutoScroll={setAutoScroll}
-				setLogLevel={setLogLevel}
-			/>
-			<Box className={styles.pageWrapper}>{page}</Box>
-		</div>
+		<ResizePanel
+			defaultHeight={defaultHeight}
+			minHeight={DEV_TOOLS_MIN_HEIGHT}
+			maxHeight={maxHeight}
+			heightPersistenceKey="highlight-devToolsPanelHeight"
+		>
+			{({ panelRef, handleRef }) => (
+				<div>
+					<div className={'flex justify-center align-middle'}>
+						<button
+							className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
+							ref={handleRef}
+						>
+							<div className="relative h-2 w-10 rounded-full bg-gray-200" />
+						</button>
+					</div>
+					<div
+						className={styles.devToolsWindowV2}
+						ref={panelRef}
+						style={{ width: props.width }}
+					>
+						<DevToolsControlBar
+							filter={filter}
+							setFilter={setFilter}
+							tab={tab}
+							setTab={setTab}
+							autoScroll={autoScroll}
+							setAutoScroll={setAutoScroll}
+							setLogLevel={setLogLevel}
+						/>
+						<Box className={styles.pageWrapper}>{page}</Box>
+					</div>
+				</div>
+			)}
+		</ResizePanel>
 	)
 }
 

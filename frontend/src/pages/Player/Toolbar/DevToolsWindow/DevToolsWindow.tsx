@@ -1,9 +1,10 @@
-import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
-import { useWindowEvent } from '@hooks/useWindowEvent'
 import { useWindowSize } from '@hooks/useWindowSize'
 import PerformancePage from '@pages/Player/Toolbar/DevToolsWindow/PerformancePage/PerformancePage'
-import { clamp } from '@util/numbers'
-import React, { useCallback } from 'react'
+import {
+	DEV_TOOLS_MIN_HEIGHT,
+	ResizePanel,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
+import React from 'react'
 
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs'
 import SvgXIcon from '../../../../static/XIcon'
@@ -15,7 +16,6 @@ import styles from './DevToolsWindow.module.scss'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
 import { ResourcePage } from './ResourcePage/ResourcePage'
 
-const DEV_TOOLS_MIN_HEIGHT = 200
 export const DevToolsWindow = React.memo(
 	({
 		time,
@@ -102,80 +102,3 @@ export const DevToolsWindow = React.memo(
 		)
 	},
 )
-
-function ResizePanel({
-	children,
-	defaultHeight,
-	minHeight,
-	maxHeight,
-	heightPersistenceKey,
-}: {
-	children: (props: {
-		panelRef: (element: HTMLElement | null) => void
-		handleRef: (element: HTMLElement | null) => void
-	}) => React.ReactNode
-	defaultHeight?: number
-	minHeight?: number
-	maxHeight: number
-	heightPersistenceKey?: string
-}) {
-	const [panel, setPanel] = React.useState<HTMLElement | null>()
-	const [handle, handleRef] = React.useState<HTMLElement | null>()
-	const [dragging, setDragging] = React.useState(false)
-
-	const panelRef = useCallback(
-		(element: HTMLElement | null) => {
-			if (!element) return
-			setPanel(element)
-
-			let initialHeight = Math.max(defaultHeight || 0, minHeight || 0)
-			if (heightPersistenceKey) {
-				const storedHeight = Number(
-					localStorage.getItem(heightPersistenceKey),
-				)
-				if (Number.isFinite(storedHeight)) {
-					initialHeight = storedHeight
-				}
-			}
-
-			if (initialHeight) {
-				element.style.height = `${initialHeight}px`
-			}
-		},
-		[defaultHeight, minHeight, heightPersistenceKey],
-	)
-
-	useHTMLElementEvent(handle, 'pointerdown', (event) => {
-		if (handle && event.composedPath().includes(handle)) {
-			setDragging(true)
-			event.preventDefault()
-		}
-	})
-
-	useWindowEvent('pointermove', (event) => {
-		if (dragging && panel) {
-			const panelRect = panel.getBoundingClientRect()
-			const newHeight = clamp(
-				panelRect.height - event.movementY,
-				minHeight || 0,
-				maxHeight,
-			)
-
-			panel.style.height = `${newHeight}px`
-			if (heightPersistenceKey) {
-				localStorage.setItem(heightPersistenceKey, String(newHeight))
-			}
-
-			event.preventDefault()
-			event.stopPropagation()
-		}
-	})
-
-	useWindowEvent('pointerup', (event) => {
-		setDragging(false)
-		event.preventDefault()
-		event.stopPropagation()
-	})
-
-	return <>{children({ panelRef, handleRef })}</>
-}
