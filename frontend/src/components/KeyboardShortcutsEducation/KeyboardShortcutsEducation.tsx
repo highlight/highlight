@@ -77,11 +77,80 @@ const KeyboardShortcutsEducation = () => {
 				.includes(searchQuery.toLocaleLowerCase())
 		},
 	)
+	const filteredErrorsKeyboardShortcuts = ErrorsKeyboardShortcuts.filter(
+		({ description }) => {
+			return description
+				.toLocaleLowerCase()
+				.includes(searchQuery.toLocaleLowerCase())
+		},
+	)
 
 	const isOnSessionPlayerPage = location.pathname.includes('sessions')
+	const isOnErrorsPage = location.pathname.includes('errors')
 	const hasNoSearchHits =
 		filteredPlayerKeyboardShortcuts.length === 0 &&
-		filteredGeneralKeyboardShortcuts.length === 0
+		filteredGeneralKeyboardShortcuts.length === 0 &&
+		filteredErrorsKeyboardShortcuts.length === 0
+
+	const playerShortcuts = filteredPlayerKeyboardShortcuts.length > 0 && (
+		<section
+			className={classNames({
+				[styles.disabled]: !isOnSessionPlayerPage,
+			})}
+		>
+			<h3>Session Player Page</h3>
+
+			<table>
+				<tbody>
+					{filteredPlayerKeyboardShortcuts.map((shortcut) => (
+						<tr key={shortcut.description}>
+							<td className={styles.description}>
+								<TextHighlighter
+									searchWords={searchQuery.split(' ')}
+									textToHighlight={shortcut.description}
+								/>
+							</td>
+							<td className={styles.shortcutContainer}>
+								<KeyboardShortcut
+									shortcut={shortcut.shortcut}
+								/>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</section>
+	)
+
+	const errorShortcuts = filteredErrorsKeyboardShortcuts.length > 0 && (
+		<section
+			className={classNames({
+				[styles.disabled]: !isOnErrorsPage,
+			})}
+		>
+			<h3>Errors Page</h3>
+
+			<table>
+				<tbody>
+					{filteredErrorsKeyboardShortcuts.map((shortcut) => (
+						<tr key={shortcut.description}>
+							<td className={styles.description}>
+								<TextHighlighter
+									searchWords={searchQuery.split(' ')}
+									textToHighlight={shortcut.description}
+								/>
+							</td>
+							<td className={styles.shortcutContainer}>
+								<KeyboardShortcut
+									shortcut={shortcut.shortcut}
+								/>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</section>
+	)
 
 	return (
 		<AnimatePresence presenceAffectsLayout>
@@ -138,14 +207,10 @@ const KeyboardShortcutsEducation = () => {
 									allowClear
 								/>
 
-								{!isOnSessionPlayerPage && !hasNoSearchHits && (
+								{!isOnSessionPlayerPage && hasNoSearchHits && (
 									<section>
 										<h3 className={styles.emptyTitle}>
-											{
-												location.pathname
-													.split('/')
-													.reverse()[0]
-											}{' '}
+											{location.pathname.split('/')[2]}{' '}
 											Page
 										</h3>
 
@@ -224,55 +289,16 @@ const KeyboardShortcutsEducation = () => {
 									</section>
 								)}
 
-								{filteredPlayerKeyboardShortcuts.length > 0 && (
-									<section
-										className={classNames({
-											[styles.disabled]:
-												!isOnSessionPlayerPage,
-										})}
-									>
-										<h3>Session Player Page</h3>
-
-										<table>
-											<tbody>
-												{filteredPlayerKeyboardShortcuts.map(
-													(shortcut) => (
-														<tr
-															key={
-																shortcut.description
-															}
-														>
-															<td
-																className={
-																	styles.description
-																}
-															>
-																<TextHighlighter
-																	searchWords={searchQuery.split(
-																		' ',
-																	)}
-																	textToHighlight={
-																		shortcut.description
-																	}
-																/>
-															</td>
-															<td
-																className={
-																	styles.shortcutContainer
-																}
-															>
-																<KeyboardShortcut
-																	shortcut={
-																		shortcut.shortcut
-																	}
-																/>
-															</td>
-														</tr>
-													),
-												)}
-											</tbody>
-										</table>
-									</section>
+								{isOnErrorsPage ? (
+									<>
+										{errorShortcuts}
+										{playerShortcuts}
+									</>
+								) : (
+									<>
+										{playerShortcuts}
+										{errorShortcuts}
+									</>
 								)}
 							</main>
 						</ElevatedCard>
@@ -381,5 +407,16 @@ export const PlayerKeyboardShortcuts: ShortcutItem[] = [
 	{
 		description: `Toggle right sidebar`,
 		shortcut: [cmdKey, 'i'],
+	},
+]
+
+export const ErrorsKeyboardShortcuts: ShortcutItem[] = [
+	{
+		description: `Next error`,
+		shortcut: ['j'],
+	},
+	{
+		description: `Previous error`,
+		shortcut: ['k'],
 	},
 ]

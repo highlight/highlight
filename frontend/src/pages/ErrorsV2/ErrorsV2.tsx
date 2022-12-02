@@ -31,6 +31,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router'
 
 import styles from './ErrorsV2.module.scss'
@@ -46,6 +47,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	const currentSearchResultIndex = searchResultSecureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
 	)
+	const canMoveForward =
+		currentSearchResultIndex < searchResultSecureIds.length - 1
+	const canMoveBackward = currentSearchResultIndex > 0
+	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
+	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
 
 	const {
 		data,
@@ -57,6 +63,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	})
 
 	const history = useHistory()
+	const goToErrorGroup = (secureId: string) => {
+		history.push(
+			`/${project_id}/errors/${secureId}${history.location.search}`,
+		)
+	}
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
@@ -93,6 +104,28 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		analytics.page({ is_guest: !isLoggedIn })
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
+
+	useHotkeys(
+		'j',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(nextSecureId)
+			}
+		},
+		[canMoveForward, nextSecureId],
+	)
+
+	useHotkeys(
+		'k',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(previousSecureId)
+			}
+		},
+		[canMoveBackward, previousSecureId],
+	)
 
 	return (
 		<>
@@ -144,16 +177,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										icon={<IconChevronUp size={14} />}
 										cssClass={styles.sessionSwitchButton}
 										onClick={() => {
-											const previousSecureId =
-												searchResultSecureIds[
-													currentSearchResultIndex - 1
-												]
-
-											history.push(
-												`/${project_id}/errors/${previousSecureId}${history.location.search}`,
-											)
+											goToErrorGroup(previousSecureId)
 										}}
-										disabled={currentSearchResultIndex <= 0}
+										disabled={!canMoveBackward}
 									/>
 									<Box as="span" borderRight="neutral" />
 									<ButtonIcon
@@ -162,21 +188,12 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										shape="square"
 										emphasis="low"
 										icon={<IconChevronDown size={14} />}
+										title="j"
 										cssClass={styles.sessionSwitchButton}
 										onClick={() => {
-											const nextSecureId =
-												searchResultSecureIds[
-													currentSearchResultIndex + 1
-												]
-
-											history.push(
-												`/${project_id}/errors/${nextSecureId}${history.location.search}`,
-											)
+											goToErrorGroup(nextSecureId)
 										}}
-										disabled={
-											currentSearchResultIndex >=
-											searchResultSecureIds.length - 1
-										}
+										disabled={!canMoveForward}
 									/>
 								</Box>
 							</Box>
