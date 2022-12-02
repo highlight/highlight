@@ -214,7 +214,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		activeSessions = append(activeSessions, utils.ActiveSession{
 			Identifier:   item.Identifier,
 			Location:     item.Country,
-			ActiveLength: formatDurationSecond(item.ActiveLength * time.Millisecond),
+			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
 		})
 	}
@@ -241,7 +241,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		errorSessions = append(errorSessions, utils.ErrorSession{
 			Identifier:   item.Identifier,
 			ErrorCount:   formatNumber(item.ErrorCount),
-			ActiveLength: formatDurationSecond(item.ActiveLength * time.Millisecond),
+			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
 		})
 	}
@@ -276,7 +276,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var frequentErrorsSql []utils.FrequentErrorSql
 	if err := h.db.Raw(`
-		SELECT eg.event as message, sum(case when eo.created_at >= ? then 1 else 0 end) as count, sum(case when eo.created_at < ? then 1 else 0 end) as priorCount, eg.secure_id
+		SELECT eg.event as message, sum(case when eo.created_at >= ? then 1 else 0 end) as count, sum(case when eo.created_at < ? then 1 else 0 end) as prior_count, eg.secure_id
 		FROM error_objects eo
 		INNER JOIN error_groups eg
 		ON eg.id = eo.error_group_id
@@ -335,6 +335,10 @@ func formatDelta(input int) string {
 
 func formatDurationSecond(input time.Duration) string {
 	return input.Round(time.Second).String()
+}
+
+func formatDurationMinute(input time.Duration) string {
+	return input.Round(time.Minute).String()
 }
 
 func formatDurationDelta(input time.Duration) string {
