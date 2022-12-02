@@ -5686,6 +5686,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ctrl/tinycolor@npm:^3.4.1":
+  version: 3.4.1
+  resolution: "@ctrl/tinycolor@npm:3.4.1"
+  checksum: 4c96bd5b641b02e5e1a64cd3eb6b8a67cb15d8f93699df4549f5f19d6dd30e7c5f12bfa70aaa38582d1cc4e4ab4890a9273c612608e85280b033e23820907d16
+  languageName: node
+  linkType: hard
+
 "@cush/relative@npm:^1.0.0":
   version: 1.0.0
   resolution: "@cush/relative@npm:1.0.0"
@@ -7837,6 +7844,7 @@ __metadata:
   dependencies:
     "@apollo/client": ^3.7.0
     "@babel/core": ^7.19.0
+    "@ctrl/tinycolor": ^3.4.1
     "@datadog/browser-logs": ^4.13.0
     "@datadog/browser-rum": ^4.21.0
     "@fontsource/poppins": ^4.5.9

@@ -7,8 +7,6 @@ import moment from 'moment'
 import React, { useCallback } from 'react'
 import Skeleton from 'react-loading-skeleton'
 
-import styles from './SearchResultsHistogram.module.css'
-
 // Returns a calendar interval as described in
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html#calendar_intervals
 // If multiples of these units are desired, we can have the client manually combine buckets
@@ -159,29 +157,7 @@ export const SearchResultsHistogram = ({
 		},
 		[bucketTimes, bucketSize],
 	)
-	const tooltipContent = useCallback(
-		(bucketIndex: number) => {
-			const seriesTooltips = seriesList
-				.filter((series: Series) => series.counts[bucketIndex] > 0)
-				.map((series: Series, index: number) => (
-					<div key={index} className={styles.histogramSeriesTooltip}>
-						<span
-							className={styles.histogramSeriesIcon}
-							style={{
-								background: `var(${series.color})`,
-							}}
-						></span>
-						{series.label} x {series.counts[bucketIndex]}
-					</div>
-				))
-			return (
-				<div className={styles.histogramTooltip}>
-					{seriesTooltips.length > 0 ? seriesTooltips : 'No results'}
-				</div>
-			)
-		},
-		[seriesList],
-	)
+
 	return loading ? (
 		<Skeleton style={{ height: '36px', lineHeight: 'inherit' }} />
 	) : (
@@ -191,8 +167,6 @@ export const SearchResultsHistogram = ({
 			seriesList={seriesList}
 			timeFormatter={timeFormatter}
 			bucketTimes={bucketTimes}
-			tooltipContent={tooltipContent}
-			tooltipDelayMs={500}
 			barGap={barGap}
 		/>
 	)
