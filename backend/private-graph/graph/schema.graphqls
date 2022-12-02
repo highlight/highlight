@@ -506,7 +506,7 @@ input HistogramParamsInput {
 
 input ErrorGroupFrequenciesParamsInput {
 	date_range: DateRangeRequiredInput!
-	resolution_minutes: Int!
+	resolution_hours: Int!
 }
 
 enum MetricTagFilterOp {
