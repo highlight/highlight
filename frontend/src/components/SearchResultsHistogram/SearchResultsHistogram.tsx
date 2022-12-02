@@ -97,14 +97,16 @@ export function GetHistogramBucketSize(
 export const SearchResultsHistogram = ({
 	seriesList,
 	bucketTimes,
-	bucketSize,
 	loading,
+	bucketSize,
+	barGap,
 	updateTimeRange,
 }: {
 	seriesList: Series[]
 	bucketTimes: number[]
-	bucketSize?: DateHistogramBucketSize
 	loading: boolean
+	bucketSize?: DateHistogramBucketSize
+	barGap?: number
 	updateTimeRange: (startTime: Date, endTime: Date) => void
 }) => {
 	const onAreaChanged = useCallback(
@@ -191,6 +193,7 @@ export const SearchResultsHistogram = ({
 			bucketTimes={bucketTimes}
 			tooltipContent={tooltipContent}
 			tooltipDelayMs={500}
+			barGap={barGap}
 		/>
 	)
 }

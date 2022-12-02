@@ -13,6 +13,7 @@ interface Props {
 	maxValue?: number
 	minBarHeight?: number
 	selected?: boolean
+	barGap?: number
 }
 
 const BarChart = ({
@@ -24,6 +25,7 @@ const BarChart = ({
 	maxValue,
 	minBarHeight,
 	selected,
+	barGap = 3,
 }: Props) => {
 	const max = maxValue ?? Math.max(...data, 5)
 
@@ -43,7 +45,13 @@ const BarChart = ({
 						} ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
 						key={ind}
 					>
-						<div className={style.barDiv}>
+						<div
+							className={style.barDiv}
+							style={{
+								paddingLeft: barGap / 2,
+								paddingRight: barGap / 2,
+							}}
+						>
 							<div
 								className={classNames(style.bar, {
 									[style.barSelected]: !!selected,

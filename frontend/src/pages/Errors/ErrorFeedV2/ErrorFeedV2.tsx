@@ -281,7 +281,13 @@ const ErrorCardV2 = ({
 							error_secure_id === errorGroup?.secure_id,
 					})}
 				>
-					<BarChart data={errorDates} minBarHeight={5} />
+					<Box style={{ flexShrink: 0, width: 80 }}>
+						<BarChart
+							data={errorDates}
+							minBarHeight={5}
+							width={80}
+						/>
+					</Box>
 					<div className={styles.errorTextSectionWrapper}>
 						<div
 							className={styles.errorTextSection}

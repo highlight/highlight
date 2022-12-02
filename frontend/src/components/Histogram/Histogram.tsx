@@ -23,6 +23,7 @@ interface Props {
 	tooltipContent: (bucketIndex: number) => React.ReactNode
 	tooltipDelayMs?: number
 	gotoAction?: (bucketIndex: number) => void
+	barGap?: number
 }
 
 const Histogram = React.memo(
@@ -35,6 +36,7 @@ const Histogram = React.memo(
 		tooltipContent,
 		tooltipDelayMs,
 		gotoAction,
+		barGap = 3,
 	}: Props) => {
 		const [dragStart, setDragStart] = useState<number | undefined>()
 		const [dragEnd, setDragEnd] = useState<number | undefined>()
@@ -162,8 +164,8 @@ const Histogram = React.memo(
 						{({ height, width }) => (
 							<BarChart
 								data={chartData}
-								barGap={3}
-								barCategoryGap={3}
+								barGap={barGap}
+								barCategoryGap={barGap}
 								margin={{
 									top: 0,
 									right: 0,
