@@ -2119,7 +2119,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			>
 				<Button
 					kind="secondary"
-					size="xSmall"
+					size="small"
 					emphasis="low"
 					iconLeft={<IconPlusSm size={12} />}
 					onClick={addNewRule}
@@ -2177,7 +2177,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return (
 					<Menu.Button
 						kind="secondary"
-						size="xSmall"
+						size="small"
 						emphasis="medium"
 						iconLeft={<IconSave size={12} />}
 						onClick={() => {
@@ -2192,7 +2192,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return (
 					<Menu.Button
 						kind="secondary"
-						size="xSmall"
+						size="small"
 						emphasis="medium"
 						iconLeft={<IconSegment size={12} />}
 						iconRight={<IconChevronDown size={12} />}
@@ -2205,7 +2205,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return (
 					<Menu.Button
 						kind="primary"
-						size="xSmall"
+						size="small"
 						emphasis="high"
 						iconLeft={<IconSegment size={12} />}
 						onIconLeftClick={(evt) => {
@@ -2487,7 +2487,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 							{formatNumber(searchResultsCount)} results
 						</Text>
 					)}
-					<Box display="flex" gap="4">
+					<Box display="flex" gap="4" alignItems="center">
 						<Menu placement="bottom-end">
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>

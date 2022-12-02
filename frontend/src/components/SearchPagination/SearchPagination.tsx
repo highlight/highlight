@@ -42,11 +42,11 @@ const SearchPagination = ({
 	const $pageSize = pageSize ?? DEFAULT_PAGE_SIZE
 	const $siblingCount = siblingCount ?? DEFAULT_SIBLING_COUNT
 
-	const totalPageCount = Math.ceil(totalCount / $pageSize)
-	const maxPage = Math.min(MAX_PAGES, totalPageCount)
+	const pageCount = Math.min(MAX_PAGES, Math.ceil(totalCount / $pageSize))
+
 	const skip = (offset: number) => {
 		return setPage((p) =>
-			clamp((p || START_PAGE) + offset, START_PAGE, maxPage),
+			clamp((p || START_PAGE) + offset, START_PAGE, pageCount),
 		)
 	}
 
@@ -56,8 +56,8 @@ const SearchPagination = ({
 	const content = useMemo(() => {
 		// startIdx | dots | siblings | currentIdx | siblings | dots | endIdx
 		const totalItemCount = 2 + $siblingCount + 1 + $siblingCount + 2
-		if (totalPageCount <= totalItemCount) {
-			return range(START_PAGE, totalPageCount + 1)
+		if (pageCount <= totalItemCount) {
+			return range(START_PAGE, pageCount + 1)
 		}
 
 		const leftmostSiblingPage = Math.max(
@@ -66,12 +66,11 @@ const SearchPagination = ({
 		)
 		const rightmostSiblingPage = Math.min(
 			currentPage + $siblingCount,
-			START_PAGE + totalPageCount - 1,
+			START_PAGE + pageCount - 1,
 		)
 
 		const showLeftDots = leftmostSiblingPage > START_PAGE + 1
-		const showRightDots =
-			rightmostSiblingPage < START_PAGE + totalPageCount - 2
+		const showRightDots = rightmostSiblingPage < START_PAGE + pageCount - 2
 
 		if (showLeftDots && showRightDots) {
 			const middleRange = range(
@@ -83,24 +82,21 @@ const SearchPagination = ({
 				ExpandAction.Back,
 				...middleRange,
 				ExpandAction.Forward,
-				totalPageCount,
+				pageCount,
 			]
 		}
 
 		if (!showLeftDots && showRightDots) {
 			const leftRange = range(START_PAGE, sideItemCount)
 
-			return [...leftRange, ExpandAction.Forward, totalPageCount]
+			return [...leftRange, ExpandAction.Forward, pageCount]
 		}
 
-		const rightRange = range(
-			totalPageCount - sideItemCount + 1,
-			totalPageCount + 1,
-		)
+		const rightRange = range(pageCount - sideItemCount + 1, pageCount + 1)
 		return [START_PAGE, ExpandAction.Back, ...rightRange]
-	}, [$siblingCount, currentPage, sideItemCount, totalPageCount])
+	}, [$siblingCount, currentPage, sideItemCount, pageCount])
 
-	if (!maxPage) return null
+	if (!pageCount) return null
 
 	return (
 		<Box
@@ -115,6 +111,7 @@ const SearchPagination = ({
 			<ButtonIcon
 				kind="secondary"
 				shape="thin"
+				emphasis="low"
 				disabled={currentPage <= START_PAGE}
 				onClick={() => {
 					skip(-1)
@@ -137,9 +134,9 @@ const SearchPagination = ({
 									kind="secondary"
 									size="small"
 									shape="thin"
-									emphasis="medium"
+									emphasis="low"
 									icon={<IconDotsHorizontal size={14} />}
-									cssClass={style.simple}
+									cssClass={[style.simple, style.rightBorder]}
 									key={idx}
 									onClick={() =>
 										val === ExpandAction.Forward
@@ -156,12 +153,14 @@ const SearchPagination = ({
 										{
 											[style.selected]:
 												val === currentPage,
+											[style.rightBorder]:
+												idx !== content.length - 1,
 										},
 									]}
 									key={idx}
 									onClick={() => setPage(val)}
 									size="small"
-									emphasis="medium"
+									emphasis="low"
 									kind="secondary"
 								>
 									{val}
@@ -173,7 +172,8 @@ const SearchPagination = ({
 			<ButtonIcon
 				kind="secondary"
 				shape="thin"
-				disabled={currentPage >= maxPage}
+				emphasis="low"
+				disabled={currentPage >= pageCount}
 				onClick={() => {
 					skip(1)
 				}}
