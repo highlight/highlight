@@ -6,8 +6,6 @@ export const barDiv = style({
 	flexDirection: 'column',
 	flexGrow: 1,
 	justifyContent: 'flex-end',
-	// Massaged padding based on trial and error trying to match mocks.
-	padding: '0 1.5px',
 })
 
 export const bar = style({
