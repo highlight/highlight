@@ -50,8 +50,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		(secureId) => secureId === error_secure_id,
 	)
 	const canMoveForward =
+		searchResultSecureIds.length &&
 		currentSearchResultIndex < searchResultSecureIds.length - 1
-	const canMoveBackward = currentSearchResultIndex > 0
+	const canMoveBackward =
+		searchResultSecureIds.length && currentSearchResultIndex > 0
 	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
 	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
 
