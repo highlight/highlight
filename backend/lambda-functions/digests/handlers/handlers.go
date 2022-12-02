@@ -52,11 +52,15 @@ func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) 
 
 	var projectIds []int
 	if err := h.db.Raw(`
-		SELECT DISTINCT(p.id) FROM projects p
-		INNER JOIN sessions s
-		ON p.id = s.project_id
-		WHERE s.created_at >= ?
-		AND s.created_at < ?
+		SELECT p.id
+		FROM projects p
+		WHERE EXISTS (
+			SELECT 1
+			FROM sessions s
+			WHERE p.id = s.project_id
+			AND s.created_at >= ?
+			AND s.created_at < ?
+		)
 	`, start, end).Scan(&projectIds).Error; err != nil {
 		return nil, errors.Wrap(err, "error getting project ids")
 	}
