@@ -15,6 +15,7 @@ import {
 } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
@@ -35,11 +36,16 @@ import { useHistory } from 'react-router'
 import styles from './ErrorsV2.module.scss'
 
 const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
-	const { error_secure_id } = useParams<{
+	const { project_id, error_secure_id } = useParams<{
+		project_id: string
 		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
 	const integrated = useIntegrated()
+	const { searchResultSecureIds } = useErrorSearchContext()
+	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+		(secureId) => secureId === error_secure_id,
+	)
 
 	const {
 		data,
@@ -137,6 +143,17 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										emphasis="low"
 										icon={<IconChevronUp size={14} />}
 										cssClass={styles.sessionSwitchButton}
+										onClick={() => {
+											const previousSecureId =
+												searchResultSecureIds[
+													currentSearchResultIndex - 1
+												]
+
+											history.push(
+												`/${project_id}/errors/${previousSecureId}${history.location.search}`,
+											)
+										}}
+										disabled={currentSearchResultIndex <= 0}
 									/>
 									<Box as="span" borderRight="neutral" />
 									<ButtonIcon
@@ -146,6 +163,20 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										emphasis="low"
 										icon={<IconChevronDown size={14} />}
 										cssClass={styles.sessionSwitchButton}
+										onClick={() => {
+											const nextSecureId =
+												searchResultSecureIds[
+													currentSearchResultIndex + 1
+												]
+
+											history.push(
+												`/${project_id}/errors/${nextSecureId}${history.location.search}`,
+											)
+										}}
+										disabled={
+											currentSearchResultIndex >=
+											searchResultSecureIds.length - 1
+										}
 									/>
 								</Box>
 							</Box>

@@ -33,6 +33,7 @@ const SearchPanel = () => {
 		setSearchResultsLoading,
 		searchResultsCount,
 		setSearchResultsCount,
+		setSearchResultSecureIds,
 	} = useErrorSearchContext()
 
 	const { project_id: projectId } = useParams<{ project_id: string }>()
@@ -55,12 +56,16 @@ const SearchPanel = () => {
 		onError: () => {
 			setSearchResultsLoading(false)
 			setSearchResultsCount(0)
+			setSearchResultSecureIds([])
 		},
 		onCompleted: (r) => {
 			setSearchResultsLoading(false)
 			const results = r?.error_groups_opensearch
 			setFetchedData(gqlSanitize(results))
 			setSearchResultsCount(results.totalCount)
+			setSearchResultSecureIds(
+				results.error_groups.map((eg) => eg.secure_id),
+			)
 		},
 		skip: !backendSearchQuery,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
