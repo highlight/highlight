@@ -44,6 +44,8 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	const { isLoggedIn } = useAuthContext()
 	const integrated = useIntegrated()
 	const { searchResultSecureIds } = useErrorSearchContext()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+
 	const currentSearchResultIndex = searchResultSecureIds.findIndex(
 		(secureId) => secureId === error_secure_id,
 	)
@@ -69,13 +71,15 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		)
 	}
 
+	const isEmptyState =
+		!error_secure_id && !errorQueryingErrorGroup && !loading
+
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
-
 		const commentId = urlParams.get(PlayerSearchParameters.commentId)
-
 		const hasMuted = urlParams.get(PlayerSearchParameters.muted) === '1'
+
 		if (commentId && hasMuted) {
 			muteErrorCommentThread({
 				variables: {
@@ -94,7 +98,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 
 	useEffect(() => {
 		if (!error_secure_id) {
@@ -143,7 +146,11 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				>
 					{!integrated && <IntegrationCard />}
 
-					<Box display="flex" flexDirection="column">
+					<Box
+						display="flex"
+						flexDirection="column"
+						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
+					>
 						<Box
 							backgroundColor="white"
 							display="flex"
@@ -209,14 +216,14 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 									</title>
 								</Helmet>
 
-								<Container>
-									<div className={styles.errorDetails}>
+								<div className={styles.errorDetails}>
+									<Container>
 										{loading ? (
 											<>
 												<Skeleton
 													count={1}
 													style={{
-														width: 300,
+														width: 940,
 														height: 37,
 													}}
 												/>
@@ -250,8 +257,8 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 												/>
 											</div>
 										)}
-									</div>
-								</Container>
+									</Container>
+								</div>
 							</>
 						) : errorQueryingErrorGroup ? (
 							<ErrorState

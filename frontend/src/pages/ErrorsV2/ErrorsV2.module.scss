@@ -34,3 +34,7 @@
 	border: 0 !important;
 	border-radius: 0;
 }
+
+.emptyState {
+	height: calc(100% - var(--header-height) - var(--banner-height));
+}
