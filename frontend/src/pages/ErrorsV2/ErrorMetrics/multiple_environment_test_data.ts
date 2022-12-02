@@ -70,7 +70,7 @@ export const TEST_DATA = {
 				"date": "2022-12-02T00:00:00Z",
 				"name": "environmentCount",
 				"label": "production",
-				"value": 0,
+				"value": 7,
 				"__typename": "ErrorDistributionItem"
 			},
 			{
@@ -94,7 +94,7 @@ export const TEST_DATA = {
 				"date": "2022-12-02T02:24:00Z",
 				"name": "environmentCount",
 				"label": "production",
-				"value": 0,
+				"value": 24,
 				"__typename": "ErrorDistributionItem"
 			},
 			{
@@ -102,7 +102,7 @@ export const TEST_DATA = {
 				"date": "2022-12-02T03:12:00Z",
 				"name": "environmentCount",
 				"label": "production",
-				"value": 0,
+				"value": 9,
 				"__typename": "ErrorDistributionItem"
 			},
 			{

@@ -13,6 +13,7 @@ import {
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import useDataTimeRange from '@hooks/useDataTimeRange'
+import ErrorDistribution from '@pages/ErrorsV2/ErrorDistribution/ErrorDistribution'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
@@ -243,6 +244,12 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 							<Text>{errorCategoryTotals[label]}</Text>
 						</Box>
 					))}
+
+					<ErrorDistribution
+						totalCount={errorFrequencyTotal}
+						errorCategoryCounts={errorCategoryTotals}
+						errorColors={errorColors}
+					/>
 
 					<div className={styles.calloutContainer}>
 						<Callout
