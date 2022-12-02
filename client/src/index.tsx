@@ -764,42 +764,39 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			return
 		}
 		this._lastVisibilityChangeTime = new Date().getTime()
+		this.logger.log(`Detected window ${hidden ? 'hidden' : 'visible'}.`)
 		if (!hidden) {
-			this.logger.log(`Detected window visible. Resuming recording.`)
-			await this.initialize()
 			this.addCustomEvent('TabHidden', false)
-			return
-		}
-		this.logger.log(`Detected window hidden. Pausing recording.`)
-		this.addCustomEvent('TabHidden', true)
-		if ('sendBeacon' in navigator) {
-			try {
-				await this._sendPayload({
-					isBeacon: true,
-					sendFn: (payload) => {
-						let blob = new Blob(
-							[
-								JSON.stringify({
-									query: print(PushPayloadDocument),
-									variables: payload,
-								}),
-							],
-							{
-								type: 'application/json',
-							},
-						)
-						navigator.sendBeacon(`${this._backendUrl}`, blob)
-						return Promise.resolve(0)
-					},
-				})
-			} catch (e) {
-				if (this._isOnLocalHost) {
-					console.error(e)
-					HighlightWarning('_sendPayload', e)
+		} else {
+			this.addCustomEvent('TabHidden', true)
+			if ('sendBeacon' in navigator) {
+				try {
+					await this._sendPayload({
+						isBeacon: true,
+						sendFn: (payload) => {
+							let blob = new Blob(
+								[
+									JSON.stringify({
+										query: print(PushPayloadDocument),
+										variables: payload,
+									}),
+								],
+								{
+									type: 'application/json',
+								},
+							)
+							navigator.sendBeacon(`${this._backendUrl}`, blob)
+							return Promise.resolve(0)
+						},
+					})
+				} catch (e) {
+					if (this._isOnLocalHost) {
+						console.error(e)
+						HighlightWarning('_sendPayload', e)
+					}
 				}
 			}
 		}
-		this.stopRecording()
 	}
 
 	_setupWindowListeners() {
