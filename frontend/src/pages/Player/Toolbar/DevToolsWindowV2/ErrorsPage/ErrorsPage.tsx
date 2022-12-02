@@ -62,9 +62,10 @@ const ErrorsPage = React.memo(
 					virtuoso.current.scrollToIndex(lastActiveErrorIndex)
 				}
 			}
+			// want this to trigger on autoscroll change, not isInteractingWithMessages
+			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [
 			autoScroll,
-			isInteractingWithErrors,
 			history.location.state?.errorCardIndex,
 			lastActiveErrorIndex,
 		])

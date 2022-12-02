@@ -180,12 +180,9 @@ export const ConsolePage = React.memo(
 			if (!isInteractingWithMessages && autoScroll) {
 				scrollFunction(currentMessage)
 			}
-		}, [
-			isInteractingWithMessages,
-			autoScroll,
-			scrollFunction,
-			currentMessage,
-		])
+			// want this to trigger on autoscroll change, not isInteractingWithMessages
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [autoScroll, scrollFunction, currentMessage])
 
 		return (
 			<Box className={styles.consoleBox}>
