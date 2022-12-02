@@ -47,4 +47,7 @@ export const content = style({
 export const controlBar = style({
 	height: SEARCH_PANEL_CONTROL_BAR_HEIGHT,
 	flexShrink: 0,
+	position: 'sticky',
+	top: 0,
+	zIndex: 10,
 })

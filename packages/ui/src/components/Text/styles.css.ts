@@ -103,6 +103,14 @@ export const variants = recipe({
 				textTransform: 'lowercase',
 			},
 		},
+		wrap: {
+			always: {
+				wordBreak: 'break-all',
+			},
+			none: {
+				whiteSpace: 'nowrap',
+			},
+		},
 	},
 
 	compoundVariants: [

@@ -8,12 +8,14 @@ import {
 import {
 	Box,
 	ButtonIcon,
+	Container,
 	IconChevronDown,
 	IconChevronUp,
 	IconExitRight,
 } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
+import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
 import ErrorTabContent from '@pages/ErrorsV2/ErrorTabContent/ErrorTabContent'
 import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
@@ -29,16 +31,31 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useHistory } from 'react-router'
 
 import styles from './ErrorsV2.module.scss'
 
 const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
-	const { error_secure_id } = useParams<{
+	const { project_id, error_secure_id } = useParams<{
+		project_id: string
 		error_secure_id: string
 	}>()
 	const { isLoggedIn } = useAuthContext()
 	const integrated = useIntegrated()
+	const { searchResultSecureIds } = useErrorSearchContext()
+	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
+
+	const currentSearchResultIndex = searchResultSecureIds.findIndex(
+		(secureId) => secureId === error_secure_id,
+	)
+	const canMoveForward =
+		searchResultSecureIds.length &&
+		currentSearchResultIndex < searchResultSecureIds.length - 1
+	const canMoveBackward =
+		searchResultSecureIds.length && currentSearchResultIndex > 0
+	const nextSecureId = searchResultSecureIds[currentSearchResultIndex + 1]
+	const previousSecureId = searchResultSecureIds[currentSearchResultIndex - 1]
 
 	const {
 		data,
@@ -50,14 +67,21 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	})
 
 	const history = useHistory()
+	const goToErrorGroup = (secureId: string) => {
+		history.push(
+			`/${project_id}/errors/${secureId}${history.location.search}`,
+		)
+	}
+
+	const isEmptyState =
+		!error_secure_id && !errorQueryingErrorGroup && !loading
 
 	const [muteErrorCommentThread] = useMuteErrorCommentThreadMutation()
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
-
 		const commentId = urlParams.get(PlayerSearchParameters.commentId)
-
 		const hasMuted = urlParams.get(PlayerSearchParameters.muted) === '1'
+
 		if (commentId && hasMuted) {
 			muteErrorCommentThread({
 				variables: {
@@ -76,7 +100,6 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [location.search])
-	const { showLeftPanel, setShowLeftPanel } = useErrorPageConfiguration()
 
 	useEffect(() => {
 		if (!error_secure_id) {
@@ -86,6 +109,28 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 		analytics.page({ is_guest: !isLoggedIn })
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error_secure_id])
+
+	useHotkeys(
+		'j',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(nextSecureId)
+			}
+		},
+		[canMoveForward, nextSecureId],
+	)
+
+	useHotkeys(
+		'k',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('NextErrorGroupKeyboardShortcut')
+				goToErrorGroup(previousSecureId)
+			}
+		},
+		[canMoveBackward, previousSecureId],
+	)
 
 	return (
 		<>
@@ -106,9 +151,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 					<Box
 						display="flex"
 						flexDirection="column"
-						style={{ height: '100%' }}
+						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
 					>
 						<Box
+							backgroundColor="white"
 							display="flex"
 							alignItems="center"
 							px="12"
@@ -139,6 +185,10 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										emphasis="low"
 										icon={<IconChevronUp size={14} />}
 										cssClass={styles.sessionSwitchButton}
+										onClick={() => {
+											goToErrorGroup(previousSecureId)
+										}}
+										disabled={!canMoveBackward}
 									/>
 									<Box as="span" borderRight="neutral" />
 									<ButtonIcon
@@ -147,7 +197,12 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 										shape="square"
 										emphasis="low"
 										icon={<IconChevronDown size={14} />}
+										title="j"
 										cssClass={styles.sessionSwitchButton}
+										onClick={() => {
+											goToErrorGroup(nextSecureId)
+										}}
+										disabled={!canMoveForward}
 									/>
 								</Box>
 							</Box>
@@ -164,39 +219,47 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 								</Helmet>
 
 								<div className={styles.errorDetails}>
-									{loading ? (
-										<>
-											<Skeleton
-												count={1}
-												style={{
-													width: 300,
-													height: 37,
-												}}
-											/>
+									<Container>
+										{loading ? (
+											<>
+												<Skeleton
+													count={1}
+													style={{
+														width: 940,
+														height: 37,
+													}}
+												/>
 
-											<Skeleton
-												count={1}
-												style={{
-													height: '2ch',
-													marginBottom: 0,
-												}}
-											/>
-										</>
-									) : (
-										<div>
-											<ErrorTitle
-												errorGroup={data?.error_group}
-											/>
+												<Skeleton
+													count={1}
+													style={{
+														height: '2ch',
+														marginBottom: 0,
+													}}
+												/>
+											</>
+										) : (
+											<div>
+												<ErrorTitle
+													errorGroup={
+														data?.error_group
+													}
+												/>
 
-											<ErrorBody
-												errorGroup={data?.error_group}
-											/>
+												<ErrorBody
+													errorGroup={
+														data?.error_group
+													}
+												/>
 
-											<ErrorTabContent
-												errorGroup={data?.error_group}
-											/>
-										</div>
-									)}
+												<ErrorTabContent
+													errorGroup={
+														data?.error_group
+													}
+												/>
+											</div>
+										)}
+									</Container>
 								</div>
 							</>
 						) : errorQueryingErrorGroup ? (

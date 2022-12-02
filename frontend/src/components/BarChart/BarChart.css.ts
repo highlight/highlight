@@ -4,9 +4,8 @@ import { style } from '@vanilla-extract/css'
 export const barDiv = style({
 	display: 'flex',
 	flexDirection: 'column',
+	flexGrow: 1,
 	justifyContent: 'flex-end',
-	padding: '0 2px',
-	width: 20,
 })
 
 export const bar = style({

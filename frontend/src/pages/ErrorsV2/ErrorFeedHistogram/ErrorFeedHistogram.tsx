@@ -91,6 +91,7 @@ const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 			bucketSize={backendSearchQuery?.histogramBucketSize}
 			loading={loading || searchResultsLoading}
 			updateTimeRange={updateTimeRange}
+			barGap={2.4}
 		/>
 	)
 }

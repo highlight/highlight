@@ -215,6 +215,7 @@
 	flex-grow: 1;
 	flex-wrap: wrap;
 	justify-content: space-between;
+	padding-left: 20px;
 
 	@media screen and (max-width: 1200px) {
 		flex-direction: column;

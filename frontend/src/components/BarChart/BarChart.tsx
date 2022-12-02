@@ -9,9 +9,11 @@ interface Props {
 	xAxis?: string
 	yAxis?: string
 	height?: number
-	width?: number
+	width?: number | string
 	maxValue?: number
+	minBarHeight?: number
 	selected?: boolean
+	barGap?: number
 }
 
 const BarChart = ({
@@ -21,9 +23,12 @@ const BarChart = ({
 	height = 60,
 	width = 100,
 	maxValue,
+	minBarHeight,
 	selected,
+	barGap = 3,
 }: Props) => {
 	const max = maxValue ?? Math.max(...data, 5)
+
 	return (
 		<div
 			style={{ height: height, width: width }}
@@ -32,7 +37,7 @@ const BarChart = ({
 			{data.map((num, ind) => {
 				const barHeight = num
 					? Math.max((height - 4) * (num / max), 8)
-					: 0
+					: minBarHeight ?? 0
 				return (
 					<Tooltip
 						title={`${
@@ -40,7 +45,13 @@ const BarChart = ({
 						} ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
 						key={ind}
 					>
-						<div className={style.barDiv}>
+						<div
+							className={style.barDiv}
+							style={{
+								paddingLeft: barGap / 2,
+								paddingRight: barGap / 2,
+							}}
+						>
 							<div
 								className={classNames(style.bar, {
 									[style.barSelected]: !!selected,

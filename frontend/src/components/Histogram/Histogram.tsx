@@ -23,10 +23,17 @@ interface Props {
 	onBucketClicked: (bucketIndex: number) => void
 	seriesList: Series[]
 	timeFormatter: (value: number) => string
+	barGap?: number
 }
 
 const Histogram = React.memo(
-	({ onAreaChanged, onBucketClicked, seriesList, bucketTimes }: Props) => {
+	({
+		onAreaChanged,
+		onBucketClicked,
+		seriesList,
+		bucketTimes,
+		barGap = 3,
+	}: Props) => {
 		const [dragStart, setDragStart] = useState<number | undefined>()
 		const [dragEnd, setDragEnd] = useState<number | undefined>()
 		const [tooltipHidden, setTooltipHidden] = useState(true)
@@ -110,8 +117,8 @@ const Histogram = React.memo(
 						{({ height, width }) => (
 							<BarChart
 								data={chartData}
-								barGap={2.4}
-								barCategoryGap={2.4}
+								barGap={barGap}
+								barCategoryGap={barGap}
 								margin={{
 									top: 0,
 									right: 0,
@@ -188,6 +195,7 @@ const Histogram = React.memo(
 											dragRight !== undefined
 												? 'transparent'
 												: 'rgba(204, 204, 204, .5)',
+										radius: 3,
 									}}
 									allowEscapeViewBox={{
 										x: false,
