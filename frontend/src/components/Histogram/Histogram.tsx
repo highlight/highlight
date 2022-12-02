@@ -94,66 +94,6 @@ const Histogram = React.memo(
 			}
 		}, [tooltipHidden, tooltipWantHidden])
 
-		const CustomTooltip = ({
-			payload,
-			label,
-		}: {
-			payload?: any[]
-			label?: number
-		}) => {
-			if (!payload || !payload.length || !label) {
-				return null
-			}
-
-			const currentTime = bucketTimes[label]
-
-			return (
-				<Box
-					alignItems="center"
-					borderRadius="6"
-					border="neutral"
-					display="flex"
-					gap="4"
-					p="4"
-					background="white"
-					onMouseOver={() => {
-						setTooltipWantHidden(false)
-					}}
-					onMouseLeave={() => {
-						setTooltipWantHidden(true)
-					}}
-				>
-					<Text color="neutral300" size="xSmall" weight="medium">
-						{moment(currentTime).format('MMM D')}
-					</Text>
-
-					{payload.map((p, index) => {
-						const series = seriesList.find(
-							(s) => s.label === p.dataKey,
-						)
-						const color = series?.color || 'black'
-						const colorIsDark =
-							tinycolor(p.color).getBrightness() < 165
-
-						return (
-							<Box
-								key={index}
-								borderRadius="3"
-								backgroundColor={color}
-								p="4"
-							>
-								<Text
-									color={colorIsDark ? 'white' : 'neutral700'}
-								>
-									{p.value} {p.name}
-								</Text>
-							</Box>
-						)
-					})}
-				</Box>
-			)
-		}
-
 		// assert all series have the same length
 		if (!seriesList.every((s) => s.counts.length === seriesLength)) {
 			console.error('all series must have the same length', {
@@ -222,7 +162,13 @@ const Histogram = React.memo(
 								<Tooltip
 									content={
 										tooltipHidden ? undefined : (
-											<CustomTooltip />
+											<CustomTooltip
+												seriesList={seriesList}
+												bucketTimes={bucketTimes}
+												setTooltipWantHidden={
+													setTooltipWantHidden
+												}
+											/>
 										)
 									}
 									wrapperStyle={{
@@ -300,5 +246,60 @@ const Histogram = React.memo(
 		)
 	},
 )
+
+const CustomTooltip: React.FC<{
+	setTooltipWantHidden: (value: React.SetStateAction<boolean>) => void
+	bucketTimes: number[]
+	payload?: any[]
+	label?: number
+	seriesList: Series[]
+}> = ({ bucketTimes, seriesList, payload, label, setTooltipWantHidden }) => {
+	if (!payload || !payload.length || !label) {
+		return null
+	}
+
+	const currentTime = bucketTimes[label]
+
+	return (
+		<Box
+			alignItems="center"
+			borderRadius="6"
+			border="neutral"
+			display="flex"
+			gap="4"
+			p="4"
+			background="white"
+			onMouseOver={() => {
+				setTooltipWantHidden(false)
+			}}
+			onMouseLeave={() => {
+				setTooltipWantHidden(true)
+			}}
+		>
+			<Text color="neutral300" size="xSmall" weight="medium">
+				{moment(currentTime).format('MMM D')}
+			</Text>
+
+			{payload.map((p, index) => {
+				const series = seriesList.find((s) => s.label === p.dataKey)
+				const color = series?.color || 'black'
+				const colorIsDark = tinycolor(p.color).getBrightness() < 165
+
+				return (
+					<Box
+						key={index}
+						borderRadius="3"
+						backgroundColor={color}
+						p="4"
+					>
+						<Text color={colorIsDark ? 'white' : 'neutral700'}>
+							{p.value} {p.name}
+						</Text>
+					</Box>
+				)
+			})}
+		</Box>
+	)
+}
 
 export default Histogram
