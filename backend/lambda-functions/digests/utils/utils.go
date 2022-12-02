@@ -15,7 +15,7 @@ type ProjectIdResponse struct {
 	Prior     time.Time `json:"prior"`
 }
 
-type ActiveSession struct {
+type ActiveSessionSql struct {
 	Identifier   string        `json:"identifier"`
 	City         string        `json:"city"`
 	State        string        `json:"state"`
@@ -24,36 +24,64 @@ type ActiveSession struct {
 	SecureId     string        `json:"secureId"`
 }
 
-type ErrorSession struct {
+type ErrorSessionSql struct {
 	Identifier   string        `json:"identifier"`
 	ErrorCount   int           `json:"errorCount"`
 	ActiveLength time.Duration `json:"activeLength"`
 	SecureId     string        `json:"secureId"`
 }
 
-type NewError struct {
+type NewErrorSql struct {
 	Message           string `json:"message"`
 	AffectedUserCount int    `json:"affectedUserCount"`
 	SecureId          string `json:"secureId"`
 }
 
-type FrequentError struct {
+type FrequentErrorSql struct {
 	Message    string `json:"message"`
 	Count      int    `json:"count"`
 	PriorCount int    `json:"priorCount"`
 	SecureId   string `json:"secureId"`
 }
 
+type ActiveSession struct {
+	Identifier   string `json:"identifier"`
+	Location     string `json:"location"`
+	ActiveLength string `json:"activeLength"`
+	URL          string `json:"url"`
+}
+
+type ErrorSession struct {
+	Identifier   string `json:"identifier"`
+	ErrorCount   string `json:"errorCount"`
+	ActiveLength string `json:"activeLength"`
+	URL          string `json:"url"`
+}
+
+type NewError struct {
+	Message           string `json:"message"`
+	AffectedUserCount string `json:"affectedUserCount"`
+	URL               string `json:"url"`
+}
+
+type FrequentError struct {
+	Message string `json:"message"`
+	Count   string `json:"count"`
+	Delta   string `json:"delta"`
+	URL     string `json:"url"`
+}
+
 type DigestDataResponse struct {
 	ProjectId      int             `json:"projectId"`
-	UserCount      int             `json:"userCount"`
-	UserDelta      int             `json:"userDelta"`
-	SessionCount   int             `json:"sessionCount"`
-	SessionDelta   int             `json:"sessionDelta"`
-	ErrorCount     int             `json:"errorCount"`
-	ErrorDelta     int             `json:"errorDelta"`
-	ActivityTotal  time.Duration   `json:"activityTotal"`
-	ActivityDelta  time.Duration   `json:"activityDelta"`
+	ProjectName    string          `json:"projectName"`
+	UserCount      string          `json:"userCount"`
+	UserDelta      string          `json:"userDelta"`
+	SessionCount   string          `json:"sessionCount"`
+	SessionDelta   string          `json:"sessionDelta"`
+	ErrorCount     string          `json:"errorCount"`
+	ErrorDelta     string          `json:"errorDelta"`
+	ActivityTotal  string          `json:"activityTotal"`
+	ActivityDelta  string          `json:"activityDelta"`
 	ActiveSessions []ActiveSession `json:"activeSessions"`
 	ErrorSessions  []ErrorSession  `json:"errorSessions"`
 	NewErrors      []NewError      `json:"newErrors"`

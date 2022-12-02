@@ -34,5 +34,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(data)
+	err = h.SendDigestEmails(ctx, *data)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
