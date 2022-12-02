@@ -185,7 +185,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at < ?
 		AND NOT s.excluded
 		ORDER BY s.active_length desc
-		LIMIT 3
+		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&activeSessions).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying active sessions")
 	}
@@ -202,7 +202,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		GROUP BY s.id
 		ORDER BY count(*) desc
-		LIMIT 3
+		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&errorSessions).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying error sessions")
 	}
@@ -221,7 +221,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND eg.state <> 'IGNORED'
 		GROUP BY eg.id
 		ORDER BY count(distinct coalesce(s.identifier, s.client_id)) desc
-		LIMIT 3
+		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&newErrors).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying new errors")
 	}
@@ -238,7 +238,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND eg.state <> 'IGNORED'
 		GROUP BY eg.id
 		ORDER BY sum(case when eo.created_at >= ? then 1 else 0 end) desc
-		LIMIT 3
+		LIMIT 5
 	`, input.Start, input.Start, input.ProjectId, input.Prior, input.End, input.Start).Scan(&frequentErrors).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying frequent errors")
 	}
