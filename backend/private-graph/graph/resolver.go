@@ -442,9 +442,9 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		|> filter(fn: (r) => r._measurement == "%[4]s")
 		%[5]s
 		%[6]s
-		|> aggregateWindow(every: %[7]dh, fn: sum, createEmpty: true)
+		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
 		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
-	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionHours)
+	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
 	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
 	span.SetTag("projectID", projectID)
 	span.SetTag("errorGroupIDs", errorGroupIDs)
@@ -481,7 +481,7 @@ func (r *Resolver) SetErrorFrequenciesInflux(ctx context.Context, projectID int,
 			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
 			EndDate:   time.Now(),
 		},
-		ResolutionHours: 24,
+		ResolutionMinutes: 24 * 60,
 	}
 	var errorGroupMap = make(map[string]*model.ErrorGroup)
 	var errorGroupIDs []int

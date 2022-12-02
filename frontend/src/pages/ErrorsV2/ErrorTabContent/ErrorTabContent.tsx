@@ -34,6 +34,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				className={styles.tabs}
 				noHeaderPadding
 				noPadding
+				unsetOverflowY
 				activeKeyOverride={error_tab_key}
 				onChange={(activeKey) =>
 					history.push(
