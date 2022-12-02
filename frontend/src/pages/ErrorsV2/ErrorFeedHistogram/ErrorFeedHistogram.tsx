@@ -2,7 +2,6 @@ import { Series } from '@components/Histogram/Histogram'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { useGetErrorsHistogramQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
-import { colors } from '@highlight-run/ui/src/css/colors'
 import { TIME_RANGE_FIELD } from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
@@ -55,8 +54,8 @@ const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 				)
 				seriesList = [
 					{
-						label: 'Errors logged',
-						color: colors.neutralN9,
+						label: 'errors',
+						color: 'neutralN9',
 						counts: histogramData.error_objects,
 					},
 				]

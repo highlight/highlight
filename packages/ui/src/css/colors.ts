@@ -27,6 +27,7 @@ export const colors = {
 	green100: '#EBFF5E',
 	green500: '#8DC31A',
 
+	blueLB100: '#4FB5EE',
 	redR7: '#F3AEAF',
 	redR8: '#EB9091',
 	redR9: '#E5484D',
