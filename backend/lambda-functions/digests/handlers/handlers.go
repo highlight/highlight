@@ -158,7 +158,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var curActivity int64
 	if err := h.db.Raw(`
-		SELECT sum(s.active_length)
+		SELECT sum(coalesce(s.active_length, 0))
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
