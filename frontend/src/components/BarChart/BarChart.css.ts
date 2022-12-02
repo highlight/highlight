@@ -5,8 +5,9 @@ export const barDiv = style({
 	display: 'flex',
 	flexDirection: 'column',
 	justifyContent: 'flex-end',
-	padding: '0 1px',
-	width: 6,
+	// Massaged these values based on trial and error trying to match mocks.
+	padding: '0 1.25px',
+	width: 6.5,
 })
 
 export const bar = style({
