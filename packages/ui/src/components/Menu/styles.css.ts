@@ -53,5 +53,4 @@ export const menuDivider = style({
 	marginTop: vars.space[4],
 })
 
-export const buttonVariants = buttonStyles.variants
 export type ButtonVariants = RecipeVariants<typeof buttonStyles.variants>

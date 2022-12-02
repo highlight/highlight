@@ -7236,8 +7236,8 @@ type SourceMappingError {
 	minifiedLineNumber: Int
 	minifiedColumnNumber: Int
 	actualSourcemapFetchedPath: String
-	sourcemapFileSize: String
-	minifiedFileSize: String
+	sourcemapFileSize: Int
+	minifiedFileSize: Int
 	mappedLineNumber: Int
 	mappedColumnNumber: Int
 }
@@ -44099,9 +44099,9 @@ func (ec *executionContext) _SourceMappingError_sourcemapFileSize(ctx context.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44111,7 +44111,7 @@ func (ec *executionContext) fieldContext_SourceMappingError_sourcemapFileSize(ct
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -44140,9 +44140,9 @@ func (ec *executionContext) _SourceMappingError_minifiedFileSize(ctx context.Con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SourceMappingError_minifiedFileSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -44152,7 +44152,7 @@ func (ec *executionContext) fieldContext_SourceMappingError_minifiedFileSize(ctx
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil

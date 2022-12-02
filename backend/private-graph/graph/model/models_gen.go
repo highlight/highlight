@@ -416,8 +416,8 @@ type SourceMappingError struct {
 	MinifiedLineNumber         *int                    `json:"minifiedLineNumber"`
 	MinifiedColumnNumber       *int                    `json:"minifiedColumnNumber"`
 	ActualSourcemapFetchedPath *string                 `json:"actualSourcemapFetchedPath"`
-	SourcemapFileSize          *string                 `json:"sourcemapFileSize"`
-	MinifiedFileSize           *string                 `json:"minifiedFileSize"`
+	SourcemapFileSize          *int                    `json:"sourcemapFileSize"`
+	MinifiedFileSize           *int                    `json:"minifiedFileSize"`
 	MappedLineNumber           *int                    `json:"mappedLineNumber"`
 	MappedColumnNumber         *int                    `json:"mappedColumnNumber"`
 }

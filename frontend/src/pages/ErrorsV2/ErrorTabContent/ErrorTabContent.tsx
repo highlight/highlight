@@ -29,6 +29,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Switch>
 			<Tabs
+				animated={false}
 				id="errorTabs"
 				className={styles.tabs}
 				noHeaderPadding
