@@ -162,8 +162,8 @@ const Histogram = React.memo(
 						{({ height, width }) => (
 							<BarChart
 								data={chartData}
-								barGap={2.4}
-								barCategoryGap={2.4}
+								barGap={3}
+								barCategoryGap={3}
 								margin={{
 									top: 0,
 									right: 0,
@@ -230,6 +230,7 @@ const Histogram = React.memo(
 											dragRight !== undefined
 												? 'transparent'
 												: 'rgba(204, 204, 204, .5)',
+										radius: 3,
 									}}
 									allowEscapeViewBox={{
 										x: false,
