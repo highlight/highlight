@@ -1,5 +1,6 @@
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
+import { playerMetaData } from '@highlight-run/rrweb/typings/types'
 import { Box } from '@highlight-run/ui'
 import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { indexedDBFetch } from '@util/db'
@@ -33,7 +34,7 @@ export const ConsolePage = React.memo(
 		time: number
 	}) => {
 		const [currentMessage, setCurrentMessage] = useState(-1)
-		const { session } = useReplayerContext()
+		const { session, setTime, sessionMetadata } = useReplayerContext()
 		const [parsedMessages, setParsedMessages] = useState<
 			undefined | Array<ParsedMessage>
 		>([])
@@ -225,6 +226,8 @@ export const ConsolePage = React.memo(
 								key={message.id.toString()}
 								message={message}
 								current={message.id === currentMessage}
+								setTime={setTime}
+								sessionMetadata={sessionMetadata}
 							/>
 						)}
 					/>
@@ -244,10 +247,14 @@ export const ConsolePage = React.memo(
 
 const MessageRow = function ({
 	message,
+	setTime,
 	current,
+	sessionMetadata,
 }: {
 	message: ParsedMessage
+	setTime: (time: number) => void
 	current?: boolean
+	sessionMetadata: playerMetaData
 }) {
 	return (
 		<Box
@@ -257,6 +264,9 @@ const MessageRow = function ({
 					current,
 				}),
 			)}
+			onClick={() => {
+				setTime(message.time - sessionMetadata.startTime)
+			}}
 		>
 			<div
 				className={clsx(

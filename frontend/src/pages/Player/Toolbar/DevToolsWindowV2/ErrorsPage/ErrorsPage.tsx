@@ -1,11 +1,15 @@
+import JsonViewer from '@components/JsonViewer/JsonViewer'
+import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
-import { Box, Stack, Tag } from '@highlight-run/ui'
+import { Box, Tag, Text } from '@highlight-run/ui'
+import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
-import React, { useLayoutEffect, useMemo, useRef } from 'react'
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
-import { VirtuosoHandle } from 'react-virtuoso'
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
@@ -25,8 +29,11 @@ const ErrorsPage = React.memo(
 		time: number
 	}) => {
 		const virtuoso = useRef<VirtuosoHandle>(null)
+		const [isInteractingWithErrors, setIsInteractingWithErrors] =
+			useState(false)
 		const history = useHistory<ErrorsPageHistoryState>()
-		const { errors, state, sessionMetadata } = useReplayerContext()
+		const { errors, state, session, sessionMetadata, setTime } =
+			useReplayerContext()
 
 		const loading = state === ReplayerState.Loading
 
@@ -46,11 +53,8 @@ const ErrorsPage = React.memo(
 		}, [errors, hasTimestamp, sessionMetadata.startTime, time])
 
 		useLayoutEffect(() => {
-			if (virtuoso.current && autoScroll) {
-				if (
-					history.location.state?.errorCardIndex !== undefined &&
-					state === ReplayerState.Playing
-				) {
+			if (virtuoso.current && autoScroll && !isInteractingWithErrors) {
+				if (history.location.state?.errorCardIndex !== undefined) {
 					virtuoso.current.scrollToIndex(
 						history.location.state.errorCardIndex,
 					)
@@ -60,9 +64,9 @@ const ErrorsPage = React.memo(
 			}
 		}, [
 			autoScroll,
+			isInteractingWithErrors,
 			history.location.state?.errorCardIndex,
 			lastActiveErrorIndex,
-			state,
 		])
 
 		const errorsToRender = useMemo(() => {
@@ -85,36 +89,121 @@ const ErrorsPage = React.memo(
 
 		return (
 			<Box className={styles.errorsBox}>
-				<Stack gap={'0'}>
-					{errorsToRender.map((e) => (
-						<ErrorRow key={e.error_group_secure_id} error={e} />
-					))}
-				</Stack>
+				{loading ? (
+					<Skeleton
+						count={2}
+						style={{ height: 25, marginBottom: 11 }}
+					/>
+				) : !session || !errors.length ? (
+					<div className={devStyles.emptySection}>
+						There are no errors for this session.
+					</div>
+				) : errorsToRender.length === 0 && filter.length > 0 ? (
+					<div className={devStyles.emptySection}>
+						No errors matching '{filter}'
+					</div>
+				) : (
+					<Virtuoso
+						onMouseEnter={() => {
+							setIsInteractingWithErrors(true)
+						}}
+						onMouseLeave={() => {
+							setIsInteractingWithErrors(false)
+						}}
+						ref={virtuoso}
+						overscan={500}
+						data={errorsToRender}
+						itemContent={(index, error) => (
+							<ErrorRow
+								key={error.error_group_secure_id}
+								error={error}
+								setSelectedError={() => {
+									// TODO(vkorolik) interact with side panel
+									setTime(
+										new Date(error.timestamp).getTime() -
+											sessionMetadata.startTime,
+									)
+								}}
+								searchQuery={filter}
+								current={index === lastActiveErrorIndex}
+							/>
+						)}
+					/>
+				)}
 			</Box>
 		)
 	},
 )
 
-const ErrorRow: React.FC<
-	React.PropsWithChildren & {
-		error: ErrorObject
-	}
-> = ({ error }) => {
-	const body = useMemo(
-		() => parseOptionalJSON(getErrorBody(error.event)),
-		[error.event],
-	)
-	const context = useMemo(() => {
-		const data = parseOptionalJSON(error.payload || '')
-		return data === 'null' ? '' : data
-	}, [error.payload])
-	return (
-		<Box className={styles.errorRow}>
-			<span>{body}</span>
-			<span>{context}</span>
-			<Tag kind={'grey'}>{error.type}</Tag>
-		</Box>
-	)
+export enum ErrorCardState {
+	Unknown,
+	Active,
+	Inactive,
 }
+interface Props {
+	error: ErrorObject
+	setSelectedError: () => void
+	searchQuery: string
+	current?: boolean
+}
+
+const ErrorRow = React.memo(
+	({ error, setSelectedError, searchQuery, current }: Props) => {
+		const body = useMemo(
+			() => parseOptionalJSON(getErrorBody(error.event)),
+			[error.event],
+		)
+		const context = useMemo(() => {
+			const data = parseOptionalJSON(error.payload || '')
+			return data === 'null' ? '' : data
+		}, [error.payload])
+		return (
+			<Box
+				key={error.id}
+				className={styles.errorRowVariants({
+					current,
+				})}
+				onClick={setSelectedError}
+			>
+				<Box display={'flex'} align={'center'}>
+					{typeof body === 'object' ? (
+						<JsonViewer src={body} collapsed={1} />
+					) : (
+						<TextHighlighter
+							searchWords={[searchQuery]}
+							textToHighlight={body}
+						/>
+					)}
+					{context &&
+						(typeof context === 'object' ? (
+							<JsonViewer src={context} collapsed={1} />
+						) : (
+							<TextHighlighter
+								searchWords={[searchQuery]}
+								textToHighlight={context}
+							/>
+						))}
+				</Box>
+				<Box
+					display={'flex'}
+					align={'center'}
+					justifyContent={'flex-end'}
+				>
+					<Text>
+						{error.structured_stack_trace[0] &&
+							`Line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
+					</Text>
+				</Box>
+				<Box
+					display={'flex'}
+					align={'center'}
+					justifyContent={'flex-end'}
+				>
+					<Tag kind={'grey'}>{error.type}</Tag>
+				</Box>
+			</Box>
+		)
+	},
+)
 
 export default ErrorsPage
