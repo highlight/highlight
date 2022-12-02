@@ -10,12 +10,12 @@ export default {
 
 export const Basic = () => (
 	<>
-		<LinkButton href="www.example.com">Hello! 👋</LinkButton>
+		<LinkButton to="www.example.com">Hello! 👋</LinkButton>
 		<LinkButton
 			kind="primary"
-			size="xSmall"
+			size="small"
 			emphasis="high"
-			href="www.example.com"
+			to="www.example.com"
 		>
 			Hello! 👋
 		</LinkButton>
