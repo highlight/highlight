@@ -1,3 +1,4 @@
+import { borders } from '@highlight-run/ui/src/css/borders'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { style } from '@vanilla-extract/css'
 
@@ -9,6 +10,10 @@ export const simple = style({
 			background: 'inherit',
 		},
 	},
+})
+
+export const rightBorder = style({
+	borderRight: `${borders.neutral} !important`,
 })
 
 export const selected = style({

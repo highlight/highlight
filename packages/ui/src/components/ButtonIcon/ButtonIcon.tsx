@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import clsx, { ClassValue } from 'clsx'
 import React from 'react'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
@@ -8,7 +8,7 @@ import * as styles from './styles.css'
 export type Props = React.ButtonHTMLAttributes<HTMLButtonElement> &
 	styles.Variants & {
 		icon: React.ReactElement<IconProps>
-		cssClass?: string
+		cssClass?: ClassValue | ClassValue[]
 	}
 
 export const ButtonIcon: React.FC<Props> = ({
