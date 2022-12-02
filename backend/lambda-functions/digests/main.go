@@ -19,7 +19,8 @@ func main() {
 
 	h := handlers.NewHandlers()
 	input := utils.DigestsInput{
-		AsOf: time.Now(),
+		AsOf:   time.Now(),
+		DryRun: true,
 	}
 
 	ctx := context.TODO()

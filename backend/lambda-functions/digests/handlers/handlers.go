@@ -303,6 +303,8 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	return &utils.DigestDataResponse{
 		ProjectId:      input.ProjectId,
+		StartFmt:       input.Start.Format("01/02"),
+		EndFmt:         input.End.Format("01/02"),
 		ProjectName:    projectName,
 		UserCount:      formatNumber(curUsers),
 		UserDelta:      formatDelta(curUsers - prevUsers),
@@ -338,7 +340,11 @@ func formatDurationSecond(input time.Duration) string {
 }
 
 func formatDurationMinute(input time.Duration) string {
-	return input.Round(time.Minute).String()
+	res := input.Round(time.Minute).String()
+	if len(res) >= 2 {
+		res = res[:len(res)-2]
+	}
+	return res
 }
 
 func formatDurationDelta(input time.Duration) string {
@@ -371,10 +377,6 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		return errors.Wrap(err, "error querying recipient emails")
 	}
 
-	if input.DryRun {
-		return nil
-	}
-
 	marshalled, err := json.Marshal(input)
 	if err != nil {
 		return errors.Wrap(err, "error marshalling input")
@@ -384,7 +386,9 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		return errors.Wrap(err, "error unmarshalling marshalled input")
 	}
 
-	toAddrs = []string{"zane@highlight.io"}
+	if input.DryRun {
+		toAddrs = []string{"zane@highlight.io"}
+	}
 
 	for _, toAddr := range toAddrs {
 		to := &mail.Email{Address: toAddr}

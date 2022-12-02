@@ -73,6 +73,8 @@ type FrequentError struct {
 
 type DigestDataResponse struct {
 	ProjectId      int             `json:"projectId"`
+	EndFmt         string          `json:"endFmt"`
+	StartFmt       string          `json:"startFmt"`
 	ProjectName    string          `json:"projectName"`
 	UserCount      string          `json:"userCount"`
 	UserDelta      string          `json:"userDelta"`
