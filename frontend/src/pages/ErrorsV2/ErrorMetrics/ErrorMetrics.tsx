@@ -2,6 +2,7 @@ import CategoricalBarChart from '@components/CategoricalBarChart/CategoricalBarC
 import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
+import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
 import {
 	Box,
 	Callout,
@@ -66,7 +67,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				resolution_minutes: Math.ceil(
 					timeRange.lookback / NUM_BUCKETS_TIMELINE,
 				),
-			},
+			} as ErrorGroupFrequenciesParamsInput,
 			metric: 'count',
 		},
 		skip: !errorGroup?.secure_id,
