@@ -125,6 +125,9 @@ const DevToolsControlBar: React.FC<
 									onBlur={() => {
 										setSearchShown(false)
 									}}
+									onFocus={() => {
+										setSearchShown(true)
+									}}
 								/>
 							</Box>
 						</label>
