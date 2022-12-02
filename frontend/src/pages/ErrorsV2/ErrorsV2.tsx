@@ -104,12 +104,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 				>
 					{!integrated && <IntegrationCard />}
 
-					<Box
-						display="flex"
-						flexDirection="column"
-						style={{ height: '100%' }}
-					>
+					<Box display="flex" flexDirection="column">
 						<Box
+							backgroundColor="white"
 							display="flex"
 							alignItems="center"
 							px="12"
