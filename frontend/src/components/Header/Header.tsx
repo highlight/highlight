@@ -20,9 +20,9 @@ import {
 	IconPlayCircle,
 	IconQuestionMarkCircle,
 	IconSpeakerphone,
+	IconStackedBarChart,
 	IconSwitchHorizontal,
 	IconUserCircle,
-	IconViewGrid,
 	IconViewGridAdd,
 	IconXCircle,
 	LinkButton,
@@ -84,8 +84,8 @@ export const Header = () => {
 			icon: IconPlayCircle,
 		},
 		{
-			key: 'dashboards',
-			icon: IconViewGrid,
+			key: 'alerts',
+			icon: IconSpeakerphone,
 		},
 	]
 
@@ -161,7 +161,7 @@ export const Header = () => {
 										/>
 										<Menu.List>
 											<Link
-												to={`/${project_id}/alerts`}
+												to={`/${project_id}/dashboards`}
 												className={linkStyle}
 											>
 												<Menu.Item>
@@ -170,14 +170,14 @@ export const Header = () => {
 														alignItems="center"
 														gap="4"
 													>
-														<IconSpeakerphone
+														<IconStackedBarChart
 															size="14"
 															color={
 																vars.color
 																	.neutral300
 															}
 														/>
-														Alerts
+														Dashboards
 													</Box>
 												</Menu.Item>
 											</Link>
