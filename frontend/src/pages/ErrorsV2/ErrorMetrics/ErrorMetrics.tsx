@@ -17,7 +17,7 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
 import styles from './ErrorMetrics.module.scss'
-import { testData } from './multiple_environment_test_data'
+import { TEST_DATA } from './multiple_environment_test_data'
 
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -81,7 +81,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	}>({ start: '', end: '' })
 
 	// TODO(spenny): remove test data once graphql queries is updated
-	const { data: testFrequencies } = testData
+	const { data: testFrequencies } = TEST_DATA
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
 			project_id: `${errorGroup?.project_id}`,
