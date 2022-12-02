@@ -2487,7 +2487,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 							{formatNumber(searchResultsCount)} results
 						</Text>
 					)}
-					<Box display="flex" gap="4">
+					<Box display="flex" gap="4" alignItems="center">
 						<Menu placement="bottom-end">
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
