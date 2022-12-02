@@ -101,7 +101,7 @@ const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
 					},
 					{
 						label: 'errors',
-						color: 'lb100',
+						color: 'blueLB100',
 						counts: histogramData.sessions_with_errors,
 					},
 				]
