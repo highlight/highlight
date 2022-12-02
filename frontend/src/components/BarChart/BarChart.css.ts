@@ -4,10 +4,10 @@ import { style } from '@vanilla-extract/css'
 export const barDiv = style({
 	display: 'flex',
 	flexDirection: 'column',
+	flexGrow: 1,
 	justifyContent: 'flex-end',
-	// Massaged these values based on trial and error trying to match mocks.
-	padding: '0 1.25px',
-	width: 6.5,
+	// Massaged padding based on trial and error trying to match mocks.
+	padding: '0 1.5px',
 })
 
 export const bar = style({

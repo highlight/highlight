@@ -281,9 +281,7 @@ const ErrorCardV2 = ({
 							error_secure_id === errorGroup?.secure_id,
 					})}
 				>
-					<div style={{ paddingRight: '20px' }}>
-						<BarChart data={errorDates} />
-					</div>
+					<BarChart data={errorDates} minBarHeight={5} />
 					<div className={styles.errorTextSectionWrapper}>
 						<div
 							className={styles.errorTextSection}
