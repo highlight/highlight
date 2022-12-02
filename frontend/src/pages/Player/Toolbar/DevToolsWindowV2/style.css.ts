@@ -22,6 +22,6 @@ export const switchInverted = style({
 })
 
 export const pageWrapper = style({
-	overflowY: 'scroll',
 	width: '100%',
+	height: '100%',
 })

@@ -29,10 +29,13 @@ export const variants = recipe({
 	],
 
 	variants: {
-		width: {
-			full: {
+		size: {
+			xSmall: {
 				height: 20,
-				width: '100%',
+			},
+			small: {
+				height: 24,
+				width: 26,
 			},
 		},
 		variant: {
@@ -81,6 +84,7 @@ export const variants = recipe({
 
 	defaultVariants: {
 		variant: 'unchecked',
+		size: 'small',
 	},
 })
 

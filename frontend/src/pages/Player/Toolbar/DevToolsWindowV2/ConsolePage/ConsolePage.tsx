@@ -1,15 +1,17 @@
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
-import { Box, Stack } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui'
+import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { H } from 'highlight.run'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { VirtuosoHandle } from 'react-virtuoso'
+import Skeleton from 'react-loading-skeleton'
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
+import { useReplayerContext } from '../../../ReplayerContext'
 import { LogLevel } from '../DevToolsWindowV2'
 import * as styles from './style.css'
 
@@ -23,25 +25,36 @@ export const ConsolePage = React.memo(
 		autoScroll,
 		filter,
 		logLevel,
+		time,
 	}: {
 		autoScroll: boolean
 		filter: string
 		logLevel: LogLevel
+		time: number
 	}) => {
 		const [currentMessage, setCurrentMessage] = useState(-1)
-		const { time, state, session } = useReplayerContext()
+		const { session } = useReplayerContext()
 		const [parsedMessages, setParsedMessages] = useState<
 			undefined | Array<ParsedMessage>
 		>([])
+		const [isInteractingWithMessages, setIsInteractingWithMessages] =
+			useState(false)
 		const { session_secure_id } = useParams<{ session_secure_id: string }>()
+		const [loading, setLoading] = useState(true)
 		const skipQuery = session === undefined || !!session?.messages_url
-		const { data } = useGetMessagesQuery({
+		const { data, loading: queryLoading } = useGetMessagesQuery({
 			variables: {
 				session_secure_id,
 			},
 			fetchPolicy: 'no-cache',
 			skip: skipQuery, // Skip if there is a URL to fetch messages
 		})
+
+		useEffect(() => {
+			if (!skipQuery) {
+				setLoading(queryLoading)
+			}
+		}, [queryLoading, skipQuery])
 
 		// If sessionSecureId is set and equals the current session's (ensures effect is run once)
 		// and resources url is defined, fetch using resources url
@@ -50,6 +63,7 @@ export const ConsolePage = React.memo(
 				session_secure_id === session?.secure_id &&
 				!!session?.messages_url
 			) {
+				setLoading(true)
 				indexedDBFetch(session.messages_url)
 					.then((response) => response.json())
 					.then((data) => {
@@ -68,6 +82,7 @@ export const ConsolePage = React.memo(
 						setParsedMessages([])
 						H.consumeError(e, 'Error direct downloading resources')
 					})
+					.finally(() => setLoading(false))
 			}
 		}, [session?.messages_url, session?.secure_id, session_secure_id])
 
@@ -86,10 +101,11 @@ export const ConsolePage = React.memo(
 		useEffect(() => {
 			if (parsedMessages?.length) {
 				let msgIndex = 0
-				let msgDiff: number = Math.abs(time - parsedMessages[0].time)
+				let msgDiff: number = Number.MAX_VALUE
 				for (let i = 0; i < parsedMessages.length; i++) {
 					const currentDiff: number = Math.abs(
-						time - parsedMessages[i].time,
+						time -
+							(parsedMessages[i].time - parsedMessages[0].time),
 					)
 					if (currentDiff < msgDiff) {
 						msgIndex = i
@@ -147,8 +163,8 @@ export const ConsolePage = React.memo(
 		const virtuoso = useRef<VirtuosoHandle>(null)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		const scrollFunction = useCallback(
-			_.debounce((index: number, state) => {
-				if (virtuoso.current && state === ReplayerState.Playing) {
+			_.debounce((index: number) => {
+				if (virtuoso.current) {
 					virtuoso.current.scrollToIndex({
 						index,
 						align: 'center',
@@ -160,31 +176,93 @@ export const ConsolePage = React.memo(
 		)
 
 		useEffect(() => {
-			if (autoScroll) {
-				scrollFunction(currentMessage, state)
+			if (!isInteractingWithMessages && autoScroll) {
+				scrollFunction(currentMessage)
 			}
-		}, [autoScroll, scrollFunction, currentMessage, state])
+		}, [
+			isInteractingWithMessages,
+			autoScroll,
+			scrollFunction,
+			currentMessage,
+		])
 
 		return (
 			<Box className={styles.consoleBox}>
-				<Stack gap={'12'}>
-					{messagesToRender.map((m) => (
-						<MessageRow key={m.id} message={m} />
-					))}
-				</Stack>
+				{loading ? (
+					<div className={devStyles.skeletonWrapper}>
+						<Skeleton
+							count={2}
+							style={{ height: 25, marginBottom: 11 }}
+						/>
+					</div>
+				) : messagesToRender?.length ? (
+					<Virtuoso
+						onMouseEnter={() => {
+							setIsInteractingWithMessages(true)
+						}}
+						onMouseLeave={() => {
+							setIsInteractingWithMessages(false)
+						}}
+						ref={virtuoso}
+						overscan={1024}
+						increaseViewportBy={1024}
+						components={{
+							ScrollSeekPlaceholder: () => (
+								<div
+									style={{
+										height: 36,
+									}}
+								/>
+							),
+						}}
+						scrollSeekConfiguration={{
+							enter: (v) => v > 512,
+							exit: (v) => v < 128,
+						}}
+						data={messagesToRender}
+						itemContent={(_index, message: ParsedMessage) => (
+							<MessageRow
+								key={message.id.toString()}
+								message={message}
+								current={message.id === currentMessage}
+							/>
+						)}
+					/>
+				) : messagesToRender.length === 0 && filter !== '' ? (
+					<div className={devStyles.emptySection}>
+						No messages matching '{filter}'
+					</div>
+				) : (
+					<div className={devStyles.emptySection}>
+						There are no console logs for this session.
+					</div>
+				)}
 			</Box>
 		)
 	},
 )
 
-const MessageRow = function ({ message }: { message: ParsedMessage }) {
+const MessageRow = function ({
+	message,
+	current,
+}: {
+	message: ParsedMessage
+	current?: boolean
+}) {
 	return (
-		<Box className={clsx(styles.consoleRow)}>
+		<Box
+			className={clsx(
+				styles.consoleRow,
+				styles.messageRowVariants({
+					current,
+				}),
+			)}
+		>
 			<div
 				className={clsx(
 					styles.consoleBar,
 					styles.variants({
-						type: message.type,
+						type: message.type as any,
 					}),
 				)}
 			>

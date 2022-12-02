@@ -9,10 +9,14 @@ import {
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
+import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
@@ -39,7 +43,7 @@ const DevToolsControlBar: React.FC<
 		tab: Tab
 		setTab: React.Dispatch<React.SetStateAction<Tab>>
 		autoScroll: boolean
-		setAutoScroll: React.Dispatch<React.SetStateAction<boolean>>
+		setAutoScroll: (autoScroll: boolean) => void
 		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
 		filter: string
 		setFilter: React.Dispatch<React.SetStateAction<string>>
@@ -61,7 +65,7 @@ const DevToolsControlBar: React.FC<
 					(t) => (
 						<Button
 							key={t}
-							size={'xxSmall'}
+							size={'xSmall'}
 							kind={t === props.tab ? 'primary' : 'secondary'}
 							className={
 								t !== props.tab
@@ -118,6 +122,9 @@ const DevToolsControlBar: React.FC<
 									onChange={(e) =>
 										props.setFilter(e.target.value)
 									}
+									onBlur={() => {
+										setSearchShown(false)
+									}}
 								/>
 							</Box>
 						</label>
@@ -132,7 +139,7 @@ const DevToolsControlBar: React.FC<
 					/>
 					<SwitchButton
 						style={{ padding: '0 4px' }}
-						width={'full'}
+						size={'xSmall'}
 						iconRight={
 							<IconSwitchHorizontal
 								width={12}
@@ -142,7 +149,7 @@ const DevToolsControlBar: React.FC<
 						}
 						checked={props.autoScroll}
 						onChange={() => {
-							props.setAutoScroll((a) => !a)
+							props.setAutoScroll(!props.autoScroll)
 						}}
 					>
 						Auto scroll
@@ -158,10 +165,16 @@ const DevToolsWindowV2: React.FC<
 		width: number
 	}
 > = (props) => {
+	const { openDevTools } = useDevToolsContext()
+	const { isPlayerFullscreen } = usePlayerUIContext()
+	const { time } = useReplayerContext()
 	const [filter, setFilter] = useState('')
-	const [tab, setTab] = React.useState<Tab>(Tab.Errors)
+	const [tab, setTab] = React.useState<Tab>(Tab.Console)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
-	const [autoScroll, setAutoScroll] = React.useState<boolean>(false)
+	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
+		'highlight-devtools-v2-autoscroll',
+		false,
+	)
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
@@ -169,7 +182,13 @@ const DevToolsWindowV2: React.FC<
 	let page: React.ReactNode = null
 	switch (tab) {
 		case Tab.Errors:
-			page = <ErrorsPage autoScroll={autoScroll} filter={filter} />
+			page = (
+				<ErrorsPage
+					autoScroll={autoScroll}
+					filter={filter}
+					time={time}
+				/>
+			)
 			break
 		case Tab.Console:
 			page = (
@@ -177,9 +196,14 @@ const DevToolsWindowV2: React.FC<
 					autoScroll={autoScroll}
 					logLevel={logLevel}
 					filter={filter}
+					time={time}
 				/>
 			)
 			break
+	}
+
+	if (!openDevTools || isPlayerFullscreen) {
+		return null
 	}
 
 	return (

@@ -15,10 +15,18 @@ interface ErrorsPageHistoryState {
 }
 
 const ErrorsPage = React.memo(
-	({ autoScroll, filter }: { autoScroll: boolean; filter: string }) => {
+	({
+		autoScroll,
+		filter,
+		time,
+	}: {
+		autoScroll: boolean
+		filter: string
+		time: number
+	}) => {
 		const virtuoso = useRef<VirtuosoHandle>(null)
 		const history = useHistory<ErrorsPageHistoryState>()
-		const { errors, state, time, sessionMetadata } = useReplayerContext()
+		const { errors, state, sessionMetadata } = useReplayerContext()
 
 		const loading = state === ReplayerState.Loading
 
