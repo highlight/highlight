@@ -29,6 +29,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Switch>
 			<Tabs
+				animated={false}
 				id="errorTabs"
 				className={styles.tabs}
 				noHeaderPadding
@@ -55,11 +56,10 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						title: (
 							<TabTitle
 								icon={<IconTrendingUp />}
-								label={'Metrics (Coming soon)'}
+								label={'Metrics'}
 							/>
 						),
-						panelContent: <ErrorMetrics />,
-						disabled: true,
+						panelContent: <ErrorMetrics errorGroup={errorGroup} />,
 					},
 				]}
 			/>

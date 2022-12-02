@@ -2175,7 +2175,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return addFilterButton
 			case QueryBuilderMode.CUSTOM:
 				return (
-					<Button
+					<Menu.Button
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
@@ -2186,11 +2186,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 						disabled={!areRulesValid}
 					>
 						Save
-					</Button>
+					</Menu.Button>
 				)
 			case QueryBuilderMode.SEGMENT:
 				return (
-					<Button
+					<Menu.Button
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
@@ -2199,11 +2199,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 						onClick={() => {}}
 					>
 						{segmentName}
-					</Button>
+					</Menu.Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
 				return (
-					<Button
+					<Menu.Button
 						kind="primary"
 						size="xSmall"
 						emphasis="high"
@@ -2215,7 +2215,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						iconRight={<IconChevronDown size={12} />}
 					>
 						{segmentName}
-					</Button>
+					</Menu.Button>
 				)
 		}
 	}, [addFilterButton, areRulesValid, mode, segmentName, updateSegment])
@@ -2489,14 +2489,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					)}
 					<Box display="flex" gap="4">
 						<Menu placement="bottom-end">
-							<Menu.Button
-								as="div"
-								kind="secondary"
-								cssClass={styles.menuTrigger}
-								disabled={!areRulesValid}
-							>
-								{actionButton}
-							</Menu.Button>
+							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
 								<Box
 									background="neutral50"
@@ -2564,19 +2557,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 						</Menu>
 						<Menu>
 							<Menu.Button
-								as="div"
 								kind="secondary"
-								cssClass={styles.menuTrigger}
 								disabled={segmentsLoading}
-							>
-								<ButtonIcon
-									kind="secondary"
-									size="tiny"
-									emphasis="high"
-									shape="square"
-									icon={<IconSegment size={12} />}
-								/>
-							</Menu.Button>
+								emphasis="high"
+								icon={<IconSegment size={12} />}
+								size="tiny"
+							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
 									background="neutral50"

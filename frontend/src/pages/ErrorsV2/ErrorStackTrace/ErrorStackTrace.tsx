@@ -16,6 +16,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import React from 'react'
@@ -28,6 +29,7 @@ interface Props {
 }
 
 const ErrorStackTrace = ({ errorObject }: Props) => {
+	const { projectId } = useProjectId()
 	const structuredStackTrace = errorObject?.structured_stack_trace
 
 	/**
@@ -74,13 +76,14 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 						<LinkButton
 							kind="secondary"
 							to="https://docs.highlight.run/sourcemaps"
+							target="_blank"
 						>
 							Learn More
 						</LinkButton>
 						<LinkButton
 							kind="secondary"
 							emphasis="low"
-							to="/${projectId}/settings/errors"
+							to={`/${projectId}/settings/errors`}
 						>
 							Sourcemap Settings
 						</LinkButton>
@@ -224,12 +227,14 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	const stackTraceTitle = (
 		<Box
 			background="neutral50"
+			cursor="pointer"
 			p="12"
 			bt={isFirst ? 'neutral' : undefined}
 			br="neutral"
 			bb="neutral"
 			bl="neutral"
 			btr={isFirst ? '6' : undefined}
+			bbr={isLast && !expanded ? '6' : undefined}
 			display="flex"
 			justifyContent="space-between"
 			alignItems="center"

@@ -92,18 +92,18 @@ const ProjectPicker = () => {
 		<div>
 			<div>
 				<Menu>
-					<Menu.Button kind="secondary" style={{ maxWidth: 200 }}>
-						{isWorkspaceLevel ? (
-							<IconArrowSmLeft
-								size="14"
-								color={vars.color.neutral700}
-							/>
-						) : (
-							<IconBriefcase
-								size="14"
-								color={vars.color.neutral700}
-							/>
-						)}
+					<Menu.Button
+						kind="secondary"
+						emphasis="high"
+						size="small"
+						iconLeft={
+							isWorkspaceLevel ? (
+								<IconArrowSmLeft size="14" />
+							) : (
+								<IconBriefcase size="14" />
+							)
+						}
+					>
 						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
 					<Menu.List>

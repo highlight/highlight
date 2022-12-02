@@ -7,7 +7,7 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-type Props = ButtonProps &
+export type Props = ButtonProps &
 	styles.Variants & {
 		iconLeft?: React.ReactElement<IconProps>
 		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -39,8 +39,8 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
-
 	const hasInternalButtons = !!onIconLeftClick || !!onIconRightClick
+
 	return (
 		<AriakitButton
 			as={hasInternalButtons ? 'div' : 'button'}
