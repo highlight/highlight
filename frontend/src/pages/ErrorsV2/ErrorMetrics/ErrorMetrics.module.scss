@@ -16,6 +16,10 @@
 	display: flex;
 }
 
+.timePickerContainer {
+	z-index: 10;
+}
+
 .calloutContainer {
 	background-color: #f9f8f9;
 	margin-top: var(--size-medium);

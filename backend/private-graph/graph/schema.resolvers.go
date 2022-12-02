@@ -219,7 +219,7 @@ func (r *errorGroupResolver) ErrorMetrics(ctx context.Context, obj *model.ErrorG
 			StartDate: time.Now().Add(-24 * 30 * time.Hour),
 			EndDate:   time.Now(),
 		},
-		ResolutionHours: 24,
+		ResolutionMinutes: 24 * 60,
 	}, "")
 }
 
