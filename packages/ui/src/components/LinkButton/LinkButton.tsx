@@ -13,7 +13,7 @@ type Props = React.PropsWithChildren &
 		disabled?: boolean
 		iconLeft?: React.ReactElement<IconProps>
 		iconRight?: React.ReactElement<IconProps>
-		target?: LinkProps['target']
+		target?: '_blank' | '_self' | '_parent' | '_top' | 'framename'
 	}
 
 export const LinkButton: React.FC<Props> = ({
