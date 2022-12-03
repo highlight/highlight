@@ -3,7 +3,8 @@ import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
 import { Box, Tag, Text } from '@highlight-run/ui'
 import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
-import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
+import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
+import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -34,6 +35,7 @@ const ErrorsPage = React.memo(
 		const history = useHistory<ErrorsPageHistoryState>()
 		const { errors, state, session, sessionMetadata, setTime } =
 			useReplayerContext()
+		const { setErrorPanel } = useResourceOrErrorDetailPanel()
 
 		const loading = state === ReplayerState.Loading
 
@@ -119,7 +121,7 @@ const ErrorsPage = React.memo(
 								key={error.error_group_secure_id}
 								error={error}
 								setSelectedError={() => {
-									// TODO(vkorolik) interact with side panel
+									setErrorPanel(error)
 									setTime(
 										new Date(error.timestamp).getTime() -
 											sessionMetadata.startTime,

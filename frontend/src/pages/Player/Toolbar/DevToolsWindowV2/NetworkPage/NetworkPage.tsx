@@ -1,24 +1,23 @@
-import Input from '@components/Input/Input'
-import { ErrorObject } from '@graph/schemas'
+import { Box, Text } from '@highlight-run/ui'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import {
-	NetworkResourceWithID,
-	useResourcesContext,
-} from '@pages/Player/ResourcesContext/ResourcesContext'
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
-import {
-	ActiveEvent,
-	findLastActiveEventIndex,
-} from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/utils/utils'
+import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
-import useLocalStorage from '@rehooks/local-storage'
+import {
+	findLastActiveEventIndex,
+	findResourceWithMatchingHighlightHeader,
+	getHighlightRequestId,
+	NetworkResource,
+	RequestType,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -27,12 +26,20 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
-import devStyles from '../DevToolsWindow.module.scss'
-import { getNetworkResourcesDisplayName, Option } from '../Option/Option'
-import styles from './ResourcePage.module.scss'
+import * as styles from './style.css'
 
-export const ResourcePage = React.memo(
-	({ time, startTime }: { time: number; startTime: number }) => {
+export const NetworkPage = React.memo(
+	({
+		time,
+		autoScroll,
+		filter,
+		requestType,
+	}: {
+		time: number
+		autoScroll: boolean
+		filter: string
+		requestType: RequestType
+	}) => {
 		const {
 			state,
 			session,
@@ -42,13 +49,9 @@ export const ResourcePage = React.memo(
 			setTime,
 			sessionMetadata,
 		} = useReplayerContext()
+		const startTime = sessionMetadata.startTime
 		const { setShowDevTools, setSelectedDevToolsTab } =
 			usePlayerConfiguration()
-		const [currentOption, setCurrentOption] = useLocalStorage(
-			'tabs-DevTools-ResourcePage-active-tab',
-			'All',
-		)
-		const [filterSearchTerm, setFilterSearchTerm] = useState('')
 		const [isInteractingWithResources, setIsInteractingWithResources] =
 			useState(false)
 		const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
@@ -70,16 +73,6 @@ export const ResourcePage = React.memo(
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [])
 
-		const options = useMemo(() => {
-			const optionSet = new Set<string>()
-			parsedResources?.forEach((r) => {
-				if (!optionSet.has(r.initiatorType)) {
-					optionSet.add(r.initiatorType)
-				}
-			})
-			return ['All', ...Array.from(optionSet)]
-		}, [parsedResources])
-
 		const networkRange = useMemo(() => {
 			if (parsedResources.length > 0) {
 				const start = parsedResources[0].startTime
@@ -94,9 +87,9 @@ export const ResourcePage = React.memo(
 			const current =
 				(parsedResources
 					?.filter((r) => {
-						if (currentOption === 'All') {
+						if (requestType === RequestType.All) {
 							return true
-						} else if (currentOption === r.initiatorType) {
+						} else if (requestType === r.initiatorType) {
 							return true
 						}
 						return false
@@ -106,7 +99,7 @@ export const ResourcePage = React.memo(
 						timestamp: event.startTime + startTime,
 					})) as NetworkResource[]) ?? []
 
-			if (filterSearchTerm !== '') {
+			if (filter !== '') {
 				return current.filter((resource) => {
 					if (!resource.name) {
 						return false
@@ -114,20 +107,19 @@ export const ResourcePage = React.memo(
 
 					return (resource.displayName || resource.name)
 						.toLocaleLowerCase()
-						.includes(filterSearchTerm.toLocaleLowerCase())
+						.includes(filter.toLocaleLowerCase())
 				})
 			}
 
 			return current
-		}, [currentOption, filterSearchTerm, parsedResources, startTime])
+		}, [requestType, filter, parsedResources, startTime])
 
 		const currentResourceIdx = useMemo(() => {
-			const index = findLastActiveEventIndex(
+			return findLastActiveEventIndex(
 				Math.round(time - startTime),
 				startTime,
 				resourcesToRender,
 			)
-			return index
 		}, [resourcesToRender, startTime, time])
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -213,16 +205,14 @@ export const ResourcePage = React.memo(
 		useEffect(() => {
 			if (
 				!isInteractingWithResources &&
+				autoScroll &&
 				state === ReplayerState.Playing
 			) {
 				scrollFunction(currentResourceIdx)
 			}
-		}, [
-			currentResourceIdx,
-			scrollFunction,
-			isInteractingWithResources,
-			state,
-		])
+			// want this to trigger on autoscroll change, not isInteractingWithMessages
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [currentResourceIdx, scrollFunction, autoScroll, state])
 
 		useEffect(() => {
 			// scroll network events on player timeline click
@@ -272,182 +262,114 @@ export const ResourcePage = React.memo(
 		])
 
 		return (
-			<div className={styles.resourcePageWrapper}>
-				<div className={devStyles.topBar}>
-					<div className={styles.optionsWrapper}>
-						<div className={styles.optionsContainer}>
-							{options.map((o: string, i: number) => {
-								return (
-									<Option
-										key={i.toString()}
-										onSelect={() => setCurrentOption(o)}
-										selected={o === currentOption}
-										optionValue={o}
-									/>
-								)
-							})}
-						</div>
-						<div className={styles.filterContainer}>
-							<Input
-								allowClear
-								placeholder="Filter"
-								value={filterSearchTerm}
-								onChange={(event) => {
-									setFilterSearchTerm(event.target.value)
+			<Box className={clsx(styles.container, styles.containerPadding)}>
+				{loading || !session ? (
+					<Skeleton
+						count={10}
+						style={{ height: 25, marginBottom: 11 }}
+					/>
+				) : resourcesToRender.length > 0 ? (
+					<Box className={styles.container}>
+						<Box className={styles.networkHeader}>
+							<Text>Status</Text>
+							<Text>Type</Text>
+							<Text>Name</Text>
+							<Text>Time</Text>
+							<Text>Waterfall</Text>
+						</Box>
+						<Box className={styles.networkBox}>
+							<Virtuoso
+								onMouseEnter={() => {
+									setIsInteractingWithResources(true)
 								}}
-								size="small"
-								disabled={loading}
+								onMouseLeave={() => {
+									setIsInteractingWithResources(false)
+								}}
+								ref={virtuoso}
+								overscan={1024}
+								increaseViewportBy={1024}
+								components={{
+									ScrollSeekPlaceholder: () => (
+										<div
+											style={{
+												height: 36,
+											}}
+										/>
+									),
+								}}
+								scrollSeekConfiguration={{
+									enter: (v) => v > 512,
+									exit: (v) => v < 128,
+								}}
+								data={resourcesToRender}
+								itemContent={(index, resource) => {
+									const requestId =
+										getHighlightRequestId(resource)
+									const error = errors.find(
+										(e) => e.request_id === requestId,
+									)
+									return (
+										<ResourceRow
+											key={index.toString()}
+											resource={resource}
+											networkRange={networkRange}
+											isCurrentResource={
+												currentResourceIdx === index
+											}
+											searchTerm={filter}
+											onClickHandler={() => {
+												setCurrentActiveIndex(index)
+												setResourcePanel(resource)
+											}}
+											playerStartTime={startTime}
+											hasError={!!error}
+											networkRequestAndResponseRecordingEnabled={
+												session.enable_recording_network_contents ||
+												false
+											}
+										/>
+									)
+								}}
 							/>
-						</div>
+						</Box>
+					</Box>
+				) : resourcesToRender.length === 0 &&
+				  (filter !== '' || requestType !== RequestType.All) ? (
+					<div className={styles.noDataContainer}>
+						<p>
+							{`No ${
+								requestType !== RequestType.All
+									? requestType
+									: ''
+							} network resources ${
+								filter !== '' ? `matching ${filter}` : ''
+							}`}
+						</p>
 					</div>
-				</div>
-				<div className={styles.networkTableWrapper}>
-					{loading || !session ? (
-						<div className={devStyles.skeletonWrapper}>
-							<Skeleton
-								count={10}
-								style={{ height: 25, marginBottom: 11 }}
-							/>
-						</div>
-					) : (
-						<>
-							<div className={styles.networkTopBar}>
-								<div className={styles.networkColumn}>
-									Status
-								</div>
-								<div className={styles.networkColumn}>Type</div>
-								<div className={styles.networkColumn}>Name</div>
-								<div className={styles.networkColumn}>Time</div>
-								<div
-									className={classNames(
-										styles.networkColumn,
-										styles.waterfall,
-									)}
-								>
-									Waterfall
-								</div>
-							</div>
-							<div
-								id="networkStreamWrapper"
-								className={styles.networkStreamWrapper}
+				) : (
+					<div className={styles.noDataContainer}>
+						<h3>
+							There are no network recordings for this session.
+						</h3>
+						<p>
+							If you expected to see data here, please make sure{' '}
+							<code>networkRecording</code> is set to{' '}
+							<code>true</code>. You can{' '}
+							<a
+								href="https://docs.highlight.run/api#w0-highlightoptions"
+								target="_blank"
+								rel="noreferrer"
 							>
-								{resourcesToRender.length > 0 && session ? (
-									<Virtuoso
-										onMouseEnter={() => {
-											setIsInteractingWithResources(true)
-										}}
-										onMouseLeave={() => {
-											setIsInteractingWithResources(false)
-										}}
-										ref={virtuoso}
-										overscan={1024}
-										increaseViewportBy={1024}
-										components={{
-											ScrollSeekPlaceholder: () => (
-												<div
-													style={{
-														height: 36,
-													}}
-												/>
-											),
-										}}
-										scrollSeekConfiguration={{
-											enter: (v) => v > 512,
-											exit: (v) => v < 128,
-										}}
-										data={resourcesToRender}
-										className={styles.virtuoso}
-										itemContent={(index, resource) => {
-											const requestId =
-												getHighlightRequestId(resource)
-											const error = errors.find(
-												(e) =>
-													e.request_id === requestId,
-											)
-											return (
-												<div style={{ height: 36 }}>
-													<ResourceRow
-														key={index.toString()}
-														resource={resource}
-														networkRange={
-															networkRange
-														}
-														isCurrentResource={
-															currentResourceIdx ===
-															index
-														}
-														searchTerm={
-															filterSearchTerm
-														}
-														onClickHandler={() => {
-															setCurrentActiveIndex(
-																index,
-															)
-															setResourcePanel(
-																resource,
-															)
-														}}
-														playerStartTime={
-															startTime
-														}
-														playerRelTime={
-															time - startTime
-														}
-														hasError={!!error}
-														networkRequestAndResponseRecordingEnabled={
-															session.enable_recording_network_contents ||
-															false
-														}
-													/>
-												</div>
-											)
-										}}
-									/>
-								) : resourcesToRender.length === 0 &&
-								  filterSearchTerm !== '' ? (
-									<div className={styles.noDataContainer}>
-										<p>
-											No network resources matching '
-											{filterSearchTerm}'
-										</p>
-									</div>
-								) : (
-									<div className={styles.noDataContainer}>
-										<h3>
-											There are no network recordings for
-											this session.
-										</h3>
-										<p>
-											If you expected to see data here,
-											please make sure{' '}
-											<code>networkRecording</code> is set
-											to <code>true</code>. You can{' '}
-											<a
-												href="https://docs.highlight.run/api#w0-highlightoptions"
-												target="_blank"
-												rel="noreferrer"
-											>
-												learn more here
-											</a>
-											.
-										</p>
-									</div>
-								)}
-							</div>
-						</>
-					)}
-				</div>
-			</div>
+								learn more here
+							</a>
+							.
+						</p>
+					</div>
+				)}
+			</Box>
 		)
 	},
 )
-
-export type NetworkResource = NetworkResourceWithID &
-	ActiveEvent & {
-		requestResponsePairs?: RequestResponsePair
-		errors?: ErrorObject[]
-		offsetStartTime?: number
-	}
 
 interface ResourceRowProps {
 	resource: NetworkResource
@@ -457,7 +379,6 @@ interface ResourceRowProps {
 	onClickHandler: () => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
-	playerRelTime: number
 	hasError?: boolean
 }
 
@@ -480,25 +401,23 @@ const ResourceRow = ({
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
 
 	return (
-		<div key={resource.id.toString()} onClick={onClickHandler}>
-			<div
-				className={classNames(styles.networkRow, {
-					[styles.current]: isCurrentResource,
-					[styles.failedResource]:
+		<Box key={resource.id.toString()} onClick={onClickHandler}>
+			<Box
+				className={styles.networkRowVariants({
+					current: isCurrentResource,
+					failedResource: !!(
 						hasError ||
 						(resource.requestResponsePairs?.response.status &&
 							(resource.requestResponsePairs.response.status ===
 								0 ||
 								resource.requestResponsePairs.response.status >=
-									400)),
-					[styles.showingDetails]:
+									400))
+					),
+					showingDetails:
 						detailedPanel?.id === resource.id.toString(),
 				})}
 			>
-				{isCurrentResource && (
-					<div className={styles.currentIndicator} />
-				)}
-				<div className={styles.typeSection}>
+				<Box>
 					{resource.initiatorType === 'xmlhttprequest' ||
 					resource.initiatorType === 'fetch'
 						? resource.requestResponsePairs?.response.status ?? (
@@ -509,10 +428,10 @@ const ResourceRow = ({
 								/>
 						  )
 						: '200'}
-				</div>
-				<div className={styles.typeSection}>
+				</Box>
+				<Box>
 					{getNetworkResourcesDisplayName(resource.initiatorType)}
-				</div>
+				</Box>
 				<Tooltip title={resource.displayName || resource.name}>
 					<TextHighlighter
 						className={styles.nameSection}
@@ -521,89 +440,36 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<div className={styles.typeSection}>
+				<Box>
 					{playerTimeToSessionAbsoluteTime({
 						sessionStartTime: playerStartTime,
 						relativeTime: resource.startTime,
 					})}
-				</div>
-				<div className={styles.timingBarWrapper}>
-					<div
+				</Box>
+				<Box className={styles.timingBarWrapper}>
+					<Box
 						style={{
 							width: `${leftPaddingPercent}%`,
 						}}
 						className={styles.timingBarEmptySection}
 					/>
-					<div
+					<Box
 						className={styles.timingBar}
 						style={{
 							width: `${actualPercent}%`,
 							zIndex: 100,
 						}}
 					/>
-					<div
+					<Box
 						style={{
 							width: `${rightPaddingPercent}%`,
 						}}
 						className={styles.timingBarEmptySection}
 					/>
-				</div>
-			</div>
-		</div>
+				</Box>
+			</Box>
+		</Box>
 	)
-}
-
-interface Request {
-	url: string
-	verb: string
-	headers: Headers
-	body: any
-}
-
-interface Response {
-	status: number
-	headers: any
-	body: any
-	/** Number of Bytes transferred over the network. */
-	size?: number
-}
-
-interface RequestResponsePair {
-	request: Request
-	response: Response
-	/** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
-	urlBlocked: boolean
-}
-
-/**
- * Formats bytes to the short form of KB and MB.
- */
-export const formatSize = (bytes: number) => {
-	if (bytes < 1024) {
-		return `${roundOff(bytes)} B`
-	}
-	if (bytes < 1024 ** 2) {
-		return `${roundOff(bytes / 1024)} KB`
-	}
-	return `${roundOff(bytes / 1024 ** 2)} MB`
-}
-
-const roundOff = (value: number, decimal = 1) => {
-	const base = 10 ** decimal
-	return Math.round(value * base) / base
-}
-
-export const findResourceWithMatchingHighlightHeader = (
-	headerValue: string,
-	resources: NetworkResource[],
-) => {
-	return resources.find(
-		(resource) => getHighlightRequestId(resource) === headerValue,
-	)
-}
-
-export const getHighlightRequestId = (resource: NetworkResource) => {
-	return resource.requestResponsePairs?.request?.id
 }
 
 export const UnknownRequestStatusCode = ({

@@ -14,7 +14,7 @@ import KeyValueTable, {
 import { EmptySessionsSearchParams } from '../../Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
-import { formatSize } from '../Toolbar/DevToolsWindow/ResourcePage/ResourcePage'
+import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
 import styles from './MetadataPanel.module.scss'
 
 type Field = {

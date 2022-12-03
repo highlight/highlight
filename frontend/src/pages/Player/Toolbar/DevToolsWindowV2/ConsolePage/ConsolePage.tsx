@@ -3,6 +3,7 @@ import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb/typings/types'
 import { Box } from '@highlight-run/ui'
 import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
+import { LogLevel } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -13,7 +14,6 @@ import Skeleton from 'react-loading-skeleton'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { useReplayerContext } from '../../../ReplayerContext'
-import { LogLevel } from '../DevToolsWindowV2'
 import * as styles from './style.css'
 
 interface ParsedMessage extends ConsoleMessage {

@@ -1,5 +1,7 @@
 import { ErrorObject } from '@graph/schemas'
+import { formatTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
+import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import React from 'react'
 
@@ -8,13 +10,8 @@ import KeyValueTable, {
 	KeyValueTableRow,
 } from '../../../../../../../components/KeyValueTable/KeyValueTable'
 import Space from '../../../../../../../components/Space/Space'
-import { formatTime } from '../../../../../../Home/components/KeyPerformanceIndicators/utils/utils'
+import { formatSize, NetworkResource } from '../../../../DevToolsWindowV2/utils'
 import { getNetworkResourcesDisplayName } from '../../../Option/Option'
-import {
-	formatSize,
-	NetworkResource,
-	UnknownRequestStatusCode,
-} from '../../ResourcePage'
 import styles from './ResourceDetailsModal.module.scss'
 
 interface Props {

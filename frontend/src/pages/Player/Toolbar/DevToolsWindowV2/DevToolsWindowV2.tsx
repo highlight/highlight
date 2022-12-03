@@ -12,10 +12,15 @@ import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useDevToolsContext } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
+import { NetworkPage } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	DEV_TOOLS_MIN_HEIGHT,
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
+import {
+	LogLevel,
+	RequestType,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
 
@@ -30,14 +35,6 @@ enum Tab {
 	Performance = 'Performance',
 }
 
-export enum LogLevel {
-	All = 'All',
-	Info = 'Info',
-	Log = 'Log',
-	Warn = 'Warn',
-	Error = 'Error',
-}
-
 const DevToolsControlBar: React.FC<
 	React.PropsWithChildren & {
 		tab: Tab
@@ -45,10 +42,18 @@ const DevToolsControlBar: React.FC<
 		autoScroll: boolean
 		setAutoScroll: (autoScroll: boolean) => void
 		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
-		filter: string
+		setRequestType: React.Dispatch<React.SetStateAction<RequestType>>
 		setFilter: React.Dispatch<React.SetStateAction<string>>
 	}
-> = (props) => {
+> = ({
+	tab,
+	setTab,
+	autoScroll,
+	setAutoScroll,
+	setLogLevel,
+	setRequestType,
+	setFilter,
+}) => {
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	return (
 		<Box
@@ -66,14 +71,14 @@ const DevToolsControlBar: React.FC<
 						<Button
 							key={t}
 							size={'xSmall'}
-							kind={t === props.tab ? 'primary' : 'secondary'}
+							kind={t === tab ? 'primary' : 'secondary'}
 							className={
-								t !== props.tab
+								t !== tab
 									? styles.controlBarButtonDeselected
 									: undefined
 							}
 							onClick={() => {
-								props.setTab(t)
+								setTab(t)
 							}}
 						>
 							{Tab[t]}
@@ -119,9 +124,7 @@ const DevToolsControlBar: React.FC<
 									placeholder={'Search'}
 									size={'xSmall'}
 									collapsed={!searchShown}
-									onChange={(e) =>
-										props.setFilter(e.target.value)
-									}
+									onChange={(e) => setFilter(e.target.value)}
 									onBlur={() => {
 										setSearchShown(false)
 									}}
@@ -133,13 +136,24 @@ const DevToolsControlBar: React.FC<
 						</label>
 					</Form>
 
-					<MenuButton
-						size={'medium'}
-						options={Object.values(LogLevel)}
-						onChange={(ll: string) =>
-							props.setLogLevel(ll as LogLevel)
-						}
-					/>
+					{tab === Tab.Console ? (
+						<MenuButton
+							size={'medium'}
+							options={Object.values(LogLevel)}
+							onChange={(ll: string) =>
+								setLogLevel(ll as LogLevel)
+							}
+						/>
+					) : tab === Tab.Network ? (
+						<MenuButton
+							size={'medium'}
+							options={Object.values(RequestType)}
+							onChange={(rt: string) =>
+								setRequestType(rt as RequestType)
+							}
+						/>
+					) : null}
+
 					<SwitchButton
 						style={{ padding: '0 4px' }}
 						size={'xSmall'}
@@ -150,9 +164,9 @@ const DevToolsControlBar: React.FC<
 								className={styles.switchInverted}
 							/>
 						}
-						checked={props.autoScroll}
+						checked={autoScroll}
 						onChange={() => {
-							props.setAutoScroll(!props.autoScroll)
+							setAutoScroll(!autoScroll)
 						}}
 					>
 						Auto scroll
@@ -173,6 +187,9 @@ const DevToolsWindowV2: React.FC<
 	const { time } = useReplayerContext()
 	const [filter, setFilter] = useState('')
 	const [tab, setTab] = React.useState<Tab>(Tab.Console)
+	const [requestType, setRequestType] = React.useState<RequestType>(
+		RequestType.All,
+	)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
 		'highlight-devtools-v2-autoscroll',
@@ -198,6 +215,16 @@ const DevToolsWindowV2: React.FC<
 				<ConsolePage
 					autoScroll={autoScroll}
 					logLevel={logLevel}
+					filter={filter}
+					time={time}
+				/>
+			)
+			break
+		case Tab.Network:
+			page = (
+				<NetworkPage
+					autoScroll={autoScroll}
+					requestType={requestType}
 					filter={filter}
 					time={time}
 				/>
@@ -232,13 +259,13 @@ const DevToolsWindowV2: React.FC<
 						style={{ width: props.width }}
 					>
 						<DevToolsControlBar
-							filter={filter}
 							setFilter={setFilter}
 							tab={tab}
 							setTab={setTab}
 							autoScroll={autoScroll}
 							setAutoScroll={setAutoScroll}
 							setLogLevel={setLogLevel}
+							setRequestType={setRequestType}
 						/>
 						<Box className={styles.pageWrapper}>{page}</Box>
 					</div>
