@@ -18,12 +18,10 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	iconLeft,
 	iconRight,
 	children,
-	size,
 	...rest
 }) => {
 	const className = styles.variants({
 		variant: checked ? 'checked' : 'unchecked',
-		size,
 	})
 	const checkbox = useCheckboxState()
 

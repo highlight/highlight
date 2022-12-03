@@ -29,15 +29,6 @@ export const variants = recipe({
 	],
 
 	variants: {
-		size: {
-			xSmall: {
-				height: 20,
-			},
-			small: {
-				height: 24,
-				width: 26,
-			},
-		},
 		variant: {
 			checked: {
 				background: vars.theme.interactive.fill.primary.enabled,
@@ -84,7 +75,6 @@ export const variants = recipe({
 
 	defaultVariants: {
 		variant: 'unchecked',
-		size: 'small',
 	},
 })
 

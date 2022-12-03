@@ -5,7 +5,6 @@ import {
 	IconSearch,
 	IconSwitchHorizontal,
 	MenuButton,
-	SwitchButton,
 } from '@highlight-run/ui/src'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
@@ -154,7 +153,7 @@ const DevToolsControlBar: React.FC<
 						/>
 					) : null}
 
-					<SwitchButton
+					<Button
 						style={{ padding: '0 4px' }}
 						size={'xSmall'}
 						iconRight={
@@ -164,13 +163,13 @@ const DevToolsControlBar: React.FC<
 								className={styles.switchInverted}
 							/>
 						}
-						checked={autoScroll}
-						onChange={() => {
+						kind={autoScroll ? 'primary' : 'secondary'}
+						onClick={() => {
 							setAutoScroll(!autoScroll)
 						}}
 					>
 						Auto scroll
-					</SwitchButton>
+					</Button>
 				</Box>
 			</Box>
 		</Box>
