@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonV1 from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
@@ -38,7 +37,6 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import SvgXIcon from '@icons/XIcon'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -51,7 +49,7 @@ import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox, message } from 'antd'
-import classNames from 'classnames'
+import clsx, { ClassValue } from 'clsx'
 import _, { identity, isEqual, omitBy, pickBy } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -62,8 +60,8 @@ import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useLocalStorage, useToggle } from 'react-use'
 
+import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
-
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -201,7 +199,7 @@ const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
 		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
 		const showLeftShadow = scrollLeft > 0
 		setClassName(
-			classNames(styles.shadowContainer, {
+			clsx(styles.shadowContainer, {
 				[styles.shadowRight]: showRightShadow && !showLeftShadow,
 				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
 				[styles.shadowBoth]: showLeftShadow && showRightShadow,
@@ -725,8 +723,10 @@ const PopoutContent = ({
 const SelectPopout = ({
 	value,
 	disabled,
+	cssClass,
 	...props
-}: PopoutProps & PopoutContentProps) => {
+}: PopoutProps &
+	PopoutContentProps & { cssClass?: ClassValue | ClassValue[] }) => {
 	// Visible by default if no value yet
 	const [visible, setVisible] = useState(!value)
 	const onSetVisible = (val: boolean) => {
@@ -767,22 +767,29 @@ const SelectPopout = ({
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
 			>
-				<ButtonV1
-					trackingId={`SessionsQuerySelect`}
-					className={classNames(styles.ruleItem, {
-						[styles.invalid]: invalid && !visible,
-					})}
-					disabled={disabled}
-				>
-					{invalid && '--'}
-					{value?.kind === 'single' && getNameLabel(value.label)}
-					{value?.kind === 'multi' &&
-						value.options.length > 1 &&
-						`${value.options.length} selections`}
-					{value?.kind === 'multi' &&
-						value.options.length === 1 &&
-						value.options[0].label}
-				</ButtonV1>
+				<span className={newStyle.tagPopoverAnchor}>
+					<Tag
+						kind="grey"
+						size="medium"
+						shape="basic"
+						cssClass={[
+							cssClass,
+							{
+								[styles.invalid]: invalid && !visible,
+							},
+						]}
+						disabled={disabled}
+					>
+						{invalid && '--'}
+						{value?.kind === 'single' && getNameLabel(value.label)}
+						{value?.kind === 'multi' &&
+							value.options.length > 1 &&
+							`${value.options.length} selections`}
+						{value?.kind === 'multi' &&
+							value.options.length === 1 &&
+							value.options[0].label}
+					</Tag>
+				</span>
 			</Tooltip>
 		</Popover>
 	)
@@ -818,13 +825,14 @@ const QueryRule = ({
 	readonly,
 }: { rule: RuleProps } & RuleSettings) => {
 	return (
-		<div className={styles.ruleContainer}>
+		<Box display="inline-flex" gap="1">
 			<SelectPopout
 				value={rule.field}
 				onChange={onChangeKey}
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
+				cssClass={[newStyle.flatRight]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -832,6 +840,13 @@ const QueryRule = ({
 				loadOptions={getOperatorOptions}
 				type="select"
 				disabled={readonly}
+				cssClass={[
+					newStyle.flatLeft,
+					{
+						[newStyle.flatRight]:
+							(!!rule.op && hasArguments(rule.op)) || !readonly,
+					},
+				]}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
 				<SelectPopout
@@ -840,20 +855,25 @@ const QueryRule = ({
 					loadOptions={getValueOptions}
 					type={getPopoutType(rule.op)}
 					disabled={readonly}
+					cssClass={[
+						newStyle.flatLeft,
+						{ [newStyle.flatRight]: !readonly },
+					]}
 				/>
 			)}
 			{!readonly && (
-				<ButtonV1
-					trackingId="SessionsQueryRemoveRule"
-					className={classNames(styles.ruleItem, styles.removeRule)}
+				<Tag
+					size="medium"
+					kind="grey"
+					shape="basic"
+					cssClass={[newStyle.flatLeft]}
 					onClick={() => {
 						onRemove()
 					}}
-				>
-					<SvgXIcon />
-				</ButtonV1>
+					iconRight={<IconX size={12} />}
+				/>
 			)}
-		</div>
+		</Box>
 	)
 }
 
@@ -2117,15 +2137,26 @@ function QueryBuilder(props: QueryBuilderProps) {
 					(currentStep === 3 && !!currentRule?.op)
 				}
 			>
-				<Button
-					kind="secondary"
-					size="small"
-					emphasis="low"
-					iconLeft={<IconPlusSm size={12} />}
-					onClick={addNewRule}
-				>
-					{mode === QueryBuilderMode.EMPTY ? 'Add filter' : null}
-				</Button>
+				{mode === QueryBuilderMode.EMPTY ? (
+					<Button
+						kind="secondary"
+						size="small"
+						emphasis="low"
+						iconLeft={<IconPlusSm size={12} />}
+						onClick={addNewRule}
+					>
+						Add filter
+					</Button>
+				) : (
+					<ButtonIcon
+						kind="secondary"
+						size="tiny"
+						emphasis="low"
+						icon={<IconPlusSm size={12} />}
+						onClick={addNewRule}
+						cssClass={newStyle.addButton}
+					/>
+				)}
 			</Popover>
 		)
 	}, [
@@ -2321,7 +2352,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						userSelect="none"
 					>
 						<IconPlusCircle size={16} color={colors.neutral300} />
-						Duplicate
+						Save as a new segment
 					</Box>
 				</Menu.Item>
 				<Menu.Item
