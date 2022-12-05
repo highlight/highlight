@@ -27,7 +27,7 @@ import { getErrorBody } from '@util/errors/errorUtils'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import classNames from 'classnames/bind'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -39,85 +39,89 @@ import styles from './ErrorFeedV2.module.scss'
 
 const PAGE_SIZE = 10
 
-const useHistogram = (projectID: string, projectHasManyErrors: boolean) => {
-	const { backendSearchQuery, searchParams, setSearchParams } =
-		useErrorSearchContext()
-	const [histogram, setHistogram] = useState<{
-		seriesList: Series[]
-		bucketTimes: number[]
-	}>({
-		seriesList: [],
-		bucketTimes: [],
-	})
-	const { loading } = useGetErrorsHistogramQuery({
-		variables: {
-			query: backendSearchQuery?.childSearchQuery as string,
-			project_id: projectID,
-			histogram_options: {
-				bucket_size:
-					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-				time_zone:
-					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
-				bounds: {
-					start_date:
-						backendSearchQuery?.startDate.toISOString() as string,
-					end_date:
-						backendSearchQuery?.endDate.toISOString() as string,
+interface ErrorsHistogramProps {
+	projectHasManyErrors: boolean
+}
+
+const ErrorsHistogram: React.FC<ErrorsHistogramProps> = React.memo(
+	({ projectHasManyErrors }: ErrorsHistogramProps) => {
+		const { project_id } = useParams<{
+			project_id: string
+		}>()
+		const { backendSearchQuery, searchParams, setSearchParams } =
+			useErrorSearchContext()
+		const { loading, data } = useGetErrorsHistogramQuery({
+			variables: {
+				query: backendSearchQuery?.childSearchQuery as string,
+				project_id,
+				histogram_options: {
+					bucket_size:
+						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					time_zone:
+						Intl.DateTimeFormat().resolvedOptions().timeZone ??
+						'UTC',
+					bounds: {
+						start_date: roundDateToMinute(
+							backendSearchQuery?.startDate.toISOString() ?? null,
+						).format(),
+						end_date: roundDateToMinute(
+							backendSearchQuery?.endDate.toISOString() ?? null,
+						).format(),
+					},
 				},
 			},
-		},
-		onCompleted: (r) => {
-			let seriesList: Series[] = []
-			let bucketTimes: number[] = []
-			const histogramData = r?.errors_histogram
-			if (backendSearchQuery && histogramData) {
-				bucketTimes = histogramData.bucket_times.map((startTime) =>
-					new Date(startTime).valueOf(),
-				)
-				seriesList = [
-					{
-						label: 'errors',
-						color: 'neutralN9',
-						counts: histogramData.error_objects,
-					},
-				]
-			}
-			setHistogram({
-				seriesList,
-				bucketTimes,
-			})
-		},
-		skip: !backendSearchQuery?.childSearchQuery,
-		fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
-	})
+			skip: !backendSearchQuery?.childSearchQuery,
+			fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
+		})
 
-	const updateTimeRange = useCallback(
-		(newStartTime: Date, newEndTime: Date) => {
-			const newSearchParams = {
-				...searchParams,
-				query: updateQueriedTimeRange(
-					searchParams.query || '',
-					TIME_RANGE_FIELD,
-					serializeAbsoluteTimeRange(newStartTime, newEndTime),
-				),
-			}
-			setSearchParams(newSearchParams)
-		},
-		[searchParams, setSearchParams],
-	)
+		const histogram: {
+			seriesList: Series[]
+			bucketTimes: number[]
+		} = {
+			seriesList: [],
+			bucketTimes: [],
+		}
+		if (data?.errors_histogram) {
+			histogram.bucketTimes = data?.errors_histogram.bucket_times.map(
+				(startTime) => new Date(startTime).valueOf(),
+			)
+			histogram.seriesList = [
+				{
+					label: 'errors',
+					color: 'neutralN9',
+					counts: data?.errors_histogram.error_objects,
+				},
+			]
+		}
 
-	return (
-		<Box paddingTop="8">
-			<SearchResultsHistogram
-				seriesList={histogram.seriesList}
-				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
-				loading={loading}
-				updateTimeRange={updateTimeRange}
-			/>
-		</Box>
-	)
-}
+		const updateTimeRange = useCallback(
+			(newStartTime: Date, newEndTime: Date) => {
+				const newSearchParams = {
+					...searchParams,
+					query: updateQueriedTimeRange(
+						searchParams.query || '',
+						TIME_RANGE_FIELD,
+						serializeAbsoluteTimeRange(newStartTime, newEndTime),
+					),
+				}
+				setSearchParams(newSearchParams)
+			},
+			[searchParams, setSearchParams],
+		)
+
+		return (
+			<Box paddingTop="8">
+				<SearchResultsHistogram
+					seriesList={histogram.seriesList}
+					bucketTimes={histogram.bucketTimes}
+					bucketSize={backendSearchQuery?.histogramBucketSize}
+					loading={loading}
+					updateTimeRange={updateTimeRange}
+				/>
+			</Box>
+		)
+	},
+)
 
 export const ErrorFeedV2 = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -168,7 +172,6 @@ export const ErrorFeedV2 = () => {
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManyErrors ? 'cache-first' : 'no-cache',
 	})
-	const histogram = useHistogram(project_id, projectHasManyErrors)
 
 	const onFeedScrollListener = (
 		e: React.UIEvent<HTMLElement> | undefined,
@@ -182,7 +185,9 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
-			{isHighlightAdmin && (loading || data.totalCount > 0) && histogram}
+			{isHighlightAdmin && (loading || data.totalCount > 0) && (
+				<ErrorsHistogram projectHasManyErrors={projectHasManyErrors} />
+			)}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{loading ? (

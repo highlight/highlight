@@ -13,6 +13,7 @@ import {
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
+	GetSessionsHistogramDocument,
 	GetSessionsOpenSearchDocument,
 	GetTimelineIndicatorEventsDocument,
 	GetWebVitalsDocument,
@@ -22,6 +23,7 @@ import { indexeddbEnabled, IndexedDBLink } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
+import { roundDateToMinute } from '@util/time'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
@@ -35,9 +37,7 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm')),
-	)
+	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	const pageToLoad = page ?? 1
@@ -81,6 +81,29 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
 				return false
 			}
+			client.query({
+				query: GetSessionsHistogramDocument,
+				variables: {
+					query,
+					project_id,
+					histogram_options: {
+						bounds: {
+							start_date: endDate.current
+								.clone()
+								.subtract(30, 'days')
+								.format(),
+							end_date: endDate.current.format(),
+						},
+						bucket_size: {
+							calendar_interval: OpenSearchCalendarInterval.Day,
+							multiple: 1,
+						},
+						time_zone:
+							Intl.DateTimeFormat().resolvedOptions().timeZone ??
+							'UTC',
+					},
+				},
+			})
 			const { data: sessions } = await client.query({
 				query: GetSessionsOpenSearchDocument,
 				variables: {
@@ -111,9 +134,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm')),
-	)
+	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	const pageToLoad = page ?? 1
@@ -207,7 +228,9 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 							calendar_interval: OpenSearchCalendarInterval.Day,
 							multiple: 1,
 						},
-						time_zone: '',
+						time_zone:
+							Intl.DateTimeFormat().resolvedOptions().timeZone ??
+							'UTC',
 					},
 				},
 			})
