@@ -37,7 +37,7 @@ enum Tab {
 const DevToolsControlBar: React.FC<
 	React.PropsWithChildren & {
 		tab: Tab
-		setTab: React.Dispatch<React.SetStateAction<Tab>>
+		setTab: (tab: Tab) => void
 		autoScroll: boolean
 		setAutoScroll: (autoScroll: boolean) => void
 		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
@@ -260,7 +260,10 @@ const DevToolsWindowV2: React.FC<
 						<DevToolsControlBar
 							setFilter={setFilter}
 							tab={tab}
-							setTab={setTab}
+							setTab={(t: Tab) => {
+								setTab(t)
+								setFilter('')
+							}}
 							autoScroll={autoScroll}
 							setAutoScroll={setAutoScroll}
 							setLogLevel={setLogLevel}

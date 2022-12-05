@@ -65,6 +65,7 @@ export const networkHeader = style({
 export const networkRowVariants = recipe({
 	base: {
 		backgroundColor: colors.white,
+		color: colors.neutralN11,
 		display: 'grid',
 		gridTemplateColumns,
 		gridGap,

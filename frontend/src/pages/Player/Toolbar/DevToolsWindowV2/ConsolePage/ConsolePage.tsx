@@ -1,7 +1,7 @@
 import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb/typings/types'
-import { Box } from '@highlight-run/ui'
+import { Box, Text } from '@highlight-run/ui'
 import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { LogLevel } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { indexedDBFetch } from '@util/db'
@@ -275,7 +275,11 @@ const MessageRow = function ({
 			>
 				&nbsp;
 			</div>
-			<div>{message.value}</div>
+			<Box display={'flex'} alignItems={'center'}>
+				<Text family={'monospace'} color={'neutralN11'}>
+					{message.value}
+				</Text>
+			</Box>
 		</Box>
 	)
 }

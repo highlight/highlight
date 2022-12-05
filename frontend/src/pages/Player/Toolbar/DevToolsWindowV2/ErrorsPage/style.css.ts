@@ -21,11 +21,13 @@ export const errorRowVariants = recipe({
 		padding: 8,
 		width: '100%',
 		borderRadius: 6,
+		marginBottom: 1,
 		selectors: {
 			'&:hover': {
 				backgroundColor: colors.neutralN4,
 				borderBottom: `1px solid ${colors.neutralN6}`,
 				boxShadow: colors.innerShadowOnGrey,
+				marginBottom: 0,
 			},
 		},
 	},
@@ -35,6 +37,7 @@ export const errorRowVariants = recipe({
 				backgroundColor: colors.neutralN4,
 				borderBottom: `1px solid ${colors.neutralN6}`,
 				boxShadow: colors.innerShadowOnGrey,
+				marginBottom: 0,
 			},
 			false: {},
 		},

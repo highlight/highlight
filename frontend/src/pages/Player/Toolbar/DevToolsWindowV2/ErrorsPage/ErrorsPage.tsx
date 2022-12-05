@@ -168,7 +168,7 @@ const ErrorRow = React.memo(
 				})}
 				onClick={setSelectedError}
 			>
-				<Box display={'flex'} align={'center'}>
+				<Box display={'flex'} align={'center'} color={'neutralN11'}>
 					{typeof body === 'object' ? (
 						<JsonViewer src={body} collapsed={1} />
 					) : (
@@ -192,7 +192,7 @@ const ErrorRow = React.memo(
 					align={'center'}
 					justifyContent={'flex-end'}
 				>
-					<Text>
+					<Text color={'neutralN11'}>
 						{error.structured_stack_trace[0] &&
 							`Line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
 					</Text>
@@ -202,7 +202,9 @@ const ErrorRow = React.memo(
 					align={'center'}
 					justifyContent={'flex-end'}
 				>
-					<Tag kind={'grey'}>{error.type}</Tag>
+					<Tag kind={'grey'}>
+						<Text color={'neutralN11'}>{error.type}</Text>
+					</Tag>
 				</Box>
 			</Box>
 		)
