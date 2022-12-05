@@ -13,6 +13,10 @@
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
+		"prepublish": {
+			"dependsOn": ["^prepublish"],
+			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		},
 		"@highlight-run/client#typegen": {
 			"dependsOn": ["^prepublish"],
 			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
@@ -21,9 +25,8 @@
 			"dependsOn": ["@highlight-run/client#typegen"],
 			"outputs": ["dist/**/*.d.ts", "typings/**"]
 		},
-		"prepublish": {
-			"dependsOn": ["^prepublish"],
-			"outputs": ["lib/**", "es/**", "dist/**", "typings/**"]
+		"frontend#typegen": {
+			"dependsOn": ["highlight.run#typegen"]
 		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^prepublish", "^build"],
