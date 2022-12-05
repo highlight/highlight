@@ -40,6 +40,7 @@ export type ColumnSprinkles = Parameters<typeof columnSprinkles>[0]
 
 const negativeMarginValues: { [K in Space]: string } = {
 	'0': '0',
+	'1': '-1px',
 	'3': '-3px',
 	'2': '-2px',
 	'4': '-4px',
