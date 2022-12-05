@@ -17,6 +17,7 @@ import {
 	IconArrowSmRight,
 	IconArrowSmUp,
 	IconChartBar,
+	IconClock,
 	IconCog,
 	IconPause,
 	IconPlay,
@@ -401,6 +402,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		setShowPlayerMouseTail,
 		autoPlayVideo,
 		setAutoPlayVideo,
+		showPlayerAbsoluteTime,
+		setShowPlayerAbsoluteTime,
 		selectedTimelineAnnotationTypes,
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
@@ -412,7 +415,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
 				<IconChartBar />
-				Timeline
+				<p>Timeline</p>
 				<ShortcutTextGuide
 					shortcut={TimelineShortcut}
 					className={style.moveRight}
@@ -431,7 +434,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
 				<IconTerminal />
-				Dev tools
+				<p>Dev tools</p>
 				<ShortcutTextGuide
 					shortcut={DevToolsShortcut}
 					className={style.moveRight}
@@ -450,7 +453,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
 				<CursorClickIcon />
-				Mouse trail
+				<p>Mouse trail</p>
 				<Switch
 					trackingId="MouseTrailMenuToggle"
 					checked={showPlayerMouseTail}
@@ -466,7 +469,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
 				<FastForwardIcon />
-				Skip inactive
+				<p>Skip inactive</p>
 				<Switch
 					trackingId="SkipInactiveMenuToggle"
 					checked={skipInactive}
@@ -482,7 +485,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
 				<PlayCircleIcon />
-				Autoplay
+				<p>Autoplay</p>
 				<Switch
 					trackingId="AutoplayVideoMenuToggle"
 					checked={autoPlayVideo}
@@ -495,10 +498,28 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 
 			<button
 				className={style.settingsButton}
+				onClick={() =>
+					setShowPlayerAbsoluteTime(!showPlayerAbsoluteTime)
+				}
+			>
+				<IconClock />
+				<p>Absolute time</p>
+				<Switch
+					trackingId="PlayerAbsoluteTimeMenuToggle"
+					checked={showPlayerAbsoluteTime}
+					onChange={(checked: boolean) => {
+						setShowPlayerAbsoluteTime(checked)
+					}}
+					className={style.moveRight}
+				/>
+			</button>
+
+			<button
+				className={style.settingsButton}
 				onClick={() => setShowSessionSettings(false)}
 			>
 				<AnnotationIcon />
-				Annotations
+				<p>Annotations</p>
 				<ChevronRightIcon className={style.moveRight} />
 			</button>
 		</>
