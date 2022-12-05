@@ -19,6 +19,10 @@ export const consoleBar = style({
 	marginRight: 4,
 })
 
+export const consoleText = style({
+	lineHeight: '20px',
+})
+
 export const consoleRow = style({
 	backgroundColor: colors.white,
 	display: 'flex',

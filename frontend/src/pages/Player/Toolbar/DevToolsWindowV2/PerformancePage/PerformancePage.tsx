@@ -11,7 +11,6 @@ import styles from './PerformancePage.module.scss'
 
 type Props = {
 	currentTime: number
-	startTime: number
 }
 
 interface PerformanceData {
@@ -25,13 +24,14 @@ interface PerformanceData {
 	memoryUsagePercent?: number
 }
 
-const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
+const PerformancePage = React.memo(({ currentTime }: Props) => {
 	const {
 		performancePayloads,
 		jankPayloads,
 		pause,
 		eventsForTimelineIndicator,
 		session,
+		sessionMetadata,
 	} = useReplayerContext()
 
 	const performanceData: PerformanceData[] = performancePayloads.map(
@@ -141,7 +141,7 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						)
 						const closestTimestamp = findClosestTimestamp(
 							timestamps,
-							currentTime - startTime,
+							currentTime - sessionMetadata.startTime,
 						)
 						const data = performanceData.map((d) => ({
 							timestamp: d.timestamp,
@@ -168,11 +168,15 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 									className={styles.noDataContainer}
 									key={key}
 								>
-									<p>
-										{session?.browser_name}{' '}
-										{session?.browser_version} does not
-										support recording {chartLabel}.
-									</p>
+									{key === 'jank' ? (
+										<p>No UI Jank recording available.</p>
+									) : (
+										<p>
+											{session?.browser_name}{' '}
+											{session?.browser_version} does not
+											support recording {chartLabel}.
+										</p>
+									)}
 								</div>
 							)
 						}

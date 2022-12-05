@@ -276,7 +276,12 @@ const MessageRow = function ({
 				&nbsp;
 			</div>
 			<Box display={'flex'} alignItems={'center'}>
-				<Text family={'monospace'} color={'neutralN11'}>
+				<Text
+					family={'monospace'}
+					color={'neutralN11'}
+					weight={'bold'}
+					cssClass={styles.consoleText}
+				>
 					{message.value}
 				</Text>
 			</Box>
