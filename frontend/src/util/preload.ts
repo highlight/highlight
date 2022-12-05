@@ -182,7 +182,6 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 					query,
 					count: DEFAULT_PAGE_SIZE,
 					page: pageToLoad,
-					influx: false,
 					project_id,
 				},
 			})
@@ -191,16 +190,6 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 				return false
 			preloadedPages.current.add(pageToLoad)
 
-			client.query({
-				query: GetErrorGroupsOpenSearchDocument,
-				variables: {
-					query,
-					count: DEFAULT_PAGE_SIZE,
-					page: pageToLoad,
-					influx: true,
-					project_id,
-				},
-			})
 			client.query({
 				query: GetErrorsHistogramDocument,
 				variables: {

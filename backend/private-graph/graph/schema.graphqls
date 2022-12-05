@@ -1079,7 +1079,6 @@ type Query {
 		count: Int!
 		query: String!
 		page: Int
-		influx: Boolean!
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
