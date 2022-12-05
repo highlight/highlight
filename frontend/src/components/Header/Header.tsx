@@ -66,7 +66,11 @@ export const Header = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
-	const currentPage = location.pathname.split('/').pop()
+
+	const { pathname } = useLocation()
+	const parts = pathname.split('/')
+	const currentPage = parts.length >= 3 ? parts[2] : undefined
+
 	const { toggleShowKeyboardShortcutsGuide } = useGlobalContext()
 	const { admin } = useAuthContext()
 
