@@ -61,5 +61,6 @@
 			"env": ["HIGHLIGHT_API_KEY"]
 		}
 	},
-	"globalEnv": ["DOPPLER_TOKEN"]
+	"globalEnv": ["DOPPLER_TOKEN"],
+	"globalDependencies": ["package.json", "yarn.lock"]
 }
