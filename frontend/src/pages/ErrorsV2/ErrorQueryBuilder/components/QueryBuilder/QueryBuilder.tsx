@@ -2405,6 +2405,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				overflow="hidden"
 				flexShrink={0}
 				m="8"
+				shadow="small"
 			>
 				{mode !== QueryBuilderMode.EMPTY && (
 					<Box
