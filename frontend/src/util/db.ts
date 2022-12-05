@@ -137,6 +137,19 @@ export class IndexedDBLink extends ApolloLink {
 		)
 	}
 
+	/* determines whether an operation should be stored in the cache.
+	GetSession should only be cached for non-live sessions since the data will change.
+	* */
+	static shouldCache(
+		operation: Operation,
+		result: FetchResult<Record<string, any>>,
+	): boolean {
+		if (operation.operationName === 'GetSession') {
+			return !!result?.data?.session?.processed
+		}
+		return true
+	}
+
 	static async has(operationName: string, variables: any) {
 		return !!(await indexeddbCache.getItem({
 			operation: operationName,
@@ -166,18 +179,26 @@ export class IndexedDBLink extends ApolloLink {
 						const req = this.httpLink.request(operation, forward)
 						if (req) {
 							req.subscribe((result) => {
-								indexeddbCache
-									.setItem(
-										{
-											operation: operation.operationName,
-											variables: operation.variables,
-										},
-										result,
-									)
-									.then(() => {
-										observer.next(result)
-										observer.complete()
-									})
+								if (
+									IndexedDBLink.shouldCache(operation, result)
+								) {
+									indexeddbCache
+										.setItem(
+											{
+												operation:
+													operation.operationName,
+												variables: operation.variables,
+											},
+											result,
+										)
+										.then(() => {
+											observer.next(result)
+											observer.complete()
+										})
+								} else {
+									observer.next(result)
+									observer.complete()
+								}
 							})
 						}
 					}

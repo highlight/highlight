@@ -62,7 +62,9 @@ const getFiles = async function* (
 
 const changelogExists = function (version: string) {
 	try {
-		return statSync(join(docsDir, `8_changelog`, `${version}.md`)).isFile()
+		return statSync(
+			join(docsDir, `general-docs`, `8_changelog`, `${version}.md`),
+		).isFile()
 	} catch (e) {
 		return false
 	}
