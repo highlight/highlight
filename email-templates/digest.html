@@ -214,7 +214,6 @@
 			}
 
 			.right {
-				text-align: right;
 			}
 
 			.stats-grid td {
@@ -246,6 +245,50 @@
 
 			#highlight-email-body a:hover {
 				color: #72e4fc;
+			}
+
+			.sessions-active-left {
+				width: 50%;
+			}
+
+			.sessions-active-center {
+				width: 30%;
+			}
+
+			.sessions-active-right {
+				width: 20%;
+				text-align: right;
+			}
+
+			.sessions-error-left {
+				width: 60%;
+			}
+
+			.sessions-error-center {
+				width: 20%;
+			}
+
+			.sessions-error-right {
+				width: 20%;
+				text-align: right;
+			}
+
+			.errors-new-left {
+				width: 75%;
+			}
+
+			.errors-new-right {
+				width: 25%;
+				text-align: right;
+			}
+
+			.errors-frequent-center {
+				width: 65%;
+			}
+
+			.errors-frequent-right {
+				width: 35%;
+				text-align: right;
 			}
 		</style>
 	</head>
@@ -348,9 +391,9 @@
 
 					<table>
 						<tr>
-							<th>User</th>
-							<th>Location</th>
-							<th class="right">Length</th>
+							<th class="sessions-active-left">User</th>
+							<th class="sessions-active-center">Location</th>
+							<th class="sessions-active-right">Length</th>
 						</tr>
 						{{#each activeSessions}}
 						<tr class="top-border">
