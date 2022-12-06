@@ -16,7 +16,6 @@ export const optionLabelType: string
 export const optionTooltip: string
 export const popoverContainer: string
 export const removeRule: string
-export const ruleContainer: string
 export const ruleItem: string
 export const rulesContainer: string
 export const separator: string
