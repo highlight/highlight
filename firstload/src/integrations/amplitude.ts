@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { AmplitudeIntegrationOptions } from '../../../client/src/types/client'
-import { Integration } from '../../../client/src/types/types'
+import type { AmplitudeIntegrationOptions } from '../../../client/src/types/client'
+import type { Integration } from '../../../client/src/types/types'
 
 interface Window {
 	amplitude?: AmplitudeAPI

@@ -6,11 +6,9 @@ import {
 } from './integrations/amplitude'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
-import {
-	GenerateSecureID,
-	FirstLoadListeners,
-	getPreviousSessionData,
-} from '../../client/src'
+import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '../../client/src/utils/secure-id'
 import type { Highlight, HighlightClassOptions } from '../../client/src/index'
 import type {
 	HighlightOptions,

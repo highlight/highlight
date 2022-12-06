@@ -1,4 +1,4 @@
-import { HighlightPublicInterface } from '../../../client/src/types/types'
+import type { HighlightPublicInterface } from '../../../client/src/types/types'
 
 interface SegmentContext {
 	payload: any
