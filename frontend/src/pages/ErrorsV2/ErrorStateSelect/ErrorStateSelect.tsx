@@ -49,18 +49,20 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 			>
 				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
 			</Menu.Button>
-			<Menu.List>
-				{ErrorStatuses.map((option) => (
-					<Menu.Item
-						onClick={() =>
-							handleChange(option.toUpperCase() as ErrorState)
-						}
-						key={option}
-					>
-						{option}
-					</Menu.Item>
-				))}
-			</Menu.List>
+			{isLoggedIn && (
+				<Menu.List>
+					{ErrorStatuses.map((option) => (
+						<Menu.Item
+							onClick={() =>
+								handleChange(option.toUpperCase() as ErrorState)
+							}
+							key={option}
+						>
+							{option}
+						</Menu.Item>
+					))}
+				</Menu.List>
+			)}
 		</Menu>
 	)
 }

@@ -23,7 +23,11 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				size="small"
 				emphasis="high"
 				disabled={!isLoggedIn}
-				onClick={() => setShowCreateCommentModal(CreateModalType.Issue)}
+				onClick={() => {
+					if (isLoggedIn) {
+						setShowCreateCommentModal(CreateModalType.Issue)
+					}
+				}}
 				iconLeft={<IconCreateFile />}
 			>
 				Create Issue

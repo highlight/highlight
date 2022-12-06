@@ -136,7 +136,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							}
 							iconLeft={<IconPlay />}
 						>
-							Show Session
+							Show session
 						</Button>
 					</Box>
 				</Box>
@@ -282,6 +282,10 @@ const User: React.FC<{
 							iconRight={<FiExternalLink />}
 							disabled={!isLoggedIn}
 							onClick={() => {
+								if (!isLoggedIn) {
+									return
+								}
+
 								// Logic taken from Metadata box. There may be a cleaner way.
 								const searchParams = {
 									...EmptySessionsSearchParams,
