@@ -423,7 +423,7 @@ get in contact with us!
 						<AuthAdminRouter />
 					</Route>
 					<Route
-						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)/:error_object_id(\d+)"
+						path="/:project_id(\d+)/errors/:error_secure_id(\w+)/:error_tab_key(\w+)?/:error_object_id(\d+)?"
 						exact
 					>
 						{/* Allow guests to access this route without being asked to log in */}
