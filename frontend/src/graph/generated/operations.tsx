@@ -1140,6 +1140,18 @@ export type UpdateVercelSettingsMutation = { __typename?: 'Mutation' } & Pick<
 	'updateVercelProjectMappings'
 >
 
+export type UpdateEmailOptOutMutationVariables = Types.Exact<{
+	token: Types.Scalars['String']
+	admin_id: Types.Scalars['ID']
+	category: Types.EmailOptOutCategory
+	is_opt_out: Types.Scalars['Boolean']
+}>
+
+export type UpdateEmailOptOutMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'updateEmailOptOut'
+>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -3711,6 +3723,16 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetEmailOptOutsQueryVariables = Types.Exact<{
+	token: Types.Scalars['String']
+	admin_id: Types.Scalars['ID']
+}>
+
+export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'email_opt_outs'
+>
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -3816,6 +3838,7 @@ export const namedOperations = {
 		GetSourcemapVersions: 'GetSourcemapVersions' as const,
 		GetOAuthClientMetadata: 'GetOAuthClientMetadata' as const,
 		GetErrorGroupFrequencies: 'GetErrorGroupFrequencies' as const,
+		GetEmailOptOuts: 'GetEmailOptOuts' as const,
 	},
 	Mutation: {
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
@@ -3880,6 +3903,7 @@ export const namedOperations = {
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
+		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

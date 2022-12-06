@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -70,6 +71,7 @@ const ErrorGroupLookbackDays = 7
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	EmailOptOutSalt = os.Getenv("EMAIL_OPT_OUT_SALT")
 )
 
 var BytesConversion = map[string]int64{
@@ -3061,4 +3063,25 @@ func MergeHistogramBucketCounts(bucketCounts []int64, multiple int) []int64 {
 		}
 	}
 	return newBuckets
+}
+
+func GetOptOutToken(adminID int, previous bool) string {
+	now := time.Now()
+	if previous {
+		now = now.AddDate(0, -1, 0)
+	}
+	h := sha256.New()
+	curPreHash := strconv.Itoa(adminID) + now.Format("2006-02") + EmailOptOutSalt
+	h.Write([]byte(curPreHash))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func IsOptOutTokenValid(adminID int, token string) bool {
+	// If the token matches the current month's, it's valid
+	if token == GetOptOutToken(adminID, false) {
+		return true
+	}
+
+	// If the token matches the prior month's, it's valid
+	return token == GetOptOutToken(adminID, true)
 }

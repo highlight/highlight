@@ -261,6 +261,11 @@ export type DiscordChannelInput = {
 	name: Scalars['String']
 }
 
+export enum EmailOptOutCategory {
+	All = 'All',
+	Digests = 'Digests',
+}
+
 export type EnhancedUserDetailsResult = {
 	__typename?: 'EnhancedUserDetailsResult'
 	avatar?: Maybe<Scalars['String']>
@@ -669,6 +674,7 @@ export type Mutation = {
 	updateAllowMeterOverage?: Maybe<Workspace>
 	updateAllowedEmailOrigins?: Maybe<Scalars['ID']>
 	updateBillingDetails?: Maybe<Scalars['Boolean']>
+	updateEmailOptOut: Scalars['Boolean']
 	updateErrorAlert?: Maybe<ErrorAlert>
 	updateErrorAlertIsDisabled?: Maybe<ErrorAlert>
 	updateErrorGroupIsPublic?: Maybe<ErrorGroup>
@@ -1021,6 +1027,13 @@ export type MutationUpdateBillingDetailsArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type MutationUpdateEmailOptOutArgs = {
+	admin_id: Scalars['ID']
+	category: EmailOptOutCategory
+	is_opt_out: Scalars['Boolean']
+	token: Scalars['String']
+}
+
 export type MutationUpdateErrorAlertArgs = {
 	count_threshold?: InputMaybe<Scalars['Int']>
 	disabled?: InputMaybe<Scalars['Boolean']>
@@ -1199,6 +1212,7 @@ export type Query = {
 	dailySessionsCount: Array<Maybe<DailySessionCount>>
 	dashboard_definitions: Array<Maybe<DashboardDefinition>>
 	discord_channel_suggestions: Array<DiscordChannel>
+	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
 	errorDistribution: Array<Maybe<ErrorDistributionItem>>
@@ -1352,6 +1366,11 @@ export type QueryDashboard_DefinitionsArgs = {
 
 export type QueryDiscord_Channel_SuggestionsArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryEmail_Opt_OutsArgs = {
+	admin_id: Scalars['ID']
+	token: Scalars['String']
 }
 
 export type QueryEnhanced_User_DetailsArgs = {

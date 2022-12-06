@@ -932,3 +932,17 @@ mutation UpdateVercelSettings(
 		project_mappings: $project_mappings
 	)
 }
+
+mutation UpdateEmailOptOut(
+	$token: String!
+	$admin_id: ID!
+	$category: EmailOptOutCategory!
+	$is_opt_out: Boolean!
+) {
+	updateEmailOptOut(
+		token: $token
+		admin_id: $admin_id
+		category: $category
+		is_opt_out: $is_opt_out
+	)
+}

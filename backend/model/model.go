@@ -35,6 +35,7 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
@@ -173,6 +174,7 @@ var Models = []interface{}{
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
+	&EmailOptOut{},
 }
 
 func init() {
@@ -1101,6 +1103,12 @@ var ErrorType = struct {
 }{
 	FRONTEND: "Frontend",
 	BACKEND:  "Backend",
+}
+
+type EmailOptOut struct {
+	Model
+	AdminID  int                       `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category model.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
