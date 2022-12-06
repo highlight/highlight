@@ -1407,7 +1407,6 @@ export type QueryError_GroupArgs = {
 
 export type QueryError_Groups_OpensearchArgs = {
 	count: Scalars['Int']
-	influx: Scalars['Boolean']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
 	query: Scalars['String']

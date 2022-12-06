@@ -683,22 +683,30 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (eg *model.ErrorGroup, isOwner bool, err error) {
-	errorGroup := &model.ErrorGroup{}
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, bool, error) {
+	eg := &model.ErrorGroup{}
 
 	var db = r.DB
 	if preloadFields {
 		db = r.DB.Preload("Fields")
 	}
-	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
-	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return errorGroup, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
-	return errorGroup, true, nil
+
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group occurrences")
+	}
+	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group frequencies")
+	}
+
+	return eg, true, nil
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, error) {

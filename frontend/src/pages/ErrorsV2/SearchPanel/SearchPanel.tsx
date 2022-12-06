@@ -51,7 +51,6 @@ const SearchPanel = () => {
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId,
-			influx: true,
 		},
 		onError: () => {
 			setSearchResultsLoading(false)

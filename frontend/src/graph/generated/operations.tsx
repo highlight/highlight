@@ -2024,7 +2024,6 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
 	page?: Types.Maybe<Types.Scalars['Int']>
-	influx: Types.Scalars['Boolean']
 }>
 
 export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
