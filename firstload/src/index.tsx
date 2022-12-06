@@ -82,10 +82,7 @@ export const H: HighlightPublicInterface = {
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
 				: `https://static.highlight.io/v${packageJson.version}/index.js`
-			script.setAttribute(
-				'src',
-				scriptSrc + '?' + new Date().getMilliseconds(),
-			)
+			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
 
