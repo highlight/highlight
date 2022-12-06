@@ -34,6 +34,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	emphasis,
 	className,
 	cssClass,
+	disabled,
 	onIconLeftClick,
 	onIconRightClick,
 	...buttonProps
@@ -44,6 +45,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 	return (
 		<AriakitButton
 			as={hasInternalButtons ? 'div' : 'button'}
+			disabled={disabled}
 			className={clsx(
 				styles.variants({
 					kind,
@@ -59,6 +61,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as={hasInternalButtons ? 'div' : 'span'}
 					display="inline-flex"
+					disabled={disabled}
 					className={styles.iconVariants({
 						size,
 						emphasis,
@@ -78,6 +81,7 @@ export const Button: React.FC<React.PropsWithChildren<Props>> = ({
 				<Box
 					as={hasInternalButtons ? 'div' : 'span'}
 					display="inline-flex"
+					disabled={disabled}
 					className={styles.iconVariants({
 						size,
 						emphasis,

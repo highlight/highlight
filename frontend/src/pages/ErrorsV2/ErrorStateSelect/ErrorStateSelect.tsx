@@ -44,7 +44,7 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 				size="small"
 				kind="secondary"
 				emphasis="low"
-				disabled={loading}
+				disabled={loading || !isLoggedIn}
 				iconRight={<IconCaretDown />}
 			>
 				<Text case="capital">{initialErrorState.toLowerCase()}</Text>
@@ -52,7 +52,6 @@ export const ErrorStateSelect: React.FC<{ state: ErrorState }> = ({
 			<Menu.List>
 				{ErrorStatuses.map((option) => (
 					<Menu.Item
-						disabled={!isLoggedIn}
 						onClick={() =>
 							handleChange(option.toUpperCase() as ErrorState)
 						}

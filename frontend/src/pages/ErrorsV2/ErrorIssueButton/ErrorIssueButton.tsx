@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { Button, IconCreateFile } from '@highlight-run/ui'
 import {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const ErrorIssueButton = ({ errorGroup }: Props) => {
+	const { isLoggedIn } = useAuthContext()
 	const [showCreateCommentModal, setShowCreateCommentModal] =
 		useState<CreateModalType>(CreateModalType.None)
 
@@ -20,6 +22,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 				kind="secondary"
 				size="small"
 				emphasis="high"
+				disabled={!isLoggedIn}
 				onClick={() => setShowCreateCommentModal(CreateModalType.Issue)}
 				iconLeft={<IconCreateFile />}
 			>

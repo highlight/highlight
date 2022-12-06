@@ -12,6 +12,7 @@ import {
 	IconChevronDown,
 	IconChevronUp,
 	IconExitRight,
+	vars,
 } from '@highlight-run/ui'
 import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
@@ -153,60 +154,71 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 						flexDirection="column"
 						cssClass={clsx({ [styles.emptyState]: isEmptyState })}
 					>
-						<Box
-							backgroundColor="white"
-							display="flex"
-							alignItems="center"
-							px="12"
-							borderBottom="neutral"
-							cssClass={controlBar}
-						>
-							<Box display="flex" gap="8">
-								{!showLeftPanel && (
-									<ButtonIcon
-										kind="secondary"
-										size="small"
-										shape="square"
-										emphasis="medium"
-										icon={<IconExitRight size={14} />}
-										onClick={() => setShowLeftPanel(true)}
-									/>
-								)}
-								<Box
-									borderRadius="6"
-									border="neutral"
-									overflow="hidden"
-									display="flex"
-								>
-									<ButtonIcon
-										kind="secondary"
-										size="small"
-										shape="square"
-										emphasis="low"
-										icon={<IconChevronUp size={14} />}
-										cssClass={styles.sessionSwitchButton}
-										onClick={() => {
-											goToErrorGroup(previousSecureId)
+						{isLoggedIn && (
+							<Box
+								backgroundColor="white"
+								display="flex"
+								alignItems="center"
+								px="12"
+								borderBottom="neutral"
+								cssClass={controlBar}
+							>
+								<Box display="flex" gap="8">
+									{!showLeftPanel && (
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="medium"
+											icon={<IconExitRight size={14} />}
+											onClick={() =>
+												setShowLeftPanel(true)
+											}
+										/>
+									)}
+									<Box
+										borderRadius="6"
+										overflow="hidden"
+										display="flex"
+										style={{
+											// TODO: Replace with button group once built in UI package.
+											boxShadow: `0 0 0 1px ${vars.color.neutral200} inset`,
 										}}
-										disabled={!canMoveBackward}
-									/>
-									<Box as="span" borderRight="neutral" />
-									<ButtonIcon
-										kind="secondary"
-										size="small"
-										shape="square"
-										emphasis="low"
-										icon={<IconChevronDown size={14} />}
-										title="j"
-										cssClass={styles.sessionSwitchButton}
-										onClick={() => {
-											goToErrorGroup(nextSecureId)
-										}}
-										disabled={!canMoveForward}
-									/>
+									>
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="low"
+											icon={<IconChevronUp size={14} />}
+											cssClass={
+												styles.sessionSwitchButton
+											}
+											onClick={() => {
+												goToErrorGroup(previousSecureId)
+											}}
+											disabled={!canMoveBackward}
+										/>
+										<Box as="span" borderRight="neutral" />
+										<ButtonIcon
+											kind="secondary"
+											size="small"
+											shape="square"
+											emphasis="low"
+											icon={<IconChevronDown size={14} />}
+											title="j"
+											cssClass={
+												styles.sessionSwitchButton
+											}
+											onClick={() => {
+												goToErrorGroup(nextSecureId)
+											}}
+											disabled={!canMoveForward}
+										/>
+									</Box>
 								</Box>
 							</Box>
-						</Box>
+						)}
 						{error_secure_id && !errorQueryingErrorGroup ? (
 							<>
 								<Helmet>

@@ -42,13 +42,13 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						onCopyTooltipText="Copied error link to clipboard!"
 					/>
 
-					<Box borderTop="neutral" marginTop="24" paddingTop="20">
-						<Heading level="h3">Sharing Options</Heading>
+					{isLoggedIn && (
+						<Box borderTop="neutral" marginTop="24" paddingTop="20">
+							<Heading level="h3">Sharing Options</Heading>
 
-						{isLoggedIn && (
 							<ExternalSharingToggle errorGroup={errorGroup} />
-						)}
-					</Box>
+						</Box>
+					)}
 				</ModalBody>
 			</Modal>
 		</>
