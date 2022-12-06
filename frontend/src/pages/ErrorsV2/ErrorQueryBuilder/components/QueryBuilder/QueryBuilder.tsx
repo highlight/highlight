@@ -58,7 +58,7 @@ import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
 
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
@@ -1312,6 +1312,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		segmentName,
 		setSegmentName,
 		searchResultsCount,
+		selectedSegment,
+		setSelectedSegment,
+		removeSelectedSegment,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1346,11 +1349,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		useGetErrorSegmentsQuery({
 			variables: { project_id: projectId },
 		})
-
-	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
-		useLocalStorage<{ value: string; id: string }>(
-			`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
-		)
 
 	useEffect(() => {
 		setSegmentName(selectedSegment?.value || null)

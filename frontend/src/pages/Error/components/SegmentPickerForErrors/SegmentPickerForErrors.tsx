@@ -1,6 +1,5 @@
 import { namedOperations } from '@graph/operations'
 import SvgXIcon from '@icons/XIcon'
-import useLocalStorage from '@rehooks/local-storage'
 import { message, Select as AntDesignSelect } from 'antd'
 import classNames from 'classnames'
 const { Option } = AntDesignSelect
@@ -37,16 +36,12 @@ const SegmentPickerForErrors = () => {
 		segmentName,
 		searchParams,
 		existingParams,
+		selectedSegment,
+		setSelectedSegment,
 	} = useErrorSearchContext()
 	const { loading, data } = useGetErrorSegmentsQuery({
 		variables: { project_id },
 	})
-	const [selectedSegment, setSelectedSegment] = useLocalStorage<
-		{ value: string; id: string } | undefined
-	>(
-		`highlightSegmentPickerForErrorsSelectedSegmentId-${project_id}`,
-		undefined,
-	)
 	const [paramsIsDifferent, setParamsIsDifferent] = useState(false)
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
 	const [segmentToDelete, setSegmentToDelete] = useState<{

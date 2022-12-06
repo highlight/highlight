@@ -1,7 +1,7 @@
 import { style, styleVariants } from '@vanilla-extract/css'
 import { createSprinkles, defineProperties } from '@vanilla-extract/sprinkles'
 import { mediaQueries } from '../../css/breakpoints'
-import { Space, spaces } from '../../css/spaces'
+import { Space } from '../../css/spaces'
 
 export const columns = style({
 	display: 'flex',

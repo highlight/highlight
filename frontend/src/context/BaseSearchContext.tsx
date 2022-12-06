@@ -20,6 +20,16 @@ export type BaseSearchContext<T> = {
 	setExistingParams: React.Dispatch<React.SetStateAction<T>>
 	segmentName: string | null
 	setSegmentName: React.Dispatch<React.SetStateAction<string | null>>
+	selectedSegment: { value: string; id: string } | undefined
+	setSelectedSegment: (
+		newValue:
+			| {
+					value: string
+					id: string
+			  }
+			| undefined,
+	) => void
+	removeSelectedSegment: () => void
 	/** The query sent to the backend */
 	backendSearchQuery: BackendSearchQuery
 	setBackendSearchQuery: React.Dispatch<
