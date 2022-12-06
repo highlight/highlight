@@ -1,5 +1,5 @@
 import { H } from 'highlight.run'
-import { HighlightPublicInterface } from '@highlight-run/client'
+import { HighlightPublicInterface } from '../../../client/src/types/types'
 
 // Don't run tests for now. Need to move code from firstload to client for backend errors.
 describe.skip('should work outside of the browser in unit test', () => {
