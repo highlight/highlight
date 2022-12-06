@@ -14,6 +14,15 @@
 			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
 			"outputs": ["dist/**/*.d.ts"]
 		},
+		"highlight.run#typegen": {
+			"dependsOn": [
+				"^typegen",
+				"^prepublish",
+				"@highlight-run/rrweb#prepublish"
+			],
+			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"outputs": ["dist/**/*.d.ts"]
+		},
 		"dev": {
 			"dependsOn": ["^prepublish", "^build"],
 			"cache": false
