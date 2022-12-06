@@ -1,0 +1,25 @@
+@import 'src/static/shared.scss';
+
+.label {
+	margin-top: var(--size-medium);
+	padding-bottom: var(--size-small);
+}
+
+.distributionContainer {
+	border-radius: 5px;
+	display: flex;
+	height: 8px;
+	width: 100%;
+}
+
+.percentageBar {
+	&:first-of-type {
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+	}
+
+	&:last-of-type {
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+	}
+}
