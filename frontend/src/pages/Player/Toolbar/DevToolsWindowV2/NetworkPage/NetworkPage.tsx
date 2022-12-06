@@ -50,8 +50,11 @@ export const NetworkPage = React.memo(
 			sessionMetadata,
 		} = useReplayerContext()
 		const startTime = sessionMetadata.startTime
-		const { setShowDevTools, setSelectedDevToolsTab } =
-			usePlayerConfiguration()
+		const {
+			setShowDevTools,
+			setSelectedDevToolsTab,
+			showPlayerAbsoluteTime,
+		} = usePlayerConfiguration()
 		const [isInteractingWithResources, setIsInteractingWithResources] =
 			useState(false)
 		const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
@@ -116,7 +119,7 @@ export const NetworkPage = React.memo(
 
 		const currentResourceIdx = useMemo(() => {
 			return findLastActiveEventIndex(
-				Math.round(time - startTime),
+				Math.round(time),
 				startTime,
 				resourcesToRender,
 			)
@@ -327,6 +330,9 @@ export const NetworkPage = React.memo(
 												session.enable_recording_network_contents ||
 												false
 											}
+											showPlayerAbsoluteTime={
+												showPlayerAbsoluteTime
+											}
 										/>
 									)
 								}}
@@ -380,6 +386,7 @@ interface ResourceRowProps {
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
 	hasError?: boolean
+	showPlayerAbsoluteTime?: boolean
 }
 
 const ResourceRow = ({
@@ -391,6 +398,7 @@ const ResourceRow = ({
 	networkRequestAndResponseRecordingEnabled,
 	playerStartTime,
 	hasError,
+	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
 	const { detailedPanel } = usePlayerUIContext()
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
@@ -441,10 +449,12 @@ const ResourceRow = ({
 					/>
 				</Tooltip>
 				<Box>
-					{playerTimeToSessionAbsoluteTime({
-						sessionStartTime: playerStartTime,
-						relativeTime: resource.startTime,
-					})}
+					{showPlayerAbsoluteTime
+						? playerTimeToSessionAbsoluteTime({
+								sessionStartTime: playerStartTime,
+								relativeTime: resource.startTime,
+						  })
+						: MillisToMinutesAndSeconds(resource.startTime)}
 				</Box>
 				<Box className={styles.timingBarWrapper}>
 					<Box

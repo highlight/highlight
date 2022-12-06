@@ -162,6 +162,7 @@ const StackedAreaChart = ({
 
 							return (
 								<Area
+									isAnimationActive={false}
 									key={key}
 									type="step"
 									dataKey={key}

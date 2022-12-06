@@ -15,6 +15,7 @@ export const devToolsWindowV2 = style({
 export const controlBarButtonDeselected = style({
 	backgroundColor: 'white',
 	boxShadow: 'none',
+	color: colors.neutralN11,
 })
 
 export const switchInverted = style({

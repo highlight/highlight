@@ -21,6 +21,7 @@ export const consoleBar = style({
 
 export const consoleText = style({
 	lineHeight: '20px',
+	color: 'rgba(26, 21, 35, 0.72)',
 })
 
 export const consoleRow = style({

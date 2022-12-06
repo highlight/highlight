@@ -278,7 +278,6 @@ const MessageRow = function ({
 			<Box display={'flex'} alignItems={'center'}>
 				<Text
 					family={'monospace'}
-					color={'neutralN11'}
 					weight={'bold'}
 					cssClass={styles.consoleText}
 				>
