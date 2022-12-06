@@ -15,7 +15,6 @@ import { ErrorSearchParamsInput, SearchParamsInput } from '@graph/schemas'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
-import { SessionPageSearchParams } from '@pages/Player/utils/utils'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import {
 	QueryBuilderInput,
@@ -28,13 +27,10 @@ import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { FieldArrayParam, QueryBuilderStateParam } from '@util/url/params'
-import { message } from 'antd'
 import classNames from 'classnames'
 import Firebase from 'firebase/app'
 import _ from 'lodash'
-import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
-import { useHistory } from 'react-router'
 import { Route, Switch, useRouteMatch } from 'react-router-dom'
 import { useToggle } from 'react-use'
 import {
@@ -267,12 +263,11 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 
 	const [page, setPage] = useState<number>()
 
-	const [selectedSegment, setSelectedSegment] = useLocalStorage<
-		{ value: string; id: string } | undefined
-	>(
-		`highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
-		undefined,
-	)
+	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
+		useLocalStorage<{ value: string; id: string } | undefined>(
+			`highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
+			undefined,
+		)
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
@@ -295,6 +290,7 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		setShowStarredSessions,
 		selectedSegment,
 		setSelectedSegment,
+		removeSelectedSegment,
 		backendSearchQuery,
 		setBackendSearchQuery,
 		queryBuilderInput,
@@ -342,7 +338,6 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	})
 
 	const sessionsMatch = useRouteMatch('/:project_id/sessions')
-
 	useEffect(() => {
 		const areAnySearchParamsSet = !_.isEqual(
 			EmptySessionsSearchParams,
@@ -377,9 +372,7 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 			// If we run this, it'll remove the code and the integration will fail.
 			if (sessionsMatch) {
 				setSearchParamsToUrlParams(
-					{
-						...searchParamsToReflectInUrl,
-					},
+					searchParamsToReflectInUrl,
 					'replaceIn',
 				)
 			}
@@ -440,6 +433,11 @@ const SearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	)
 }
 
+const InitialErrorSearchParamsForUrl = {
+	query: undefined,
+	segment_name: undefined,
+}
+
 const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	children,
 }) => {
@@ -469,10 +467,52 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 
 	const [existingParams, setExistingParams] =
 		useState<ErrorSearchParamsInput>({})
-	const dateFromSearchParams = new URLSearchParams(location.search).get(
-		SessionPageSearchParams.date,
-	)
+
 	const searchParamsChanged = useRef<Date>()
+
+	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
+		useQueryParams({
+			query: QueryBuilderStateParam,
+		})
+
+	const errorsMatch = useRouteMatch('/:project_id/errors')
+	useEffect(() => {
+		const areAnySearchParamsSet = !_.isEqual(
+			EmptyErrorsSearchParams,
+			searchParams,
+		)
+		if (!segmentName && areAnySearchParamsSet) {
+			// `undefined` values will not be persisted to the URL.
+			// Because of that, we only want to change the values from `undefined`
+			// to the actual value when the value is different to the empty state.
+			const searchParamsToReflectInUrl = {
+				...InitialErrorSearchParamsForUrl,
+			}
+			Object.keys(searchParams).forEach((key) => {
+				// @ts-expect-error
+				const currentSearchParam = searchParams[key]
+				// @ts-expect-error
+				const emptySearchParam = EmptyErrorsSearchParams[key]
+				if (!_.isEqual(currentSearchParam, emptySearchParam)) {
+					// @ts-expect-error
+					searchParamsToReflectInUrl[key] = currentSearchParam
+				}
+			})
+
+			// Only do this on the errors page.
+			if (errorsMatch) {
+				setSearchParamsToUrlParams(
+					searchParamsToReflectInUrl,
+					'replaceIn',
+				)
+			}
+		}
+	}, [setSearchParamsToUrlParams, searchParams, segmentName, errorsMatch])
+
+	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+		'segment',
+		JsonParam,
+	)
 
 	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
 		page: NumberParam,
@@ -481,9 +521,14 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
 
-	const history = useHistory()
 	const { queryBuilderInput, setQueryBuilderInput } = useSearchContext()
 	const [page, setPage] = useState<number>()
+
+	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
+		useLocalStorage<{ value: string; id: string } | undefined>(
+			`highlightSegmentPickerForErrorsSelectedSegmentId-${project_id}`,
+			undefined,
+		)
 
 	const errorSearchContext = {
 		searchParams,
@@ -492,6 +537,9 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		setExistingParams,
 		segmentName,
 		setSegmentName,
+		selectedSegment,
+		setSelectedSegment,
+		removeSelectedSegment,
 		backendSearchQuery,
 		setBackendSearchQuery,
 		page,
@@ -508,34 +556,6 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		() => setCachedParams(searchParams),
 		[searchParams, setCachedParams],
 	)
-
-	useEffect(() => {
-		if (dateFromSearchParams) {
-			const start_date = moment(
-				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
-			)
-			const end_date = moment(
-				moment(dateFromSearchParams).format('MM/DD/YYYY HH:mm'),
-			)
-
-			setSearchParams(() => ({
-				// We are explicitly clearing any existing search params so the only
-				// applied search param is the date range.
-				...EmptyErrorsSearchParams,
-				date_range: {
-					start_date: start_date
-						.startOf('day')
-						.subtract(1, 'days')
-						.format(),
-					end_date: end_date.endOf('day').format(),
-				},
-			}))
-			message.success(
-				`Showing errors that were thrown on ${dateFromSearchParams}`,
-			)
-			history.replace({ search: '' })
-		}
-	}, [history, dateFromSearchParams, setSearchParams])
 
 	useEffect(() => {
 		if (queryBuilderInput?.type === 'errors') {
@@ -559,6 +579,10 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	}, [setPaginationToUrlParams, page])
 
 	useEffect(() => {
+		if (!_.isEqual(InitialSearchParamsForUrl, searchParamsToUrlParams)) {
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+		}
+
 		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
 			setPage(paginationToUrlParams.page)
 		}
@@ -578,6 +602,31 @@ const ErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 		}
 		searchParamsChanged.current = new Date()
 	}, [searchParams, setPage])
+
+	// Errors Segment Deep Linking
+	useEffect(() => {
+		// Only this effect on the sessions page
+		if (!errorsMatch) {
+			return
+		}
+
+		if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+			if (!_.isEqual(activeSegmentUrlParam, selectedSegment)) {
+				setActiveSegmentUrlParam(selectedSegment, 'replace')
+			}
+		} else if (activeSegmentUrlParam !== undefined) {
+			setActiveSegmentUrlParam(undefined, 'replace')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedSegment, errorsMatch, setActiveSegmentUrlParam])
+
+	useEffect(() => {
+		if (activeSegmentUrlParam) {
+			setSelectedSegment(activeSegmentUrlParam)
+		}
+		// We only want to run this on mount (i.e. when the page first loads).
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return (
 		<ErrorSearchContextProvider value={errorSearchContext}>
