@@ -87,6 +87,9 @@ const ErrorSourcePreview: React.FC<
 			wrapLongLines
 			startingLineNumber={(lineNumber ?? 1) - before.length}
 			customStyle={{
+				fontSize: 13,
+				fontWeight: 500,
+				lineHeight: 20,
 				margin: 0,
 				wordBreak: 'break-all',
 			}}
@@ -94,7 +97,7 @@ const ErrorSourcePreview: React.FC<
 				return ln === lineNumber
 					? {
 							style: {
-								backgroundColor: '#FEF3C7',
+								backgroundColor: '#FFB224',
 								borderRadius: '4px',
 								...baseLineStyles,
 							},
