@@ -1,9 +1,13 @@
+import { SourceMappingError, SourceMappingErrorCode } from '@graph/schemas'
 import {
-	Maybe,
-	SourceMappingError,
-	SourceMappingErrorCode,
-} from '@graph/schemas'
-import { Box, Button } from '@highlight-run/ui'
+	Box,
+	Button,
+	IconCaretDown,
+	LinkButton,
+	Text,
+	vars,
+} from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import React from 'react'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
@@ -49,240 +53,240 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.MinifiedFileMissingInS3AndUrl
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingMinifiedFileMetadata}
-			>
-				{originalFileError}. <br />
-				We couldn't find the minified file in Highlight storage at path{' '}
-				<code>{error.actualMinifiedFetchedPath}</code> or at URL{' '}
-				<code>{error.stackTraceFileURL}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
+				<Text>
+					{originalFileError}. We couldn't find the minified file in
+					Highlight storage at path{' '}
+					<code>{error.actualMinifiedFetchedPath}</code> or at URL{' '}
+					<code>{error.stackTraceFileURL}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.FileNameMissingFromSourcePath
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingMinifiedFileMetadata}
-			>
-				{originalFileError}. <br />
-				We couldn't find a filename associated with this stack frame
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
+				<Text>
+					{originalFileError}. We couldn't find a filename associated
+					with this stack frame
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.ErrorParsingStackTraceFileUrl
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingMinifiedFileMetadata}
-			>
-				{originalFileError}. <br />
-				We couldn't parse the stack trace file name{' '}
-				<code>{error.stackTraceFileURL}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
+				<Text>
+					{originalFileError}. We couldn't parse the stack trace file
+					name <code>{error.stackTraceFileURL}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.MissingSourceMapFileInS3
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingSourcemapMetadata}
-			>
-				{sourcemapFileError}. <br />
-				We couldn't find sourcemap file using the 'file://' syntax in
-				cloud storage at path <code>{error.sourceMapURL}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+				<Text>
+					{sourcemapFileError}. We couldn't find sourcemap file using
+					the 'file://' syntax in cloud storage at path{' '}
+					<code>{error.sourceMapURL}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.SourcemapFileMissingInS3AndUrl
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingSourcemapMetadata}
-			>
-				{sourcemapFileError}. <br />
-				We couldn't find the sourcemap file in Highlight storage at path{' '}
-				<code>{error.actualSourcemapFetchedPath}</code> or at URL{' '}
-				<code>{error.sourceMapURL}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+				<Text>
+					{sourcemapFileError}. We couldn't find the sourcemap file in
+					Highlight storage at path{' '}
+					<code>{error.actualSourcemapFetchedPath}</code> or at URL{' '}
+					<code>{error.sourceMapURL}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.InvalidSourceMapUrl) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={missingSourcemapMetadata}
-			>
-				{sourcemapFileError}. <br />
-				We couldn't parse the sourcemap filename X{' '}
-				<code>{error.actualSourcemapFetchedPath}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+				<Text>
+					{sourcemapFileError}. We couldn't parse the sourcemap
+					filename X <code>{error.actualSourcemapFetchedPath}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.MinifiedFileLarger) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={fileSizeLimitMetadata}
-			>
-				{fileSizeLimitError}. <br />
-				Minified file <code>
-					{error.actualMinifiedFetchedPath}
-				</code>{' '}
-				larger than our max supported size 128MB
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
+				<Text>
+					{fileSizeLimitError}. Minified file{' '}
+					<code>{error.actualMinifiedFetchedPath}</code> larger than
+					our max supported size 128MB
+				</Text>
+			</StackSectionError>
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.SourceMapFileLarger) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={fileSizeLimitMetadata}
-			>
-				{fileSizeLimitError}. <br />
-				Sourcemap file <code>
-					{error.actualSourcemapFetchedPath}
-				</code>{' '}
-				larger than our max supported size 128MB
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
+				<Text>
+					{fileSizeLimitError}. Sourcemap file{' '}
+					<code>{error.actualSourcemapFetchedPath}</code> larger than
+					our max supported size 128MB
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.SourcemapLibraryCouldntParse
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={sourcemapParseErrorMetadata}
-			>
-				There was an error parsing the source map file{' '}
-				<code>{error.sourceMapURL}</code>{' '}
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
+				<Text>
+					There was an error parsing the source map file{' '}
+					<code>{error.sourceMapURL}</code>{' '}
+				</Text>
+			</StackSectionError>
 		)
 	} else if (
 		error.errorCode ==
 		SourceMappingErrorCode.SourcemapLibraryCouldntRetrieveSource
 	) {
 		return (
-			<GetFormatedStackSectionError
-				error={error}
-				keys={sourcemapParseErrorMetadata}
-			>
-				Sourcemap library didn't find a valid mapping to the original
-				source with line <code>{error.mappedLineNumber}</code> and col{' '}
-				<code>{error.mappedColumnNumber}</code>
-			</GetFormatedStackSectionError>
+			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
+				<Text>
+					Sourcemap library didn't find a valid mapping to the
+					original source with line{' '}
+					<code>{error.mappedLineNumber}</code> and col{' '}
+					<code>{error.mappedColumnNumber}</code>
+				</Text>
+			</StackSectionError>
 		)
 	} else {
 		return null
 	}
 }
 
-const GetFormatedStackSectionError: React.FC<
+const METADATA_LABELS: { [key in keyof SourceMappingError]: string } = {
+	stackTraceFileURL: 'Stack Trace File URL',
+	actualMinifiedFetchedPath: 'Minified Path',
+	minifiedFetchStrategy: 'Minified Fetch Strategy',
+	minifiedFileSize: 'Minified File Size',
+	minifiedLineNumber: 'Minified Line Number',
+	minifiedColumnNumber: 'Minified Column Number',
+	sourceMapURL: 'Sourcemap URL',
+	sourcemapFetchStrategy: 'Sourcemap Fetch Strategy',
+	sourcemapFileSize: 'Sourcemap File Size',
+	actualSourcemapFetchedPath: 'Sourcemap Fetched Path',
+	mappedLineNumber: 'Mapped Line Number',
+	mappedColumnNumber: 'Mapped Column Number',
+}
+
+const StackSectionError: React.FC<
 	React.PropsWithChildren<{
 		error: SourceMappingError
 		keys: MetadataKey[]
 	}>
 > = ({ children, error, keys }) => {
+	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
+	const metadata = keys.reduce((accumulator: any[], key) => {
+		if (error[key]) {
+			return [
+				...accumulator,
+				{
+					label: METADATA_LABELS[key],
+					value: error[key],
+				},
+			]
+		}
+
+		return accumulator
+	}, [])
 
 	return (
-		<Box borderRadius="6" p="12" border="neutral">
-			{children}
+		<Box borderRadius="6" border="neutral">
+			<Box p="12">
+				{children}
 
-			<Box>
-				<Button onClick={() => setShowMetadata(!showMetadata)}>
-					{showMetadata ? 'Hide' : 'Show'} metadata
-				</Button>
+				{metadata.length > 0 && (
+					<Box>
+						<Button
+							onClick={() => setShowMetadata(!showMetadata)}
+							kind="secondary"
+							emphasis="low"
+							iconRight={<IconCaretDown />}
+							size="xSmall"
+						>
+							{showMetadata ? 'Hide' : 'Show'} metadata
+						</Button>
 
-				{showMetadata && (
-					<Box pt="12">
-						{keys.indexOf('stackTraceFileURL') > -1 && (
-							<MetadataKey
-								label="Stack Trace File URL"
-								value={error.stackTraceFileURL}
-							/>
-						)}
-						{keys.indexOf('actualMinifiedFetchedPath') > -1 && (
-							<MetadataKey
-								label="Minified Path"
-								value={error.actualMinifiedFetchedPath}
-							/>
-						)}
-						{keys.indexOf('minifiedFetchStrategy') > -1 && (
-							<MetadataKey
-								label="Minified Fetch Strategy"
-								value={error.minifiedFetchStrategy}
-							/>
-						)}
-						{keys.indexOf('minifiedFileSize') > -1 && (
-							<MetadataKey
-								label="Minified File Size"
-								value={error.minifiedFileSize}
-							/>
-						)}
-						{keys.indexOf('minifiedLineNumber') > -1 && (
-							<MetadataKey
-								label="Minified Line Number"
-								value={error.minifiedLineNumber}
-							/>
-						)}
-						{keys.indexOf('minifiedColumnNumber') > -1 && (
-							<MetadataKey
-								label="Minified Column Number"
-								value={error.minifiedColumnNumber}
-							/>
-						)}
-						{keys.indexOf('sourceMapURL') > -1 && (
-							<MetadataKey
-								label="Sourcemap URL"
-								value={error.sourceMapURL}
-							/>
-						)}
-						{keys.indexOf('sourcemapFetchStrategy') > -1 && (
-							<MetadataKey
-								label="Sourcemap Fetch Strategy"
-								value={error.sourcemapFetchStrategy}
-							/>
-						)}
-						{keys.indexOf('sourcemapFileSize') > -1 && (
-							<MetadataKey
-								label="Sourcemap File Size"
-								value={error.sourcemapFileSize}
-							/>
-						)}
-						{keys.indexOf('actualSourcemapFetchedPath') > -1 && (
-							<MetadataKey
-								label="Sourcemap Fetched Path"
-								value={error.actualSourcemapFetchedPath}
-							/>
-						)}
-						{keys.indexOf('mappedLineNumber') > -1 && (
-							<MetadataKey
-								label="Mapped Line Number"
-								value={error.mappedLineNumber}
-							/>
-						)}
-						{keys.indexOf('mappedColumnNumber') > -1 && (
-							<MetadataKey
-								label="Mapped Column Number"
-								value={error.mappedColumnNumber}
-							/>
+						{showMetadata && (
+							<Box pt="12">
+								<table style={{ width: '100%' }}>
+									{metadata.map((m, index) => (
+										<tr
+											key={m.label}
+											style={{ verticalAlign: 'middle' }}
+										>
+											<th
+												style={{
+													borderRight: `1px solid ${vars.color.neutral100}`,
+													borderTop:
+														index === 0
+															? undefined
+															: `1px solid ${vars.color.neutral100}`,
+												}}
+											>
+												<Box p="4">
+													<Text weight="bold">
+														{m.label}
+													</Text>
+												</Box>
+											</th>
+											<td
+												style={{
+													borderTop:
+														index === 0
+															? undefined
+															: `1px solid ${vars.color.neutral100}`,
+												}}
+											>
+												<Box p="4">
+													<Box
+														background="neutral50"
+														borderRadius="3"
+														border="neutral"
+														p="4"
+														display="inline-block"
+													>
+														<Text family="monospace">
+															{m.value}
+														</Text>
+													</Box>
+												</Box>
+											</td>
+										</tr>
+									))}
+								</table>
+							</Box>
 						)}
 					</Box>
 				)}
 			</Box>
-		</Box>
-	)
-}
-const MetadataKey: React.FC<{
-	label: string
-	value: Maybe<string | number | undefined>
-}> = ({ label, value }) => {
-	return (
-		<Box>
-			<b>{label}</b>: <code>{value}</code>
+
+			<Box
+				borderTop="neutral"
+				p="4"
+				display="flex"
+				justifyContent="flex-end"
+				width="full"
+			>
+				<LinkButton to={`/${projectId}/settings/errors`}>
+					Sourcemap settings
+				</LinkButton>
+			</Box>
 		</Box>
 	)
 }
