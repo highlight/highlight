@@ -1,16 +1,17 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
+export const devToolsBoxMargin = 12
+
 export const devToolsWindowV2 = style({
 	alignItems: 'center',
 	backgroundColor: colors.white,
-	border: `1px solid ${colors.neutralN6}`,
 	borderRadius: 8,
 	display: 'flex',
 	flexDirection: 'column',
 	zIndex: 5,
 	position: 'relative',
-	padding: 8,
+	margin: `0 ${devToolsBoxMargin}px`,
 })
 
 export const controlBarButtonDeselected = style({

@@ -11,7 +11,6 @@ export const CENTER_COLUMN_MARGIN = 0
 export const MIN_CENTER_COLUMN_WIDTH = 428
 
 export const playerWrapperV2 = style({
-	background: colors.white,
 	borderTop: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
 	flexDirection: 'column',
@@ -23,7 +22,7 @@ export const playerCenterPanel = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'relative',
-	backgroundColor: colors.white,
+	background: colors.neutralN2,
 })
 
 export const playerContainer = style({
@@ -79,4 +78,22 @@ export const draggable = style({
 	left: 32,
 	top: -700,
 	zIndex: 200,
+})
+
+export const playerLeftPanel = style({
+	backgroundColor: colors.neutralN1,
+	borderRight: `1px solid ${colors.neutralN6}`,
+	height: '100%',
+	padding: `24px 32px 0 32px`,
+	position: 'relative',
+	top: 0,
+	transform: 'translateX(0)',
+	transition: 'transform 0.2s ease-in-out',
+	width: 475,
+	zIndex: 98,
+})
+
+export const playerLeftPanelHidden = style({
+	position: 'fixed',
+	transform: 'translateX(-475px)',
 })

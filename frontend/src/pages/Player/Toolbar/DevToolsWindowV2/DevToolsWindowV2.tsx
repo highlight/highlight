@@ -247,7 +247,7 @@ const DevToolsWindowV2: React.FC<
 			heightPersistenceKey="highlight-devToolsPanelHeight"
 		>
 			{({ panelRef, handleRef }) => (
-				<div>
+				<Box>
 					<div className={'flex justify-center align-middle'}>
 						<button
 							className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
@@ -259,7 +259,9 @@ const DevToolsWindowV2: React.FC<
 					<div
 						className={styles.devToolsWindowV2}
 						ref={panelRef}
-						style={{ width: props.width }}
+						style={{
+							width: props.width - styles.devToolsBoxMargin * 2,
+						}}
 					>
 						<DevToolsControlBar
 							setFilter={setFilter}
@@ -275,7 +277,7 @@ const DevToolsWindowV2: React.FC<
 						/>
 						<Box className={styles.pageWrapper}>{page}</Box>
 					</div>
-				</div>
+				</Box>
 			)}
 		</ResizePanel>
 	)
