@@ -16,6 +16,7 @@ type Props = ButtonProps &
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
 		cssClass?: ClassValue | ClassValue[]
+		lines?: TextProps['lines']
 	}
 
 const buttonToTextSize = {
@@ -35,6 +36,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	cssClass,
 	onIconLeftClick,
 	onIconRightClick,
+	lines,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -64,7 +66,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				</Box>
 			)}
 			{children && (
-				<Text size={textSize} userSelect="none">
+				<Text lines={lines} size={textSize} userSelect="none">
 					{children}
 				</Text>
 			)}
