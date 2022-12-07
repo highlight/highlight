@@ -17,6 +17,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -30,18 +39,10 @@ import (
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
-	"github.com/leonelquinteros/hubspot"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 )
 
 // Worker is a job runner that parses sessions
@@ -879,7 +880,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		{
 			SessionSecureID: s.SecureID,
 			Timestamp:       s.CreatedAt,
-			Name:            "sessionActiveLength",
+			Name:            mgraph.SessionActiveMetricName,
 			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
 			Category:        pointy.String(model.InternalMetricCategory),
 			Tags: []*publicModel.MetricTag{
