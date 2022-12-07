@@ -1,9 +1,9 @@
 import { SourceMappingError, SourceMappingErrorCode } from '@graph/schemas'
 import {
 	Box,
-	Button,
 	IconCaretDown,
 	LinkButton,
+	Tag,
 	Text,
 	vars,
 } from '@highlight-run/ui'
@@ -207,20 +207,19 @@ const StackSectionError: React.FC<
 
 	return (
 		<Box borderRadius="6" border="neutral">
-			<Box p="12">
+			<Box p="8">
 				{children}
 
 				{metadata.length > 0 && (
 					<Box>
-						<Button
+						<Tag
 							onClick={() => setShowMetadata(!showMetadata)}
-							kind="secondary"
-							emphasis="low"
+							kind="grey"
 							iconRight={<IconCaretDown />}
-							size="xSmall"
+							shape="basic"
 						>
 							{showMetadata ? 'Hide' : 'Show'} metadata
-						</Button>
+						</Tag>
 
 						{showMetadata && (
 							<Box pt="12">
@@ -278,7 +277,7 @@ const StackSectionError: React.FC<
 
 			<Box
 				borderTop="neutral"
-				p="4"
+				p="8"
 				display="flex"
 				justifyContent="flex-end"
 				width="full"

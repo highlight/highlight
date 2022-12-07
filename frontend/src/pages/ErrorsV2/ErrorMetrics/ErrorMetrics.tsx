@@ -23,8 +23,8 @@ type Props = {
 
 type FrequencyDataPoint = {
 	date: string | undefined
-	// TODO(spenny): dynamically set "Occurrances" key when multiple counts supported
-	Occurrances: number | undefined
+	// TODO(spenny): dynamically set "Occurrences" key when multiple counts supported
+	Occurrences: number | undefined
 }
 
 type TimelineTickInfo = {
@@ -37,7 +37,7 @@ const NUM_BUCKETS_TIMELINE = 30
 
 // TODO(spenny): dynamically set colors when multiple counts supported
 const LINE_COLORS = {
-	Occurrances: '#6b48c7',
+	Occurrences: '#6b48c7',
 }
 
 const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
@@ -141,10 +141,10 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 
 		dataSet.forEach((dataPoint) => {
 			runningTotal += dataPoint?.value || 0
-			// TODO(spenny): dynamically set "Occurrances" key when multiple counts supported
+			// TODO(spenny): dynamically set "Occurrences" key when multiple counts supported
 			newErrorFrequencyData.push({
 				date: dataPoint?.date,
-				Occurrances: dataPoint?.value,
+				Occurrences: dataPoint?.value,
 			} as FrequencyDataPoint)
 		})
 
@@ -179,7 +179,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 							<span className={styles.iconContainer}>
 								<IconZigZag color="#6b48c7" />
 							</span>
-							<Text weight="bold">Total occurrances</Text>
+							<Text weight="bold">Total occurrences</Text>
 						</span>
 						<Text>{errorFrequencyTotal}</Text>
 					</Box>

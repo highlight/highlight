@@ -105,11 +105,11 @@ const SegmentPickerForErrors = () => {
 		<section className={styles.segmentPickerSection}>
 			<Select
 				value={segmentName}
-				onChange={(value, option) => {
+				onChange={(name, option) => {
 					let nextValue = undefined
-					if (value && option) {
+					if (name && option) {
 						nextValue = {
-							value: value,
+							name,
 							id: (option as any).key,
 						}
 					} else {
@@ -182,7 +182,7 @@ const SegmentPickerForErrors = () => {
 						})
 							.then(() => {
 								message.success(
-									`Updated '${selectedSegment.value}'`,
+									`Updated '${selectedSegment.name}'`,
 									5,
 								)
 								setExistingParams(searchParams)
@@ -219,7 +219,7 @@ const SegmentPickerForErrors = () => {
 					if (data?.error_segments) {
 						setSelectedSegment({
 							id: segmentId,
-							value: segmentName,
+							name: segmentName,
 						})
 						setSegmentName(segmentName)
 					}

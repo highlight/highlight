@@ -6,7 +6,7 @@ const { Option } = AntDesignSelect
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../../components/Button/Button/Button'
@@ -116,7 +116,7 @@ const SegmentPickerForPlayer = () => {
 			<Select
 				dropdownMatchSelectWidth={410}
 				value={segmentName}
-				onChange={(value, option) => {
+				onChange={(name, option) => {
 					if ((option as any)?.key === STARRED_SEGMENT_ID) {
 						setShowStarredSessions(true)
 						const searchParams = {
@@ -129,16 +129,19 @@ const SegmentPickerForPlayer = () => {
 						setExistingParams(searchParams)
 						setSearchParams(searchParams)
 						setSegmentName('Starred')
-						setSelectedSegment({ value, id: STARRED_SEGMENT_ID })
+						setSelectedSegment({
+							name,
+							id: STARRED_SEGMENT_ID,
+						})
 						return
 					} else {
 						setShowStarredSessions(false)
 					}
 
 					let nextValue = undefined
-					if (value && option) {
+					if (name && option) {
 						nextValue = {
-							value: value,
+							name,
 							id: (option as any).key,
 						}
 					} else {
@@ -213,7 +216,7 @@ const SegmentPickerForPlayer = () => {
 								})
 									.then(() => {
 										message.success(
-											`Updated '${selectedSegment.value}'`,
+											`Updated '${selectedSegment.name}'`,
 											5,
 										)
 										setExistingParams(searchParams)
@@ -276,7 +279,7 @@ const SegmentPickerForPlayer = () => {
 					if (data?.segments) {
 						setSelectedSegment({
 							id: segmentId,
-							value: segmentName,
+							name: segmentName,
 						})
 						setSegmentName(segmentName)
 					}

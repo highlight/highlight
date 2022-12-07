@@ -1,4 +1,5 @@
 import { useApolloClient } from '@apollo/client'
+import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import {
 	GetErrorInstanceDocument,
@@ -35,6 +36,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { projectId } = useProjectId()
 	const history = useHistory()
 	const client = useApolloClient()
+	const { isLoggedIn } = useAuthContext()
 
 	const { data } = useGetErrorInstanceQuery({
 		variables: {
@@ -124,14 +126,17 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						<Button
 							kind="secondary"
 							emphasis="high"
+							disabled={!isLoggedIn}
 							onClick={() =>
-								history.push(
-									`/${projectId}/sessions/${errorObject.session?.secure_id}`,
-								)
+								isLoggedIn
+									? history.push(
+											`/${projectId}/sessions/${errorObject.session?.secure_id}`,
+									  )
+									: null
 							}
 							iconLeft={<IconPlay />}
 						>
-							Show Session
+							Show session
 						</Button>
 					</Box>
 				</Box>
@@ -227,6 +232,7 @@ const User: React.FC<{
 }> = ({ errorObject }) => {
 	const history = useHistory()
 	const { projectId } = useProjectId()
+	const { isLoggedIn } = useAuthContext()
 	const { setSearchParams } = useSearchContext()
 
 	if (!errorObject?.session) {
@@ -274,7 +280,12 @@ const User: React.FC<{
 							kind="secondary"
 							emphasis="high"
 							iconRight={<FiExternalLink />}
+							disabled={!isLoggedIn}
 							onClick={() => {
+								if (!isLoggedIn) {
+									return
+								}
+
 								// Logic taken from Metadata box. There may be a cleaner way.
 								const searchParams = {
 									...EmptySessionsSearchParams,
