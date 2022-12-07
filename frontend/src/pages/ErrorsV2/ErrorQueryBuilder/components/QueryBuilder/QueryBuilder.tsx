@@ -47,7 +47,7 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
 import _, { identity, isEqual, omitBy, pickBy } from 'lodash'
@@ -1832,15 +1832,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			const startDate = moment(
-				moment(
-					getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const startDate = roundDateToMinute(
+				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
-			const endDate = moment(
-				moment(
-					getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const endDate = roundDateToMinute(
+				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
 			serializedQuery.current = {
