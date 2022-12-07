@@ -223,7 +223,7 @@ const Notifications = () => {
 			}}
 		>
 			<Button
-				iconLeft={<IconBell size="14" />}
+				iconLeft={<IconBell size={14} />}
 				emphasis="low"
 				kind="secondary"
 				className={styles.buttonV2}
