@@ -2078,8 +2078,11 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			for _, t := range m.Tags {
 				tags[t.Name] = t.Value
 			}
-			// the SessionActiveMetricName metric is infrequent and must be precise
-			// so write it directly to the downsampled bucket
+			// the SessionActiveMetricName metric has a ts of the session creation but is
+			// written when the session is processed which may be a long time after
+			// the session is created. this would mean that the downsample task does not
+			// see the metric, causing it to be lost. instead, write it directly to the
+			// downsampled bucket.
 			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {
@@ -2103,8 +2106,6 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		r.TDB.Write(strconv.Itoa(projectID), timeseries.Metrics, points)
 	}
 	if len(aggregatePoints) > 0 {
-		// write points that are already infrequent directly to the downsampled bucket
-		// to avoid the downsampling task from dropping points.
 		r.TDB.Write(strconv.Itoa(projectID), timeseries.Metric.AggName, aggregatePoints)
 	}
 	return nil
