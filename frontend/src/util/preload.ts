@@ -9,13 +9,11 @@ import {
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
 	GetRecentErrorsDocument,
-	GetSessionCommentsDocument,
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
 	GetSessionsHistogramDocument,
 	GetSessionsOpenSearchDocument,
-	GetTimelineIndicatorEventsDocument,
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
@@ -293,21 +291,9 @@ export const loadSession = async function (secureID: string) {
 			},
 		})
 		await client.query({
-			query: GetTimelineIndicatorEventsDocument,
-			variables: {
-				session_secure_id: secureID,
-			},
-		})
-		await client.query({
 			query: GetEventChunksDocument,
 			variables: {
 				secure_id: secureID,
-			},
-		})
-		await client.query({
-			query: GetSessionCommentsDocument,
-			variables: {
-				session_secure_id: secureID,
 			},
 		})
 		await client.query({
