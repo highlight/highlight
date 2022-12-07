@@ -6,7 +6,7 @@ const { Option } = AntDesignSelect
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../../components/Button/Button/Button'

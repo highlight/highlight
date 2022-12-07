@@ -62,7 +62,7 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	const [page, setPage] = useState<number>()
 
 	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
-		useLocalStorage<{ value: string; id: string } | undefined>(
+		useLocalStorage<{ name: string; id: string } | undefined>(
 			`highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
 			undefined,
 		)
@@ -206,7 +206,7 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 			return
 		}
 
-		if (selectedSegment && selectedSegment.id && selectedSegment.value) {
+		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
 			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
 				setActiveSegmentUrlParam(selectedSegment, 'replace')
 			}
