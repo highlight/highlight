@@ -156,30 +156,6 @@
 	margin-top: var(--size-large);
 }
 
-.panelToggleButton {
-	position: absolute;
-	transform: translateY(calc(112px + var(--size-medium) + 30px));
-	z-index: 999;
-}
-
-.panelToggleButtonLeft {
-	right: calc((-1 * var(--size-xLarge) / 2) - var(--size-medium));
-	top: 97px;
-
-	&.panelShown {
-		right: calc(-1 * (var(--size-xLarge) / 2));
-		top: 16px;
-	}
-}
-
-.panelToggleButtonRight {
-	left: calc((var(--size-xLarge) + var(--size-medium)) * -1);
-
-	&.panelShown {
-		left: calc(-1 * var(--size-medium));
-	}
-}
-
 .intercomLink {
 	cursor: pointer;
 	text-decoration: underline;

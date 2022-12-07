@@ -96,3 +96,15 @@ export const playerLeftPanelHidden = style({
 	position: 'fixed',
 	transform: 'translateX(-475px)',
 })
+
+export const draggable = style({
+	alignItems: 'center',
+	color: colors.black,
+	cursor: 'move',
+	display: 'flex',
+	justifyContent: 'flex-end',
+	position: 'relative',
+	left: 32,
+	top: -700,
+	zIndex: 200,
+})

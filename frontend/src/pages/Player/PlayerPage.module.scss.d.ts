@@ -10,10 +10,6 @@ export const headerLink: string
 export const intercomLink: string
 export const loadingWrapper: string
 export const manuallyStoppedMessageContainer: string
-export const panelShown: string
-export const panelToggleButton: string
-export const panelToggleButtonLeft: string
-export const panelToggleButtonRight: string
 export const playerBody: string
 export const playerPageBody: string
 export const progressBar: string

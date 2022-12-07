@@ -66,6 +66,9 @@ import { DevTools } from './Toolbar/DevTools'
 import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
 import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
+const LEFT_PANEL_WIDTH = 475
+const RIGHT_PANEL_WIDTH = 350
+
 interface Props {
 	integrated: boolean
 }
@@ -346,137 +349,157 @@ const PlayerPage = ({ integrated }: Props) => {
 							className={style.playerCenterPanel}
 							ref={playerCenterPanelRef}
 						>
-							<div className={style.playerContainer}>
-								<div className={style.rrwebPlayerSection}>
-									<div className={style.playerCenterColumn}>
-										{centerColumnResizeListener}
-										{!isPlayerFullscreen && (
-											<SessionLevelBarV2
-												width={controllerWidth}
-											/>
-										)}
-										{(sessionViewability ===
-											SessionViewability.VIEWABLE &&
-											!!session) ||
-										replayerState !== ReplayerState.Empty ||
-										(replayerState ===
-											ReplayerState.Empty &&
-											!!session_secure_id) ? (
-											<ResourcesContextProvider
-												value={resources}
-											>
-												<ToolbarItemsContextProvider
-													value={toolbarItems}
+							{(sessionViewability ===
+								SessionViewability.VIEWABLE &&
+								!!session) ||
+							replayerState !== ReplayerState.Empty ||
+							(replayerState === ReplayerState.Empty &&
+								!!session_secure_id) ? (
+								<div className={style.playerContainer}>
+									<div className={style.rrwebPlayerSection}>
+										<div
+											className={style.playerCenterColumn}
+										>
+											{!isPlayerFullscreen && (
+												<SessionLevelBarV2
+													width={controllerWidth}
+												/>
+											)}
+											{(sessionViewability ===
+												SessionViewability.VIEWABLE &&
+												!!session) ||
+											replayerState !==
+												ReplayerState.Empty ||
+											(replayerState ===
+												ReplayerState.Empty &&
+												!!session_secure_id) ? (
+												<ResourcesContextProvider
+													value={resources}
 												>
-													<DevToolsContextProvider
-														value={{
-															openDevTools:
-																showDevTools,
-															setOpenDevTools:
-																setShowDevTools,
-															devToolsTab:
-																selectedDevToolsTab,
-															setDevToolsTab:
-																setSelectedDevToolsTab,
-														}}
+													<ToolbarItemsContextProvider
+														value={toolbarItems}
 													>
-														<div
-															className={
-																style.playerWrapperV2
-															}
+														<DevToolsContextProvider
+															value={{
+																openDevTools:
+																	showDevTools,
+																setOpenDevTools:
+																	setShowDevTools,
+																devToolsTab:
+																	selectedDevToolsTab,
+																setDevToolsTab:
+																	setSelectedDevToolsTab,
+															}}
 														>
 															<div
 																className={
-																	styles.rrwebPlayerWrapper
-																}
-																ref={
-																	playerWrapperRef
+																	style.playerWrapperV2
 																}
 															>
-																{resizeListener}
-																{replayerState ===
-																	ReplayerState.SessionRecordingStopped && (
-																	<div
-																		className={
-																			styles.manuallyStoppedMessageContainer
-																		}
-																		style={{
-																			height: replayerWrapperBbox?.height,
-																			width: replayerWrapperBbox?.width,
-																		}}
-																	>
-																		<ManualStopCard />
-																	</div>
-																)}
 																<div
-																	style={{
-																		visibility:
-																			isPlayerReady
-																				? 'visible'
-																				: 'hidden',
-																	}}
-																	className="highlight-block"
-																	id="player"
+																	className={
+																		styles.rrwebPlayerWrapper
+																	}
+																	ref={
+																		playerWrapperRef
+																	}
+																>
+																	{
+																		resizeListener
+																	}
+																	{replayerState ===
+																		ReplayerState.SessionRecordingStopped && (
+																		<div
+																			className={
+																				styles.manuallyStoppedMessageContainer
+																			}
+																			style={{
+																				height: replayerWrapperBbox?.height,
+																				width: replayerWrapperBbox?.width,
+																			}}
+																		>
+																			<ManualStopCard />
+																		</div>
+																	)}
+																	<div
+																		style={{
+																			visibility:
+																				isPlayerReady
+																					? 'visible'
+																					: 'hidden',
+																		}}
+																		className="highlight-block"
+																		id="player"
+																	/>
+																	<PlayerCommentCanvas
+																		setModalPosition={
+																			setCommentModalPosition
+																		}
+																		modalPosition={
+																			commentModalPosition
+																		}
+																		setCommentPosition={
+																			setCommentPosition
+																		}
+																	/>
+																	{!isPlayerReady &&
+																		sessionViewability ===
+																			SessionViewability.VIEWABLE &&
+																		(session?.processed ===
+																		false ? (
+																			<LoadingLiveSessionCard />
+																		) : (
+																			playerFiller
+																		))}
+																</div>
+																<Toolbar
+																	width={
+																		controllerWidth
+																	}
 																/>
-																<PlayerCommentCanvas
-																	setModalPosition={
-																		setCommentModalPosition
-																	}
-																	modalPosition={
-																		commentModalPosition
-																	}
-																	setCommentPosition={
-																		setCommentPosition
-																	}
-																/>
-																{!isPlayerReady &&
-																	sessionViewability ===
-																		SessionViewability.VIEWABLE &&
-																	(session?.processed ===
-																	false ? (
-																		<LoadingLiveSessionCard />
-																	) : (
-																		playerFiller
-																	))}
 															</div>
-															<Toolbar
+															<DevTools
 																width={
 																	controllerWidth
 																}
 															/>
-														</div>
-														<DevTools
-															width={
-																controllerWidth
-															}
-														/>
-													</DevToolsContextProvider>
-												</ToolbarItemsContextProvider>
-											</ResourcesContextProvider>
-										) : (
-											<Box
-												width="full"
-												height="full"
-												display="flex"
-												justifyContent="center"
-											>
-												<NoActiveSessionCard />
-											</Box>
+														</DevToolsContextProvider>
+													</ToolbarItemsContextProvider>
+												</ResourcesContextProvider>
+											) : (
+												<Box
+													width="full"
+													height="full"
+													display="flex"
+													justifyContent="center"
+												>
+													<NoActiveSessionCard />
+												</Box>
+											)}
+										</div>
+
+										{!isPlayerFullscreen && (
+											<>
+												<RightPlayerPanel />
+												<ResourcesContextProvider
+													value={resources}
+												>
+													<DetailPanel />
+												</ResourcesContextProvider>
+											</>
 										)}
 									</div>
-
-									{!isPlayerFullscreen && (
-										<>
-											<RightPlayerPanel />
-											<ResourcesContextProvider
-												value={resources}
-											>
-												<DetailPanel />
-											</ResourcesContextProvider>
-										</>
-									)}
 								</div>
-							</div>
+							) : (
+								<Box
+									width="full"
+									height="full"
+									display="flex"
+									justifyContent="center"
+								>
+									<NoActiveSessionCard />
+								</Box>
+							)}
 						</div>
 					)}
 					<NewCommentModal

@@ -38,7 +38,3 @@ export const tabContentContainer = style({
 export const tabs = style({
 	borderRadius: 8,
 })
-
-export const toggleButtonHidden = style({
-	opacity: 0,
-})

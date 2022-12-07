@@ -5,34 +5,24 @@ import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constant
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
-import { useWindowSize } from 'react-use'
 
 import Tabs from '../../../components/Tabs/Tabs'
-import PanelToggleButton from '../components/PanelToggleButton/PanelToggleButton'
 import { MetadataBox } from '../MetadataBox/MetadataBox'
 import MetadataPanel from '../MetadataPanel/MetadataPanel'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
-import playerPageStyles from '../PlayerPage.module.scss'
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import { useReplayerContext } from '../ReplayerContext'
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
 import * as styles from './style.css'
 
-export const DUAL_PANEL_VIEWPORT_THRESHOLD = 1400
-
 const RightPlayerPanel = React.memo(() => {
-	const {
-		showRightPanel: showRightPanelPreference,
-		setShowRightPanel,
-		setShowLeftPanel,
-	} = usePlayerConfiguration()
+	const { showRightPanel: showRightPanelPreference, setShowRightPanel } =
+		usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const { canViewSession } = useReplayerContext()
-	const { setSelectedRightPanelTab, detailedPanel } = usePlayerUIContext()
+	const { setSelectedRightPanelTab } = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
-
-	const { width } = useWindowSize()
 
 	useEffect(() => {
 		const commentId = new URLSearchParams(location.search).get(
@@ -52,27 +42,6 @@ const RightPlayerPanel = React.memo(() => {
 					[styles.playerRightPanelContainerHidden]: !showRightPanel,
 				})}
 			>
-				<PanelToggleButton
-					className={classNames(
-						playerPageStyles.panelToggleButton,
-						playerPageStyles.panelToggleButtonRight,
-						{
-							[playerPageStyles.panelShown]: showRightPanel,
-							[styles.toggleButtonHidden]: !!detailedPanel,
-						},
-					)}
-					direction="right"
-					isOpen={showRightPanel}
-					onClick={() => {
-						if (
-							!showRightPanel &&
-							width <= DUAL_PANEL_VIEWPORT_THRESHOLD
-						) {
-							setShowLeftPanel(false)
-						}
-						setShowRightPanel(!showRightPanel)
-					}}
-				/>
 				{showRightPanel && (
 					<div
 						className={classNames(
