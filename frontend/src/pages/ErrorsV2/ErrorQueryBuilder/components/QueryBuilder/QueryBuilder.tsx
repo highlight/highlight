@@ -892,11 +892,6 @@ const QueryRule = ({
 	)
 }
 
-const InitialErrorSearchParamsForUrl = {
-	query: undefined,
-	segment_name: undefined,
-}
-
 export const TimeRangeFilter = ({
 	rule,
 	onChangeValue,
@@ -1318,7 +1313,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		customFields,
 		fetchFields,
 		fieldData,
-		getQueryFromParams,
 		readonly,
 	} = props
 
@@ -1364,20 +1358,36 @@ function QueryBuilder(props: QueryBuilderProps) {
 		(s) => s?.id === selectedSegment?.id,
 	)
 
-	const selectSegment = useCallback(
-		(segment: Partial<ErrorSegment>) => {
-			let segmentParameters = gqlSanitize(
-				segmentData?.error_segments?.find((s) => s?.id === segment.id)
-					?.params || '{}',
-			)
+	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
+		useQueryParams({
+			query: QueryBuilderStateParam,
+		})
 
-			segmentParameters = normalizeParams(segmentParameters)
-			setSearchParams(segmentParameters)
-			setExistingParams(segmentParameters)
+	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+		'segment',
+		JsonParam,
+	)
+
+	const selectSegment = useCallback(
+		(segment?: Partial<ErrorSegment>) => {
 			if (segment && segment.id && segment.name) {
+				const segmentParameters = normalizeParams(
+					gqlSanitize(
+						segmentData?.error_segments?.find(
+							(s) => s?.id === segment?.id,
+						)?.params || '{}',
+					),
+				)
+				setSearchParams(segmentParameters)
+				setExistingParams(segmentParameters)
 				setSelectedSegment({ id: segment.id, name: segment.name })
 			} else {
 				removeSelectedSegment()
+				setSearchParams(EmptyErrorsSearchParams)
+				setExistingParams(EmptyErrorsSearchParams)
+				setSearchParamsToUrlParams(
+					normalizeParams(EmptyErrorsSearchParams),
+				)
 			}
 		},
 		[
@@ -1385,6 +1395,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			segmentData?.error_segments,
 			setExistingParams,
 			setSearchParams,
+			setSearchParamsToUrlParams,
 			setSelectedSegment,
 		],
 	)
@@ -1619,12 +1630,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [timeRangeField, projectId])
 
-	const getFilterRules = useCallback(
-		(rules: RuleProps[]) =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[timeRangeField.value],
-	)
-
 	const parseGroup = useCallback(
 		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
 			const condition = isAnd ? 'must' : 'should'
@@ -1722,10 +1727,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
-	const filterRules = useMemo<RuleProps[]>(
-		() => getFilterRules(rules),
-		[getFilterRules, rules],
+
+	const filterRules = useMemo(
+		() =>
+			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+		[rules, timeRangeField.value],
 	)
+
 	const setRules = (rules: RuleProps[]) => {
 		setRulesImpl(rules)
 	}
@@ -1919,28 +1927,25 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	// Track the current state of the query builder to detect changes
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
-
-	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-		useQueryParams({
-			query: QueryBuilderStateParam,
-		})
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
-	)
+	const errorsMatch = useRouteMatch('/:project_id/errors')
 
 	useEffect(() => {
-		if (!isEqual(InitialErrorSearchParamsForUrl, searchParamsToUrlParams)) {
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			setExistingParams(searchParamsToUrlParams as SearchParamsInput)
+		if (!errorsMatch) {
+			return
 		}
 
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+		if (!segmentsLoading) {
+			if (activeSegmentUrlParam) {
+				selectSegment(activeSegmentUrlParam)
+			}
+			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+		}
 
-	const errorsMatch = useRouteMatch('/:project_id/errors')
+		// We only want to run this on mount (i.e. when the page first loads)
+		// after fetching segments.
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [segmentsLoading])
 
 	// Errors Segment Deep Linking
 	useEffect(() => {
@@ -1950,7 +1955,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
 			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replace')
+				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
 			}
 		} else if (activeSegmentUrlParam !== undefined) {
 			setActiveSegmentUrlParam(undefined, 'replace')
@@ -1959,36 +1964,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [selectedSegment, errorsMatch, setActiveSegmentUrlParam])
 
 	useEffect(() => {
-		if (activeSegmentUrlParam && !segmentsLoading) {
-			selectSegment(activeSegmentUrlParam)
-		}
-		// We only want to run this on mount (i.e. when the page first loads)
-		// after fetching segments.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [segmentsLoading])
-
-	useEffect(() => {
 		if (!errorsMatch) {
 			return
 		}
-		// `undefined` values will not be persisted to the URL.
-		// Because of that, we only want to change the values from `undefined`
-		// to the actual value when the value is different to the empty state.
-		const searchParamsToReflectInUrl = {
-			...InitialErrorSearchParamsForUrl,
-		}
-		Object.keys(searchParams).forEach((key) => {
-			// @ts-expect-error
-			const currentSearchParam = searchParams[key]
-			// @ts-expect-error
-			const emptySearchParam = EmptyErrorsSearchParams[key]
-			if (!isEqual(currentSearchParam, emptySearchParam)) {
-				// @ts-expect-error
-				searchParamsToReflectInUrl[key] = currentSearchParam
-			}
-		})
 
-		setSearchParamsToUrlParams(searchParamsToReflectInUrl, 'replaceIn')
+		setSearchParamsToUrlParams(normalizeParams(searchParams), 'replaceIn')
 	}, [
 		setSearchParamsToUrlParams,
 		searchParams,
@@ -2034,18 +2014,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			return
 		}
 
-		// If search params are updated and no query exists,
-		// build it from the other params for backwards compatibility.
-		if (searchParams.query === undefined) {
-			const newState = getQueryFromParams(searchParams)
-			const newQuery = JSON.stringify(newState)
-			setSearchParams((params) => ({
-				...params,
-				query: newQuery,
-			}))
-			return
-		}
-
 		const allComplete = rules.every(isComplete)
 
 		if (!allComplete) {
@@ -2071,7 +2039,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
-		getQueryFromParams,
 		isAnd,
 		qbState,
 		rules,
@@ -2651,14 +2618,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 										{segment.name}
 									</Menu.Item>
 								))}
+								{segmentOptions.length > 0 && <Menu.Divider />}
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()
-										removeSelectedSegment()
-										setSearchParams(EmptyErrorsSearchParams)
+										selectSegment()
 									}}
 								>
-									None
+									Reset to defaults
 								</Menu.Item>
 							</Menu.List>
 						</Menu>
