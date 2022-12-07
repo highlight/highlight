@@ -17,7 +17,6 @@ import {
 	Props as ButtonProps,
 } from '../Button/Button'
 
-import * as buttonStyles from '../Button/styles.css'
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 

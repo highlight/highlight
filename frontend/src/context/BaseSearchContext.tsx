@@ -1,4 +1,5 @@
 import { DateHistogramBucketSize } from '@graph/schemas'
+import { identity, omitBy, pickBy } from 'lodash'
 import moment from 'moment'
 
 export type BackendSearchQuery =
@@ -11,6 +12,13 @@ export type BackendSearchQuery =
 			histogramBucketSize: DateHistogramBucketSize
 	  }
 
+export function normalizeParams<T>(params: object) {
+	return omitBy(
+		pickBy(params, identity),
+		(val) => Array.isArray(val) && (val as Array<T>).length === 0,
+	)
+}
+
 export type BaseSearchContext<T> = {
 	/** Local changes to the segment parameters that might not be persisted to the database. */
 	searchParams: T
@@ -20,11 +28,11 @@ export type BaseSearchContext<T> = {
 	setExistingParams: React.Dispatch<React.SetStateAction<T>>
 	segmentName: string | null
 	setSegmentName: React.Dispatch<React.SetStateAction<string | null>>
-	selectedSegment: { value: string; id: string } | undefined
+	selectedSegment: { name: string; id: string } | undefined
 	setSelectedSegment: (
 		newValue:
 			| {
-					value: string
+					name: string
 					id: string
 			  }
 			| undefined,
