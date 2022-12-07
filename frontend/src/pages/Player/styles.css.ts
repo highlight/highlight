@@ -34,7 +34,6 @@ export const playerContainer = style({
 
 export const rrwebPlayerSection = style({
 	display: 'flex',
-	columnGap: 8,
 	flex: 2,
 	width: '100%',
 	height: '100%',

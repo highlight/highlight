@@ -8,14 +8,14 @@ export const playerRightPanelContainer = style({
 	top: 0,
 	right: 0,
 	transition: `transform 0.2s ease-in-out`,
-	width: 350,
+	width: 'var(--right-panel-width)',
 	borderLeft: `1px solid ${colors.neutralN6}`,
 	background: colors.neutralN1,
 })
 
 export const playerRightPanelContainerHidden = style({
 	position: 'fixed',
-	transform: `translateX(334)`,
+	transform: `translateX(calc(var(--right-panel-width) + var(--size-medium)))`,
 })
 
 export const playerRightPanelCollapsible = style({
