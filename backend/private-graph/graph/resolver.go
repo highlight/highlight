@@ -3071,12 +3071,16 @@ func GetOptOutToken(adminID int, previous bool) string {
 		now = now.AddDate(0, -1, 0)
 	}
 	h := sha256.New()
-	curPreHash := strconv.Itoa(adminID) + now.Format("2006-02") + EmailOptOutSalt
-	h.Write([]byte(curPreHash))
+	preHash := strconv.Itoa(adminID) + now.Format("2006-01") + EmailOptOutSalt
+	h.Write([]byte(preHash))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func IsOptOutTokenValid(adminID int, token string) bool {
+	if adminID <= 0 {
+		return false
+	}
+
 	// If the token matches the current month's, it's valid
 	if token == GetOptOutToken(adminID, false) {
 		return true

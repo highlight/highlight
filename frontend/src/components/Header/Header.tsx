@@ -105,7 +105,7 @@ export const Header = () => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isLoggedIn ||
+					{(isLoggedIn && projectIdRemapped) ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
 						<Box

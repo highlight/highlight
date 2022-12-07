@@ -2988,10 +2988,8 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token string, 
 			return false, err
 		}
 	} else {
-		if err := r.DB.Delete(&model.EmailOptOut{
-			AdminID:  adminID,
-			Category: category,
-		}).Error; err != nil {
+		if err := r.DB.Where("admin_id = ? AND category = ?", adminID, category).
+			Delete(&model.EmailOptOut{}).Error; err != nil {
 			return false, err
 		}
 	}
