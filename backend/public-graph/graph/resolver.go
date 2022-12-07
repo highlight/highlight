@@ -2053,8 +2053,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		var newMetrics []*model.Metric
 		firstTime := time.Time{}
 		tags := map[string]string{
-			"project_id": strconv.Itoa(projectID),
-			"session_id": strconv.Itoa(sessionID),
+			"SessionID":  strconv.Itoa(sessionID),
 			"group_name": groupName,
 		}
 		downsampledMetric := false
@@ -2074,7 +2073,6 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			if m.Timestamp.After(firstTime) {
 				firstTime = m.Timestamp
 			}
-			tags["category"] = category
 			tags[m.Name] = category
 			fields[m.Name] = m.Value
 			for _, t := range m.Tags {
@@ -2869,8 +2867,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	var points []timeseries.Point
 	for _, re := range resources {
 		tags := map[string]string{
-			"project_id": strconv.Itoa(sessionObj.ProjectID),
-			"session_id": strconv.Itoa(sessionObj.ID),
+			"SessionID":  strconv.Itoa(sessionObj.ID),
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}

@@ -55,7 +55,6 @@ var Configs = map[Measurement]MeasurementConfig{
 var IgnoredTags = map[string]bool{
 	"group_name": true,
 	"request_id": true,
-	"session_id": true,
 	"project_id": true,
 }
 
