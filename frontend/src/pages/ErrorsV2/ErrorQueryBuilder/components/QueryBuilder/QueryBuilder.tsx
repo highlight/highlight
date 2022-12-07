@@ -1938,7 +1938,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
 			}
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			} else {
+				setSearchParams(EmptyErrorsSearchParams)
+			}
 		}
 
 		// We only want to run this on mount (i.e. when the page first loads)
@@ -1967,8 +1971,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (!errorsMatch) {
 			return
 		}
-
-		setSearchParamsToUrlParams(normalizeParams(searchParams), 'replaceIn')
+		if (!isEqual(searchParams, EmptyErrorsSearchParams)) {
+			setSearchParamsToUrlParams(
+				normalizeParams(searchParams),
+				'replaceIn',
+			)
+		}
 	}, [
 		setSearchParamsToUrlParams,
 		searchParams,
@@ -2026,7 +2034,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		})
 
 		// Update if the state has changed
-		if (newState !== qbState) {
+		if (
+			newState !== qbState &&
+			(rules.length === 1 &&
+			rules[0].field?.value === timeRangeField.value &&
+			rules[0] === defaultTimeRangeRule
+				? false
+				: true)
+		) {
 			setQbState(newState)
 			setSearchParams((params) => ({
 				...params,
@@ -2039,13 +2054,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
+		defaultTimeRangeRule,
 		isAnd,
 		qbState,
-		rules,
-		searchParams,
-		setSearchParams,
 		readonly,
+		rules,
 		setBackendSearchQuery,
+		setSearchParams,
+		timeRangeField.value,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
