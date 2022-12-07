@@ -16,7 +16,7 @@ import playerPageStyles from '../PlayerPage.module.scss'
 import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import { useReplayerContext } from '../ReplayerContext'
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
-import styles from './RightPlayerPanel.module.scss'
+import * as styles from './style.css'
 
 export const DUAL_PANEL_VIEWPORT_THRESHOLD = 1400
 
@@ -49,7 +49,7 @@ const RightPlayerPanel = React.memo(() => {
 		<>
 			<div
 				className={classNames(styles.playerRightPanelContainer, {
-					[styles.hidden]: !showRightPanel,
+					[styles.playerRightPanelContainerHidden]: !showRightPanel,
 				})}
 			>
 				<PanelToggleButton
@@ -78,7 +78,8 @@ const RightPlayerPanel = React.memo(() => {
 						className={classNames(
 							styles.playerRightPanelCollapsible,
 							{
-								[styles.bannerShown]: showBanner,
+								[styles.playerRightPanelCollapsibleBannerShown]:
+									showBanner,
 							},
 						)}
 					>
