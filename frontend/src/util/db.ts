@@ -120,6 +120,7 @@ export class IndexedDBLink extends ApolloLink {
 		'GetSessionIntervals',
 		'GetSession',
 		'GetSessionPayload',
+		'GetSessionsHistogram',
 		'GetSessionsOpenSearch',
 		'GetTimelineIndicatorEvents',
 		'GetWebVitals',

@@ -23,7 +23,7 @@ import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInput
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { Checkbox } from 'antd'
 import classNames from 'classnames'
 import _ from 'lodash'
@@ -1628,15 +1628,11 @@ function QueryBuilder<T extends SearchContextTypes>(
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			const startDate = moment(
-				moment(
-					getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const startDate = roundDateToMinute(
+				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
-			const endDate = moment(
-				moment(
-					getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const endDate = roundDateToMinute(
+				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
 			serializedQuery.current = {

@@ -6,68 +6,62 @@ import { TIME_RANGE_FIELD } from '@pages/Error/components/ErrorQueryBuilder/Erro
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
-import { useCallback, useState } from 'react'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { useCallback } from 'react'
 
 interface Props {
 	useCachedErrors?: boolean
 }
 const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
-	const { project_id: projectId } = useParams<{ project_id: string }>()
+	const { project_id } = useParams<{ project_id: string }>()
 	const {
 		backendSearchQuery,
 		searchParams,
 		setSearchParams,
 		searchResultsLoading,
 	} = useErrorSearchContext()
-	const [histogram, setHistogram] = useState<{
-		seriesList: Series[]
-		bucketTimes: number[]
-	}>({
-		seriesList: [],
-		bucketTimes: [],
-	})
-	const { loading } = useGetErrorsHistogramQuery({
+	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
-			project_id: projectId,
+			project_id,
 			histogram_options: {
 				bucket_size:
 					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
 				time_zone:
 					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 				bounds: {
-					start_date:
-						backendSearchQuery?.startDate.toISOString() as string,
-					end_date:
-						backendSearchQuery?.endDate.toISOString() as string,
+					start_date: roundDateToMinute(
+						backendSearchQuery?.startDate.toISOString() ?? null,
+					).format(),
+					end_date: roundDateToMinute(
+						backendSearchQuery?.endDate.toISOString() ?? null,
+					).format(),
 				},
 			},
-		},
-		onCompleted: (r) => {
-			let seriesList: Series[] = []
-			let bucketTimes: number[] = []
-			const histogramData = r?.errors_histogram
-			if (backendSearchQuery && histogramData) {
-				bucketTimes = histogramData.bucket_times.map((startTime) =>
-					new Date(startTime).valueOf(),
-				)
-				seriesList = [
-					{
-						label: 'errors',
-						color: 'neutralN9',
-						counts: histogramData.error_objects,
-					},
-				]
-			}
-			setHistogram({
-				seriesList,
-				bucketTimes,
-			})
 		},
 		skip: !backendSearchQuery?.childSearchQuery,
 		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
+
+	const histogram: {
+		seriesList: Series[]
+		bucketTimes: number[]
+	} = {
+		seriesList: [],
+		bucketTimes: [],
+	}
+	if (data?.errors_histogram) {
+		histogram.bucketTimes = data?.errors_histogram.bucket_times.map(
+			(startTime) => new Date(startTime).valueOf(),
+		)
+		histogram.seriesList = [
+			{
+				label: 'errors',
+				color: 'neutralN9',
+				counts: data?.errors_histogram.error_objects,
+			},
+		]
+	}
 
 	const updateTimeRange = useCallback(
 		(newStartTime: Date, newEndTime: Date) => {
