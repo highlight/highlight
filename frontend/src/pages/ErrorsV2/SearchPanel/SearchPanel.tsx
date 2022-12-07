@@ -1,4 +1,7 @@
-import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
+import {
+	EmptySearchResults,
+	SearchResultsKind,
+} from '@components/EmptySearchResults/EmptySearchResults'
 import SearchPagination, {
 	DEFAULT_PAGE_SIZE,
 	START_PAGE,
@@ -133,7 +136,9 @@ const SearchPanel = () => {
 				) : (
 					<>
 						{searchResultsCount === 0 ? (
-							<SearchEmptyState item="errors" />
+							<EmptySearchResults
+								kind={SearchResultsKind.Errors}
+							/>
 						) : (
 							fetchedData.error_groups?.map(
 								(eg: Maybe<ErrorGroup>, ind: number) => (

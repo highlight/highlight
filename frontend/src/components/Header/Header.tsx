@@ -44,8 +44,8 @@ import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
+import { showIntercom } from '@util/window'
 import classNames from 'classnames/bind'
-import { H } from 'highlight.run'
 import moment from 'moment'
 import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -335,21 +335,9 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Menu.Item
-											onClick={async () => {
-												const sessionId =
-													await H.getSessionURL()
-
-												window.Intercom('boot', {
-													app_id: 'gm6369ty',
-													alignment: 'right',
-													hide_default_launcher: true,
-													email: admin?.email,
-													sessionId,
-												})
-												window.Intercom(
-													'showNewMessage',
-												)
-											}}
+											onClick={() =>
+												showIntercom({ admin })
+											}
 										>
 											<Box
 												display="flex"

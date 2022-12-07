@@ -37,6 +37,7 @@ import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorization
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
+import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
@@ -116,12 +117,7 @@ H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 if (!isOnPrem) {
 	H.start()
 
-	window.Intercom('boot', {
-		app_id: 'gm6369ty',
-		alignment: 'right',
-		hide_default_launcher: true,
-	})
-
+	showIntercom({ hideMessage: true })
 	if (!dev) {
 		datadogLogs.init({
 			clientToken: import.meta.env.DD_CLIENT_TOKEN,
