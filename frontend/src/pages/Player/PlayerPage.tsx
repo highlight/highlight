@@ -9,7 +9,6 @@ import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
 import { Box } from '@highlight-run/ui'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
@@ -110,7 +109,6 @@ const PlayerPage = ({ integrated }: Props) => {
 	} = usePlayerConfiguration()
 	const toolbarItems = useToolbarItems()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
-	const { isHighlightAdmin } = useAuthContext()
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
 	const [detailedPanel, setDetailedPanel] = useState<
@@ -134,14 +132,6 @@ const PlayerPage = ({ integrated }: Props) => {
 	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
 		'Events' | 'Comments' | 'Metadata'
 	>('tabs-PlayerRightPanel-active-tab', 'Events')
-	const [playerV2Override] = useLocalStorage(
-		`highlight-session-player-v2`,
-		isHighlightAdmin,
-	)
-	const playerV2On = useFeatureFlag(
-		Feature.SessionPlayerV2,
-		isHighlightAdmin ? playerV2Override : undefined,
-	)
 
 	useEffect(() => {
 		if (!session_secure_id) {
@@ -360,16 +350,11 @@ const PlayerPage = ({ integrated }: Props) => {
 								<div className={style.rrwebPlayerSection}>
 									<div className={style.playerCenterColumn}>
 										{centerColumnResizeListener}
-										{!isPlayerFullscreen &&
-											(playerV2On ? (
-												<SessionLevelBarV2
-													width={controllerWidth}
-												/>
-											) : (
-												<SessionLevelBarV2
-													width={controllerWidth}
-												/>
-											))}
+										{!isPlayerFullscreen && (
+											<SessionLevelBarV2
+												width={controllerWidth}
+											/>
+										)}
 										{(sessionViewability ===
 											SessionViewability.VIEWABLE &&
 											!!session) ||

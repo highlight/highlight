@@ -109,7 +109,7 @@ export const Header = () => {
 					display="flex"
 					alignItems="center"
 					px="12"
-					py="8"
+					py={isLoggedIn ? '8' : '0'}
 					justifyContent="space-between"
 				>
 					{inProjectOrWorkspace ||
