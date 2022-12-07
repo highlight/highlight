@@ -150,10 +150,6 @@ const TimelinePopover = ({ bucket }: Props) => {
 						const count = bucket.identifier[eventType].length
 						const name = getTimelineEventDisplayName(eventType)
 						const color = `var(${getAnnotationColor(eventType)})`
-						const first = bucket.identifier[eventType][0]
-						const firstHMS = formatTimeAsHMS(
-							bucket.timestamp[first],
-						)
 						return (
 							<div
 								className={style.eventTypeRow}
@@ -162,11 +158,7 @@ const TimelinePopover = ({ bucket }: Props) => {
 								onClick={(ev) => {
 									ev.preventDefault()
 									ev.stopPropagation()
-									if (count === 1) {
-										onEventInstanceClick(eventType, first)
-									} else {
-										setSelectedType(eventType)
-									}
+									setSelectedType(eventType)
 								}}
 							>
 								<button className={style.actionButton}>
@@ -180,32 +172,16 @@ const TimelinePopover = ({ bucket }: Props) => {
 											style.eventIdentifier,
 										)}
 									>
-										{count > 1
-											? name
-											: bucket.details[first]}
+										{name}
 									</span>
 									<div className={style.rightCounter}>
-										{count > 1 ? (
-											<>
-												<span>{count}</span>
-												<ChevronRightIcon
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</>
-										) : (
-											<>
-												<span>{firstHMS}</span>
-												<CircleRightArrow
-													className={classNames(
-														style.transitionIcon,
-														style.rightActionIcon,
-													)}
-												/>
-											</>
-										)}
+										<span>{count}</span>
+										<ChevronRightIcon
+											className={classNames(
+												style.transitionIcon,
+												style.rightActionIcon,
+											)}
+										/>
 									</div>
 								</button>
 							</div>

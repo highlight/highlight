@@ -19,7 +19,8 @@ func main() {
 
 	h := handlers.NewHandlers()
 	input := utils.DigestsInput{
-		AsOf: time.Now(),
+		AsOf:   time.Now(),
+		DryRun: true,
 	}
 
 	ctx := context.TODO()
@@ -34,5 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(data)
+	err = h.SendDigestEmails(ctx, *data)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

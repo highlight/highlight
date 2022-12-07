@@ -1,6 +1,5 @@
 import { namedOperations } from '@graph/operations'
 import SvgXIcon from '@icons/XIcon'
-import useLocalStorage from '@rehooks/local-storage'
 import { message, Select as AntDesignSelect } from 'antd'
 import classNames from 'classnames'
 const { Option } = AntDesignSelect
@@ -37,16 +36,12 @@ const SegmentPickerForErrors = () => {
 		segmentName,
 		searchParams,
 		existingParams,
+		selectedSegment,
+		setSelectedSegment,
 	} = useErrorSearchContext()
 	const { loading, data } = useGetErrorSegmentsQuery({
 		variables: { project_id },
 	})
-	const [selectedSegment, setSelectedSegment] = useLocalStorage<
-		{ value: string; id: string } | undefined
-	>(
-		`highlightSegmentPickerForErrorsSelectedSegmentId-${project_id}`,
-		undefined,
-	)
 	const [paramsIsDifferent, setParamsIsDifferent] = useState(false)
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
 	const [segmentToDelete, setSegmentToDelete] = useState<{
@@ -110,11 +105,11 @@ const SegmentPickerForErrors = () => {
 		<section className={styles.segmentPickerSection}>
 			<Select
 				value={segmentName}
-				onChange={(value, option) => {
+				onChange={(name, option) => {
 					let nextValue = undefined
-					if (value && option) {
+					if (name && option) {
 						nextValue = {
-							value: value,
+							name,
 							id: (option as any).key,
 						}
 					} else {
@@ -187,7 +182,7 @@ const SegmentPickerForErrors = () => {
 						})
 							.then(() => {
 								message.success(
-									`Updated '${selectedSegment.value}'`,
+									`Updated '${selectedSegment.name}'`,
 									5,
 								)
 								setExistingParams(searchParams)
@@ -224,7 +219,7 @@ const SegmentPickerForErrors = () => {
 					if (data?.error_segments) {
 						setSelectedSegment({
 							id: segmentId,
-							value: segmentName,
+							name: segmentName,
 						})
 						setSegmentName(segmentName)
 					}

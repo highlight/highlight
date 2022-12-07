@@ -62,7 +62,9 @@ const getFiles = async function* (
 
 const changelogExists = function (version: string) {
 	try {
-		return statSync(join(docsDir, `8_changelog`, `${version}.md`)).isFile()
+		return statSync(
+			join(docsDir, `general-docs`, `8_changelog`, `${version}.md`),
+		).isFile()
 	} catch (e) {
 		return false
 	}
@@ -134,6 +136,8 @@ const upload = async function (
 		Bucket: S3_BUCKET,
 		Key: key,
 		Body: fs.readFileSync(fileAbsPath),
+		CacheControl: 'public, immutable, max-age=31536000',
+		ContentType: 'application/javascript',
 	})
 	await client.send(put)
 	console.log(`Uploaded ${key}`)

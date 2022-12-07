@@ -9,12 +9,11 @@ import {
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
 	GetRecentErrorsDocument,
-	GetSessionCommentsDocument,
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
+	GetSessionsHistogramDocument,
 	GetSessionsOpenSearchDocument,
-	GetTimelineIndicatorEventsDocument,
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
@@ -22,6 +21,7 @@ import { indexeddbEnabled, IndexedDBLink } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
+import { roundDateToMinute } from '@util/time'
 import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
@@ -35,9 +35,7 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm')),
-	)
+	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	const pageToLoad = page ?? 1
@@ -81,6 +79,29 @@ export const usePreloadSessions = function ({ page }: { page: number }) {
 			if (!indexeddbEnabled || preloadedPages.current.has(pageToLoad)) {
 				return false
 			}
+			client.query({
+				query: GetSessionsHistogramDocument,
+				variables: {
+					query,
+					project_id,
+					histogram_options: {
+						bounds: {
+							start_date: endDate.current
+								.clone()
+								.subtract(30, 'days')
+								.format(),
+							end_date: endDate.current.format(),
+						},
+						bucket_size: {
+							calendar_interval: OpenSearchCalendarInterval.Day,
+							multiple: 1,
+						},
+						time_zone:
+							Intl.DateTimeFormat().resolvedOptions().timeZone ??
+							'UTC',
+					},
+				},
+			})
 			const { data: sessions } = await client.query({
 				query: GetSessionsOpenSearchDocument,
 				variables: {
@@ -111,9 +132,7 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const endDate = useRef<moment.Moment>(
-		moment(moment().format('MM/DD/YYYY HH:mm')),
-	)
+	const endDate = useRef<moment.Moment>(roundDateToMinute(null))
 	const preloadedPages = useRef<Set<number>>(new Set<number>())
 
 	const pageToLoad = page ?? 1
@@ -182,7 +201,6 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 					query,
 					count: DEFAULT_PAGE_SIZE,
 					page: pageToLoad,
-					influx: false,
 					project_id,
 				},
 			})
@@ -191,16 +209,6 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 				return false
 			preloadedPages.current.add(pageToLoad)
 
-			client.query({
-				query: GetErrorGroupsOpenSearchDocument,
-				variables: {
-					query,
-					count: DEFAULT_PAGE_SIZE,
-					page: pageToLoad,
-					influx: true,
-					project_id,
-				},
-			})
 			client.query({
 				query: GetErrorsHistogramDocument,
 				variables: {
@@ -218,7 +226,9 @@ export const usePreloadErrors = function ({ page }: { page: number }) {
 							calendar_interval: OpenSearchCalendarInterval.Day,
 							multiple: 1,
 						},
-						time_zone: '',
+						time_zone:
+							Intl.DateTimeFormat().resolvedOptions().timeZone ??
+							'UTC',
 					},
 				},
 			})
@@ -281,21 +291,9 @@ export const loadSession = async function (secureID: string) {
 			},
 		})
 		await client.query({
-			query: GetTimelineIndicatorEventsDocument,
-			variables: {
-				session_secure_id: secureID,
-			},
-		})
-		await client.query({
 			query: GetEventChunksDocument,
 			variables: {
 				secure_id: secureID,
-			},
-		})
-		await client.query({
-			query: GetSessionCommentsDocument,
-			variables: {
-				session_secure_id: secureID,
 			},
 		})
 		await client.query({

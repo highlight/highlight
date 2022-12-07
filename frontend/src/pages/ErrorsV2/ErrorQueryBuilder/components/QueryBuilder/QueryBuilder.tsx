@@ -1,5 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonV1 from '@components/Button/Button/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
@@ -9,6 +8,7 @@ import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
+	normalizeParams,
 } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
@@ -16,7 +16,13 @@ import {
 	useGetErrorSegmentsQuery,
 } from '@graph/hooks'
 import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
-import { ErrorSearchParamsInput, Exact, Field } from '@graph/schemas'
+import {
+	ErrorSearchParamsInput,
+	ErrorSegment,
+	Exact,
+	Field,
+	SearchParamsInput,
+} from '@graph/schemas'
 import {
 	Box,
 	Button,
@@ -32,13 +38,11 @@ import {
 	IconSegment,
 	IconTrash,
 	IconX,
-	IconXCircle,
 	Menu,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import SvgXIcon from '@icons/XIcon'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -49,21 +53,24 @@ import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuil
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
+import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
-import classNames from 'classnames'
-import _, { identity, isEqual, omitBy, pickBy } from 'lodash'
+import clsx, { ClassValue } from 'clsx'
+import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouteMatch } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
+import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
 
+import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
-
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -201,7 +208,7 @@ const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
 		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
 		const showLeftShadow = scrollLeft > 0
 		setClassName(
-			classNames(styles.shadowContainer, {
+			clsx(styles.shadowContainer, {
 				[styles.shadowRight]: showRightShadow && !showLeftShadow,
 				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
 				[styles.shadowBoth]: showLeftShadow && showRightShadow,
@@ -239,7 +246,7 @@ const ScrolledTextHighlighter = ({
 	textToHighlight: string
 }) => {
 	const [memoText, setMemoText] = useState<string>(textToHighlight)
-	if (!_.isEqual(memoText, textToHighlight)) {
+	if (!isEqual(memoText, textToHighlight)) {
 		setMemoText(textToHighlight)
 	}
 	const [doScroll, ref] = useScroll()
@@ -725,8 +732,14 @@ const PopoutContent = ({
 const SelectPopout = ({
 	value,
 	disabled,
+	cssClass,
+	limitWidth,
 	...props
-}: PopoutProps & PopoutContentProps) => {
+}: PopoutProps &
+	PopoutContentProps & {
+		cssClass?: ClassValue | ClassValue[]
+		limitWidth?: boolean
+	}) => {
 	// Visible by default if no value yet
 	const [visible, setVisible] = useState(!value)
 	const onSetVisible = (val: boolean) => {
@@ -767,22 +780,30 @@ const SelectPopout = ({
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
 			>
-				<ButtonV1
-					trackingId={`SessionsQuerySelect`}
-					className={classNames(styles.ruleItem, {
-						[styles.invalid]: invalid && !visible,
-					})}
-					disabled={disabled}
-				>
-					{invalid && '--'}
-					{value?.kind === 'single' && getNameLabel(value.label)}
-					{value?.kind === 'multi' &&
-						value.options.length > 1 &&
-						`${value.options.length} selections`}
-					{value?.kind === 'multi' &&
-						value.options.length === 1 &&
-						value.options[0].label}
-				</ButtonV1>
+				<span className={newStyle.tagPopoverAnchor}>
+					<Tag
+						kind="grey"
+						size="medium"
+						shape="basic"
+						cssClass={[
+							cssClass,
+							{
+								[styles.invalid]: invalid && !visible,
+							},
+						]}
+						lines={limitWidth ? '1' : undefined}
+						disabled={disabled}
+					>
+						{invalid && '--'}
+						{value?.kind === 'single' && getNameLabel(value.label)}
+						{value?.kind === 'multi' &&
+							value.options.length > 1 &&
+							`${value.options.length} selections`}
+						{value?.kind === 'multi' &&
+							value.options.length === 1 &&
+							value.options[0].label}
+					</Tag>
+				</span>
 			</Tooltip>
 		</Popover>
 	)
@@ -818,13 +839,14 @@ const QueryRule = ({
 	readonly,
 }: { rule: RuleProps } & RuleSettings) => {
 	return (
-		<div className={styles.ruleContainer}>
+		<Box display="inline-flex" gap="1">
 			<SelectPopout
 				value={rule.field}
 				onChange={onChangeKey}
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
+				cssClass={[newStyle.flatRight]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -832,6 +854,13 @@ const QueryRule = ({
 				loadOptions={getOperatorOptions}
 				type="select"
 				disabled={readonly}
+				cssClass={[
+					newStyle.flatLeft,
+					{
+						[newStyle.flatRight]:
+							(!!rule.op && hasArguments(rule.op)) || !readonly,
+					},
+				]}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
 				<SelectPopout
@@ -840,20 +869,26 @@ const QueryRule = ({
 					loadOptions={getValueOptions}
 					type={getPopoutType(rule.op)}
 					disabled={readonly}
+					limitWidth
+					cssClass={[
+						newStyle.flatLeft,
+						{ [newStyle.flatRight]: !readonly },
+					]}
 				/>
 			)}
 			{!readonly && (
-				<ButtonV1
-					trackingId="SessionsQueryRemoveRule"
-					className={classNames(styles.ruleItem, styles.removeRule)}
+				<Tag
+					size="medium"
+					kind="grey"
+					shape="basic"
+					cssClass={[newStyle.flatLeft]}
 					onClick={() => {
 						onRemove()
 					}}
-				>
-					<SvgXIcon />
-				</ButtonV1>
+					iconRight={<IconX size={12} />}
+				/>
 			)}
-		</div>
+		</Box>
 	)
 }
 
@@ -1278,7 +1313,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		customFields,
 		fetchFields,
 		fieldData,
-		getQueryFromParams,
 		readonly,
 	} = props
 
@@ -1289,52 +1323,20 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchResultsLoading,
 		existingParams,
 		setExistingParams,
-		segmentName,
-		setSegmentName,
 		searchResultsCount,
+		selectedSegment,
+		setSelectedSegment,
+		removeSelectedSegment,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
 
-	const [areParamsDifferent, setAreParamsDifferent] = useState(false)
-	useEffect(() => {
-		// Compares original params and current search params to check if they are different
-		// Removes undefined, null fields, and empty arrays when comparing
-		const normalize = (params: ErrorSearchParamsInput) =>
-			omitBy(
-				pickBy(params, identity),
-				(val) => Array.isArray(val) && val.length === 0,
-			)
-		setAreParamsDifferent(
-			!isEqual(normalize(searchParams), normalize(existingParams)),
-		)
-	}, [searchParams, existingParams])
-
-	useEffect(() => {
-		if (!!segmentName) {
-			if (areParamsDifferent) {
-				setMode(QueryBuilderMode.SEGMENT_UPDATE)
-			} else {
-				setMode(QueryBuilderMode.SEGMENT)
-			}
-		}
-	}, [areParamsDifferent, segmentName])
-
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetErrorSegmentsQuery({
 			variables: { project_id: projectId },
 		})
-
-	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
-		useLocalStorage<{ value: string; id: string }>(
-			`highlightSegmentPickerForErrorsSelectedSegmentId-${projectId}`,
-		)
-
-	useEffect(() => {
-		setSegmentName(selectedSegment?.value || null)
-	}, [selectedSegment, selectedSegment?.value, setSegmentName])
 
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
 	const [segmentToDelete, setSegmentToDelete] = useState<{
@@ -1345,57 +1347,58 @@ function QueryBuilder(props: QueryBuilderProps) {
 		refetchQueries: [namedOperations.Query.GetErrorSegments],
 	})
 
+	const segmentOptions = (segmentData?.error_segments || [])
+		.map((segment) => ({
+			name: segment?.name || '',
+			id: segment?.id || '',
+		}))
+		.sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
+
 	const currentSegment = segmentData?.error_segments?.find(
 		(s) => s?.id === selectedSegment?.id,
 	)
 
-	const showUpdateSegmentOption = areParamsDifferent && segmentName
-	const segmentOptions = (segmentData?.error_segments || [])
-		.map((segment) => ({
-			displayValue: segment?.name || '',
-			value: segment?.name || '',
-			id: segment?.id || '',
-		}))
-		.sort((a, b) =>
-			a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
-				? 1
-				: -1,
-		)
+	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
+		useQueryParams({
+			query: QueryBuilderStateParam,
+		})
+
+	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+		'segment',
+		JsonParam,
+	)
 
 	const selectSegment = useCallback(
-		(segment: typeof currentSegment) => {
-			const segmentParameters = gqlSanitize({
-				...segment?.params,
-			})
-			if (!segmentParameters.query) {
-				segmentParameters.query = JSON.stringify(
-					getQueryFromParams(segmentParameters),
+		(segment?: Partial<ErrorSegment>) => {
+			if (segment && segment.id && segment.name) {
+				const segmentParameters = normalizeParams(
+					gqlSanitize(
+						segmentData?.error_segments?.find(
+							(s) => s?.id === segment?.id,
+						)?.params || '{}',
+					),
 				)
-			}
-			setExistingParams(segmentParameters)
-			setSearchParams(segmentParameters)
-			if (segment) {
-				setSelectedSegment({ id: segment.id, value: segment.name })
+				setSearchParams(segmentParameters)
+				setExistingParams(segmentParameters)
+				setSelectedSegment({ id: segment.id, name: segment.name })
 			} else {
 				removeSelectedSegment()
+				setSearchParams(EmptyErrorsSearchParams)
+				setExistingParams(EmptyErrorsSearchParams)
+				setSearchParamsToUrlParams(
+					normalizeParams(EmptyErrorsSearchParams),
+				)
 			}
 		},
 		[
-			getQueryFromParams,
 			removeSelectedSegment,
+			segmentData?.error_segments,
 			setExistingParams,
 			setSearchParams,
+			setSearchParamsToUrlParams,
 			setSelectedSegment,
 		],
 	)
-
-	useEffect(() => {
-		if (currentSegment) {
-			selectSegment(currentSegment)
-		}
-	}, [currentSegment, selectSegment])
-
-	const [mode, setMode] = useState<QueryBuilderMode>(QueryBuilderMode.EMPTY)
 
 	const { admin } = useAuthContext()
 	const getCustomFieldOptions = useCallback(
@@ -1627,12 +1630,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [timeRangeField, projectId])
 
-	const getFilterRules = useCallback(
-		(rules: RuleProps[]) =>
-			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
-		[timeRangeField.value],
-	)
-
 	const parseGroup = useCallback(
 		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
 			const condition = isAnd ? 'must' : 'should'
@@ -1730,10 +1727,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
-	const filterRules = useMemo<RuleProps[]>(
-		() => getFilterRules(rules),
-		[getFilterRules, rules],
+
+	const filterRules = useMemo(
+		() =>
+			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
+		[rules, timeRangeField.value],
 	)
+
 	const setRules = (rules: RuleProps[]) => {
 		setRulesImpl(rules)
 	}
@@ -1814,15 +1814,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const updateSerializedQuery = useCallback(
 		(isAnd: boolean, rules: RuleProps[]) => {
-			const startDate = moment(
-				moment(
-					getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const startDate = roundDateToMinute(
+				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
-			const endDate = moment(
-				moment(
-					getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-				).format('MM/DD/YYYY HH:mm'),
+			const endDate = roundDateToMinute(
+				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
 			serializedQuery.current = {
@@ -1931,6 +1927,63 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	// Track the current state of the query builder to detect changes
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
+	const errorsMatch = useRouteMatch('/:project_id/errors')
+
+	useEffect(() => {
+		if (!errorsMatch) {
+			return
+		}
+
+		if (!segmentsLoading) {
+			if (activeSegmentUrlParam) {
+				selectSegment(activeSegmentUrlParam)
+			}
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			} else {
+				setSearchParams(EmptyErrorsSearchParams)
+			}
+		}
+
+		// We only want to run this on mount (i.e. when the page first loads)
+		// after fetching segments.
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [segmentsLoading])
+
+	// Errors Segment Deep Linking
+	useEffect(() => {
+		if (!errorsMatch) {
+			return
+		}
+
+		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
+			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
+				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
+			}
+		} else if (activeSegmentUrlParam !== undefined) {
+			setActiveSegmentUrlParam(undefined, 'replace')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedSegment, errorsMatch, setActiveSegmentUrlParam])
+
+	useEffect(() => {
+		if (!errorsMatch) {
+			return
+		}
+		if (!isEqual(searchParams, EmptyErrorsSearchParams)) {
+			setSearchParamsToUrlParams(
+				normalizeParams(searchParams),
+				'replaceIn',
+			)
+		}
+	}, [
+		setSearchParamsToUrlParams,
+		searchParams,
+		errorsMatch,
+		selectedSegment,
+		activeSegmentUrlParam,
+	])
 
 	useEffect(() => {
 		if (!searchResultsLoading) {
@@ -1969,18 +2022,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			return
 		}
 
-		// If search params are updated and no query exists,
-		// build it from the other params for backwards compatibility.
-		if (searchParams.query === undefined) {
-			const newState = getQueryFromParams(searchParams)
-			const newQuery = JSON.stringify(newState)
-			setSearchParams((params) => ({
-				...params,
-				query: newQuery,
-			}))
-			return
-		}
-
 		const allComplete = rules.every(isComplete)
 
 		if (!allComplete) {
@@ -1993,7 +2034,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 		})
 
 		// Update if the state has changed
-		if (newState !== qbState) {
+		if (
+			newState !== qbState &&
+			(rules.length === 1 &&
+			rules[0].field?.value === timeRangeField.value &&
+			rules[0] === defaultTimeRangeRule
+				? false
+				: true)
+		) {
 			setQbState(newState)
 			setSearchParams((params) => ({
 				...params,
@@ -2006,14 +2054,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
-		getQueryFromParams,
+		defaultTimeRangeRule,
 		isAnd,
 		qbState,
-		rules,
-		searchParams,
-		setSearchParams,
 		readonly,
+		rules,
 		setBackendSearchQuery,
+		setSearchParams,
+		timeRangeField.value,
 	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
@@ -2021,6 +2069,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const { setShowLeftPanel } = useErrorPageConfiguration()
+
+	const mode = useMemo(() => {
+		if (filterRules.length === 0 && !selectedSegment) {
+			return QueryBuilderMode.EMPTY
+		} else if (selectedSegment !== undefined) {
+			const areParamsDifferent = !isEqual(
+				normalizeParams(searchParams),
+				normalizeParams(existingParams),
+			)
+			if (areParamsDifferent) {
+				return QueryBuilderMode.SEGMENT_UPDATE
+			} else {
+				return QueryBuilderMode.SEGMENT
+			}
+		}
+		return QueryBuilderMode.CUSTOM
+	}, [existingParams, filterRules.length, searchParams, selectedSegment])
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -2117,15 +2182,26 @@ function QueryBuilder(props: QueryBuilderProps) {
 					(currentStep === 3 && !!currentRule?.op)
 				}
 			>
-				<Button
-					kind="secondary"
-					size="small"
-					emphasis="low"
-					iconLeft={<IconPlusSm size={12} />}
-					onClick={addNewRule}
-				>
-					{mode === QueryBuilderMode.EMPTY ? 'Add filter' : null}
-				</Button>
+				{mode === QueryBuilderMode.EMPTY ? (
+					<Button
+						kind="secondary"
+						size="xSmall"
+						emphasis="low"
+						iconLeft={<IconPlusSm size={12} />}
+						onClick={addNewRule}
+					>
+						Add filter
+					</Button>
+				) : (
+					<ButtonIcon
+						kind="secondary"
+						size="xSmall"
+						emphasis="low"
+						icon={<IconPlusSm size={12} />}
+						onClick={addNewRule}
+						cssClass={newStyle.addButton}
+					/>
+				)}
 			</Popover>
 		)
 	}, [
@@ -2152,7 +2228,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				},
 			})
 				.then(() => {
-					message.success(`Updated '${selectedSegment.value}'`, 5)
+					message.success(`Updated '${selectedSegment.name}'`, 5)
 					setExistingParams(searchParams)
 				})
 				.catch(() => {
@@ -2165,7 +2241,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		projectId,
 		searchParams,
 		selectedSegment?.id,
-		selectedSegment?.value,
+		selectedSegment?.name,
 		setExistingParams,
 	])
 
@@ -2177,7 +2253,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return (
 					<Menu.Button
 						kind="secondary"
-						size="small"
+						size="xSmall"
 						emphasis="medium"
 						iconLeft={<IconSave size={12} />}
 						onClick={() => {
@@ -2192,33 +2268,29 @@ function QueryBuilder(props: QueryBuilderProps) {
 				return (
 					<Menu.Button
 						kind="secondary"
-						size="small"
+						size="xSmall"
 						emphasis="medium"
 						iconLeft={<IconSegment size={12} />}
 						iconRight={<IconChevronDown size={12} />}
 						onClick={() => {}}
 					>
-						{segmentName}
+						{selectedSegment?.name}
 					</Menu.Button>
 				)
 			case QueryBuilderMode.SEGMENT_UPDATE:
 				return (
 					<Menu.Button
 						kind="primary"
-						size="small"
+						size="xSmall"
 						emphasis="high"
 						iconLeft={<IconSegment size={12} />}
-						onIconLeftClick={(evt) => {
-							evt.stopPropagation()
-							updateSegment()
-						}}
 						iconRight={<IconChevronDown size={12} />}
 					>
-						{segmentName}
+						{selectedSegment?.name}
 					</Menu.Button>
 				)
 		}
-	}, [addFilterButton, areRulesValid, mode, segmentName, updateSegment])
+	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
 
 	const controlBar = useMemo(() => {
 		return (
@@ -2297,6 +2369,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						e.stopPropagation()
 						updateSegment()
 					}}
+					disabled={!canUpdateSegment}
 				>
 					<Box
 						display="flex"
@@ -2313,6 +2386,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						e.stopPropagation()
 						setShowCreateSegmentModal(true)
 					}}
+					disabled={!canUpdateSegment}
 				>
 					<Box
 						display="flex"
@@ -2321,13 +2395,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 						userSelect="none"
 					>
 						<IconPlusCircle size={16} color={colors.neutral300} />
-						Duplicate
+						Save as a new segment
 					</Box>
 				</Menu.Item>
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
-						selectSegment(currentSegment)
+						if (currentSegment) {
+							selectSegment(currentSegment)
+						}
 					}}
 				>
 					<Box
@@ -2337,27 +2413,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 						userSelect="none"
 					>
 						<IconRefresh size={16} color={colors.neutral300} />
-						Reset changes
+						Reset to segment filters
 					</Box>
 				</Menu.Item>
 
 				<Menu.Divider />
 			</>
 		)
-	}, [currentSegment, selectSegment, updateSegment])
-	useEffect(() => {
-		if (filterRules.length === 0 && !segmentName) {
-			setMode(QueryBuilderMode.EMPTY)
-		} else if (!!segmentName) {
-			if (showUpdateSegmentOption) {
-				setMode(QueryBuilderMode.SEGMENT_UPDATE)
-			} else {
-				setMode(QueryBuilderMode.SEGMENT)
-			}
-		} else {
-			setMode(QueryBuilderMode.CUSTOM)
-		}
-	}, [filterRules.length, segmentName, showUpdateSegmentOption])
+	}, [canUpdateSegment, currentSegment, selectSegment, updateSegment])
 
 	// Don't render anything if this is a readonly query builder and there are no rules
 	if (readonly && rules.length === 0) {
@@ -2375,7 +2438,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					if (segmentData?.error_segments) {
 						setSelectedSegment({
 							id: segmentId,
-							value: segmentName,
+							name: segmentName,
 						})
 					}
 				}}
@@ -2389,7 +2452,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				afterDeleteHandler={() => {
 					if (
 						segmentToDelete &&
-						segmentName === segmentToDelete.name
+						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
 						setSearchParams(EmptyErrorsSearchParams)
@@ -2405,8 +2468,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 				overflow="hidden"
 				flexShrink={0}
 				m="8"
+				shadow="small"
 			>
-				{mode !== QueryBuilderMode.EMPTY && (
+				{mode !== QueryBuilderMode.EMPTY && !segmentsLoading && (
 					<Box
 						p="4"
 						paddingBottom="8"
@@ -2513,27 +2577,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()
-										removeSelectedSegment()
-										setSearchParams(EmptyErrorsSearchParams)
-									}}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										gap="4"
-										userSelect="none"
-									>
-										<IconXCircle
-											size={16}
-											color={colors.neutral300}
-										/>
-										Clear selection
-									</Box>
-								</Menu.Item>
-								<Menu.Divider />
-								<Menu.Item
-									onClick={(e) => {
-										e.stopPropagation()
 										setSegmentToDelete({
 											id: currentSegment?.id,
 											name: currentSegment?.name,
@@ -2555,13 +2598,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 								</Menu.Item>
 							</Menu.List>
 						</Menu>
+
 						<Menu>
 							<Menu.Button
 								kind="secondary"
 								disabled={segmentsLoading}
 								emphasis="high"
 								icon={<IconSegment size={12} />}
-								size="tiny"
+								size="xSmall"
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
@@ -2582,13 +2626,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 								{segmentOptions.map((segment, idx) => (
 									<Menu.Item
 										key={idx}
-										onClick={() =>
-											setSelectedSegment(segment)
-										}
+										onClick={(e) => {
+											e.stopPropagation()
+											selectSegment(segment)
+										}}
 									>
-										{segment.displayValue}
+										{segment.name}
 									</Menu.Item>
 								))}
+								{segmentOptions.length > 0 && <Menu.Divider />}
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										selectSegment()
+									}}
+								>
+									Reset to defaults
+								</Menu.Item>
 							</Menu.List>
 						</Menu>
 					</Box>

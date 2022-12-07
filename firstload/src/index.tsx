@@ -6,18 +6,17 @@ import {
 } from './integrations/amplitude'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
-import { GenerateSecureID } from '../../client/src/utils/secure-id'
-import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
 import { getPreviousSessionData } from '../../client/src/utils/sessionStorage/highlightSession'
+import { FirstLoadListeners } from '../../client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '../../client/src/utils/secure-id'
+import type { Highlight, HighlightClassOptions } from '../../client/src/index'
 import type {
-	Highlight,
-	HighlightClassOptions,
 	HighlightOptions,
 	HighlightPublicInterface,
 	Metadata,
 	Metric,
 	SessionDetails,
-} from '@highlight-run/client'
+} from '../../client/src/types/types'
 import HighlightSegmentMiddleware from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 
@@ -83,10 +82,7 @@ export const H: HighlightPublicInterface = {
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
 				: `https://static.highlight.io/v${packageJson.version}/index.js`
-			script.setAttribute(
-				'src',
-				scriptSrc + '?' + new Date().getMilliseconds(),
-			)
+			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
 

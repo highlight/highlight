@@ -178,41 +178,13 @@ span:last-child {
 	}
 }
 
-.ruleItem {
-	background-color: var(--color-gray-300) !important;
-	border: 0 !important;
-	border-radius: 0;
-	color: var(--color-gray-800) !important;
-	font-size: 12px;
-	padding: 3px 6px;
-
-	&[disabled] {
-		background-color: var(--color-gray-300) !important;
-		color: var(--color-gray-800) !important;
-	}
+.invalid {
+	background-color: var(--color-red-400) !important;
 
 	&:hover {
-		background-color: var(--color-gray-300) !important;
-		&:not([disabled]) {
-			opacity: 0.8;
-		}
-	}
-
-	&.invalid {
-		background-color: var(--color-red-400) !important;
-
-		&:hover {
-			background-color: var(--color-red-600) !important;
-		}
-	}
-
-	span {
-		max-width: 120px;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		background-color: var(--color-red-600) !important;
 	}
 }
-
 .timeRangeContainer .ruleItem span {
 	max-width: 100%;
 }
@@ -220,11 +192,6 @@ span:last-child {
 .removeRule {
 	border-bottom-right-radius: 3px;
 	border-top-right-radius: 3px;
-}
-
-.ruleContainer {
-	display: inline-flex;
-	gap: 1px;
 }
 
 .syncButton,

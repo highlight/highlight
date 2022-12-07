@@ -64,14 +64,13 @@ import {
 	SessionData,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
-import publicGraphURI from 'consts:publicGraphURI'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { Logger } from './logger'
-import { HighlightFetchWindow } from 'listeners/network-listener/utils/fetch-listener'
-import { ConsoleMessage } from 'types/shared-types'
-import { RequestResponsePair } from 'listeners/network-listener/utils/models'
+import { HighlightFetchWindow } from './listeners/network-listener/utils/fetch-listener'
+import { ConsoleMessage } from './types/shared-types'
+import { RequestResponsePair } from './listeners/network-listener/utils/models'
 import {
 	JankListener,
 	JankPayload,
@@ -354,8 +353,7 @@ export class Highlight {
 			canvasMaxSnapshotDimension: 360,
 			...(options.samplingStrategy || {}),
 		}
-		this._backendUrl =
-			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
+		this._backendUrl = options?.backendUrl || 'https://pub.highlight.run'
 
 		// If _backendUrl is a relative URL, convert it to an absolute URL
 		// so that it's usable from a web worker.
@@ -628,7 +626,7 @@ export class Highlight {
 			}
 			this.logger.log(
 				`Loaded Highlight
-Remote: ${publicGraphURI}
+Remote: ${this._backendUrl}
 Project ID: ${this.sessionData.projectID}
 SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
@@ -764,42 +762,39 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			return
 		}
 		this._lastVisibilityChangeTime = new Date().getTime()
+		this.logger.log(`Detected window ${hidden ? 'hidden' : 'visible'}.`)
 		if (!hidden) {
-			this.logger.log(`Detected window visible. Resuming recording.`)
-			await this.initialize()
 			this.addCustomEvent('TabHidden', false)
-			return
-		}
-		this.logger.log(`Detected window hidden. Pausing recording.`)
-		this.addCustomEvent('TabHidden', true)
-		if ('sendBeacon' in navigator) {
-			try {
-				await this._sendPayload({
-					isBeacon: true,
-					sendFn: (payload) => {
-						let blob = new Blob(
-							[
-								JSON.stringify({
-									query: print(PushPayloadDocument),
-									variables: payload,
-								}),
-							],
-							{
-								type: 'application/json',
-							},
-						)
-						navigator.sendBeacon(`${this._backendUrl}`, blob)
-						return Promise.resolve(0)
-					},
-				})
-			} catch (e) {
-				if (this._isOnLocalHost) {
-					console.error(e)
-					HighlightWarning('_sendPayload', e)
+		} else {
+			this.addCustomEvent('TabHidden', true)
+			if ('sendBeacon' in navigator) {
+				try {
+					await this._sendPayload({
+						isBeacon: true,
+						sendFn: (payload) => {
+							let blob = new Blob(
+								[
+									JSON.stringify({
+										query: print(PushPayloadDocument),
+										variables: payload,
+									}),
+								],
+								{
+									type: 'application/json',
+								},
+							)
+							navigator.sendBeacon(`${this._backendUrl}`, blob)
+							return Promise.resolve(0)
+						},
+					})
+				} catch (e) {
+					if (this._isOnLocalHost) {
+						console.error(e)
+						HighlightWarning('_sendPayload', e)
+					}
 				}
 			}
 		}
-		this.stopRecording()
 	}
 
 	_setupWindowListeners() {

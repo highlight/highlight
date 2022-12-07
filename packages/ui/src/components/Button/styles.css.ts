@@ -146,17 +146,17 @@ export const variants = recipe({
 			secondary: {},
 		},
 		size: {
-			small: [
+			xSmall: [
 				sprinkles({ borderRadius: '4', gap: '4', px: '6' }),
+				{ height: 24 },
+			],
+			small: [
+				sprinkles({ borderRadius: '6', gap: '6', px: '6' }),
 				{ height: 28 },
 			],
 			medium: [
-				sprinkles({ borderRadius: '6', gap: '6', px: '6' }),
-				{ height: 32 },
-			],
-			large: [
 				sprinkles({ borderRadius: '6', gap: '6', px: '8' }),
-				{ height: 36 },
+				{ height: 32 },
 			],
 		},
 	},

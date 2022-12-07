@@ -21,6 +21,9 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/go-chi/chi"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/samber/lo"
+
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/front"
@@ -29,14 +32,11 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/vercel"
-	"github.com/leonelquinteros/hubspot"
-	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 
 	"github.com/clearbit/clearbit-go/clearbit"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/highlight-run/workerpool"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
@@ -44,11 +44,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
-	stripe "github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+
+	"github.com/highlight-run/workerpool"
 
 	H "github.com/highlight-run/highlight-go"
 	Email "github.com/highlight-run/highlight/backend/email"
@@ -56,7 +58,7 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -66,6 +68,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 const ErrorGroupLookbackDays = 7
+const SessionActiveMetricName = "sessionActiveLength"
 
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
@@ -683,22 +686,30 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
-func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (eg *model.ErrorGroup, isOwner bool, err error) {
-	errorGroup := &model.ErrorGroup{}
+func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, bool, error) {
+	eg := &model.ErrorGroup{}
 
 	var db = r.DB
 	if preloadFields {
 		db = r.DB.Preload("Fields")
 	}
-	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&errorGroup).Error; err != nil {
+	if err := db.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
-	_, err = r.isAdminInProjectOrDemoProject(ctx, errorGroup.ProjectID)
+	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return errorGroup, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, e.Wrap(err, "error validating admin in project")
 	}
-	return errorGroup, true, nil
+
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group occurrences")
+	}
+	if err := r.SetErrorFrequenciesInflux(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return nil, false, e.Wrap(err, "error querying error group frequencies")
+	}
+
+	return eg, true, nil
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string, preloadFields bool) (*model.ErrorGroup, error) {
@@ -2828,7 +2839,7 @@ func CalculateMetricUnitConversion(originalUnits *string, desiredUnits *string) 
 func MetricOriginalUnits(metricName string) (originalUnits *string) {
 	if strings.HasSuffix(metricName, "-ms") {
 		originalUnits = pointy.String("ms")
-	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, "sessionactivelength": true}[strings.ToLower(metricName)] {
+	} else if map[string]bool{"fcp": true, "fid": true, "lcp": true, "ttfb": true, "jank": true, SessionActiveMetricName: true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ms")
 	} else if map[string]bool{"latency": true}[strings.ToLower(metricName)] {
 		originalUnits = pointy.String("ns")

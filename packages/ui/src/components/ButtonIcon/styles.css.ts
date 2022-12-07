@@ -33,7 +33,7 @@ export const variants = recipe({
 			none: {},
 		},
 		size: {
-			tiny: {
+			xSmall: {
 				height: 24,
 			},
 			small: {
@@ -57,7 +57,7 @@ export const variants = recipe({
 	compoundVariants: [
 		{
 			variants: {
-				size: 'tiny',
+				size: 'xSmall',
 				shape: 'thin',
 			},
 			style: [
@@ -68,7 +68,7 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				size: 'tiny',
+				size: 'xSmall',
 				shape: 'square',
 			},
 			style: [

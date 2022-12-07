@@ -12,15 +12,6 @@ export type QueryBuilderInput =
 type SearchContext = BaseSearchContext<SearchParamsInput> & {
 	showStarredSessions: boolean
 	setShowStarredSessions: React.Dispatch<React.SetStateAction<boolean>>
-	selectedSegment: { value: string; id: string } | undefined
-	setSelectedSegment: (
-		newValue:
-			| {
-					value: string
-					id: string
-			  }
-			| undefined,
-	) => void
 	queryBuilderInput: QueryBuilderInput
 	setQueryBuilderInput: React.Dispatch<
 		React.SetStateAction<QueryBuilderInput>
