@@ -3,8 +3,10 @@ import Tooltip from '@components/Tooltip/Tooltip'
 import { ErrorInstance, Maybe, SourceMappingError } from '@graph/schemas'
 import {
 	Box,
+	ButtonIcon,
 	Callout,
-	IconCaretDown,
+	IconChevronDown,
+	IconChevronUp,
 	IconExclamationTriangle,
 	LinkButton,
 	Stack,
@@ -249,9 +251,19 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 
 			<Box display="flex" gap="4" alignItems="center">
 				<SourcemapError metadata={sourceMappingErrorMetadata} />
-				<span className={styles.iconCaret({ open: expanded })}>
-					<IconCaretDown />
-				</span>
+
+				<ButtonIcon
+					icon={
+						expanded ? (
+							<IconChevronDown size={14} />
+						) : (
+							<IconChevronUp size={14} />
+						)
+					}
+					kind="secondary"
+					size="xSmall"
+					shape="square"
+				/>
 			</Box>
 		</Box>
 	)
@@ -310,6 +322,7 @@ const SourcemapError: React.FC<{
 				kind="grey"
 				shape="basic"
 				iconLeft={<IconExclamationTriangle />}
+				size="large"
 				onClick={(e) => {
 					e.stopPropagation()
 					setOpen(!open)
@@ -327,7 +340,7 @@ const SourcemapError: React.FC<{
 					position="absolute"
 					overflow="scroll"
 					style={{
-						maxWidth: 500,
+						width: 500,
 						top: 'calc(100% + 5px)',
 						right: 0,
 						zIndex: 1,

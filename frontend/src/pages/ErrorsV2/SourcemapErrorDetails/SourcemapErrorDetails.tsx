@@ -57,8 +57,13 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{originalFileError}. We couldn't find the minified file in
 					Highlight storage at path{' '}
-					<code>{error.actualMinifiedFetchedPath}</code> or at URL{' '}
-					<code>{error.stackTraceFileURL}</code>
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.actualMinifiedFetchedPath}
+					</code>{' '}
+					or at URL{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.stackTraceFileURL}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -80,7 +85,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
 				<Text>
 					{originalFileError}. We couldn't parse the stack trace file
-					name <code>{error.stackTraceFileURL}</code>
+					name{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.stackTraceFileURL}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -92,7 +100,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{sourcemapFileError}. We couldn't find sourcemap file using
 					the 'file://' syntax in cloud storage at path{' '}
-					<code>{error.sourceMapURL}</code>
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.sourceMapURL}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -104,8 +114,13 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{sourcemapFileError}. We couldn't find the sourcemap file in
 					Highlight storage at path{' '}
-					<code>{error.actualSourcemapFetchedPath}</code> or at URL{' '}
-					<code>{error.sourceMapURL}</code>
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.actualSourcemapFetchedPath}
+					</code>{' '}
+					or at URL{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.sourceMapURL}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -114,7 +129,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={missingSourcemapMetadata}>
 				<Text>
 					{sourcemapFileError}. We couldn't parse the sourcemap
-					filename X <code>{error.actualSourcemapFetchedPath}</code>
+					filename X{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.actualSourcemapFetchedPath}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -123,8 +141,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
 				<Text>
 					{fileSizeLimitError}. Minified file{' '}
-					<code>{error.actualMinifiedFetchedPath}</code> larger than
-					our max supported size 128MB
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.actualMinifiedFetchedPath}
+					</code>{' '}
+					larger than our max supported size 128MB
 				</Text>
 			</StackSectionError>
 		)
@@ -133,8 +153,10 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
 				<Text>
 					{fileSizeLimitError}. Sourcemap file{' '}
-					<code>{error.actualSourcemapFetchedPath}</code> larger than
-					our max supported size 128MB
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.actualSourcemapFetchedPath}
+					</code>{' '}
+					larger than our max supported size 128MB
 				</Text>
 			</StackSectionError>
 		)
@@ -145,7 +167,9 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
 				<Text>
 					There was an error parsing the source map file{' '}
-					<code>{error.sourceMapURL}</code>{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.sourceMapURL}
+					</code>{' '}
 				</Text>
 			</StackSectionError>
 		)
@@ -158,8 +182,13 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					Sourcemap library didn't find a valid mapping to the
 					original source with line{' '}
-					<code>{error.mappedLineNumber}</code> and col{' '}
-					<code>{error.mappedColumnNumber}</code>
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.mappedLineNumber}
+					</code>{' '}
+					and col{' '}
+					<code style={{ wordBreak: 'break-word' }}>
+						{error.mappedColumnNumber}
+					</code>
 				</Text>
 			</StackSectionError>
 		)
@@ -260,7 +289,10 @@ const StackSectionError: React.FC<
 														p="4"
 														display="inline-block"
 													>
-														<Text family="monospace">
+														<Text
+															family="monospace"
+															wrap="always"
+														>
 															{m.value}
 														</Text>
 													</Box>
