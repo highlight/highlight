@@ -242,11 +242,16 @@ const SessionCommentHeader = ({
 					small
 					onClick={() => {
 						const startTime = replayer?.getMetaData().startTime
-						if (comment.timestamp && startTime) {
-							pause(comment.timestamp)
+						console.log(':::', comment.timestamp, startTime)
+						if (
+							Number.isFinite(comment.timestamp) &&
+							Number.isFinite(startTime)
+						) {
+							const ts = Number(comment.timestamp)
+							pause(ts)
 							message.success(
 								`Changed player time to when comment was written at ${MillisToMinutesAndSeconds(
-									comment.timestamp,
+									ts,
 								)}.`,
 							)
 						}
