@@ -87,6 +87,7 @@ const ErrorSourcePreview: React.FC<
 			wrapLongLines
 			startingLineNumber={(lineNumber ?? 1) - before.length}
 			customStyle={{
+				backgroundColor: 'transparent',
 				fontSize: 13,
 				fontWeight: 500,
 				lineHeight: 20,

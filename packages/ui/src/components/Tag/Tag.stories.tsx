@@ -38,7 +38,7 @@ export const Sizes = () => {
 	)
 }
 
-export const Variants = () => {
+export const kinds = () => {
 	return (
 		<Box
 			alignItems="flex-start"
@@ -46,9 +46,9 @@ export const Variants = () => {
 			flexDirection="column"
 			gap="16"
 		>
-			<Tag variant="primary">Primary</Tag>
-			<Tag variant="white">White</Tag>
-			<Tag variant="grey">Grey</Tag>
+			<Tag kind="primary">Primary</Tag>
+			<Tag kind="white">White</Tag>
+			<Tag kind="grey">Grey</Tag>
 		</Box>
 	)
 }
@@ -62,15 +62,15 @@ export const Icons = () => {
 			gap="16"
 		>
 			<Tag size="large" icon={<IconCog />} />
-			<Tag size="large" variant="primary" iconLeft={<IconArrowSmDown />}>
+			<Tag size="large" kind="primary" iconLeft={<IconArrowSmDown />}>
 				Primary
 			</Tag>
-			<Tag size="large" variant="white" iconRight={<IconArrowsExpand />}>
+			<Tag size="large" kind="white" iconRight={<IconArrowsExpand />}>
 				White
 			</Tag>
 			<Tag
 				size="large"
-				variant="grey"
+				kind="grey"
 				iconLeft={<IconCog />}
 				iconRight={<IconChartBar />}
 			>

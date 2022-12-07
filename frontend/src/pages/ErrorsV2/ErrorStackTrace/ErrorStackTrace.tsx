@@ -182,7 +182,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	const [expanded, setExpanded] = React.useState(isFirst)
 
 	const trigger = (
-		<Box p="12">
+		<Box p="12" backgroundColor="neutral50">
 			{!!lineContent ? (
 				<ErrorSourcePreview
 					fileName={fileName}
@@ -224,9 +224,10 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 
 	const stackTraceTitle = (
 		<Box
-			background="neutral50"
+			background="neutralN1"
 			cursor="pointer"
-			p="12"
+			py="8"
+			px="12"
 			bt={isFirst ? 'neutral' : undefined}
 			br="neutral"
 			bb="neutral"
@@ -255,14 +256,14 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 				<ButtonIcon
 					icon={
 						expanded ? (
-							<IconChevronDown size={14} />
+							<IconChevronUp size={12} />
 						) : (
-							<IconChevronUp size={14} />
+							<IconChevronDown size={12} />
 						)
 					}
 					kind="secondary"
-					size="xSmall"
-					shape="square"
+					size="minimal"
+					emphasis="low"
 				/>
 			</Box>
 		</Box>
@@ -317,12 +318,12 @@ const SourcemapError: React.FC<{
 	}
 
 	return (
-		<Box position="relative">
+		<Box position="relative" display="flex">
 			<Tag
 				kind="grey"
 				shape="basic"
-				iconLeft={<IconExclamationTriangle />}
-				size="large"
+				iconLeft={<IconExclamationTriangle size={12} />}
+				size="medium"
 				onClick={(e) => {
 					e.stopPropagation()
 					setOpen(!open)
