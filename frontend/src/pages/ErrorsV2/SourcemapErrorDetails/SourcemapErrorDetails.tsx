@@ -242,7 +242,10 @@ const StackSectionError: React.FC<
 				{metadata.length > 0 && (
 					<Box>
 						<Tag
-							onClick={() => setShowMetadata(!showMetadata)}
+							onClick={(e) => {
+								e.stopPropagation()
+								setShowMetadata(!showMetadata)
+							}}
 							kind="grey"
 							iconRight={<IconCaretDown />}
 							shape="basic"
