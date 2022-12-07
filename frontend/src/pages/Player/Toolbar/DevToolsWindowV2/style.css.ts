@@ -10,6 +10,7 @@ export const devToolsWindowV2 = style({
 	flexDirection: 'column',
 	zIndex: 5,
 	position: 'relative',
+	padding: 8,
 })
 
 export const controlBarButtonDeselected = style({

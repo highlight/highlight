@@ -12,8 +12,7 @@ export const MIN_CENTER_COLUMN_WIDTH = 428
 
 export const playerWrapperV2 = style({
 	background: colors.white,
-	border: `solid 1px ${colors.neutralN6}`,
-	borderRadius: 8,
+	borderTop: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,
@@ -24,7 +23,7 @@ export const playerCenterPanel = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'relative',
-	background: colors.neutralN2,
+	backgroundColor: colors.white,
 })
 
 export const playerContainer = style({
@@ -36,6 +35,7 @@ export const playerContainer = style({
 
 export const rrwebPlayerSection = style({
 	display: 'flex',
+	columnGap: 8,
 	flex: 2,
 	width: '100%',
 	height: '100%',
