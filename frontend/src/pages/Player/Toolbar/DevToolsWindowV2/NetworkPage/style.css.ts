@@ -22,12 +22,6 @@ export const networkBox = style({
 	wordWrap: 'break-word',
 })
 
-export const noDataContainer = style({
-	alignSelf: 'center',
-	padding: '32px 64px',
-	textAlign: 'center',
-})
-
 export const nameSection = style({
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',

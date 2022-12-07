@@ -3,7 +3,8 @@ import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb/typings/types'
 import { Box, Text } from '@highlight-run/ui'
 import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
-import { LogLevel } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
+import { LogLevel, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { indexedDBFetch } from '@util/db'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -228,14 +229,8 @@ export const ConsolePage = React.memo(
 							/>
 						)}
 					/>
-				) : messagesToRender.length === 0 && filter !== '' ? (
-					<div className={devStyles.emptySection}>
-						No messages matching '{filter}'
-					</div>
 				) : (
-					<div className={devStyles.emptySection}>
-						There are no console logs for this session.
-					</div>
+					<EmptyDevToolsCallout kind={Tab.Console} filter={filter} />
 				)}
 			</Box>
 		)

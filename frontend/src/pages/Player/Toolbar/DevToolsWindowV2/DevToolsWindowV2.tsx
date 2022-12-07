@@ -20,6 +20,7 @@ import {
 import {
 	LogLevel,
 	RequestType,
+	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import React, { useState } from 'react'
@@ -27,13 +28,6 @@ import React, { useState } from 'react'
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
 import * as styles from './style.css'
-
-enum Tab {
-	Errors = 'Errors',
-	Console = 'Console',
-	Network = 'Network',
-	Performance = 'Performance',
-}
 
 const DevToolsControlBar: React.FC<
 	React.PropsWithChildren & {

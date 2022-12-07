@@ -2,9 +2,12 @@ import JsonViewer from '@components/JsonViewer/JsonViewer'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
 import { Box, Tag, Text } from '@highlight-run/ui'
-import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
-import { findLastActiveEventIndex } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
+import {
+	findLastActiveEventIndex,
+	Tab,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -97,14 +100,8 @@ const ErrorsPage = React.memo(
 						count={2}
 						style={{ height: 25, marginBottom: 11 }}
 					/>
-				) : !session || !errors.length ? (
-					<div className={devStyles.emptySection}>
-						There are no errors for this session.
-					</div>
-				) : errorsToRender.length === 0 && filter.length > 0 ? (
-					<div className={devStyles.emptySection}>
-						No errors matching '{filter}'
-					</div>
+				) : !session || !errorsToRender.length ? (
+					<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
 				) : (
 					<Virtuoso
 						onMouseEnter={() => {

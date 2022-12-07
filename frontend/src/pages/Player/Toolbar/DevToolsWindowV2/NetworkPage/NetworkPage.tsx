@@ -6,12 +6,14 @@ import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesCon
 import { DevToolTabType } from '@pages/Player/Toolbar/DevToolsContext/DevToolsContext'
 import { getNetworkResourcesDisplayName } from '@pages/Player/Toolbar/DevToolsWindow/Option/Option'
 import { useResourceOrErrorDetailPanel } from '@pages/Player/Toolbar/DevToolsWindow/ResourceOrErrorDetailPanel/ResourceOrErrorDetailPanel'
+import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
 	findResourceWithMatchingHighlightHeader,
 	getHighlightRequestId,
 	NetworkResource,
 	RequestType,
+	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
@@ -339,38 +341,14 @@ export const NetworkPage = React.memo(
 							/>
 						</Box>
 					</Box>
-				) : resourcesToRender.length === 0 &&
-				  (filter !== '' || requestType !== RequestType.All) ? (
-					<div className={styles.noDataContainer}>
-						<p>
-							{`No ${
-								requestType !== RequestType.All
-									? requestType
-									: ''
-							} network resources ${
-								filter !== '' ? `matching ${filter}` : ''
-							}`}
-						</p>
-					</div>
 				) : (
-					<div className={styles.noDataContainer}>
-						<h3>
-							There are no network recordings for this session.
-						</h3>
-						<p>
-							If you expected to see data here, please make sure{' '}
-							<code>networkRecording</code> is set to{' '}
-							<code>true</code>. You can{' '}
-							<a
-								href="https://docs.highlight.run/api#w0-highlightoptions"
-								target="_blank"
-								rel="noreferrer"
-							>
-								learn more here
-							</a>
-							.
-						</p>
-					</div>
+					resourcesToRender.length === 0 && (
+						<EmptyDevToolsCallout
+							kind={Tab.Network}
+							filter={filter}
+							requestType={requestType}
+						/>
+					)
 				)}
 			</Box>
 		)

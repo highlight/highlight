@@ -1,7 +1,6 @@
 export const closeStyle: string
 export const devToolsType: string
 export const devToolsWrapper: string
-export const emptySection: string
 export const emptyWrapper: string
 export const option: string
 export const optionsWrapper: string
