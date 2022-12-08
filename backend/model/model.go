@@ -35,7 +35,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
@@ -1107,8 +1106,8 @@ var ErrorType = struct {
 
 type EmailOptOut struct {
 	Model
-	AdminID  int                       `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
-	Category model.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
