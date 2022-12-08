@@ -69,6 +69,7 @@ import (
 
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
+const SessionProcessedMetricName = "sessionProcessed"
 
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
