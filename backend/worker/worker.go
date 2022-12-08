@@ -884,7 +884,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
 			Category:        pointy.String(model.InternalMetricCategory),
 			Tags: []*publicModel.MetricTag{
-				{Name: "SessionID", Value: s.SecureID},
+				{Name: "SessionID", Value: s.ID},
 				{Name: "Excluded", Value: "false"},
 				{Name: "Processed", Value: "true"},
 			},
