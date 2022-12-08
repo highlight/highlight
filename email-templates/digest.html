@@ -74,7 +74,7 @@
 			}
 
 			.content-container {
-				width: 400px;
+				max-width: 400px;
 				text-align: center;
 				margin: 0 auto;
 			}
@@ -99,14 +99,6 @@
 				margin: 0 auto 24px;
 				font-size: 14px;
 				line-height: 22px;
-			}
-
-			.stats-grid {
-				/* display: grid; */
-				/* grid-template-columns: 50% 50%; */
-			}
-
-			.stats-table {
 			}
 
 			h1 {
@@ -160,7 +152,6 @@
 
 			.cell-primary {
 				color: #ffffff;
-				max-width: 200px;
 				text-overflow: ellipsis;
 				white-space: nowrap;
 				overflow: hidden;
@@ -168,11 +159,6 @@
 
 			.cell-primary-error {
 				color: #ffffff;
-				max-width: 250px;
-			}
-
-			table {
-				border-collapse: collapse;
 			}
 
 			.top-border {
@@ -239,7 +225,7 @@
 			}
 
 			#highlight-email-body a {
-				color: #ffffff;
+				color: #9d97aa;
 				text-decoration: none;
 			}
 
@@ -247,47 +233,66 @@
 				color: #72e4fc;
 			}
 
-			.sessions-active-left {
-				width: 50%;
+			#highlight-email-body a:hover .cell-primary {
+				color: #72e4fc;
 			}
 
-			.sessions-active-center {
+			#highlight-email-body a:hover .stat-delta {
+				color: #72e4fc;
+			}
+
+			.w-20 {
+				width: 20%;
+			}
+
+			.w-25 {
+				width: 25%;
+			}
+
+			.w-30 {
 				width: 30%;
 			}
 
-			.sessions-active-right {
-				width: 20%;
-				text-align: right;
+			.w-35 {
+				width: 35%;
 			}
 
-			.sessions-error-left {
+			.w-50 {
+				width: 50%;
+			}
+
+			.w-60 {
 				width: 60%;
 			}
 
-			.sessions-error-center {
-				width: 20%;
-			}
-
-			.sessions-error-right {
-				width: 20%;
-				text-align: right;
-			}
-
-			.errors-new-left {
-				width: 75%;
-			}
-
-			.errors-new-right {
-				width: 25%;
-				text-align: right;
-			}
-
-			.errors-frequent-center {
+			.w-65 {
 				width: 65%;
 			}
 
-			.errors-frequent-right {
-				width: 35%;
+			.w-75 {
+				width: 75%;
+			}
+
+			.row {
+				padding-bottom: 8px;
+				padding-top: 8px;
+				text-align: left;
+				display: flex;
+				gap: 0;
+			}
+
+			.data {
+				font-weight: 600;
+			}
+
+			.cell {
+				display: inline-block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				text-align: left;
+			}
+
+			.right {
 				text-align: right;
 			}
 		</style>
@@ -389,22 +394,26 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th class="sessions-active-left">User</th>
-							<th class="sessions-active-center">Location</th>
-							<th class="sessions-active-right">Length</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-50">User</span>
+							<span class="cell w-30">Location</span>
+							<span class="cell w-20 right">Length</span>
+						</div>
 						{{#each activeSessions}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.identifier}}</a>
-							</td>
-							<td>{{this.location}}</td>
-							<td class="right">{{this.activeLength}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-50">
+									{{this.identifier}}
+								</span>
+								<span class="cell w-30">{{this.location}}</span>
+								<span class="cell w-20 right"
+									>{{this.activeLength}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="info-card">
@@ -413,22 +422,28 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>User</th>
-							<th># Errors</th>
-							<th class="right">Length</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-50">User</span>
+							<span class="cell w-30"># Errors</span>
+							<span class="cell w-20 right">Length</span>
+						</div>
 						{{#each errorSessions}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.identifier}}</a>
-							</td>
-							<td>{{this.errorCount}}</td>
-							<td class="right">{{this.activeLength}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-50">
+									{{this.identifier}}
+								</span>
+								<span class="cell w-30"
+									>{{this.errorCount}}</span
+								>
+								<span class="cell w-20 right"
+									>{{this.activeLength}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="section-start">Insightful errors</div>
@@ -439,20 +454,24 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>Error</th>
-							<th class="right">Affected Users</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-65">Error</span>
+							<span class="cell w-35 right">Affected Users</span>
+						</div>
 						{{#each newErrors}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.message}}</a>
-							</td>
-							<td class="right">{{this.affectedUserCount}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-75">
+									{{this.message}}
+								</span>
+								<span class="cell w-25 right"
+									>{{this.affectedUserCount}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="info-card">
@@ -461,27 +480,27 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>Error</th>
-							<th class="right">Amount</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-65">Error</span>
+							<span class="cell w-35 right">Amount</span>
+						</div>
 						{{#each frequentErrors}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.message}}</a>
-							</td>
-							<td class="right">
-								<div class="stat-pair">
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-65">
+									{{this.message}}
+								</span>
+								<span class="cell w-35 right">
 									<span>{{this.count}}</span>
 									<span class="stat-delta"
 										>{{this.delta}}</span
 									>
-								</div>
-							</td>
-						</tr>
+								</span>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 			</div>
 		</div>
