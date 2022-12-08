@@ -7,7 +7,7 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-type Props = ButtonProps &
+export type Props = ButtonProps &
 	styles.Variants & {
 		/** An alias for iconLeft as a convenience for icon-only tags. */
 		icon?: React.ReactElement<IconProps>

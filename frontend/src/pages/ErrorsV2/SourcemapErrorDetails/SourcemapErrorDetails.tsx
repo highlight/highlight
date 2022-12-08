@@ -1,6 +1,11 @@
-import { SourceMappingError, SourceMappingErrorCode } from '@graph/schemas'
+import {
+	Maybe,
+	SourceMappingError,
+	SourceMappingErrorCode,
+} from '@graph/schemas'
 import {
 	Box,
+	ButtonIcon,
 	IconCaretDown,
 	LinkButton,
 	Tag,
@@ -8,6 +13,8 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import SvgCopyIcon from '@icons/CopyIcon'
+import { message } from 'antd'
 import React from 'react'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
@@ -57,13 +64,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{originalFileError}. We couldn't find the minified file in
 					Highlight storage at path{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.actualMinifiedFetchedPath}
-					</code>{' '}
-					or at URL{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.stackTraceFileURL}
-					</code>
+					<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
+					<Code>{error.stackTraceFileURL}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -85,10 +87,7 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
 				<Text>
 					{originalFileError}. We couldn't parse the stack trace file
-					name{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.stackTraceFileURL}
-					</code>
+					name <Code>{error.stackTraceFileURL}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -100,9 +99,7 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{sourcemapFileError}. We couldn't find sourcemap file using
 					the 'file://' syntax in cloud storage at path{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.sourceMapURL}
-					</code>
+					<Code>{error.sourceMapURL}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -114,13 +111,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					{sourcemapFileError}. We couldn't find the sourcemap file in
 					Highlight storage at path{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.actualSourcemapFetchedPath}
-					</code>{' '}
-					or at URL{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.sourceMapURL}
-					</code>
+					<Code>{error.actualSourcemapFetchedPath}</Code> or at URL{' '}
+					<Code>{error.sourceMapURL}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -129,10 +121,7 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={missingSourcemapMetadata}>
 				<Text>
 					{sourcemapFileError}. We couldn't parse the sourcemap
-					filename X{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.actualSourcemapFetchedPath}
-					</code>
+					filename X <Code>{error.actualSourcemapFetchedPath}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -141,10 +130,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
 				<Text>
 					{fileSizeLimitError}. Minified file{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.actualMinifiedFetchedPath}
-					</code>{' '}
-					larger than our max supported size 128MB
+					<Code>{error.actualMinifiedFetchedPath}</Code> larger than
+					our max supported size 128MB
 				</Text>
 			</StackSectionError>
 		)
@@ -153,10 +140,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
 				<Text>
 					{fileSizeLimitError}. Sourcemap file{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.actualSourcemapFetchedPath}
-					</code>{' '}
-					larger than our max supported size 128MB
+					<Code>{error.actualSourcemapFetchedPath}</Code> larger than
+					our max supported size 128MB
 				</Text>
 			</StackSectionError>
 		)
@@ -167,9 +152,7 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
 				<Text>
 					There was an error parsing the source map file{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.sourceMapURL}
-					</code>{' '}
+					<Code>{error.sourceMapURL}</Code>{' '}
 				</Text>
 			</StackSectionError>
 		)
@@ -182,13 +165,8 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Text>
 					Sourcemap library didn't find a valid mapping to the
 					original source with line{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.mappedLineNumber}
-					</code>{' '}
-					and col{' '}
-					<code style={{ wordBreak: 'break-word' }}>
-						{error.mappedColumnNumber}
-					</code>
+					<Code>{error.mappedLineNumber}</Code> and col{' '}
+					<Code>{error.mappedColumnNumber}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -235,91 +213,122 @@ const StackSectionError: React.FC<
 	}, [])
 
 	return (
-		<Box borderRadius="6" border="neutral">
-			<Box p="8">
-				{children}
+		// onClick is to prevent clicks from bubbling up and toggling the collapse.
+		<div onClick={(e) => e.stopPropagation()}>
+			<Box borderRadius="6" border="neutral" cursor="default">
+				<Box p="8">
+					{children}
 
-				{metadata.length > 0 && (
-					<Box>
-						<Tag
-							onClick={(e) => {
-								e.stopPropagation()
-								setShowMetadata(!showMetadata)
-							}}
-							kind="grey"
-							iconRight={<IconCaretDown />}
-							shape="basic"
-						>
-							{showMetadata ? 'Hide' : 'Show'} metadata
-						</Tag>
+					{metadata.length > 0 && (
+						<Box>
+							<Tag
+								onClick={(e) => {
+									e.stopPropagation()
+									setShowMetadata(!showMetadata)
+								}}
+								kind="grey"
+								iconRight={<IconCaretDown />}
+								shape="basic"
+							>
+								{showMetadata ? 'Hide' : 'Show'} metadata
+							</Tag>
 
-						{showMetadata && (
-							<Box pt="12">
-								<table style={{ width: '100%' }}>
-									{metadata.map((m, index) => (
-										<tr
-											key={m.label}
-											style={{ verticalAlign: 'middle' }}
-										>
-											<th
+							{showMetadata && (
+								<Box pt="12">
+									<table style={{ width: '100%' }}>
+										{metadata.map((m, index) => (
+											<tr
+												key={m.label}
 												style={{
-													borderRight: `1px solid ${vars.color.neutral100}`,
-													borderTop:
-														index === 0
-															? undefined
-															: `1px solid ${vars.color.neutral100}`,
+													verticalAlign: 'middle',
 												}}
 											>
-												<Box p="4">
-													<Text weight="bold">
-														{m.label}
-													</Text>
-												</Box>
-											</th>
-											<td
-												style={{
-													borderTop:
-														index === 0
-															? undefined
-															: `1px solid ${vars.color.neutral100}`,
-												}}
-											>
-												<Box p="4">
-													<Box
-														background="neutral50"
-														borderRadius="3"
-														border="neutral"
-														p="4"
-														display="inline-block"
-													>
-														<Text
-															family="monospace"
-															wrap="always"
-														>
-															{m.value}
+												<th
+													style={{
+														borderRight: `1px solid ${vars.color.neutral100}`,
+														borderTop:
+															index === 0
+																? undefined
+																: `1px solid ${vars.color.neutral100}`,
+													}}
+												>
+													<Box p="4">
+														<Text weight="bold">
+															{m.label}
 														</Text>
 													</Box>
-												</Box>
-											</td>
-										</tr>
-									))}
-								</table>
-							</Box>
-						)}
-					</Box>
-				)}
+												</th>
+												<td
+													style={{
+														borderTop:
+															index === 0
+																? undefined
+																: `1px solid ${vars.color.neutral100}`,
+													}}
+												>
+													<Box p="4">
+														<Code lines="4">
+															{m.value}
+														</Code>
+													</Box>
+												</td>
+											</tr>
+										))}
+									</table>
+								</Box>
+							)}
+						</Box>
+					)}
+				</Box>
+
+				<Box
+					borderTop="neutral"
+					p="8"
+					display="flex"
+					justifyContent="flex-end"
+					width="full"
+				>
+					<LinkButton to={`/${projectId}/settings/errors`}>
+						Sourcemap settings
+					</LinkButton>
+				</Box>
+			</Box>
+		</div>
+	)
+}
+
+const Code: React.FC<{
+	children?: Maybe<string | number>
+	lines?: '1' | '4'
+}> = ({ children, lines = '1' }) => {
+	const title = String(children)
+
+	const onCopyHandler = () => {
+		navigator.clipboard.writeText(title)
+		message.success('Text copied to clipboard.')
+	}
+
+	return (
+		<Box my="4" display="flex" gap="4" alignItems="center">
+			<Box
+				backgroundColor="neutral50"
+				padding="3"
+				borderRadius="3"
+				border="neutral"
+				display="inline-block"
+			>
+				<Text lines={lines} family="monospace" title={title}>
+					{children}
+				</Text>
 			</Box>
 
-			<Box
-				borderTop="neutral"
-				p="8"
-				display="flex"
-				justifyContent="flex-end"
-				width="full"
-			>
-				<LinkButton to={`/${projectId}/settings/errors`}>
-					Sourcemap settings
-				</LinkButton>
+			<Box flexShrink={0}>
+				<ButtonIcon
+					onClick={onCopyHandler}
+					emphasis="low"
+					icon={<SvgCopyIcon />}
+					size="minimal"
+				/>
 			</Box>
 		</Box>
 	)

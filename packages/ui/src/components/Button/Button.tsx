@@ -25,73 +25,82 @@ const buttonToTextSize = {
 	xLarge: 'large',
 } as const
 
-export const Button: React.FC<React.PropsWithChildren<Props>> = ({
-	children,
-	iconLeft,
-	iconRight,
-	size = styles.defaultSize,
-	kind,
-	emphasis,
-	className,
-	cssClass,
-	disabled,
-	onIconLeftClick,
-	onIconRightClick,
-	...buttonProps
-}) => {
-	const textSize: TextProps['size'] = buttonToTextSize[size]
-	const hasInternalButtons = !!onIconLeftClick || !!onIconRightClick
+export const Button = React.forwardRef<
+	HTMLButtonElement,
+	React.PropsWithChildren<Props>
+>(
+	(
+		{
+			children,
+			iconLeft,
+			iconRight,
+			size = styles.defaultSize,
+			kind,
+			emphasis,
+			className,
+			cssClass,
+			disabled,
+			onIconLeftClick,
+			onIconRightClick,
+			...buttonProps
+		},
+		ref,
+	) => {
+		const textSize: TextProps['size'] = buttonToTextSize[size]
+		const hasInternalButtons = !!onIconLeftClick || !!onIconRightClick
 
-	return (
-		<AriakitButton
-			as={hasInternalButtons ? 'div' : 'button'}
-			disabled={disabled}
-			className={clsx(
-				styles.variants({
-					kind,
-					size,
-					emphasis,
-				}),
-				className,
-				cssClass,
-			)}
-			{...buttonProps}
-		>
-			{iconLeft && (
-				<Box
-					as={hasInternalButtons ? 'div' : 'span'}
-					display="inline-flex"
-					disabled={disabled}
-					className={styles.iconVariants({
+		return (
+			<AriakitButton
+				as={hasInternalButtons ? 'div' : 'button'}
+				disabled={disabled}
+				className={clsx(
+					styles.variants({
+						kind,
 						size,
 						emphasis,
-						kind,
-					})}
-					onClick={onIconLeftClick}
-				>
-					{iconLeft}
-				</Box>
-			)}
-			{children && (
-				<Text userSelect="none" size={textSize}>
-					{children}
-				</Text>
-			)}
-			{iconRight && (
-				<Box
-					as={hasInternalButtons ? 'div' : 'span'}
-					display="inline-flex"
-					disabled={disabled}
-					className={styles.iconVariants({
-						size,
-						emphasis,
-						kind,
-					})}
-					onClick={onIconRightClick}
-				>
-					{iconRight}
-				</Box>
-			)}
-		</AriakitButton>
-	)
-}
+					}),
+					className,
+					cssClass,
+				)}
+				ref={ref}
+				{...buttonProps}
+			>
+				{iconLeft && (
+					<Box
+						as={hasInternalButtons ? 'div' : 'span'}
+						display="inline-flex"
+						disabled={disabled}
+						className={styles.iconVariants({
+							size,
+							emphasis,
+							kind,
+						})}
+						onClick={onIconLeftClick}
+					>
+						{iconLeft}
+					</Box>
+				)}
+				{children && (
+					<Text userSelect="none" size={textSize}>
+						{children}
+					</Text>
+				)}
+				{iconRight && (
+					<Box
+						as={hasInternalButtons ? 'div' : 'span'}
+						display="inline-flex"
+						disabled={disabled}
+						className={styles.iconVariants({
+							size,
+							emphasis,
+							kind,
+						})}
+						onClick={onIconRightClick}
+					>
+						{iconRight}
+					</Box>
+				)}
+			</AriakitButton>
+		)
+	},
+)

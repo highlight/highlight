@@ -9,8 +9,8 @@ import {
 	IconChevronUp,
 	IconExclamationTriangle,
 	LinkButton,
+	Popover,
 	Stack,
-	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -318,38 +318,33 @@ const SourcemapError: React.FC<{
 	}
 
 	return (
-		<Box position="relative" display="flex">
-			<Tag
-				kind="grey"
-				shape="basic"
-				iconLeft={<IconExclamationTriangle size={12} />}
-				size="medium"
-				onClick={(e) => {
-					e.stopPropagation()
-					setOpen(!open)
-				}}
-			>
-				Stacktrace Issue
-			</Tag>
-
-			{open && (
-				<Box
-					backgroundColor="white"
-					borderRadius="6"
-					border="neutral"
-					padding="12"
-					position="absolute"
-					overflow="scroll"
-					style={{
-						width: 500,
-						top: 'calc(100% + 5px)',
-						right: 0,
-						zIndex: 1,
+		<Box cursor="default">
+			<Popover placement="bottom-start">
+				<Popover.TagTrigger
+					kind="grey"
+					shape="basic"
+					iconLeft={<IconExclamationTriangle size={12} />}
+					size="medium"
+					onClick={(e) => {
+						e.stopPropagation()
+						setOpen(!open)
 					}}
 				>
-					<SourcemapErrorDetails error={metadata} />
-				</Box>
-			)}
+					Stacktrace Issue
+				</Popover.TagTrigger>
+				<Popover.Content>
+					<Box
+						backgroundColor="white"
+						borderRadius="6"
+						border="neutral"
+						padding="12"
+						overflow="scroll"
+						style={{ width: 500 }}
+					>
+						<SourcemapErrorDetails error={metadata} />
+					</Box>
+				</Popover.Content>
+			</Popover>
 		</Box>
 	)
 }
