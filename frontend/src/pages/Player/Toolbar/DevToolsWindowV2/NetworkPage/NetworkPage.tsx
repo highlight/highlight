@@ -276,11 +276,11 @@ export const NetworkPage = React.memo(
 				) : resourcesToRender.length > 0 ? (
 					<Box className={styles.container}>
 						<Box className={styles.networkHeader}>
-							<Text color={'neutralN11'}>Status</Text>
-							<Text color={'neutralN11'}>Type</Text>
-							<Text color={'neutralN11'}>Name</Text>
-							<Text color={'neutralN11'}>Time</Text>
-							<Text color={'neutralN11'}>Waterfall</Text>
+							<Text color="neutralN11">Status</Text>
+							<Text color="neutralN11">Type</Text>
+							<Text color="neutralN11">Name</Text>
+							<Text color="neutralN11">Time</Text>
+							<Text color="neutralN11">Waterfall</Text>
 						</Box>
 						<Box className={styles.networkBox}>
 							<Virtuoso

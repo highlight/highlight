@@ -51,20 +51,20 @@ const DevToolsControlBar: React.FC<
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	return (
 		<Box
-			px={'8'}
-			py={'6'}
-			display={'flex'}
-			width={'full'}
-			justifyContent={'space-between'}
-			align={'center'}
-			borderBottom={'neutral'}
+			px="8"
+			py="6"
+			display="flex"
+			width="full"
+			justifyContent="space-between"
+			align="center"
+			borderBottom="neutral"
 		>
-			<Box gap={'6'} display={'flex'}>
+			<Box gap="6" display="flex">
 				{[Tab.Errors, Tab.Console, Tab.Network, Tab.Performance].map(
 					(t) => (
 						<Button
 							key={t}
-							size={'xSmall'}
+							size="xSmall"
 							kind={t === tab ? 'primary' : 'secondary'}
 							className={
 								t !== tab
@@ -81,27 +81,27 @@ const DevToolsControlBar: React.FC<
 				)}
 			</Box>
 			<Box
-				display={'flex'}
-				justifyContent={'space-between'}
-				gap={'6'}
-				align={'center'}
+				display="flex"
+				justifyContent="space-between"
+				gap="6"
+				align="center"
 			>
 				<Box
-					display={'flex'}
-					justifyContent={'space-between'}
-					gap={'4'}
-					align={'center'}
+					display="flex"
+					justifyContent="space-between"
+					gap="4"
+					align="center"
 				>
 					<Form>
 						<label>
 							<Box
-								display={'flex'}
-								justifyContent={'space-between'}
-								align={'center'}
+								display="flex"
+								justifyContent="space-between"
+								align="center"
 							>
 								<Box
-									display={'flex'}
-									align={'center'}
+									display="flex"
+									align="center"
 									onClick={() => {
 										setSearchShown((s) => !s)
 									}}
@@ -114,9 +114,9 @@ const DevToolsControlBar: React.FC<
 								</Box>
 								<Form.Input
 									id="search"
-									name={'Search'}
-									placeholder={'Search'}
-									size={'xSmall'}
+									name="Search"
+									placeholder="Search"
+									size="xSmall"
 									collapsed={!searchShown}
 									onChange={(e) => setFilter(e.target.value)}
 									onBlur={() => {
@@ -132,7 +132,7 @@ const DevToolsControlBar: React.FC<
 
 					{tab === Tab.Console ? (
 						<MenuButton
-							size={'medium'}
+							size="medium"
 							options={Object.values(LogLevel)}
 							onChange={(ll: string) =>
 								setLogLevel(ll as LogLevel)
@@ -140,7 +140,7 @@ const DevToolsControlBar: React.FC<
 						/>
 					) : tab === Tab.Network ? (
 						<MenuButton
-							size={'medium'}
+							size="medium"
 							options={Object.values(RequestType)}
 							onChange={(rt: string) =>
 								setRequestType(rt as RequestType)
@@ -150,7 +150,7 @@ const DevToolsControlBar: React.FC<
 
 					<Button
 						style={{ padding: '0 4px' }}
-						size={'xSmall'}
+						size="xSmall"
 						iconRight={
 							<IconSwitchHorizontal
 								width={12}
@@ -242,7 +242,7 @@ const DevToolsWindowV2: React.FC<
 		>
 			{({ panelRef, handleRef }) => (
 				<Box>
-					<div className={'flex justify-center align-middle'}>
+					<div className="flex justify-center align-middle">
 						<button
 							className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
 							ref={handleRef}

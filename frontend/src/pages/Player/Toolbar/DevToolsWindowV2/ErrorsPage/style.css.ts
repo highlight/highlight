@@ -1,3 +1,4 @@
+import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
@@ -29,7 +30,7 @@ export const errorRowVariants = recipe({
 			'&:hover': {
 				backgroundColor: colors.neutralN4,
 				borderBottom: `1px solid ${colors.neutralN6}`,
-				boxShadow: colors.innerShadowOnGrey,
+				boxShadow: shadows.grey,
 				marginBottom: 0,
 			},
 		},
@@ -39,7 +40,7 @@ export const errorRowVariants = recipe({
 			true: {
 				backgroundColor: colors.neutralN4,
 				borderBottom: `1px solid ${colors.neutralN6}`,
-				boxShadow: colors.innerShadowOnGrey,
+				boxShadow: shadows.grey,
 				marginBottom: 0,
 			},
 			false: {},

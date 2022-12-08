@@ -22,11 +22,11 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 
 	return (
 		<Box
-			height={'full'}
-			width={'full'}
-			display={'flex'}
-			alignItems={'center'}
-			justifyContent={'center'}
+			height="full"
+			width="full"
+			display="flex"
+			alignItems="center"
+			justifyContent="center"
 		>
 			<Callout
 				border={false}
@@ -58,7 +58,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 			>
 				{requestType ? (
 					<>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							{`No ${
 								requestType !== RequestType.All
 									? requestType.toLocaleLowerCase()
@@ -67,7 +67,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 								filter !== '' ? ` matching '${filter}'` : ''
 							}.`}
 						</Text>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							If you expected to see data here, please make sure{' '}
 							<code>networkRecording</code> is set to{' '}
 							<code>true</code>.
@@ -75,21 +75,21 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 					</>
 				) : filter?.length ? (
 					<>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							Nothing matched filter '{filter}'
 						</Text>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							If you think something's wrong, feel free to reach
 							out to us!
 						</Text>
 					</>
 				) : (
 					<>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							Double check your <code>H.init</code> settings to
 							ensure this is recorded.
 						</Text>
-						<Text color={'neutralN11'}>
+						<Text color="neutralN11">
 							If you think something's wrong, feel free to reach
 							out to us!
 						</Text>

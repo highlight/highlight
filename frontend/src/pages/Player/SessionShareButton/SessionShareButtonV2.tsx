@@ -22,8 +22,8 @@ const SessionShareButtonV2 = () => {
 	return (
 		<>
 			<Button
-				kind={'secondary'}
-				size={'small'}
+				kind="secondary"
+				size="small"
 				onClick={() => {
 					analytics.track('Clicked share button')
 					setShowModal(true)

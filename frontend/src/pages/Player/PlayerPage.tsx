@@ -492,12 +492,22 @@ const PlayerPage = ({ integrated }: Props) => {
 								</div>
 							) : (
 								<Box
+									display="flex"
+									flexDirection="column"
 									width="full"
 									height="full"
-									display="flex"
-									justifyContent="center"
 								>
-									<NoActiveSessionCard />
+									<SessionLevelBarV2
+										width={controllerWidth}
+									/>
+									<Box
+										width="full"
+										height="full"
+										display="flex"
+										justifyContent="center"
+									>
+										<NoActiveSessionCard />
+									</Box>
 								</Box>
 							)}
 						</div>

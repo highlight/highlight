@@ -186,23 +186,15 @@ const ErrorRow = React.memo(
 							/>
 						))}
 				</Box>
-				<Box
-					display={'flex'}
-					align={'center'}
-					justifyContent={'flex-end'}
-				>
-					<Text color={'neutralN11'}>
+				<Box display="flex" align="center" justifyContent="flex-end">
+					<Text color="neutralN11">
 						{error.structured_stack_trace[0] &&
 							`Line ${error.structured_stack_trace[0].lineNumber}:${error.structured_stack_trace[0].columnNumber}`}
 					</Text>
 				</Box>
-				<Box
-					display={'flex'}
-					align={'center'}
-					justifyContent={'flex-end'}
-				>
-					<Tag kind={'grey'}>
-						<Text color={'neutralN11'}>{error.type}</Text>
+				<Box display="flex" align="center" justifyContent="flex-end">
+					<Tag kind="grey">
+						<Text color="neutralN11">{error.type}</Text>
 					</Tag>
 				</Box>
 			</Box>
