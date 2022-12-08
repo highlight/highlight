@@ -4,6 +4,7 @@ import {
 	Box,
 	ButtonLink,
 	IconChevronRight,
+	IconCode,
 	IconTrendingDown,
 	IconTrendingUp,
 	Tag,
@@ -238,6 +239,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
+				<Box mb="20" display="flex" gap="6" alignItems="center">
+					<IconCode size={14} color={vars.color.neutral500} />
+					<Text color="neutral500">Error Body</Text>
+				</Box>
+
 				<Text
 					family="monospace"
 					lines={truncated ? '3' : undefined}
