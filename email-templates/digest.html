@@ -4,64 +4,6 @@
 		<meta charset="UTF-8" />
 		<title></title>
 		<style>
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 400;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2)
-					format('woff2');
-				unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9,
-					U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839,
-					U+A8E0-A8FB;
-			}
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 400;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2)
-					format('woff2');
-				unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020,
-					U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-			}
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 400;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2)
-					format('woff2');
-				unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-					U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122,
-					U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-			}
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 700;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2)
-					format('woff2');
-				unicode-range: U+0900-097F, U+1CD0-1CF6, U+1CF8-1CF9,
-					U+200C-200D, U+20A8, U+20B9, U+25CC, U+A830-A839,
-					U+A8E0-A8FB;
-			}
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 700;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2)
-					format('woff2');
-				unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020,
-					U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
-			}
-			@font-face {
-				font-family: 'Poppins';
-				font-style: normal;
-				font-weight: 700;
-				src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2)
-					format('woff2');
-				unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-					U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122,
-					U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-			}
 			* {
 				font-family: Helvetica, sans-serif;
 			}
@@ -74,7 +16,7 @@
 			}
 
 			.content-container {
-				width: 400px;
+				max-width: 400px;
 				text-align: center;
 				margin: 0 auto;
 			}
@@ -99,14 +41,6 @@
 				margin: 0 auto 24px;
 				font-size: 14px;
 				line-height: 22px;
-			}
-
-			.stats-grid {
-				/* display: grid; */
-				/* grid-template-columns: 50% 50%; */
-			}
-
-			.stats-table {
 			}
 
 			h1 {
@@ -160,7 +94,6 @@
 
 			.cell-primary {
 				color: #ffffff;
-				max-width: 200px;
 				text-overflow: ellipsis;
 				white-space: nowrap;
 				overflow: hidden;
@@ -168,11 +101,6 @@
 
 			.cell-primary-error {
 				color: #ffffff;
-				max-width: 250px;
-			}
-
-			table {
-				border-collapse: collapse;
 			}
 
 			.top-border {
@@ -214,7 +142,6 @@
 			}
 
 			.right {
-				text-align: right;
 			}
 
 			.stats-grid td {
@@ -239,18 +166,116 @@
 				white-space: normal;
 			}
 
-			#highlight-email-body a {
-				color: #ffffff;
+			a {
+				color: #9d97aa;
 				text-decoration: none;
 			}
 
-			#highlight-email-body a:hover {
+			a:hover {
+				color: #72e4fc !important;
+			}
+
+			a:hover .cell-primary {
+				color: #72e4fc !important;
+			}
+
+			a:hover .stat-delta {
+				color: #72e4fc !important;
+			}
+
+			.w-20 {
+				width: 20%;
+			}
+
+			.w-25 {
+				width: 25%;
+			}
+
+			.w-30 {
+				width: 30%;
+			}
+
+			.w-35 {
+				width: 35%;
+			}
+
+			.w-50 {
+				width: 50%;
+			}
+
+			.w-60 {
+				width: 60%;
+			}
+
+			.w-65 {
+				width: 65%;
+			}
+
+			.w-75 {
+				width: 75%;
+			}
+
+			.row {
+				padding-bottom: 8px;
+				padding-top: 8px;
+				text-align: left;
+				display: flex;
+				gap: 0;
+			}
+
+			.data {
+				font-weight: 600;
+			}
+
+			.cell {
+				display: inline-block;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				text-align: left;
+			}
+
+			.right {
+				text-align: right;
+			}
+
+			.footer {
+				text-align: center;
+				padding: 40px 32px;
+			}
+
+			.unsubscribe-info {
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 22px;
+				color: #ffffff;
+				padding-bottom: 24px;
+				border-bottom: 1px solid #30294e;
+			}
+
+			.unsubscribe-info a {
 				color: #72e4fc;
+			}
+
+			.company-info {
+				font-size: 12px;
+				line-height: 20px;
+				padding-top: 24px;
+				padding-bottom: 16px;
+			}
+
+			.company-address {
+				font-size: 10px;
+				line-height: 16px;
+			}
+
+			.logo-full {
+				margin-top: 24px;
+				height: 16px;
 			}
 		</style>
 	</head>
 	<body>
-		<div class="body-container" id="highlight-email-body">
+		<div class="body-container">
 			<div class="content-container">
 				<img
 					class="logo"
@@ -346,22 +371,26 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>User</th>
-							<th>Location</th>
-							<th class="right">Length</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-50">User</span>
+							<span class="cell w-30">Location</span>
+							<span class="cell w-20 right">Length</span>
+						</div>
 						{{#each activeSessions}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.identifier}}</a>
-							</td>
-							<td>{{this.location}}</td>
-							<td class="right">{{this.activeLength}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-50">
+									{{this.identifier}}
+								</span>
+								<span class="cell w-30">{{this.location}}</span>
+								<span class="cell w-20 right"
+									>{{this.activeLength}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="info-card">
@@ -370,22 +399,28 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>User</th>
-							<th># Errors</th>
-							<th class="right">Length</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-50">User</span>
+							<span class="cell w-30"># Errors</span>
+							<span class="cell w-20 right">Length</span>
+						</div>
 						{{#each errorSessions}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.identifier}}</a>
-							</td>
-							<td>{{this.errorCount}}</td>
-							<td class="right">{{this.activeLength}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-50">
+									{{this.identifier}}
+								</span>
+								<span class="cell w-30"
+									>{{this.errorCount}}</span
+								>
+								<span class="cell w-20 right"
+									>{{this.activeLength}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="section-start">Insightful errors</div>
@@ -396,20 +431,24 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>Error</th>
-							<th class="right">Affected Users</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-65">Error</span>
+							<span class="cell w-35 right">Affected Users</span>
+						</div>
 						{{#each newErrors}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.message}}</a>
-							</td>
-							<td class="right">{{this.affectedUserCount}}</td>
-						</tr>
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-75">
+									{{this.message}}
+								</span>
+								<span class="cell w-25 right"
+									>{{this.affectedUserCount}}</span
+								>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
 
 				<div class="info-card">
@@ -418,28 +457,47 @@
 						<h3>from last week</h3>
 					</div>
 
-					<table>
-						<tr>
-							<th>Error</th>
-							<th class="right">Amount</th>
-						</tr>
+					<div>
+						<div class="row">
+							<span class="cell w-65">Error</span>
+							<span class="cell w-35 right">Amount</span>
+						</div>
 						{{#each frequentErrors}}
-						<tr class="top-border">
-							<td class="cell-primary">
-								<a href="{{this.url}}">{{this.message}}</a>
-							</td>
-							<td class="right">
-								<div class="stat-pair">
+						<a href="{{this.url}}">
+							<div class="top-border row data">
+								<span class="cell cell-primary w-65">
+									{{this.message}}
+								</span>
+								<span class="cell w-35 right">
 									<span>{{this.count}}</span>
 									<span class="stat-delta"
 										>{{this.delta}}</span
 									>
-								</div>
-							</td>
-						</tr>
+								</span>
+							</div>
+						</a>
 						{{/each}}
-					</table>
+					</div>
 				</div>
+			</div>
+			<div class="footer">
+				<div class="unsubscribe-info">
+					This digest was sent to {{toEmail}}. If you don't want to
+					receive emails like this in the future, you can
+					<a href="{{unsubscribeUrl}}">unsubscribe</a>.
+				</div>
+				<div class="company-info">
+					Stop wasting effort trying to track down and reproduce bugs.
+					Through session replay, Highlight shows you exactly how and
+					when your bugs happen. Highlight removes the mystery of
+					debugging.
+				</div>
+				<div class="company-address">123 Main St</div>
+				<div class="company-address">Seattle, WA 12345</div>
+				<img
+					class="logo-full"
+					src="https://static.highlight.io/assets/digest/highlight-logo.png"
+				/>
 			</div>
 		</div>
 	</body>
