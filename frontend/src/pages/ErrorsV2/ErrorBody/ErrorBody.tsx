@@ -257,14 +257,6 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					ref={bodyRef}
 				>
 					{body}
-					Lorem ipsum dolor sit amet consectetur adipisicing elit.
-					Culpa velit distinctio unde incidunt adipisci. Illo tempora
-					sequi repudiandae vitae enim, sapiente cum, natus reiciendis
-					pariatur dolor, iure quia ullam dolorem. Lorem ipsum dolor
-					sit amet consectetur adipisicing elit. Quo accusamus
-					perspiciatis vitae possimus tempore ea dolorum quaerat
-					provident fuga reprehenderit inventore culpa animi officiis
-					voluptates, nostrum reiciendis illo eos maiores!
 				</Text>
 
 				{truncateable && (
