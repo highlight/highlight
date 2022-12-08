@@ -221,10 +221,10 @@ export const NetworkPage = React.memo(
 
 		useEffect(() => {
 			// scroll network events on player timeline click
-			if (state === ReplayerState.Paused) {
+			if (autoScroll && state === ReplayerState.Paused) {
 				scrollFunction(currentResourceIdx)
 			}
-		}, [currentResourceIdx, scrollFunction, state, time])
+		}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
 		// Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
 		useEffect(() => {
