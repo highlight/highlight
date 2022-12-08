@@ -172,15 +172,15 @@
 			}
 
 			a:hover {
-				color: #72e4fc;
+				color: #72e4fc !important;
 			}
 
 			a:hover .cell-primary {
-				color: #72e4fc;
+				color: #72e4fc !important;
 			}
 
 			a:hover .stat-delta {
-				color: #72e4fc;
+				color: #72e4fc !important;
 			}
 
 			.w-20 {
@@ -244,11 +244,33 @@
 			}
 
 			.unsubscribe-info {
+				font-size: 14px;
+				font-weight: 600;
+				line-height: 22px;
 				color: #ffffff;
+				padding-bottom: 24px;
+				border-bottom: 1px solid #30294e;
 			}
 
 			.unsubscribe-info a {
 				color: #72e4fc;
+			}
+
+			.company-info {
+				font-size: 12px;
+				line-height: 20px;
+				padding-top: 24px;
+				padding-bottom: 16px;
+			}
+
+			.company-address {
+				font-size: 10px;
+				line-height: 16px;
+			}
+
+			.logo-full {
+				margin-top: 24px;
+				height: 16px;
 			}
 		</style>
 	</head>
@@ -464,7 +486,18 @@
 					receive emails like this in the future, you can
 					<a href="{{unsubscribeUrl}}">unsubscribe</a>.
 				</div>
-				<div class="company-info">Highlight is a company</div>
+				<div class="company-info">
+					Stop wasting effort trying to track down and reproduce bugs.
+					Through session replay, Highlight shows you exactly how and
+					when your bugs happen. Highlight removes the mystery of
+					debugging.
+				</div>
+				<div class="company-address">123 Main St</div>
+				<div class="company-address">Seattle, WA 12345</div>
+				<img
+					class="logo-full"
+					src="https://static.highlight.io/assets/digest/highlight-logo.png"
+				/>
 			</div>
 		</div>
 	</body>
