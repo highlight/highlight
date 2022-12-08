@@ -2974,6 +2974,29 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 	return true, nil
 }
 
+// UpdateEmailOptOut is the resolver for the updateEmailOptOut field.
+func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token string, adminID int, category modelInputs.EmailOptOutCategory, isOptOut bool) (bool, error) {
+	if !IsOptOutTokenValid(adminID, token) {
+		return false, e.New("token is not valid or has expired")
+	}
+
+	if isOptOut {
+		if err := r.DB.Create(&model.EmailOptOut{
+			AdminID:  adminID,
+			Category: category,
+		}).Error; err != nil {
+			return false, err
+		}
+	} else {
+		if err := r.DB.Where("admin_id = ? AND category = ?", adminID, category).
+			Delete(&model.EmailOptOut{}).Error; err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -6021,6 +6044,24 @@ func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string
 		CreatedAt: client.CreatedAt,
 		AppName:   client.AppName,
 	}, nil
+}
+
+// EmailOptOuts is the resolver for the email_opt_outs field.
+func (r *queryResolver) EmailOptOuts(ctx context.Context, token string, adminID int) ([]modelInputs.EmailOptOutCategory, error) {
+	if !IsOptOutTokenValid(adminID, token) {
+		return nil, e.New("token is not valid or has expired")
+	}
+
+	rows := []*model.EmailOptOut{}
+	if err := r.DB.Where("admin_id = ?", adminID).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	results := lo.Map(rows, func(c *model.EmailOptOut, idx int) modelInputs.EmailOptOutCategory {
+		return c.Category
+	})
+
+	return results, nil
 }
 
 // Params is the resolver for the params field.

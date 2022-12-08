@@ -3848,6 +3848,66 @@ export type UpdateVercelSettingsMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateVercelSettingsMutation,
 	Types.UpdateVercelSettingsMutationVariables
 >
+export const UpdateEmailOptOutDocument = gql`
+	mutation UpdateEmailOptOut(
+		$token: String!
+		$admin_id: ID!
+		$category: EmailOptOutCategory!
+		$is_opt_out: Boolean!
+	) {
+		updateEmailOptOut(
+			token: $token
+			admin_id: $admin_id
+			category: $category
+			is_opt_out: $is_opt_out
+		)
+	}
+`
+export type UpdateEmailOptOutMutationFn = Apollo.MutationFunction<
+	Types.UpdateEmailOptOutMutation,
+	Types.UpdateEmailOptOutMutationVariables
+>
+
+/**
+ * __useUpdateEmailOptOutMutation__
+ *
+ * To run a mutation, you first call `useUpdateEmailOptOutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateEmailOptOutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateEmailOptOutMutation, { data, loading, error }] = useUpdateEmailOptOutMutation({
+ *   variables: {
+ *      token: // value for 'token'
+ *      admin_id: // value for 'admin_id'
+ *      category: // value for 'category'
+ *      is_opt_out: // value for 'is_opt_out'
+ *   },
+ * });
+ */
+export function useUpdateEmailOptOutMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpdateEmailOptOutMutation,
+		Types.UpdateEmailOptOutMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpdateEmailOptOutMutation,
+		Types.UpdateEmailOptOutMutationVariables
+	>(UpdateEmailOptOutDocument, baseOptions)
+}
+export type UpdateEmailOptOutMutationHookResult = ReturnType<
+	typeof useUpdateEmailOptOutMutation
+>
+export type UpdateEmailOptOutMutationResult =
+	Apollo.MutationResult<Types.UpdateEmailOptOutMutation>
+export type UpdateEmailOptOutMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpdateEmailOptOutMutation,
+	Types.UpdateEmailOptOutMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -10464,4 +10524,59 @@ export type GetErrorGroupFrequenciesLazyQueryHookResult = ReturnType<
 export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQuery,
 	Types.GetErrorGroupFrequenciesQueryVariables
+>
+export const GetEmailOptOutsDocument = gql`
+	query GetEmailOptOuts($token: String!, $admin_id: ID!) {
+		email_opt_outs(token: $token, admin_id: $admin_id)
+	}
+`
+
+/**
+ * __useGetEmailOptOutsQuery__
+ *
+ * To run a query within a React component, call `useGetEmailOptOutsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEmailOptOutsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEmailOptOutsQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *      admin_id: // value for 'admin_id'
+ *   },
+ * });
+ */
+export function useGetEmailOptOutsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetEmailOptOutsQuery,
+		Types.GetEmailOptOutsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetEmailOptOutsQuery,
+		Types.GetEmailOptOutsQueryVariables
+	>(GetEmailOptOutsDocument, baseOptions)
+}
+export function useGetEmailOptOutsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetEmailOptOutsQuery,
+		Types.GetEmailOptOutsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetEmailOptOutsQuery,
+		Types.GetEmailOptOutsQueryVariables
+	>(GetEmailOptOutsDocument, baseOptions)
+}
+export type GetEmailOptOutsQueryHookResult = ReturnType<
+	typeof useGetEmailOptOutsQuery
+>
+export type GetEmailOptOutsLazyQueryHookResult = ReturnType<
+	typeof useGetEmailOptOutsLazyQuery
+>
+export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
+	Types.GetEmailOptOutsQuery,
+	Types.GetEmailOptOutsQueryVariables
 >

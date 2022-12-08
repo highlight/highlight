@@ -173,6 +173,7 @@ var Models = []interface{}{
 	&VercelIntegrationConfig{},
 	&OAuthClientStore{},
 	&ResthookSubscription{},
+	&EmailOptOut{},
 }
 
 func init() {
@@ -1101,6 +1102,12 @@ var ErrorType = struct {
 }{
 	FRONTEND: "Frontend",
 	BACKEND:  "Backend",
+}
+
+type EmailOptOut struct {
+	Model
+	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {

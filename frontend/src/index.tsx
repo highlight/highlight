@@ -400,6 +400,10 @@ get in contact with us!
 				/>
 			) : (
 				<Switch>
+					<Route path="/subscriptions">
+						{/* This route uses a token for authentication */}
+						<AuthAdminRouter />
+					</Route>
 					<Route path="/:project_id(0)/*" exact>
 						{/* Allow guests to access this route without being asked to log in */}
 						<AuthAdminRouter />

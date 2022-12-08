@@ -523,6 +523,47 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type EmailOptOutCategory string
+
+const (
+	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
+)
+
+var AllEmailOptOutCategory = []EmailOptOutCategory{
+	EmailOptOutCategoryAll,
+	EmailOptOutCategoryDigests,
+}
+
+func (e EmailOptOutCategory) IsValid() bool {
+	switch e {
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests:
+		return true
+	}
+	return false
+}
+
+func (e EmailOptOutCategory) String() string {
+	return string(e)
+}
+
+func (e *EmailOptOutCategory) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EmailOptOutCategory(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EmailOptOutCategory", str)
+	}
+	return nil
+}
+
+func (e EmailOptOutCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ErrorState string
 
 const (

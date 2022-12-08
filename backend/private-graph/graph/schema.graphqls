@@ -1059,6 +1059,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+enum EmailOptOutCategory {
+	All
+	Digests
+}
+
 scalar Upload
 
 type Query {
@@ -1258,6 +1263,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
+	email_opt_outs(token: String!, admin_id: ID!): [EmailOptOutCategory!]!
 }
 
 type Mutation {
@@ -1544,6 +1550,12 @@ type Mutation {
 	updateVercelProjectMappings(
 		project_id: ID!
 		project_mappings: [VercelProjectMappingInput!]!
+	): Boolean!
+	updateEmailOptOut(
+		token: String!
+		admin_id: ID!
+		category: EmailOptOutCategory!
+		is_opt_out: Boolean!
 	): Boolean!
 }
 

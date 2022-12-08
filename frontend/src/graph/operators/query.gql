@@ -1749,3 +1749,7 @@ query GetErrorGroupFrequencies(
 		value
 	}
 }
+
+query GetEmailOptOuts($token: String!, $admin_id: ID!) {
+	email_opt_outs(token: $token, admin_id: $admin_id)
+}

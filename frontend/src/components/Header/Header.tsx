@@ -93,11 +93,14 @@ export const Header = () => {
 		},
 	]
 
+	const inProjectOrWorkspace =
+		isLoggedIn && (projectIdRemapped || workspaceId)
+
 	return (
 		<>
 			<CommandBar />
 			<Box background="neutral50" borderBottom="neutral">
-				{!!project_id && getBanner(project_id) /** ZANETODO: banner? */}
+				{!!project_id && getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -105,7 +108,7 @@ export const Header = () => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{isLoggedIn ||
+					{inProjectOrWorkspace ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
 						<Box
@@ -242,7 +245,7 @@ export const Header = () => {
 							</Link>
 						</Box>
 					)}
-					{isLoggedIn && (
+					{inProjectOrWorkspace && (
 						<Box
 							display="flex"
 							justifyContent="flex-end"
@@ -257,7 +260,7 @@ export const Header = () => {
 								</Box>
 							)}
 							<Box display="flex" alignItems="center" gap="4">
-								{isLoggedIn && <Notifications />}
+								{inProjectOrWorkspace && <Notifications />}
 								<Menu>
 									<Menu.Button
 										emphasis="low"
