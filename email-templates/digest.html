@@ -10,7 +10,6 @@
 
 			.body-container {
 				background-color: #0d0225;
-				color: #9d97aa;
 				width: 100%;
 				height: 100%;
 			}
@@ -232,6 +231,7 @@
 				overflow: hidden;
 				text-overflow: ellipsis;
 				text-align: left;
+				color: #9d97aa;
 			}
 
 			.right {
@@ -261,11 +261,13 @@
 				line-height: 20px;
 				padding-top: 24px;
 				padding-bottom: 16px;
+				color: #9d97aa;
 			}
 
 			.company-address {
 				font-size: 10px;
 				line-height: 16px;
+				color: #9d97aa;
 			}
 
 			.logo-full {
@@ -482,8 +484,9 @@
 			</div>
 			<div class="footer">
 				<div class="unsubscribe-info">
-					This digest was sent to {{toEmail}}. If you don't want to
-					receive emails like this in the future, you can
+					This digest was sent to
+					<a href="mailto:{{toEmail}}">{{toEmail}}</a>. If you don't
+					want to receive emails like this in the future, you can
 					<a href="{{unsubscribeUrl}}">unsubscribe</a>.
 				</div>
 				<div class="company-info">
