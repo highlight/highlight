@@ -36,9 +36,15 @@ const CreateErrorSegmentModal = ({
 	const [newSegmentName, setNewSegmentName] = useState(
 		currentSegment?.name ?? '',
 	)
+
+	const shouldUpdate = !!currentSegment
 	useEffect(() => {
-		if (currentSegment?.name) setNewSegmentName(currentSegment?.name)
-	}, [currentSegment?.name])
+		if (shouldUpdate && currentSegment?.name) {
+			setNewSegmentName(currentSegment?.name)
+		} else {
+			setNewSegmentName('')
+		}
+	}, [currentSegment?.name, shouldUpdate])
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -47,8 +53,6 @@ const CreateErrorSegmentModal = ({
 
 	const { searchParams, setExistingParams } = useErrorSearchContext()
 	const history = useHistory()
-
-	const shouldUpdate = !!currentSegment
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()

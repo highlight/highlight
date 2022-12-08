@@ -2441,11 +2441,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 			<CreateErrorSegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {
-					if (showEditSegmentNameModal) {
-						setShowEditSegmentNameModal(false)
-					} else {
-						setShowCreateSegmentModal(false)
-					}
+					setShowEditSegmentNameModal(false)
+					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
 					if (segmentData?.error_segments) {
