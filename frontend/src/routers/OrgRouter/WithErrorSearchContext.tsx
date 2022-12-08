@@ -1,6 +1,7 @@
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import { ErrorSearchParamsInput } from '@graph/schemas'
 import { ErrorSearchContextProvider } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
@@ -15,9 +16,11 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	// TODO: remove this in favor of selectedSegment after updating the session search query builder
 	const [segmentName, setSegmentName] = useState<string | null>(null)
 
-	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>({})
+	const [searchParams, setSearchParams] = useState<ErrorSearchParamsInput>(
+		EmptyErrorsSearchParams,
+	)
 	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(false)
+		useState<boolean>(true)
 
 	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
 	const [searchResultSecureIds, setSearchResultSecureIds] = useState<
@@ -25,7 +28,7 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	>([])
 
 	const [existingParams, setExistingParams] =
-		useState<ErrorSearchParamsInput>({})
+		useState<ErrorSearchParamsInput>(EmptyErrorsSearchParams)
 
 	const [backendSearchQuery, setBackendSearchQuery] =
 		useState<BackendSearchQuery>(undefined)
