@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/utils"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -173,7 +174,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var curActivity float64
 	if err := h.db.Raw(`
-		SELECT avg(s.active_length)
+		SELECT coalesce(avg(s.active_length), 0)
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -185,7 +186,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var prevActivity float64
 	if err := h.db.Raw(`
-		SELECT avg(s.active_length)
+		SELECT coalesce(avg(s.active_length), 0)
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -363,8 +364,15 @@ func formatErrorURL(projectId int, secureId string) string {
 	return fmt.Sprintf("https://app.highlight.io/%d/errors/%s", projectId, secureId)
 }
 
+func formatSubscriptionUrl(adminId int, token string) string {
+	return fmt.Sprintf("https://app.highlight.io/subscriptions?admin_id=%d&token=%s", adminId, token)
+}
+
 func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataResponse) error {
-	var toAddrs []string
+	var toAddrs []struct {
+		adminID int
+		email   string
+	}
 	if err := h.db.Raw(`
 		SELECT a.email
 		FROM projects p
@@ -373,6 +381,12 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		INNER JOIN admins a
 		ON wa.admin_id = a.id
 		WHERE p.id = ?
+		AND NOT EXISTS (
+			SELECT *
+			FROM email_opt_outs eoo
+			WHERE eoo.admin_id = a.id
+			AND eoo.category IN ('All', 'Digest')
+		)
 	`, input.ProjectId).Scan(&toAddrs).Error; err != nil {
 		return errors.Wrap(err, "error querying recipient emails")
 	}
@@ -387,11 +401,14 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 	}
 
 	if input.DryRun {
-		toAddrs = []string{"zane@highlight.io"}
+		toAddrs = []struct {
+			adminID int
+			email   string
+		}{{adminID: 5141, email: "zane@highlight.io"}}
 	}
 
 	for _, toAddr := range toAddrs {
-		to := &mail.Email{Address: toAddr}
+		to := &mail.Email{Address: toAddr.email}
 
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
@@ -400,7 +417,14 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 
 		p := mail.NewPersonalization()
 		p.AddTos(to)
-		p.DynamicTemplateData = templateData
+		curData := map[string]interface{}{}
+		for k, v := range templateData {
+			curData[k] = v
+		}
+		curData["toEmail"] = toAddr.email
+		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.adminID, graph.GetOptOutToken(toAddr.adminID, false))
+
+		p.DynamicTemplateData = curData
 
 		m.AddPersonalizations(p)
 
