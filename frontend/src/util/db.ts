@@ -5,6 +5,7 @@ import {
 	Observable,
 	Operation,
 } from '@apollo/client'
+import { Session } from '@graph/schemas'
 import Dexie, { Table } from 'dexie'
 import moment from 'moment'
 
@@ -105,6 +106,9 @@ export class IndexedDBCache {
 			data: value,
 		})
 	}
+	deleteItem = async function (key: { operation: string; variables: any }) {
+		await db.apollo.delete(JSON.stringify(key))
+	}
 }
 
 export const indexeddbCache = new IndexedDBCache()
@@ -194,22 +198,69 @@ export class IndexedDBLink extends ApolloLink {
 										observer.next(result)
 										observer.complete()
 									} else {
-										// otherwise the payload_updated_at has changed, so store
-										// the new value and return it
-										indexeddbCache
-											.setItem(
-												{
-													operation:
-														operation.operationName,
-													variables:
-														operation.variables,
+										const sessionSecureID = (
+											newResult.data?.session as
+												| Session
+												| undefined
+										)?.secure_id
+										// otherwise the payload_updated_at has changed
+										// remove any other cache entries that may be related
+										const promises = [
+											indexeddbCache.deleteItem({
+												operation: 'GetEventChunks',
+												variables: {
+													secure_id: sessionSecureID,
 												},
-												newResult,
-											)
-											.then(() => {
-												observer.next(newResult)
-												observer.complete()
-											})
+											}),
+											indexeddbCache.deleteItem({
+												operation:
+													'GetSessionIntervals',
+												variables: {
+													session_secure_id:
+														sessionSecureID,
+												},
+											}),
+											indexeddbCache.deleteItem({
+												operation: 'GetSessionPayload',
+												variables: {
+													session_secure_id:
+														sessionSecureID,
+													skip_events: true,
+												},
+											}),
+											indexeddbCache.deleteItem({
+												operation: 'GetSessionPayload',
+												variables: {
+													session_secure_id:
+														sessionSecureID,
+													skip_events: false,
+												},
+											}),
+											indexeddbCache.deleteItem({
+												operation: 'GetWebVitals',
+												variables: {
+													session_secure_id:
+														sessionSecureID,
+												},
+											}),
+										]
+										Promise.all(promises).then(() => {
+											// store the new value and return it
+											indexeddbCache
+												.setItem(
+													{
+														operation:
+															operation.operationName,
+														variables:
+															operation.variables,
+													},
+													newResult,
+												)
+												.then(() => {
+													observer.next(newResult)
+													observer.complete()
+												})
+										})
 									}
 								})
 						} else {
