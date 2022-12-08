@@ -309,26 +309,23 @@ const StackTraceSectionCollapsible: React.FC<
 const SourcemapError: React.FC<{
 	metadata?: Maybe<SourceMappingError>
 }> = ({ metadata }) => {
-	// TODO: Replace custom dialog with a tooltip component. Need to build tooltip
-	// in UI library.
-	const [open, setOpen] = React.useState(false)
-
 	if (!metadata) {
 		return null
 	}
 
 	return (
-		<Box cursor="default">
+		// onClick is to prevent clicks from bubbling up and toggling the collapse.
+		<Box
+			cursor="default"
+			onClick={(e) => e.stopPropagation()}
+			display="flex"
+		>
 			<Popover placement="bottom-start">
 				<Popover.TagTrigger
 					kind="grey"
 					shape="basic"
 					iconLeft={<IconExclamationTriangle size={12} />}
 					size="medium"
-					onClick={(e) => {
-						e.stopPropagation()
-						setOpen(!open)
-					}}
 				>
 					Stacktrace Issue
 				</Popover.TagTrigger>

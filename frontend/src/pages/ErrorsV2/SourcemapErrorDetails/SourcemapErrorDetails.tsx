@@ -213,88 +213,85 @@ const StackSectionError: React.FC<
 	}, [])
 
 	return (
-		// onClick is to prevent clicks from bubbling up and toggling the collapse.
-		<div onClick={(e) => e.stopPropagation()}>
-			<Box borderRadius="6" border="neutral" cursor="default">
-				<Box p="8">
-					{children}
+		<Box borderRadius="6" border="neutral" cursor="default">
+			<Box p="8">
+				{children}
 
-					{metadata.length > 0 && (
-						<Box>
-							<Tag
-								onClick={(e) => {
-									e.stopPropagation()
-									setShowMetadata(!showMetadata)
-								}}
-								kind="grey"
-								iconRight={<IconCaretDown />}
-								shape="basic"
-							>
-								{showMetadata ? 'Hide' : 'Show'} metadata
-							</Tag>
+				{metadata.length > 0 && (
+					<Box>
+						<Tag
+							onClick={(e) => {
+								e.stopPropagation()
+								setShowMetadata(!showMetadata)
+							}}
+							kind="grey"
+							iconRight={<IconCaretDown />}
+							shape="basic"
+						>
+							{showMetadata ? 'Hide' : 'Show'} metadata
+						</Tag>
 
-							{showMetadata && (
-								<Box pt="12">
-									<table style={{ width: '100%' }}>
-										{metadata.map((m, index) => (
-											<tr
-												key={m.label}
+						{showMetadata && (
+							<Box pt="12">
+								<table style={{ width: '100%' }}>
+									{metadata.map((m, index) => (
+										<tr
+											key={m.label}
+											style={{
+												verticalAlign: 'middle',
+											}}
+										>
+											<th
 												style={{
-													verticalAlign: 'middle',
+													borderRight: `1px solid ${vars.color.neutral100}`,
+													borderTop:
+														index === 0
+															? undefined
+															: `1px solid ${vars.color.neutral100}`,
+													width: 150,
 												}}
 											>
-												<th
-													style={{
-														borderRight: `1px solid ${vars.color.neutral100}`,
-														borderTop:
-															index === 0
-																? undefined
-																: `1px solid ${vars.color.neutral100}`,
-														width: 150,
-													}}
-												>
-													<Box p="4">
-														<Text weight="bold">
-															{m.label}
-														</Text>
-													</Box>
-												</th>
-												<td
-													style={{
-														borderTop:
-															index === 0
-																? undefined
-																: `1px solid ${vars.color.neutral100}`,
-													}}
-												>
-													<Box p="4">
-														<Code lines="4">
-															{m.value}
-														</Code>
-													</Box>
-												</td>
-											</tr>
-										))}
-									</table>
-								</Box>
-							)}
-						</Box>
-					)}
-				</Box>
-
-				<Box
-					borderTop="neutral"
-					p="8"
-					display="flex"
-					justifyContent="flex-end"
-					width="full"
-				>
-					<LinkButton to={`/${projectId}/settings/errors`}>
-						Sourcemap settings
-					</LinkButton>
-				</Box>
+												<Box p="4">
+													<Text weight="bold">
+														{m.label}
+													</Text>
+												</Box>
+											</th>
+											<td
+												style={{
+													borderTop:
+														index === 0
+															? undefined
+															: `1px solid ${vars.color.neutral100}`,
+												}}
+											>
+												<Box p="4">
+													<Code lines="4">
+														{m.value}
+													</Code>
+												</Box>
+											</td>
+										</tr>
+									))}
+								</table>
+							</Box>
+						)}
+					</Box>
+				)}
 			</Box>
-		</div>
+
+			<Box
+				borderTop="neutral"
+				p="8"
+				display="flex"
+				justifyContent="flex-end"
+				width="full"
+			>
+				<LinkButton to={`/${projectId}/settings/errors`}>
+					Sourcemap settings
+				</LinkButton>
+			</Box>
+		</Box>
 	)
 }
 
