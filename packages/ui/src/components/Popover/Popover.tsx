@@ -9,7 +9,7 @@ import { Button, Props as ButtonProps } from '../Button/Button'
 import { Tag, Props as TagProps } from '../Tag/Tag'
 
 const PopoverContext = React.createContext<PopoverState>({} as PopoverState)
-const usePopover = () => React.useContext(PopoverContext)
+export const usePopover = () => React.useContext(PopoverContext)
 
 type Props = React.PropsWithChildren<Partial<PopoverState>>
 

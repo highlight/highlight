@@ -10,12 +10,13 @@ import {
 	LinkButton,
 	Tag,
 	Text,
+	usePopover,
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { message } from 'antd'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
 
@@ -198,6 +199,14 @@ const StackSectionError: React.FC<
 > = ({ children, error, keys }) => {
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
+	const { mounted } = usePopover()
+
+	useEffect(() => {
+		if (!mounted) {
+			setShowMetadata(false)
+		}
+	}, [mounted])
+
 	const metadata = keys.reduce((accumulator: any[], key) => {
 		if (error[key]) {
 			return [
