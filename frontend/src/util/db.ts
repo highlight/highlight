@@ -53,10 +53,15 @@ export class DB extends Dexie {
 
 	constructor() {
 		super('highlight')
-		this.version(5).stores({
-			apollo: 'key,updated',
-			fetch: 'key,updated',
-		})
+		this.version(5)
+			.stores({
+				apollo: 'key,updated',
+				fetch: 'key,updated',
+			})
+			.upgrade((tx) => {
+				tx.table('apollo').clear()
+				tx.table('fetch').clear()
+			})
 	}
 }
 
