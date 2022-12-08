@@ -120,7 +120,10 @@ function HighlightSessions() {
 					{data?.sessions_opensearch.sessions.map((s) => (
 						<MinimalSessionCard
 							compact
-							session={s}
+							session={{
+								...s,
+								payload_updated_at: new Date().toISOString(),
+							}}
 							key={s.secure_id}
 							selected={false}
 							urlParams={qs}

@@ -1455,6 +1455,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'postal'
 			| 'fingerprint'
 			| 'created_at'
+			| 'payload_updated_at'
 			| 'language'
 			| 'user_object'
 			| 'user_properties'
