@@ -764,6 +764,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		this._lastVisibilityChangeTime = new Date().getTime()
 		this.logger.log(`Detected window ${hidden ? 'hidden' : 'visible'}.`)
 		if (!hidden) {
+			await this.initialize()
 			this.addCustomEvent('TabHidden', false)
 		} else {
 			this.addCustomEvent('TabHidden', true)
@@ -794,6 +795,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					}
 				}
 			}
+			this.stopRecording()
 		}
 	}
 
