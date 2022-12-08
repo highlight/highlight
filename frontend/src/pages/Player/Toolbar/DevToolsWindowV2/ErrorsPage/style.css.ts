@@ -3,25 +3,28 @@ import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
 export const errorsBox = style({
-	width: '100%',
-	height: '100%',
 	display: 'flex',
 	flexDirection: 'column',
-	padding: 8,
+	fontSize: 13,
+	height: '100%',
 	overflowX: 'hidden',
 	overflowY: 'auto',
+	padding: 8,
+	width: '100%',
 	wordWrap: 'break-word',
 })
 
 export const errorRowVariants = recipe({
 	base: {
 		backgroundColor: colors.white,
+		borderRadius: 6,
+		color: colors.neutralN11,
 		display: 'grid',
-		gridTemplateColumns: '1fr auto 120px',
+		gridTemplateColumns: '3fr 1fr auto 64px',
+		gap: 32,
+		marginBottom: 1,
 		padding: 8,
 		width: '100%',
-		borderRadius: 6,
-		marginBottom: 1,
 		selectors: {
 			'&:hover': {
 				backgroundColor: colors.neutralN4,
@@ -42,4 +45,10 @@ export const errorRowVariants = recipe({
 			false: {},
 		},
 	},
+})
+
+export const errorBody = style({
+	alignItems: 'center',
+	display: 'flex',
+	wordWrap: 'break-word',
 })

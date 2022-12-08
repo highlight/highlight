@@ -165,7 +165,7 @@ const ErrorRow = React.memo(
 				})}
 				onClick={setSelectedError}
 			>
-				<Box display={'flex'} align={'center'} color={'neutralN11'}>
+				<Box className={styles.errorBody}>
 					{typeof body === 'object' ? (
 						<JsonViewer src={body} collapsed={1} />
 					) : (
@@ -174,6 +174,8 @@ const ErrorRow = React.memo(
 							textToHighlight={body}
 						/>
 					)}
+				</Box>
+				<Box className={styles.errorBody}>
 					{context &&
 						(typeof context === 'object' ? (
 							<JsonViewer src={context} collapsed={1} />
