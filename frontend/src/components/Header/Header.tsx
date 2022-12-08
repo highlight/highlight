@@ -97,7 +97,7 @@ export const Header = () => {
 		<>
 			<CommandBar />
 			<Box background="neutral50" borderBottom="neutral">
-				{!!project_id && getBanner(project_id) /** ZANETODO: banner? */}
+				{!!project_id && getBanner(project_id)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -105,7 +105,7 @@ export const Header = () => {
 					py="8"
 					justifyContent="space-between"
 				>
-					{(isLoggedIn && projectIdRemapped) ||
+					{(isLoggedIn && (projectIdRemapped || workspaceId)) ||
 					projectIdRemapped ===
 						DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
 						<Box
