@@ -1,5 +1,6 @@
 export const spaces = {
 	'0': '0',
+	'1': '1px',
 	'3': '3px',
 	'2': '2px',
 	'4': '4px',

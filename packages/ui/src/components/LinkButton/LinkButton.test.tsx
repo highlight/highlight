@@ -8,7 +8,7 @@ describe('LinkButton', () => {
 	it('exists', async () => {
 		render(
 			<BrowserRouter>
-				<LinkButton href="">Testing</LinkButton>
+				<LinkButton to="example.com">Testing</LinkButton>
 			</BrowserRouter>,
 		)
 

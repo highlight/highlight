@@ -666,14 +666,12 @@ query GetErrorGroupsOpenSearch(
 	$count: Int!
 	$query: String!
 	$page: Int
-	$influx: Boolean!
 ) {
 	error_groups_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
 		page: $page
-		influx: $influx
 	) {
 		error_groups {
 			created_at

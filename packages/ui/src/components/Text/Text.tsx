@@ -14,6 +14,7 @@ export type Props = React.PropsWithChildren &
 		transform?: BoxProps['textTransform']
 		userSelect?: BoxProps['userSelect']
 		cssClass?: BoxProps['cssClass']
+		title?: string
 	}
 
 export const Text = React.forwardRef<unknown, Props>(
@@ -27,6 +28,7 @@ export const Text = React.forwardRef<unknown, Props>(
 			transform,
 			userSelect,
 			cssClass,
+			title,
 			...props
 		},
 		ref,
@@ -48,6 +50,7 @@ export const Text = React.forwardRef<unknown, Props>(
 				userSelect={userSelect}
 				textTransform={transform}
 				cssClass={clsx(styles.variants({ ...props }), cssClass)}
+				title={title}
 			>
 				{content}
 			</Box>

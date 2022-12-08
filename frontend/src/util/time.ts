@@ -79,3 +79,7 @@ export const serializeAbsoluteTimeRange = (
 	const endIso = moment(end).toISOString()
 	return `${startIso}_${endIso}`
 }
+
+export const roundDateToMinute = function (date: string | null) {
+	return moment(moment(date || undefined).format('MM/DD/YYYY HH:mm'))
+}

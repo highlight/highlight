@@ -3,15 +3,17 @@ package timeseries
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/hlog"
-	"github.com/influxdata/influxdb-client-go/v2"
-	"github.com/influxdata/influxdb-client-go/v2/api"
-	"github.com/influxdata/influxdb-client-go/v2/domain"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/influxdata/influxdb-client-go/v2"
+	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/influxdata/influxdb-client-go/v2/domain"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/highlight-run/highlight/backend/hlog"
 )
 
 type Measurement string
@@ -53,8 +55,8 @@ var Configs = map[Measurement]MeasurementConfig{
 var IgnoredTags = map[string]bool{
 	"group_name": true,
 	"request_id": true,
-	"session_id": true,
 	"project_id": true,
+	"session_id": true,
 }
 
 type Point struct {
@@ -114,14 +116,16 @@ func New() *InfluxDB {
 	}
 }
 
-func (i *InfluxDB) GetBucket(bucket string, measurement Measurement) string {
+func (i *InfluxDB) GetBucket(projectID string, measurement Measurement) string {
 	switch measurement {
 	case Configs["metrics"].Name:
-		return fmt.Sprintf("%s-%s", i.BucketPrefix, bucket)
+		return fmt.Sprintf("%s-%s", i.BucketPrefix, projectID)
+	case Configs["metrics"].AggName:
+		return fmt.Sprintf("%s-%s/downsampled", i.BucketPrefix, projectID)
 	case Configs["errors"].AggName:
-		return fmt.Sprintf("%s-%s-errors/downsampled", i.BucketPrefix, bucket)
+		return fmt.Sprintf("%s-%s-errors/downsampled", i.BucketPrefix, projectID)
 	}
-	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, bucket, measurement)
+	return fmt.Sprintf("%s-%s-%s", i.BucketPrefix, projectID, measurement)
 }
 
 func (i *InfluxDB) createWriteAPI(bucket string, measurement Measurement) api.WriteAPI {
@@ -206,6 +210,7 @@ func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point)
 		// write asynchronously
 		writeAPI.WritePoint(p)
 	}
+	i.messagesSent += len(points)
 	// periodically flush messages
 	if i.messagesSent%10000 == 0 {
 		for _, w := range i.writeAPIs {
@@ -213,8 +218,8 @@ func (i *InfluxDB) Write(bucket string, measurement Measurement, points []Point)
 			w.Flush()
 		}
 	}
-	i.messagesSent++
-	hlog.Incr("worker.influx.writeMessageCount", nil, 1)
+	hlog.Incr("worker.influx.writeCount", nil, 1)
+	hlog.Histogram("worker.influx.writeMessageCount", float64(len(points)), nil, 1)
 	hlog.Histogram("worker.influx.writeSec", time.Since(start).Seconds(), nil, 1)
 }
 

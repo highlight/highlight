@@ -3,7 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 
 import { ButtonIcon } from './ButtonIcon'
 import { Box } from '../Box/Box'
-import { IconCaretDown } from '../icons'
+import { IconChevronDown } from '../icons'
 import { Variants } from './styles.css'
 
 export default {
@@ -15,7 +15,7 @@ export const AllVariants = () => {
 	const variant: Variants['kind'][] = ['primary', 'secondary']
 	const shape: Variants['shape'][] = ['square', 'thin']
 	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['medium', 'small', 'tiny']
+	const size: Variants['size'][] = ['medium', 'small', 'xSmall', 'minimal']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
@@ -32,7 +32,7 @@ export const AllVariants = () => {
 								<>
 									{shape.map(($shape, ldx) => (
 										<ButtonIcon
-											icon={<IconCaretDown />}
+											icon={<IconChevronDown size={12} />}
 											size={$size}
 											kind={$kind}
 											emphasis={$emphasis}
@@ -43,7 +43,7 @@ export const AllVariants = () => {
 
 									<ButtonIcon
 										disabled
-										icon={<IconCaretDown />}
+										icon={<IconChevronDown size={12} />}
 										size={$size}
 										kind={$kind}
 										emphasis={$emphasis}

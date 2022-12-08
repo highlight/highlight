@@ -14,7 +14,7 @@ export const variants = recipe({
 			padding: 0,
 			outline: 'none',
 			selectors: {
-				'&:disabled': {
+				'&[disabled]': {
 					cursor: 'not-allowed',
 				},
 			},
@@ -33,14 +33,17 @@ export const variants = recipe({
 			none: {},
 		},
 		size: {
-			tiny: {
+			xSmall: {
 				height: 24,
+				width: 24,
 			},
 			small: {
 				height: 28,
+				width: 28,
 			},
 			medium: {
 				height: 32,
+				width: 32,
 			},
 			minimal: {
 				height: 20,
@@ -57,23 +60,12 @@ export const variants = recipe({
 	compoundVariants: [
 		{
 			variants: {
-				size: 'tiny',
+				size: 'xSmall',
 				shape: 'thin',
 			},
 			style: [
 				{
 					width: 16,
-				},
-			],
-		},
-		{
-			variants: {
-				size: 'tiny',
-				shape: 'square',
-			},
-			style: [
-				{
-					width: 24,
 				},
 			],
 		},
@@ -90,34 +82,12 @@ export const variants = recipe({
 		},
 		{
 			variants: {
-				size: 'small',
-				shape: 'square',
-			},
-			style: [
-				{
-					width: 28,
-				},
-			],
-		},
-		{
-			variants: {
 				size: 'medium',
 				shape: 'thin',
 			},
 			style: [
 				{
 					width: 20,
-				},
-			],
-		},
-		{
-			variants: {
-				size: 'medium',
-				shape: 'square',
-			},
-			style: [
-				{
-					width: 28,
 				},
 			],
 		},
@@ -138,7 +108,7 @@ export const variants = recipe({
 						background: vars.color.purple700,
 						boxShadow: 'none',
 					},
-					'&:disabled': {
+					'&[disabled]': {
 						background: vars.color.purple100,
 						color: vars.color.neutral50,
 						boxShadow: 'none',
@@ -158,7 +128,7 @@ export const variants = recipe({
 				boxShadow: 'none',
 				border: vars.border.neutral,
 				selectors: {
-					'&:disabled': {
+					'&[disabled]': {
 						color: vars.color.purple100,
 						border: vars.border.purpleLight,
 						boxShadow: 'none',
@@ -185,7 +155,7 @@ export const variants = recipe({
 				color: vars.color.purple500,
 				boxShadow: 'none',
 				selectors: {
-					'&:disabled': {
+					'&[disabled]': {
 						color: vars.color.purple100,
 					},
 					'&:hover:enabled': {
@@ -216,7 +186,7 @@ export const variants = recipe({
 						background: vars.color.neutral200,
 						boxShadow: 'none',
 					},
-					'&:disabled': {
+					'&[disabled]': {
 						background: vars.color.neutral50,
 						color: vars.color.neutral300,
 						boxShadow: 'none',
@@ -236,7 +206,7 @@ export const variants = recipe({
 				boxShadow: 'none',
 				border: vars.border.neutral,
 				selectors: {
-					'&:disabled': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 						boxShadow: 'none',
 						outline: 'none',
@@ -262,7 +232,7 @@ export const variants = recipe({
 				color: vars.color.neutral500,
 				boxShadow: 'none',
 				selectors: {
-					'&:disabled': {
+					'&[disabled]': {
 						color: vars.color.neutral300,
 					},
 					'&:hover:enabled': {
@@ -271,55 +241,6 @@ export const variants = recipe({
 					},
 					'&:focus:enabled, &:active:enabled': {
 						background: vars.color.neutral200,
-						color: vars.color.neutral500,
-					},
-				},
-			},
-		},
-		{
-			variants: {
-				size: 'minimal',
-				kind: 'primary',
-			},
-			style: {
-				background: vars.color.purple500,
-				color: vars.color.white,
-				boxShadow: 'none',
-				selectors: {
-					'&:disabled': {
-						color: vars.color.purple100,
-					},
-					'&:hover:enabled': {
-						background: vars.color.purple700,
-						color: vars.color.neutral50,
-					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.purple500,
-						color: vars.color.white,
-					},
-				},
-			},
-		},
-		{
-			variants: {
-				size: 'minimal',
-				kind: 'secondary',
-			},
-			style: {
-				background: 'transparent',
-				color: vars.color.neutral500,
-				boxShadow: 'none',
-				selectors: {
-					'&:disabled': {
-						color: vars.color.neutral300,
-					},
-					'&:hover:enabled': {
-						background: vars.color.neutral200,
-						color: vars.color.neutral700,
-						boxShadow: shadows.grey,
-					},
-					'&:focus:enabled, &:active:enabled': {
-						background: vars.color.neutral50,
 						color: vars.color.neutral500,
 					},
 				},

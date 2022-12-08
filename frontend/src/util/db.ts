@@ -116,12 +116,11 @@ export class IndexedDBLink extends ApolloLink {
 		'GetEventChunks',
 		'GetEventChunkURL',
 		'GetRecentErrors',
-		'GetSessionComments',
 		'GetSessionIntervals',
 		'GetSession',
 		'GetSessionPayload',
+		'GetSessionsHistogram',
 		'GetSessionsOpenSearch',
-		'GetTimelineIndicatorEvents',
 		'GetWebVitals',
 	])
 

@@ -1,12 +1,7 @@
 {
 	"compilerOptions": {
 		"typeRoots": ["../node_modules"],
-		"types": [
-			"@highlight-run/client",
-			"@types/chrome",
-			"@types/node",
-			"vitest/globals"
-		],
+		"types": ["@types/chrome", "@types/node", "vitest/globals"],
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"skipLibCheck": true,
@@ -22,10 +17,11 @@
 		"resolveJsonModule": true,
 		"jsx": "react",
 		"downlevelIteration": true,
-		"composite": true
+		"composite": true,
+		"rootDir": ".."
 	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.tsx"],
-	"files": ["package.json"],
-	"references": [{ "path": "../client" }]
+	"include": ["src", "../client/src"],
+	"exclude": ["**/src/**/*.test.tsx"],
+	"files": ["package.json", "../client/package.json"],
+	"references": [{ "path": "../rrweb/packages/rrweb" }]
 }

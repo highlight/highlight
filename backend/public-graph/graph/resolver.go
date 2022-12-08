@@ -16,33 +16,34 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
-	"github.com/highlight-run/highlight/backend/alerts"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/samber/lo"
-
-	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/errors"
-	parse "github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/pricing"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/redis"
-	storage "github.com/highlight-run/highlight/backend/storage"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/highlight/backend/util"
-	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight-run/workerpool"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/alerts"
+	"github.com/highlight-run/highlight/backend/errors"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/zapier"
+	"github.com/highlight-run/workerpool"
 )
 
 // This file will not be regenerated automatically.
@@ -1231,7 +1232,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
-			Timestamp:       session.CreatedAt,
+			Timestamp:       time.Now(),
 			Name:            "sessions",
 			Value:           1,
 			Category:        pointy.String(model.InternalMetricCategory),
@@ -1631,7 +1632,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
-			Timestamp:       session.CreatedAt,
+			Timestamp:       time.Now(),
 			Name:            "users",
 			Value:           1,
 			Category:        pointy.String(model.InternalMetricCategory),
@@ -2024,6 +2025,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		metricsByGroup[group] = append(metricsByGroup[group], m)
 	}
 	var points []timeseries.Point
+	var aggregatePoints []timeseries.Point
 	for groupName, metricInputs := range metricsByGroup {
 		mg := &model.MetricGroup{
 			GroupName: groupName,
@@ -2051,10 +2053,10 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		var newMetrics []*model.Metric
 		firstTime := time.Time{}
 		tags := map[string]string{
-			"project_id": strconv.Itoa(projectID),
 			"session_id": strconv.Itoa(sessionID),
 			"group_name": groupName,
 		}
+		downsampledMetric := false
 		fields := map[string]interface{}{}
 		for _, m := range metricInputs {
 			category := ""
@@ -2076,17 +2078,36 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 			for _, t := range m.Tags {
 				tags[t.Name] = t.Value
 			}
+			// the SessionActiveMetricName metric has a ts of the session creation but is
+			// written when the session is processed which may be a long time after
+			// the session is created. this would mean that the downsample task does not
+			// see the metric, causing it to be lost. instead, write it directly to the
+			// downsampled bucket.
+			downsampledMetric = downsampledMetric || m.Name == graph.SessionActiveMetricName
 		}
 		if err := r.DB.Create(&newMetrics).Error; err != nil {
 			return err
 		}
-		points = append(points, timeseries.Point{
-			Time:   firstTime,
-			Tags:   tags,
-			Fields: fields,
-		})
+		if downsampledMetric {
+			aggregatePoints = append(aggregatePoints, timeseries.Point{
+				Time:   firstTime,
+				Tags:   tags,
+				Fields: fields,
+			})
+		} else {
+			points = append(points, timeseries.Point{
+				Time:   firstTime,
+				Tags:   tags,
+				Fields: fields,
+			})
+		}
 	}
-	r.TDB.Write(strconv.Itoa(projectID), timeseries.Metrics, points)
+	if len(points) > 0 {
+		r.TDB.Write(strconv.Itoa(projectID), timeseries.Metrics, points)
+	}
+	if len(aggregatePoints) > 0 {
+		r.TDB.Write(strconv.Itoa(projectID), timeseries.Metric.AggName, aggregatePoints)
+	}
 	return nil
 }
 
@@ -2140,7 +2161,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsByProject map[in
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
-				Timestamp:       n,
+				Timestamp:       time.Now(),
 				Name:            "errors",
 				Value:           float64(count),
 				Category:        pointy.String(model.InternalMetricCategory),
@@ -2847,8 +2868,7 @@ func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *
 	var points []timeseries.Point
 	for _, re := range resources {
 		tags := map[string]string{
-			"project_id": strconv.Itoa(sessionObj.ProjectID),
-			"session_id": strconv.Itoa(sessionObj.ID),
+			"SessionID":  strconv.Itoa(sessionObj.ID),
 			"group_name": re.RequestResponsePairs.Request.ID,
 		}
 		fields := map[string]interface{}{}

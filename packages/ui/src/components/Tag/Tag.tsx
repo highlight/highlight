@@ -5,9 +5,9 @@ import { Text, Props as TextProps } from '../Text/Text'
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
-import clsx from 'clsx'
+import clsx, { ClassValue } from 'clsx'
 
-type Props = ButtonProps &
+export type Props = ButtonProps &
 	styles.Variants & {
 		/** An alias for iconLeft as a convenience for icon-only tags. */
 		icon?: React.ReactElement<IconProps>
@@ -15,6 +15,8 @@ type Props = ButtonProps &
 		iconRight?: React.ReactElement<IconProps>
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
+		cssClass?: ClassValue | ClassValue[]
+		lines?: TextProps['lines']
 	}
 
 const buttonToTextSize = {
@@ -31,9 +33,10 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
-	className,
+	cssClass,
 	onIconLeftClick,
 	onIconRightClick,
+	lines,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -43,7 +46,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 		<AriakitButton
 			as="button"
 			className={clsx([
-				className,
+				cssClass,
 				styles.variants({
 					kind,
 					size,
@@ -63,7 +66,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				</Box>
 			)}
 			{children && (
-				<Text size={textSize} userSelect="none">
+				<Text lines={lines} size={textSize} userSelect="none">
 					{children}
 				</Text>
 			)}

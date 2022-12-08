@@ -136,6 +136,8 @@ const upload = async function (
 		Bucket: S3_BUCKET,
 		Key: key,
 		Body: fs.readFileSync(fileAbsPath),
+		CacheControl: 'public, immutable, max-age=31536000',
+		ContentType: 'application/javascript',
 	})
 	await client.send(put)
 	console.log(`Uploaded ${key}`)

@@ -5910,14 +5910,12 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$count: Int!
 		$query: String!
 		$page: Int
-		$influx: Boolean!
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
 			page: $page
-			influx: $influx
 		) {
 			error_groups {
 				created_at
@@ -5967,7 +5965,6 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      page: // value for 'page'
- *      influx: // value for 'influx'
  *   },
  * });
  */

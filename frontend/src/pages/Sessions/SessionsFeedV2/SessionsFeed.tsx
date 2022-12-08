@@ -39,7 +39,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { serializeAbsoluteTimeRange } from '@util/time'
+import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { message } from 'antd'
 import classNames from 'classnames'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -57,89 +57,93 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard'
 import styles from './SessionsFeed.module.scss'
 
-const useHistogram = (projectId: string, projectHasManySessions: boolean) => {
-	const { searchParams, setSearchParams, backendSearchQuery } =
-		useSearchContext()
-	const [histogram, setHistogram] = useState<{
-		seriesList: Series[]
-		bucketTimes: number[]
-	}>({
-		seriesList: [],
-		bucketTimes: [],
-	})
+interface SessionsHistogramProps {
+	projectHasManySessions: boolean
+}
 
-	const { loading } = useGetSessionsHistogramQuery({
-		variables: {
-			project_id: projectId,
-			query: backendSearchQuery?.searchQuery as string,
-			histogram_options: {
-				bucket_size:
-					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-				time_zone:
-					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
-				bounds: {
-					start_date:
-						backendSearchQuery?.startDate.toISOString() as string,
-					end_date:
-						backendSearchQuery?.endDate.toISOString() as string,
+export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
+	({ projectHasManySessions }: SessionsHistogramProps) => {
+		const { project_id } = useParams<{
+			project_id: string
+		}>()
+		const { searchParams, setSearchParams, backendSearchQuery } =
+			useSearchContext()
+
+		const { loading, data } = useGetSessionsHistogramQuery({
+			variables: {
+				project_id,
+				query: backendSearchQuery?.searchQuery as string,
+				histogram_options: {
+					bucket_size:
+						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+					time_zone:
+						Intl.DateTimeFormat().resolvedOptions().timeZone ??
+						'UTC',
+					bounds: {
+						start_date: roundDateToMinute(
+							backendSearchQuery?.startDate.toISOString() ?? null,
+						).format(),
+						end_date: roundDateToMinute(
+							backendSearchQuery?.endDate.toISOString() ?? null,
+						).format(),
+					},
 				},
 			},
-		},
-		onCompleted: (r) => {
-			let seriesList: Series[] = []
-			let bucketTimes: number[] = []
-			const histogramData = r?.sessions_histogram
-			if (backendSearchQuery && histogramData) {
-				bucketTimes = histogramData.bucket_times.map((startTime) =>
-					new Date(startTime).valueOf(),
-				)
-				seriesList = [
-					{
-						label: 'sessions',
-						color: 'neutralN9',
-						counts: histogramData.sessions_without_errors,
-					},
-					{
-						label: 'errors',
-						color: 'blueLB100',
-						counts: histogramData.sessions_with_errors,
-					},
-				]
-			}
-			setHistogram({
-				seriesList,
-				bucketTimes,
-			})
-		},
-		skip: !backendSearchQuery,
-		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
-	})
+			skip: !backendSearchQuery,
+			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+		})
 
-	const updateTimeRange = useCallback(
-		(newStartTime: Date, newEndTime: Date) => {
-			const newSearchParams = {
-				...searchParams,
-				query: updateQueriedTimeRange(
-					searchParams.query || '',
-					TIME_RANGE_FIELD,
-					serializeAbsoluteTimeRange(newStartTime, newEndTime),
-				),
-			}
-			setSearchParams(newSearchParams)
-		},
-		[searchParams, setSearchParams],
-	)
+		const histogram: {
+			seriesList: Series[]
+			bucketTimes: number[]
+		} = {
+			seriesList: [],
+			bucketTimes: [],
+		}
+		if (data?.sessions_histogram) {
+			histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
+				(startTime) => new Date(startTime).valueOf(),
+			)
+			histogram.seriesList = [
+				{
+					label: 'sessions',
+					color: 'neutralN9',
+					counts: data?.sessions_histogram.sessions_without_errors,
+				},
+				{
+					label: 'errors',
+					color: 'blueLB100',
+					counts: data?.sessions_histogram.sessions_with_errors,
+				},
+			]
+		}
 
-	return (
-		<SearchResultsHistogram
-			seriesList={histogram.seriesList}
-			bucketTimes={histogram.bucketTimes}
-			bucketSize={backendSearchQuery?.histogramBucketSize}
-			loading={loading}
-			updateTimeRange={updateTimeRange}
-		/>
-	)
-}
+		const updateTimeRange = useCallback(
+			(newStartTime: Date, newEndTime: Date) => {
+				const newSearchParams = {
+					...searchParams,
+					query: updateQueriedTimeRange(
+						searchParams.query || '',
+						TIME_RANGE_FIELD,
+						serializeAbsoluteTimeRange(newStartTime, newEndTime),
+					),
+				}
+				setSearchParams(newSearchParams)
+			},
+			[searchParams, setSearchParams],
+		)
+
+		return (
+			<SearchResultsHistogram
+				seriesList={histogram.seriesList}
+				bucketTimes={histogram.bucketTimes}
+				bucketSize={backendSearchQuery?.histogramBucketSize}
+				loading={loading}
+				updateTimeRange={updateTimeRange}
+			/>
+		)
+	},
+)
 
 export const SessionFeed = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
@@ -234,7 +238,6 @@ export const SessionFeed = React.memo(() => {
 		skip: !backendSearchQuery,
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
-	const histogram = useHistogram(project_id, projectHasManySessions)
 
 	useEffect(() => {
 		// we just loaded the page for the first time
@@ -328,7 +331,9 @@ export const SessionFeed = React.memo(() => {
 			</div>
 			{isHighlightAdmin && (loading || sessionResults.totalCount > 0) && (
 				<Box paddingTop="16" paddingBottom="6" px="8">
-					{histogram}
+					<SessionsHistogram
+						projectHasManySessions={projectHasManySessions}
+					/>
 				</Box>
 			)}
 			<div className={styles.fixedContent}>

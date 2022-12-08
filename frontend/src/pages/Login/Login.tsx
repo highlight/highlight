@@ -12,6 +12,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { auth, googleProvider } from '@util/auth'
+import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import classNames from 'classnames'
 import firebase from 'firebase'
@@ -65,27 +66,7 @@ export const AuthAdminRouter = () => {
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
 			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-
-			H.getSessionURL()
-				.then((sessionUrl) => {
-					window.Intercom('boot', {
-						app_id: 'gm6369ty',
-						alignment: 'right',
-						hide_default_launcher: true,
-						email: admin?.email,
-						user_id: admin?.uid,
-						sessionUrl,
-					})
-				})
-				.catch(() => {
-					window.Intercom('boot', {
-						app_id: 'gm6369ty',
-						alignment: 'right',
-						hide_default_launcher: true,
-						email: admin?.email,
-						user_id: admin?.uid,
-					})
-				})
+			showIntercom({ admin, hideMessage: true })
 		}
 	}, [admin])
 

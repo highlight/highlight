@@ -11,18 +11,17 @@ import {
 	MenuButtonProps,
 } from 'ariakit'
 import clsx, { ClassValue } from 'clsx'
-import React, { useContext } from 'react'
+import React from 'react'
 import {
 	Button as OriginalButton,
 	Props as ButtonProps,
 } from '../Button/Button'
 
-import * as buttonStyles from '../Button/styles.css'
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 
 const MenuContext = React.createContext<MenuState>({} as MenuState)
-const useMenu = () => useContext(MenuContext)
+const useMenu = () => React.useContext(MenuContext)
 
 type Props = React.PropsWithChildren<Partial<MenuState>>
 
