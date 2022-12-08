@@ -217,7 +217,13 @@ export const SessionFeed = React.memo(() => {
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
 		if (response?.sessions_opensearch) {
-			setSessionResults(response.sessions_opensearch)
+			setSessionResults({
+				...response.sessions_opensearch,
+				sessions: response.sessions_opensearch.sessions.map((s) => ({
+					...s,
+					payload_updated_at: new Date().toISOString(),
+				})),
+			})
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
