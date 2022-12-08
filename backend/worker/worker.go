@@ -884,13 +884,23 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			Value:           float64(accumulator.ActiveDuration.Milliseconds()),
 			Category:        pointy.String(model.InternalMetricCategory),
 			Tags: []*publicModel.MetricTag{
-				{Name: "SessionID", Value: strconv.Itoa(s.ID)},
+				{Name: "Excluded", Value: "false"},
+				{Name: "Processed", Value: "true"},
+			},
+		},
+		{
+			SessionSecureID: s.SecureID,
+			Timestamp:       s.CreatedAt,
+			Name:            mgraph.SessionProcessedMetricName,
+			Value:           float64(s.ID),
+			Category:        pointy.String(model.InternalMetricCategory),
+			Tags: []*publicModel.MetricTag{
 				{Name: "Excluded", Value: "false"},
 				{Name: "Processed", Value: "true"},
 			},
 		},
 	}); err != nil {
-		log.Errorf("failed to count sessions metric for %s: %s", s.SecureID, err)
+		log.Errorf("failed to submit session processing metric for %s: %s", s.SecureID, err)
 	}
 
 	// Update session count on dailydb
