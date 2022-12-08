@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import BarChart from '@components/BarChart/BarChart'
 import { Pagination, STARTING_PAGE } from '@components/Pagination/Pagination'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
@@ -27,7 +26,6 @@ const PAGE_SIZE = 10
 
 export const ErrorFeedV2 = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { isHighlightAdmin } = useAuthContext()
 	const [data, setData] = useState<ErrorResults>({
 		error_groups: [],
 		totalCount: 0,
@@ -87,7 +85,7 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
-			{isHighlightAdmin && (loading || data.totalCount > 0) && (
+			{(loading || data.totalCount > 0 || errorsCount > 0) && (
 				<ErrorFeedHistogram useCachedErrors={projectHasManyErrors} />
 			)}
 			<div className={styles.fixedContent}>
