@@ -9,7 +9,6 @@ import {
 	IconTrendingUp,
 	Tag,
 	Text,
-	TextLink,
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
@@ -126,20 +125,27 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<BsGridFill />
 								<Text color="neutral500">Instances</Text>
 							</Box>
-							<Text>
-								<TextLink
-									href={`${window.location.pathname}${window.location.search}#error-instance-container`}
+							<ButtonLink
+								style={{ cursor: 'pointer' }}
+								onClick={() =>
+									document
+										.querySelector(
+											'#error-instance-container',
+										)
+										?.scrollIntoView({
+											behavior: 'smooth',
+										})
+								}
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									as="span"
 								>
-									<Box
-										display="flex"
-										alignItems="center"
-										as="span"
-									>
-										<span>Latest</span>{' '}
-										<IconChevronRight size={16} />
-									</Box>
-								</TextLink>
-							</Text>
+									<span>Latest</span>{' '}
+									<IconChevronRight size={16} />
+								</Box>
+							</ButtonLink>
 						</>
 					}
 				>
