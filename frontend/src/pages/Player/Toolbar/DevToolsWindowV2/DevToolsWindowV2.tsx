@@ -133,7 +133,9 @@ const DevToolsControlBar: React.FC<
 					{tab === Tab.Console ? (
 						<MenuButton
 							size="medium"
-							options={Object.values(LogLevel)}
+							options={Object.values(LogLevel).map(
+								(ll: string) => ({ key: ll, render: ll }),
+							)}
 							onChange={(ll: string) =>
 								setLogLevel(ll as LogLevel)
 							}
@@ -141,7 +143,9 @@ const DevToolsControlBar: React.FC<
 					) : tab === Tab.Network ? (
 						<MenuButton
 							size="medium"
-							options={Object.values(RequestType)}
+							options={Object.values(RequestType).map(
+								(rt: string) => ({ key: rt, render: rt }),
+							)}
 							onChange={(rt: string) =>
 								setRequestType(rt as RequestType)
 							}

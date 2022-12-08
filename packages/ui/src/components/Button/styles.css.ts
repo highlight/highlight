@@ -27,11 +27,6 @@ export const iconVariants = recipe({
 
 	variants: {
 		size: {
-			xxSmall: {
-				height: 16,
-				width: 16,
-				...typographyStyles.size.xxSmall,
-			},
 			xSmall: { height: 12, width: 12, ...typographyStyles.size.xSmall },
 			small: { height: 12, width: 12, ...typographyStyles.size.small },
 			medium: { height: 14, width: 14, ...typographyStyles.size.small },
@@ -122,10 +117,6 @@ export const variants = recipe({
 			},
 		},
 		size: {
-			xxSmall: [
-				sprinkles({ borderRadius: '6', gap: '4', px: '4' }),
-				{ height: 22 },
-			],
 			xSmall: [
 				sprinkles({ borderRadius: '4', gap: '4', px: '6' }),
 				{ height: 24 },

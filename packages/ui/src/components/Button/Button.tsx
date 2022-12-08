@@ -22,7 +22,6 @@ export type ButtonProps = React.PropsWithChildren &
 		}
 
 const buttonToTextSize = {
-	xxSmall: 'xxSmall',
 	xSmall: 'xSmall',
 	small: 'small',
 	medium: 'small',
