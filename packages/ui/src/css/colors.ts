@@ -1,4 +1,5 @@
 export const colors = {
+	inherit: 'inherit',
 	black: '#000',
 	dark: '#111',
 	white: '#fff',
@@ -13,6 +14,7 @@ export const colors = {
 	neutral900: '#1A1A1A',
 	neutralN1: '#FDFCFD',
 	neutralN9: '#908E96',
+	neutralN11: '#6F6E77',
 
 	purple100: '#B19CFF',
 	purple500: '#6C37F4',

@@ -28,9 +28,12 @@ export const variants = recipe({
 			white: sprinkles({
 				background: 'white',
 				border: 'neutral',
-				color: 'neutral700',
+				color: 'neutralN11',
 			}),
-			grey: sprinkles({ background: 'neutral100', color: 'neutral500' }),
+			grey: sprinkles({
+				background: 'neutral100',
+				color: 'neutral500',
+			}),
 			outlineGrey: sprinkles({
 				border: 'neutral',
 				color: 'neutral500',

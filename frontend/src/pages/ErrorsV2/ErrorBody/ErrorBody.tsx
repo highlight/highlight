@@ -4,10 +4,15 @@ import {
 	Box,
 	ButtonLink,
 	IconChevronRight,
+	IconTrendingDown,
+	IconTrendingUp,
+	Tag,
 	Text,
 	TextLink,
+	Tooltip,
+	vars,
 } from '@highlight-run/ui'
-import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
+import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import moment from 'moment'
 import React from 'react'
@@ -67,13 +72,44 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{userCount}
 						</Text>
 						{Math.abs(usersChange) > showChangeThresholdPercent ? (
-							<Tag>
-								<>
-									{usersChange > 0 ? '+' : ''}
-									{usersChange.toFixed(0)}% since{' '}
-									{formatErrorGroupDate(startDate.format())}
-								</>
-							</Tag>
+							<Tooltip
+								trigger={
+									<Tag
+										kind="grey"
+										shape="basic"
+										iconLeft={
+											usersChange > 0 ? (
+												<IconTrendingUp size={12} />
+											) : (
+												<IconTrendingDown size={12} />
+											)
+										}
+									>
+										<>
+											{usersChange > 0 ? '+' : ''}
+											{usersChange.toFixed(0)}%
+										</>
+									</Tag>
+								}
+							>
+								<Box display="flex" alignItems="center" gap="4">
+									<Text color="neutralN9" size="xSmall">
+										since
+									</Text>
+									<Box
+										borderRadius="3"
+										p="4"
+										style={{
+											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											margin: -1,
+										}}
+									>
+										<Text size="xSmall" color="neutral500">
+											{moment(startDate).fromNow(true)}
+										</Text>
+									</Box>
+								</Box>
+							</Tooltip>
 						) : null}
 					</Box>
 				</Stat>
@@ -111,13 +147,44 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{totalCount}
 						</Text>
 						{Math.abs(countChange) > showChangeThresholdPercent ? (
-							<Tag>
-								<>
-									{countChange > 0 ? '+' : ''}
-									{countChange.toFixed(0)}% since{' '}
-									{formatErrorGroupDate(startDate.format())}
-								</>
-							</Tag>
+							<Tooltip
+								trigger={
+									<Tag
+										kind="grey"
+										shape="basic"
+										iconLeft={
+											countChange > 0 ? (
+												<IconTrendingUp size={12} />
+											) : (
+												<IconTrendingDown size={12} />
+											)
+										}
+									>
+										<>
+											{countChange > 0 ? '+' : ''}
+											{countChange.toFixed(0)}%
+										</>
+									</Tag>
+								}
+							>
+								<Box display="flex" alignItems="center" gap="4">
+									<Text color="neutralN9" size="xSmall">
+										since
+									</Text>
+									<Box
+										borderRadius="3"
+										p="4"
+										style={{
+											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											margin: -1,
+										}}
+									>
+										<Text size="xSmall" color="neutral500">
+											{moment(startDate).fromNow(true)}
+										</Text>
+									</Box>
+								</Box>
+							</Tooltip>
 						) : null}
 					</Box>
 				</Stat>
@@ -221,12 +288,6 @@ const Stat: React.FC<
 				{children}
 			</Box>
 		</Box>
-	</Box>
-)
-
-const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" backgroundColor="neutral100" borderRadius="4" p="4">
-		<Text color="black">{children}</Text>
 	</Box>
 )
 
