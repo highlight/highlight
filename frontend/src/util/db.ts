@@ -53,7 +53,7 @@ export class DB extends Dexie {
 
 	constructor() {
 		super('highlight')
-		this.version(4).stores({
+		this.version(5).stores({
 			apollo: 'key,updated',
 			fetch: 'key,updated',
 		})
@@ -171,13 +171,51 @@ export class IndexedDBLink extends ApolloLink {
 					variables: operation.variables,
 				})
 				.then((result) => {
-					if (result) {
-						observer.next(result)
-						observer.complete()
+					if (result?.data) {
+						// GetSession cache entry is invalid if the `updated_at` value has changed.
+						if (operation.operationName === 'GetSession') {
+							// noinspection TypeScriptValidateJSTypes
+							this.httpLink
+								.request(operation, forward)!
+								.subscribe((newResult) => {
+									// if the cached result payload_updated_at matches a new result,
+									// return the existing cached result
+									if (
+										result.data?.session
+											?.payload_updated_at ===
+										newResult.data?.session
+											.payload_updated_at
+									) {
+										observer.next(result)
+										observer.complete()
+									} else {
+										// otherwise the payload_updated_at has changed, so store
+										// the new value and return it
+										indexeddbCache
+											.setItem(
+												{
+													operation:
+														operation.operationName,
+													variables:
+														operation.variables,
+												},
+												newResult,
+											)
+											.then(() => {
+												observer.next(newResult)
+												observer.complete()
+											})
+									}
+								})
+						} else {
+							observer.next(result)
+							observer.complete()
+						}
 					} else {
-						const req = this.httpLink.request(operation, forward)
-						if (req) {
-							req.subscribe((result) => {
+						// noinspection TypeScriptValidateJSTypes
+						this.httpLink
+							.request(operation, forward)!
+							.subscribe((result) => {
 								if (
 									IndexedDBLink.shouldCache(operation, result)
 								) {
@@ -199,7 +237,6 @@ export class IndexedDBLink extends ApolloLink {
 									observer.complete()
 								}
 							})
-						}
 					}
 				})
 		})

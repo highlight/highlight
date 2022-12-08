@@ -770,6 +770,7 @@ type ComplexityRoot struct {
 		OSVersion                      func(childComplexity int) int
 		ObjectStorageEnabled           func(childComplexity int) int
 		PayloadSize                    func(childComplexity int) int
+		PayloadUpdatedAt               func(childComplexity int) int
 		Postal                         func(childComplexity int) int
 		Processed                      func(childComplexity int) int
 		ResourcesURL                   func(childComplexity int) int
@@ -5781,6 +5782,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.PayloadSize(childComplexity), true
 
+	case "Session.payload_updated_at":
+		if e.complexity.Session.PayloadUpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Session.PayloadUpdatedAt(childComplexity), true
+
 	case "Session.postal":
 		if e.complexity.Session.Postal == nil {
 			break
@@ -6846,6 +6854,7 @@ type Session {
 	identifier: String!
 	identified: Boolean!
 	created_at: Timestamp!
+	payload_updated_at: Timestamp!
 	length: Int
 	active_length: Int
 	user_object: Any
@@ -21318,6 +21327,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -25209,6 +25220,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -25357,6 +25370,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -28498,6 +28513,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -30287,6 +30304,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -32423,6 +32442,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -40017,6 +40038,50 @@ func (ec *executionContext) fieldContext_Session_created_at(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_payload_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_payload_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayloadUpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_payload_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_length(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_length(ctx, field)
 	if err != nil {
@@ -43245,6 +43310,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_identified(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Session_created_at(ctx, field)
+			case "payload_updated_at":
+				return ec.fieldContext_Session_payload_updated_at(ctx, field)
 			case "length":
 				return ec.fieldContext_Session_length(ctx, field)
 			case "active_length":
@@ -56081,6 +56148,13 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "created_at":
 
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "payload_updated_at":
+
+			out.Values[i] = ec._Session_payload_updated_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

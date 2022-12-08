@@ -4347,6 +4347,7 @@ export const GetSessionDocument = gql`
 			postal
 			fingerprint
 			created_at
+			payload_updated_at
 			language
 			user_object
 			user_properties
