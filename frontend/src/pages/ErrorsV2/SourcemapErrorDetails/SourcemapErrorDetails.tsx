@@ -250,6 +250,7 @@ const StackSectionError: React.FC<
 															index === 0
 																? undefined
 																: `1px solid ${vars.color.neutral100}`,
+														width: 150,
 													}}
 												>
 													<Box p="4">
