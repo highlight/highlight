@@ -2053,7 +2053,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		var newMetrics []*model.Metric
 		firstTime := time.Time{}
 		tags := map[string]string{
-			"SessionID":  strconv.Itoa(sessionID),
+			"session_id": strconv.Itoa(sessionID),
 			"group_name": groupName,
 		}
 		downsampledMetric := false
