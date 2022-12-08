@@ -14,7 +14,7 @@ export const variants = recipe({
 			'1': { ...lineClampStyles, WebkitLineClamp: 1, lineClamp: 1 },
 			'2': { ...lineClampStyles, WebkitLineClamp: 2, lineClamp: 2 },
 			'3': { ...lineClampStyles, WebkitLineClamp: 3, lineClamp: 3 },
-			'4': { ...lineClampStyles, WebkitLineClamp: 3, lineClamp: 3 },
+			'4': { ...lineClampStyles, WebkitLineClamp: 4, lineClamp: 4 },
 		},
 	},
 })

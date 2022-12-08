@@ -4,7 +4,9 @@ import {
 	useSendEmailSignupMutation,
 } from '@graph/hooks'
 import { SampleBuggyButton } from '@highlight-run/react'
+import { Box } from '@highlight-run/ui'
 import DO_NOT_USE_Canvas from '@pages/Buttons/Canvas'
+import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/SourcemapErrorDetails'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
@@ -382,6 +384,96 @@ export const Buttons = () => {
 					</button>
 				</div>
 			</div>
+
+			<div className={styles.sourcemapErrors}>
+				<h2>Sourcemap Errors UI</h2>
+
+				<Box mb="24">
+					<h3>Sourcemap_File_Missing_In_S3_And_URL</h3>
+					<SourcemapErrorDetails
+						error={
+							Sourcemap_File_Missing_In_S3_And_URL.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Missing_Source_Map_File_In_S3</h3>
+					<SourcemapErrorDetails
+						error={
+							Missing_Source_Map_File_In_S3.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>File_Name_Missing_From_Source_Path</h3>
+					<SourcemapErrorDetails
+						error={
+							File_Name_Missing_From_Source_Path.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Error_Parsing_Stack_Trace_File_Url</h3>
+					<SourcemapErrorDetails
+						error={
+							Error_Parsing_Stack_Trace_File_Url.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Minified_File_Missing_In_S3_And_URL</h3>
+					<SourcemapErrorDetails
+						error={
+							Minified_File_Missing_In_S3_And_URL.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Minified_File_Larger</h3>
+					<SourcemapErrorDetails
+						error={Minified_File_Larger.sourceMappingErrorMetadata}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Source_Map_File_Larger</h3>
+					<SourcemapErrorDetails
+						error={
+							Source_Map_File_Larger.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Invalid_SourceMapURL</h3>
+					<SourcemapErrorDetails
+						error={Invalid_SourceMapURL.sourceMappingErrorMetadata}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Sourcemap_Library_Couldnt_Parse</h3>
+					<SourcemapErrorDetails
+						error={
+							Sourcemap_Library_Couldnt_Parse.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+
+				<Box mb="24">
+					<h3>Sourcemap_Library_Couldnt_Retrieve_Source</h3>
+					<SourcemapErrorDetails
+						error={
+							Sourcemap_Library_Couldnt_Retrieve_Source.sourceMappingErrorMetadata
+						}
+					/>
+				</Box>
+			</div>
 		</div>
 	)
 }
@@ -392,5 +484,148 @@ const BadComponent = () => (
 		{badVariableAccess}
 	</div>
 )
+
+const File_Name_Missing_From_Source_Path = {} as any
+
+const Error_Parsing_Stack_Trace_File_Url = {} as any
+
+const Minified_File_Missing_In_S3_And_URL = {
+	fileName:
+		'https://btloader.com/recovery?w=5170702742192128\u0026upapi=true',
+	lineNumber: 4,
+	functionName: '_s',
+	columnNumber: 221192,
+	error: 'error fetching file: https://btloader.com/recovery: status code not OK',
+	sourceMappingErrorMetadata: {
+		errorCode: 'Minified_File_Missing_In_S3_And_URL',
+		stackTraceFileURL: 'https://btloader.com/recovery',
+		sourcemapFetchStrategy: null,
+		sourceMapURL: null,
+		minifiedFetchStrategy: 'S3 and URL',
+		actualMinifiedFetchedPath: 'recovery',
+		minifiedLineNumber: null,
+		minifiedColumnNumber: null,
+		actualSourcemapFetchedPath: null,
+		sourcemapFileSize: null,
+		minifiedFileSize: null,
+		mappedLineNumber: null,
+		mappedColumnNumber: null,
+	},
+	lineContent: null,
+	linesBefore: null,
+	linesAfter: null,
+} as any
+
+const Minified_File_Larger = {} as any
+
+const Source_Map_File_Larger = {} as any
+
+const Invalid_SourceMapURL = {} as any
+
+const Sourcemap_Library_Couldnt_Parse = {
+	fileName: 'https://app.highlight.io/assets/index.e1f78689.js',
+	lineNumber: 57,
+	functionName: 'new yl',
+	columnNumber: 196,
+	error: "error parsing fetched source map: https://app.highlight.io/assets/index.e1f78689.js.map - \u003cnil\u003e, invalid character '\u003c' looking for beginning of value: invalid character '\u003c' looking for beginning of value",
+	sourceMappingErrorMetadata: {
+		errorCode: 'Sourcemap_Library_Couldnt_Parse',
+		stackTraceFileURL: 'https://app.highlight.io/assets/index.e1f78689.js',
+		sourcemapFetchStrategy: 'URL',
+		sourceMapURL: 'https://app.highlight.io/assets/index.e1f78689.js.map',
+		minifiedFetchStrategy: 'S3',
+		actualMinifiedFetchedPath: 'assets/index.e1f78689.js',
+		minifiedLineNumber: null,
+		minifiedColumnNumber: null,
+		actualSourcemapFetchedPath: 'assets/index.e1f78689.js.map',
+		sourcemapFileSize: null,
+		minifiedFileSize: 8676204,
+		mappedLineNumber: null,
+		mappedColumnNumber: null,
+	},
+	lineContent: null,
+	linesBefore: null,
+	linesAfter: null,
+} as any
+
+const Sourcemap_Library_Couldnt_Retrieve_Source = {
+	fileName: 'https://app.posthog.com/static/recorder.js?v=1.36.0',
+	lineNumber: 32,
+	functionName: 'console.error',
+	columnNumber: 9367,
+	error: 'error extracting true error info from source map: https://app.posthog.com/static/recorder.js.map',
+	sourceMappingErrorMetadata: {
+		errorCode: 'Sourcemap_Library_Couldnt_Retrieve_Source',
+		stackTraceFileURL: 'https://app.posthog.com/static/recorder.js',
+		sourcemapFetchStrategy: 'S3',
+		sourceMapURL: 'https://app.posthog.com/static/recorder.js.map',
+		minifiedFetchStrategy: 'S3',
+		actualMinifiedFetchedPath: 'static/recorder.js',
+		minifiedLineNumber: null,
+		minifiedColumnNumber: null,
+		actualSourcemapFetchedPath: 'static/recorder.js.map',
+		sourcemapFileSize: 251509,
+		minifiedFileSize: 62577,
+		mappedLineNumber: 32,
+		mappedColumnNumber: 9367,
+	},
+	lineContent: null,
+	linesBefore: null,
+	linesAfter: null,
+} as any
+
+const Sourcemap_File_Missing_In_S3_And_URL = {
+	fileName: 'https://widget.ybug.io/button/k2cyfzgsn9ha9xr2qsx0.js',
+	lineNumber: 1,
+	functionName: 'e.\u003ccomputed\u003e [as error]',
+	columnNumber: 6914,
+	error: 'error fetching source map file: https://widget.ybug.io/button/k2cyfzgsn9ha9xr2qsx0.js.map: status code not OK',
+	sourceMappingErrorMetadata: {
+		errorCode: 'Sourcemap_File_Missing_In_S3_And_URL',
+		stackTraceFileURL:
+			'https://widget.ybug.io/button/k2cyfzgsn9ha9xr2qsx0.js',
+		sourcemapFetchStrategy: 'S3 and URL',
+		sourceMapURL:
+			'https://widget.ybug.io/button/k2cyfzgsn9ha9xr2qsx0.js.map',
+		minifiedFetchStrategy: 'S3',
+		actualMinifiedFetchedPath: 'button/k2cyfzgsn9ha9xr2qsx0.js',
+		minifiedLineNumber: null,
+		minifiedColumnNumber: null,
+		actualSourcemapFetchedPath: 'button/k2cyfzgsn9ha9xr2qsx0.js.map',
+		sourcemapFileSize: null,
+		minifiedFileSize: 22040,
+		mappedLineNumber: null,
+		mappedColumnNumber: null,
+	},
+	lineContent: null,
+	linesBefore: null,
+	linesAfter: null,
+} as any
+
+const Missing_Source_Map_File_In_S3 = {
+	fileName: 'webpack-internal:///./pages/joinBeta.jsx',
+	lineNumber: 655,
+	functionName: 'eval',
+	columnNumber: 64,
+	error: 'error fetching file: webpack-internal:///./pages/joinBeta.jsx: error getting source file: Get "webpack-internal:///./pages/joinBeta.jsx": unsupported protocol scheme "webpack-internal"',
+	sourceMappingErrorMetadata: {
+		errorCode: 'Minified_File_Missing_In_S3_And_URL',
+		stackTraceFileURL: 'webpack-internal:///./pages/joinBeta.jsx',
+		sourcemapFetchStrategy: null,
+		sourceMapURL: null,
+		minifiedFetchStrategy: 'S3 and URL',
+		actualMinifiedFetchedPath: './pages/joinBeta.jsx',
+		minifiedLineNumber: null,
+		minifiedColumnNumber: null,
+		actualSourcemapFetchedPath: null,
+		sourcemapFileSize: null,
+		minifiedFileSize: null,
+		mappedLineNumber: null,
+		mappedColumnNumber: null,
+	},
+	lineContent: null,
+	linesBefore: null,
+	linesAfter: null,
+} as any
 
 export default Buttons

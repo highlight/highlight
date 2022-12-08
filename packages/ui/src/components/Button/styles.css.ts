@@ -25,9 +25,9 @@ export const iconVariants = recipe({
 
 	variants: {
 		size: {
-			xSmall: { height: 16, width: 16, ...typographyStyles.size.xSmall },
-			small: { height: 16, width: 16, ...typographyStyles.size.small },
-			medium: { height: 16, width: 16, ...typographyStyles.size.small },
+			xSmall: { height: 12, width: 12, ...typographyStyles.size.xSmall },
+			small: { height: 12, width: 12, ...typographyStyles.size.small },
+			medium: { height: 14, width: 14, ...typographyStyles.size.small },
 			large: { height: 16, width: 16, ...typographyStyles.size.small },
 			xLarge: { height: 16, width: 16, ...typographyStyles.size.large },
 		},

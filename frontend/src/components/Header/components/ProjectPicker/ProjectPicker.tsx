@@ -98,9 +98,9 @@ const ProjectPicker = () => {
 						size="small"
 						iconLeft={
 							isWorkspaceLevel ? (
-								<IconArrowSmLeft size="14" />
+								<IconArrowSmLeft size={14} />
 							) : (
-								<IconBriefcase size="14" />
+								<IconBriefcase size={14} />
 							)
 						}
 					>
@@ -122,7 +122,7 @@ const ProjectPicker = () => {
 											gap="4"
 										>
 											<IconPlusSm
-												size="14"
+												size={14}
 												color={vars.color.neutral300}
 											/>
 											Create new project
@@ -140,7 +140,7 @@ const ProjectPicker = () => {
 											gap="4"
 										>
 											<IconCog
-												size="14"
+												size={14}
 												color={vars.color.neutral300}
 											/>
 											Project settings

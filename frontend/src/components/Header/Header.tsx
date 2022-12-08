@@ -123,7 +123,7 @@ export const Header = () => {
 											<LinkButton
 												iconLeft={
 													<p.icon
-														size="14"
+														size={14}
 														color={
 															currentPage ===
 															p.key
@@ -154,7 +154,7 @@ export const Header = () => {
 										<Menu.Button
 											icon={
 												<IconDotsHorizontal
-													size="14"
+													size={14}
 													color={
 														vars.color.neutral500
 													}
@@ -175,7 +175,7 @@ export const Header = () => {
 														gap="4"
 													>
 														<IconStackedBarChart
-															size="14"
+															size={14}
 															color={
 																vars.color
 																	.neutral300
@@ -196,7 +196,7 @@ export const Header = () => {
 														gap="4"
 													>
 														<IconViewGridAdd
-															size="14"
+															size={14}
 															color={
 																vars.color
 																	.neutral300
@@ -217,7 +217,7 @@ export const Header = () => {
 														gap="4"
 													>
 														<IconDesktopComputer
-															size="14"
+															size={14}
 															color={
 																vars.color
 																	.neutral300
@@ -264,7 +264,7 @@ export const Header = () => {
 										kind="secondary"
 										icon={
 											<IconCog
-												size="14"
+												size={14}
 												color={vars.color.neutral500}
 											/>
 										}
@@ -281,7 +281,7 @@ export const Header = () => {
 													gap="4"
 												>
 													<IconOfficeBuilding
-														size="14"
+														size={14}
 														color={
 															vars.color
 																.neutral300
@@ -302,7 +302,7 @@ export const Header = () => {
 													gap="4"
 												>
 													<IconUserCircle
-														size="14"
+														size={14}
 														color={
 															vars.color
 																.neutral300
@@ -324,7 +324,7 @@ export const Header = () => {
 													gap="4"
 												>
 													<IconSwitchHorizontal
-														size="14"
+														size={14}
 														color={
 															vars.color
 																.neutral300
@@ -345,7 +345,7 @@ export const Header = () => {
 												gap="4"
 											>
 												<IconQuestionMarkCircle
-													size="14"
+													size={14}
 													color={
 														vars.color.neutral300
 													}
@@ -366,7 +366,7 @@ export const Header = () => {
 													gap="4"
 												>
 													<IconDocumentText
-														size="14"
+														size={14}
 														color={
 															vars.color
 																.neutral300
@@ -389,7 +389,7 @@ export const Header = () => {
 												gap="4"
 											>
 												<IconAtSymbol
-													size="14"
+													size={14}
 													color={
 														vars.color.neutral300
 													}
