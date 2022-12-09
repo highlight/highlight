@@ -55,93 +55,86 @@ import {
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard'
 import styles from './SessionsFeed.module.scss'
 
-interface SessionsHistogramProps {
-	projectHasManySessions: boolean
-}
+export const SessionsHistogram: React.FC = React.memo(() => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const { searchParams, setSearchParams, backendSearchQuery } =
+		useSearchContext()
 
-export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
-	({ projectHasManySessions }: SessionsHistogramProps) => {
-		const { project_id } = useParams<{
-			project_id: string
-		}>()
-		const { searchParams, setSearchParams, backendSearchQuery } =
-			useSearchContext()
-
-		const { loading, data } = useGetSessionsHistogramQuery({
-			variables: {
-				project_id,
-				query: backendSearchQuery?.searchQuery as string,
-				histogram_options: {
-					bucket_size:
-						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-					time_zone:
-						Intl.DateTimeFormat().resolvedOptions().timeZone ??
-						'UTC',
-					bounds: {
-						start_date: roundDateToMinute(
-							backendSearchQuery?.startDate.toISOString() ?? null,
-						).format(),
-						end_date: roundDateToMinute(
-							backendSearchQuery?.endDate.toISOString() ?? null,
-						).format(),
-					},
+	const { loading, data } = useGetSessionsHistogramQuery({
+		variables: {
+			project_id,
+			query: backendSearchQuery?.searchQuery as string,
+			histogram_options: {
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				time_zone:
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				bounds: {
+					start_date: roundDateToMinute(
+						backendSearchQuery?.startDate.toISOString() ?? null,
+					).format(),
+					end_date: roundDateToMinute(
+						backendSearchQuery?.endDate.toISOString() ?? null,
+					).format(),
 				},
 			},
-			skip: !backendSearchQuery,
-			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
-		})
+		},
+		skip: !backendSearchQuery,
+		fetchPolicy: 'cache-first',
+	})
 
-		const histogram: {
-			seriesList: Series[]
-			bucketTimes: number[]
-		} = {
-			seriesList: [],
-			bucketTimes: [],
-		}
-		if (data?.sessions_histogram) {
-			histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
-				(startTime) => new Date(startTime).valueOf(),
-			)
-			histogram.seriesList = [
-				{
-					label: 'sessions',
-					color: 'neutralN9',
-					counts: data?.sessions_histogram.sessions_without_errors,
-				},
-				{
-					label: 'errors',
-					color: 'blueLB100',
-					counts: data?.sessions_histogram.sessions_with_errors,
-				},
-			]
-		}
-
-		const updateTimeRange = useCallback(
-			(newStartTime: Date, newEndTime: Date) => {
-				const newSearchParams = {
-					...searchParams,
-					query: updateQueriedTimeRange(
-						searchParams.query || '',
-						TIME_RANGE_FIELD,
-						serializeAbsoluteTimeRange(newStartTime, newEndTime),
-					),
-				}
-				setSearchParams(newSearchParams)
+	const histogram: {
+		seriesList: Series[]
+		bucketTimes: number[]
+	} = {
+		seriesList: [],
+		bucketTimes: [],
+	}
+	if (data?.sessions_histogram) {
+		histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
+			(startTime) => new Date(startTime).valueOf(),
+		)
+		histogram.seriesList = [
+			{
+				label: 'sessions',
+				color: 'neutralN9',
+				counts: data?.sessions_histogram.sessions_without_errors,
 			},
-			[searchParams, setSearchParams],
-		)
+			{
+				label: 'errors',
+				color: 'blueLB100',
+				counts: data?.sessions_histogram.sessions_with_errors,
+			},
+		]
+	}
 
-		return (
-			<SearchResultsHistogram
-				seriesList={histogram.seriesList}
-				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
-				loading={loading}
-				updateTimeRange={updateTimeRange}
-			/>
-		)
-	},
-)
+	const updateTimeRange = useCallback(
+		(newStartTime: Date, newEndTime: Date) => {
+			const newSearchParams = {
+				...searchParams,
+				query: updateQueriedTimeRange(
+					searchParams.query || '',
+					TIME_RANGE_FIELD,
+					serializeAbsoluteTimeRange(newStartTime, newEndTime),
+				),
+			}
+			setSearchParams(newSearchParams)
+		},
+		[searchParams, setSearchParams],
+	)
+
+	return (
+		<SearchResultsHistogram
+			seriesList={histogram.seriesList}
+			bucketTimes={histogram.bucketTimes}
+			bucketSize={backendSearchQuery?.histogramBucketSize}
+			loading={loading}
+			updateTimeRange={updateTimeRange}
+		/>
+	)
+})
 
 export const SessionFeed = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
@@ -329,9 +322,7 @@ export const SessionFeed = React.memo(() => {
 			</div>
 			{(loading || sessionResults.totalCount > 0) && (
 				<Box paddingTop="16" paddingBottom="6" px="8">
-					<SessionsHistogram
-						projectHasManySessions={projectHasManySessions}
-					/>
+					<SessionsHistogram />
 				</Box>
 			)}
 			<div className={styles.fixedContent}>

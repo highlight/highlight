@@ -9,10 +9,7 @@ import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
 
-interface Props {
-	useCachedErrors?: boolean
-}
-const ErrorFeedHistogram = React.memo(({ useCachedErrors }: Props) => {
+const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const {
 		backendSearchQuery,
@@ -40,7 +37,7 @@ const ErrorFeedHistogram = React.memo(({ useCachedErrors }: Props) => {
 			},
 		},
 		skip: !backendSearchQuery?.childSearchQuery,
-		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
+		fetchPolicy: 'cache-first',
 	})
 
 	const histogram: {

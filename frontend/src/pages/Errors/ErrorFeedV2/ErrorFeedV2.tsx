@@ -79,9 +79,7 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
-			{(loading || data.totalCount > 0) && (
-				<ErrorFeedHistogram useCachedErrors={projectHasManyErrors} />
-			)}
+			{(loading || data.totalCount > 0) && <ErrorFeedHistogram />}
 			<div className={styles.fixedContent}>
 				<div className={styles.resultCount}>
 					{loading ? (
