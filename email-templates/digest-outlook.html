@@ -8,6 +8,10 @@
 				font-family: Helvetica, sans-serif;
 			}
 
+			body {
+				background-color: #0d0225 !important;
+			}
+
 			.body-container {
 				background-color: #0d0225;
 				width: 100%;
@@ -15,28 +19,22 @@
 			}
 
 			.content-container {
-				max-width: 400px;
 				text-align: center;
 				margin: 0 auto;
 				padding: 0 16px;
 			}
 
-			.content-container > * {
-				margin-bottom: 24px;
-			}
-
 			.info-card {
-				border: 1px solid #30294e;
-				border-radius: 12px;
+				border-top: 1px solid #30294e;
+				border-bottom: 1px solid #30294e;
 				padding: 12px 16px;
+				margin-bottom: 24px;
 			}
 
 			.section-start {
 				background-color: #ebff5e;
 				color: #0d0225;
 				font-weight: 600;
-				border-radius: 100px;
-				width: fit-content;
 				padding: 2px 12px;
 				margin: 0 auto 24px;
 				font-size: 14px;
@@ -121,8 +119,7 @@
 
 			.stat-delta {
 				color: #ffffff;
-				background-color: rgba(255, 255, 255, 0.32);
-				border-radius: 100px;
+				background-color: #777777;
 				padding: 2px 12px;
 				align-items: center;
 				font-size: 14px;
@@ -287,220 +284,273 @@
 	</head>
 	<body>
 		<div class="body-container">
-			<div class="content-container">
-				<img
-					class="logo"
-					src="https://static.highlight.io/assets/digest/logo-on-dark.png"
-					width="32"
-					height="32"
-				/>
+			<table
+				role="presentation"
+				cellspacing="0"
+				cellpadding="0"
+				border="0"
+				width="400"
+				class="content-container"
+				align="center"
+			>
+				<tr>
+					<td>
+						<img
+							class="logo"
+							src="https://static.highlight.io/assets/digest/logo-on-dark.png"
+							width="32"
+							height="32"
+						/>
 
-				<div class="header-container">
-					<h1>
-						<span class="project-name">{{projectName}}</span> Weekly
-						Highlight Digest
-					</h1>
-				</div>
+						<h1>
+							<span class="project-name">{{projectName}}</span>
+							Weekly Highlight Digest
+							<br />
+							<br />
+						</h1>
 
-				<div class="info-card">
-					<div class="card-header">
-						<h2>Last week's recap</h2>
-						<h3>compared to the previous week</h3>
-					</div>
-
-					<table class="stats-grid">
-						<tr>
-							<td>
-								<h3>
-									<img
-										class="stat-icon"
-										src="https://static.highlight.io/assets/digest/user-group.png"
-										width="14"
-										height="14"
-									/>
-									Total users
-								</h3>
-								<div class="stat-pair">
-									<span class="stat">{{userCount}}</span>
-									<span class="stat-delta"
-										>{{userDelta}}</span
-									>
-								</div>
-							</td>
-							<td>
-								<h3>
-									<img
-										class="stat-icon"
-										src="https://static.highlight.io/assets/digest/play-circle.png"
-										width="14"
-										height="14"
-									/>
-									Total sessions
-								</h3>
-								<div class="stat-pair">
-									<span class="stat">{{sessionCount}}</span>
-									<span class="stat-delta"
-										>{{sessionDelta}}</span
-									>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<h3>
-									<img
-										class="stat-icon"
-										src="https://static.highlight.io/assets/digest/x-circle.png"
-										width="14"
-										height="14"
-									/>
-									Total errors
-								</h3>
-								<div class="stat-pair">
-									<span class="stat">{{errorCount}}</span>
-									<span class="stat-delta"
-										>{{errorDelta}}</span
-									>
-								</div>
-							</td>
-							<td>
-								<h3>
-									<img
-										class="stat-icon"
-										src="https://static.highlight.io/assets/digest/clock.png"
-										width="14"
-										height="14"
-									/>
-									Avg active time
-								</h3>
-								<div class="stat-pair">
-									<span class="stat">{{activityTotal}}</span>
-									<span class="stat-delta"
-										>{{activityDelta}}</span
-									>
-								</div>
-							</td>
-						</tr>
-					</table>
-				</div>
-
-				<div class="section-start">Insightful sessions</div>
-
-				<div class="info-card">
-					<div class="card-header">
-						<h2>Most active sessions</h2>
-						<h3>from last week</h3>
-					</div>
-
-					<div>
-						<div class="row">
-							<div class="cell w-50">User</div>
-							<div class="cell w-30">Location</div>
-							<div class="cell w-20 right">Length</div>
-						</div>
-						{{#each activeSessions}}
-						<a href="{{this.url}}">
-							<div class="top-border row data">
-								<div class="cell cell-primary w-50">
-									{{this.identifier}}
-								</div>
-								<div class="cell w-30">{{this.location}}</div>
-								<div class="cell w-20 right">
-									{{this.activeLength}}
-								</div>
+						<div class="info-card">
+							<div class="card-header">
+								<h2>Last week's recap</h2>
+								<h3>compared to the previous week</h3>
 							</div>
-						</a>
-						{{/each}}
-					</div>
-				</div>
 
-				<div class="info-card">
-					<div class="card-header">
-						<h2>Sessions with the most errors</h2>
-						<h3>from last week</h3>
-					</div>
-
-					<div>
-						<div class="row">
-							<span class="cell w-50">User</span>
-							<span class="cell w-30"># Errors</span>
-							<span class="cell w-20 right">Length</span>
+							<table
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
+								width="100%"
+								class="stats-grid"
+							>
+								<tr>
+									<td>
+										<h3>
+											<img
+												class="stat-icon"
+												src="https://static.highlight.io/assets/digest/user-group.png"
+												width="14"
+												height="14"
+											/>
+											Total users
+										</h3>
+										<div class="stat-pair">
+											<span class="stat"
+												>{{userCount}}</span
+											>
+											<span class="stat-delta"
+												>{{userDelta}}</span
+											>
+										</div>
+									</td>
+									<td>
+										<h3>
+											<img
+												class="stat-icon"
+												src="https://static.highlight.io/assets/digest/play-circle.png"
+												width="14"
+												height="14"
+											/>
+											Total sessions
+										</h3>
+										<div class="stat-pair">
+											<span class="stat"
+												>{{sessionCount}}</span
+											>
+											<span class="stat-delta"
+												>{{sessionDelta}}</span
+											>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<h3>
+											<img
+												class="stat-icon"
+												src="https://static.highlight.io/assets/digest/x-circle.png"
+												width="14"
+												height="14"
+											/>
+											Total errors
+										</h3>
+										<div class="stat-pair">
+											<span class="stat"
+												>{{errorCount}}</span
+											>
+											<span class="stat-delta"
+												>{{errorDelta}}</span
+											>
+										</div>
+									</td>
+									<td>
+										<h3>
+											<img
+												class="stat-icon"
+												src="https://static.highlight.io/assets/digest/clock.png"
+												width="14"
+												height="14"
+											/>
+											Avg active time
+										</h3>
+										<div class="stat-pair">
+											<span class="stat"
+												>{{activityTotal}}</span
+											>
+											<span class="stat-delta"
+												>{{activityDelta}}</span
+											>
+										</div>
+									</td>
+								</tr>
+							</table>
 						</div>
-						{{#each errorSessions}}
-						<a href="{{this.url}}">
-							<div class="top-border row data">
-								<span class="cell cell-primary w-50">
-									{{this.identifier}}
-								</span>
-								<span class="cell w-30"
-									>{{this.errorCount}}</span
-								>
-								<span class="cell w-20 right"
-									>{{this.activeLength}}</span
-								>
+
+						<div class="section-start">Insightful sessions</div>
+
+						<div class="info-card">
+							<div class="card-header">
+								<h2>Most active sessions</h2>
+								<h3>from last week</h3>
 							</div>
-						</a>
-						{{/each}}
-					</div>
-				</div>
 
-				<div class="section-start">Insightful errors</div>
-
-				<div class="info-card">
-					<div class="card-header">
-						<h2>New errors</h2>
-						<h3>from last week</h3>
-					</div>
-
-					<div>
-						<div class="row">
-							<div class="cell w-65">Error</div>
-							<div class="cell w-35 right">Affected Users</div>
+							<table
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
+								width="100%"
+							>
+								<tr class="row">
+									<th class="cell w-50">User</th>
+									<th class="cell w-30">Location</th>
+									<th class="cell w-20 right">Length</th>
+								</tr>
+								{{#each activeSessions}}
+								<tr class="top-border row data">
+									<td class="cell cell-primary w-50">
+										<a href="{{this.url}}"
+											>{{this.identifier}}</a
+										>
+									</td>
+									<td class="cell w-30">{{this.location}}</td>
+									<td class="cell w-20 right">
+										{{this.activeLength}}
+									</td>
+								</tr>
+								{{/each}}
+							</table>
 						</div>
-						{{#each newErrors}}
-						<a href="{{this.url}}">
-							<div class="top-border row data">
-								<span class="cell cell-primary w-75">
-									{{this.message}}
-								</span>
-								<span class="cell w-25 right"
-									>{{this.affectedUserCount}}</span
-								>
+
+						<div class="info-card">
+							<div class="card-header">
+								<h2>Sessions with the most errors</h2>
+								<h3>from last week</h3>
 							</div>
-						</a>
-						{{/each}}
-					</div>
-				</div>
 
-				<div class="info-card">
-					<div class="card-header">
-						<h2>Most frequent errors</h2>
-						<h3>from last week</h3>
-					</div>
-
-					<div>
-						<div class="row">
-							<span class="cell w-65">Error</span>
-							<span class="cell w-35 right">Amount</span>
+							<table
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
+								width="100%"
+							>
+								<tr class="row">
+									<th class="cell w-50">User</th>
+									<th class="cell w-30"># Errors</th>
+									<th class="cell w-20 right">Length</th>
+								</tr>
+								{{#each errorSessions}}
+								<tr class="top-border row data">
+									<td class="cell cell-primary w-50">
+										<a href="{{this.url}}"
+											>{{this.identifier}}</a
+										>
+									</td>
+									<td class="cell w-30">
+										{{this.errorCount}}
+									</td>
+									<td class="cell w-20 right">
+										{{this.activeLength}}
+									</td>
+								</tr>
+								{{/each}}
+							</table>
 						</div>
-						{{#each frequentErrors}}
-						<a href="{{this.url}}">
-							<div class="top-border row data">
-								<span class="cell cell-primary w-65">
-									{{this.message}}
-								</span>
-								<span class="cell w-35 right">
-									<span>{{this.count}}</span>
-									<span class="stat-delta"
-										>{{this.delta}}</span
-									>
-								</span>
+
+						<div class="section-start">Insightful errors</div>
+
+						<div class="info-card">
+							<div class="card-header">
+								<h2>New errors</h2>
+								<h3>from last week</h3>
 							</div>
-						</a>
-						{{/each}}
-					</div>
-				</div>
-			</div>
+
+							<table
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
+								width="100%"
+							>
+								<tr class="row">
+									<th class="cell w-65">Error</th>
+									<th class="cell w-35 right">
+										Affected Users
+									</th>
+								</tr>
+								{{#each newErrors}}
+								<tr class="top-border row data">
+									<td class="cell cell-primary w-75">
+										<a href="{{this.url}}"
+											>{{this.message}}</a
+										>
+									</td>
+									<td class="cell w-25 right">
+										{{this.affectedUserCount}}
+									</td>
+								</tr>
+								{{/each}}
+							</table>
+						</div>
+
+						<div class="info-card">
+							<div class="card-header">
+								<h2>Most frequent errors</h2>
+								<h3>from last week</h3>
+							</div>
+
+							<table
+								role="presentation"
+								cellspacing="0"
+								cellpadding="0"
+								border="0"
+								width="100%"
+							>
+								<tr class="row">
+									<th class="cell w-65">Error</th>
+									<th class="cell w-35 right">Amount</th>
+								</tr>
+								{{#each frequentErrors}}
+								<tr class="top-border row data">
+									<td class="cell cell-primary w-65">
+										<a href="{{this.url}}"
+											>{{this.message}}</a
+										>
+									</td>
+									<td class="cell w-35 right">
+										<span>{{this.count}}</span>
+										<span class="stat-delta">
+											{{this.delta}}
+										</span>
+									</td>
+								</tr>
+								{{/each}}
+							</table>
+						</div>
+					</td>
+				</tr>
+			</table>
 			<div class="footer">
 				<div class="unsubscribe-info">
 					This digest was sent to

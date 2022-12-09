@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--[if !mso]><!-->
 <html>
 	<head>
 		<meta charset="UTF-8" />
@@ -422,22 +423,20 @@
 
 					<div>
 						<div class="row">
-							<span class="cell w-50">User</span>
-							<span class="cell w-30"># Errors</span>
-							<span class="cell w-20 right">Length</span>
+							<div class="cell w-50">User</div>
+							<div class="cell w-30"># Errors</div>
+							<div class="cell w-20 right">Length</div>
 						</div>
 						{{#each errorSessions}}
 						<a href="{{this.url}}">
 							<div class="top-border row data">
-								<span class="cell cell-primary w-50">
+								<div class="cell cell-primary w-50">
 									{{this.identifier}}
-								</span>
-								<span class="cell w-30"
-									>{{this.errorCount}}</span
-								>
-								<span class="cell w-20 right"
-									>{{this.activeLength}}</span
-								>
+								</div>
+								<div class="cell w-30">{{this.errorCount}}</div>
+								<div class="cell w-20 right">
+									{{this.activeLength}}
+								</div>
 							</div>
 						</a>
 						{{/each}}
@@ -460,12 +459,12 @@
 						{{#each newErrors}}
 						<a href="{{this.url}}">
 							<div class="top-border row data">
-								<span class="cell cell-primary w-75">
+								<div class="cell cell-primary w-75">
 									{{this.message}}
-								</span>
-								<span class="cell w-25 right"
-									>{{this.affectedUserCount}}</span
-								>
+								</div>
+								<div class="cell w-25 right">
+									{{this.affectedUserCount}}
+								</div>
 							</div>
 						</a>
 						{{/each}}
@@ -480,21 +479,21 @@
 
 					<div>
 						<div class="row">
-							<span class="cell w-65">Error</span>
-							<span class="cell w-35 right">Amount</span>
+							<div class="cell w-65">Error</div>
+							<div class="cell w-35 right">Amount</div>
 						</div>
 						{{#each frequentErrors}}
 						<a href="{{this.url}}">
 							<div class="top-border row data">
-								<span class="cell cell-primary w-65">
+								<div class="cell cell-primary w-65">
 									{{this.message}}
-								</span>
-								<span class="cell w-35 right">
+								</div>
+								<div class="cell w-35 right">
 									<span>{{this.count}}</span>
-									<span class="stat-delta"
-										>{{this.delta}}</span
-									>
-								</span>
+									<span class="stat-delta">
+										{{this.delta}}
+									</span>
+								</div>
 							</div>
 						</a>
 						{{/each}}
@@ -526,3 +525,4 @@
 		</div>
 	</body>
 </html>
+<!--<![endif]-->
