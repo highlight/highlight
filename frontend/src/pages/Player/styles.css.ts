@@ -42,18 +42,18 @@ export const playerLeftPanel = style({
 	backgroundColor: colors.neutralN1,
 	borderRight: `1px solid ${colors.neutralN6}`,
 	height: '100%',
-	padding: `24px 32px 0 32px`,
+	padding: 0,
 	position: 'relative',
 	top: 0,
 	transform: 'translateX(0)',
 	transition: 'transform 0.2s ease-in-out',
-	width: 475,
+	width: 340,
 	zIndex: 98,
 })
 
 export const playerLeftPanelHidden = style({
 	position: 'fixed',
-	transform: 'translateX(-475px)',
+	transform: 'translateX(-340px)',
 })
 
 export const draggable = style({

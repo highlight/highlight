@@ -1,61 +1,59 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import {
+	EmptySearchResults,
+	SearchResultsKind,
+} from '@components/EmptySearchResults/EmptySearchResults'
 import { Series } from '@components/Histogram/Histogram'
 import {
 	DEFAULT_PAGE_SIZE,
-	Pagination,
 	RESET_PAGE_MS,
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
-import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
+import SearchPagination, {
+	START_PAGE,
+} from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetSessionsHistogramQuery,
 	useGetSessionsOpenSearchQuery,
 } from '@graph/hooks'
 import { GetSessionsOpenSearchQuery } from '@graph/operations'
-import { DateHistogramBucketSize, PlanType } from '@graph/schemas'
+import {
+	DateHistogramBucketSize,
+	Maybe,
+	PlanType,
+	Session,
+} from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
-import SegmentPickerForPlayer from '@pages/Player/SearchPanel/SegmentPickerForPlayer/SegmentPickerForPlayer'
+import { TIME_RANGE_FIELD } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
+import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
+import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
+import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
-import { getUnprocessedSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/utils/utils'
-import SessionFeedConfiguration, {
-	formatCount,
-} from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
-import SessionsQueryBuilder, {
-	TIME_RANGE_FIELD,
-} from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
-import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
-import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
+} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import useLocalStorage from '@rehooks/local-storage'
+import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
-import { message } from 'antd'
-import classNames from 'classnames'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import clsx from 'clsx'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import Skeleton from 'react-loading-skeleton'
-import TextTransition from 'react-text-transition'
 
-import Switch from '../../../components/Switch/Switch'
-import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '../../Player/ReplayerContext'
 import {
 	showLiveSessions,
 	useSearchContext,
 } from '../SearchContext/SearchContext'
-import MinimalSessionCard from '../SessionsFeedV2/components/MinimalSessionCard/MinimalSessionCard'
-import * as styles from './style.css'
+import * as style from './SessionFeedV3.css'
+import SessionQueryBuilder from './SessionQueryBuilder/SessionQueryBuilder'
 
 interface SessionsHistogramProps {
 	projectHasManySessions: boolean
@@ -151,29 +149,20 @@ export const SessionFeedV3 = React.memo(() => {
 		project_id: string
 		session_secure_id: string
 	}>()
-	const { isHighlightAdmin } = useAuthContext()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-	const {
-		autoPlaySessions,
-		setAutoPlaySessions,
-		setAutoPlayVideo,
-		setShowDetailedSessionView,
-		showDetailedSessionView,
-	} = usePlayerConfiguration()
-
-	const [
-		sessionFeedIsInTopScrollPosition,
-		setSessionFeedIsInTopScrollPosition,
-	] = useState(true)
+	// TODO(vkorolik) use ShowDetailedSessionView in ... menu
+	// TODO(vkorolik) use autoPlayVideo, autoPlaySessions
+	const { autoPlaySessions, showDetailedSessionView } =
+		usePlayerConfiguration()
 
 	const totalPages = useRef<number>(0)
 	const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
 		`sessionsCount-project-${project_id}`,
 		0,
 	)
+	// TODO(vkorolik) use showStarredSessions
 	const {
 		searchParams,
-		showStarredSessions,
 		setSearchParams,
 		backendSearchQuery,
 		page,
@@ -182,27 +171,15 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading,
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
+	const { showLeftPanel } = usePlayerConfiguration()
+	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
 	const projectHasManySessions = sessionsCount > DEFAULT_PAGE_SIZE
+	const showHistogram = searchResultsLoading || sessionsCount > 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
 	})
-	const { data: unprocessedSessionsOpenSearch } =
-		useGetSessionsOpenSearchQuery({
-			variables: {
-				project_id,
-				count: DEFAULT_PAGE_SIZE,
-				page: 1,
-				query: getUnprocessedSessionsQuery(
-					backendSearchQuery?.searchQuery || '',
-				),
-				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
-			},
-			skip: !backendSearchQuery,
-			pollInterval: 5000,
-			fetchPolicy: 'network-only',
-		})
 
 	// Used to determine if we need to show the loading skeleton.
 	// The loading skeleton should only be shown on the first load and when searchParams changes.
@@ -210,10 +187,6 @@ export const SessionFeedV3 = React.memo(() => {
 	useEffect(() => {
 		setSearchResultsLoading(true)
 	}, [backendSearchQuery, page, setSearchResultsLoading])
-
-	// Get the unprocessedSessionsCount from either the SQL or OpenSearch query
-	const unprocessedSessionsCount: number | undefined =
-		unprocessedSessionsOpenSearch?.sessions_opensearch?.totalCount
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
 		if (response?.sessions_opensearch) {
@@ -232,7 +205,7 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading(false)
 	}
 
-	const { loading, called } = useGetSessionsOpenSearchQuery({
+	const { loading } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
@@ -321,176 +294,96 @@ export const SessionFeedV3 = React.memo(() => {
 		return sessionResults.sessions
 	}, [loading, searchParams.hide_viewed, sessionResults.sessions])
 
-	const onFeedScrollListener = (
-		e: React.UIEvent<HTMLElement> | undefined,
-	) => {
-		setSessionFeedIsInTopScrollPosition(e?.currentTarget.scrollTop === 0)
-	}
-
 	return (
 		<SessionFeedConfigurationContextProvider
 			value={sessionFeedConfiguration}
 		>
-			<div className={styles.filtersContainer}>
-				<SegmentPickerForPlayer />
-				<SessionsQueryBuilder />
-			</div>
-			{isHighlightAdmin && (loading || sessionResults.totalCount > 0) && (
-				<Box paddingTop="16" paddingBottom="6" px="8">
-					<SessionsHistogram
-						projectHasManySessions={projectHasManySessions}
-					/>
-				</Box>
-			)}
-			<div className={styles.fixedContent}>
-				<div className={styles.resultCount}>
-					{sessionResults.totalCount === -1 ? (
-						<Skeleton width="100px" />
-					) : (
-						<div className={styles.resultCountValueContainer}>
-							<span className={styles.countContainer}>
-								<Tooltip
-									title={`${sessionResults.totalCount.toLocaleString()} sessions`}
-								>
-									<TextTransition
-										inline
-										text={`${formatCount(
-											sessionResults.totalCount,
-											sessionFeedConfiguration.countFormat,
-										)}`}
-									/>
-									{' sessions '}
-								</Tooltip>
-								{!!unprocessedSessionsCount &&
-									unprocessedSessionsCount > 0 &&
-									!showLiveSessions(searchParams) && (
-										<button
-											className={
-												styles.liveSessionsCountButton
-											}
-											onClick={() => {
-												message.success(
-													'Showing live sessions',
-												)
-												enableLiveSessions()
-											}}
-										>
-											(
-											{formatCount(
-												unprocessedSessionsCount,
-												sessionFeedConfiguration.countFormat,
-											)}{' '}
-											live)
-										</button>
-									)}
-							</span>
-							<div className={styles.sessionFeedActions}>
-								<Switch
-									label="Autoplay"
-									checked={autoPlaySessions}
-									onChange={(checked) => {
-										setAutoPlaySessions(checked)
-										if (checked) setAutoPlayVideo(checked)
-									}}
-									trackingId="SessionFeedAutoplay"
-								/>
-								<Switch
-									label="Details"
-									checked={showDetailedSessionView}
-									onChange={(checked) => {
-										setShowDetailedSessionView(checked)
-									}}
-									trackingId="SessionFeedShowDetails"
-								/>
-								<SessionFeedConfiguration
-									configuration={sessionFeedConfiguration}
-									sessionCount={sessionResults.totalCount}
-									sessionQuery={
-										backendSearchQuery?.searchQuery || ''
-									}
-								/>
-							</div>
-						</div>
-					)}
-				</div>
-			</div>
-			<div className={styles.feedContent}>
-				<div
-					className={classNames(styles.feedLine, {
-						[styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
-					})}
-				/>
-				<div
-					onScroll={onFeedScrollListener}
-					className={classNames(styles.feedItems, {
-						[styles.hasScrolled]: !sessionFeedIsInTopScrollPosition,
-					})}
+			<Box
+				display="flex"
+				flex="fixed"
+				flexDirection="column"
+				borderRight="neutral"
+				position="relative"
+				cssClass={clsx(style.searchPanel, {
+					[style.searchPanelHidden]: !showLeftPanel,
+					[style.searchPanelWithBanner]: showBanner,
+				})}
+				background="neutral50"
+			>
+				<SessionQueryBuilder />
+				{showHistogram && (
+					<Box
+						borderBottom="neutral"
+						paddingTop="10"
+						paddingBottom="12"
+						px="8"
+					>
+						<SessionsHistogram
+							projectHasManySessions={projectHasManySessions}
+						/>
+					</Box>
+				)}
+				<Box
+					padding="6"
+					overflowX="hidden"
+					overflowY="auto"
+					cssClass={style.content}
 				>
 					{searchResultsLoading ? (
 						<Skeleton
-							height={!showDetailedSessionView ? 74 : 125}
+							height={80}
 							count={3}
 							style={{
 								borderRadius: 8,
-								marginBottom: 14,
+								marginBottom: 2,
 							}}
 						/>
 					) : (
 						<>
-							{!sessionResults.sessions.length &&
-							called &&
-							!loading ? (
-								showStarredSessions ? (
-									<SearchEmptyState
-										item="sessions"
-										customTitle="Your project doesn't have starred sessions."
-										customDescription={
-											'Starring a session is like bookmarking a website. ' +
-											'It gives you a way to tag a session that you want to look at again. ' +
-											'You can star a session by clicking the star icon next to the user details ' +
-											"in the session's right panel."
-										}
-									/>
-								) : (
-									<SearchEmptyState item="sessions" />
-								)
+							{sessionsCount === 0 ? (
+								<EmptySearchResults
+									kind={SearchResultsKind.Sessions}
+								/>
 							) : (
-								<>
-									{!isOnPrem && <LimitedSessionCard />}
-									{filteredSessions.map((u) => (
-										<MinimalSessionCard
-											session={u}
-											key={u?.secure_id}
-											selected={
-												session_secure_id ===
-												u?.secure_id
-											}
-											urlParams={`?page=${
-												page || STARTING_PAGE
-											}`}
-											autoPlaySessions={autoPlaySessions}
-											showDetailedSessionView={
-												showDetailedSessionView
-											}
-											configuration={{
-												countFormat:
-													sessionFeedConfiguration.countFormat,
-												datetimeFormat:
-													sessionFeedConfiguration.datetimeFormat,
-											}}
-										/>
-									))}
-								</>
+								filteredSessions?.map(
+									(s: Maybe<Session>, ind: number) =>
+										s && (
+											<SessionFeedCard
+												key={ind}
+												session={s}
+												urlParams={`?page=${
+													page || START_PAGE
+												}`}
+												selected={
+													session_secure_id ===
+													s?.secure_id
+												}
+												showDetailedSessionView={
+													showDetailedSessionView
+												}
+												autoPlaySessions={
+													autoPlaySessions
+												}
+												configuration={{
+													countFormat:
+														sessionFeedConfiguration.countFormat,
+													datetimeFormat:
+														sessionFeedConfiguration.datetimeFormat,
+												}}
+											/>
+										),
+								)
 							)}
 						</>
 					)}
-				</div>
-			</div>
-			<Pagination
-				page={page}
-				setPage={setPage}
-				totalPages={totalPages.current}
-			/>
+				</Box>
+				<SearchPagination
+					page={page}
+					setPage={setPage}
+					totalCount={sessionsCount}
+					pageSize={DEFAULT_PAGE_SIZE}
+				/>
+			</Box>
 		</SessionFeedConfigurationContextProvider>
 	)
 })
