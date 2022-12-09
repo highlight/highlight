@@ -197,7 +197,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var activeSessionsSql []utils.ActiveSessionSql
 	if err := h.db.Raw(`
-		SELECT s.identifier, s.user_properties, s.fingerprint, s.city, s.state, coalesce(s.country, '-'), s.active_length, s.secure_id
+		SELECT s.identifier, s.user_properties, s.fingerprint, s.city, s.state, s.country, s.active_length, s.secure_id
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -213,7 +213,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	for _, item := range activeSessionsSql {
 		activeSessions = append(activeSessions, utils.ActiveSession{
 			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
-			Location:     item.Country,
+			Location:     getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
 		})
@@ -361,6 +361,13 @@ func formatSessionURL(projectId int, secureId string) string {
 
 func formatErrorURL(projectId int, secureId string) string {
 	return fmt.Sprintf("https://app.highlight.io/%d/errors/%s", projectId, secureId)
+}
+
+func getLocation(country string) string {
+	if country == "" {
+		return "-"
+	}
+	return country
 }
 
 func getIdentifier(userProperties string, identifier string, fingerprint string) string {
