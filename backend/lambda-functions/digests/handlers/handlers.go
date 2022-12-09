@@ -213,7 +213,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	activeSessions := []utils.ActiveSession{}
 	for _, item := range activeSessionsSql {
 		activeSessions = append(activeSessions, utils.ActiveSession{
-			Identifier:   truncate30(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
+			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
 			Location:     getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
@@ -240,7 +240,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	errorSessions := []utils.ErrorSession{}
 	for _, item := range errorSessionsSql {
 		errorSessions = append(errorSessions, utils.ErrorSession{
-			Identifier:   truncate30(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
+			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
 			ErrorCount:   formatNumber(item.ErrorCount),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
@@ -269,7 +269,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	newErrors := []utils.NewError{}
 	for _, item := range newErrorsSql {
 		newErrors = append(newErrors, utils.NewError{
-			Message:           truncate30(unwrapErrorMessage(item.Message)),
+			Message:           unwrapErrorMessage(item.Message),
 			AffectedUserCount: formatNumber(item.AffectedUserCount),
 			URL:               formatErrorURL(input.ProjectId, item.SecureId),
 		})
@@ -295,7 +295,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	frequentErrors := []utils.FrequentError{}
 	for _, item := range frequentErrorsSql {
 		frequentErrors = append(frequentErrors, utils.FrequentError{
-			Message: truncate30(unwrapErrorMessage(item.Message)),
+			Message: unwrapErrorMessage(item.Message),
 			Count:   formatNumber(item.Count),
 			Delta:   formatDelta(item.Count - item.PriorCount),
 			URL:     formatErrorURL(input.ProjectId, item.SecureId),
@@ -393,16 +393,6 @@ func getIdentifier(userProperties string, identifier string, fingerprint string)
 	return "unidentified"
 }
 
-// Truncate strings after 30 characters
-// (gmail adds <wbr/> tags every 30 characters)
-func truncate30(input string) string {
-	count := 30
-	if len(input) < count {
-		count = len(input)
-	}
-	return input[0:count]
-}
-
 // Error message may be a JSON string or array. Try to unwrap it.
 func unwrapErrorMessage(message string) string {
 	if message == "" {
@@ -438,11 +428,11 @@ func formatSubscriptionUrl(adminId int, token string) string {
 
 func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataResponse) error {
 	var toAddrs []struct {
-		adminID int
-		email   string
+		AdminID int
+		Email   string
 	}
 	if err := h.db.Raw(`
-		SELECT a.email
+		SELECT a.id as adminID, a.email
 		FROM projects p
 		INNER JOIN workspace_admins wa
 		ON wa.workspace_id = p.workspace_id
@@ -470,13 +460,13 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 
 	if input.DryRun {
 		toAddrs = []struct {
-			adminID int
-			email   string
-		}{{adminID: 5141, email: "zane@highlight.io"}}
+			AdminID int
+			Email   string
+		}{{AdminID: 5141, Email: "zane@highlight.io"}}
 	}
 
 	for _, toAddr := range toAddrs {
-		to := &mail.Email{Address: toAddr.email}
+		to := &mail.Email{Address: toAddr.Email}
 
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
@@ -489,8 +479,8 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		for k, v := range templateData {
 			curData[k] = v
 		}
-		curData["toEmail"] = toAddr.email
-		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.adminID, graph.GetOptOutToken(toAddr.adminID, false))
+		curData["toEmail"] = toAddr.Email
+		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.AdminID, graph.GetOptOutToken(toAddr.AdminID, false))
 
 		p.DynamicTemplateData = curData
 
