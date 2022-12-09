@@ -10,6 +10,8 @@ import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
 import { Maybe, PlanType, Project } from '@graph/schemas'
 import {
 	Box,
+	Button,
+	IconArrowSmLeft,
 	IconAtSymbol,
 	IconCog,
 	IconDesktopComputer,
@@ -29,6 +31,7 @@ import {
 	Menu,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import { useBillingHook } from '@pages/Billing/Billing'
 import { getTrialEndDateMessage } from '@pages/Billing/utils/utils'
@@ -51,7 +54,6 @@ import React, { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { CommandBar } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
@@ -236,13 +238,30 @@ export const Header = () => {
 							)}
 						</Box>
 					) : (
-						<Box className={styles.logoWrapper}>
-							<Link
-								className={styles.homeLink}
-								to={`/${projectIdRemapped}/home`}
-							>
-								<HighlightLogo />
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							width="full"
+						>
+							<Link className={styles.homeLink} to="/">
+								<Button
+									kind="secondary"
+									emphasis="high"
+									size="small"
+									iconLeft={<IconArrowSmLeft size={14} />}
+								>
+									Back to Highlight
+								</Button>
 							</Link>
+							<a
+								className={styles.homeLink}
+								href="https://www.highlight.io"
+							>
+								<SvgHighlightLogoOnLight
+									width={28}
+									height={28}
+								/>
+							</a>
 						</Box>
 					)}
 					{inProjectOrWorkspace && (

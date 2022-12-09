@@ -9,7 +9,7 @@ import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { ApplicationContextProvider } from '@routers/OrgRouter/ApplicationContext'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
-import { Divider, message } from 'antd'
+import { message } from 'antd'
 import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
@@ -50,7 +50,7 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
-	const { data, loading } = useGetEmailOptOutsQuery({
+	const { data, loading, error } = useGetEmailOptOutsQuery({
 		variables: { token: token ?? '', admin_id: admin_id ?? '' },
 		skip: !token || !admin_id,
 	})
@@ -58,8 +58,6 @@ export const EmailOptOutPage = () => {
 	const [updateEmailOptOut] = useUpdateEmailOptOutMutation({
 		refetchQueries: [namedOperations.Query.GetEmailOptOuts],
 	})
-
-	console.log('data', data)
 
 	const { setLoadingState } = useAppLoadingContext()
 	useEffect(() => {
@@ -69,7 +67,9 @@ export const EmailOptOutPage = () => {
 	}, [loading, setLoadingState])
 
 	let innerContent
-	if (!token || !admin_id || !data?.email_opt_outs) {
+	if (loading) {
+		innerContent = null
+	} else if (error) {
 		innerContent = (
 			<>
 				<p>Link is invalid or has expired.</p>
@@ -132,8 +132,8 @@ export const EmailOptOutPage = () => {
 						(isOptIn: boolean) => {
 							updateEmailOptOut({
 								variables: {
-									token,
-									admin_id,
+									token: token ?? '',
+									admin_id: admin_id ?? '',
 									category: c.type,
 									is_opt_out: !isOptIn,
 								},
@@ -151,35 +151,6 @@ export const EmailOptOutPage = () => {
 						},
 						optOutAll,
 					),
-				)}
-				<Divider />
-				{OptInRow(
-					'Opt out of all emails',
-					undefined,
-					optOutAll,
-					(isOptOut: boolean) => {
-						updateEmailOptOut({
-							variables: {
-								token,
-								admin_id,
-								category: EmailOptOutCategory.All,
-								is_opt_out: isOptOut,
-							},
-						})
-							.then(() => {
-								if (isOptOut) {
-									message.success('Opted out of all emails.')
-								} else {
-									message.success(
-										'No longer opting out of all emails.',
-									)
-								}
-							})
-							.catch((reason: any) => {
-								message.error(String(reason))
-							})
-					},
-					false,
 				)}
 			</>
 		)
