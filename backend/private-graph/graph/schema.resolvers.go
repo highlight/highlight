@@ -23,6 +23,21 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/rs/xid"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v72"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -40,20 +55,6 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/leonelquinteros/hubspot"
-	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
-	"github.com/rs/xid"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
-	stripe "github.com/stripe/stripe-go/v72"
-	"golang.org/x/sync/errgroup"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Author is the resolver for the author field.
@@ -3153,7 +3154,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 
 	s, err := r.canAdminViewSession(ctx, secureID)
-	if err != nil {
+	if s == nil || err != nil {
 		return nil, nil
 	}
 	sessionObj := &model.Session{}
