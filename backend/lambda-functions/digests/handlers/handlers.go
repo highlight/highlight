@@ -213,7 +213,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	activeSessions := []utils.ActiveSession{}
 	for _, item := range activeSessionsSql {
 		activeSessions = append(activeSessions, utils.ActiveSession{
-			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
+			Identifier:   truncate30(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
 			Location:     getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
@@ -240,7 +240,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	errorSessions := []utils.ErrorSession{}
 	for _, item := range errorSessionsSql {
 		errorSessions = append(errorSessions, utils.ErrorSession{
-			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
+			Identifier:   truncate30(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
 			ErrorCount:   formatNumber(item.ErrorCount),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
@@ -269,7 +269,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	newErrors := []utils.NewError{}
 	for _, item := range newErrorsSql {
 		newErrors = append(newErrors, utils.NewError{
-			Message:           unwrapErrorMessage(item.Message),
+			Message:           truncate30(unwrapErrorMessage(item.Message)),
 			AffectedUserCount: formatNumber(item.AffectedUserCount),
 			URL:               formatErrorURL(input.ProjectId, item.SecureId),
 		})
@@ -295,7 +295,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	frequentErrors := []utils.FrequentError{}
 	for _, item := range frequentErrorsSql {
 		frequentErrors = append(frequentErrors, utils.FrequentError{
-			Message: unwrapErrorMessage(item.Message),
+			Message: truncate30(unwrapErrorMessage(item.Message)),
 			Count:   formatNumber(item.Count),
 			Delta:   formatDelta(item.Count - item.PriorCount),
 			URL:     formatErrorURL(input.ProjectId, item.SecureId),
@@ -391,6 +391,16 @@ func getIdentifier(userProperties string, identifier string, fingerprint string)
 		return "#" + fingerprint
 	}
 	return "unidentified"
+}
+
+// Truncate strings after 30 characters
+// (gmail adds <wbr/> tags every 30 characters)
+func truncate30(input string) string {
+	count := 30
+	if len(input) < count {
+		count = len(input)
+	}
+	return input[0:count]
 }
 
 // Error message may be a JSON string or array. Try to unwrap it.
