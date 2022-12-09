@@ -21,7 +21,7 @@ export const errorRowVariants = recipe({
 		borderRadius: 6,
 		color: colors.neutralN11,
 		display: 'grid',
-		gridTemplateColumns: '3fr 1fr auto 64px',
+		gridTemplateColumns: '3fr 1fr auto 100px',
 		gap: 32,
 		marginBottom: 1,
 		padding: 8,
