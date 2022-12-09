@@ -229,6 +229,7 @@
 				text-overflow: ellipsis;
 				text-align: left;
 				color: #9d97aa;
+				font-size: 14px;
 			}
 
 			.cell-primary {
@@ -417,7 +418,7 @@
 
 				<div class="info-card">
 					<div class="card-header">
-						<h2>Sessions with the most errors</h2>
+						<h2>Most erroneous sessions</h2>
 						<h3>from last week</h3>
 					</div>
 
@@ -479,8 +480,10 @@
 
 					<div>
 						<div class="row">
-							<div class="cell w-65">Error</div>
-							<div class="cell w-35 right">Amount</div>
+							<div class="cell w-50">Error</div>
+							<div class="cell w-50 right">
+								Amount (since last week)
+							</div>
 						</div>
 						{{#each frequentErrors}}
 						<a href="{{this.url}}">
@@ -507,20 +510,13 @@
 					want to receive emails like this in the future, you can
 					<a href="{{unsubscribeUrl}}">unsubscribe</a>.
 				</div>
-				<div class="company-info">
-					Stop wasting effort trying to track down and reproduce bugs.
-					Through session replay, Highlight shows you exactly how and
-					when your bugs happen. Highlight removes the mystery of
-					debugging.
-				</div>
-				<div class="company-address">123 Main St</div>
-				<div class="company-address">Seattle, WA 12345</div>
 				<img
 					class="logo-full"
 					src="https://static.highlight.io/assets/digest/highlight-logo.png"
 					width="70"
 					height="16"
 				/>
+				<div class="company-address">Seattle, WA 98122</div>
 			</div>
 		</div>
 	</body>

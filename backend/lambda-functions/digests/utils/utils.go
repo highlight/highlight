@@ -16,19 +16,23 @@ type ProjectIdResponse struct {
 }
 
 type ActiveSessionSql struct {
-	Identifier   string        `json:"identifier"`
-	City         string        `json:"city"`
-	State        string        `json:"state"`
-	Country      string        `json:"country"`
-	ActiveLength time.Duration `json:"activeLength"`
-	SecureId     string        `json:"secureId"`
+	UserProperties string        `json:"userProperties"`
+	Identifier     string        `json:"identifier"`
+	Fingerprint    string        `json:"fingerprint"`
+	City           string        `json:"city"`
+	State          string        `json:"state"`
+	Country        string        `json:"country"`
+	ActiveLength   time.Duration `json:"activeLength"`
+	SecureId       string        `json:"secureId"`
 }
 
 type ErrorSessionSql struct {
-	Identifier   string        `json:"identifier"`
-	ErrorCount   int           `json:"errorCount"`
-	ActiveLength time.Duration `json:"activeLength"`
-	SecureId     string        `json:"secureId"`
+	UserProperties string        `json:"userProperties"`
+	Identifier     string        `json:"identifier"`
+	Fingerprint    string        `json:"fingerprint"`
+	ErrorCount     int           `json:"errorCount"`
+	ActiveLength   time.Duration `json:"activeLength"`
+	SecureId       string        `json:"secureId"`
 }
 
 type NewErrorSql struct {
