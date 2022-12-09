@@ -43,6 +43,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const countChange = weekly.count[0]
 		? ((weekly.count[1] - weekly.count[0]) / weekly.count[0]) * 100
 		: 0
+	const numberOfDays = moment(moment()).diff(startDate, 'days')
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -106,7 +107,10 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										}}
 									>
 										<Text size="xSmall" color="neutral500">
-											{moment(startDate).fromNow(true)}
+											{numberOfDays}{' '}
+											{numberOfDays === 1
+												? 'day'
+												: 'days'}
 										</Text>
 									</Box>
 								</Box>
@@ -188,7 +192,10 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 										}}
 									>
 										<Text size="xSmall" color="neutral500">
-											{moment(startDate).fromNow(true)}
+											{numberOfDays}{' '}
+											{numberOfDays === 1
+												? 'day'
+												: 'days'}
 										</Text>
 									</Box>
 								</Box>
