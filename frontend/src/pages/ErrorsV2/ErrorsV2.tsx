@@ -65,6 +65,9 @@ const ErrorsV2: React.FC<React.PropsWithChildren> = () => {
 	} = useGetErrorGroupQuery({
 		variables: { secure_id: error_secure_id },
 		skip: !error_secure_id,
+		onCompleted: () => {
+			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+		},
 	})
 
 	const history = useHistory()

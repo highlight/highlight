@@ -60,7 +60,6 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouteMatch } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
@@ -1927,13 +1926,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	// Track the current state of the query builder to detect changes
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
-	const errorsMatch = useRouteMatch('/:project_id/errors')
 
 	useEffect(() => {
-		if (!errorsMatch) {
-			return
-		}
-
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
@@ -1953,10 +1947,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	// Errors Segment Deep Linking
 	useEffect(() => {
-		if (!errorsMatch) {
-			return
-		}
-
 		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
 			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
 				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
@@ -1965,12 +1955,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setActiveSegmentUrlParam(undefined, 'replace')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, errorsMatch, setActiveSegmentUrlParam])
+	}, [selectedSegment, setActiveSegmentUrlParam])
 
 	useEffect(() => {
-		if (!errorsMatch) {
-			return
-		}
 		if (!isEqual(searchParams, EmptyErrorsSearchParams)) {
 			setSearchParamsToUrlParams(
 				normalizeParams(searchParams),
@@ -1980,7 +1967,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		setSearchParamsToUrlParams,
 		searchParams,
-		errorsMatch,
 		selectedSegment,
 		activeSegmentUrlParam,
 	])
