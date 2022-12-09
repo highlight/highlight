@@ -8,7 +8,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import ErrorQueryBuilder from '@pages/Error/components/ErrorQueryBuilder/ErrorQueryBuilder'
 import SegmentPickerForErrors from '@pages/Error/components/SegmentPickerForErrors/SegmentPickerForErrors'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
-import useLocalStorage from '@rehooks/local-storage'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { gqlSanitize } from '@util/gqlSanitize'
 import { formatNumber } from '@util/numbers'
@@ -31,10 +30,6 @@ export const ErrorFeedV2 = () => {
 		totalCount: 0,
 	})
 	const totalPages = useRef<number>(0)
-	const [errorsCount, setErrorsCount] = useLocalStorage<number>(
-		`errorsCount-project-${project_id}`,
-		0,
-	)
 	const {
 		backendSearchQuery,
 		page,
@@ -42,7 +37,7 @@ export const ErrorFeedV2 = () => {
 		searchResultsLoading,
 		setSearchResultsLoading,
 	} = useErrorSearchContext()
-	const projectHasManyErrors = errorsCount > PAGE_SIZE
+	const projectHasManyErrors = data.totalCount > PAGE_SIZE
 
 	const [errorFeedIsInTopScrollPosition, setErrorFeedIsInTopScrollPosition] =
 		useState(true)
@@ -65,7 +60,6 @@ export const ErrorFeedV2 = () => {
 				totalPages.current = Math.ceil(
 					r?.error_groups_opensearch.totalCount / PAGE_SIZE,
 				)
-				setErrorsCount(r?.error_groups_opensearch.totalCount)
 			}
 			setSearchResultsLoading(false)
 		},
@@ -85,7 +79,7 @@ export const ErrorFeedV2 = () => {
 				<SegmentPickerForErrors />
 				<ErrorQueryBuilder />
 			</div>
-			{(loading || data.totalCount > 0 || errorsCount > 0) && (
+			{(loading || data.totalCount > 0) && (
 				<ErrorFeedHistogram useCachedErrors={projectHasManyErrors} />
 			)}
 			<div className={styles.fixedContent}>

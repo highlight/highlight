@@ -34,7 +34,6 @@ import SessionsQueryBuilder, {
 } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { SessionFeedConfigurationContextProvider } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from '@pages/Sessions/SessionsFeedV2/hooks/useSessionFeedConfiguration'
-import useLocalStorage from '@rehooks/local-storage'
 import { useIntegrated } from '@util/integrated'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -165,10 +164,6 @@ export const SessionFeed = React.memo(() => {
 	] = useState(true)
 
 	const totalPages = useRef<number>(0)
-	const [sessionsCount, setSessionsCount] = useLocalStorage<number>(
-		`sessionsCount-project-${project_id}`,
-		0,
-	)
 	const {
 		searchParams,
 		showStarredSessions,
@@ -181,7 +176,7 @@ export const SessionFeed = React.memo(() => {
 	} = useSearchContext()
 	const { integrated } = useIntegrated()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = sessionsCount > DEFAULT_PAGE_SIZE
+	const projectHasManySessions = sessionResults.totalCount > DEFAULT_PAGE_SIZE
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id },
@@ -225,7 +220,6 @@ export const SessionFeed = React.memo(() => {
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
-			setSessionsCount(response?.sessions_opensearch.totalCount)
 		}
 		setSearchResultsLoading(false)
 	}
@@ -333,9 +327,7 @@ export const SessionFeed = React.memo(() => {
 				<SegmentPickerForPlayer />
 				<SessionsQueryBuilder />
 			</div>
-			{(loading ||
-				sessionResults.totalCount > 0 ||
-				sessionsCount > 0) && (
+			{(loading || sessionResults.totalCount > 0) && (
 				<Box paddingTop="16" paddingBottom="6" px="8">
 					<SessionsHistogram
 						projectHasManySessions={projectHasManySessions}
