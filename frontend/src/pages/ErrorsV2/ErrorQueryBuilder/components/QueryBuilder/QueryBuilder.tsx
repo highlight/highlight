@@ -1215,6 +1215,9 @@ export const deserializeGroup = (
 }
 
 const deserializeRules = (ruleGroups: any): RuleProps[] => {
+	if (!ruleGroups) {
+		return []
+	}
 	return ruleGroups.map((group: any[]) => {
 		const [field, op, ...vals] = group
 		return deserializeGroup(field, op, vals)
@@ -1732,7 +1735,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		},
 		[defaultTimeRangeRule, parseRule, timeRangeField.value],
 	)
-
+	const [isAnd, toggleIsAnd] = useToggle(true)
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
@@ -1788,8 +1791,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 		return timeRange
 	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
-
-	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -2483,7 +2484,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				m="8"
 				shadow="small"
 			>
-				{mode !== QueryBuilderMode.EMPTY && !segmentsLoading && (
+				{mode !== QueryBuilderMode.EMPTY && (
 					<Box
 						p="4"
 						paddingBottom="8"

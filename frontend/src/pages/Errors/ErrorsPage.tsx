@@ -13,4 +13,4 @@ export const EmptyErrorsSearchParams: Complete<ErrorSearchParamsInput> = {
 	type: undefined,
 	// TODO: remove the other attributes after deprecating static filters
 	query: `{\"isAnd\":true,\"rules\":[[\"error_state\",\"is\",\"${ErrorState.Open}\"]]}`,
-}
+} as const
