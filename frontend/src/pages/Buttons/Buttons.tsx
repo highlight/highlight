@@ -482,20 +482,29 @@ export const Buttons = () => {
 							'highlight-block',
 							'highlight-ignored',
 						].map((c) => (
-							<Box key={c} display="flex" flexDirection="column">
+							<Box
+								key={c}
+								display="flex"
+								flexDirection="column"
+								className={c}
+								id={`video-test-${c}`}
+								data-id={`video-test-${c}`}
+							>
 								<span>class `{c}`</span>
-								<div key={c} className={c}>
-									<video controls={true} width="250">
-										<source
-											src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"
-											type="video/webm"
-										/>
-										<source
-											src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-											type="video/mp4"
-										/>
-									</video>
-								</div>
+								<video
+									controls={true}
+									width="250"
+									className={`asdf-${c}`}
+								>
+									<source
+										src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"
+										type="video/webm"
+									/>
+									<source
+										src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+										type="video/mp4"
+									/>
+								</video>
 							</Box>
 						))}
 					</Box>
