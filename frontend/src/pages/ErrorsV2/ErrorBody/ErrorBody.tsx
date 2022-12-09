@@ -2,12 +2,18 @@ import BarChart from '@components/BarChart/BarChart'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
+	Button,
 	ButtonLink,
 	IconChevronRight,
+	IconCode,
+	IconTrendingDown,
+	IconTrendingUp,
+	Tag,
 	Text,
-	TextLink,
+	Tooltip,
+	vars,
 } from '@highlight-run/ui'
-import { formatErrorGroupDate, getErrorGroupStats } from '@pages/ErrorsV2/utils'
+import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import moment from 'moment'
 import React from 'react'
@@ -37,6 +43,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const countChange = weekly.count[0]
 		? ((weekly.count[1] - weekly.count[0]) / weekly.count[0]) * 100
 		: 0
+	const numberOfDays = moment(moment()).diff(startDate, 'days')
 
 	React.useEffect(() => {
 		if (bodyRef.current) {
@@ -67,13 +74,47 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{userCount}
 						</Text>
 						{Math.abs(usersChange) > showChangeThresholdPercent ? (
-							<Tag>
-								<>
-									{usersChange > 0 ? '+' : ''}
-									{usersChange.toFixed(0)}% since{' '}
-									{formatErrorGroupDate(startDate.format())}
-								</>
-							</Tag>
+							<Tooltip
+								trigger={
+									<Tag
+										kind="grey"
+										shape="basic"
+										iconLeft={
+											usersChange > 0 ? (
+												<IconTrendingUp size={12} />
+											) : (
+												<IconTrendingDown size={12} />
+											)
+										}
+									>
+										<>
+											{usersChange > 0 ? '+' : ''}
+											{usersChange.toFixed(0)}%
+										</>
+									</Tag>
+								}
+							>
+								<Box display="flex" alignItems="center" gap="4">
+									<Text color="neutralN9" size="xSmall">
+										since
+									</Text>
+									<Box
+										borderRadius="3"
+										p="4"
+										style={{
+											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											margin: -1,
+										}}
+									>
+										<Text size="xSmall" color="neutral500">
+											{numberOfDays}{' '}
+											{numberOfDays === 1
+												? 'day'
+												: 'days'}
+										</Text>
+									</Box>
+								</Box>
+							</Tooltip>
 						) : null}
 					</Box>
 				</Stat>
@@ -89,20 +130,27 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<BsGridFill />
 								<Text color="neutral500">Instances</Text>
 							</Box>
-							<Text>
-								<TextLink
-									href={`${window.location.pathname}${window.location.search}#error-instance-container`}
+							<ButtonLink
+								style={{ cursor: 'pointer' }}
+								onClick={() =>
+									document
+										.querySelector(
+											'#error-instance-container',
+										)
+										?.scrollIntoView({
+											behavior: 'smooth',
+										})
+								}
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									as="span"
 								>
-									<Box
-										display="flex"
-										alignItems="center"
-										as="span"
-									>
-										<span>Latest</span>{' '}
-										<IconChevronRight size={16} />
-									</Box>
-								</TextLink>
-							</Text>
+									<span>Latest</span>{' '}
+									<IconChevronRight size={16} />
+								</Box>
+							</ButtonLink>
 						</>
 					}
 				>
@@ -111,13 +159,47 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							{totalCount}
 						</Text>
 						{Math.abs(countChange) > showChangeThresholdPercent ? (
-							<Tag>
-								<>
-									{countChange > 0 ? '+' : ''}
-									{countChange.toFixed(0)}% since{' '}
-									{formatErrorGroupDate(startDate.format())}
-								</>
-							</Tag>
+							<Tooltip
+								trigger={
+									<Tag
+										kind="grey"
+										shape="basic"
+										iconLeft={
+											countChange > 0 ? (
+												<IconTrendingUp size={12} />
+											) : (
+												<IconTrendingDown size={12} />
+											)
+										}
+									>
+										<>
+											{countChange > 0 ? '+' : ''}
+											{countChange.toFixed(0)}%
+										</>
+									</Tag>
+								}
+							>
+								<Box display="flex" alignItems="center" gap="4">
+									<Text color="neutralN9" size="xSmall">
+										since
+									</Text>
+									<Box
+										borderRadius="3"
+										p="4"
+										style={{
+											boxShadow: `0 0 0 1px ${vars.color.neutral200}`,
+											margin: -1,
+										}}
+									>
+										<Text size="xSmall" color="neutral500">
+											{numberOfDays}{' '}
+											{numberOfDays === 1
+												? 'day'
+												: 'days'}
+										</Text>
+									</Box>
+								</Box>
+							</Tooltip>
 						) : null}
 					</Box>
 				</Stat>
@@ -171,6 +253,11 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 			</Box>
 			<Box py="12" px="16">
+				<Box mb="20" display="flex" gap="6" alignItems="center">
+					<IconCode size={14} color={vars.color.neutral500} />
+					<Text color="neutral500">Error Body</Text>
+				</Box>
+
 				<Text
 					family="monospace"
 					lines={truncated ? '3' : undefined}
@@ -181,9 +268,14 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 
 				{truncateable && (
 					<Box mt="12">
-						<ButtonLink onClick={() => setTruncated(!truncated)}>
+						<Button
+							onClick={() => setTruncated(!truncated)}
+							kind="secondary"
+							emphasis="medium"
+							size="xSmall"
+						>
 							Show {truncated ? 'more' : 'less'}
-						</ButtonLink>
+						</Button>
 					</Box>
 				)}
 			</Box>
@@ -221,12 +313,6 @@ const Stat: React.FC<
 				{children}
 			</Box>
 		</Box>
-	</Box>
-)
-
-const Tag: React.FC<{ children: React.ReactElement }> = ({ children }) => (
-	<Box as="span" backgroundColor="neutral100" borderRadius="4" p="4">
-		<Text color="black">{children}</Text>
 	</Box>
 )
 

@@ -11,15 +11,18 @@ import { Tag, Props as TagProps } from '../Tag/Tag'
 const PopoverContext = React.createContext<PopoverState>({} as PopoverState)
 export const usePopover = () => React.useContext(PopoverContext)
 
-type Props = React.PropsWithChildren<Partial<PopoverState>>
+export type PopoverProps = React.PropsWithChildren<Partial<PopoverState>>
 
-type PopoverComponent = React.FC<Props> & {
+type PopoverComponent = React.FC<PopoverProps> & {
 	ButtonTrigger: typeof ButtonTrigger
 	TagTrigger: typeof TagTrigger
 	Content: typeof Content
 }
 
-export const Popover: PopoverComponent = ({ children, ...props }: Props) => {
+export const Popover: PopoverComponent = ({
+	children,
+	...props
+}: PopoverProps) => {
 	const popoverState = usePopoverState({
 		placement: 'bottom',
 		gutter: 4,

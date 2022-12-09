@@ -3,8 +3,6 @@ import { ComponentMeta } from '@storybook/react'
 
 import { Popover, PopoverProps } from './Popover'
 import { Box } from '../Box/Box'
-import { Heading } from '../Heading/Heading'
-import { Tag } from '../Tag/Tag'
 import { Stack } from '../Stack/Stack'
 
 export default {

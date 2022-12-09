@@ -1,25 +1,16 @@
 import React from 'react'
 import { IconProps } from './types'
 
-type Props = IconProps & {
-	color?: string
-	size?: number | string
-	width?: number | string
-	height?: number | string
-}
+type Props = IconProps
 
-export const IconSearch: React.FC<Props> = ({ size, color, width, height }) => {
-	if (size) {
-		width = size
-		height = size
-	}
-	width = width ?? 20
-	height = height ?? 20
-	color = color ?? 'currentColor'
+export const IconSearch: React.FC<Props> = ({
+	size = 20,
+	color = 'currentColor',
+}) => {
 	return (
 		<svg
-			width={width}
-			height={height}
+			width={size}
+			height={size}
 			viewBox="0 0 20 20"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"

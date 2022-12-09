@@ -37,10 +37,10 @@ export const Badge: React.FC<Props> = ({
 			textColor = 'neutral500'
 			break
 		case 'white':
-			textColor = 'neutral700'
+			textColor = 'neutralN11'
 			break
 		default:
-			textColor = 'neutral700'
+			textColor = 'neutralN11'
 	}
 
 	return (
