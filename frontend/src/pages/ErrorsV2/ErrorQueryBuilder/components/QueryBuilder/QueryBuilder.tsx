@@ -30,7 +30,9 @@ import {
 	IconChevronDown,
 	IconClock,
 	IconCloudUpload,
+	IconDuplicate,
 	IconLogout,
+	IconPencil,
 	IconPlusCircle,
 	IconPlusSm,
 	IconRefresh,
@@ -1339,6 +1341,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 		})
 
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
+	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
+		useState(false)
+
+	useEffect(() => {
+		setShowCreateSegmentModal(showEditSegmentNameModal)
+	}, [showEditSegmentNameModal])
+
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
 		id?: string
@@ -2432,6 +2441,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			<CreateErrorSegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {
+					setShowEditSegmentNameModal(false)
 					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
@@ -2442,6 +2452,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}
 				}}
+				currentSegment={
+					showEditSegmentNameModal ? currentSegment : undefined
+				}
 			/>
 			<DeleteErrorSegmentModal
 				showModal={!!segmentToDelete}
@@ -2574,6 +2587,50 @@ function QueryBuilder(props: QueryBuilderProps) {
 									? alteredSegmentSettings
 									: null}
 
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										setShowEditSegmentNameModal(true)
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconPencil
+											size={16}
+											color={colors.neutral300}
+										/>
+										Edit segment name
+									</Box>
+								</Menu.Item>
+
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										if (currentSegment) {
+											selectSegment(currentSegment)
+											setShowCreateSegmentModal(true)
+										}
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconDuplicate
+											size={16}
+											color={colors.neutral300}
+										/>
+										Duplicate segment
+									</Box>
+								</Menu.Item>
+
+								<Menu.Divider />
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()

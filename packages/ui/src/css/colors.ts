@@ -13,6 +13,11 @@ export const colors = {
 	neutral800: '#2C2C2C',
 	neutral900: '#1A1A1A',
 	neutralN1: '#FDFCFD',
+	neutralN2: '#F9F8F9',
+	neutralN3: '#F4F2F4',
+	neutralN4: '#EEEDEF',
+	neutralN6: '#E4E2E4',
+	neutralN8: '#C8C7CB',
 	neutralN9: '#908E96',
 	neutralN11: '#6F6E77',
 
