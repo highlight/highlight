@@ -14,7 +14,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import UserCross from '@icons/UserCross'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import ActivityGraph from '@pages/Sessions/SessionsFeedV2/components/ActivityGraph/ActivityGraph'
 import {
 	getDisplayName,
 	getIdentifiedUserProfileImage,
@@ -24,6 +23,7 @@ import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import ActivityGraph from '../ActivityGraph/ActivityGraph'
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session
