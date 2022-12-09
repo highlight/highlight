@@ -66,7 +66,12 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 				</Box>
 			)}
 			{children && (
-				<Text lines={lines} size={textSize} userSelect="none">
+				<Text
+					lines={lines}
+					size={textSize}
+					userSelect="none"
+					color="inherit"
+				>
 					{children}
 				</Text>
 			)}

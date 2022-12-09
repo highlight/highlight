@@ -3,5 +3,6 @@
 // consider housing actual SVG somewhere else and generating .tsx files so icons
 // can be easily extended by dropping in from Figma.
 export type IconProps = {
+	color?: string // TODO: Make this a value from vars.color
 	size?: number
 }
