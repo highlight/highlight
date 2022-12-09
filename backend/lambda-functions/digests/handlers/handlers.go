@@ -385,7 +385,7 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 			SELECT *
 			FROM email_opt_outs eoo
 			WHERE eoo.admin_id = a.id
-			AND eoo.category IN ('All', 'Digest')
+			AND eoo.category IN ('All', 'Digests')
 		)
 	`, input.ProjectId).Scan(&toAddrs).Error; err != nil {
 		return errors.Wrap(err, "error querying recipient emails")
