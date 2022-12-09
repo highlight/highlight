@@ -268,7 +268,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	newErrors := []utils.NewError{}
 	for _, item := range newErrorsSql {
 		newErrors = append(newErrors, utils.NewError{
-			Message:           item.Message,
+			Message:           unwrapErrorMessage(item.Message),
 			AffectedUserCount: formatNumber(item.AffectedUserCount),
 			URL:               formatErrorURL(input.ProjectId, item.SecureId),
 		})
@@ -294,7 +294,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	frequentErrors := []utils.FrequentError{}
 	for _, item := range frequentErrorsSql {
 		frequentErrors = append(frequentErrors, utils.FrequentError{
-			Message: item.Message,
+			Message: unwrapErrorMessage(item.Message),
 			Count:   formatNumber(item.Count),
 			Delta:   formatDelta(item.Count - item.PriorCount),
 			URL:     formatErrorURL(input.ProjectId, item.SecureId),
@@ -361,6 +361,35 @@ func formatSessionURL(projectId int, secureId string) string {
 
 func formatErrorURL(projectId int, secureId string) string {
 	return fmt.Sprintf("https://app.highlight.io/%d/errors/%s", projectId, secureId)
+}
+
+// Error message may be a JSON string or array. Try to unwrap it.
+func unwrapErrorMessage(message string) string {
+	if message == "" {
+		return message
+	}
+
+	if message[0] == '[' {
+		var wrapper struct {
+			Data []string
+		}
+		var val []byte = []byte(fmt.Sprintf(`{"data":%s}`, message))
+		err := json.Unmarshal(val, &wrapper)
+		if err != nil || len(wrapper.Data) == 0 {
+			return message
+		}
+		return unwrapErrorMessage(wrapper.Data[0])
+	} else {
+		var wrapper struct {
+			Data string
+		}
+		var val []byte = []byte(fmt.Sprintf(`{"data":%s}`, message))
+		err := json.Unmarshal(val, &wrapper)
+		if err != nil || wrapper.Data == "" {
+			return message
+		}
+		return unwrapErrorMessage(wrapper.Data)
+	}
 }
 
 func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataResponse) error {
