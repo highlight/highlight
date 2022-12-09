@@ -198,7 +198,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var activeSessionsSql []utils.ActiveSessionSql
 	if err := h.db.Raw(`
-		SELECT s.identifier, s.city, s.state, s.country, s.active_length, s.secure_id
+		SELECT s.identifier, s.user_properties, s.fingerprint, s.city, s.state, s.country, s.active_length, s.secure_id
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -213,8 +213,8 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	activeSessions := []utils.ActiveSession{}
 	for _, item := range activeSessionsSql {
 		activeSessions = append(activeSessions, utils.ActiveSession{
-			Identifier:   item.Identifier,
-			Location:     item.Country,
+			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
+			Location:     getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
 		})
@@ -222,7 +222,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var errorSessionsSql []utils.ErrorSessionSql
 	if err := h.db.Raw(`
-		SELECT s.identifier, count(*) as error_count, s.active_length, s.secure_id
+		SELECT s.identifier, s.user_properties, s.fingerprint, count(*) as error_count, s.active_length, s.secure_id
 		FROM sessions s
 		INNER JOIN error_objects eo
 		ON s.id = eo.session_id
@@ -240,7 +240,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	errorSessions := []utils.ErrorSession{}
 	for _, item := range errorSessionsSql {
 		errorSessions = append(errorSessions, utils.ErrorSession{
-			Identifier:   item.Identifier,
+			Identifier:   getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint),
 			ErrorCount:   formatNumber(item.ErrorCount),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
@@ -269,7 +269,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	newErrors := []utils.NewError{}
 	for _, item := range newErrorsSql {
 		newErrors = append(newErrors, utils.NewError{
-			Message:           item.Message,
+			Message:           unwrapErrorMessage(item.Message),
 			AffectedUserCount: formatNumber(item.AffectedUserCount),
 			URL:               formatErrorURL(input.ProjectId, item.SecureId),
 		})
@@ -295,7 +295,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 	frequentErrors := []utils.FrequentError{}
 	for _, item := range frequentErrorsSql {
 		frequentErrors = append(frequentErrors, utils.FrequentError{
-			Message: item.Message,
+			Message: unwrapErrorMessage(item.Message),
 			Count:   formatNumber(item.Count),
 			Delta:   formatDelta(item.Count - item.PriorCount),
 			URL:     formatErrorURL(input.ProjectId, item.SecureId),
@@ -362,6 +362,64 @@ func formatSessionURL(projectId int, secureId string) string {
 
 func formatErrorURL(projectId int, secureId string) string {
 	return fmt.Sprintf("https://app.highlight.io/%d/errors/%s", projectId, secureId)
+}
+
+func getLocation(country string) string {
+	if country == "" {
+		return "-"
+	}
+	return country
+}
+
+func getIdentifier(userProperties string, identifier string, fingerprint string) string {
+	var properties struct {
+		HighlightDisplayName string
+		Email                string
+	}
+	// Unmarshal may throw an error if userProperties is not formatted correctly, but that's ok.
+	_ = json.Unmarshal([]byte(userProperties), &properties)
+	if properties.HighlightDisplayName != "" {
+		return properties.HighlightDisplayName
+	}
+	if properties.Email != "" {
+		return properties.Email
+	}
+	if identifier != "" {
+		return identifier
+	}
+	if fingerprint != "" {
+		return "#" + fingerprint
+	}
+	return "unidentified"
+}
+
+// Error message may be a JSON string or array. Try to unwrap it.
+func unwrapErrorMessage(message string) string {
+	if message == "" {
+		return message
+	}
+
+	if message[0] == '[' {
+		var wrapper struct {
+			Data []string
+		}
+		var val []byte = []byte(fmt.Sprintf(`{"data":%s}`, message))
+		err := json.Unmarshal(val, &wrapper)
+		if err != nil || len(wrapper.Data) == 0 {
+			return message
+		}
+		return unwrapErrorMessage(wrapper.Data[0])
+	} else {
+		var wrapper struct {
+			Data string
+		}
+		var val []byte = []byte(fmt.Sprintf(`{"data":%s}`, message))
+		err := json.Unmarshal(val, &wrapper)
+		if err != nil || wrapper.Data == "" {
+			return message
+		}
+		return unwrapErrorMessage(wrapper.Data)
+	}
 }
 
 func formatSubscriptionUrl(adminId int, token string) string {
