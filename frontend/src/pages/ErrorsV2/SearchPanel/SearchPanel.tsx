@@ -115,7 +115,7 @@ const SearchPanel = () => {
 					paddingBottom="12"
 					px="8"
 				>
-					<ErrorFeedHistogram useCachedErrors={useCachedErrors} />
+					<ErrorFeedHistogram />
 				</Box>
 			)}
 			<Box

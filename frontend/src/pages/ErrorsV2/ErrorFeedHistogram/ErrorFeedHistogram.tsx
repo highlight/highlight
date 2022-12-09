@@ -7,12 +7,9 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 
-interface Props {
-	useCachedErrors?: boolean
-}
-const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
+const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const {
 		backendSearchQuery,
@@ -40,7 +37,7 @@ const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 			},
 		},
 		skip: !backendSearchQuery?.childSearchQuery,
-		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
+		fetchPolicy: 'cache-first',
 	})
 
 	const histogram: {
@@ -88,6 +85,6 @@ const ErrorFeedHistogram = ({ useCachedErrors }: Props) => {
 			barGap={2.4}
 		/>
 	)
-}
+})
 
 export default ErrorFeedHistogram
