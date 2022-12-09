@@ -473,6 +473,33 @@ export const Buttons = () => {
 						}
 					/>
 				</Box>
+
+				<Box mb="24">
+					<Box display="flex">
+						{[
+							'asdf',
+							'highlight-mask',
+							'highlight-block',
+							'highlight-ignored',
+						].map((c) => (
+							<Box key={c} display="flex" flexDirection="column">
+								<span>class `{c}`</span>
+								<div key={c} className={c}>
+									<video controls={true} width="250">
+										<source
+											src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm"
+											type="video/webm"
+										/>
+										<source
+											src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+											type="video/mp4"
+										/>
+									</video>
+								</div>
+							</Box>
+						))}
+					</Box>
+				</Box>
 			</div>
 		</div>
 	)
