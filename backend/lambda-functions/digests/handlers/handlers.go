@@ -428,11 +428,11 @@ func formatSubscriptionUrl(adminId int, token string) string {
 
 func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataResponse) error {
 	var toAddrs []struct {
-		adminID int
-		email   string
+		AdminID int
+		Email   string
 	}
 	if err := h.db.Raw(`
-		SELECT a.email
+		SELECT a.id as admin_id, a.email
 		FROM projects p
 		INNER JOIN workspace_admins wa
 		ON wa.workspace_id = p.workspace_id
@@ -460,13 +460,13 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 
 	if input.DryRun {
 		toAddrs = []struct {
-			adminID int
-			email   string
-		}{{adminID: 5141, email: "zane@highlight.io"}}
+			AdminID int
+			Email   string
+		}{{AdminID: 5141, Email: "zane@highlight.io"}}
 	}
 
 	for _, toAddr := range toAddrs {
-		to := &mail.Email{Address: toAddr.email}
+		to := &mail.Email{Address: toAddr.Email}
 
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
@@ -479,8 +479,8 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		for k, v := range templateData {
 			curData[k] = v
 		}
-		curData["toEmail"] = toAddr.email
-		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.adminID, graph.GetOptOutToken(toAddr.adminID, false))
+		curData["toEmail"] = toAddr.Email
+		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.AdminID, graph.GetOptOutToken(toAddr.AdminID, false))
 
 		p.DynamicTemplateData = curData
 

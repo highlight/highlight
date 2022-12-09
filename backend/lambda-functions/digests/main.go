@@ -20,7 +20,7 @@ func main() {
 	h := handlers.NewHandlers()
 	input := utils.DigestsInput{
 		AsOf:   time.Now().AddDate(0, 0, -7),
-		DryRun: true,
+		DryRun: false,
 	}
 
 	ctx := context.TODO()
