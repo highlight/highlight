@@ -432,7 +432,7 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		Email   string
 	}
 	if err := h.db.Raw(`
-		SELECT a.id as adminID, a.email
+		SELECT a.id as admin_id, a.email
 		FROM projects p
 		INNER JOIN workspace_admins wa
 		ON wa.workspace_id = p.workspace_id
