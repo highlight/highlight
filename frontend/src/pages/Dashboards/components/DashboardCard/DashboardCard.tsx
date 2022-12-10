@@ -23,6 +23,7 @@ import {
 	Maybe,
 	MetricAggregator,
 } from '@graph/schemas'
+import { Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon'
 import SvgDragIcon from '@icons/DragIcon'
@@ -135,7 +136,7 @@ const DashboardCard = ({
 										) : (
 											<StandardDropdown
 												display={
-													<div>
+													<Text lines="1">
 														<SvgAnnouncementIcon
 															style={{
 																marginBottom:
@@ -154,7 +155,7 @@ const DashboardCard = ({
 															.length === 1
 															? ' Monitor'
 															: ' Monitors'}
-													</div>
+													</Text>
 												}
 												renderOption={(o) =>
 													o.label ===
