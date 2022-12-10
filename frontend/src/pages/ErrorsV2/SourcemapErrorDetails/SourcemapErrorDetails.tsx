@@ -15,7 +15,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
-import { message } from 'antd'
+import { copyToClipboard } from '@util/string'
 import React, { useEffect } from 'react'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
@@ -62,12 +62,14 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 	) {
 		return (
 			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
-				<Text>
-					{originalFileError}. We couldn't find the minified file in
-					Highlight storage at path{' '}
-					<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
-					<Code>{error.stackTraceFileURL}</Code>
-				</Text>
+				<Box display="inline-flex">
+					<Text>
+						{originalFileError}. We couldn't find the minified file
+						in Highlight storage at path{' '}
+						<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
+						<Code>{error.stackTraceFileURL}</Code>
+					</Text>
+				</Box>
 			</StackSectionError>
 		)
 	} else if (
@@ -88,7 +90,7 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
 				<Text>
 					{originalFileError}. We couldn't parse the stack trace file
-					name <Code>{error.stackTraceFileURL}</Code>
+					name at URL <Code>{error.stackTraceFileURL}</Code>
 				</Text>
 			</StackSectionError>
 		)
@@ -310,13 +312,13 @@ const Code: React.FC<{
 }> = ({ children, lines = '1' }) => {
 	const title = String(children)
 
-	const onCopyHandler = () => {
-		navigator.clipboard.writeText(title)
-		message.success('Text copied to clipboard.')
-	}
-
 	return (
-		<Box my="4" display="flex" gap="4" alignItems="center">
+		<Box
+			my="4"
+			display={children ? 'flex' : 'inline-flex'}
+			gap="4"
+			alignItems="center"
+		>
 			<Box
 				backgroundColor="neutral50"
 				padding="3"
@@ -324,19 +326,22 @@ const Code: React.FC<{
 				border="neutral"
 				display="inline-block"
 			>
-				<Text lines={lines} family="monospace" title={title}>
-					{children}
-				</Text>
+				{children && (
+					<Text lines={lines} family="monospace" title={title}>
+						{children}
+					</Text>
+				)}
 			</Box>
-
-			<Box flexShrink={0}>
-				<ButtonIcon
-					onClick={onCopyHandler}
-					emphasis="low"
-					icon={<SvgCopyIcon />}
-					size="minimal"
-				/>
-			</Box>
+			{children && (
+				<Box flexShrink={0}>
+					<ButtonIcon
+						onClick={() => copyToClipboard(title)}
+						emphasis="low"
+						icon={<SvgCopyIcon />}
+						size="minimal"
+					/>
+				</Box>
+			)}
 		</Box>
 	)
 }
