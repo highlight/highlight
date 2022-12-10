@@ -21,6 +21,7 @@ from typing import Optional, Union
 
 import boto3
 import brotli
+from tqdm import tqdm
 
 import logging
 
@@ -66,7 +67,12 @@ def fetch(
 
     session = run_sql(
         f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'", prod=True
-    )[0]
+    )
+    if len(session) == 0:
+        logger.error(f"Session {secure_id} not found in prod DB")
+        return
+
+    session = session[0]
 
     intervals = run_sql(
         f"SELECT * FROM session_intervals WHERE session_secure_id = '{secure_id}'",
@@ -116,23 +122,25 @@ def fetch(
     ti_keys = ", ".join(
         k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS
     )
-    for start in range(0, len(indicators), BATCH_INSERT_SIZE):
-        batch = indicators[start : start + BATCH_INSERT_SIZE]
-        logger.info(f"Bulk copying {len(batch)} timeline_indicator_events...")
-        indicators_bulk = ", ".join(
-            map(
-                lambda x: f'({", ".join(serialize_sql(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})',
-                batch,
+    with tqdm(total=len(indicators)) as pbar:
+        for start in range(0, len(indicators), BATCH_INSERT_SIZE, unit="evts"):
+            batch = indicators[start : start + BATCH_INSERT_SIZE]
+            indicators_bulk = ", ".join(
+                map(
+                    lambda x: f'({", ".join(serialize_sql(x[k]) for k in x if k not in DROP_TIMELINE_INDICATORS_KEYS)})',
+                    batch,
+                )
             )
-        )
-        run_sql(
-            f"""
-                INSERT INTO timeline_indicator_events ({ti_keys})
-                VALUES {indicators_bulk}
-                ON CONFLICT DO NOTHING 
-            """,
-            insert=True,
-        )
+            run_sql(
+                f"""
+                    INSERT INTO timeline_indicator_events ({ti_keys})
+                    VALUES {indicators_bulk}
+                    ON CONFLICT DO NOTHING
+                """,
+                insert=True,
+            )
+            pbar.update(len(batch))
+
     inserted_session = run_sql(
         f"SELECT * FROM sessions WHERE secure_id = '{secure_id}'"
     )[0]
@@ -143,7 +151,7 @@ def fetch(
             f"""
                 INSERT INTO event_chunks ({", ".join(chunk)})
                 VALUES ({", ".join(map(serialize_sql, chunk.values()))})
-                ON CONFLICT DO NOTHING 
+                ON CONFLICT DO NOTHING
             """,
             insert=True,
         )
@@ -189,7 +197,7 @@ def fetch(
     )
 
     # Insert error groups
-    for error_group in error_groups:
+    for error_group in tqdm(error_groups, desc="Copying error groups"):
         new_error_group = error_group.copy()
         new_error_group["project_id"] = 1
         new_error_group["mapped_stack_trace"] = None
@@ -207,7 +215,7 @@ def fetch(
         )
 
     # Insert error objects
-    for error_object in error_objects:
+    for error_object in tqdm(error_objects, desc="Copying error objects"):
         new_error_object = error_object.copy()
         new_error_object["project_id"] = 1
         error_object_keys = ", ".join(
@@ -225,7 +233,15 @@ def fetch(
 
     logger.info("Copying JS and sourcemap files from prod S3 to dev/1...")
     sourcemaps_prefix = f'{session["project_id"]}'
-    for file in sourcemaps_bucket.objects.filter(Prefix=sourcemaps_prefix).all():
+    files = [
+        f for f in sourcemaps_bucket.objects.filter(Prefix=sourcemaps_prefix).all()
+    ]
+    for file in tqdm(
+        files,
+        desc="Copying JS & sourcemaps",
+        unit="obj",
+        total=len(files),
+    ):
         new_obj = sourcemaps_bucket.Object(f'dev/1/{file.key.split("/", 1)[-1]}')
         new_obj.copy({"Bucket": sourcemaps_bucket_name, "Key": file.key})
 
