@@ -20,6 +20,7 @@ import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
+	getEvents,
 	getTimeFromReplayer,
 	LOOKAHEAD_MS,
 	MAX_CHUNK_COUNT,
@@ -576,6 +577,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [project_id, session_secure_id, resetPlayer])
 
 	useEffect(() => {
+		if (!state.replayer) return
 		if (
 			state.isLiveMode &&
 			sessionPayload?.events &&
@@ -605,6 +607,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
+								firstNewTimestamp:
+									toHighlightEvents(newEvents)[0].timestamp,
 								lastActiveTimestamp: new Date(
 									// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 									subscriptionData.data!.session_payload_appended.last_user_interaction_time,
@@ -618,6 +622,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 			play(state.time).then()
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
+			log('PlayerHook.tsx', 'live mode unsubscribing')
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
 			pause(0).then()
@@ -627,6 +632,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [
 		state.isLiveMode,
 		sessionPayload?.events,
+		state.replayer,
 		state.replayerState,
 		subscribeToSessionPayload,
 		session_secure_id,
@@ -920,9 +926,11 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
+			const events = getEvents(chunkEventsRef.current)
 			dispatch({
 				type: PlayerActionType.addLiveEvents,
 				lastActiveTimestamp: state.lastActiveTimestamp,
+				firstNewTimestamp: events[events.length - 1].timestamp,
 			})
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},

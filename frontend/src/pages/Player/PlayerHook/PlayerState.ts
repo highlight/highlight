@@ -201,6 +201,7 @@ interface setTime {
 
 interface addLiveEvents {
 	type: PlayerActionType.addLiveEvents
+	firstNewTimestamp: number
 	lastActiveTimestamp: number
 }
 
@@ -367,12 +368,7 @@ export const PlayerReducer = (
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.replayer?.replaceEvents(events)
-			replayerAction(
-				PlayerActionType.addLiveEvents,
-				s,
-				ReplayerState.Playing,
-				events[events.length - 1].timestamp - events[0].timestamp,
-			)
+			s.replayer?.play(action.firstNewTimestamp)
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
@@ -516,6 +512,9 @@ export const PlayerReducer = (
 				action.action,
 				s.time,
 			)
+			if (s.isLiveMode) {
+				s.replayer!.play(events[events.length - 1].timestamp)
+			}
 			s.isLoadingEvents = false
 			break
 		case PlayerActionType.onFrame:
@@ -587,6 +586,9 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			if (s.isLiveMode) {
+				s.replayer!.play(events[events.length - 1].timestamp)
+			}
 			break
 		case PlayerActionType.setViewingUnauthorizedSession:
 			s.viewingUnauthorizedSession = handleSetStateAction(
@@ -608,24 +610,11 @@ export const PlayerReducer = (
 			break
 	}
 	if (
-		new Set<PlayerActionType>([
+		!new Set<PlayerActionType>([
 			PlayerActionType.onFrame,
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
 	) {
-		log(
-			'PlayerState.ts',
-			'PlayerStateUpdate',
-			PlayerActionType[action.type],
-			s.time,
-			{
-				numEvents: events.length,
-				initialState: state,
-				finalState: s,
-				action,
-			},
-		)
-	} else {
 		log(
 			'PlayerState.ts',
 			'PlayerStateTransition',
@@ -677,7 +666,7 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: s.project_id === '1',
+		useVirtualDom: false,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
 	})
 
@@ -689,10 +678,6 @@ const initReplayer = (
 	}
 	s.performancePayloads = getAllPerformanceEvents(events)
 	s.jankPayloads = getAllJankEvents(events)
-	if (s.isLiveMode) {
-		s.replayer.startLive(events[0].timestamp)
-		s.replayer.play()
-	}
 
 	// Initializes the simulated viewport size and currentUrl with values from the first meta event
 	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
@@ -716,6 +701,7 @@ const replayerAction = (
 	time?: number,
 	skipSetTime?: boolean,
 ) => {
+	if (s.isLiveMode) return s
 	log(
 		'PlayerState.ts',
 		'playerState/replayerAction',
