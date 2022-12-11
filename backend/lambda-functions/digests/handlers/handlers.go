@@ -345,6 +345,9 @@ func formatDurationMinute(input time.Duration) string {
 	if len(res) >= 2 {
 		res = res[:len(res)-2]
 	}
+	if res == "" {
+		return "<1m"
+	}
 	return res
 }
 
