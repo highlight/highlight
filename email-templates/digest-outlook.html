@@ -21,7 +21,6 @@
 			.content-container {
 				text-align: center;
 				margin: 0 auto;
-				padding: 0 16px;
 			}
 
 			.info-card {
@@ -119,7 +118,6 @@
 
 			.stat-delta {
 				color: #ffffff;
-				background-color: #777777;
 				padding: 2px 12px;
 				align-items: center;
 				font-size: 14px;
@@ -145,14 +143,6 @@
 				margin-bottom: 24px;
 			}
 
-			.stats-grid {
-				width: 100%;
-			}
-
-			.stat-pair > *:first-child {
-				margin-right: 8px;
-			}
-
 			.header-container {
 				white-space: normal;
 			}
@@ -172,38 +162,6 @@
 
 			a:hover .stat-delta {
 				color: #72e4fc !important;
-			}
-
-			.w-20 {
-				width: 20%;
-			}
-
-			.w-25 {
-				width: 25%;
-			}
-
-			.w-30 {
-				width: 30%;
-			}
-
-			.w-35 {
-				width: 35%;
-			}
-
-			.w-50 {
-				width: 50%;
-			}
-
-			.w-60 {
-				width: 60%;
-			}
-
-			.w-65 {
-				width: 65%;
-			}
-
-			.w-75 {
-				width: 75%;
 			}
 
 			.row {
@@ -325,7 +283,7 @@
 								cellspacing="0"
 								cellpadding="0"
 								border="0"
-								width="100%"
+								width="368"
 								class="stats-grid"
 							>
 								<tr>
@@ -344,7 +302,7 @@
 												>{{userCount}}</span
 											>
 											<span class="stat-delta"
-												>{{userDelta}}</span
+												>({{userDelta}})</span
 											>
 										</div>
 									</td>
@@ -363,7 +321,7 @@
 												>{{sessionCount}}</span
 											>
 											<span class="stat-delta"
-												>{{sessionDelta}}</span
+												>({{sessionDelta}})</span
 											>
 										</div>
 									</td>
@@ -384,7 +342,7 @@
 												>{{errorCount}}</span
 											>
 											<span class="stat-delta"
-												>{{errorDelta}}</span
+												>({{errorDelta}})</span
 											>
 										</div>
 									</td>
@@ -403,7 +361,7 @@
 												>{{activityTotal}}</span
 											>
 											<span class="stat-delta"
-												>{{activityDelta}}</span
+												>({{activityDelta}})</span
 											>
 										</div>
 									</td>
@@ -418,33 +376,40 @@
 								<h2>Most active sessions</h2>
 								<h3>from last week</h3>
 							</div>
-
+							{{#greaterThan (length activeSessions) 0}}
 							<table
 								role="presentation"
 								cellspacing="0"
 								cellpadding="0"
 								border="0"
-								width="100%"
+								width="368"
 							>
 								<tr class="row">
-									<th class="cell w-50">User</th>
-									<th class="cell w-30">Location</th>
-									<th class="cell w-20 right">Length</th>
+									<th width="184" class="cell">User</th>
+									<th width="110" class="cell">Location</th>
+									<th width="74" class="cell right">
+										Length
+									</th>
 								</tr>
 								{{#each activeSessions}}
 								<tr class="top-border row data">
-									<td class="cell cell-primary w-50">
+									<td width="184" class="cell cell-primary">
 										<a href="{{this.url}}"
 											>{{this.identifier}}</a
 										>
 									</td>
-									<td class="cell w-30">{{this.location}}</td>
-									<td class="cell w-20 right">
+									<td width="110" class="cell">
+										{{this.location}}
+									</td>
+									<td width="74" class="cell right">
 										{{this.activeLength}}
 									</td>
 								</tr>
 								{{/each}}
 							</table>
+							{{else}}
+							<h3>You had no sessions last week!</h3>
+							{{/greaterThan}}
 						</div>
 
 						<div class="info-card">
@@ -452,35 +417,40 @@
 								<h2>Most erroneous sessions</h2>
 								<h3>from last week</h3>
 							</div>
-
+							{{#greaterThan (length errorSessions) 0}}
 							<table
 								role="presentation"
 								cellspacing="0"
 								cellpadding="0"
 								border="0"
-								width="100%"
+								width="368"
 							>
 								<tr class="row">
-									<th class="cell w-50">User</th>
-									<th class="cell w-30"># Errors</th>
-									<th class="cell w-20 right">Length</th>
+									<th width="184" class="cell">User</th>
+									<th width="110" class="cell"># Errors</th>
+									<th width="74" class="cell right">
+										Length
+									</th>
 								</tr>
 								{{#each errorSessions}}
 								<tr class="top-border row data">
-									<td class="cell cell-primary w-50">
+									<td width="184" class="cell cell-primary">
 										<a href="{{this.url}}"
 											>{{this.identifier}}</a
 										>
 									</td>
-									<td class="cell w-30">
+									<td width="110" class="cell">
 										{{this.errorCount}}
 									</td>
-									<td class="cell w-20 right">
+									<td width="74" class="cell right">
 										{{this.activeLength}}
 									</td>
 								</tr>
 								{{/each}}
 							</table>
+							{{else}}
+							<h3>Your sessions had no errors last week!</h3>
+							{{/greaterThan}}
 						</div>
 
 						<div class="section-start">Insightful errors</div>
@@ -490,33 +460,36 @@
 								<h2>New errors</h2>
 								<h3>from last week</h3>
 							</div>
-
+							{{#greaterThan (length newErrors) 0}}
 							<table
 								role="presentation"
 								cellspacing="0"
 								cellpadding="0"
 								border="0"
-								width="100%"
+								width="368"
 							>
 								<tr class="row">
-									<th class="cell w-65">Error</th>
-									<th class="cell w-35 right">
+									<th width="276" class="cell">Error</th>
+									<th width="92" class="cell right">
 										Affected Users
 									</th>
 								</tr>
 								{{#each newErrors}}
 								<tr class="top-border row data">
-									<td class="cell cell-primary w-75">
+									<td width="276" class="cell cell-primary">
 										<a href="{{this.url}}"
 											>{{this.message}}</a
 										>
 									</td>
-									<td class="cell w-25 right">
+									<td width="92" class="cell right">
 										{{this.affectedUserCount}}
 									</td>
 								</tr>
 								{{/each}}
 							</table>
+							{{else}}
+							<h3>You had no new errors last week!</h3>
+							{{/greaterThan}}
 						</div>
 
 						<div class="info-card">
@@ -524,36 +497,39 @@
 								<h2>Most frequent errors</h2>
 								<h3>from last week</h3>
 							</div>
-
+							{{#greaterThan (length frequentErrors) 0}}
 							<table
 								role="presentation"
 								cellspacing="0"
 								cellpadding="0"
 								border="0"
-								width="100%"
+								width="368"
 							>
 								<tr class="row">
-									<th class="cell w-50">Error</th>
-									<th class="cell w-50 right">
+									<th width="240" class="cell">Error</th>
+									<th width="128" class="cell right">
 										Amount (since last week)
 									</th>
 								</tr>
 								{{#each frequentErrors}}
 								<tr class="top-border row data">
-									<td class="cell cell-primary w-65">
+									<td width="240" class="cell cell-primary">
 										<a href="{{this.url}}"
 											>{{this.message}}</a
 										>
 									</td>
-									<td class="cell w-35 right">
+									<td width="128" class="cell right">
 										<span>{{this.count}}</span>
 										<span class="stat-delta">
-											{{this.delta}}
+											({{this.delta}})
 										</span>
 									</td>
 								</tr>
 								{{/each}}
 							</table>
+							{{else}}
+							<h3>You had no errors last week!</h3>
+							{{/greaterThan}}
 						</div>
 					</td>
 				</tr>

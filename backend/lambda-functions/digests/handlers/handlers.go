@@ -59,15 +59,12 @@ func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) 
 
 	var projectIds []int
 	if err := h.db.Raw(`
-		SELECT p.id
-		FROM projects p
-		WHERE EXISTS (
-			SELECT 1
-			FROM sessions s
-			WHERE p.id = s.project_id
-			AND s.created_at >= ?
-			AND s.created_at < ?
-		)
+		SELECT s.project_id
+		FROM sessions s
+		WHERE s.created_at >= ?
+		AND s.created_at < ?
+		GROUP BY s.project_id
+		HAVING count(*) >= 50
 	`, start, end).Scan(&projectIds).Error; err != nil {
 		return nil, errors.Wrap(err, "error getting project ids")
 	}
@@ -98,7 +95,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var curUsers int
 	if err := h.db.Raw(`
-		SELECT count(distinct coalesce(s.identifier, s.client_id)) 
+		SELECT count(distinct coalesce(nullif(s.identifier, ''), s.client_id)) 
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -110,7 +107,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	var prevUsers int
 	if err := h.db.Raw(`
-		SELECT count(distinct coalesce(s.identifier, s.client_id)) 
+		SELECT count(distinct coalesce(nullif(s.identifier, ''), s.client_id)) 
 		FROM sessions s
 		WHERE s.project_id = ?
 		AND s.created_at >= ?
@@ -329,6 +326,9 @@ func formatNumber(input int) string {
 }
 
 func formatDelta(input int) string {
+	if input == 0 {
+		return "-"
+	}
 	prefix := ""
 	if input > 0 {
 		prefix = "+"
