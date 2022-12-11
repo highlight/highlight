@@ -393,7 +393,7 @@
 						<h2>Most active sessions</h2>
 						<h3>from last week</h3>
 					</div>
-
+					{{#greaterThan (length activeSessions) 0}}
 					<div>
 						<div class="row">
 							<div class="cell w-50">User</div>
@@ -414,6 +414,9 @@
 						</a>
 						{{/each}}
 					</div>
+					{{else}}
+					<h3>You had no sessions last week!</h3>
+					{{/greaterThan}}
 				</div>
 
 				<div class="info-card">
@@ -421,7 +424,7 @@
 						<h2>Most erroneous sessions</h2>
 						<h3>from last week</h3>
 					</div>
-
+					{{#greaterThan (length errorSessions) 0}}
 					<div>
 						<div class="row">
 							<div class="cell w-50">User</div>
@@ -442,6 +445,9 @@
 						</a>
 						{{/each}}
 					</div>
+					{{else}}
+					<h3>Your sessions had no errors last week!</h3>
+					{{/greaterThan}}
 				</div>
 
 				<div class="section-start">Insightful errors</div>
@@ -451,7 +457,7 @@
 						<h2>New errors</h2>
 						<h3>from last week</h3>
 					</div>
-
+					{{#greaterThan (length newErrors) 0}}
 					<div>
 						<div class="row">
 							<div class="cell w-65">Error</div>
@@ -470,6 +476,9 @@
 						</a>
 						{{/each}}
 					</div>
+					{{else}}
+					<h3>You had no new errors last week!</h3>
+					{{/greaterThan}}
 				</div>
 
 				<div class="info-card">
@@ -477,7 +486,7 @@
 						<h2>Most frequent errors</h2>
 						<h3>from last week</h3>
 					</div>
-
+					{{#greaterThan (length frequentErrors) 0}}
 					<div>
 						<div class="row">
 							<div class="cell w-50">Error</div>
@@ -501,6 +510,9 @@
 						</a>
 						{{/each}}
 					</div>
+					{{else}}
+					<h3>You had no errors last week!</h3>
+					{{/greaterThan}}
 				</div>
 			</div>
 			<div class="footer">
