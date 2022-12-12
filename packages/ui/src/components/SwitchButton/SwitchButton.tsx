@@ -38,7 +38,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 					{iconLeft}
 				</Box>
 			)}
-			{children && <Text size={'xSmall'}>{children}</Text>}
+			{children && <Text size="xSmall">{children}</Text>}
 			{iconRight && (
 				<Box as="span" display="inline-flex">
 					{iconRight}

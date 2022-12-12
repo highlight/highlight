@@ -315,7 +315,7 @@ export const SessionFeedV3 = React.memo(() => {
 					<Box
 						borderBottom="neutral"
 						paddingTop="10"
-						paddingBottom="12"
+						paddingBottom="8"
 						px="8"
 					>
 						<SessionsHistogram
