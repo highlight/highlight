@@ -15,9 +15,7 @@ const SlackIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot({
-		type: 'Organization',
-	})
+	const { slackUrl, removeSlackIntegrationFromProject } = useSlackBot()
 
 	if (action === IntegrationAction.Disconnect) {
 		return (

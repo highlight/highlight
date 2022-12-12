@@ -118,7 +118,6 @@ const Notifications = () => {
 													style={{
 														maxWidth: 'fit-content',
 													}}
-													type="Organization"
 												/>
 											</div>
 										</>
@@ -175,7 +174,6 @@ const Notifications = () => {
 													style={{
 														maxWidth: 'fit-content',
 													}}
-													type="Organization"
 												/>
 											</div>
 										</>

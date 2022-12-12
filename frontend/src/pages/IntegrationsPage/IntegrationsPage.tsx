@@ -20,9 +20,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './IntegrationsPage.module.scss'
 
 const IntegrationsPage = () => {
-	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot({
-		type: 'Organization',
-	})
+	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
 	const { integration_type: configureIntegration } = useParams<{
 		integration_type: string

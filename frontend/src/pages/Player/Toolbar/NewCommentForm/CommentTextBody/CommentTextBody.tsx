@@ -43,7 +43,7 @@ const CommentTextBody = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const slackUrl = getSlackUrl('Organization', project_id)
+	const slackUrl = getSlackUrl(project_id)
 	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
 
 	useEffect(() => {

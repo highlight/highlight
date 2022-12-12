@@ -90,9 +90,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
 		loading: isBackendIntegratedLoading,
 	} = useBackendIntegrated()
 	const { isSlackConnectedToWorkspace, loading: isSlackConnectedLoading } =
-		useSlackBot({
-			type: 'Organization',
-		})
+		useSlackBot()
 	const { isLinearIntegratedWithProject, loading: isLinearConnectedLoading } =
 		useLinearIntegration()
 

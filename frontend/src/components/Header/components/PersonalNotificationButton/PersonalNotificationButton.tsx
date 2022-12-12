@@ -8,7 +8,7 @@ import { useAuthContext } from './../../../../authentication/AuthContext'
 import styles from './PersonalNotificationButton.module.scss'
 import { useSlackBot } from './utils/utils'
 
-type Props = { text?: string } & Pick<
+type Props = { text: string } & Pick<
 	GenericHighlightButtonProps,
 	'className' | 'style'
 >
@@ -28,7 +28,7 @@ const PersonalNotificationButton = ({ className, style, text }: Props) => {
 			href={slackBotUrl}
 			style={style}
 		>
-			{text || 'Tag Slack Channels in Comments'}
+			{text}
 		</Button>
 	)
 }
