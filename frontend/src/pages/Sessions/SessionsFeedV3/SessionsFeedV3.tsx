@@ -138,6 +138,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 				bucketSize={backendSearchQuery?.histogramBucketSize}
 				loading={loading}
 				updateTimeRange={updateTimeRange}
+				barGap={2.4}
 			/>
 		)
 	},
@@ -312,19 +313,14 @@ export const SessionFeedV3 = React.memo(() => {
 			>
 				<SessionQueryBuilder />
 				{showHistogram && (
-					<Box
-						borderBottom="neutral"
-						paddingTop="10"
-						paddingBottom="8"
-						px="8"
-					>
+					<Box borderBottom="neutral" paddingBottom="8" px="8">
 						<SessionsHistogram
 							projectHasManySessions={projectHasManySessions}
 						/>
 					</Box>
 				)}
 				<Box
-					padding="6"
+					padding="8"
 					overflowX="hidden"
 					overflowY="auto"
 					cssClass={style.content}
