@@ -69,9 +69,6 @@ interface Props {
 	integrated: boolean
 }
 
-const CENTER_COLUMN_MARGIN = 16
-const MIN_CENTER_COLUMN_WIDTH = 428
-
 const PlayerPage = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
@@ -215,8 +212,8 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = Math.max(
-		MIN_CENTER_COLUMN_WIDTH,
-		(centerColumnSize.width || 0) - 2 * CENTER_COLUMN_MARGIN,
+		style.MIN_CENTER_COLUMN_WIDTH,
+		(centerColumnSize.width || 0) - 2 * style.CENTER_COLUMN_OVERLAP,
 	)
 
 	const playerFiller = useMemo(() => {

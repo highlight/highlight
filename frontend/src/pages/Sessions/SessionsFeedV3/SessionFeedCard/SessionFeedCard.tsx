@@ -194,6 +194,9 @@ export const SessionFeedCard = React.memo(
 									<Tag shape="basic" kind="grey">
 										{formatShortTime(
 											(session.active_length || 0) / 1000,
+											['h', 'm', 's'],
+											' ',
+											1,
 										)}
 									</Tag>
 								</Box>

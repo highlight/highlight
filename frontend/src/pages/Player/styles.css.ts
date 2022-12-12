@@ -1,6 +1,15 @@
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
+// we use a margin to have auto resizing of the center container when the left/right panels open/close
+// this should be a fairly large number of reduce the number of re-renders needed when the left/right panels open/close.
+// `controllerWidth` is updated until this margin is achieved, so the larger the value the fewer re-renders needed.
+export const CENTER_COLUMN_OVERLAP = 64
+// the negative margin on playerCenterColumn cancels out with the `controllerWidth` to
+// set this as the effective margin
+export const CENTER_COLUMN_MARGIN = 0
+export const MIN_CENTER_COLUMN_WIDTH = 428
+
 export const playerWrapperV2 = style({
 	borderTop: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
@@ -36,6 +45,8 @@ export const playerCenterColumn = style({
 	flexDirection: 'column',
 	flexGrow: 1,
 	position: 'relative',
+	marginLeft: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
+	marginRight: CENTER_COLUMN_MARGIN - CENTER_COLUMN_OVERLAP,
 })
 
 export const playerLeftPanel = style({

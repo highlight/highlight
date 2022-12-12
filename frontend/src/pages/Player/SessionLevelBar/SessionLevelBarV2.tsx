@@ -25,7 +25,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useHistory } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
-import * as styles from './style.css'
+import * as styles from './SessionLevelBarV2.css'
 
 export const SessionLevelBarV2: React.FC<
 	React.PropsWithChildren & {
