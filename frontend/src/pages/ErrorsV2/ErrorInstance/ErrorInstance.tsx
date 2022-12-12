@@ -20,10 +20,12 @@ import {
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect } from 'react'
+import { copyToClipboard } from '@util/string'
+import React, { useEffect, useState } from 'react'
 import { FiExternalLink } from 'react-icons/fi'
 import { useHistory } from 'react-router-dom'
 
+const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
@@ -201,11 +203,16 @@ const Metadata: React.FC<{
 				<Column.Container gap="16">
 					<Column span="4">
 						{metadata.map((meta) => (
-							<Box py="10" key={meta.key}>
+							<Box
+								py="10"
+								key={meta.key}
+								onClick={() => copyToClipboard(meta.key)}
+							>
 								<Text
 									color="neutral500"
 									transform="capitalize"
 									align="left"
+									lines="1"
 								>
 									{meta.key.replace('_', ' ')}
 								</Text>
@@ -214,8 +221,14 @@ const Metadata: React.FC<{
 					</Column>
 					<Column span="8">
 						{metadata.map((meta) => (
-							<Box py="10" key={meta.key}>
-								<Text align="left" wrap="always">
+							<Box
+								py="10"
+								key={meta.key}
+								onClick={() =>
+									meta.label && copyToClipboard(meta.label)
+								}
+							>
+								<Text align="left" wrap="always" lines="1">
 									{meta.label}
 								</Text>
 							</Box>
@@ -234,6 +247,7 @@ const User: React.FC<{
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const { setSearchParams } = useSearchContext()
+	const [truncated, setTruncated] = useState(true)
 
 	if (!errorObject?.session) {
 		return null
@@ -243,9 +257,17 @@ const User: React.FC<{
 	const userProperties = getUserProperties(session)
 	const [displayName, field] = getDisplayNameAndField(session)
 	const avatarImage = getIdentifiedUserProfileImage(session)
-	const userDisplayPropertyKeys = Object.keys(userProperties).filter(
-		(k) => k !== 'avatar',
-	)
+	const userDisplayPropertyKeys = Object.keys(userProperties)
+		.filter((k) => k !== 'avatar')
+		.slice(
+			0,
+			truncated
+				? MAX_USER_PROPERTIES - 1
+				: Object.keys(userProperties).length,
+		)
+
+	const truncateable =
+		Object.keys(userProperties).length > MAX_USER_PROPERTIES
 	const location = [session?.city, session?.state, session?.country]
 		.filter(Boolean)
 		.join(', ')
@@ -315,15 +337,22 @@ const User: React.FC<{
 				</Box>
 
 				<Box py="8" px="12">
-					<Box>
+					<Box display="flex" flexDirection="column">
 						<Column.Container gap="16">
 							<Column span="4">
 								{userDisplayPropertyKeys.map((key) => (
-									<Box py="10" key={key}>
+									<Box
+										py="10"
+										overflow="hidden"
+										key={key}
+										onClick={() => copyToClipboard(key)}
+									>
 										<Text
 											color="neutral500"
 											align="left"
 											transform="capitalize"
+											lines="1"
+											title={key}
 										>
 											{key}
 										</Text>
@@ -338,8 +367,19 @@ const User: React.FC<{
 							</Column>
 							<Column span="8">
 								{userDisplayPropertyKeys.map((key) => (
-									<Box py="10" key={key}>
-										<Text>{userProperties[key]}</Text>
+									<Box
+										py="10"
+										key={key}
+										display="flex"
+										overflow="hidden"
+										onClick={() =>
+											copyToClipboard(userProperties[key])
+										}
+										title={userProperties[key]}
+									>
+										<Text lines="1" as="span">
+											{userProperties[key]}
+										</Text>
 									</Box>
 								))}
 
@@ -348,6 +388,18 @@ const User: React.FC<{
 								</Box>
 							</Column>
 						</Column.Container>
+						{truncateable && (
+							<Box>
+								<Button
+									onClick={() => setTruncated(!truncated)}
+									kind="secondary"
+									emphasis="medium"
+									size="xSmall"
+								>
+									Show {truncated ? 'more' : 'less'}
+								</Button>
+							</Box>
+						)}
 					</Box>
 				</Box>
 			</Box>

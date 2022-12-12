@@ -267,7 +267,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Text>
 
 				{truncateable && (
-					<Box mt="12">
+					<Box mt="8">
 						<Button
 							onClick={() => setTruncated(!truncated)}
 							kind="secondary"
