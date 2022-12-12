@@ -217,11 +217,7 @@ const MonitorConfiguration = ({
 					<Skeleton height="231px" />
 				) : (
 					<>
-						<div
-							className={
-								'relative float-right h-full w-full pb-5'
-							}
-						>
+						<div className="relative float-right h-full w-full pb-5">
 							<LineChart
 								domain={[
 									graphMin,
@@ -276,7 +272,7 @@ const MonitorConfiguration = ({
 									vertical
 									className={styles.slider}
 									trackStyle={{ background: 'transparent' }}
-									tooltipPlacement={'bottom'}
+									tooltipPlacement="bottom"
 									min={graphMin}
 									max={Math.max(graphMax, threshold)}
 									value={threshold}
@@ -293,7 +289,7 @@ const MonitorConfiguration = ({
 				name="newMonitor"
 				onSubmit={onFormSubmit}
 				autoComplete="off"
-				className={'flex flex-col gap-2'}
+				className="flex flex-col gap-2"
 			>
 				<section>
 					<h3>Metric to Monitor</h3>
@@ -449,7 +445,7 @@ const MonitorConfiguration = ({
 								false
 							)
 						}}
-						placeholder={`Select a channel(s) or person(s) to send the alert to.`}
+						placeholder="Select a channel(s) or person(s) to send the alert to."
 						notFoundContent={
 							<SyncWithSlackButton
 								isSlackIntegrated={isSlackIntegrated}
@@ -522,7 +518,7 @@ const MonitorConfiguration = ({
 								false
 							)
 						}}
-						placeholder={`Select email addresses to send the alert to.`}
+						placeholder="Select email addresses to send the alert to."
 						onChange={onEmailsChange}
 						notFoundContent={
 							<div

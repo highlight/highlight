@@ -26,7 +26,7 @@ export const SearchSelect = ({
 			// this mode allows using the select component as a single searchable input
 			// @ts-ignore
 			mode="SECRET_COMBOBOX_MODE_DO_NOT_USE"
-			placeholder={'graphql.operation.users'}
+			placeholder="graphql.operation.users"
 			autoFocus
 			onSelect={(newValue: SearchOption) => {
 				onSelect(newValue?.value || '')

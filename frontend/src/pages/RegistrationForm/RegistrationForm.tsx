@@ -187,7 +187,7 @@ const RegistrationForm = () => {
 						/>
 					</label>
 					<Button
-						trackingId={`SubmitRegistrationForm`}
+						trackingId="SubmitRegistrationForm"
 						type="primary"
 						className={classNames(styles.button)}
 						block

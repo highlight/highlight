@@ -97,13 +97,13 @@ function HighlightSessions() {
 				}
 			})
 		}
-	}, [frontContext])
+	}, [email, frontContext, setSearchParams])
 
 	useEffect(() => {
 		if (called) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [called])
+	}, [called, setLoadingState])
 
 	const qs = encodeURI(
 		`?query=and` +
@@ -113,10 +113,10 @@ function HighlightSessions() {
 	const url = `${GetBaseURL()}/${project_id}/sessions${qs}`
 
 	return (
-		<div className={'flex w-full flex-row justify-center p-2'}>
-			<div className={'flex w-full flex-col gap-2'}>
+		<div className="flex w-full flex-row justify-center p-2">
+			<div className="flex w-full flex-col gap-2">
 				<SessionsQueryBuilder />
-				<div className={'flex w-full flex-col'}>
+				<div className="flex w-full flex-col">
 					{data?.sessions_opensearch.sessions.map((s) => (
 						<MinimalSessionCard
 							compact
@@ -129,7 +129,7 @@ function HighlightSessions() {
 							urlParams={qs}
 							autoPlaySessions={false}
 							showDetailedSessionView={true}
-							target={'_blank'}
+							target="_blank"
 							configuration={{
 								countFormat: 'Short',
 								datetimeFormat: 'Date and Time',
@@ -137,21 +137,21 @@ function HighlightSessions() {
 						/>
 					))}
 					{data?.sessions_opensearch.sessions.length === 0 && (
-						<Card className={'m-0 px-4 py-0'}>
+						<Card className="m-0 px-4 py-0">
 							<EmptyCardPlaceholder
 								compact
-								message={`No sessions matched the given filters. Please try adjusting the date range.`}
-								title={'No sessions found 😢'}
+								message="No sessions matched the given filters. Please try adjusting the date range."
+								title="No sessions found 😢"
 							/>
 						</Card>
 					)}
 				</div>
 				<Button
-					className={'flex w-full justify-center gap-2 align-middle'}
+					className="flex w-full justify-center gap-2 align-middle"
 					onClick={() => {
 						window.open(url, '_blank')
 					}}
-					trackingId={'ClickHighlightSessions'}
+					trackingId="ClickHighlightSessions"
 					trackProperties={{
 						projectId: project_id.toString(),
 						email,

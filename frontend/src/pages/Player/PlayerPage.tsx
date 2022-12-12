@@ -523,8 +523,8 @@ const PlayerSkeleton = ({
 }) => {
 	return (
 		<SkeletonTheme
-			baseColor={'var(--text-primary-inverted)'}
-			highlightColor={'#f5f5f5'}
+			baseColor="var(--text-primary-inverted)"
+			highlightColor="#f5f5f5"
 		>
 			<Skeleton
 				height={height}

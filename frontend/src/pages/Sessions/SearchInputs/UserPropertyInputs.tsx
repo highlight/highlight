@@ -123,7 +123,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 					IndicatorSeparator: () => null,
 				}}
 				formatCreateLabel={ContainsLabel}
-				createOptionPosition={'first'}
+				createOptionPosition="first"
 			/>
 		</div>
 	)

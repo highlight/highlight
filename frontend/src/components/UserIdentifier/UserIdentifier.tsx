@@ -17,7 +17,7 @@ const UserIdentifier = React.memo(({ displayValue, className }: Props) => {
 		<div className={classNames(styles.identifierContainer, className)}>
 			<span className={styles.identifier}>{displayValue}</span>
 			<Tooltip
-				title={'Copy id to clipboard'}
+				title="Copy id to clipboard"
 				mouseEnterDelay={0}
 				align={{ offset: [0, 3] }}
 			>

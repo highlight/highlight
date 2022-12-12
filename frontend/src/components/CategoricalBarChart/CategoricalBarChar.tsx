@@ -155,7 +155,7 @@ const CategoricalBarChart = ({
 									1) *
 								20
 							}
-							iconType={'square'}
+							iconType="square"
 							iconSize={8}
 							content={(props) => (
 								<CustomLegend
@@ -179,7 +179,7 @@ const CategoricalBarChart = ({
 							{!!showReferenceLineLabels && (
 								<>
 									<Label
-										position={'center'}
+										position="center"
 										alignmentBaseline="auto"
 										offset={10}
 										className={styles.referenceLineValue}

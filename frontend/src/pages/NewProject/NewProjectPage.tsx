@@ -168,7 +168,7 @@ const NewProjectPage = () => {
 							<label className={styles.inputLabel}>
 								Promo code
 								<Input
-									placeholder={`Enter a promo code (optional)`}
+									placeholder="Enter a promo code (optional)"
 									value={promoCode}
 									onChange={(e) => {
 										setPromoCode(e.target.value)

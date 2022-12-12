@@ -742,7 +742,7 @@ const SelectPopout = ({
 			>
 				<span>
 					<Button
-						trackingId={`SessionsQuerySelect`}
+						trackingId="SessionsQuerySelect"
 						className={classNames(styles.ruleItem, {
 							[styles.invalid]: invalid && !visible,
 						})}
@@ -844,7 +844,7 @@ export const TimeRangeFilter = ({
 			value={rule.val}
 			onChange={onChangeValue}
 			loadOptions={() => Promise.resolve([])}
-			type={'date_range'}
+			type="date_range"
 			disabled={false}
 		/>
 	)
@@ -1875,13 +1875,9 @@ function QueryBuilder<T extends SearchContextTypes>(
 								setBackendSearchQuery(serializedQuery.current)
 							}}
 							disabled={syncButtonDisabled}
-							trackingId={'RefreshSearchResults'}
+							trackingId="RefreshSearchResults"
 						>
-							<Tooltip
-								title={
-									'Refetch the latest results of your query.'
-								}
-							>
+							<Tooltip title="Refetch the latest results of your query.">
 								<Reload width="1em" height="1em" />
 							</Tooltip>
 						</Button>
@@ -1947,7 +1943,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 						content={
 							currentRule?.field === undefined ? (
 								<PopoutContent
-									key={'popover-step-1'}
+									key="popover-step-1"
 									value={undefined}
 									setVisible={() => {
 										setCurrentStep(undefined)
@@ -1968,7 +1964,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 								/>
 							) : currentRule?.op === undefined ? (
 								<PopoutContent
-									key={'popover-step-2'}
+									key="popover-step-2"
 									value={undefined}
 									setVisible={() => {
 										setCurrentStep(3)
@@ -2000,7 +1996,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 								/>
 							) : (
 								<PopoutContent
-									key={'popover-step-3'}
+									key="popover-step-3"
 									value={undefined}
 									setVisible={() => {
 										setCurrentStep(undefined)
@@ -2017,7 +2013,7 @@ function QueryBuilder<T extends SearchContextTypes>(
 										currentRule.field,
 									)}
 									type={getPopoutType(currentRule.op)}
-									placeholder={`Select...`}
+									placeholder="Select..."
 								/>
 							)
 						}

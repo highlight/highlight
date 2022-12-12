@@ -484,7 +484,7 @@ export const NewCommentForm = ({
 								aria-label="Comment tags"
 								allowClear={true}
 								defaultActiveFirstOption
-								placeholder={'Attach an issue'}
+								placeholder="Attach an issue"
 								options={issueIntegrationsOptions}
 								onChange={setSelectedIssueService}
 								value={selectedIssueService}
@@ -529,9 +529,7 @@ export const NewCommentForm = ({
 						<Form.Item label={`${issueServiceDetail?.name} Team`}>
 							<Select
 								aria-label={`${issueServiceDetail?.name} Team`}
-								placeholder={
-									'Choose a team to create the issue in'
-								}
+								placeholder="Choose a team to create the issue in"
 								options={linearTeamsOptions}
 								onChange={setLinearTeamId}
 								value={selectedlinearTeamId}

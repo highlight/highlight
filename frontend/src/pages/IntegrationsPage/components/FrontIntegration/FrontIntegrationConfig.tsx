@@ -51,7 +51,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				</p>
 				<footer>
 					<Button
-						trackingId={`IntegrationDisconnectCancel-Slack`}
+						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -61,7 +61,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationDisconnectSave-Slack`}
+						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -89,7 +89,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId={`IntegrationConfigurationCancel-Front`}
+					trackingId="IntegrationConfigurationCancel-Front"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -99,7 +99,7 @@ const FrontIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-Front`}
+					trackingId="IntegrationConfigurationSave-Front"
 					className={styles.modalBtn}
 					type="primary"
 					target="_blank"

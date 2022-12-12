@@ -488,7 +488,7 @@ export const ErrorFrequencyGraph: React.FC<
 							bottom: 0,
 						}}
 					>
-						<CartesianGrid stroke={'#D9D9D9'} vertical={false} />
+						<CartesianGrid stroke="#D9D9D9" vertical={false} />
 						<XAxis
 							dataKey="date"
 							tick={false}

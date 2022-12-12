@@ -20,8 +20,8 @@ const JoinWorkspace = ({
 	}
 	return (
 		<Button
-			trackingId={'ErrorStateJoinWorkspace'}
-			type={'primary'}
+			trackingId="ErrorStateJoinWorkspace"
+			type="primary"
 			onClick={async () => {
 				try {
 					await JoinWorkspace({

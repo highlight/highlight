@@ -62,7 +62,7 @@ const SwitchProject = () => {
 			</Helmet>
 			<div className={styles.box}>
 				<form onSubmit={onSubmit}>
-					<h2 className={styles.title}>{`Enter Project`}</h2>
+					<h2 className={styles.title}>Enter Project</h2>
 					<p className={styles.subTitle}>
 						Pick a project. If you’re having trouble getting into
 						the correct project, message us on{' '}
@@ -78,7 +78,7 @@ const SwitchProject = () => {
 						placeholder="Enter a Project"
 					/>
 					<Button
-						trackingId={`SubmitProjectSwitchForm`}
+						trackingId="SubmitProjectSwitchForm"
 						type="primary"
 						className={styles.button}
 						block
@@ -89,7 +89,7 @@ const SwitchProject = () => {
 						Enter Project
 					</Button>
 					<ButtonLink
-						trackingId={`SwitchProject-CreateProject`}
+						trackingId="SwitchProject-CreateProject"
 						className={styles.button}
 						to={`/w/${workspace_id}/new`}
 						fullWidth

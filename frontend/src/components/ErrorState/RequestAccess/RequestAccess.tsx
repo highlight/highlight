@@ -12,9 +12,9 @@ const RequestAccess = () => {
 	const [sentAccessRequest, setSentAccessRequest] = useState(false)
 	return (
 		<Button
-			trackingId={'ErrorStateRequestAccess'}
+			trackingId="ErrorStateRequestAccess"
 			disabled={sentAccessRequest}
-			type={'primary'}
+			type="primary"
 			onClick={async () => {
 				try {
 					await requestAccess({

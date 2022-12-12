@@ -376,9 +376,7 @@ export const Header = () => {
 											</Box>
 										</Menu.Item>
 										<a
-											href={
-												'https://www.highlight.io/docs'
-											}
+											href="https://www.highlight.io/docs"
 											className={linkStyle}
 										>
 											<Menu.Item>

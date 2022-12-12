@@ -74,11 +74,7 @@ const SyncWithSlackButton = ({
 						loading={loading}
 					>
 						{small ? (
-							<Tooltip
-								title={
-									'Refresh the channels & people in your Slack Workspace.'
-								}
-							>
+							<Tooltip title="Refresh the channels & people in your Slack Workspace.">
 								<Reload />
 							</Tooltip>
 						) : (

@@ -83,7 +83,7 @@ const CommentTextBody = ({
 								key: number,
 							) => (
 								<a
-									target={'_blank'}
+									target="_blank"
 									rel="noreferrer"
 									href={decoratedHref}
 									key={key}

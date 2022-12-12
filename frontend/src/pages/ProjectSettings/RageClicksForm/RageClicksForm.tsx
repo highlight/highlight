@@ -73,7 +73,7 @@ export const RageClicksForm = () => {
 	}
 
 	return (
-		<FieldsBox id={'rage'}>
+		<FieldsBox id="rage">
 			<h3>Rage Clicks</h3>
 			<form onSubmit={onSubmit} key={project_id}>
 				<p>
@@ -135,7 +135,7 @@ export const RageClicksForm = () => {
 					<div className={styles.fieldKey}></div>
 					<div className={styles.saveButton}>
 						<Button
-							trackingId={`RageClickSettingsUpdate`}
+							trackingId="RageClickSettingsUpdate"
 							htmlType="submit"
 							type="primary"
 							className={classNames(

@@ -98,7 +98,7 @@ const CreateSegmentModal = ({
 						onChange={(e) => {
 							setName(e.target.value)
 						}}
-						placeholder={'Segment Name'}
+						placeholder="Segment Name"
 						autoFocus
 					/>
 					<Button

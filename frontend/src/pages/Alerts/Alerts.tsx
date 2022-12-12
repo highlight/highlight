@@ -424,7 +424,7 @@ function AlertsPageLoaded({
 						renderEmptyComponent={
 							<SearchEmptyState
 								className={styles.emptyContainer}
-								item={'alerts'}
+								item="alerts"
 								customTitle={`Your project doesn't have any alerts yet 😔`}
 								customDescription={
 									<>

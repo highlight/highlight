@@ -104,7 +104,7 @@ const TopRoutesTable = ({
 							</>
 						)
 					}
-					noDataTitle={'No route data yet 😔'}
+					noDataTitle="No route data yet 😔"
 				/>
 			</DashboardInnerTable>
 		</div>

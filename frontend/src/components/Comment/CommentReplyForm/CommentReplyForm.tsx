@@ -208,7 +208,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 								newInput
 								commentText={commentText}
 								onChangeHandler={onChangeHandler}
-								placeholder={`Add a reply...`}
+								placeholder="Add a reply..."
 								suggestions={adminSuggestions}
 								onDisplayTransformHandler={onDisplayTransform}
 								suggestionsPortalHost={
@@ -237,7 +237,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 									<SvgArrowRightIcon
 										width={16}
 										height={16}
-										transform={'rotate(-90)'}
+										transform="rotate(-90)"
 									/>
 								</Button>
 							</div>
