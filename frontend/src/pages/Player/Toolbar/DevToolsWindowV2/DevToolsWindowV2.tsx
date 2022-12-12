@@ -108,8 +108,7 @@ const DevToolsControlBar: React.FC<
 								>
 									<IconSearch
 										color={colors.neutral300}
-										height={16}
-										width={16}
+										size={16}
 									/>
 								</Box>
 								<Form.Input
