@@ -495,7 +495,6 @@ type ComplexityRoot struct {
 		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
 		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
 		MuteSessionCommentThread         func(childComplexity int, id int, hasMuted *bool) int
-		OpenSlackConversation            func(childComplexity int, projectID int, code string, redirectPath string) int
 		RemoveIntegrationFromProject     func(childComplexity int, integrationType *model.IntegrationType, projectID int) int
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
@@ -1059,7 +1058,6 @@ type MutationResolver interface {
 	CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	ReplyToErrorComment(ctx context.Context, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) (*model1.CommentReply, error)
-	OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error)
 	AddIntegrationToProject(ctx context.Context, integrationType *model.IntegrationType, projectID int, code string) (bool, error)
 	RemoveIntegrationFromProject(ctx context.Context, integrationType *model.IntegrationType, projectID int) (bool, error)
 	SyncSlackIntegration(ctx context.Context, projectID int) (*model.SlackSyncResponse, error)
@@ -3570,18 +3568,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MuteSessionCommentThread(childComplexity, args["id"].(int), args["has_muted"].(*bool)), true
-
-	case "Mutation.openSlackConversation":
-		if e.complexity.Mutation.OpenSlackConversation == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_openSlackConversation_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.OpenSlackConversation(childComplexity, args["project_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
 	case "Mutation.removeIntegrationFromProject":
 		if e.complexity.Mutation.RemoveIntegrationFromProject == nil {
@@ -8263,11 +8249,6 @@ type Mutation {
 		tagged_admins: [SanitizedAdminInput]!
 		tagged_slack_users: [SanitizedSlackChannelInput]!
 	): CommentReply
-	openSlackConversation(
-		project_id: ID!
-		code: String!
-		redirect_path: String!
-	): Boolean
 	addIntegrationToProject(
 		integration_type: IntegrationType
 		project_id: ID!
@@ -9957,39 +9938,6 @@ func (ec *executionContext) field_Mutation_muteSessionCommentThread_args(ctx con
 		}
 	}
 	args["has_muted"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_openSlackConversation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["code"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["code"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["redirect_path"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirect_path"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["redirect_path"] = arg2
 	return args, nil
 }
 
@@ -27252,58 +27200,6 @@ func (ec *executionContext) fieldContext_Mutation_replyToErrorComment(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_replyToErrorComment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_openSlackConversation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_openSlackConversation(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().OpenSlackConversation(rctx, fc.Args["project_id"].(int), fc.Args["code"].(string), fc.Args["redirect_path"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_openSlackConversation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_openSlackConversation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -53067,12 +52963,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_replyToErrorComment(ctx, field)
-			})
-
-		case "openSlackConversation":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_openSlackConversation(ctx, field)
 			})
 
 		case "addIntegrationToProject":

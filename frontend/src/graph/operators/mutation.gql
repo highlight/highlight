@@ -71,18 +71,6 @@ mutation DeleteAdminFromWorkspace($workspace_id: ID!, $admin_id: ID!) {
 	deleteAdminFromWorkspace(workspace_id: $workspace_id, admin_id: $admin_id)
 }
 
-mutation OpenSlackConversation(
-	$project_id: ID!
-	$code: String!
-	$redirect_path: String!
-) {
-	openSlackConversation(
-		project_id: $project_id
-		code: $code
-		redirect_path: $redirect_path
-	)
-}
-
 mutation AddIntegrationToProject(
 	$integration_type: IntegrationType
 	$project_id: ID!

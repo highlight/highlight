@@ -41,10 +41,6 @@ const OnboardingBubble = () => {
 		`highlight-started-onboarding-${project_id}`,
 		false,
 	)
-	const [, setSetupType] = useLocalStorage<'' | 'Personal' | 'Organization'>(
-		'Highlight-slackBotSetupType',
-		'',
-	)
 	const [
 		temporarilyHideOnboardingBubble,
 		setTemporarilyHideOnboardingBubble,
@@ -172,7 +168,6 @@ const OnboardingBubble = () => {
 		startPolling,
 		stopPolling,
 		slackBotUrl,
-		setSetupType,
 	])
 
 	if (rainConfetti) {

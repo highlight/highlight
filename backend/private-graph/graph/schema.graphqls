@@ -1415,11 +1415,6 @@ type Mutation {
 		tagged_admins: [SanitizedAdminInput]!
 		tagged_slack_users: [SanitizedSlackChannelInput]!
 	): CommentReply
-	openSlackConversation(
-		project_id: ID!
-		code: String!
-		redirect_path: String!
-	): Boolean
 	addIntegrationToProject(
 		integration_type: IntegrationType
 		project_id: ID!
