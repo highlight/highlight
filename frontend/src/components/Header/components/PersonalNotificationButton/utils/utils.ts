@@ -13,7 +13,6 @@ import {
 
 const SLACK_CLIENT_ID = import.meta.env.SLACK_CLIENT_ID
 
-
 export const useSlackBot = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({
@@ -76,10 +75,7 @@ export const useSlackBot = () => {
 	const addSlackToWorkspace = useCallback(
 		async (code: string, projectId?: string) => {
 			setLoading(true)
-			await addSlackBotIntegrationToProject(
-				code,
-				projectId || project_id,
-			)
+			await addSlackBotIntegrationToProject(code, projectId || project_id)
 			setIsSlackConnectedToWorkspace(true)
 			message.success('Highlight is now synced with Slack!', 5)
 			setLoading(false)
@@ -102,9 +98,7 @@ export const useSlackBot = () => {
 	}
 }
 
-export const getSlackUrl = (
-	projectId: string,
-) => {
+export const getSlackUrl = (projectId: string) => {
 	let redirectPath = window.location.pathname
 	if (redirectPath.length > 3) {
 		// remove project_id and prepended slash
@@ -113,7 +107,8 @@ export const getSlackUrl = (
 
 	const state = { next: redirectPath, project_id: projectId }
 
-	const slackScopes = 'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write,links:read,links:write,team:read'
+	const slackScopes =
+		'channels:join,channels:manage,channels:read,chat:write,groups:read,groups:write,im:read,im:write,mpim:read,mpim:write,users:read,files:write,links:read,links:write,team:read'
 	const redirectUri = `${GetBaseURL()}/callback/slack`
 
 	const slackUrl = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=${encodeURIComponent(
