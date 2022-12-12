@@ -1,4 +1,4 @@
-import { ApolloQueryResult, LazyQueryExecFunction } from '@apollo/client'
+import { ApolloQueryResult } from '@apollo/client'
 import { MarkSessionAsViewedMutationFn } from '@graph/hooks'
 import {
 	GetEventChunkUrlQuery,
@@ -93,10 +93,6 @@ interface PlayerState {
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
 	eventsLoaded: boolean
 	fetchEventChunkURL: FetchEventChunkURLFn
-	getSessionPayloadQuery: LazyQueryExecFunction<
-		GetSessionPayloadQuery,
-		Exact<{ session_secure_id: string; skip_events: boolean }>
-	>
 	isHighlightAdmin: boolean
 	isLiveMode: boolean
 	isLoadingEvents: boolean
@@ -404,31 +400,6 @@ export const PlayerReducer = (
 							viewed: true,
 						},
 					}).catch(console.error)
-				}
-
-				const directDownloadUrl =
-					action.data.session?.direct_download_url
-				const resolve = () => {
-					s.time = 0
-				}
-				if (directDownloadUrl) {
-					s.getSessionPayloadQuery({
-						variables: {
-							session_secure_id: s.session_secure_id,
-							skip_events: true,
-						},
-					})
-						.then(resolve)
-						.catch(console.error)
-				} else {
-					s.getSessionPayloadQuery({
-						variables: {
-							session_secure_id: s.session_secure_id,
-							skip_events: false,
-						},
-					})
-						.then(resolve)
-						.catch(console.error)
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {

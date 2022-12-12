@@ -5,7 +5,7 @@ import {
 	useGetEventChunksQuery,
 	useGetEventChunkUrlQuery,
 	useGetSessionIntervalsQuery,
-	useGetSessionPayloadLazyQuery,
+	useGetSessionPayloadQuery,
 	useGetSessionQuery,
 	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
@@ -72,12 +72,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	} = usePlayerConfiguration()
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
-	const [
-		getSessionPayloadQuery,
-		{ data: sessionPayload, subscribeToMore: subscribeToSessionPayload },
-	] = useGetSessionPayloadLazyQuery({
-		fetchPolicy: 'no-cache',
-	})
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
 		fetchPolicy: 'no-cache',
 		skip: true,
@@ -126,6 +120,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
+		useGetSessionPayloadQuery({
+			fetchPolicy: 'no-cache',
+			variables: {
+				session_secure_id: session_secure_id,
+				skip_events: !!sessionData?.session?.direct_download_url,
+			},
+		})
 
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
@@ -147,7 +149,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		isLoggedIn,
 		isHighlightAdmin,
 		markSessionAsViewed,
-		getSessionPayloadQuery,
 		fetchEventChunkURL,
 	})
 
