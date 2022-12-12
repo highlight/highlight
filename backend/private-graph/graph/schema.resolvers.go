@@ -6128,31 +6128,34 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	var deviceMemory *int
-	metric := &model.Metric{}
+	// Returning nil for now to fix perf issues loading sessions
+	return nil, nil
 
-	if err := r.DB.Raw(`
-	WITH filtered_group_ids AS (
-		SELECT id
-		FROM metric_groups
-		WHERE session_id = ?
-		LIMIT 100000
-	  )
-	  SELECT metrics.*
-	  FROM metrics
-	  WHERE metrics.name = ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
-		if !e.Is(err, gorm.ErrRecordNotFound) {
-			log.Error(err)
-		}
-	}
+	// var deviceMemory *int
+	// metric := &model.Metric{}
 
-	if metric != nil {
-		valueAsInt := int(metric.Value)
-		deviceMemory = &valueAsInt
-	}
+	// if err := r.DB.Raw(`
+	// WITH filtered_group_ids AS (
+	// 	SELECT id
+	// 	FROM metric_groups
+	// 	WHERE session_id = ?
+	// 	LIMIT 100000
+	//   )
+	//   SELECT metrics.*
+	//   FROM metrics
+	//   WHERE metrics.name = ?
+	//   AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
+	// 	if !e.Is(err, gorm.ErrRecordNotFound) {
+	// 		log.Error(err)
+	// 	}
+	// }
 
-	return deviceMemory, nil
+	// if metric != nil {
+	// 	valueAsInt := int(metric.Value)
+	// 	deviceMemory = &valueAsInt
+	// }
+
+	// return deviceMemory, nil
 }
 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
