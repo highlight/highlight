@@ -675,7 +675,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/next-js-integration-in-highlight"
+				href="https://www.producthunt.com/posts/digests-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
