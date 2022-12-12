@@ -101,6 +101,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curUsers).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying current user count")
 	}
@@ -113,6 +114,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevUsers).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying previous user count")
 	}
@@ -125,6 +127,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curSessions).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying current session count")
 	}
@@ -137,6 +140,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevSessions).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying previous session count")
 	}
@@ -177,6 +181,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curActivity).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying current activity")
 	}
@@ -189,6 +194,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevActivity).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying previous activity")
 	}
@@ -201,6 +207,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 		ORDER BY s.active_length desc
 		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&activeSessionsSql).Error; err != nil {
@@ -227,6 +234,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND s.created_at >= ?
 		AND s.created_at < ?
 		AND NOT s.excluded
+		AND s.processed
 		GROUP BY s.id
 		ORDER BY count(*) desc
 		LIMIT 5
