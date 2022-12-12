@@ -327,10 +327,6 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
-			if (s.isLiveMode) {
-				// live mode play time is the current time
-				action.time = Date.now() - events[0].timestamp
-			}
 			s = replayerAction(
 				PlayerActionType.play,
 				s,
@@ -368,7 +364,8 @@ export const PlayerReducer = (
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.replayer?.replaceEvents(events)
-			s.replayer?.play(action.firstNewTimestamp)
+			s.replayer?.play(events[events.length - 1].timestamp)
+			s.replayerState = ReplayerState.Playing
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
@@ -512,9 +509,6 @@ export const PlayerReducer = (
 				action.action,
 				s.time,
 			)
-			if (s.isLiveMode) {
-				s.replayer!.play(events[events.length - 1].timestamp)
-			}
 			s.isLoadingEvents = false
 			break
 		case PlayerActionType.onFrame:
@@ -538,7 +532,9 @@ export const PlayerReducer = (
 				s.lastActiveString = null
 			}
 
-			if (s.replayerState !== ReplayerState.Playing) break
+			if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
+				break
+			}
 			s.time = time
 			if (s.time >= s.sessionMetadata.totalTime) {
 				s.replayerState = s.isLiveMode
@@ -586,9 +582,6 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
-			if (s.isLiveMode) {
-				s.replayer!.play(events[events.length - 1].timestamp)
-			}
 			break
 		case PlayerActionType.setViewingUnauthorizedSession:
 			s.viewingUnauthorizedSession = handleSetStateAction(
@@ -609,25 +602,23 @@ export const PlayerReducer = (
 			)
 			break
 	}
-	if (
-		!new Set<PlayerActionType>([
+	log(
+		'PlayerState.ts',
+		new Set<PlayerActionType>([
 			PlayerActionType.onFrame,
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
-	) {
-		log(
-			'PlayerState.ts',
-			'PlayerStateTransition',
-			PlayerActionType[action.type],
-			s.time,
-			{
-				numEvents: events.length,
-				initialState: state,
-				finalState: s,
-				action,
-			},
-		)
-	}
+			? 'PlayerStateUpdate'
+			: 'PlayerStateTransition',
+		PlayerActionType[action.type],
+		s.time,
+		{
+			numEvents: events.length,
+			initialState: state,
+			finalState: s,
+			action,
+		},
+	)
 	return s
 }
 
@@ -689,6 +680,11 @@ const initReplayer = (
 			width: meta.data.width,
 			height: meta.data.height,
 		}
+	}
+
+	if (s.isLiveMode) {
+		log('PlayerState.ts', 'starting live with offset', events[0].timestamp)
+		s.replayer.play(Date.now() - events[0].timestamp)
 	}
 
 	return s

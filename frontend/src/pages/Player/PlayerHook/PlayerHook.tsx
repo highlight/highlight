@@ -50,6 +50,8 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
+const SESSION_POLL_MS = 5000
+
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { session_secure_id, project_id } = useParams<{
@@ -103,6 +105,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		variables: {
 			secure_id: session_secure_id,
 		},
+		pollInterval: SESSION_POLL_MS,
 		onCompleted: useCallback(
 			(data: GetSessionQuery) => {
 				dispatch({
