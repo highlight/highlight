@@ -50,8 +50,6 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
-const SESSION_POLL_MS = 5000
-
 export const usePlayer = (): ReplayerContextInterface => {
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { session_secure_id, project_id } = useParams<{
@@ -99,7 +97,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		variables: {
 			secure_id: session_secure_id,
 		},
-		pollInterval: SESSION_POLL_MS,
 		onCompleted: useCallback(
 			(data: GetSessionQuery) => {
 				dispatch({
@@ -931,11 +928,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
 			const events = getEvents(chunkEventsRef.current)
-			dispatch({
-				type: PlayerActionType.addLiveEvents,
-				lastActiveTimestamp: state.lastActiveTimestamp,
-				firstNewTimestamp: events[events.length - 1].timestamp,
-			})
+			if (isLiveMode) {
+				dispatch({
+					type: PlayerActionType.addLiveEvents,
+					lastActiveTimestamp: state.lastActiveTimestamp,
+					firstNewTimestamp: events[events.length - 1].timestamp,
+				})
+			}
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},
 		playerProgress: state.replayer
