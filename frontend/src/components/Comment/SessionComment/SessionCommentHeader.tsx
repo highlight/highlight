@@ -45,7 +45,7 @@ const SessionCommentHeader = ({
 	onClose,
 	footer,
 }: PropsWithChildren<Props>) => {
-	const { pause, session, sessionMetadata, replayer } = useReplayerContext()
+	const { pause, session, sessionMetadata } = useReplayerContext()
 	const [deleteSessionComment] = useDeleteSessionCommentMutation({
 		refetchQueries: [namedOperations.Query.GetSessionComments],
 	})
@@ -83,6 +83,34 @@ const SessionCommentHeader = ({
 		</MenuItem>
 	)
 
+	const handleGotoClick = () => {
+		const urlSearchParams = new URLSearchParams()
+		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
+
+		history.replace(
+			`${history.location.pathname}?${urlSearchParams.toString()}`,
+		)
+
+		let commentTimestamp = comment.timestamp || 0
+
+		if (comment.type === SessionCommentType.Feedback) {
+			const sessionStartTime = sessionMetadata.startTime
+
+			if (sessionStartTime) {
+				commentTimestamp = getFeedbackCommentSessionTimestamp(
+					comment,
+					sessionStartTime,
+				)
+			}
+		}
+		pause(commentTimestamp)
+		message.success(
+			`Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
+				commentTimestamp,
+			)}.`,
+		)
+	}
+
 	const moreMenu = (
 		<Menu>
 			<MenuItem
@@ -111,42 +139,7 @@ const SessionCommentHeader = ({
 						Copy feedback email
 					</MenuItem>
 				)}
-			<MenuItem
-				icon={<SvgReferrer />}
-				onClick={() => {
-					const urlSearchParams = new URLSearchParams()
-					urlSearchParams.append(
-						PlayerSearchParameters.commentId,
-						comment?.id,
-					)
-
-					history.replace(
-						`${
-							history.location.pathname
-						}?${urlSearchParams.toString()}`,
-					)
-
-					let commentTimestamp = comment.timestamp || 0
-
-					if (comment.type === SessionCommentType.Feedback) {
-						const sessionStartTime = sessionMetadata.startTime
-
-						if (sessionStartTime) {
-							commentTimestamp =
-								getFeedbackCommentSessionTimestamp(
-									comment,
-									sessionStartTime,
-								)
-						}
-					}
-					pause(commentTimestamp)
-					message.success(
-						`Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-							commentTimestamp,
-						)}.`,
-					)
-				}}
-			>
+			<MenuItem icon={<SvgReferrer />} onClick={handleGotoClick}>
 				Goto
 			</MenuItem>
 			<MenuItem
@@ -237,22 +230,7 @@ const SessionCommentHeader = ({
 			moreMenu={moreMenu}
 			footer={footer}
 			shareMenu={shareMenu}
-			gotoButton={
-				<GoToButton
-					small
-					onClick={() => {
-						const startTime = replayer?.getMetaData().startTime
-						if (comment.timestamp && startTime) {
-							pause(comment.timestamp)
-							message.success(
-								`Changed player time to when comment was written at ${MillisToMinutesAndSeconds(
-									comment.timestamp,
-								)}.`,
-							)
-						}
-					}}
-				/>
-			}
+			gotoButton={<GoToButton small onClick={handleGotoClick} />}
 			onClose={onClose}
 		>
 			{children}
