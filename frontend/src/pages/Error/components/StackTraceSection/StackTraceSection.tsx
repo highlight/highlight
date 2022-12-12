@@ -261,21 +261,15 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	return (
 		<div className={CollapsibleStyles.section}>
 			<div className={styles.collapsibleWrapper}>
-				{
-					<StatelessCollapsible
-						title={
-							compact ? compactStackTraceTitle : stackTraceTitle
-						}
-						key={index}
-						defaultOpen={index === 0}
-						contentClassName={styles.contentWrapper}
-						stacked={true}
-					>
-						<div className={ErrorPageStyles.collapsible}>
-							{trigger}
-						</div>
-					</StatelessCollapsible>
-				}
+				<StatelessCollapsible
+					title={compact ? compactStackTraceTitle : stackTraceTitle}
+					key={index}
+					defaultOpen={index === 0}
+					contentClassName={styles.contentWrapper}
+					stacked={true}
+				>
+					<div className={ErrorPageStyles.collapsible}>{trigger}</div>
+				</StatelessCollapsible>
 			</div>
 		</div>
 	)

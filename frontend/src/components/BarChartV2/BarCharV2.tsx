@@ -116,7 +116,7 @@ const BarChartV2 = ({
 						axisLine={{ stroke: gridColor }}
 						domain={[min, max]}
 						dy={6}
-						type={'number'}
+						type="number"
 						hide={hideXAxis}
 						unit={xAxisLabel}
 						{...xAxisProps}
@@ -152,7 +152,7 @@ const BarChartV2 = ({
 						<Legend
 							verticalAlign="bottom"
 							height={18}
-							iconType={'square'}
+							iconType="square"
 							iconSize={8}
 							content={(props) => {
 								return (
@@ -178,7 +178,7 @@ const BarChartV2 = ({
 							{!!showReferenceLineLabels && (
 								<>
 									<Label
-										position={'center'}
+										position="center"
 										alignmentBaseline="auto"
 										offset={10}
 										className={styles.referenceLineValue}

@@ -79,7 +79,7 @@ const SourcemapSettings = () => {
 	}, 300)
 
 	return (
-		<FieldsBox id={'sourcemaps'}>
+		<FieldsBox id="sourcemaps">
 			<h3>Sourcemaps</h3>
 
 			{projectData?.project?.secret && (

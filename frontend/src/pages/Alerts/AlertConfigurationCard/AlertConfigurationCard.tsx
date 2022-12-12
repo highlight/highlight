@@ -717,7 +717,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={userPropertiesSuggestions}
 										mode="multiple"
-										placeholder={`Pick the user properties that you would like to get alerted for.`}
+										placeholder="Pick the user properties that you would like to get alerted for."
 										onChange={onUserPropertiesChange}
 									/>
 								</Form.Item>
@@ -736,7 +736,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={trackPropertiesSuggestions}
 										mode="multiple"
-										placeholder={`Pick the track properties that you would like to get alerted for.`}
+										placeholder="Pick the track properties that you would like to get alerted for."
 										onChange={onTrackPropertiesChange}
 									/>
 								</Form.Item>
@@ -916,7 +916,7 @@ export const AlertConfigurationCard = ({
 									className={styles.channelSelect}
 									options={environments}
 									mode="tags"
-									placeholder={`Select a environment(s) that should not trigger alerts.`}
+									placeholder="Select a environment(s) that should not trigger alerts."
 									onChange={onExcludedEnvironmentsChange}
 								/>
 							</Form.Item>
@@ -994,7 +994,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={identifierSuggestions}
 										mode="tags"
-										placeholder={`Select a identifier(s) that should not trigger alerts.`}
+										placeholder="Select a identifier(s) that should not trigger alerts."
 										onChange={() => {
 											setFormTouched(true)
 											handleIdentifierSearch('')

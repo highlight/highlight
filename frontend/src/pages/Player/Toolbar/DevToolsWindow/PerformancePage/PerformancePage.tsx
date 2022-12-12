@@ -164,7 +164,10 @@ const PerformancePage = React.memo(({ currentTime, startTime }: Props) => {
 						)
 						if (data.length === 0 || !hasData) {
 							return (
-								<div className={styles.noDataContainer}>
+								<div
+									className={styles.noDataContainer}
+									key={key}
+								>
 									<p>
 										{session?.browser_name}{' '}
 										{session?.browser_version} does not

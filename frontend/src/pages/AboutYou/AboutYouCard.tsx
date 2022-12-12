@@ -145,7 +145,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 						<Input
 							placeholder="Phone #"
 							name="Phone #"
-							type={'tel'}
+							type="tel"
 							value={phone}
 							onChange={(e) => {
 								setPhone(e.target.value)
@@ -178,7 +178,7 @@ const AboutYouPage = ({ onSubmitHandler }: Props) => {
 							/>
 							<CardSelect
 								title="Engineering"
-								description={`I’ll be using Highlight for debugging and monitoring.`}
+								description="I’ll be using Highlight for debugging and monitoring."
 								isSelected={isEngineeringRole}
 								onClick={toggleIsEngineeringRole}
 							/>

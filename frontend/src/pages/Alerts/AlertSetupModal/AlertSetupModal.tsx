@@ -131,7 +131,7 @@ const AlertSetupModal = () => {
 						trackingId="AlertSetupModalSlackIntegration"
 						closable={false}
 						message={"Slack isn't connected"}
-						type={'error'}
+						type="error"
 						description={
 							<>
 								<p>
@@ -289,7 +289,7 @@ const AlertSetupModal = () => {
 								.toLowerCase()
 								.includes(searchValue.toLowerCase())
 						}}
-						placeholder={`Select a channel(s) or person(s) to send alerts to.`}
+						placeholder="Select a channel(s) or person(s) to send alerts to."
 						onChange={onChannelsChange}
 						defaultValue={selectedChannels}
 						notFoundContent={

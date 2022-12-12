@@ -29,7 +29,7 @@ const LinearIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId={`IntegrationDisconnectCancel-Slack`}
+						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
 						onClick={() => {
 							setModalOpen(false)
@@ -39,7 +39,7 @@ const LinearIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId={`IntegrationDisconnectSave-Slack`}
+						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
 						type="primary"
 						danger
@@ -65,7 +65,7 @@ const LinearIntegrationConfig: React.FC<
 			</p>
 			<footer>
 				<Button
-					trackingId={`IntegrationConfigurationCancel-Slack`}
+					trackingId="IntegrationConfigurationCancel-Slack"
 					className={styles.modalBtn}
 					onClick={() => {
 						setModalOpen(false)
@@ -75,7 +75,7 @@ const LinearIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId={`IntegrationConfigurationSave-Slack`}
+					trackingId="IntegrationConfigurationSave-Slack"
 					className={styles.modalBtn}
 					type="primary"
 					href={authUrl}

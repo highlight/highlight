@@ -422,6 +422,7 @@ const BillingPage = () => {
 					{BILLING_PLANS.map((billingPlan) =>
 						billingLoading ? (
 							<Skeleton
+								key={billingPlan.type}
 								style={{ borderRadius: 8 }}
 								count={1}
 								height={325}

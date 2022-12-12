@@ -1,8 +1,8 @@
+import classNames from 'classnames'
 import React from 'react'
 
 import { ReactComponent as EmptyState } from '../../../../static/empty-state.svg'
 import styles from './EmptyCardPlaceholder.module.scss'
-import classNames from 'classnames'
 
 interface Props {
 	title?: string

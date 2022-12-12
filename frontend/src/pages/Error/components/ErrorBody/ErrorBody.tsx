@@ -11,7 +11,7 @@ interface Props {
 const ErrorBody = ({ errorGroup, errorObject }: Props) => {
 	const event = errorObject?.event ?? errorGroup?.event
 	const body = getErrorBody(event)
-	return <JsonOrTextCard jsonOrText={body} title={'Body'} />
+	return <JsonOrTextCard jsonOrText={body} title="Body" />
 }
 
 export default ErrorBody

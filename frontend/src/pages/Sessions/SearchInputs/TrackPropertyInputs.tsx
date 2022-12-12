@@ -125,7 +125,7 @@ export const TrackPropertyInput = ({
 					IndicatorSeparator: () => null,
 				}}
 				formatCreateLabel={ContainsLabel}
-				createOptionPosition={'first'}
+				createOptionPosition="first"
 			/>
 		</div>
 	)

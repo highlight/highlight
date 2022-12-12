@@ -187,7 +187,7 @@ export const ErrorCountGraph = ({
 		<div className={classNames({ [styles.loading]: loading })}>
 			<DailyChart
 				data={errorCountData}
-				lineColor={'var(--color-orange-400)'}
+				lineColor="var(--color-orange-400)"
 				name="Errors"
 				onClickHandler={(payload: any) => {
 					history.push(
@@ -221,7 +221,7 @@ const DailyChart = ({
 					count: lineColor,
 				}}
 				xAxisDataKeyName="date"
-				xAxisLabel={''}
+				xAxisLabel=""
 				xAxisTickFormatter={(value: number) =>
 					moment(value).format('D MMM YYYY')
 				}

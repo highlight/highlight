@@ -20,10 +20,10 @@ const WorkspaceSettings = () => {
 					</p>
 				</div>
 			</div>
-			<FieldsBox id={'workspace'}>
+			<FieldsBox id="workspace">
 				<FieldsForm />
 			</FieldsBox>
-			<FieldsBox id={'autojoin'}>
+			<FieldsBox id="autojoin">
 				<h3>Auto Join</h3>
 				<p>
 					Enable auto join to allow anyone with an approved email

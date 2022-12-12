@@ -95,9 +95,7 @@ function AutoJoinForm({
 
 	return (
 		<Tooltip
-			title={
-				'Automatically share the workspace with all users on this domain.'
-			}
+			title="Automatically share the workspace with all users on this domain."
 			align={{ offset: [0, 6] }}
 			mouseEnterDelay={0}
 		>

@@ -123,7 +123,7 @@ export const EditMetricModal = ({
 		<Modal
 			onCancel={onCancel}
 			visible={shown}
-			title={'Edit Metric View'}
+			title="Edit Metric View"
 			width="800px"
 			mask
 		>
@@ -265,7 +265,7 @@ export const EditMetricModal = ({
 									<div className={styles.metricViewDetail}>
 										<h3>Minimum</h3>
 										<Input
-											type={'text'}
+											type="text"
 											placeholder="Min"
 											name="Min"
 											value={minValue ? min : `${min}%`}
@@ -290,7 +290,7 @@ export const EditMetricModal = ({
 									<div className={styles.metricViewDetail}>
 										<h3>Maximum</h3>
 										<Input
-											type={'text'}
+											type="text"
 											placeholder="Max"
 											name="Max"
 											value={maxValue ? max : `${max}%`}
@@ -342,7 +342,7 @@ export const EditMetricModal = ({
 					<CardFormActionsContainer>
 						<div className={styles.submitRow}>
 							<Button
-								type={'primary'}
+								type="primary"
 								style={{
 									width: 90,
 								}}
@@ -353,7 +353,7 @@ export const EditMetricModal = ({
 										}}
 									/>
 								}
-								trackingId={'SaveMetric'}
+								trackingId="SaveMetric"
 								htmlType="submit"
 							>
 								Save
@@ -413,7 +413,7 @@ export const TagGroups = ({
 					}}
 				/>
 				<Button
-					trackingId={'EditMetricRemoveTagGroup'}
+					trackingId="EditMetricRemoveTagGroup"
 					className={styles.removeTagFilterButton}
 					disabled={!currentGroup?.length}
 					onClick={() => {
@@ -437,7 +437,7 @@ export const TagFilters = ({
 	currentTags: MetricTagFilter[]
 }) => {
 	return (
-		<div className={'flex flex-col gap-2'}>
+		<div className="flex flex-col gap-2">
 			{[...currentTags, undefined].map((v, idx) => (
 				<div
 					className={styles.tagFilterGroup}
@@ -470,7 +470,7 @@ export const TagFilters = ({
 							usedTags={currentTags.map((t) => t.tag)}
 						/>
 						<Button
-							trackingId={'EditMetricRemoveTagFilter'}
+							trackingId="EditMetricRemoveTagFilter"
 							className={styles.removeTagFilterButton}
 							disabled={idx >= currentTags.length}
 							onClick={() => {
@@ -567,7 +567,7 @@ export const TagFilterSelector = ({
 				}}
 			/>
 			<SimpleSearchSelect
-				placeholder={'GetSession'}
+				placeholder="GetSession"
 				options={values?.metric_tag_values || []}
 				value={currentTag?.value}
 				freeSolo

@@ -54,7 +54,7 @@ export const NetworkRecordingForm = () => {
 	}
 
 	return (
-		<FieldsBox id={'network'}>
+		<FieldsBox id="network">
 			<h3>Network Recording Settings</h3>
 			<form onSubmit={onSubmit} key={project_id}>
 				<p>
@@ -72,7 +72,7 @@ export const NetworkRecordingForm = () => {
 					</label>
 					<Select
 						mode="tags"
-						placeholder={`api.highlight.run`}
+						placeholder="api.highlight.run"
 						notFoundContent={null}
 						defaultValue={data?.project?.backend_domains || []}
 						onChange={(domains: string[]) => {
@@ -84,7 +84,7 @@ export const NetworkRecordingForm = () => {
 					<div className={styles.fieldKey}></div>
 					<div className={styles.saveButton}>
 						<Button
-							trackingId={`NetworkRecordingSettingsUpdate`}
+							trackingId="NetworkRecordingSettingsUpdate"
 							htmlType="submit"
 							type="primary"
 							className={classNames(

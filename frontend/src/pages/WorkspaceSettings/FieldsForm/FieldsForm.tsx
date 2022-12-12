@@ -100,7 +100,7 @@ export const FieldsForm = () => {
 					<div className={styles.fieldRow}>
 						<label className={styles.fieldKey}>Billing Email</label>
 						<Input
-							placeholder={'Billing Email'}
+							placeholder="Billing Email"
 							type="email"
 							name="email"
 							value={email}

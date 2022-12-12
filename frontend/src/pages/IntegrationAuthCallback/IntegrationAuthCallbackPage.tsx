@@ -182,7 +182,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 			}}
 		>
 			<Landing>
-				<div className={`w-[672px] rounded-md bg-white px-8 py-6`}>
+				<div className="w-[672px] rounded-md bg-white px-8 py-6">
 					<div className="m-4">
 						<h3>Configuring Vercel Integration</h3>
 						<VercelIntegrationSettings

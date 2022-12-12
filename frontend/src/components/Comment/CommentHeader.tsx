@@ -107,7 +107,7 @@ export const CommentHeader = ({
 								{onClose && (
 									<CloseButton
 										onClick={onClose}
-										trackingId={'CommentsClose'}
+										trackingId="CommentsClose"
 									/>
 								)}
 							</>

@@ -326,9 +326,9 @@ export default function LoginForm() {
 					</div>
 					<div className={styles.inputContainer}>
 						<Input
-							placeholder={'Email'}
+							placeholder="Email"
 							name="email"
-							type={'email'}
+							type="email"
 							value={email}
 							onChange={(e) => {
 								setEmail(e.target.value)
@@ -338,7 +338,7 @@ export default function LoginForm() {
 						/>
 						{formState !== LoginFormState.ResetPassword && (
 							<Input
-								placeholder={'Password'}
+								placeholder="Password"
 								type="password"
 								name="password"
 								value={password}
@@ -351,7 +351,7 @@ export default function LoginForm() {
 						{formState === LoginFormState.SignUp && (
 							<>
 								<Input
-									placeholder={'Confirm Password'}
+									placeholder="Confirm Password"
 									type="password"
 									name="confirm-password"
 									required
@@ -591,7 +591,7 @@ function AuthPageLayout({
 	return (
 		<div className="relative m-auto flex w-full max-w-6xl items-center justify-center gap-24">
 			<section className="flex w-full max-w-md flex-col items-center gap-6">
-				<div className="font-poppins flex flex-col items-center gap-2 text-center font-semibold">
+				<div className="flex flex-col items-center gap-2 text-center font-poppins font-semibold">
 					<h2 className="text-4xl tracking-wide text-white">
 						{title}
 					</h2>
@@ -635,7 +635,7 @@ function AuthPageLayout({
 
 function Testimonial() {
 	return (
-		<div className="font-poppins flex flex-col gap-8 tracking-wide text-white">
+		<div className="flex flex-col gap-8 font-poppins tracking-wide text-white">
 			<p className="text-2xl font-semibold leading-normal tracking-wider text-white">
 				<span className="text-highlight-1">
 					No matter your team size

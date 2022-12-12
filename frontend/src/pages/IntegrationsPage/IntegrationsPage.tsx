@@ -101,7 +101,7 @@ const IntegrationsPage = () => {
 				<div className={styles.integrationsContainer}>
 					{integrations.map((integration) =>
 						loading ? (
-							<Skeleton height={187} />
+							<Skeleton height={187} key={integration.key} />
 						) : (
 							<Integration
 								integration={integration}

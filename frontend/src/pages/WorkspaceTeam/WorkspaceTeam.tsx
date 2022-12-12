@@ -132,7 +132,7 @@ const WorkspaceTeam = () => {
 						<div className={styles.buttonRow}>
 							<Input
 								className={styles.emailInput}
-								placeholder={'Email'}
+								placeholder="Email"
 								type="email"
 								name="email"
 								autoFocus
@@ -188,7 +188,7 @@ const WorkspaceTeam = () => {
 						<Alert
 							shouldAlwaysShow
 							trackingId="InviteAdminToWorkspaceConfirmation"
-							message={`An invite email has been sent!`}
+							message="An invite email has been sent!"
 							type="success"
 							description={
 								<>
@@ -378,7 +378,7 @@ const TABLE_COLUMNS = [
 			return (
 				<PopConfirm
 					title={`Remove ${record?.name || record?.email}?`}
-					description={`They will no longer have access to Highlight. You can invite them again if they need access.`}
+					description="They will no longer have access to Highlight. You can invite them again if they need access."
 					okText={`Remove ${record?.name || record?.email}`}
 					cancelText="Cancel"
 					onConfirm={() => {
