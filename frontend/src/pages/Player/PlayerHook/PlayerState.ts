@@ -478,7 +478,7 @@ export const PlayerReducer = (
 				PlayerActionType.onChunksLoad,
 				s,
 				action.action,
-				s.time,
+				action.time,
 			)
 			s.isLoadingEvents = false
 			break

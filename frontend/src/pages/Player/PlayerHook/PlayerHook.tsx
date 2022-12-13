@@ -126,15 +126,16 @@ export const usePlayer = (): ReplayerContextInterface => {
 			},
 		})
 
-	// the index of the chunk we are moving to. only set while we are loading the chunk
-	const targetChunkIdx = useRef<number>()
+	// the index of the chunk we are moving to.
+	const currentChunkIdx = useRef<number>(0)
+	// the timestamp we are moving to next.
+	const targetTime = useRef<number>()
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// used to track latest time atomically where the state may be out of date
 	const lastTimeRef = useRef<number>(0)
 	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
 	const animationFrameID = useRef<number>(0)
-	const currentChunkIdx = useRef<number>(0)
 	const replayerStateBeforeLoad = useRef<ReplayerState>(ReplayerState.Empty)
 
 	const [
@@ -256,6 +257,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const dispatchAction = useCallback(
 		(time: number, action?: ReplayerState) => {
+			targetTime.current = undefined
 			currentChunkIdx.current = getChunkIdx(
 				state.sessionMetadata.startTime + time,
 			)
@@ -290,6 +292,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
+			targetTime.current = startTime
 			let endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
@@ -327,7 +330,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 								'ensureChunksLoaded needs blocking load for chunk',
 								i,
 							)
-							targetChunkIdx.current = i
 							dispatch({
 								type: PlayerActionType.startChunksLoad,
 							})
@@ -380,7 +382,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				await Promise.all(promises)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
-				if (startIdx === targetChunkIdx.current) {
+				if (startTime === targetTime.current) {
 					log(
 						'PlayerHook.tsx',
 						'ensureChunksLoaded',
@@ -392,7 +394,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 							prevState: replayerStateBeforeLoad.current,
 						},
 					)
-					dispatchAction(lastTimeRef.current)
+					dispatchAction(startTime)
 				} else {
 					log(
 						'PlayerHook.tsx',
@@ -401,11 +403,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 						{
 							startTime,
 							startIdx,
-							targetChunkIdx: targetChunkIdx.current,
+							targetTime: targetTime.current,
 						},
 					)
 				}
-				targetChunkIdx.current = undefined
 			} else if (!loadingChunks.current.has(startIdx) && action) {
 				log(
 					'PlayerHook.tsx',
