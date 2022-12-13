@@ -57,8 +57,6 @@ export const NetworkPage = React.memo(
 			setSelectedDevToolsTab,
 			showPlayerAbsoluteTime,
 		} = usePlayerConfiguration()
-		const [isInteractingWithResources, setIsInteractingWithResources] =
-			useState(false)
 		const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 		const virtuoso = useRef<VirtuosoHandle>(null)
@@ -208,15 +206,9 @@ export const NetworkPage = React.memo(
 		])
 
 		useEffect(() => {
-			if (
-				!isInteractingWithResources &&
-				autoScroll &&
-				state === ReplayerState.Playing
-			) {
+			if (autoScroll && state === ReplayerState.Playing) {
 				scrollFunction(currentResourceIdx)
 			}
-			// want this to trigger on autoscroll change, not isInteractingWithMessages
-			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [currentResourceIdx, scrollFunction, autoScroll, state])
 
 		useEffect(() => {
@@ -284,12 +276,6 @@ export const NetworkPage = React.memo(
 						</Box>
 						<Box className={styles.networkBox}>
 							<Virtuoso
-								onMouseEnter={() => {
-									setIsInteractingWithResources(true)
-								}}
-								onMouseLeave={() => {
-									setIsInteractingWithResources(false)
-								}}
 								ref={virtuoso}
 								overscan={1024}
 								increaseViewportBy={1024}

@@ -39,8 +39,6 @@ export const ConsolePage = React.memo(
 		const [parsedMessages, setParsedMessages] = useState<
 			undefined | Array<ParsedMessage>
 		>([])
-		const [isInteractingWithMessages, setIsInteractingWithMessages] =
-			useState(false)
 		const { session_secure_id } = useParams<{ session_secure_id: string }>()
 		const [loading, setLoading] = useState(true)
 		const skipQuery = session === undefined || !!session?.messages_url
@@ -105,20 +103,17 @@ export const ConsolePage = React.memo(
 				let msgIndex = 0
 				let msgDiff: number = Number.MAX_VALUE
 				for (let i = 0; i < parsedMessages.length; i++) {
-					const currentDiff: number = Math.abs(
-						time -
-							(parsedMessages[i].time - parsedMessages[0].time),
-					)
+					const currentDiff: number =
+						time - (parsedMessages[i].time - parsedMessages[0].time)
+					if (currentDiff < 0) break
 					if (currentDiff < msgDiff) {
 						msgIndex = i
 						msgDiff = currentDiff
 					}
 				}
-				if (currentMessage !== msgIndex) {
-					setCurrentMessage(msgIndex)
-				}
+				setCurrentMessage(msgIndex)
 			}
-		}, [currentMessage, time, parsedMessages])
+		}, [time, parsedMessages])
 
 		const messagesToRender = useMemo(() => {
 			const currentMessages = parsedMessages?.filter((m) => {
@@ -178,11 +173,9 @@ export const ConsolePage = React.memo(
 		)
 
 		useEffect(() => {
-			if (!isInteractingWithMessages && autoScroll) {
+			if (autoScroll) {
 				scrollFunction(currentMessage)
 			}
-			// want this to trigger on autoscroll change, not isInteractingWithMessages
-			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [autoScroll, scrollFunction, currentMessage])
 
 		return (
@@ -196,35 +189,19 @@ export const ConsolePage = React.memo(
 					</div>
 				) : messagesToRender?.length ? (
 					<Virtuoso
-						onMouseEnter={() => {
-							setIsInteractingWithMessages(true)
-						}}
-						onMouseLeave={() => {
-							setIsInteractingWithMessages(false)
-						}}
 						ref={virtuoso}
 						overscan={1024}
 						increaseViewportBy={1024}
-						components={{
-							ScrollSeekPlaceholder: () => (
-								<div
-									style={{
-										height: 36,
-									}}
-								/>
-							),
-						}}
-						scrollSeekConfiguration={{
-							enter: (v) => v > 512,
-							exit: (v) => v < 128,
-						}}
 						data={messagesToRender}
 						itemContent={(_index, message: ParsedMessage) => (
 							<MessageRow
 								key={message.id.toString()}
 								message={message}
 								current={message.id === currentMessage}
-								setTime={setTime}
+								setTime={(time: number) => {
+									setTime(time)
+									setCurrentMessage(_index)
+								}}
 								sessionMetadata={sessionMetadata}
 							/>
 						)}
@@ -237,7 +214,7 @@ export const ConsolePage = React.memo(
 	},
 )
 
-const MessageRow = function ({
+const MessageRow = React.memo(function ({
 	message,
 	setTime,
 	current,
@@ -281,4 +258,4 @@ const MessageRow = function ({
 			</Box>
 		</Box>
 	)
-}
+})

@@ -10,7 +10,7 @@ import {
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { useHistory } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -33,8 +33,6 @@ const ErrorsPage = React.memo(
 		time: number
 	}) => {
 		const virtuoso = useRef<VirtuosoHandle>(null)
-		const [isInteractingWithErrors, setIsInteractingWithErrors] =
-			useState(false)
 		const history = useHistory<ErrorsPageHistoryState>()
 		const { errors, state, session, sessionMetadata, setTime } =
 			useReplayerContext()
@@ -58,7 +56,7 @@ const ErrorsPage = React.memo(
 		}, [errors, hasTimestamp, sessionMetadata.startTime, time])
 
 		useLayoutEffect(() => {
-			if (virtuoso.current && autoScroll && !isInteractingWithErrors) {
+			if (virtuoso.current && autoScroll) {
 				if (history.location.state?.errorCardIndex !== undefined) {
 					virtuoso.current.scrollToIndex(
 						history.location.state.errorCardIndex,
@@ -67,8 +65,6 @@ const ErrorsPage = React.memo(
 					virtuoso.current.scrollToIndex(lastActiveErrorIndex)
 				}
 			}
-			// want this to trigger on autoscroll change, not isInteractingWithMessages
-			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [
 			autoScroll,
 			history.location.state?.errorCardIndex,
@@ -104,12 +100,6 @@ const ErrorsPage = React.memo(
 					<EmptyDevToolsCallout kind={Tab.Errors} filter={filter} />
 				) : (
 					<Virtuoso
-						onMouseEnter={() => {
-							setIsInteractingWithErrors(true)
-						}}
-						onMouseLeave={() => {
-							setIsInteractingWithErrors(false)
-						}}
 						ref={virtuoso}
 						overscan={500}
 						data={errorsToRender}
