@@ -3,10 +3,10 @@ import sys, getopt
 
 services = {
     # services is a map of {service name}:{npm package name}
-    "firstload": "highlight.run",
+    "highlight-javascript/firstload": "highlight.run",
     "sourcemap-uploader": "@highlight-run/sourcemap-uploader",
-    "highlight-next": "@highlight-run/next",
-    "highlight-node": "@highlight-run/node"
+    "highlight-javascript/highlight-next": "@highlight-run/next",
+    "highlight-javascript/highlight-node": "@highlight-run/node"
 }
 
 def main(argv):
@@ -33,4 +33,4 @@ def main(argv):
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-   
+

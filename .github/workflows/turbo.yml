@@ -38,8 +38,8 @@ jobs:
               with:
                   filters: |
                       highlight-run:
-                        - 'client/**'
-                        - 'firstload/**'
+                        - 'highlight-javascript/client/**'
+                        - 'highlight-javascript/firstload/**'
 
             - name: Install js dependencies
               run: yarn
