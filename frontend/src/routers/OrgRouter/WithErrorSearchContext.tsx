@@ -6,7 +6,7 @@ import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
-const WithErrorSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
+const WithErrorSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const { project_id } = useParams<{

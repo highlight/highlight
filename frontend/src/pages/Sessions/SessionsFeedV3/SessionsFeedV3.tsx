@@ -37,6 +37,7 @@ import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import useLocalStorage from '@rehooks/local-storage'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
@@ -53,7 +54,6 @@ import {
 	useSearchContext,
 } from '../SearchContext/SearchContext'
 import * as style from './SessionFeedV3.css'
-import SessionQueryBuilder from './SessionQueryBuilder/SessionQueryBuilder'
 
 interface SessionsHistogramProps {
 	projectHasManySessions: boolean

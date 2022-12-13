@@ -24,7 +24,9 @@ import {
 	IconChevronDown,
 	IconClock,
 	IconCloudUpload,
+	IconDuplicate,
 	IconLogout,
+	IconPencil,
 	IconPlusCircle,
 	IconPlusSm,
 	IconRefresh,
@@ -54,7 +56,6 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouteMatch } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
@@ -1205,6 +1206,9 @@ export const deserializeGroup = (
 }
 
 const deserializeRules = (ruleGroups: any): RuleProps[] => {
+	if (!ruleGroups) {
+		return []
+	}
 	return ruleGroups.map((group: any[]) => {
 		const [field, op, ...vals] = group
 		return deserializeGroup(field, op, vals)
@@ -1332,6 +1336,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
+	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
+		useState(false)
+
+	useEffect(() => {
+		setShowCreateSegmentModal(showEditSegmentNameModal)
+	}, [showEditSegmentNameModal])
+
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
 		id?: string
@@ -1716,7 +1727,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		},
 		[defaultTimeRangeRule, parseRule, timeRangeField.value],
 	)
-
+	const [isAnd, toggleIsAnd] = useToggle(true)
 	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
 	const serializedQuery = useRef<BackendSearchQuery | undefined>()
 	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
@@ -1772,8 +1783,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 		return timeRange
 	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
-
-	const [isAnd, toggleIsAnd] = useToggle(true)
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1920,13 +1929,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	// Track the current state of the query builder to detect changes
 	const [qbState, setQbState] = useState<string | undefined>(undefined)
-	const sessionsMatch = useRouteMatch('/:project_id/sessions')
 
 	useEffect(() => {
-		if (!sessionsMatch) {
-			return
-		}
-
 		if (!segmentsLoading) {
 			if (activeSegmentUrlParam) {
 				selectSegment(activeSegmentUrlParam)
@@ -1944,12 +1948,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [segmentsLoading])
 
-	// Session Segment Deep Linking
+	// Errors Segment Deep Linking
 	useEffect(() => {
-		if (!sessionsMatch) {
-			return
-		}
-
 		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
 			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
 				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
@@ -1958,12 +1958,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setActiveSegmentUrlParam(undefined, 'replace')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, sessionsMatch, setActiveSegmentUrlParam])
+	}, [selectedSegment, setActiveSegmentUrlParam])
 
 	useEffect(() => {
-		if (!sessionsMatch) {
-			return
-		}
 		if (!isEqual(searchParams, EmptySessionsSearchParams)) {
 			setSearchParamsToUrlParams(
 				normalizeParams(searchParams),
@@ -1973,7 +1970,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		setSearchParamsToUrlParams,
 		searchParams,
-		sessionsMatch,
 		selectedSegment,
 		activeSegmentUrlParam,
 	])
@@ -2424,6 +2420,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			<CreateSegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {
+					setShowEditSegmentNameModal(false)
 					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
@@ -2434,6 +2431,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 						})
 					}
 				}}
+				currentSegment={
+					showEditSegmentNameModal ? currentSegment : undefined
+				}
 			/>
 			<DeleteSessionSegmentModal
 				showModal={!!segmentToDelete}
@@ -2462,7 +2462,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				m="8"
 				shadow="small"
 			>
-				{mode !== QueryBuilderMode.EMPTY && !segmentsLoading && (
+				{mode !== QueryBuilderMode.EMPTY && (
 					<Box
 						p="4"
 						paddingBottom="8"
@@ -2566,6 +2566,50 @@ function QueryBuilder(props: QueryBuilderProps) {
 									? alteredSegmentSettings
 									: null}
 
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										setShowEditSegmentNameModal(true)
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconPencil
+											size={16}
+											color={colors.neutral300}
+										/>
+										Edit segment name
+									</Box>
+								</Menu.Item>
+
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										if (currentSegment) {
+											selectSegment(currentSegment)
+											setShowCreateSegmentModal(true)
+										}
+									}}
+								>
+									<Box
+										display="flex"
+										alignItems="center"
+										gap="4"
+										userSelect="none"
+									>
+										<IconDuplicate
+											size={16}
+											color={colors.neutral300}
+										/>
+										Duplicate segment
+									</Box>
+								</Menu.Item>
+
+								<Menu.Divider />
 								<Menu.Item
 									onClick={(e) => {
 										e.stopPropagation()
