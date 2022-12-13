@@ -1,5 +1,5 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'

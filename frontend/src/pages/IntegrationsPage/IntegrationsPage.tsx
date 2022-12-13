@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'

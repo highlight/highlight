@@ -4,7 +4,7 @@ import {
 	DEMO_WORKSPACE_APPLICATION_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage'
 import { RadioGroup } from '@components/RadioGroup/RadioGroup'
 import { useGetProjectQuery } from '@graph/hooks'

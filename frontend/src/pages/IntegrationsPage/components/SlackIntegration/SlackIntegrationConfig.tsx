@@ -1,5 +1,5 @@
 import Button from '@components/Button/Button/Button'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {

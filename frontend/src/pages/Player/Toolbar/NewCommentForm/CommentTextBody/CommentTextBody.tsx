@@ -1,6 +1,6 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
 import { AdminSuggestion } from '@components/Comment/CommentHeader'
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import SvgSlackLogo from '@components/icons/SlackLogo'
 import { namedOperations } from '@graph/operations'
 import {

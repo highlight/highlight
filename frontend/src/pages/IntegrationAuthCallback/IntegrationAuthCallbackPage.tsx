@@ -1,4 +1,4 @@
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
