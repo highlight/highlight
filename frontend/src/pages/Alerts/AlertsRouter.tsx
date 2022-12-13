@@ -1,5 +1,5 @@
 import Breadcrumb from '@components/Breadcrumb/Breadcrumb'
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
@@ -30,7 +30,7 @@ const AlertsRouter = () => {
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id },
 	})
-	const slackUrl = getSlackUrl('Organization', project_id)
+	const slackUrl = getSlackUrl(project_id)
 	const history = useHistory<{ errorName: string }>()
 
 	useEffect(() => {

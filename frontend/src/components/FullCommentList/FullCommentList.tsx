@@ -1,4 +1,4 @@
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import classNames from 'classnames'
 import React, { useRef } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -34,7 +34,7 @@ const FullCommentList = ({
 						<h2>There are no comments yet</h2>
 						<p>{noCommentsMessage}</p>
 					</div>
-					<PersonalNotificationButton type="Organization" />
+					<ConnectHighlightWithSlackButton />
 				</div>
 			) : (
 				<>

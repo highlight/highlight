@@ -661,7 +661,6 @@ export type Mutation = {
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
-	openSlackConversation?: Maybe<Scalars['Boolean']>
 	removeIntegrationFromProject: Scalars['Boolean']
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
@@ -948,12 +947,6 @@ export type MutationMuteErrorCommentThreadArgs = {
 export type MutationMuteSessionCommentThreadArgs = {
 	has_muted?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
-}
-
-export type MutationOpenSlackConversationArgs = {
-	code: Scalars['String']
-	project_id: Scalars['ID']
-	redirect_path: Scalars['String']
 }
 
 export type MutationRemoveIntegrationFromProjectArgs = {

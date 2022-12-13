@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
@@ -20,9 +20,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './IntegrationsPage.module.scss'
 
 const IntegrationsPage = () => {
-	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot({
-		type: 'Organization',
-	})
+	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
 	const { integration_type: configureIntegration } = useParams<{
 		integration_type: string

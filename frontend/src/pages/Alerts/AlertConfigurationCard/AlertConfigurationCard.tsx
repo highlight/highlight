@@ -1,6 +1,6 @@
 import Card from '@components/Card/Card'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import Input from '@components/Input/Input'
 import Switch from '@components/Switch/Switch'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -750,10 +750,7 @@ export const AlertConfigurationCard = ({
 								alert is created.
 							</p>
 							{!isSlackIntegrated ? (
-								<PersonalNotificationButton
-									text="Connect Highlight with Slack"
-									type="Organization"
-								/>
+								<ConnectHighlightWithSlackButton />
 							) : (
 								<Form.Item shouldUpdate>
 									{() => (
