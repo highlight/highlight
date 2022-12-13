@@ -9,11 +9,11 @@ on:
             - '**/yarn.lock'
             - '.github/workflows/e2e-test.yml'
             - '.gitmodules'
-            - 'client/**'
             - 'cypress.config.js'
             - 'cypress/**'
-            - 'firstload/**'
             - 'frontend/**'
+            - 'highlight-javascript/client/**'
+            - 'highlight-javascript/firstload/**'
             - 'rrweb/**'
 jobs:
     test:
