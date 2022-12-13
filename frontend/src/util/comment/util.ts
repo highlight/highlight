@@ -46,14 +46,16 @@ export const getCommentMentionSuggestions = (
 
 	return [
 		...mappedAdmins,
-		...suggestions.slack_channel_suggestion.map<CommentSuggestion>((suggestion) => ({
-			id: suggestion.webhook_channel_id as string,
-			name: suggestion.webhook_channel as string,
-			photoUrl: '',
-			email: suggestion.webhook_channel?.includes('#')
-				? 'Slack Channel'
-				: 'Slack User',
-		})),
+		...suggestions.slack_channel_suggestion.map<CommentSuggestion>(
+			(suggestion) => ({
+				id: suggestion.webhook_channel_id as string,
+				name: suggestion.webhook_channel as string,
+				photoUrl: '',
+				email: suggestion.webhook_channel?.includes('#')
+					? 'Slack Channel'
+					: 'Slack User',
+			}),
+		),
 	].sort((suggestionA, suggestionB) =>
 		(['@', '#'].includes(suggestionA.name[0])
 			? suggestionA.name.slice(1)
