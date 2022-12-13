@@ -35,6 +35,6 @@
 	"references": [
 		{ "path": "../highlight-javascript/client" },
 		{ "path": "../highlight-javascript/firstload" },
-		{ "path": "../highlight-javascript/rrweb/packages/rrweb" }
+		{ "path": "../rrweb/packages/rrweb" }
 	]
 }
