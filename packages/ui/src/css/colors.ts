@@ -16,9 +16,11 @@ export const colors = {
 	neutralN2: '#F9F8F9',
 	neutralN3: '#F4F2F4',
 	neutralN4: '#EEEDEF',
+	neutralN5: '#E9E8EA',
 	neutralN6: '#E4E2E4',
 	neutralN8: '#C8C7CB',
 	neutralN9: '#908E96',
+	neutralN10: '#86848D',
 	neutralN11: '#6F6E77',
 
 	purple100: '#B19CFF',
