@@ -149,7 +149,6 @@ const AlertSetupModal = () => {
 									<li>User submitted feedback</li>
 								</ul>
 								<PersonalNotificationButton
-									text="Connect Highlight with Slack"
 									className={styles.integrationButton}
 								/>
 							</>

@@ -114,7 +114,6 @@ const Notifications = () => {
 														: `You have no unread notifications 🎉`}
 												</p>
 												<PersonalNotificationButton
-													text="Get Slack Notifications"
 													style={{
 														maxWidth: 'fit-content',
 													}}
@@ -170,7 +169,6 @@ const Notifications = () => {
 													session.
 												</p>
 												<PersonalNotificationButton
-													text="Get Slack Notifications"
 													style={{
 														maxWidth: 'fit-content',
 													}}

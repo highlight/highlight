@@ -750,7 +750,7 @@ export const AlertConfigurationCard = ({
 								alert is created.
 							</p>
 							{!isSlackIntegrated ? (
-								<PersonalNotificationButton text="Connect Highlight with Slack" />
+								<PersonalNotificationButton />
 							) : (
 								<Form.Item shouldUpdate>
 									{() => (

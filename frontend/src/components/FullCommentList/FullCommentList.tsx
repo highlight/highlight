@@ -34,7 +34,7 @@ const FullCommentList = ({
 						<h2>There are no comments yet</h2>
 						<p>{noCommentsMessage}</p>
 					</div>
-					<PersonalNotificationButton text="Tag Slack Channels in Comments" />
+					<PersonalNotificationButton />
 				</div>
 			) : (
 				<>
