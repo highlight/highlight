@@ -1211,9 +1211,8 @@ type Query {
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
-	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
-	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
 		integration_type: IntegrationType!

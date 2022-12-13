@@ -3259,14 +3259,10 @@ export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
 }>
 
 export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
@@ -3367,14 +3363,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
 	is_integrated_with_discord: Types.Query['is_integrated_with']
 } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 	discord_channel_suggestions: Array<
@@ -3533,12 +3525,10 @@ export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
 			>
 		}
 	>
-	slack_members: Array<
-		Types.Maybe<
-			{ __typename?: 'SanitizedSlackChannel' } & Pick<
-				Types.SanitizedSlackChannel,
-				'webhook_channel' | 'webhook_channel_id'
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
