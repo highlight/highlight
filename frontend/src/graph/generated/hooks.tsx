@@ -9812,7 +9812,7 @@ export const GetCommentMentionSuggestionsDocument = gql`
 				photo_url
 			}
 		}
-		slack_members(project_id: $project_id) {
+		slack_channel_suggestion(project_id: $project_id) {
 			webhook_channel
 			webhook_channel_id
 		}

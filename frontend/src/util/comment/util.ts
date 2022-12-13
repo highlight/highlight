@@ -40,17 +40,17 @@ export const getCommentMentionSuggestions = (
 		photoUrl: wa.admin!.photo_url as string,
 	}))
 
-	if (suggestions.slack_members.length === 0) {
+	if (suggestions.slack_channel_suggestion.length === 0) {
 		return mappedAdmins
 	}
 
 	return [
 		...mappedAdmins,
-		...suggestions.slack_members.map<CommentSuggestion>((slackMember) => ({
-			id: slackMember!.webhook_channel_id as string,
-			name: slackMember!.webhook_channel as string,
+		...suggestions.slack_channel_suggestion.map<CommentSuggestion>((suggestion) => ({
+			id: suggestion.webhook_channel_id as string,
+			name: suggestion.webhook_channel as string,
 			photoUrl: '',
-			email: slackMember!.webhook_channel?.includes('#')
+			email: suggestion.webhook_channel?.includes('#')
 				? 'Slack Channel'
 				: 'Slack User',
 		})),

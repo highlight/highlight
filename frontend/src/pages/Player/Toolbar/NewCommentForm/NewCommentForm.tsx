@@ -346,7 +346,7 @@ export const NewCommentForm = ({
 				}),
 		)
 
-		if (mentionSuggestionsData?.slack_members) {
+		if (mentionSuggestionsData?.slack_channel_suggestion) {
 			setMentionedSlackUsers(
 				mentions
 					.filter(
@@ -356,10 +356,10 @@ export const NewCommentForm = ({
 					)
 					.map<SanitizedSlackChannelInput>((mention) => {
 						const matchingSlackUser =
-							mentionSuggestionsData.slack_members.find(
-								(slackUser) => {
+							mentionSuggestionsData.slack_channel_suggestion.find(
+								(suggestion) => {
 									return (
-										slackUser?.webhook_channel_id ===
+										suggestion.webhook_channel_id ===
 										mention.id
 									)
 								},

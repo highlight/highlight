@@ -5060,36 +5060,6 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 	return ret, nil
 }
 
-// SlackMembers is the resolver for the slack_members field.
-func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting project")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	chs, err := workspace.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing channels")
-	}
-
-	ret := []*modelInputs.SanitizedSlackChannel{}
-	for _, ch := range chs {
-		channel := ch.WebhookChannel
-		channelID := ch.WebhookChannelID
-
-		ret = append(ret, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   &channel,
-			WebhookChannelID: &channelID,
-		})
-	}
-	return ret, nil
-}
-
 // GenerateZapierAccessToken is the resolver for the generate_zapier_access_token field.
 func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)

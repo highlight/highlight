@@ -145,10 +145,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
 			)
 		}
 
-		if (mentionSuggestionsData?.slack_members) {
+		if (mentionSuggestionsData?.slack_channel_suggestion) {
 			setMentionedSlackUsers(
 				filterMentionedSlackUsers(
-					mentionSuggestionsData.slack_members,
+					mentionSuggestionsData.slack_channel_suggestion,
 					mentions,
 				),
 			)
