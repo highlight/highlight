@@ -15,7 +15,7 @@ export const sessionCardTitleText = style({
 })
 
 export const activityGraph = style({
-	width: 120,
+	width: 80,
 	paddingTop: 2,
 })
 

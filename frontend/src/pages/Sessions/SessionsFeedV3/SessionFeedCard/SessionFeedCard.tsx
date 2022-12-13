@@ -4,13 +4,11 @@ import {
 	Box,
 	IconCursorClick,
 	IconExclamationTriangle,
-	IconEye,
 	IconEyeOff,
 	IconUserCircle,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
 import UserCross from '@icons/UserCross'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
@@ -20,7 +18,7 @@ import {
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
-import moment from 'moment'
+import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -117,11 +115,6 @@ export const SessionFeedCard = React.memo(
 								{backfilled && <UserCross />}
 							</Box>
 							<Box display="flex" alignItems="center" gap="8">
-								{!session.processed && (
-									<Tag shape="basic" kind="grey">
-										<Text>Live</Text>
-									</Tag>
-								)}
 								<Avatar
 									seed={getDisplayName(session)}
 									style={{ height: 20, width: 20 }}
@@ -142,6 +135,53 @@ export const SessionFeedCard = React.memo(
 								justifyContent="space-between"
 							>
 								<Box display="flex" gap="4" alignItems="center">
+									{!session.processed && (
+										<Tag
+											shape="basic"
+											kind="grey"
+											size="small"
+										>
+											<Text>Live</Text>
+										</Tag>
+									)}
+									{!viewed && (
+										<Tag
+											shape="basic"
+											kind="transparent"
+											iconLeft={<IconEyeOff size={12} />}
+										/>
+									)}
+									{session.first_time && (
+										<Tag
+											shape="basic"
+											kind="transparent"
+											iconLeft={
+												<IconUserCircle size={12} />
+											}
+										/>
+									)}
+									{session.has_errors && (
+										<Tag
+											shape="basic"
+											kind="transparent"
+											iconLeft={
+												<IconExclamationTriangle
+													size={12}
+												/>
+											}
+										/>
+									)}
+									{session.has_rage_clicks && (
+										<Tag
+											shape="basic"
+											kind="transparent"
+											iconLeft={
+												<IconCursorClick size={12} />
+											}
+										/>
+									)}
+								</Box>
+								<Box display="flex" gap="4" alignItems="center">
 									<Tag shape="basic" kind="grey" size="small">
 										<Text
 											lines="1"
@@ -153,67 +193,7 @@ export const SessionFeedCard = React.memo(
 												.format('HH:mm:ss')}
 										</Text>
 									</Tag>
-									<Tag
-										shape="basic"
-										kind="transparent"
-										iconLeft={
-											viewed ? (
-												<>
-													<IconEye size={12} />
-												</>
-											) : (
-												<IconEyeOff
-													color={colors.purple500}
-													size={12}
-												/>
-											)
-										}
-									/>
-									<Tag
-										shape="basic"
-										kind="transparent"
-										iconLeft={
-											<IconUserCircle
-												color={
-													session.first_time
-														? colors.purple500
-														: undefined
-												}
-												size={12}
-											/>
-										}
-									/>
-									<Tag
-										shape="basic"
-										kind="transparent"
-										iconLeft={
-											<IconExclamationTriangle
-												size={12}
-												color={
-													session.has_rage_clicks
-														? colors.purple500
-														: undefined
-												}
-											/>
-										}
-									/>
-									<Tag
-										shape="basic"
-										kind="transparent"
-										iconLeft={
-											<IconCursorClick
-												size={12}
-												color={
-													session.has_rage_clicks
-														? colors.purple500
-														: undefined
-												}
-											/>
-										}
-									/>
-								</Box>
-								<Box display="flex" gap="4" alignItems="center">
-									<Tag shape="basic" kind="grey">
+									<Tag shape="basic" kind="grey" size="small">
 										<Text
 											lines="1"
 											size="small"

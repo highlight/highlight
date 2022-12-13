@@ -4,7 +4,7 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import { Area, ComposedChart } from 'recharts'
 
 const SOURCE_POINTS = 100
-const DESIRED_POINTS = 20
+const DESIRED_POINTS = 12
 const SAMPLE_INTERVAL = Math.floor(SOURCE_POINTS / DESIRED_POINTS)
 const GRADIENT_COLOR = `#6C37F4`
 const LINE_COLOR = colors.purpleP9
