@@ -2,17 +2,17 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Session } from '@graph/schemas'
 import {
 	Box,
-	IconBadgeCheck,
-	IconEmojiHappy,
+	IconCursorClick,
+	IconExclamationTriangle,
 	IconEye,
 	IconEyeOff,
+	IconUserCircle,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
 import UserCross from '@icons/UserCross'
-import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
 	getDisplayName,
@@ -20,6 +20,7 @@ import {
 } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV2/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '@pages/Sessions/SessionsFeedV2/context/SessionFeedConfigurationContext'
+import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -104,11 +105,6 @@ export const SessionFeedCard = React.memo(
 					>
 						<Box color="dark" cssClass={style.sessionCardTitle}>
 							<Box display="flex" gap="8" alignItems="center">
-								<Avatar
-									seed={getDisplayName(session)}
-									style={{ height: 25, width: 25 }}
-									customImage={customAvatarImage}
-								/>
 								<Text
 									lines="1"
 									size="small"
@@ -120,26 +116,18 @@ export const SessionFeedCard = React.memo(
 								</Text>
 								{backfilled && <UserCross />}
 							</Box>
-							<Text
-								lines="1"
-								size="small"
-								color="neutralN9"
-								display="flex"
-								cssClass={style.sessionCardTitleText}
-							>
-								{configuration?.datetimeFormat
-									? formatDatetime(
-											session.created_at,
-											configuration.datetimeFormat,
-									  )
-									: `${new Date(
-											session.created_at,
-									  ).toLocaleString('en-us', {
-											day: 'numeric',
-											month: 'long',
-											year: 'numeric',
-									  })}`}
-							</Text>
+							<Box display="flex" alignItems="center" gap="8">
+								{!session.processed && (
+									<Tag shape="basic" kind="grey">
+										<Text>Live</Text>
+									</Tag>
+								)}
+								<Avatar
+									seed={getDisplayName(session)}
+									style={{ height: 20, width: 20 }}
+									customImage={customAvatarImage}
+								/>
+							</Box>
 						</Box>
 						<Box
 							alignItems="center"
@@ -154,15 +142,17 @@ export const SessionFeedCard = React.memo(
 								justifyContent="space-between"
 							>
 								<Box display="flex" gap="4" alignItems="center">
-									{!session.processed && (
-										<Tag
-											shape="basic"
-											kind="primary"
+									<Tag shape="basic" kind="grey" size="small">
+										<Text
+											lines="1"
 											size="small"
+											display="flex"
 										>
-											<Text>Live</Text>
-										</Tag>
-									)}
+											{moment
+												.utc(session.active_length)
+												.format('HH:mm:ss')}
+										</Text>
+									</Tag>
 									<Tag
 										shape="basic"
 										kind="transparent"
@@ -182,22 +172,69 @@ export const SessionFeedCard = React.memo(
 									<Tag
 										shape="basic"
 										kind="transparent"
-										iconLeft={<IconEmojiHappy size={12} />}
+										iconLeft={
+											<IconUserCircle
+												color={
+													session.first_time
+														? colors.purple500
+														: undefined
+												}
+												size={12}
+											/>
+										}
 									/>
 									<Tag
 										shape="basic"
 										kind="transparent"
-										iconLeft={<IconBadgeCheck size={12} />}
+										iconLeft={
+											<IconExclamationTriangle
+												size={12}
+												color={
+													session.has_rage_clicks
+														? colors.purple500
+														: undefined
+												}
+											/>
+										}
+									/>
+									<Tag
+										shape="basic"
+										kind="transparent"
+										iconLeft={
+											<IconCursorClick
+												size={12}
+												color={
+													session.has_rage_clicks
+														? colors.purple500
+														: undefined
+												}
+											/>
+										}
 									/>
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
 									<Tag shape="basic" kind="grey">
-										{formatShortTime(
-											(session.active_length || 0) / 1000,
-											['h', 'm', 's'],
-											' ',
-											1,
-										)}
+										<Text
+											lines="1"
+											size="small"
+											display="flex"
+											cssClass={
+												style.sessionCardTitleText
+											}
+										>
+											{configuration?.datetimeFormat
+												? formatDatetime(
+														session.created_at,
+														configuration.datetimeFormat,
+												  )
+												: `${new Date(
+														session.created_at,
+												  ).toLocaleString('en-us', {
+														day: 'numeric',
+														month: 'long',
+														year: 'numeric',
+												  })}`}
+										</Text>
 									</Tag>
 								</Box>
 							</Box>

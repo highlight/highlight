@@ -11,7 +11,6 @@ export const CENTER_COLUMN_MARGIN = 0
 export const MIN_CENTER_COLUMN_WIDTH = 428
 
 export const playerWrapperV2 = style({
-	borderTop: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
 	flexDirection: 'column',
 	flexGrow: 1,

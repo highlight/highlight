@@ -349,23 +349,22 @@ const PlayerPage = ({ integrated }: Props) => {
 							className={style.playerCenterPanel}
 							ref={playerCenterPanelRef}
 						>
-							{(sessionViewability ===
-								SessionViewability.VIEWABLE &&
-								!!session) ||
-							replayerState !== ReplayerState.Empty ||
-							(replayerState === ReplayerState.Empty &&
-								!!session_secure_id) ? (
-								<div className={style.playerContainer}>
-									<div className={style.rrwebPlayerSection}>
-										<div
-											className={style.playerCenterColumn}
-										>
-											{centerColumnResizeListener}
-											{!isPlayerFullscreen && (
-												<SessionLevelBarV2
-													width={controllerWidth}
-												/>
-											)}
+							<div className={style.playerContainer}>
+								<div className={style.rrwebPlayerSection}>
+									<div className={style.playerCenterColumn}>
+										{centerColumnResizeListener}
+										{!isPlayerFullscreen && (
+											<SessionLevelBarV2
+												width={controllerWidth}
+											/>
+										)}
+										{(sessionViewability ===
+											SessionViewability.VIEWABLE &&
+											!!session) ||
+										replayerState !== ReplayerState.Empty ||
+										(replayerState ===
+											ReplayerState.Empty &&
+											!!session_secure_id) ? (
 											<ResourcesContextProvider
 												value={resources}
 											>
@@ -452,40 +451,30 @@ const PlayerPage = ({ integrated }: Props) => {
 													</DevToolsContextProvider>
 												</ToolbarItemsContextProvider>
 											</ResourcesContextProvider>
-										</div>
-
-										{!isPlayerFullscreen && (
-											<>
-												<RightPlayerPanel />
-												<ResourcesContextProvider
-													value={resources}
-												>
-													<DetailPanel />
-												</ResourcesContextProvider>
-											</>
+										) : (
+											<Box
+												width="full"
+												height="full"
+												display="flex"
+												justifyContent="center"
+											>
+												<NoActiveSessionCard />
+											</Box>
 										)}
 									</div>
+
+									{!isPlayerFullscreen && (
+										<>
+											<RightPlayerPanel />
+											<ResourcesContextProvider
+												value={resources}
+											>
+												<DetailPanel />
+											</ResourcesContextProvider>
+										</>
+									)}
 								</div>
-							) : (
-								<Box
-									display={'flex'}
-									flexDirection={'column'}
-									width={'full'}
-									height={'full'}
-								>
-									<SessionLevelBarV2
-										width={controllerWidth}
-									/>
-									<Box
-										width={'full'}
-										height={'full'}
-										display={'flex'}
-										justifyContent={'center'}
-									>
-										<NoActiveSessionCard />
-									</Box>
-								</Box>
-							)}
+							</div>
 						</div>
 					)}
 					<NewCommentModal

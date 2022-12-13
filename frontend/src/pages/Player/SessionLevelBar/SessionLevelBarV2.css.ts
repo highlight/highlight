@@ -3,6 +3,8 @@ import { style } from '@vanilla-extract/css'
 
 export const sessionLevelBarV2 = style({
 	alignItems: 'center',
+	backgroundColor: colors.white,
+	borderBottom: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
 	height: 44,
 })
@@ -47,4 +49,9 @@ export const rightButtons = style({
 
 export const openLeftPanelButton = style({
 	minWidth: 30,
+})
+
+export const sessionSwitchButton = style({
+	border: '0 !important',
+	borderRadius: 0,
 })
