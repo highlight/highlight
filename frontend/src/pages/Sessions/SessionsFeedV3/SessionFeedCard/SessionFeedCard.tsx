@@ -6,11 +6,11 @@ import {
 	IconExclamationTriangle,
 	IconEyeOff,
 	IconUserCircle,
+	IconUsers,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import UserCross from '@icons/UserCross'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
 import {
 	getDisplayName,
@@ -93,7 +93,6 @@ export const SessionFeedCard = React.memo(
 						borderRadius="6"
 						display="flex"
 						flexDirection="column"
-						gap="4"
 						cssClass={[
 							style.sessionCard,
 							{
@@ -102,25 +101,33 @@ export const SessionFeedCard = React.memo(
 						]}
 					>
 						<Box color="dark" cssClass={style.sessionCardTitle}>
-							<Box display="flex" gap="8" alignItems="center">
+							<Box
+								display="inline-flex"
+								gap="8"
+								alignItems="center"
+							>
 								<Text
 									lines="1"
 									size="small"
 									color="dark"
-									display="flex"
 									cssClass={style.sessionCardTitleText}
 								>
 									{getDisplayName(session)}
 								</Text>
-								{backfilled && <UserCross />}
+								{backfilled && (
+									<Tag
+										shape="basic"
+										kind="transparent"
+										size="small"
+										iconLeft={<IconUsers size={12} />}
+									/>
+								)}
 							</Box>
-							<Box display="flex" alignItems="center" gap="8">
-								<Avatar
-									seed={getDisplayName(session)}
-									style={{ height: 20, width: 20 }}
-									customImage={customAvatarImage}
-								/>
-							</Box>
+							<Avatar
+								seed={getDisplayName(session)}
+								style={{ height: 20, width: 20 }}
+								customImage={customAvatarImage}
+							/>
 						</Box>
 						<Box
 							alignItems="center"
@@ -131,7 +138,7 @@ export const SessionFeedCard = React.memo(
 							<Box
 								display="flex"
 								flexDirection="column"
-								gap="6"
+								gap="4"
 								justifyContent="space-between"
 							>
 								<Box display="flex" gap="4" alignItems="center">
@@ -148,6 +155,7 @@ export const SessionFeedCard = React.memo(
 										<Tag
 											shape="basic"
 											kind="transparent"
+											size="small"
 											iconLeft={<IconEyeOff size={12} />}
 										/>
 									)}
@@ -155,6 +163,7 @@ export const SessionFeedCard = React.memo(
 										<Tag
 											shape="basic"
 											kind="transparent"
+											size="small"
 											iconLeft={
 												<IconUserCircle size={12} />
 											}
@@ -164,6 +173,7 @@ export const SessionFeedCard = React.memo(
 										<Tag
 											shape="basic"
 											kind="transparent"
+											size="small"
 											iconLeft={
 												<IconExclamationTriangle
 													size={12}
@@ -175,6 +185,7 @@ export const SessionFeedCard = React.memo(
 										<Tag
 											shape="basic"
 											kind="transparent"
+											size="small"
 											iconLeft={
 												<IconCursorClick size={12} />
 											}
