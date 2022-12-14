@@ -1,20 +1,19 @@
 name: E2E Test
 on:
-    push:
+    pull_request:
+        types: ['opened', 'synchronize']
         branches:
             - '**'
             - '!master'
-        # paths:
-        #     - '**/package.json'
-        #     - '**/yarn.lock'
-        #     - '.github/workflows/e2e-test.yml'
-        #     - '.gitmodules'
-        #     - 'client/**'
-        #     - 'cypress.config.js'
-        #     - 'cypress/**'
-        #     - 'firstload/**'
-        #     - 'frontend/**'
-        #     - 'rrweb/**'
+        paths:
+            - '**/package.json'
+            - '**/yarn.lock'
+            - '.github/workflows/e2e-test.yml'
+            - '.gitmodules'
+            - 'cypress.config.js'
+            - 'cypress/**'
+            - 'frontend/**'
+            - 'rrweb/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
