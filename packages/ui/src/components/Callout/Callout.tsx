@@ -17,6 +17,7 @@ export type Props = React.PropsWithChildren &
 		title: string
 		icon?: boolean
 		handleCloseClick?: () => void
+		icon?: () => JSX.Element
 	}
 
 export const Callout: React.FC<Props> = ({
@@ -25,8 +26,10 @@ export const Callout: React.FC<Props> = ({
 	icon = true,
 	title,
 	handleCloseClick,
+	icon,
+	border,
 }) => {
-	const Icon = kindIconLookup[kind]
+	const Icon = icon ?? kindIconLookup[kind]
 
 	return (
 		<Box
@@ -35,7 +38,7 @@ export const Callout: React.FC<Props> = ({
 			display="flex"
 			gap="8"
 			p="8"
-			cssClass={styles.variants({ kind })}
+			cssClass={styles.variants({ kind, border })}
 		>
 			{icon && <Icon />}
 

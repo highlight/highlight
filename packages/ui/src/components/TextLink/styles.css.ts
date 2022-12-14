@@ -28,6 +28,21 @@ export const variants = recipe({
 				textDecoration: 'underline',
 			},
 		},
+		color: {
+			none: {
+				color: vars.color.neutralN11,
+				':hover': {
+					color: vars.color.neutralN11,
+				},
+				':focus': {
+					color: vars.color.neutralN11,
+				},
+				':active': {
+					color: vars.color.neutralN11,
+				},
+			},
+			default: {},
+		},
 	},
 
 	defaultVariants: {

@@ -14,10 +14,18 @@ export const variants = recipe({
 				backgroundColor: vars.theme.static.surface.raised,
 			},
 		},
+		border: {
+			true: sprinkles({
+				border: 'neutral',
+				borderRadius: '8',
+			}),
+			false: sprinkles({}),
+		},
 	},
 
 	defaultVariants: {
 		kind: 'info',
+		border: true,
 	},
 })
 

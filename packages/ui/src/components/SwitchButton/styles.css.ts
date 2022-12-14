@@ -3,19 +3,15 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { vars } from '../../css/vars'
 import { shadows } from '../Button/styles.css'
 
-export const defaultSize = 'small'
-
 export const variants = recipe({
 	base: [
 		{
 			alignItems: 'center',
 			display: 'inline-flex',
 			justifyContent: 'center',
-			height: 28,
-			width: 26,
 			boxShadow: 'none',
 			border: 'none',
-			padding: '0',
+			padding: 4,
 		},
 		sprinkles({ borderRadius: '6' }),
 		{

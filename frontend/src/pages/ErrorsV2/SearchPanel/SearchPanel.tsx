@@ -102,17 +102,12 @@ const SearchPanel = () => {
 		>
 			<ErrorQueryBuilder />
 			{showHistogram && (
-				<Box
-					borderBottom="secondary"
-					paddingTop="10"
-					paddingBottom="12"
-					px="8"
-				>
+				<Box borderBottom="secondary" paddingBottom="8" px="8">
 					<ErrorFeedHistogram />
 				</Box>
 			)}
 			<Box
-				padding="6"
+				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
 				cssClass={style.content}

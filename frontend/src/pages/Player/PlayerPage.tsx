@@ -8,9 +8,9 @@ import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { Replayer } from '@highlight-run/rrweb'
+import { Box } from '@highlight-run/ui'
 import LoadingLiveSessionCard from '@pages/Player/components/LoadingLiveSessionCard/LoadingLiveSessionCard'
 import NoActiveSessionCard from '@pages/Player/components/NoActiveSessionCard/NoActiveSessionCard'
-import PanelToggleButton from '@pages/Player/components/PanelToggleButton/PanelToggleButton'
 import UnauthorizedViewingForm from '@pages/Player/components/UnauthorizedViewingForm/UnauthorizedViewingForm'
 import { PlayerUIContextProvider } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
@@ -29,14 +29,13 @@ import {
 	ResourcesContextProvider,
 	useResources,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
-import RightPlayerPanel, {
-	DUAL_PANEL_VIEWPORT_THRESHOLD,
-} from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
+import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SearchPanel from '@pages/Player/SearchPanel/SearchPanel'
-import SessionLevelBar from '@pages/Player/SessionLevelBar/SessionLevelBar'
+import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
 import DetailPanel from '@pages/Player/Toolbar/DevToolsWindow/DetailPanel/DetailPanel'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
+import useToolbarItems from '@pages/Player/Toolbar/ToolbarItems/useToolbarItems'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
@@ -48,6 +47,7 @@ import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import Lottie from 'lottie-react'
 import React, {
+	FC,
 	Suspense,
 	useCallback,
 	useEffect,
@@ -58,20 +58,16 @@ import React, {
 import { Helmet } from 'react-helmet'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import useResizeAware from 'react-resize-aware'
-import { useWindowSize } from 'react-use'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import styles from './PlayerPage.module.scss'
+import * as style from './styles.css'
+import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
+import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
 interface Props {
 	integrated: boolean
 }
-
-export const LEFT_PANEL_WIDTH = 475
-export const RIGHT_PANEL_WIDTH = 350
-
-const CENTER_COLUMN_MARGIN = 16
-const MIN_CENTER_COLUMN_WIDTH = 428
 
 const PlayerPage = ({ integrated }: Props) => {
 	const { isLoggedIn } = useAuthContext()
@@ -103,10 +99,14 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const resources = useResources(session)
 	const {
-		setShowRightPanel,
 		setShowLeftPanel,
 		showLeftPanel: showLeftPanelPreference,
+		showDevTools,
+		setShowDevTools,
+		selectedDevToolsTab,
+		setSelectedDevToolsTab,
 	} = usePlayerConfiguration()
+	const toolbarItems = useToolbarItems()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -212,8 +212,8 @@ const PlayerPage = ({ integrated }: Props) => {
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = Math.max(
-		MIN_CENTER_COLUMN_WIDTH,
-		(centerColumnSize.width || 0) - 2 * CENTER_COLUMN_MARGIN,
+		style.MIN_CENTER_COLUMN_WIDTH,
+		(centerColumnSize.width || 0) - 2 * style.CENTER_COLUMN_OVERLAP,
 	)
 
 	const playerFiller = useMemo(() => {
@@ -226,8 +226,6 @@ const PlayerPage = ({ integrated }: Props) => {
 			</div>
 		)
 	}, [controllerWidth])
-
-	const { width: windowWidth } = useWindowSize()
 
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 	return (
@@ -266,36 +264,11 @@ const PlayerPage = ({ integrated }: Props) => {
 					)}
 				>
 					<div
-						className={classNames(styles.playerLeftPanel, {
-							[styles.hidden]: !showLeftPanel,
+						className={classNames(style.playerLeftPanel, {
+							[style.playerLeftPanelHidden]: !showLeftPanel,
 						})}
 					>
 						<SearchPanel visible={showLeftPanel} />
-						{isLoggedIn && (
-							<PanelToggleButton
-								className={classNames(
-									styles.panelToggleButton,
-									styles.panelToggleButtonLeft,
-									{
-										[styles.panelShown]:
-											showLeftPanelPreference,
-									},
-								)}
-								direction="left"
-								isOpen={showLeftPanelPreference}
-								onClick={() => {
-									if (
-										!showLeftPanelPreference &&
-										windowWidth <=
-											DUAL_PANEL_VIEWPORT_THRESHOLD
-									) {
-										setShowRightPanel(false)
-									}
-
-									setShowLeftPanel(!showLeftPanelPreference)
-								}}
-							/>
-						)}
 					</div>
 					{sessionViewability ===
 						SessionViewability.OVER_BILLING_QUOTA && (
@@ -370,114 +343,124 @@ const PlayerPage = ({ integrated }: Props) => {
 								)}
 							</p>
 						</ElevatedCard>
-					) : (sessionViewability === SessionViewability.VIEWABLE &&
-							!!session) ||
-					  replayerState !== ReplayerState.Empty ||
-					  (replayerState === ReplayerState.Empty &&
-							!!session_secure_id) ? (
+					) : (
 						<div
 							id="playerCenterPanel"
-							className={classNames(styles.playerCenterPanel, {
-								[styles.gridBackground]: isPlayerFullscreen,
-							})}
+							className={style.playerCenterPanel}
 							ref={playerCenterPanelRef}
 						>
-							<div className={styles.playerContainer}>
-								<div className={styles.rrwebPlayerSection}>
-									<div className={styles.playerCenterColumn}>
+							<div className={style.playerContainer}>
+								<div className={style.rrwebPlayerSection}>
+									<div className={style.playerCenterColumn}>
 										{centerColumnResizeListener}
 										{!isPlayerFullscreen && (
-											<SessionLevelBar
+											<SessionLevelBarV2
 												width={controllerWidth}
 											/>
 										)}
-										<div
-											className={
-												styles.rrwebPlayerWrapper
-											}
-											ref={playerWrapperRef}
-										>
-											{resizeListener}
-											{replayerState ===
-												ReplayerState.SessionRecordingStopped && (
-												<div
-													className={
-														styles.manuallyStoppedMessageContainer
-													}
-													style={{
-														height: replayerWrapperBbox?.height,
-														width: replayerWrapperBbox?.width,
-													}}
+										{(sessionViewability ===
+											SessionViewability.VIEWABLE &&
+											!!session) ||
+										replayerState !== ReplayerState.Empty ||
+										(replayerState ===
+											ReplayerState.Empty &&
+											!!session_secure_id) ? (
+											<ResourcesContextProvider
+												value={resources}
+											>
+												<ToolbarItemsContextProvider
+													value={toolbarItems}
 												>
-													<ElevatedCard title="Session recording manually stopped">
-														<p>
-															<a
-																href="https://docs.highlight.run/api/hstop"
-																target="_blank"
-																rel="noreferrer"
+													<DevToolsContextProvider
+														value={{
+															openDevTools:
+																showDevTools,
+															setOpenDevTools:
+																setShowDevTools,
+															devToolsTab:
+																selectedDevToolsTab,
+															setDevToolsTab:
+																setSelectedDevToolsTab,
+														}}
+													>
+														<div
+															className={
+																style.playerWrapperV2
+															}
+														>
+															<div
+																className={
+																	styles.rrwebPlayerWrapper
+																}
+																ref={
+																	playerWrapperRef
+																}
 															>
-																<code>
-																	H.stop()
-																</code>
-															</a>{' '}
-															was called during
-															the session. Calling
-															this method stops
-															the session
-															recording. If you
-															expect the recording
-															to continue please
-															check where you are
-															calling{' '}
-															<a
-																href="https://docs.highlight.run/api/hstop"
-																target="_blank"
-																rel="noreferrer"
-															>
-																<code>
-																	H.stop()
-																</code>
-															</a>
-															.
-														</p>
-													</ElevatedCard>
-												</div>
-											)}
-											<div
-												style={{
-													visibility: isPlayerReady
-														? 'visible'
-														: 'hidden',
-												}}
-												className="highlight-block"
-												id="player"
-											/>
-											<PlayerCommentCanvas
-												setModalPosition={
-													setCommentModalPosition
-												}
-												modalPosition={
-													commentModalPosition
-												}
-												setCommentPosition={
-													setCommentPosition
-												}
-											/>
-											{!isPlayerReady &&
-												sessionViewability ===
-													SessionViewability.VIEWABLE &&
-												(session?.processed ===
-												false ? (
-													<LoadingLiveSessionCard />
-												) : (
-													playerFiller
-												))}
-										</div>
-										<ResourcesContextProvider
-											value={resources}
-										>
-											<Toolbar width={controllerWidth} />
-										</ResourcesContextProvider>
+																{resizeListener}
+																{replayerState ===
+																	ReplayerState.SessionRecordingStopped && (
+																	<div
+																		className={
+																			styles.manuallyStoppedMessageContainer
+																		}
+																		style={{
+																			height: replayerWrapperBbox?.height,
+																			width: replayerWrapperBbox?.width,
+																		}}
+																	>
+																		<ManualStopCard />
+																	</div>
+																)}
+																<div
+																	style={{
+																		visibility:
+																			isPlayerReady
+																				? 'visible'
+																				: 'hidden',
+																	}}
+																	className="highlight-block"
+																	id="player"
+																/>
+																<PlayerCommentCanvas
+																	setModalPosition={
+																		setCommentModalPosition
+																	}
+																	modalPosition={
+																		commentModalPosition
+																	}
+																	setCommentPosition={
+																		setCommentPosition
+																	}
+																/>
+																{!isPlayerReady &&
+																	sessionViewability ===
+																		SessionViewability.VIEWABLE &&
+																	(session?.processed ===
+																	false ? (
+																		<LoadingLiveSessionCard />
+																	) : (
+																		playerFiller
+																	))}
+															</div>
+															<Toolbar
+																width={
+																	controllerWidth
+																}
+															/>
+														</div>
+													</DevToolsContextProvider>
+												</ToolbarItemsContextProvider>
+											</ResourcesContextProvider>
+										) : (
+											<Box
+												width="full"
+												height="full"
+												display="flex"
+												justifyContent="center"
+											>
+												<NoActiveSessionCard />
+											</Box>
+										)}
 									</div>
 
 									{!isPlayerFullscreen && (
@@ -493,8 +476,6 @@ const PlayerPage = ({ integrated }: Props) => {
 								</div>
 							</div>
 						</div>
-					) : (
-						<NoActiveSessionCard />
 					)}
 					<NewCommentModal
 						newCommentModalRef={newCommentModalRef}
@@ -514,6 +495,33 @@ const PlayerPage = ({ integrated }: Props) => {
 	)
 }
 
+const ManualStopCard: FC = function () {
+	return (
+		<ElevatedCard title="Session recording manually stopped">
+			<p>
+				<a
+					href="https://docs.highlight.run/api/hstop"
+					target="_blank"
+					rel="noreferrer"
+				>
+					<code>H.stop()</code>
+				</a>{' '}
+				was called during the session. Calling this method stops the
+				session recording. If you expect the recording to continue
+				please check where you are calling{' '}
+				<a
+					href="https://docs.highlight.run/api/hstop"
+					target="_blank"
+					rel="noreferrer"
+				>
+					<code>H.stop()</code>
+				</a>
+				.
+			</p>
+		</ElevatedCard>
+	)
+}
+
 const PlayerSkeleton = ({
 	width,
 	height,
@@ -526,11 +534,7 @@ const PlayerSkeleton = ({
 			baseColor="var(--text-primary-inverted)"
 			highlightColor="#f5f5f5"
 		>
-			<Skeleton
-				height={height}
-				width={width - 2 * CENTER_COLUMN_MARGIN}
-				duration={1}
-			/>
+			<Skeleton height={height} width={width} duration={1} />
 		</SkeletonTheme>
 	)
 }

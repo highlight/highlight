@@ -1,58 +1,49 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import Popover from '@components/Popover/Popover'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import { default as OldTooltip } from '@components/Tooltip/Tooltip'
+import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
 	normalizeParams,
 } from '@context/BaseSearchContext'
 import {
-	useEditErrorSegmentMutation,
+	useEditSegmentMutation,
 	useGetAppVersionsQuery,
-	useGetErrorSegmentsQuery,
+	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
-import {
-	ErrorSearchParamsInput,
-	ErrorSegment,
-	ErrorState,
-	Exact,
-	Field,
-	SearchParamsInput,
-} from '@graph/schemas'
+import { Exact, Field, SearchParamsInput, Segment } from '@graph/schemas'
 import {
 	Box,
+	Button,
 	ButtonIcon,
-	IconSolidCheveronDown,
-	IconSolidClock,
-	IconSolidCloudUpload,
-	IconSolidDocumentDuplicate,
-	IconSolidLogout,
-	IconSolidPencil,
-	IconSolidPlusCircle,
-	IconSolidPlusSm,
-	IconSolidRefresh,
-	IconSolidSave,
-	IconSolidSegment,
-	IconSolidTrash,
-	IconSolidX,
+	IconChevronDown,
+	IconClock,
+	IconCloudUpload,
+	IconDuplicate,
+	IconLogout,
+	IconPencil,
+	IconPlusCircle,
+	IconPlusSm,
+	IconRefresh,
+	IconSave,
+	IconSegment,
+	IconTrash,
+	IconX,
 	Menu,
 	Tag,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
-import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
-import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
-import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
+import CreateSegmentModal from '@pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
+import DeleteSessionSegmentModal from '@pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 import { DateInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/components/LengthInput'
 import { gqlSanitize } from '@util/gqlSanitize'
@@ -62,7 +53,7 @@ import { roundDateToMinute, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { capitalize, isEqual, remove } from 'lodash'
+import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { components } from 'react-select'
@@ -202,7 +193,7 @@ function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	return [doScroll, ref]
 }
 
-const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
+const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const [className, setClassName] = useState<string>(styles.shadowContainer)
@@ -363,7 +354,13 @@ const getProcessedLabel = (value: string): string => {
 }
 
 const getStateLabel = (value: string): string => {
-	return capitalize(value.toLowerCase())
+	if (value === 'RESOLVED') {
+		return 'Resolved'
+	} else if (value === 'IGNORED') {
+		return 'Ignored'
+	} else {
+		return 'Open'
+	}
 }
 
 const getMultiselectOption = (props: any) => {
@@ -773,22 +770,22 @@ const SelectPopout = ({
 			visible={visible}
 			destroyTooltipOnHide
 		>
-			<OldTooltip
+			<Tooltip
 				title={tooltipMessage}
 				mouseEnterDelay={1.5}
 				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
 			>
 				<span className={newStyle.tagPopoverAnchor}>
 					<Tag
-						kind="secondary"
+						kind="grey"
 						size="medium"
 						shape="basic"
-						className={clsx([
+						cssClass={[
 							cssClass,
 							{
 								[styles.invalid]: invalid && !visible,
 							},
-						])}
+						]}
 						lines={limitWidth ? '1' : undefined}
 						disabled={disabled}
 					>
@@ -802,7 +799,7 @@ const SelectPopout = ({
 							value.options[0].label}
 					</Tag>
 				</span>
-			</OldTooltip>
+			</Tooltip>
 		</Popover>
 	)
 }
@@ -877,13 +874,13 @@ const QueryRule = ({
 			{!readonly && (
 				<Tag
 					size="medium"
-					kind="secondary"
+					kind="grey"
 					shape="basic"
-					className={newStyle.flatLeft}
+					cssClass={[newStyle.flatLeft]}
 					onClick={() => {
 						onRemove()
 					}}
-					iconRight={<IconSolidX size={12} />}
+					iconRight={<IconX size={12} />}
 				/>
 			)}
 		</Box>
@@ -932,23 +929,21 @@ export const TimeRangeFilter = ({
 					kind="secondary"
 					size="small"
 					emphasis="high"
-					iconLeft={<IconSolidClock size={14} />}
-					iconRight={<IconSolidCheveronDown size={14} />}
-					trackingId="searchTimeRangeFilterTooltipToggle"
+					iconLeft={<IconClock size={14} />}
+					iconRight={<IconChevronDown size={14} />}
 				/>
 			</Popover>
 			<Tag
-				kind="secondary"
-				emphasis="low"
+				kind="transparent"
 				shape="basic"
-				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
+				iconRight={!!onReset ? <IconX size={12} /> : undefined}
 				onIconRightClick={!!onReset ? onReset : undefined}
 			>
 				<Box onClick={() => setVisible((visible) => !visible)}>
 					<Text
 						size="xSmall"
 						weight="medium"
-						color="n9"
+						color="neutral300"
 						userSelect="none"
 					>
 						{value &&
@@ -1067,8 +1062,6 @@ const OPERATORS: Operator[] = [
 export const RANGE_OPERATORS: Operator[] = ['between', 'not_between']
 
 export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time']
-
-export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date']
 
 export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not']
 
@@ -1293,11 +1286,12 @@ export type FetchFieldVariables =
 	| undefined
 
 interface QueryBuilderProps {
-	searchContext: BaseSearchContext<ErrorSearchParamsInput>
+	searchContext: BaseSearchContext<SearchParamsInput>
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
+	getQueryFromParams: (params: any) => QueryBuilderState
 	readonly?: boolean
 }
 
@@ -1319,7 +1313,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
-		setPage,
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
@@ -1336,10 +1329,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		project_id: string
 	}>()
 
-	const { loading: segmentsLoading, data: segmentData } =
-		useGetErrorSegmentsQuery({
+	const { loading: segmentsLoading, data: segmentData } = useGetSegmentsQuery(
+		{
 			variables: { project_id: projectId },
-		})
+		},
+	)
 
 	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
 	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
@@ -1353,18 +1347,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 		name?: string
 		id?: string
 	} | null>(null)
-	const [editSegment] = useEditErrorSegmentMutation({
-		refetchQueries: [namedOperations.Query.GetErrorSegments],
+	const [editSegment] = useEditSegmentMutation({
+		refetchQueries: [namedOperations.Query.GetSegments],
 	})
 
-	const segmentOptions = (segmentData?.error_segments || [])
+	const segmentOptions = (segmentData?.segments || [])
 		.map((segment) => ({
 			name: segment?.name || '',
 			id: segment?.id || '',
 		}))
 		.sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
 
-	const currentSegment = segmentData?.error_segments?.find(
+	const currentSegment = segmentData?.segments?.find(
 		(s) => s?.id === selectedSegment?.id,
 	)
 
@@ -1379,11 +1373,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const selectSegment = useCallback(
-		(segment?: Partial<ErrorSegment>) => {
+		(segment?: Partial<Segment>) => {
 			if (segment && segment.id && segment.name) {
 				const segmentParameters = normalizeParams(
 					gqlSanitize(
-						segmentData?.error_segments?.find(
+						segmentData?.segments?.find(
 							(s) => s?.id === segment?.id,
 						)?.params || '{}',
 					),
@@ -1393,16 +1387,16 @@ function QueryBuilder(props: QueryBuilderProps) {
 				setSelectedSegment({ id: segment.id, name: segment.name })
 			} else {
 				removeSelectedSegment()
-				setSearchParams(EmptyErrorsSearchParams)
-				setExistingParams(EmptyErrorsSearchParams)
+				setSearchParams(EmptySessionsSearchParams)
+				setExistingParams(EmptySessionsSearchParams)
 				setSearchParamsToUrlParams(
-					normalizeParams(EmptyErrorsSearchParams),
+					normalizeParams(EmptySessionsSearchParams),
 				)
 			}
 		},
 		[
 			removeSelectedSegment,
-			segmentData?.error_segments,
+			segmentData?.segments,
 			setExistingParams,
 			setSearchParams,
 			setSearchParamsToUrlParams,
@@ -1879,7 +1873,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						value: v,
 					}))
 				} else if (field.value === 'error_state') {
-					options = Object.values(ErrorState).map((v) => ({
+					options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
 						label: getStateLabel(v),
 						value: v,
 					}))
@@ -1943,6 +1937,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 			if (searchParamsToUrlParams.query !== undefined) {
 				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			} else {
+				setSearchParams(EmptySessionsSearchParams)
 			}
 		}
 
@@ -1965,7 +1961,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [selectedSegment, setActiveSegmentUrlParam])
 
 	useEffect(() => {
-		if (!isEqual(searchParams, EmptyErrorsSearchParams)) {
+		if (!isEqual(searchParams, EmptySessionsSearchParams)) {
 			setSearchParamsToUrlParams(
 				normalizeParams(searchParams),
 				'replaceIn',
@@ -2044,7 +2040,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
-			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -2054,7 +2049,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		rules,
 		setBackendSearchQuery,
-		setPage,
 		setSearchParams,
 		timeRangeField.value,
 	])
@@ -2063,7 +2057,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		undefined,
 	)
 
-	const { setShowLeftPanel } = useErrorPageConfiguration()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = useMemo(() => {
 		if (filterRules.length === 0 && !selectedSegment) {
@@ -2182,9 +2176,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						iconLeft={<IconSolidPlusSm size={12} />}
+						iconLeft={<IconPlusSm size={12} />}
 						onClick={addNewRule}
-						trackingId="queryBuilderAddFilter"
 					>
 						Add filter
 					</Button>
@@ -2193,7 +2186,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="low"
-						icon={<IconSolidPlusSm size={12} />}
+						icon={<IconPlusSm size={12} />}
 						onClick={addNewRule}
 						cssClass={newStyle.addButton}
 					/>
@@ -2251,7 +2244,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSolidSave size={12} />}
+						iconLeft={<IconSave size={12} />}
 						onClick={() => {
 							setShowCreateSegmentModal(true)
 						}}
@@ -2266,8 +2259,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="secondary"
 						size="xSmall"
 						emphasis="medium"
-						iconLeft={<IconSolidSegment size={12} />}
-						iconRight={<IconSolidCheveronDown size={12} />}
+						iconLeft={<IconSegment size={12} />}
+						iconRight={<IconChevronDown size={12} />}
 						onClick={() => {}}
 					>
 						{selectedSegment?.name}
@@ -2279,8 +2272,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						kind="primary"
 						size="xSmall"
 						emphasis="high"
-						iconLeft={<IconSolidSegment size={12} />}
-						iconRight={<IconSolidCheveronDown size={12} />}
+						iconLeft={<IconSegment size={12} />}
+						iconRight={<IconChevronDown size={12} />}
 					>
 						{selectedSegment?.name}
 					</Menu.Button>
@@ -2294,7 +2287,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				display="flex"
 				alignItems="center"
 				px="12"
-				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
 				<TimeRangeFilter
@@ -2321,7 +2313,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								size="small"
 								shape="square"
 								emphasis="low"
-								icon={<IconSolidRefresh size={14} />}
+								icon={<IconRefresh size={14} />}
 								disabled={syncButtonDisabled}
 								onClick={() => {
 									// Re-generate the absolute times used in the serialized query
@@ -2333,24 +2325,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 						)}
 
-					<Tooltip
-						placement="bottom"
-						trigger={
-							<ButtonIcon
-								kind="secondary"
-								size="small"
-								shape="square"
-								emphasis="medium"
-								icon={<IconSolidLogout size={14} />}
-								onClick={() => setShowLeftPanel(false)}
-							/>
-						}
-					>
-						<KeyboardShortcut
-							label="Toggle sidebar"
-							shortcut={['cmd', 'b']}
-						/>
-					</Tooltip>
+					<ButtonIcon
+						kind="secondary"
+						size="small"
+						shape="square"
+						emphasis="medium"
+						icon={<IconLogout size={14} />}
+						onClick={() => setShowLeftPanel(false)}
+					/>
 				</Box>
 			</Box>
 		)
@@ -2383,7 +2365,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidCloudUpload size={16} color={colors.n9} />
+						<IconCloudUpload size={16} color={colors.neutral300} />
 						Push segment changes
 					</Box>
 				</Menu.Item>
@@ -2400,7 +2382,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidPlusCircle size={16} color={colors.n9} />
+						<IconPlusCircle size={16} color={colors.neutral300} />
 						Save as a new segment
 					</Box>
 				</Menu.Item>
@@ -2418,7 +2400,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						gap="4"
 						userSelect="none"
 					>
-						<IconSolidRefresh size={16} color={colors.n9} />
+						<IconRefresh size={16} color={colors.neutral300} />
 						Reset to segment filters
 					</Box>
 				</Menu.Item>
@@ -2435,14 +2417,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	return (
 		<>
-			<CreateErrorSegmentModal
+			<CreateSegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {
 					setShowEditSegmentNameModal(false)
 					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
-					if (segmentData?.error_segments) {
+					if (segmentData?.segments) {
 						setSelectedSegment({
 							id: segmentId,
 							name: segmentName,
@@ -2453,7 +2435,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					showEditSegmentNameModal ? currentSegment : undefined
 				}
 			/>
-			<DeleteErrorSegmentModal
+			<DeleteSessionSegmentModal
 				showModal={!!segmentToDelete}
 				hideModalHandler={() => {
 					setSegmentToDelete(null)
@@ -2465,13 +2447,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
-						setSearchParams(EmptyErrorsSearchParams)
+						setSearchParams(EmptySessionsSearchParams)
 					}
 				}}
 			/>
 			{controlBar}
 			<Box
-				border="secondary"
+				border="neutral"
 				borderRadius="8"
 				display="flex"
 				flexDirection="column"
@@ -2485,7 +2467,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						p="4"
 						paddingBottom="8"
 						background="white"
-						borderBottom="secondary"
+						borderBottom="neutral"
 						display="flex"
 						alignItems="center"
 						flexWrap="wrap"
@@ -2496,8 +2478,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								? [
 										<Tag
 											shape="basic"
-											kind="secondary"
-											emphasis="low"
+											kind="transparent"
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}
@@ -2556,7 +2537,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						<Text
 							size="xSmall"
 							weight="medium"
-							color="n9"
+							color="neutral300"
 							userSelect="none"
 						>
 							{formatNumber(searchResultsCount)} results
@@ -2567,15 +2548,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="n2"
-									borderBottom="secondary"
+									background="neutral50"
+									borderBottom="neutral"
 									p="8"
 									mb="4"
 								>
 									<Text
 										weight="medium"
 										size="xxSmall"
-										color="n11"
+										color="neutral500"
 										userSelect="none"
 									>
 										Segment settings
@@ -2597,9 +2578,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconSolidPencil
+										<IconPencil
 											size={16}
-											color={colors.n9}
+											color={colors.neutral300}
 										/>
 										Edit segment name
 									</Box>
@@ -2620,9 +2601,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconSolidDocumentDuplicate
+										<IconDuplicate
 											size={16}
-											color={colors.n9}
+											color={colors.neutral300}
 										/>
 										Duplicate segment
 									</Box>
@@ -2644,9 +2625,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 										gap="4"
 										userSelect="none"
 									>
-										<IconSolidTrash
+										<IconTrash
 											size={16}
-											color={colors.n9}
+											color={colors.neutral300}
 										/>
 										Delete segment
 									</Box>
@@ -2659,74 +2640,25 @@ function QueryBuilder(props: QueryBuilderProps) {
 								kind="secondary"
 								disabled={segmentsLoading}
 								emphasis="high"
-								icon={<IconSolidSegment size={12} />}
+								icon={<IconSegment size={12} />}
 								size="xSmall"
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="n2"
-									borderBottom="secondary"
+									background="neutral50"
+									borderBottom="neutral"
 									p="8"
 									mb="4"
 								>
 									<Text
 										weight="medium"
 										size="xxSmall"
-										color="n11"
+										color="neutral500"
 										userSelect="none"
 									>
 										Segments
 									</Text>
 								</Box>
-								{Object.values(ErrorState).map((errorState) => (
-									<Menu.Item
-										key={errorState}
-										onClick={(e) => {
-											e.stopPropagation()
-											const newRules = [...rules]
-											const removed = remove(
-												newRules,
-												(rule) =>
-													rule?.field?.value ===
-													'error_state',
-											)[0]
-
-											if (
-												removed &&
-												removed?.val?.options?.length &&
-												removed.val?.options[0]
-													?.value === errorState
-											) {
-												return
-											}
-
-											const option = [
-												{
-													value: errorState as string,
-													label: getStateLabel(
-														errorState,
-													),
-												},
-											] as const
-											newRules.push({
-												field: {
-													value: 'error_state',
-													kind: 'single',
-													label: 'state',
-												},
-												op: 'is',
-												val: {
-													kind: 'multi',
-													options: option,
-												},
-											})
-											setRules(newRules)
-										}}
-									>
-										{getStateLabel(errorState)} errors
-									</Menu.Item>
-								))}
-								<Menu.Divider />
 								{segmentOptions.map((segment, idx) => (
 									<Menu.Item
 										key={idx}

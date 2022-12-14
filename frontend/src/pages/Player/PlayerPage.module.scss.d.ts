@@ -7,7 +7,6 @@ export const emptySessionCard: string
 export const gridBackground: string
 export const header: string
 export const headerLink: string
-export const hidden: string
 export const intercomLink: string
 export const loadingWrapper: string
 export const manuallyStoppedMessageContainer: string
@@ -16,13 +15,8 @@ export const panelToggleButton: string
 export const panelToggleButtonLeft: string
 export const panelToggleButtonRight: string
 export const playerBody: string
-export const playerCenterColumn: string
-export const playerCenterPanel: string
-export const playerContainer: string
-export const playerLeftPanel: string
 export const playerPageBody: string
 export const progressBar: string
-export const rrwebPlayerSection: string
 export const rrwebPlayerWrapper: string
 export const signinWrapper: string
 export const urlAddressBar: string
