@@ -212,10 +212,12 @@ const PlayerPage = ({ integrated }: Props) => {
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
-	const controllerWidth = Math.max(
-		style.MIN_CENTER_COLUMN_WIDTH,
-		(centerColumnSize.width || 0) - 2 * style.CENTER_COLUMN_OVERLAP,
-	)
+	const controllerWidth = centerColumnSize.width
+		? Math.max(
+				style.MIN_CENTER_COLUMN_WIDTH,
+				(centerColumnSize.width || 0) - 2 * style.CENTER_COLUMN_OVERLAP,
+		  )
+		: 0
 
 	const playerFiller = useMemo(() => {
 		const playerHeight =
@@ -495,9 +497,7 @@ const PlayerPage = ({ integrated }: Props) => {
 									width="full"
 									height="full"
 								>
-									<SessionLevelBarV2
-										width={controllerWidth}
-									/>
+									<SessionLevelBarV2 width="100%" />
 									<Box
 										width="full"
 										height="full"

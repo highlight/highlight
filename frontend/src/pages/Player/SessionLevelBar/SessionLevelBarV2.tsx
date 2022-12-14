@@ -34,7 +34,7 @@ import * as styles from './SessionLevelBarV2.css'
 
 export const SessionLevelBarV2: React.FC<
 	React.PropsWithChildren & {
-		width: number
+		width: number | string
 	}
 > = (props) => {
 	const history = useHistory()
