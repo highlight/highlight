@@ -3850,8 +3850,8 @@ export type UpdateVercelSettingsMutationOptions = Apollo.BaseMutationOptions<
 >
 export const UpdateEmailOptOutDocument = gql`
 	mutation UpdateEmailOptOut(
-		$token: String!
-		$admin_id: ID!
+		$token: String
+		$admin_id: ID
 		$category: EmailOptOutCategory!
 		$is_opt_out: Boolean!
 	) {
@@ -10526,7 +10526,7 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
 export const GetEmailOptOutsDocument = gql`
-	query GetEmailOptOuts($token: String!, $admin_id: ID!) {
+	query GetEmailOptOuts($token: String, $admin_id: ID) {
 		email_opt_outs(token: $token, admin_id: $admin_id)
 	}
 `
@@ -10549,7 +10549,7 @@ export const GetEmailOptOutsDocument = gql`
  * });
  */
 export function useGetEmailOptOutsQuery(
-	baseOptions: Apollo.QueryHookOptions<
+	baseOptions?: Apollo.QueryHookOptions<
 		Types.GetEmailOptOutsQuery,
 		Types.GetEmailOptOutsQueryVariables
 	>,
