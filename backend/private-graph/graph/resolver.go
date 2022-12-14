@@ -2502,11 +2502,18 @@ func (r *Resolver) sendCommentPrimaryNotification(
 		if len(admins) < 1 {
 			return
 		}
+
 		var taggedAdminSlacks []*modelInputs.SanitizedSlackChannelInput
 		for _, a := range admins {
 			taggedAdminSlacks = append(taggedAdminSlacks, &modelInputs.SanitizedSlackChannelInput{
 				WebhookChannelID: a.SlackIMChannelID,
 			})
+
+			// See HIG-3438
+			// We need additional debugging information to see if we can remove this code path.
+			log.WithFields(log.Fields{
+				"admin_id": a.ID,
+			}).Info("Sending slack notification for a Highlight user using a legacy slack configuration")
 		}
 
 		err := r.SendSlackAlertToUser(workspace, admin, taggedAdminSlacks, viewLink, textForEmail, action, subjectScope, nil, sessionCommentID, errorCommentID, additionalContext)
