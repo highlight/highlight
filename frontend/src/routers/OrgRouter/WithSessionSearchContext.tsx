@@ -9,7 +9,7 @@ import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
-const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
+const WithSessionSearchContext: React.FC<React.PropsWithChildren<unknown>> = ({
 	children,
 }) => {
 	const { project_id } = useParams<{
@@ -23,7 +23,7 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 		EmptySessionsSearchParams,
 	)
 	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(true)
+		useState<boolean>(false)
 	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
 	const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false)
 

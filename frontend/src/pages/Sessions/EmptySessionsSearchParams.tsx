@@ -1,5 +1,6 @@
 import { SearchParamsInput } from '@graph/schemas'
-import { Complete } from '@util/types'
+
+import { Complete } from '../../util/types'
 
 export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	user_properties: [],
@@ -19,5 +20,5 @@ export const EmptySessionsSearchParams: Complete<SearchParamsInput> = {
 	environments: [],
 	app_versions: [],
 	show_live_sessions: false,
-	query: `{\"isAnd\":true,\"rules\":[[\"custom_processed\",\"is\",\"true\"]]}`,
+	query: undefined,
 }

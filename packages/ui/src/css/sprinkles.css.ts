@@ -57,9 +57,6 @@ const responsiveProperties = defineProperties({
 		width: {
 			full: '100%',
 		},
-		height: {
-			full: '100%',
-		},
 		maxWidth: {
 			full: '100%',
 		},

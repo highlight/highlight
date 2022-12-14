@@ -6,7 +6,6 @@ type Props = React.PropsWithChildren &
 	styles.Variants & {
 		href: string
 		target?: '_blank'
-		rel?: 'noreferrer'
 	}
 
 export const TextLink: React.FC<Props> = ({
@@ -14,15 +13,12 @@ export const TextLink: React.FC<Props> = ({
 	href,
 	underline,
 	target,
-	rel,
-	color,
 }) => {
 	return (
 		<a
-			className={styles.variants({ underline, color })}
+			className={styles.variants({ underline })}
 			href={href}
-			target={target ?? '_blank'}
-			rel={rel ?? 'noreferrer'}
+			target={target}
 		>
 			{children}
 		</a>

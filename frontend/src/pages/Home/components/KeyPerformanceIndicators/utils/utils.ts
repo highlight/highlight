@@ -29,13 +29,13 @@ export const formatTime = (time: number) => {
 }
 
 export function formatShortTime(
-	timeSeconds: number,
+	val: number,
 	formats = ['d', 'h', 'm', 's'],
 	space = '',
 	toFixedValue?: number,
 	single?: boolean,
 ) {
-	const { days, hours, minutes, seconds, ms } = parseTime(timeSeconds)
+	const { days, hours, minutes, seconds, ms } = parseTime(val)
 	let t = ''
 
 	for (const { unit, format } of [
