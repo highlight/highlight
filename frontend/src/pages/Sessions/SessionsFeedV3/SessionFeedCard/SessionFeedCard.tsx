@@ -12,6 +12,8 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
+import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import {
 	getDisplayName,
 	getIdentifiedUserProfileImage,
@@ -46,6 +48,7 @@ export const SessionFeedCard = React.memo(
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
+		const { setSearchParams } = useSearchContext()
 		const [eventCounts, setEventCounts] =
 			useState<{ ts: number; value: number }[]>()
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
@@ -147,6 +150,12 @@ export const SessionFeedCard = React.memo(
 											shape="basic"
 											kind="grey"
 											size="small"
+											onClick={() => {
+												setSearchParams({
+													...EmptySessionsSearchParams,
+													show_live_sessions: true,
+												})
+											}}
 										>
 											<Text>Live</Text>
 										</Tag>
@@ -157,6 +166,12 @@ export const SessionFeedCard = React.memo(
 											kind="transparent"
 											size="small"
 											iconLeft={<IconEyeOff size={12} />}
+											onClick={() => {
+												setSearchParams({
+													...EmptySessionsSearchParams,
+													hide_viewed: true,
+												})
+											}}
 										/>
 									)}
 									{session.first_time && (
@@ -167,6 +182,12 @@ export const SessionFeedCard = React.memo(
 											iconLeft={
 												<IconUserCircle size={12} />
 											}
+											onClick={() => {
+												setSearchParams({
+													...EmptySessionsSearchParams,
+													first_time: true,
+												})
+											}}
 										/>
 									)}
 									{session.has_errors && (
@@ -204,29 +225,25 @@ export const SessionFeedCard = React.memo(
 												.format('HH:mm:ss')}
 										</Text>
 									</Tag>
-									<Tag shape="basic" kind="grey" size="small">
-										<Text
-											lines="1"
-											size="small"
-											display="flex"
-											cssClass={
-												style.sessionCardTitleText
-											}
-										>
-											{configuration?.datetimeFormat
-												? formatDatetime(
-														session.created_at,
-														configuration.datetimeFormat,
-												  )
-												: `${new Date(
-														session.created_at,
-												  ).toLocaleString('en-us', {
-														day: 'numeric',
-														month: 'long',
-														year: 'numeric',
-												  })}`}
-										</Text>
-									</Tag>
+									<Text
+										lines="1"
+										size="small"
+										display="flex"
+										cssClass={style.datetimeText}
+									>
+										{configuration?.datetimeFormat
+											? formatDatetime(
+													session.created_at,
+													configuration.datetimeFormat,
+											  )
+											: `${new Date(
+													session.created_at,
+											  ).toLocaleString('en-us', {
+													day: 'numeric',
+													month: 'long',
+													year: 'numeric',
+											  })}`}
+									</Text>
 								</Box>
 							</Box>
 							{showDetailedSessionView && eventCounts?.length && (

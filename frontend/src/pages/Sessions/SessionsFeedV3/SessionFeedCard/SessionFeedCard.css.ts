@@ -14,6 +14,10 @@ export const sessionCardTitleText = style({
 	maxWidth: '100%',
 })
 
+export const datetimeText = style({
+	color: colors.neutralN11,
+})
+
 export const activityGraph = style({
 	width: 80,
 	paddingTop: 2,
