@@ -19,7 +19,10 @@ const usePlayerConfiguration = () => {
 		false,
 	)
 
-	const [showRightPanel, setShowRightPanel] = [true, (x: boolean) => x]
+	const [showRightPanel, setShowRightPanel] = useLocalStorage(
+		'highlightMenuShowRightPanel',
+		false,
+	)
 
 	const [showHistogram, setShowHistogram] = useLocalStorage(
 		'highlightMenuShowHistogram',

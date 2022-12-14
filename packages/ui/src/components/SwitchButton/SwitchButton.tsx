@@ -15,12 +15,14 @@ type Props = Omit<CheckboxProps, 'size'> &
 export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 	onChange,
 	checked,
+	size,
 	iconLeft,
 	iconRight,
 	children,
 	...rest
 }) => {
 	const className = styles.variants({
+		size,
 		variant: checked ? 'checked' : 'unchecked',
 	})
 	const checkbox = useCheckboxState()

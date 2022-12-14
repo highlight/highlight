@@ -10,6 +10,7 @@ import {
 	IconExitRight,
 	IconLockClosed,
 	IconLockOpened,
+	IconMenuAlt3,
 	IconTemplate,
 	Text,
 	TextLink,
@@ -46,7 +47,12 @@ export const SessionLevelBarV2: React.FC<
 		useReplayerContext()
 	const { page } = useSearchContext()
 	const { isLoggedIn } = useAuthContext()
-	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
+	const {
+		showLeftPanel,
+		setShowLeftPanel,
+		showRightPanel,
+		setShowRightPanel,
+	} = usePlayerConfiguration()
 	const query = useMemo(() => JSON.stringify(defaultSessionsQuery), [])
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
@@ -262,6 +268,21 @@ export const SessionLevelBarV2: React.FC<
 						</Box>
 						<Box display="flex" align="center" gap="6">
 							<SessionShareButtonV2 />
+							<ButtonIcon
+								kind="secondary"
+								size="small"
+								shape="square"
+								emphasis={showRightPanel ? 'high' : 'low'}
+								cssClass={
+									showRightPanel
+										? styles.rightPanelButtonShown
+										: styles.rightPanelButtonHidden
+								}
+								icon={<IconMenuAlt3 />}
+								onClick={() => {
+									setShowRightPanel(!showRightPanel)
+								}}
+							/>
 						</Box>
 					</Box>
 				)}

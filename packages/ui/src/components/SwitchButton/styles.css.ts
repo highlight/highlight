@@ -29,6 +29,20 @@ export const variants = recipe({
 	],
 
 	variants: {
+		size: {
+			xSmall: {
+				height: 24,
+				width: 24,
+			},
+			small: {
+				height: 28,
+				width: 28,
+			},
+			medium: {
+				height: 32,
+				width: 32,
+			},
+		},
 		variant: {
 			checked: {
 				background: vars.theme.interactive.fill.primary.enabled,
