@@ -1264,7 +1264,10 @@ func (w *Worker) RefreshMaterializedViews() {
 				Property: "highlight_session_count",
 				Value:    c.Count,
 			}}); err != nil {
-				log.Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
+				log.WithFields(log.Fields{
+					"workspace_id": c.WorkspaceID,
+					"value":        c.Count,
+				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 			time.Sleep(150 * time.Millisecond)
 		}
