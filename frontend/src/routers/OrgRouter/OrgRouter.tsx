@@ -171,7 +171,7 @@ export const ProjectRouter = () => {
 									) : isLoggedIn &&
 									  (error || !data?.project) ? (
 										<ErrorState
-											title={'Enter this Workspace?'}
+											title="Enter this Workspace?"
 											message={`
                         Sadly, you don’t have access to the workspace 😢
                         Request access and we'll shoot an email to your workspace admin.

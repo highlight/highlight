@@ -1,6 +1,6 @@
 import Card from '@components/Card/Card'
 import ConfirmModal from '@components/ConfirmModal/ConfirmModal'
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import Input from '@components/Input/Input'
 import Switch from '@components/Switch/Switch'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -717,7 +717,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={userPropertiesSuggestions}
 										mode="multiple"
-										placeholder={`Pick the user properties that you would like to get alerted for.`}
+										placeholder="Pick the user properties that you would like to get alerted for."
 										onChange={onUserPropertiesChange}
 									/>
 								</Form.Item>
@@ -736,7 +736,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={trackPropertiesSuggestions}
 										mode="multiple"
-										placeholder={`Pick the track properties that you would like to get alerted for.`}
+										placeholder="Pick the track properties that you would like to get alerted for."
 										onChange={onTrackPropertiesChange}
 									/>
 								</Form.Item>
@@ -750,10 +750,7 @@ export const AlertConfigurationCard = ({
 								alert is created.
 							</p>
 							{!isSlackIntegrated ? (
-								<PersonalNotificationButton
-									text="Connect Highlight with Slack"
-									type="Organization"
-								/>
+								<ConnectHighlightWithSlackButton />
 							) : (
 								<Form.Item shouldUpdate>
 									{() => (
@@ -916,7 +913,7 @@ export const AlertConfigurationCard = ({
 									className={styles.channelSelect}
 									options={environments}
 									mode="tags"
-									placeholder={`Select a environment(s) that should not trigger alerts.`}
+									placeholder="Select a environment(s) that should not trigger alerts."
 									onChange={onExcludedEnvironmentsChange}
 								/>
 							</Form.Item>
@@ -994,7 +991,7 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={identifierSuggestions}
 										mode="tags"
-										placeholder={`Select a identifier(s) that should not trigger alerts.`}
+										placeholder="Select a identifier(s) that should not trigger alerts."
 										onChange={() => {
 											setFormTouched(true)
 											handleIdentifierSearch('')

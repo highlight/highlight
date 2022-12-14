@@ -59,7 +59,7 @@ const HomePageV2 = () => {
 									</h2>
 								</div>
 							}
-							dashboardName={'Home'}
+							dashboardName="Home"
 						/>
 					</div>
 					{!integrated && (

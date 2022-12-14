@@ -1,6 +1,6 @@
 const CHARACTER_SET =
 	'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-export const GenerateSecureRandomString = (length: number = 32): string => {
+export const GenerateSecureRandomString = (length = 32): string => {
 	let secureID = ''
 
 	const hasCrypto =

@@ -70,9 +70,7 @@ export const DashboardComponentCard = ({
 								{metricConfig.help_article && (
 									<InfoTooltip
 										className={styles.infoTooltip}
-										title={
-											'Click to learn more about this metric.'
-										}
+										title="Click to learn more about this metric."
 										onClick={() => {
 											if (metricConfig.help_article) {
 												window.open(
@@ -107,7 +105,7 @@ export const DashboardComponentCard = ({
 								</div>
 							)}
 							<div
-								className={'flex justify-center'}
+								className="flex justify-center"
 								style={{ width: 1, height: 32 }}
 							/>
 							<div
@@ -120,7 +118,7 @@ export const DashboardComponentCard = ({
 					</div>
 					{updatingData && (
 						<div className="absolute inset-x-0 bottom-0">
-							<LoadingBar height={2} width={'100%'} />
+							<LoadingBar height={2} width="100%" />
 						</div>
 					)}
 				</div>

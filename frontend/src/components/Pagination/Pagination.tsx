@@ -54,7 +54,7 @@ export const Pagination = ({
 			<div className={clsx([styles.pageButtonsRow, className])}>
 				<Tooltip
 					mouseEnterDelay={0.3}
-					placement={'top'}
+					placement="top"
 					align={{ offset: [106, 0] }}
 					title={
 						(page || STARTING_PAGE) >= MAX_PAGES
@@ -65,7 +65,7 @@ export const Pagination = ({
 					<div className={styles.container}>
 						<AntdPagination
 							showSizeChanger={false}
-							size={'small'}
+							size="small"
 							pageSize={DEFAULT_PAGE_SIZE}
 							total={DEFAULT_PAGE_SIZE * maxPage}
 							current={page || STARTING_PAGE}
@@ -77,7 +77,7 @@ export const Pagination = ({
 					<Button
 						className={styles.btn}
 						disabled={(page || STARTING_PAGE) <= STARTING_PAGE}
-						trackingId={'SessionsFeedPreviousPage'}
+						trackingId="SessionsFeedPreviousPage"
 						onClick={() => {
 							changePage(PageDirection.Backward)
 						}}
@@ -87,7 +87,7 @@ export const Pagination = ({
 					<Button
 						className={styles.btn}
 						disabled={(page || STARTING_PAGE) >= maxPage}
-						trackingId={'SessionsFeedNextPage'}
+						trackingId="SessionsFeedNextPage"
 						onClick={() => {
 							changePage(PageDirection.Forward)
 						}}

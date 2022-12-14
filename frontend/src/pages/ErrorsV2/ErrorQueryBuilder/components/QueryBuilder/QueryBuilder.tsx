@@ -2095,7 +2095,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				content={
 					currentRule?.field === undefined ? (
 						<PopoutContent
-							key={'popover-step-1'}
+							key="popover-step-1"
 							value={undefined}
 							setVisible={() => {
 								setCurrentStep(undefined)
@@ -2114,7 +2114,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						/>
 					) : currentRule?.op === undefined ? (
 						<PopoutContent
-							key={'popover-step-2'}
+							key="popover-step-2"
 							value={undefined}
 							setVisible={() => {
 								setCurrentStep(3)
@@ -2144,7 +2144,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						/>
 					) : (
 						<PopoutContent
-							key={'popover-step-3'}
+							key="popover-step-3"
 							value={undefined}
 							setVisible={() => {
 								setCurrentStep(undefined)
@@ -2159,7 +2159,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								currentRule.field,
 							)}
 							type={getPopoutType(currentRule.op)}
-							placeholder={`Select...`}
+							placeholder="Select..."
 						/>
 					)
 				}

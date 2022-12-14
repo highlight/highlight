@@ -125,17 +125,6 @@ export type DeleteAdminFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteAdminFromWorkspace'>
 
-export type OpenSlackConversationMutationVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	code: Types.Scalars['String']
-	redirect_path: Types.Scalars['String']
-}>
-
-export type OpenSlackConversationMutation = { __typename?: 'Mutation' } & Pick<
-	Types.Mutation,
-	'openSlackConversation'
->
-
 export type AddIntegrationToProjectMutationVariables = Types.Exact<{
 	integration_type?: Types.Maybe<Types.IntegrationType>
 	project_id: Types.Scalars['ID']
@@ -3270,14 +3259,10 @@ export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
 }>
 
 export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
@@ -3378,14 +3363,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 	is_integrated_with_slack: Types.Query['is_integrated_with']
 	is_integrated_with_discord: Types.Query['is_integrated_with']
 } & {
-	slack_channel_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'SanitizedSlackChannel' } & Pick<
-					Types.SanitizedSlackChannel,
-					'webhook_channel' | 'webhook_channel_id'
-				>
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 	discord_channel_suggestions: Array<
@@ -3544,12 +3525,10 @@ export type GetCommentMentionSuggestionsQuery = { __typename?: 'Query' } & {
 			>
 		}
 	>
-	slack_members: Array<
-		Types.Maybe<
-			{ __typename?: 'SanitizedSlackChannel' } & Pick<
-				Types.SanitizedSlackChannel,
-				'webhook_channel' | 'webhook_channel_id'
-			>
+	slack_channel_suggestion: Array<
+		{ __typename?: 'SanitizedSlackChannel' } & Pick<
+			Types.SanitizedSlackChannel,
+			'webhook_channel' | 'webhook_channel_id'
 		>
 	>
 }
@@ -3854,7 +3833,6 @@ export const namedOperations = {
 		ChangeAdminRole: 'ChangeAdminRole' as const,
 		DeleteAdminFromProject: 'DeleteAdminFromProject' as const,
 		DeleteAdminFromWorkspace: 'DeleteAdminFromWorkspace' as const,
-		OpenSlackConversation: 'OpenSlackConversation' as const,
 		AddIntegrationToProject: 'AddIntegrationToProject' as const,
 		RemoveIntegrationFromProject: 'RemoveIntegrationFromProject' as const,
 		UpdateAllowedEmailOrigins: 'UpdateAllowedEmailOrigins' as const,

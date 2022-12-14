@@ -433,7 +433,7 @@ const QuickSearch = () => {
 						}
 						return (
 							<AnimateHeight
-								key={'animatedMenu'}
+								key="animatedMenu"
 								duration={300}
 								height={height || 'auto'}
 							>

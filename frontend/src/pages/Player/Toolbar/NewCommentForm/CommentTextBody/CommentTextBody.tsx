@@ -1,6 +1,6 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
 import { AdminSuggestion } from '@components/Comment/CommentHeader'
-import { getSlackUrl } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import SvgSlackLogo from '@components/icons/SlackLogo'
 import { namedOperations } from '@graph/operations'
 import {
@@ -43,7 +43,7 @@ const CommentTextBody = ({
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const slackUrl = getSlackUrl('Organization', project_id)
+	const slackUrl = getSlackUrl(project_id)
 	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
 
 	useEffect(() => {
@@ -83,7 +83,7 @@ const CommentTextBody = ({
 								key: number,
 							) => (
 								<a
-									target={'_blank'}
+									target="_blank"
 									rel="noreferrer"
 									href={decoratedHref}
 									key={key}

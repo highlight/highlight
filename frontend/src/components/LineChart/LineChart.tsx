@@ -137,7 +137,7 @@ const LineChart = ({
 							}
 						})
 					}}
-					orientation={'vertical'}
+					orientation="vertical"
 				/>
 			)}
 			<ResponsiveContainer width="100%" height="100%">
@@ -178,7 +178,7 @@ const LineChart = ({
 						tickLine={{ stroke: labelColor, visibility: 'hidden' }}
 						axisLine={{ stroke: gridColor }}
 						domain={domain}
-						type={'number'}
+						type="number"
 						dx={-12}
 						unit={yAxisLabel}
 					/>
@@ -208,7 +208,7 @@ const LineChart = ({
 						<Legend
 							verticalAlign="bottom"
 							height={18}
-							iconType={'square'}
+							iconType="square"
 							iconSize={8}
 							content={(props) => {
 								return (
@@ -234,7 +234,7 @@ const LineChart = ({
 							{!!showReferenceLineLabels && (
 								<>
 									<Label
-										position={'center'}
+										position="center"
 										alignmentBaseline="auto"
 										offset={10}
 										className={styles.referenceLineValue}

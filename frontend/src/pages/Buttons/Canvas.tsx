@@ -36,7 +36,7 @@ const DO_NOT_USE_Canvas = () => {
 				style={{ width: 1000, height: 1000 }}
 				ref={canvasRef}
 			></canvas>
-			<button id={'draw'} onClick={onClick}>
+			<button id="draw" onClick={onClick}>
 				DRAW
 			</button>
 		</div>

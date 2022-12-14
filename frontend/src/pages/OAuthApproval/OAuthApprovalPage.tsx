@@ -109,7 +109,7 @@ const OAuthApprovalPage = () => {
 		return null
 	} else if (called && !data?.oauth_client_metadata?.id) {
 		return (
-			<div className={'absolute top-0 left-0 flex h-full w-full'}>
+			<div className="absolute top-0 left-0 flex h-full w-full">
 				<ErrorState message="We don't recognize this OAuth client." />
 			</div>
 		)
@@ -119,24 +119,24 @@ const OAuthApprovalPage = () => {
 			<Helmet>
 				<title>New OAuth Integration</title>
 			</Helmet>
-			<div className={'max-w-lg border border-gray-300 bg-white p-8'}>
-				<h2 className={'mb-3 text-2xl'}>{`Do you want to add ${
+			<div className="max-w-lg border border-gray-300 bg-white p-8">
+				<h2 className="mb-3 text-2xl">{`Do you want to add ${
 					data?.oauth_client_metadata?.app_name ||
 					oauthParams.client_id
 				} to your account?`}</h2>
-				<p className={'mb-6 text-base text-gray-500'}>
+				<p className="mb-6 text-base text-gray-500">
 					Make sure you trust this app with access to your Highlight
 					data.
 				</p>
 				<div>
 					{localStorageOAuth?.access_token ? (
-						<div className={'text-center'}>
+						<div className="text-center">
 							You're logged in! You can now close this tab.
 						</div>
 					) : (
-						<div className={'flex gap-5'}>
+						<div className="flex gap-5">
 							<Button
-								trackingId={`OAuthApprove`}
+								trackingId="OAuthApprove"
 								type="primary"
 								className="mx-0 flex"
 								block
@@ -145,7 +145,7 @@ const OAuthApprovalPage = () => {
 								Approve
 							</Button>
 							<Button
-								trackingId={`OAuthReject`}
+								trackingId="OAuthReject"
 								className="mx-0 flex"
 								block
 								danger

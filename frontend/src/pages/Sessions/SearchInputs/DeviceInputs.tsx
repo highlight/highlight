@@ -173,7 +173,7 @@ export const DeviceIdInput = () => {
 	return (
 		<div>
 			<AsyncSelect
-				placeholder={'Device ID'}
+				placeholder="Device ID"
 				isClearable
 				cacheOptions
 				value={
@@ -235,7 +235,7 @@ export const ReferrerInput = () => {
 	return (
 		<div>
 			<AsyncSelect
-				placeholder={'Referrer'}
+				placeholder="Referrer"
 				isClearable
 				cacheOptions
 				value={
@@ -300,7 +300,7 @@ export const VisitedUrlInput = () => {
 	return (
 		<div>
 			<AsyncSelect
-				placeholder={'Visited URL'}
+				placeholder="Visited URL"
 				isClearable
 				cacheOptions
 				value={
@@ -348,7 +348,7 @@ export const EnvironmentInput = () => {
 			<Select
 				className={inputStyles.select}
 				mode="multiple"
-				placeholder={'Environments'}
+				placeholder="Environments"
 				value={searchParams.environments}
 				options={(data?.environment_suggestion || []).map(
 					(suggestion) => ({
@@ -384,7 +384,7 @@ export const AppVersionInput = () => {
 			<Select
 				className={inputStyles.select}
 				mode="multiple"
-				placeholder={'5.2.2, 4.3.1'}
+				placeholder="5.2.2, 4.3.1"
 				value={searchParams.app_versions}
 				options={(data?.app_version_suggestion || []).map(
 					(suggestion) => ({

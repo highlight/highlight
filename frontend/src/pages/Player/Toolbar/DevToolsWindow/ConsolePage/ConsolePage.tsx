@@ -333,9 +333,14 @@ const ConsoleRender = React.memo(
 		// if the message is large, do not linkify as this may freeze the UI
 		return (
 			<div>
-				{result.map((r) =>
+				{result.map((r, idx) =>
 					typeof r === 'object' ? (
-						<JsonViewer name="Object" collapsed src={r} />
+						<JsonViewer
+							name="Object"
+							collapsed
+							src={r}
+							key={`console-msg-${idx}`}
+						/>
 					) : r.length > 1024 ? (
 						<div className={styles.messageText}>
 							<p>{r}</p>

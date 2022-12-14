@@ -40,7 +40,6 @@ const ErrorSourcePreview: React.FC<
 > = ({
 	fileName,
 	lineNumber,
-	functionName,
 	lineContent,
 	linesBefore,
 	linesAfter,

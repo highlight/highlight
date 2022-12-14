@@ -148,7 +148,7 @@ const DashboardsRouter = () => {
 				<title>Dashboards</title>
 			</Helmet>
 			<Switch>
-				<Route exact path={`/:project_id/home`}>
+				<Route exact path="/:project_id/home">
 					<HomePageV2 />
 				</Route>
 				<Route exact path={path}>

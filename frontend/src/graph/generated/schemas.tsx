@@ -661,7 +661,6 @@ export type Mutation = {
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
 	muteSessionCommentThread?: Maybe<Scalars['Boolean']>
-	openSlackConversation?: Maybe<Scalars['Boolean']>
 	removeIntegrationFromProject: Scalars['Boolean']
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
@@ -948,12 +947,6 @@ export type MutationMuteErrorCommentThreadArgs = {
 export type MutationMuteSessionCommentThreadArgs = {
 	has_muted?: InputMaybe<Scalars['Boolean']>
 	id: Scalars['ID']
-}
-
-export type MutationOpenSlackConversationArgs = {
-	code: Scalars['String']
-	project_id: Scalars['ID']
-	redirect_path: Scalars['String']
 }
 
 export type MutationRemoveIntegrationFromProjectArgs = {
@@ -1278,8 +1271,7 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
-	slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>
-	slack_members: Array<Maybe<SanitizedSlackChannel>>
+	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
 	sourcemap_versions: Array<Scalars['String']>
 	subscription_details: SubscriptionDetails
@@ -1667,10 +1659,6 @@ export type QuerySessions_OpensearchArgs = {
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QuerySlack_MembersArgs = {
 	project_id: Scalars['ID']
 }
 

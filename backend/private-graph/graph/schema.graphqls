@@ -1211,9 +1211,8 @@ type Query {
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
-	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel]
+	slack_channel_suggestion(project_id: ID!): [SanitizedSlackChannel!]!
 	discord_channel_suggestions(project_id: ID!): [DiscordChannel!]!
-	slack_members(project_id: ID!): [SanitizedSlackChannel]!
 	generate_zapier_access_token(project_id: ID!): String!
 	is_integrated_with(
 		integration_type: IntegrationType!
@@ -1415,11 +1414,6 @@ type Mutation {
 		tagged_admins: [SanitizedAdminInput]!
 		tagged_slack_users: [SanitizedSlackChannelInput]!
 	): CommentReply
-	openSlackConversation(
-		project_id: ID!
-		code: String!
-		redirect_path: String!
-	): Boolean
 	addIntegrationToProject(
 		integration_type: IntegrationType
 		project_id: ID!

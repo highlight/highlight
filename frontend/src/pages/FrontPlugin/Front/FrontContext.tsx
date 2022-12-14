@@ -1,3 +1,5 @@
+import Front from '@frontapp/plugin-sdk'
+import { WebViewContext } from '@frontapp/plugin-sdk/dist/webViewSdkTypes'
 import {
 	createContext,
 	PropsWithChildren,
@@ -5,8 +7,6 @@ import {
 	useEffect,
 	useState,
 } from 'react'
-import Front from '@frontapp/plugin-sdk'
-import { WebViewContext } from '@frontapp/plugin-sdk/dist/webViewSdkTypes'
 
 export const FrontContext = createContext<WebViewContext | undefined>(undefined)
 

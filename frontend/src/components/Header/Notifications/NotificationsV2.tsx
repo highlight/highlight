@@ -1,6 +1,6 @@
 import CheckboxList from '@components/CheckboxList/CheckboxList'
 import Dot from '@components/Dot/Dot'
-import PersonalNotificationButton from '@components/Header/components/PersonalNotificationButton/PersonalNotificationButton'
+import ConnectHighlightWithSlackButton from '@components/Header/components/ConnectHighlightWithSlackButton/ConnectHighlightWithSlackButton'
 import Input from '@components/Input/Input'
 import MenuItem from '@components/Menu/MenuItem'
 import Tabs from '@components/Tabs/Tabs'
@@ -113,12 +113,10 @@ const Notifications = () => {
 														? `Comments made in your project will show up here. Get started by mentioning a team member on an error or a session.`
 														: `You have no unread notifications 🎉`}
 												</p>
-												<PersonalNotificationButton
-													text="Get Slack Notifications"
+												<ConnectHighlightWithSlackButton
 													style={{
 														maxWidth: 'fit-content',
 													}}
-													type="Organization"
 												/>
 											</div>
 										</>
@@ -170,12 +168,10 @@ const Notifications = () => {
 													team member on an error or a
 													session.
 												</p>
-												<PersonalNotificationButton
-													text="Get Slack Notifications"
+												<ConnectHighlightWithSlackButton
 													style={{
 														maxWidth: 'fit-content',
 													}}
-													type="Organization"
 												/>
 											</div>
 										</>

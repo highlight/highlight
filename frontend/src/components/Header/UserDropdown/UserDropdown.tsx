@@ -1,11 +1,11 @@
+import { useGetAdminQuery } from '@graph/hooks'
+import { auth } from '@util/auth'
+import { client } from '@util/graph'
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
-import { useGetAdminQuery } from '@graph/hooks'
-import { auth } from '@util/auth'
-import { client } from '@util/graph'
 import { AdminAvatar } from '../../Avatar/Avatar'
 import styles from './UserDropdown.module.scss'
 
@@ -79,7 +79,7 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 		</div>
 	)
 	return (
-		<Dropdown overlay={menu} placement={'bottomRight'} trigger={['click']}>
+		<Dropdown overlay={menu} placement="bottomRight" trigger={['click']}>
 			<div className={styles.accountIconWrapper}>
 				{a_data?.admin ? (
 					<AdminAvatar

@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -48,7 +47,6 @@ import (
 	"github.com/rs/xid"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go/v72"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -1813,63 +1811,6 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	}
 
 	return commentReply, nil
-}
-
-// OpenSlackConversation is the resolver for the openSlackConversation field.
-func (r *mutationResolver) OpenSlackConversation(ctx context.Context, projectID int, code string, redirectPath string) (*bool, error) {
-	var (
-		SLACK_CLIENT_ID     string
-		SLACK_CLIENT_SECRET string
-	)
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in project")
-	}
-	redirect := os.Getenv("FRONTEND_URI")
-	redirect += "/" + strconv.Itoa(projectID) + "/" + redirectPath
-	if tempSlackClientID, ok := os.LookupEnv("SLACK_CLIENT_ID"); ok && tempSlackClientID != "" {
-		SLACK_CLIENT_ID = tempSlackClientID
-	}
-	if tempSlackClientSecret, ok := os.LookupEnv("SLACK_CLIENT_SECRET"); ok && tempSlackClientSecret != "" {
-		SLACK_CLIENT_SECRET = tempSlackClientSecret
-	}
-	resp, err := slack.
-		GetOAuthV2Response(
-			&http.Client{},
-			SLACK_CLIENT_ID,
-			SLACK_CLIENT_SECRET,
-			code,
-			redirect,
-		)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting slack oauth response")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	if workspace.SlackAccessToken == nil {
-		if err := r.DB.Where(&workspace).Updates(&model.Workspace{SlackAccessToken: &resp.AccessToken}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating slack access token in workspace")
-		}
-	}
-
-	slackClient := slack.New(resp.AccessToken)
-	c, _, _, err := slackClient.OpenConversation(&slack.OpenConversationParameters{Users: []string{resp.AuthedUser.ID}})
-	if err != nil {
-		return nil, e.Wrap(err, "error opening slack conversation")
-	}
-	adminUID := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
-	if err := r.DB.Where(&model.Admin{UID: &adminUID}).Updates(&model.Admin{SlackIMChannelID: &c.ID}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating slack conversation on admin table")
-	}
-	_, _, err = slackClient.PostMessage(c.ID, slack.MsgOptionText("You will receive personal notifications when you're tagged in a session or error comment here!", false))
-	if err != nil {
-		return nil, e.Wrap(err, "error posting message to user")
-	}
-	return &model.T, nil
 }
 
 // AddIntegrationToProject is the resolver for the addIntegrationToProject field.
@@ -5057,36 +4998,6 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 		})
 	}
 
-	return ret, nil
-}
-
-// SlackMembers is the resolver for the slack_members field.
-func (r *queryResolver) SlackMembers(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting project")
-	}
-
-	workspace, err := r.GetWorkspace(project.WorkspaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	chs, err := workspace.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving existing channels")
-	}
-
-	ret := []*modelInputs.SanitizedSlackChannel{}
-	for _, ch := range chs {
-		channel := ch.WebhookChannel
-		channelID := ch.WebhookChannelID
-
-		ret = append(ret, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   &channel,
-			WebhookChannelID: &channelID,
-		})
-	}
 	return ret, nil
 }
 

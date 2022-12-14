@@ -81,9 +81,7 @@ const SwitchWorkspace = () => {
 				dropDownIcon: (
 					<Tag
 						className={styles.joinButton}
-						infoTooltipText={
-							'Your email domain is whitelisted by this workspace!'
-						}
+						infoTooltipText="Your email domain is whitelisted by this workspace!"
 						backgroundColor="var(--color-purple)"
 						color="var(--color-white)"
 					>
@@ -139,7 +137,7 @@ const SwitchWorkspace = () => {
 			</Helmet>
 			<div className={styles.box}>
 				<form onSubmit={onSubmit}>
-					<h2 className={styles.title}>{`Enter Workspace`}</h2>
+					<h2 className={styles.title}>Enter Workspace</h2>
 					<p className={styles.subTitle}>
 						Pick a workspace. If you’re having trouble getting into
 						the correct workspace, message us on{' '}
@@ -165,7 +163,7 @@ const SwitchWorkspace = () => {
 						placeholder="Enter a Workspace"
 					/>
 					<Button
-						trackingId={`SubmitWorkspaceSwitchForm`}
+						trackingId="SubmitWorkspaceSwitchForm"
 						type="primary"
 						className={styles.button}
 						block
@@ -184,7 +182,7 @@ const SwitchWorkspace = () => {
 						)}
 					</Button>
 					<ButtonLink
-						trackingId={`SwitchWorkspace-CreateWorkspace`}
+						trackingId="SwitchWorkspace-CreateWorkspace"
 						className={styles.button}
 						to={`/new${search}`}
 						fullWidth

@@ -376,9 +376,7 @@ export const Header = () => {
 											</Box>
 										</Menu.Item>
 										<a
-											href={
-												'https://www.highlight.io/docs'
-											}
+											href="https://www.highlight.io/docs"
 											className={linkStyle}
 										>
 											<Menu.Item>
@@ -510,11 +508,11 @@ const BillingBanner = () => {
 
 	if (data?.billingDetailsForProject?.plan.type !== PlanType.Free) {
 		// If date is Oct 19 in PST timezone, show Product Hunt banner
-		const isOct19 = moment().isBetween(
-			'2022-10-19T07:00:00Z',
-			'2022-10-20T07:00:00Z',
+		const isDec12 = moment().isBetween(
+			'2022-12-12T08:00:00Z',
+			'2022-12-13T08:00:00Z',
 		)
-		if (isOct19) {
+		if (isDec12) {
 			toggleShowBanner(true)
 			return <ProductHuntBanner />
 		}
@@ -675,7 +673,7 @@ const ProductHuntBanner = () => {
 			Highlight is live on Product Hunt 🎉‍{' '}
 			<a
 				target="_blank"
-				href="https://www.producthunt.com/posts/next-js-integration-in-highlight"
+				href="https://www.producthunt.com/posts/digests-by-highlight"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>

@@ -8,8 +8,10 @@ import SvgEyeIcon from '@icons/EyeIcon'
 import SvgEyeOffIcon from '@icons/EyeOffIcon'
 import SegmentIcon from '@icons/SegmentIcon'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import { EventTypeDescriptions } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import WebVitalSimpleRenderer from '@pages/Player/StreamElement/Renderers/WebVitals/WebVitalRender'
+import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { message } from 'antd'
@@ -36,10 +38,6 @@ import { MillisToMinutesAndSeconds } from '../../../util/time'
 import { HighlightEvent } from '../HighlightEvent'
 import { useReplayerContext } from '../ReplayerContext'
 import RightPanelCard from '../RightPanelCard/RightPanelCard'
-import {
-	EventTypeDescriptions,
-	getTimelineEventDisplayName,
-} from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings'
 import { getAnnotationColor } from '../Toolbar/Toolbar'
 import styles from './StreamElement.module.scss'
 import StreamElementPayload from './StreamElementPayload'
@@ -167,9 +165,9 @@ export const StreamElement = ({
 										)}{' '}
 										<InfoTooltip
 											title={
-												// @ts-ignore
+												//@ts-expect-error
 												EventTypeDescriptions[
-													details.title as unknown as string
+													details.title || ''
 												]
 											}
 										/>

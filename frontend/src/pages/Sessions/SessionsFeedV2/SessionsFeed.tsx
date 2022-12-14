@@ -425,7 +425,7 @@ export const SessionFeed = React.memo(() => {
 							!loading ? (
 								showStarredSessions ? (
 									<SearchEmptyState
-										item={'sessions'}
+										item="sessions"
 										customTitle="Your project doesn't have starred sessions."
 										customDescription={
 											'Starring a session is like bookmarking a website. ' +
@@ -435,7 +435,7 @@ export const SessionFeed = React.memo(() => {
 										}
 									/>
 								) : (
-									<SearchEmptyState item={'sessions'} />
+									<SearchEmptyState item="sessions" />
 								)
 							) : (
 								<>

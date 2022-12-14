@@ -136,7 +136,7 @@ const RageClicksForProjectTable = ({
 								{moment
 									.duration(timeRange.lookback, 'minutes')
 									.humanize()}
-								{'!'}
+								!
 							</>
 						)
 					}

@@ -1,4 +1,4 @@
-import { useSlackBot } from '@components/Header/components/PersonalNotificationButton/utils/utils'
+import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -38,9 +38,7 @@ const SlackIntegrationCallback = ({ code, projectId, next }: Props) => {
 	const history = useHistory()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { addSlackToWorkspace } = useSlackBot({
-		type: 'Organization',
-	})
+	const { addSlackToWorkspace } = useSlackBot()
 	useEffect(() => {
 		let nextUrl = '/integrations'
 		;(async () => {
@@ -182,7 +180,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 			}}
 		>
 			<Landing>
-				<div className={`w-[672px] rounded-md bg-white px-8 py-6`}>
+				<div className="w-[672px] rounded-md bg-white px-8 py-6">
 					<div className="m-4">
 						<h3>Configuring Vercel Integration</h3>
 						<VercelIntegrationSettings

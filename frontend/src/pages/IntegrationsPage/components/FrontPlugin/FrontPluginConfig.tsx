@@ -16,7 +16,7 @@ const FrontPluginConfig: React.FC<IntegrationConfigProps> = ({}) => {
 					className={styles.modalBtn}
 					target="_blank"
 					rel="noreferrer"
-					href={`https://front.com/integrations/highlight`}
+					href="https://front.com/integrations/highlight"
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />

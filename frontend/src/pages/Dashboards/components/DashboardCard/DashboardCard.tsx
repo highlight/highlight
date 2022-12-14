@@ -23,6 +23,7 @@ import {
 	Maybe,
 	MetricAggregator,
 } from '@graph/schemas'
+import { Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import SvgAnnouncementIcon from '@icons/AnnouncementIcon'
 import SvgDragIcon from '@icons/DragIcon'
@@ -112,9 +113,7 @@ const DashboardCard = ({
 									{metricConfig.help_article && (
 										<InfoTooltip
 											className={styles.infoTooltip}
-											title={
-												'Click to learn more about this metric.'
-											}
+											title="Click to learn more about this metric."
 											onClick={() => {
 												if (metricConfig.help_article) {
 													window.open(
@@ -135,7 +134,7 @@ const DashboardCard = ({
 										) : (
 											<StandardDropdown
 												display={
-													<div>
+													<Text lines="1">
 														<SvgAnnouncementIcon
 															style={{
 																marginBottom:
@@ -154,7 +153,7 @@ const DashboardCard = ({
 															.length === 1
 															? ' Monitor'
 															: ' Monitors'}
-													</div>
+													</Text>
 												}
 												renderOption={(o) =>
 													o.label ===
@@ -215,19 +214,19 @@ const DashboardCard = ({
 									)}
 								</div>
 								<Button
-									className={'flex justify-center'}
+									className="flex justify-center"
 									style={{ width: 40, height: 32 }}
 									icon={<TrashIcon />}
-									trackingId={'DashboardCardDelete'}
+									trackingId="DashboardCardDelete"
 									onClick={() => {
 										setShowDeleteModal(true)
 									}}
 								/>
 								<Button
-									className={'flex justify-center'}
+									className="flex justify-center"
 									icon={<EditIcon />}
 									style={{ width: 40, height: 32 }}
-									trackingId={'DashboardCardEditMetric'}
+									trackingId="DashboardCardEditMetric"
 									onClick={() => {
 										setShowEditModal(true)
 									}}
@@ -254,7 +253,7 @@ const DashboardCard = ({
 						/>
 						{updatingData && (
 							<div className="absolute inset-x-0 bottom-0">
-								<LoadingBar height={2} width={'100%'} />
+								<LoadingBar height={2} width="100%" />
 							</div>
 						)}
 					</div>
@@ -644,7 +643,7 @@ const ChartContainer = React.memo(
 							value < 1 ? value.toFixed(2) : value.toFixed(0)
 						}
 						xAxisUnits={metricConfig.units || undefined}
-						yAxisLabel={'occurrences'}
+						yAxisLabel="occurrences"
 						yAxisKeys={['count']}
 					/>
 				) : chartType === DashboardChartType.Timeline ? (

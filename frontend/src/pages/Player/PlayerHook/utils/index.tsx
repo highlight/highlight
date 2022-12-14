@@ -670,3 +670,40 @@ export const toHighlightEvents = (
 		}) ?? []
 	)
 }
+
+type EventTypesKeys = {
+	[key in EventsForTimelineKeys[number]]: string | React.ReactNode
+}
+
+export type EventTypeWithDescription = Omit<
+	EventTypesKeys,
+	'Web Vitals' | 'Referrer'
+>
+
+export const EventTypeDescriptions: EventTypeWithDescription = {
+	Segment: (
+		<span>
+			The client-side segment installation fired a track or identify
+			event.{' '}
+			<a
+				href="https://docs.highlight.run/docs/segment-integration"
+				target="_blank"
+				rel="noreferrer"
+			>
+				Learn more
+			</a>
+		</span>
+	),
+	Errors: "Any error that shows up in the Developer Tools' Console will be shown",
+	Focus: 'An element received either with a mouse or keyboard',
+	Navigate:
+		"The user is moving around in your application where their transitions don't require a full page reload",
+	Reload: 'The page was reloaded during the session by refreshing the page or opening the app again within the same tab',
+	Click: 'A user clicked on an element on the page',
+	Track: 'These are custom calls to Highlights track method for custom logging',
+	Comments: 'These are comments created by you and other people on your team',
+	Identify:
+		'These are custom calls to Highlight identify method to add identity metadata for a session.',
+	Viewport: 'The size of the browser changed.',
+	TabHidden: 'The user switched away from the current tab.',
+} as const

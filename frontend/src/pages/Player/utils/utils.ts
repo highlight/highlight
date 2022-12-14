@@ -72,3 +72,12 @@ export const sessionIsBackfilled = (session?: Session) => {
 
 	return Boolean(session?.identifier) && session?.identified === false
 }
+
+export const getTimelineEventDisplayName = (name: string) => {
+	switch (name) {
+		case 'TabHidden':
+			return 'Tab State'
+		default:
+			return name
+	}
+}

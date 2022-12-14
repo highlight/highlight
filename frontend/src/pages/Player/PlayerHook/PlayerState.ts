@@ -1,4 +1,4 @@
-import { ApolloQueryResult, LazyQueryExecFunction } from '@apollo/client'
+import { ApolloQueryResult } from '@apollo/client'
 import { MarkSessionAsViewedMutationFn } from '@graph/hooks'
 import {
 	GetEventChunkUrlQuery,
@@ -93,10 +93,6 @@ interface PlayerState {
 	eventsForTimelineIndicator: ParsedHighlightEvent[]
 	eventsLoaded: boolean
 	fetchEventChunkURL: FetchEventChunkURLFn
-	getSessionPayloadQuery: LazyQueryExecFunction<
-		GetSessionPayloadQuery,
-		Exact<{ session_secure_id: string; skip_events: boolean }>
-	>
 	isHighlightAdmin: boolean
 	isLiveMode: boolean
 	isLoadingEvents: boolean
@@ -201,6 +197,7 @@ interface setTime {
 
 interface addLiveEvents {
 	type: PlayerActionType.addLiveEvents
+	firstNewTimestamp: number
 	lastActiveTimestamp: number
 }
 
@@ -326,10 +323,6 @@ export const PlayerReducer = (
 	let s = { ...state }
 	switch (action.type) {
 		case PlayerActionType.play:
-			if (s.isLiveMode) {
-				// live mode play time is the current time
-				action.time = Date.now() - events[0].timestamp
-			}
 			s = replayerAction(
 				PlayerActionType.play,
 				s,
@@ -367,12 +360,8 @@ export const PlayerReducer = (
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
 			s.replayer?.replaceEvents(events)
-			replayerAction(
-				PlayerActionType.addLiveEvents,
-				s,
-				ReplayerState.Playing,
-				events[events.length - 1].timestamp - events[0].timestamp,
-			)
+			s.replayer?.play(events[events.length - 1].timestamp)
+			s.replayerState = ReplayerState.Playing
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
@@ -411,31 +400,6 @@ export const PlayerReducer = (
 							viewed: true,
 						},
 					}).catch(console.error)
-				}
-
-				const directDownloadUrl =
-					action.data.session?.direct_download_url
-				const resolve = () => {
-					s.time = 0
-				}
-				if (directDownloadUrl) {
-					s.getSessionPayloadQuery({
-						variables: {
-							session_secure_id: s.session_secure_id,
-							skip_events: true,
-						},
-					})
-						.then(resolve)
-						.catch(console.error)
-				} else {
-					s.getSessionPayloadQuery({
-						variables: {
-							session_secure_id: s.session_secure_id,
-							skip_events: false,
-						},
-					})
-						.then(resolve)
-						.catch(console.error)
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
@@ -514,7 +478,7 @@ export const PlayerReducer = (
 				PlayerActionType.onChunksLoad,
 				s,
 				action.action,
-				s.time,
+				action.time,
 			)
 			s.isLoadingEvents = false
 			break
@@ -539,7 +503,9 @@ export const PlayerReducer = (
 				s.lastActiveString = null
 			}
 
-			if (s.replayerState !== ReplayerState.Playing) break
+			if (!s.isLiveMode && s.replayerState !== ReplayerState.Playing) {
+				break
+			}
 			s.time = time
 			if (s.time >= s.sessionMetadata.totalTime) {
 				s.replayerState = s.isLiveMode
@@ -607,38 +573,23 @@ export const PlayerReducer = (
 			)
 			break
 	}
-	if (
+	log(
+		'PlayerState.ts',
 		new Set<PlayerActionType>([
 			PlayerActionType.onFrame,
 			PlayerActionType.updateCurrentUrl,
 		]).has(action.type)
-	) {
-		log(
-			'PlayerState.ts',
-			'PlayerStateUpdate',
-			PlayerActionType[action.type],
-			s.time,
-			{
-				numEvents: events.length,
-				initialState: state,
-				finalState: s,
-				action,
-			},
-		)
-	} else {
-		log(
-			'PlayerState.ts',
-			'PlayerStateTransition',
-			PlayerActionType[action.type],
-			s.time,
-			{
-				numEvents: events.length,
-				initialState: state,
-				finalState: s,
-				action,
-			},
-		)
-	}
+			? 'PlayerStateUpdate'
+			: 'PlayerStateTransition',
+		PlayerActionType[action.type],
+		s.time,
+		{
+			numEvents: events.length,
+			initialState: state,
+			finalState: s,
+			action,
+		},
+	)
 	return s
 }
 
@@ -677,7 +628,7 @@ const initReplayer = (
 		mouseTail: showPlayerMouseTail,
 		UNSAFE_replayCanvas: true,
 		liveMode: s.isLiveMode,
-		useVirtualDom: s.project_id === '1',
+		useVirtualDom: false,
 		pauseAnimation: !PROJECTS_WITH_CSS_ANIMATIONS.includes(s.project_id),
 	})
 
@@ -689,10 +640,6 @@ const initReplayer = (
 	}
 	s.performancePayloads = getAllPerformanceEvents(events)
 	s.jankPayloads = getAllJankEvents(events)
-	if (s.isLiveMode) {
-		s.replayer.startLive(events[0].timestamp)
-		s.replayer.play()
-	}
 
 	// Initializes the simulated viewport size and currentUrl with values from the first meta event
 	// until the rrweb .on('resize', ...) listener below changes it. Otherwise the URL bar
@@ -706,6 +653,11 @@ const initReplayer = (
 		}
 	}
 
+	if (s.isLiveMode) {
+		log('PlayerState.ts', 'starting live with offset', events[0].timestamp)
+		s.replayer.play(Date.now() - events[0].timestamp)
+	}
+
 	return s
 }
 
@@ -716,6 +668,7 @@ const replayerAction = (
 	time?: number,
 	skipSetTime?: boolean,
 ) => {
+	if (s.isLiveMode) return s
 	log(
 		'PlayerState.ts',
 		'playerState/replayerAction',

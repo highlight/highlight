@@ -5,7 +5,7 @@ import {
 	useGetEventChunksQuery,
 	useGetEventChunkUrlQuery,
 	useGetSessionIntervalsQuery,
-	useGetSessionPayloadLazyQuery,
+	useGetSessionPayloadQuery,
 	useGetSessionQuery,
 	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
@@ -20,6 +20,7 @@ import { usefulEvent } from '@pages/Player/components/EventStream/EventStream'
 import {
 	CHUNKING_DISABLED_PROJECTS,
 	FRAME_MS,
+	getEvents,
 	getTimeFromReplayer,
 	LOOKAHEAD_MS,
 	MAX_CHUNK_COUNT,
@@ -69,12 +70,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	} = usePlayerConfiguration()
 
 	const [markSessionAsViewed] = useMarkSessionAsViewedMutation()
-	const [
-		getSessionPayloadQuery,
-		{ data: sessionPayload, subscribeToMore: subscribeToSessionPayload },
-	] = useGetSessionPayloadLazyQuery({
-		fetchPolicy: 'no-cache',
-	})
 	const { refetch: fetchEventChunkURL } = useGetEventChunkUrlQuery({
 		fetchPolicy: 'no-cache',
 		skip: true,
@@ -122,13 +117,25 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
+		useGetSessionPayloadQuery({
+			fetchPolicy: 'no-cache',
+			variables: {
+				session_secure_id: session_secure_id,
+				skip_events: !!sessionData?.session?.direct_download_url,
+			},
+		})
 
-	const loadingChunks = useRef<Set<number>>(new Set<number>())
-	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
-	const animationFrameID = useRef<number>(0)
+	// the index of the chunk we are moving to.
 	const currentChunkIdx = useRef<number>(0)
+	// the timestamp we are moving to next.
+	const targetTime = useRef<number>()
+	// chunk indexes that are currently being loaded (fetched over the network)
+	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// used to track latest time atomically where the state may be out of date
 	const lastTimeRef = useRef<number>(0)
+	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
+	const animationFrameID = useRef<number>(0)
 	const replayerStateBeforeLoad = useRef<ReplayerState>(ReplayerState.Empty)
 
 	const [
@@ -143,7 +150,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		isLoggedIn,
 		isHighlightAdmin,
 		markSessionAsViewed,
-		getSessionPayloadQuery,
 		fetchEventChunkURL,
 	})
 
@@ -251,6 +257,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const dispatchAction = useCallback(
 		(time: number, action?: ReplayerState) => {
+			targetTime.current = undefined
 			currentChunkIdx.current = getChunkIdx(
 				state.sessionMetadata.startTime + time,
 			)
@@ -285,6 +292,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
+			targetTime.current = startTime
 			let endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
@@ -372,19 +380,34 @@ export const usePlayer = (): ReplayerContextInterface => {
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
 				await Promise.all(promises)
-				log(
-					'PlayerHook.tsx',
-					'ensureChunksLoaded',
-					'calling dispatchAction due to loading',
-					{
-						time: lastTimeRef.current,
-						promises,
-						chunks: chunkEventsRef.current,
-						prevState: replayerStateBeforeLoad.current,
-					},
-				)
-				dispatchAction(lastTimeRef.current)
-			} else if (!loadingChunks.current.size && action) {
+				// check that the target chunk has not moved since we started the loading.
+				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
+				if (startTime === targetTime.current) {
+					log(
+						'PlayerHook.tsx',
+						'ensureChunksLoaded',
+						'calling dispatchAction due to loading',
+						{
+							time: lastTimeRef.current,
+							promises,
+							chunks: chunkEventsRef.current,
+							prevState: replayerStateBeforeLoad.current,
+						},
+					)
+					dispatchAction(startTime)
+				} else {
+					log(
+						'PlayerHook.tsx',
+						'ensureChunksLoaded',
+						'canceling dispatchAction',
+						{
+							startTime,
+							startIdx,
+							targetTime: targetTime.current,
+						},
+					)
+				}
+			} else if (!loadingChunks.current.has(startIdx) && action) {
 				log(
 					'PlayerHook.tsx',
 					'ensureChunksLoaded',
@@ -491,6 +514,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 					time = inactivityEnd
 				}
 			}
+			log('PlayerHook.tsx', 'seeking to', time)
 			dispatch({ type: PlayerActionType.setTime, time })
 			return new Promise<void>((r) =>
 				requestAnimationFrame(() =>
@@ -576,6 +600,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [project_id, session_secure_id, resetPlayer])
 
 	useEffect(() => {
+		if (!state.replayer) return
 		if (
 			state.isLiveMode &&
 			sessionPayload?.events &&
@@ -605,6 +630,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 							chunkEventsSet(0, events)
 							dispatch({
 								type: PlayerActionType.addLiveEvents,
+								firstNewTimestamp:
+									toHighlightEvents(newEvents)[0].timestamp,
 								lastActiveTimestamp: new Date(
 									// @ts-ignore The typedef for subscriptionData is incorrect, apollo creates _appended type
 									subscriptionData.data!.session_payload_appended.last_user_interaction_time,
@@ -618,6 +645,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 			play(state.time).then()
 		} else if (!state.isLiveMode && unsubscribeSessionPayloadFn.current) {
+			log('PlayerHook.tsx', 'live mode unsubscribing')
 			unsubscribeSessionPayloadFn.current()
 			unsubscribeSessionPayloadFn.current = undefined
 			pause(0).then()
@@ -627,6 +655,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [
 		state.isLiveMode,
 		sessionPayload?.events,
+		state.replayer,
 		state.replayerState,
 		subscribeToSessionPayload,
 		session_secure_id,
@@ -920,10 +949,14 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			dispatch({
-				type: PlayerActionType.addLiveEvents,
-				lastActiveTimestamp: state.lastActiveTimestamp,
-			})
+			const events = getEvents(chunkEventsRef.current)
+			if (isLiveMode) {
+				dispatch({
+					type: PlayerActionType.addLiveEvents,
+					lastActiveTimestamp: state.lastActiveTimestamp,
+					firstNewTimestamp: events[events.length - 1].timestamp,
+				})
+			}
 			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
 		},
 		playerProgress: state.replayer

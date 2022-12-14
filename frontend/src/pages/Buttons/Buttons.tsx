@@ -91,27 +91,27 @@ export const Buttons = () => {
 					title="Introducing Superhuman"
 					src="https://www.youtube.com/embed/JMsFfX6qTNI?rel=0"
 				></iframe>
-				<div className={'highlight-mask'}>
+				<div className="highlight-mask">
 					This is masked.{' '}
-					<img src={'/images/logo.png'} height={16} alt={'masked'} />
+					<img src="/images/logo.png" height={16} alt="masked" />
 				</div>
-				<div className={'highlight-block'}>
+				<div className="highlight-block">
 					This is blocked.{' '}
-					<img src={'/images/logo.png'} height={16} alt={'blocked'} />
+					<img src="/images/logo.png" height={16} alt="blocked" />
 				</div>
-				<div className={'highlight-ignore'}>
+				<div className="highlight-ignore">
 					This is ignored.{' '}
-					<img src={'/images/logo.png'} height={16} alt={'ignored'} />
+					<img src="/images/logo.png" height={16} alt="ignored" />
 				</div>
 			</div>
-			<section id={'shadowDOM'} className={'foo'} title={'yo'}>
+			<section id="shadowDOM" className="foo" title="yo">
 				This is the shadow DOM.
 				<div>
 					hey
 					<span>
 						world<button>yo</button>
 					</span>
-					<span id={'shadowNumber'}>123</span>
+					<span id="shadowNumber">123</span>
 				</div>
 			</section>
 			<div className={styles.buttonBody}>

@@ -41,7 +41,7 @@ const CreateDashboardModal = () => {
 					setShowModal(false)
 				}}
 				visible={showModal}
-				title={'Create a New Dashboard'}
+				title="Create a New Dashboard"
 				width="800px"
 			>
 				<ModalBody>
@@ -67,7 +67,7 @@ const CreateDashboardModal = () => {
 						<CardFormActionsContainer>
 							<div className={styles.submitRow}>
 								<Button
-									type={'primary'}
+									type="primary"
 									style={{
 										width: 105,
 									}}
@@ -80,7 +80,7 @@ const CreateDashboardModal = () => {
 											}}
 										/>
 									}
-									trackingId={'CreateDashboard'}
+									trackingId="CreateDashboard"
 									htmlType="submit"
 								>
 									Create
@@ -91,7 +91,7 @@ const CreateDashboardModal = () => {
 				</ModalBody>
 			</Modal>
 			<Button
-				trackingId={'NewDashboard'}
+				trackingId="NewDashboard"
 				className={alertStyles.callToAction}
 				onClick={() => {
 					setShowModal(true)

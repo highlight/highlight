@@ -56,7 +56,7 @@ const DashboardsHomePage = () => {
 						renderEmptyComponent={
 							<SearchEmptyState
 								className={alertStyles.emptyContainer}
-								item={'dashboards'}
+								item="dashboards"
 								customTitle={`Your project doesn't have any dashboards yet 😔`}
 								customDescription={
 									<>

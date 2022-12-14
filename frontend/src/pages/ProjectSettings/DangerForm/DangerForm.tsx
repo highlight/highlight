@@ -30,15 +30,15 @@ export const DangerForm = () => {
 		deleteProject({ variables: { id: project_id } })
 	}
 	if (deleteData?.deleteProject) {
-		return <Redirect to={`/`} />
+		return <Redirect to="/" />
 	}
 	return (
 		<>
-			<FieldsBox id={'project'}>
+			<FieldsBox id="project">
 				<h3>Project Properties</h3>
 				<FieldsForm />
 			</FieldsBox>
-			<FieldsBox id={'danger'}>
+			<FieldsBox id="danger">
 				<h3>Danger Zone</h3>
 
 				<form onSubmit={onSubmit}>
