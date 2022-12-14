@@ -8163,7 +8163,7 @@ __metadata:
     "@types/chai": ^4.1.4
     "@types/jest": ^27.0.2
     "@types/jsdom": ^20.0.0
-    "@types/node": ^10.11.3
+    "@types/node": ^18.11.15
     "@types/puppeteer": ^1.12.4
     cross-env: ^5.2.0
     eslint: ^8.23.1
@@ -8194,7 +8194,7 @@ __metadata:
     "@types/inquirer": ^8.2.1
     "@types/jest": ^27.4.1
     "@types/jest-image-snapshot": ^4.3.1
-    "@types/node": ^17.0.21
+    "@types/node": ^18.11.15
     "@types/offscreencanvas": ^2019.6.4
     "@types/prettier": ^2.3.2
     "@types/puppeteer": ^5.4.4
@@ -12879,7 +12879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^10.0.3, @types/node@npm:^10.11.3":
+"@types/node@npm:^10.0.3":
   version: 10.17.60
   resolution: "@types/node@npm:10.17.60"
   checksum: 2cdb3a77d071ba8513e5e8306fa64bf50e3c3302390feeaeff1fd325dd25c8441369715dfc8e3701011a72fed5958c7dfa94eb9239a81b3c286caa4d97db6eef
@@ -12914,10 +12914,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^17.0.19, @types/node@npm:^17.0.21, @types/node@npm:^17.0.25":
+"@types/node@npm:^17.0.19, @types/node@npm:^17.0.25":
   version: 17.0.45
   resolution: "@types/node@npm:17.0.45"
   checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^18.11.15":
+  version: 18.11.15
+  resolution: "@types/node@npm:18.11.15"
+  checksum: cae8692a5cee0316f93ee0342237eb921f70c51afb37c661c711a925a4642654ae7e404c5a80899d481c0cfaff3a6891ef04bacd330a2e72734192bfc91dc2d8
   languageName: node
   linkType: hard
 
