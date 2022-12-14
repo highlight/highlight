@@ -1,0 +1,38 @@
+{
+	"name": "highlight.run",
+	"version": "5.1.8",
+	"scripts": {
+		"build": "yarn typegen && rollup -c",
+		"dev": "doppler run -- rollup -c -w",
+		"enforce-size": "bundlesize",
+		"test": "vitest",
+		"typegen": "tsc"
+	},
+	"main": "dist/index.js",
+	"module": "dist/indexESM.js",
+	"types": "dist/firstload/src/index.d.ts",
+	"license": "MIT",
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^22.0.1",
+		"@rollup/plugin-json": "^4.1.0",
+		"@rollup/plugin-node-resolve": "^13.3.0",
+		"@rollup/plugin-replace": "^4.0.0",
+		"@types/chrome": "^0.0.144",
+		"bundlesize": "^0.18.1",
+		"esbuild": "^0.14.47",
+		"rollup": "^2.75.7",
+		"rollup-plugin-consts": "^1.1.0",
+		"rollup-plugin-esbuild": "^4.9.1",
+		"rollup-plugin-filesize": "^9.1.2",
+		"rollup-plugin-web-worker-loader": "^1.6.1",
+		"tslib": "^2.4.0",
+		"typescript": "^4.0.3",
+		"vitest": "^0.23.4"
+	},
+	"bundlesize": [
+		{
+			"path": "dist/**.js",
+			"maxSize": "20 kB"
+		}
+	]
+}
