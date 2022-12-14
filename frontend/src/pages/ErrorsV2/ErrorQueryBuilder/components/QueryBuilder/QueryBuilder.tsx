@@ -2032,11 +2032,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// Update if the state has changed
 		if (
 			newState !== qbState &&
-			(rules.length === 1 &&
-			rules[0].field?.value === timeRangeField.value &&
-			rules[0] === defaultTimeRangeRule
-				? false
-				: true)
+			!(
+				rules.length === 1 &&
+				rules[0].field?.value === timeRangeField.value &&
+				rules[0] === defaultTimeRangeRule
+			)
 		) {
 			setQbState(newState)
 			setSearchParams((params) => ({
@@ -2294,7 +2294,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				display="flex"
 				alignItems="center"
 				px="12"
-				borderBottom="neutral"
 				cssClass={styles.controlBar}
 			>
 				<TimeRangeFilter

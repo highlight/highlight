@@ -6,6 +6,7 @@ import { typographyStyles } from '../Text/styles.css'
 export const shadows = {
 	grey: 'inset 0px -1px 0px rgba(0, 0, 0, 0.1)',
 	primary: 'inset 0px -1px 0px rgba(0, 0, 0, 0.32)',
+	neutral: `0 0 0 1px ${vars.color.neutral200} inset`,
 } as const
 
 export const defaultSize = 'small'

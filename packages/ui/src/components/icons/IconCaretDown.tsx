@@ -1,13 +1,14 @@
 import React from 'react'
 import { IconProps } from './types'
 
-export const IconCaretDown: React.FC<IconProps> = ({ size }) => (
+export const IconCaretDown: React.FC<IconProps> = (props) => (
 	<svg
-		width={size}
-		height={size}
+		width={props.size}
+		height={props.size}
 		viewBox="0 0 14 14"
 		fill="none"
 		xmlns="http://www.w3.org/2000/svg"
+		{...props}
 	>
 		<path
 			fillRule="evenodd"

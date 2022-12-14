@@ -1,8 +1,8 @@
+import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
 import classNames from 'classnames'
 import React from 'react'
 
-import { SessionFeed } from '../../Sessions/SessionsFeedV2/SessionsFeed'
 import styles from './SearchPanel.module.scss'
 
 interface Props {
@@ -17,7 +17,7 @@ const SearchPanel = React.memo(({ visible }: Props) => {
 				[styles.bannerShown]: showBanner,
 			})}
 		>
-			{visible && <SessionFeed />}
+			{visible && <SessionFeedV3 />}
 		</div>
 	)
 })

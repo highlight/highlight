@@ -1,5 +1,8 @@
 import React from 'react'
-import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
+import {
+	Button as AriakitButton,
+	ButtonProps as AriakitButtonProps,
+} from 'ariakit/button'
 import { Text, Props as TextProps } from '../Text/Text'
 
 import * as styles from './styles.css'
@@ -7,15 +10,17 @@ import { Box } from '../Box/Box'
 import { IconProps } from '../icons'
 import clsx, { ClassValue } from 'clsx'
 
-export type Props = ButtonProps &
-	styles.Variants & {
-		iconLeft?: React.ReactElement<IconProps>
-		onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
-		iconRight?: React.ReactElement<IconProps>
-		onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
-		onPress?: () => void
-		cssClass?: ClassValue | ClassValue[]
-	}
+export type ButtonProps = React.PropsWithChildren<
+	AriakitButtonProps &
+		styles.Variants & {
+			iconLeft?: React.ReactElement<IconProps>
+			onIconLeftClick?: React.MouseEventHandler<HTMLButtonElement>
+			iconRight?: React.ReactElement<IconProps>
+			onIconRightClick?: React.MouseEventHandler<HTMLButtonElement>
+			onPress?: () => void
+			cssClass?: ClassValue | ClassValue[]
+		}
+>
 
 const buttonToTextSize = {
 	xSmall: 'xSmall',
@@ -27,7 +32,7 @@ const buttonToTextSize = {
 
 export const Button = React.forwardRef<
 	HTMLButtonElement,
-	React.PropsWithChildren<Props>
+	React.PropsWithChildren<ButtonProps>
 >(
 	(
 		{

@@ -1166,6 +1166,44 @@ export const propertiesToRules = (
 	return rules
 }
 
+export const defaultSessionsQuery = {
+	bool: {
+		must: [
+			{
+				bool: {
+					should: [
+						{
+							range: {
+								created_at: {
+									gte: moment().subtract(30, 'days').format(),
+									lte: moment().format(),
+								},
+							},
+						},
+					],
+				},
+			},
+			{
+				bool: {
+					must: [
+						{
+							bool: {
+								should: [
+									{
+										term: {
+											processed: 'true',
+										},
+									},
+								],
+							},
+						},
+					],
+				},
+			},
+		],
+	},
+} as const
+
 export type FetchFieldVariables =
 	| Partial<
 			Exact<{
