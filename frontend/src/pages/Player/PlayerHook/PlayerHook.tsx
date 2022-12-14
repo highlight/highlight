@@ -257,7 +257,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	const dispatchAction = useCallback(
 		(time: number, action?: ReplayerState) => {
-			targetTime.current = undefined
 			currentChunkIdx.current = getChunkIdx(
 				state.sessionMetadata.startTime + time,
 			)
@@ -292,7 +291,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			const startIdx = getChunkIdx(
 				state.sessionMetadata.startTime + startTime,
 			)
-			targetTime.current = startTime
 			let endIdx = endTime
 				? getChunkIdx(state.sessionMetadata.startTime + endTime)
 				: startIdx
@@ -379,6 +377,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 					toRemove,
 				})
 				toRemove.forEach((idx) => chunkEventsRemove(idx))
+				// while we wait for the promises to resolve, set the targetTime as a lock for other ensureChunksLoaded
+				targetTime.current = startTime
 				await Promise.all(promises)
 				// check that the target chunk has not moved since we started the loading.
 				// eg. if we start loading, then someone clicks to a new spot, we should cancel first action.
