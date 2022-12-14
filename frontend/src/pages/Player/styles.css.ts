@@ -78,33 +78,3 @@ export const draggable = style({
 	top: -700,
 	zIndex: 200,
 })
-
-export const playerLeftPanel = style({
-	backgroundColor: colors.neutralN1,
-	borderRight: `1px solid ${colors.neutralN6}`,
-	height: '100%',
-	padding: `24px 32px 0 32px`,
-	position: 'relative',
-	top: 0,
-	transform: 'translateX(0)',
-	transition: 'transform 0.2s ease-in-out',
-	width: 475,
-	zIndex: 98,
-})
-
-export const playerLeftPanelHidden = style({
-	position: 'fixed',
-	transform: 'translateX(-475px)',
-})
-
-export const draggable = style({
-	alignItems: 'center',
-	color: colors.black,
-	cursor: 'move',
-	display: 'flex',
-	justifyContent: 'flex-end',
-	position: 'relative',
-	left: 32,
-	top: -700,
-	zIndex: 200,
-})

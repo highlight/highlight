@@ -66,9 +66,6 @@ import { DevTools } from './Toolbar/DevTools'
 import { DevToolsContextProvider } from './Toolbar/DevToolsContext/DevToolsContext'
 import { ToolbarItemsContextProvider } from './Toolbar/ToolbarItemsContext/ToolbarItemsContext'
 
-const LEFT_PANEL_WIDTH = 475
-const RIGHT_PANEL_WIDTH = 350
-
 interface Props {
 	integrated: boolean
 }
@@ -360,6 +357,7 @@ const PlayerPage = ({ integrated }: Props) => {
 										<div
 											className={style.playerCenterColumn}
 										>
+											{centerColumnResizeListener}
 											{!isPlayerFullscreen && (
 												<SessionLevelBarV2
 													width={controllerWidth}
