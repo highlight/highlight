@@ -232,6 +232,7 @@ export const SessionFeedCard = React.memo(
 							{showDetailedSessionView && eventCounts?.length && (
 								<Box cssClass={style.activityGraph}>
 									<ActivityGraph
+										selected={selected}
 										data={eventCounts}
 										height={38}
 									/>

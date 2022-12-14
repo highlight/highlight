@@ -44,4 +44,6 @@ export const colors = {
 	red500: '#FF5377',
 	orange500: '#FF9457',
 	teal500: '#36E79B',
+
+	interactiveOutlineSecondaryEnabled: '#DCDBDD',
 }

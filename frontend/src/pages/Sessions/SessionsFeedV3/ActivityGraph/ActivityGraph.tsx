@@ -8,14 +8,16 @@ const DESIRED_POINTS = 12
 const SAMPLE_INTERVAL = Math.floor(SOURCE_POINTS / DESIRED_POINTS)
 const GRADIENT_COLOR = `#6C37F4`
 const LINE_COLOR = colors.purpleP9
+const INACTIVE_LINE_COLOR = colors.interactiveOutlineSecondaryEnabled
 const GRADIENT_ID = `session-activity-graph-v2-colorUv`
 
 interface Props {
 	data: { ts: number; value: number }[]
+	selected?: boolean
 	height?: number
 }
 
-const ActivityGraph = React.memo(({ data, height = 20 }: Props) => {
+const ActivityGraph = React.memo(({ data, selected, height = 20 }: Props) => {
 	const points: { ts: number; value: number }[] = []
 
 	let sum = 0
@@ -68,8 +70,8 @@ const ActivityGraph = React.memo(({ data, height = 20 }: Props) => {
 							dataKey="value"
 							strokeWidth={2}
 							fillOpacity={1}
-							stroke={LINE_COLOR}
-							fill={`url(#${GRADIENT_ID})`}
+							stroke={selected ? LINE_COLOR : INACTIVE_LINE_COLOR}
+							fill={selected ? `url(#${GRADIENT_ID})` : 'none'}
 							activeDot={false}
 						/>
 					</ComposedChart>
