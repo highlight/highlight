@@ -137,10 +137,15 @@ export const SessionLevelBarV2: React.FC<
 					{isLoggedIn && !showLeftPanel && (
 						<ButtonIcon
 							kind="secondary"
-							size="medium"
+							size="small"
 							shape="square"
 							emphasis="medium"
-							icon={<IconExitRight size={14} />}
+							icon={
+								<IconExitRight
+									size={14}
+									color={colors.neutralN11}
+								/>
+							}
 							onClick={() => setShowLeftPanel(true)}
 							className={styles.openLeftPanelButton}
 						/>
@@ -160,7 +165,12 @@ export const SessionLevelBarV2: React.FC<
 							size="small"
 							shape="square"
 							emphasis="low"
-							icon={<IconChevronUp size={14} />}
+							icon={
+								<IconChevronUp
+									size={14}
+									color={colors.neutralN11}
+								/>
+							}
 							title="k"
 							cssClass={styles.sessionSwitchButton}
 							onClick={() => {
@@ -179,7 +189,12 @@ export const SessionLevelBarV2: React.FC<
 							size="small"
 							shape="square"
 							emphasis="low"
-							icon={<IconChevronDown size={14} />}
+							icon={
+								<IconChevronDown
+									size={14}
+									color={colors.neutralN11}
+								/>
+							}
 							title="j"
 							cssClass={styles.sessionSwitchButton}
 							onClick={() => {

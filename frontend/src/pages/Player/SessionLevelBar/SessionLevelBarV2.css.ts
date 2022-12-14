@@ -49,6 +49,7 @@ export const rightButtons = style({
 
 export const openLeftPanelButton = style({
 	minWidth: 30,
+	marginRight: 8,
 })
 
 export const sessionSwitchButton = style({
