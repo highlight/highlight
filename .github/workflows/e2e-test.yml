@@ -13,8 +13,6 @@ on:
             - 'cypress.config.js'
             - 'cypress/**'
             - 'frontend/**'
-            - 'highlight-javascript/client/**'
-            - 'highlight-javascript/firstload/**'
             - 'rrweb/**'
 jobs:
     test:
