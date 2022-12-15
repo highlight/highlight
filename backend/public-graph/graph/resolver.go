@@ -1182,7 +1182,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
+	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(project, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
 
 	// Get the user's ip, get geolocation data
@@ -1780,12 +1780,12 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	return &workspace, nil
 }
 
-func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) bool {
+func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
-		return true
+		return true, 0
 	}
 	if util.IsOnPrem() {
-		return true
+		return true, 0
 	}
 
 	if project.FreeTier {
@@ -1794,17 +1794,11 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 			log.Warn(fmt.Sprintf("error getting sessions meter for project %d", project.ID))
 		}
 		withinBillingQuota := int64(pricing.TypeToQuota(privateModel.PlanTypeFree)) > sessionCount
-		return withinBillingQuota
+		return withinBillingQuota, 0
 	}
 
-	if workspace.AllowMeterOverage {
-		return true
-	}
+	var quota int
 
-	var (
-		withinBillingQuota bool
-		quota              int
-	)
 	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
 		quota = *workspace.MonthlySessionLimit
 	} else {
@@ -1816,8 +1810,13 @@ func (r *Resolver) isWithinBillingQuota(project *model.Project, workspace *model
 	if err != nil {
 		log.Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
 	}
-	withinBillingQuota = int64(quota) > monthToDateSessionCount
-	return withinBillingQuota
+
+	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
+	if workspace.AllowMeterOverage {
+		return true, quotaPercent
+	}
+
+	return quotaPercent < 1, quotaPercent
 }
 
 func (r *Resolver) sendErrorAlert(projectID int, sessionObj *model.Session, group *model.ErrorGroup, visitedUrl string) {

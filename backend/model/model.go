@@ -1110,6 +1110,23 @@ type EmailOptOut struct {
 	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
+type EmailType string
+
+const (
+	HighlightTrial14Days   EmailType = "HighlightTrial14Days"
+	StripeTrial14Days      EmailType = "StripeTrial14Days"
+	StripeTrial3Days       EmailType = "StripeTrial3Days"
+	SessionUsage80Percent  EmailType = "SessionUsage80Percent"
+	SessionUsage100Percent EmailType = "SessionUsage100Percent"
+)
+
+type EmailHistory struct {
+	Model
+	WorkspaceID int       `gorm:"index:email_history_workspace_type_active_idx"`
+	Type        EmailType `gorm:"index:email_history_workspace_type_active_idx"`
+	Active      bool      `gorm:"index:email_history_workspace_type_active_idx"`
+}
+
 func SetupDB(dbName string) (*gorm.DB, error) {
 	var (
 		host     = os.Getenv("PSQL_HOST")
