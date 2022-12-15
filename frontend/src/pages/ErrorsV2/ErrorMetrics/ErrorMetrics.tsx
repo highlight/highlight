@@ -3,14 +3,7 @@ import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
-import {
-	Box,
-	Callout,
-	Heading,
-	IconZigZag,
-	LinkButton,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Heading, IconZigZag, Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
@@ -159,6 +152,14 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [frequencies?.errorGroupFrequencies])
 
+	useEffect(() => {
+		return () =>
+			setTimeRange(
+				moment().subtract('1', 'month').format(),
+				moment().format(),
+			)
+	}, [])
+
 	return (
 		<Box>
 			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
@@ -169,56 +170,23 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box mb="24" display="flex">
-				<div style={{ width: '50%' }}>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-					>
-						<span className={styles.titleContainer}>
-							<span className={styles.iconContainer}>
-								<IconZigZag color="#6b48c7" />
-							</span>
-							<Text weight="bold">Total occurrences</Text>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+				>
+					<span className={styles.titleContainer}>
+						<span className={styles.iconContainer}>
+							<IconZigZag color="#6b48c7" />
 						</span>
-						<Text>{errorFrequencyTotal}</Text>
-					</Box>
-
-					<div className={styles.calloutContainer}>
-						<Callout
-							title="Only see one environment version?"
-							kind="info"
-						>
-							<Box display="flex" flexDirection="column">
-								<Text
-									color="neutral500"
-									cssClass={styles.bodyText}
-								>
-									Are there sourcemaps tied to your javascript
-									code? If yes, you can upload them to
-									Highlight in CI/CD to get enhanced stack
-									traces.
-								</Text>
-								<div>
-									<LinkButton
-										kind="secondary"
-										to={{
-											pathname:
-												'https://www.highlight.io/docs/product-features/environments',
-										}}
-										target="_blank"
-									>
-										Learn more
-									</LinkButton>
-								</div>
-							</Box>
-						</Callout>
-					</div>
-				</div>
+						<Text weight="bold">Total occurrences</Text>
+					</span>
+					<Text>{errorFrequencyTotal}</Text>
+				</Box>
 
 				<div
 					className={styles.metricsDistributionContainer}
-					style={{ width: '50%' }}
+					style={{ flexGrow: 1 }}
 				>
 					<CategoricalBarChart
 						syncId="errorFrequencyChart"
