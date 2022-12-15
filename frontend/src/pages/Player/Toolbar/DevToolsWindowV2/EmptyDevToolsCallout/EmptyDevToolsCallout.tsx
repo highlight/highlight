@@ -29,7 +29,7 @@ export const EmptyDevToolsCallout = ({ kind, filter, requestType }: Props) => {
 			justifyContent="center"
 		>
 			<Callout
-				border={false}
+				border
 				title={`Couldn't find any recorded ${
 					kind === Tab.Console
 						? 'console messages'

@@ -103,6 +103,7 @@ export const ToolbarControlBar = () => {
 	const {
 		setIsPlayerFullscreen,
 		isPlayerFullscreen,
+		selectedRightPanelTab,
 		setSelectedRightPanelTab,
 	} = usePlayerUIContext()
 
@@ -374,10 +375,18 @@ export const ToolbarControlBar = () => {
 					>
 						<SwitchButton
 							onChange={() => {
-								setSelectedRightPanelTab('Comments')
-								setShowRightPanel(!showRightPanel)
+								if (selectedRightPanelTab !== 'Comments') {
+									setSelectedRightPanelTab('Comments')
+								}
+								setShowRightPanel(
+									!showRightPanel ||
+										selectedRightPanelTab !== 'Comments',
+								)
 							}}
-							checked={showRightPanel}
+							checked={
+								showRightPanel &&
+								selectedRightPanelTab === 'Comments'
+							}
 							disabled={isPlayerFullscreen || disableControls}
 							iconLeft={<IconSolidChatAlt_2 size={14} />}
 						/>

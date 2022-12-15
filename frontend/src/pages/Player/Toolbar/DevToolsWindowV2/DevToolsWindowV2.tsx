@@ -49,11 +49,11 @@ const DevToolsControlBar: React.FC<
 	setRequestType,
 	setFilter,
 }) => {
+	const [hoveredTab, setHoveredTab] = React.useState<Tab>()
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	return (
 		<Box
 			px="8"
-			py="6"
 			display="flex"
 			width="full"
 			justifyContent="space-between"
@@ -63,21 +63,32 @@ const DevToolsControlBar: React.FC<
 			<Box gap="6" display="flex">
 				{[Tab.Console, Tab.Network, Tab.Errors, Tab.Performance].map(
 					(t) => (
-						<Button
+						<Box
+							display="flex"
+							flexDirection="column"
+							justifyContent="center"
+							paddingTop="4"
+							gap="4"
 							key={t}
-							size="xSmall"
-							kind={t === tab ? 'primary' : 'secondary'}
-							className={
-								t !== tab
-									? styles.controlBarButtonDeselected
-									: undefined
-							}
-							onClick={() => {
-								setTab(t)
-							}}
+							className={styles.controlBarButton}
+							onMouseEnter={() => setHoveredTab(t)}
+							onMouseLeave={() => setHoveredTab(undefined)}
+							onClick={() => setTab(t)}
 						>
-							{Tab[t]}
-						</Button>
+							<Button
+								className={styles.controlBarVariants({
+									selected: t === tab,
+								})}
+							>
+								{Tab[t]}
+							</Button>
+							<div
+								className={styles.controlBarBottomVariants({
+									hovered: t === hoveredTab,
+									selected: t === tab,
+								})}
+							/>
+						</Box>
 					),
 				)}
 			</Box>
@@ -165,8 +176,8 @@ const DevToolsControlBar: React.FC<
 					) : null}
 
 					<Button
-						style={{ padding: '0 4px' }}
 						size="xSmall"
+						cssClass={styles.autoScroll}
 						iconRight={
 							<IconSwitchHorizontal
 								width={12}

@@ -24,7 +24,7 @@ export const playerCenterPanel = style({
 	flexDirection: 'column',
 	height: '100%',
 	position: 'relative',
-	background: colors.neutralN2,
+	background: colors.neutralN1,
 })
 
 export const playerContainer = style({
