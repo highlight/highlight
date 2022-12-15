@@ -9,6 +9,8 @@ export const CENTER_COLUMN_OVERLAP = 64
 // set this as the effective margin
 export const CENTER_COLUMN_MARGIN = 0
 export const MIN_CENTER_COLUMN_WIDTH = 428
+export const PLAYER_PADDING_X = 8
+export const PLAYER_PADDING_Y = 8
 
 export const playerWrapperV2 = style({
 	borderTop: `solid 1px ${colors.neutralN6}`,

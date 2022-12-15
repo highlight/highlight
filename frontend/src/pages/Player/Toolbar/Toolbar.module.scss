@@ -179,22 +179,6 @@
 	}
 }
 
-.toolbarSection {
-	background: none;
-	border-radius: 0 0 var(--border-radius) var(--border-radius);
-	display: flex;
-	flex-direction: row;
-	gap: 8px;
-	height: 32px;
-	z-index: 30;
-
-	&.devToolsOpen {
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-		width: inherit;
-	}
-}
-
 .toolbarPinnedSettings {
 	align-items: center;
 	display: flex;

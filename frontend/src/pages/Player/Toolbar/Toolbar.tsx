@@ -1,7 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
-import ToolbarControlBar from '@pages/Player/Toolbar/ToolbarControlBar/ToolbarControlBar'
-import classNames from 'classnames'
 import React, { useEffect } from 'react'
 
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils'
@@ -10,7 +8,6 @@ import usePlayerConfiguration, {
 } from '../PlayerHook/utils/usePlayerConfiguration'
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 import { usePlayerKeyboardShortcuts } from '../utils/PlayerHooks'
-import styles from './Toolbar.module.scss'
 
 export const TimelineAnnotationColors: {
 	[key in EventsForTimelineKeys[number]]: string
@@ -41,22 +38,12 @@ interface Props {
 }
 
 export const Toolbar = ({ width }: Props) => {
-	const {
-		replayer,
-		time,
-		state,
-		play,
-		pause,
-		isPlayerReady,
-		isLiveMode,
-		sessionMetadata,
-	} = useReplayerContext()
-
+	const { replayer, time, state, play, pause, isPlayerReady, isLiveMode } =
+		useReplayerContext()
 	usePlayerKeyboardShortcuts()
 
 	const {
 		playerSpeedIdx,
-		showDevTools,
 		autoPlayVideo,
 		enableInspectElement,
 		selectedTimelineAnnotationTypes,
@@ -108,14 +95,6 @@ export const Toolbar = ({ width }: Props) => {
 
 	return (
 		<>
-			<div
-				className={classNames(styles.toolbarSection, {
-					[styles.devToolsOpen]: showDevTools,
-				})}
-				style={{ width }}
-			>
-				<ToolbarControlBar />
-			</div>
 			<TimelineIndicatorsBarGraph
 				selectedTimelineAnnotationTypes={
 					selectedTimelineAnnotationTypes

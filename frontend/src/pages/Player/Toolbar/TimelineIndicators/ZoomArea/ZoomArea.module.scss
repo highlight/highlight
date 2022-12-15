@@ -1,7 +1,7 @@
 .zoomArea {
 	align-items: center;
 	background-color: var(--color-neutral-500);
-	border-radius: 0.4em;
+	border-radius: 2px;
 	bottom: 0;
 	cursor: grab;
 	display: flex;
@@ -24,7 +24,7 @@
 
 .zoomAreaHandle {
 	background-color: var(--color-white);
-	border-radius: 0.4em;
+	border-radius: 2px;
 	height: 38%;
 	user-select: none;
 	width: 3px;

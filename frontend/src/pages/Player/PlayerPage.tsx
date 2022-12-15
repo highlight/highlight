@@ -148,8 +148,8 @@ const PlayerPage = ({ integrated }: Props) => {
 			if (!width || !targetWidth || !height || !targetHeight) {
 				return false
 			}
-			const widthScale = (targetWidth - 80) / width
-			const heightScale = (targetHeight - 80) / height
+			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
+			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
 			const scale = Math.min(heightScale, widthScale)
 			// If calculated scale is close enough to 1, return to avoid
 			// infinite looping caused by small floating point math differences

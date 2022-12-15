@@ -159,13 +159,11 @@ const ZoomArea = ({
 	const sideWidth = isWide ? ZOOM_AREA_SIDE : 0
 	const handleWidth = isWide ? 3 : 0
 
-	const isHidden = percentWidth === 100
 	return (
 		<div
 			style={{
 				left: `${left}%`,
 				width: `${percentWidth}%`,
-				visibility: isHidden ? 'hidden' : 'visible',
 			}}
 			className={clsx(style.zoomArea, {
 				[style.animated]: !doesNoAction,

@@ -6,7 +6,6 @@ export const commentUpdatedTime: string
 export const devToolsActive: string
 export const devToolsButton: string
 export const devToolsIcon: string
-export const devToolsOpen: string
 export const dropdownInner: string
 export const dropdownMenu: string
 export const dropdownSection: string
@@ -45,6 +44,5 @@ export const timeSection: string
 export const toolbarLeftSection: string
 export const toolbarPinnedSettings: string
 export const toolbarRightSection: string
-export const toolbarSection: string
 export const undoSection: string
 export const verticalDivider: string

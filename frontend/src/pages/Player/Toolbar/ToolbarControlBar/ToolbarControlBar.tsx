@@ -67,7 +67,24 @@ import style from './ToolbarControlBar.module.scss'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 
-const ToolbarControls = () => {
+type ShortcutGuideProps = {
+	shortcut: ShortcutItem
+	className?: string
+}
+
+const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
+	({ shortcut, className }) => {
+		return (
+			<Box display="flex" gap="2" cssClass={className}>
+				{shortcut.shortcut.map((char, idx) => (
+					<Badge key={idx} variant="grey" size="tiny" label={char} />
+				))}
+			</Box>
+		)
+	},
+)
+
+export const ToolbarControlBar = () => {
 	const {
 		setTime,
 		time,
@@ -669,21 +686,3 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		</div>
 	)
 }
-
-type ShortcutGuideProps = {
-	shortcut: ShortcutItem
-	className?: string
-}
-const ShortcutTextGuide: React.FC<ShortcutGuideProps> = React.memo(
-	({ shortcut, className }) => {
-		return (
-			<Box display="flex" gap="2" cssClass={className}>
-				{shortcut.shortcut.map((char, idx) => (
-					<Badge key={idx} variant="grey" size="tiny" label={char} />
-				))}
-			</Box>
-		)
-	},
-)
-
-export default ToolbarControls
