@@ -336,7 +336,7 @@ const SourcemapError: React.FC<{
 						border="neutral"
 						padding="12"
 						overflow="scroll"
-						style={{ maxWidth: '48em' }}
+						style={{ maxWidth: '450px' }}
 					>
 						<SourcemapErrorDetails error={metadata} />
 					</Box>

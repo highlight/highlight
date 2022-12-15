@@ -5,9 +5,12 @@ import {
 } from '@graph/schemas'
 import {
 	Box,
+	Button,
 	ButtonIcon,
+	Heading,
 	IconCaretDown,
 	LinkButton,
+	Stack,
 	Tag,
 	Text,
 	usePopover,
@@ -24,9 +27,16 @@ type MetadataKey = keyof SourceMappingError
 
 const originalFileError =
 	'There was an issue accessing the original file for this error'
+const originalFileTitle = 'Original File Access Error'
+
 const sourcemapFileError =
 	'There was an issue accessing the sourcemap file for this error'
+const sourcemapFileTitle = 'Sourcemal File Error'
+
 const fileSizeLimitError = "We couldn't fetch these files due to size limits"
+const fileSizeLimitTitle = 'File Size Limit Error'
+
+const fileParseTitle = "Couldn't Parse File"
 
 const missingMinifiedFileMetadata: MetadataKey[] = [
 	'stackTraceFileURL',
@@ -61,22 +71,28 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.MinifiedFileMissingInS3AndUrl
 	) {
 		return (
-			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
-				<Box display="inline-flex">
-					<Text>
-						{originalFileError}. We couldn't find the minified file
-						in Highlight storage at path{' '}
-						<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
-						<Code>{error.stackTraceFileURL}</Code>
-					</Text>
-				</Box>
+			<StackSectionError
+				error={error}
+				keys={missingMinifiedFileMetadata}
+				title={originalFileTitle}
+			>
+				<Text>
+					{originalFileError}. We couldn't find the minified file in
+					Highlight storage at path{' '}
+					<Code>{error.actualMinifiedFetchedPath}</Code> or at URL{' '}
+					<Code>{error.stackTraceFileURL}</Code>
+				</Text>
 			</StackSectionError>
 		)
 	} else if (
 		error.errorCode == SourceMappingErrorCode.FileNameMissingFromSourcePath
 	) {
 		return (
-			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
+			<StackSectionError
+				error={error}
+				keys={missingMinifiedFileMetadata}
+				title={originalFileTitle}
+			>
 				<Text>
 					{originalFileError}. We couldn't find a filename associated
 					with this stack frame
@@ -87,7 +103,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.ErrorParsingStackTraceFileUrl
 	) {
 		return (
-			<StackSectionError error={error} keys={missingMinifiedFileMetadata}>
+			<StackSectionError
+				error={error}
+				keys={missingMinifiedFileMetadata}
+				title={originalFileTitle}
+			>
 				<Text>
 					{originalFileError}. We couldn't parse the stack trace file
 					name at URL <Code>{error.stackTraceFileURL}</Code>
@@ -98,7 +118,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.MissingSourceMapFileInS3
 	) {
 		return (
-			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+			<StackSectionError
+				error={error}
+				keys={missingSourcemapMetadata}
+				title={sourcemapFileTitle}
+			>
 				<Text>
 					{sourcemapFileError}. We couldn't find sourcemap file using
 					the 'file://' syntax in cloud storage at path{' '}
@@ -110,7 +134,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.SourcemapFileMissingInS3AndUrl
 	) {
 		return (
-			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+			<StackSectionError
+				error={error}
+				keys={missingSourcemapMetadata}
+				title={sourcemapFileTitle}
+			>
 				<Text>
 					{sourcemapFileError}. We couldn't find the sourcemap file in
 					Highlight storage at path{' '}
@@ -121,7 +149,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.InvalidSourceMapUrl) {
 		return (
-			<StackSectionError error={error} keys={missingSourcemapMetadata}>
+			<StackSectionError
+				error={error}
+				keys={missingSourcemapMetadata}
+				title={sourcemapFileTitle}
+			>
 				<Text>
 					{sourcemapFileError}. We couldn't parse the sourcemap
 					filename X <Code>{error.actualSourcemapFetchedPath}</Code>
@@ -130,7 +162,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.MinifiedFileLarger) {
 		return (
-			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
+			<StackSectionError
+				error={error}
+				keys={fileSizeLimitMetadata}
+				title={fileSizeLimitTitle}
+			>
 				<Text>
 					{fileSizeLimitError}. Minified file{' '}
 					<Code>{error.actualMinifiedFetchedPath}</Code> larger than
@@ -140,7 +176,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		)
 	} else if (error.errorCode == SourceMappingErrorCode.SourceMapFileLarger) {
 		return (
-			<StackSectionError error={error} keys={fileSizeLimitMetadata}>
+			<StackSectionError
+				error={error}
+				keys={fileSizeLimitMetadata}
+				title={fileSizeLimitTitle}
+			>
 				<Text>
 					{fileSizeLimitError}. Sourcemap file{' '}
 					<Code>{error.actualSourcemapFetchedPath}</Code> larger than
@@ -152,7 +192,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		error.errorCode == SourceMappingErrorCode.SourcemapLibraryCouldntParse
 	) {
 		return (
-			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
+			<StackSectionError
+				error={error}
+				keys={sourcemapParseErrorMetadata}
+				title={fileParseTitle}
+			>
 				<Text>
 					There was an error parsing the source map file{' '}
 					<Code>{error.sourceMapURL}</Code>{' '}
@@ -164,7 +208,11 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 		SourceMappingErrorCode.SourcemapLibraryCouldntRetrieveSource
 	) {
 		return (
-			<StackSectionError error={error} keys={sourcemapParseErrorMetadata}>
+			<StackSectionError
+				error={error}
+				keys={sourcemapParseErrorMetadata}
+				title={fileParseTitle}
+			>
 				<Text>
 					Sourcemap library didn't find a valid mapping to the
 					original source with line{' '}
@@ -197,8 +245,9 @@ const StackSectionError: React.FC<
 	React.PropsWithChildren<{
 		error: SourceMappingError
 		keys: MetadataKey[]
+		title: string
 	}>
-> = ({ children, error, keys }) => {
+> = ({ children, error, keys, title }) => {
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
 	const { mounted } = usePopover()
@@ -226,7 +275,10 @@ const StackSectionError: React.FC<
 	return (
 		<Box borderRadius="6" border="neutral" cursor="default">
 			<Box p="8">
-				{children}
+				<Stack gap="12">
+					<Heading level="h4">{title}</Heading>
+					{children}
+				</Stack>
 
 				{metadata.length > 0 && (
 					<Box>
@@ -263,9 +315,7 @@ const StackSectionError: React.FC<
 												}}
 											>
 												<Box p="4">
-													<Text weight="bold">
-														{m.label}
-													</Text>
+													<Text>{m.label}</Text>
 												</Box>
 											</th>
 											<td
@@ -297,7 +347,15 @@ const StackSectionError: React.FC<
 				display="flex"
 				justifyContent="flex-end"
 				width="full"
+				gap="8"
 			>
+				<Button
+					kind="secondary"
+					onClick={() => window.open('mailto:support@highlight.io')}
+				>
+					Contact
+				</Button>
+
 				<LinkButton to={`/${projectId}/settings/errors`}>
 					Sourcemap settings
 				</LinkButton>
