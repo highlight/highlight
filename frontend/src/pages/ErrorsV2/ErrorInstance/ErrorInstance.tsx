@@ -7,7 +7,7 @@ import {
 } from '@graph/hooks'
 import { GetErrorGroupQuery, GetErrorObjectQuery } from '@graph/operations'
 import type { ErrorInstance as ErrorInstanceType } from '@graph/schemas'
-import { Box, Button, Column, Heading, IconPlay, Text } from '@highlight-run/ui'
+import { Box, Button, Heading, IconPlay, Text } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
@@ -200,41 +200,42 @@ const Metadata: React.FC<{
 			</Box>
 
 			<Box>
-				<Column.Container gap="16">
-					<Column span="4">
-						{metadata.map((meta) => (
-							<Box
-								py="10"
-								key={meta.key}
-								onClick={() => copyToClipboard(meta.key)}
+				{metadata.map((meta) => (
+					<Box
+						display="flex"
+						gap="6"
+						key={meta.key}
+						alignItems="center"
+					>
+						<Box
+							py="10"
+							cursor="pointer"
+							onClick={() => copyToClipboard(meta.key)}
+							style={{ width: '33%' }}
+						>
+							<Text
+								color="neutral500"
+								transform="capitalize"
+								align="left"
+								lines="1"
 							>
-								<Text
-									color="neutral500"
-									transform="capitalize"
-									align="left"
-									lines="1"
-								>
-									{meta.key.replace('_', ' ')}
-								</Text>
-							</Box>
-						))}
-					</Column>
-					<Column span="8">
-						{metadata.map((meta) => (
-							<Box
-								py="10"
-								key={meta.key}
-								onClick={() =>
-									meta.label && copyToClipboard(meta.label)
-								}
-							>
-								<Text align="left" break="all" lines="1">
-									{meta.label}
-								</Text>
-							</Box>
-						))}
-					</Column>
-				</Column.Container>
+								{meta.key.replace('_', ' ')}
+							</Text>
+						</Box>
+						<Box
+							cursor="pointer"
+							py="10"
+							onClick={() =>
+								meta.label && copyToClipboard(meta.label)
+							}
+							style={{ width: '67%' }}
+						>
+							<Text align="left" break="word" lines="4">
+								{meta.label}
+							</Text>
+						</Box>
+					</Box>
+				))}
 			</Box>
 		</Box>
 	)
@@ -338,14 +339,19 @@ const User: React.FC<{
 
 				<Box py="8" px="12">
 					<Box display="flex" flexDirection="column">
-						<Column.Container gap="16">
-							<Column span="4">
-								{userDisplayPropertyKeys.map((key) => (
+						<Box gap="16">
+							{userDisplayPropertyKeys.map((key) => (
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="6"
+									key={key}
+								>
 									<Box
 										py="10"
 										overflow="hidden"
-										key={key}
 										onClick={() => copyToClipboard(key)}
+										style={{ width: '33%' }}
 									>
 										<Text
 											color="neutral500"
@@ -357,37 +363,36 @@ const User: React.FC<{
 											{key}
 										</Text>
 									</Box>
-								))}
 
-								<Box py="10">
-									<Text color="neutral500" align="left">
-										Location
-									</Text>
-								</Box>
-							</Column>
-							<Column span="8">
-								{userDisplayPropertyKeys.map((key) => (
 									<Box
 										py="10"
-										key={key}
 										display="flex"
 										overflow="hidden"
 										onClick={() =>
 											copyToClipboard(userProperties[key])
 										}
 										title={userProperties[key]}
+										style={{ width: '67%' }}
 									>
 										<Text lines="1" as="span">
 											{userProperties[key]}
 										</Text>
 									</Box>
-								))}
+								</Box>
+							))}
 
-								<Box py="10">
+							<Box display="flex" alignItems="center" gap="6">
+								<Box py="10" style={{ width: '33%' }}>
+									<Text color="neutral500" align="left">
+										Location
+									</Text>
+								</Box>
+
+								<Box py="10" style={{ width: '67%' }}>
 									<Text>{location}</Text>
 								</Box>
-							</Column>
-						</Column.Container>
+							</Box>
+						</Box>
 						{truncateable && (
 							<Box>
 								<Button
