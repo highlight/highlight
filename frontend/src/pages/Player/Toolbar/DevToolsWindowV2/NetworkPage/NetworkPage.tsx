@@ -19,7 +19,6 @@ import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
-import clsx from 'clsx'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -259,7 +258,7 @@ export const NetworkPage = React.memo(
 		])
 
 		return (
-			<Box className={clsx(styles.container, styles.containerPadding)}>
+			<Box className={styles.container}>
 				{loading || !session ? (
 					<Skeleton
 						count={10}

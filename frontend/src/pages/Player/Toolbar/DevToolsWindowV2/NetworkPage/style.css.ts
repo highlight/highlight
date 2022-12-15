@@ -3,12 +3,9 @@ import { style } from '@vanilla-extract/css'
 import { recipe } from '@vanilla-extract/recipes'
 
 export const container = style({
+	background: colors.neutralN1,
 	width: '100%',
 	height: '100%',
-})
-
-export const containerPadding = style({
-	padding: 8,
 })
 
 export const networkBox = style({
@@ -53,12 +50,12 @@ export const networkHeader = style({
 	gridTemplateColumns,
 	gridGap,
 	borderBottom: `1px solid ${colors.neutralN6}`,
-	padding: '12px 12px 8px',
+	padding: '12px 14px 10px',
 })
 
 export const networkRowVariants = recipe({
 	base: {
-		backgroundColor: colors.white,
+		backgroundColor: colors.neutralN1,
 		color: colors.neutralN11,
 		display: 'grid',
 		gridTemplateColumns,
@@ -66,7 +63,6 @@ export const networkRowVariants = recipe({
 		padding: 6,
 		width: '100%',
 		height: 36,
-		borderRadius: 6,
 		borderBottom: `1px solid ${colors.neutralN6}`,
 		selectors: {
 			'&:hover': {

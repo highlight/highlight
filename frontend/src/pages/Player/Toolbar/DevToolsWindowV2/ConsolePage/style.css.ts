@@ -25,14 +25,14 @@ export const consoleText = style({
 })
 
 export const consoleRow = style({
-	backgroundColor: colors.white,
+	backgroundColor: colors.neutralN1,
 	display: 'flex',
 	flexDirection: 'row',
 	justifyContent: 'flex-start',
 	padding: '2px 4px',
 	margin: '8px 0',
 	selectors: {
-		'&:focus, &:active &:hover': {
+		'&:focus, &:active, &:hover': {
 			backgroundColor: colors.neutral100,
 		},
 	},
