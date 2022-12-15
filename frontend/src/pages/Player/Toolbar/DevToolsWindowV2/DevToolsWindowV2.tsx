@@ -19,6 +19,7 @@ import {
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
 	LogLevel,
+	LogLevelVariants,
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -131,10 +132,22 @@ const DevToolsControlBar: React.FC<
 
 					{tab === Tab.Console ? (
 						<MenuButton
+							divider
 							size="medium"
-							options={Object.values(LogLevel).map(
-								(ll: string) => ({ key: ll, render: ll }),
-							)}
+							options={Object.values(LogLevel).map((ll) => ({
+								key: ll,
+								render: ll,
+								variants: LogLevelVariants[
+									ll as keyof typeof LogLevelVariants
+								]
+									? {
+											variant:
+												LogLevelVariants[
+													ll as keyof typeof LogLevelVariants
+												],
+									  }
+									: undefined,
+							}))}
 							onChange={(ll: string) =>
 								setLogLevel(ll as LogLevel)
 							}

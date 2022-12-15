@@ -42,6 +42,22 @@ export const variants = recipe({
 				background: vars.theme.static.surface.sentiment.good,
 				color: vars.theme.static.content.sentiment.good,
 			},
+			blue: sprinkles({
+				background: vars.theme.static.surface.sentiment.informative,
+				color: vars.theme.static.content.sentiment.informative,
+			}),
+			gray: sprinkles({
+				background: vars.theme.static.surface.nested,
+				color: vars.theme.static.content.weak,
+			}),
+			red: sprinkles({
+				background: vars.theme.static.surface.sentiment.bad,
+				color: vars.theme.static.content.sentiment.bad,
+			}),
+			yellow: sprinkles({
+				background: vars.theme.static.surface.sentiment.caution,
+				color: vars.theme.static.content.sentiment.caution,
+			}),
 		},
 	},
 

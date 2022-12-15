@@ -108,6 +108,13 @@ export enum LogLevel {
 	Error = 'Error',
 }
 
+export const LogLevelVariants = {
+	[LogLevel.Info]: 'gray',
+	[LogLevel.Log]: 'blue',
+	[LogLevel.Warn]: 'yellow',
+	[LogLevel.Error]: 'red',
+} as const
+
 export enum RequestType {
 	All = 'All',
 	Link = 'Link',
