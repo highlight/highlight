@@ -29,6 +29,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
 import { ReactComponent as ChevronLeftIcon } from '@icons/Solid/cheveron-left.svg'
@@ -311,6 +312,7 @@ export const ToolbarControlBar = () => {
 								setPlayerSpeedIdx(playerSpeedIdx + 1)
 							}}
 							disabled={disableControls}
+							style={{ color: colors.neutralN11 }}
 						>
 							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 						</Tag>

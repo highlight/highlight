@@ -309,7 +309,7 @@ export const SessionFeedV3 = React.memo(() => {
 					[style.searchPanelHidden]: !showLeftPanel,
 					[style.searchPanelWithBanner]: showBanner,
 				})}
-				background="neutral50"
+				background="neutralN1"
 			>
 				<SessionQueryBuilder />
 				{showHistogram && (

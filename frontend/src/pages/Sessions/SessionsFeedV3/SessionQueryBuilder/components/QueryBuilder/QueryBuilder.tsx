@@ -2548,7 +2548,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 							{actionButton}
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="neutral50"
+									background="neutralN1"
 									borderBottom="neutral"
 									p="8"
 									mb="4"
@@ -2645,7 +2645,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 							/>
 							<Menu.List cssClass={styles.menuList}>
 								<Box
-									background="neutral50"
+									background="neutralN1"
 									borderBottom="neutral"
 									p="8"
 									mb="4"

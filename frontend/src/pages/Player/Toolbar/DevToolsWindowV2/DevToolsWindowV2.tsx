@@ -60,7 +60,7 @@ const DevToolsControlBar: React.FC<
 			borderBottom="neutral"
 		>
 			<Box gap="6" display="flex">
-				{[Tab.Errors, Tab.Console, Tab.Network, Tab.Performance].map(
+				{[Tab.Console, Tab.Network, Tab.Errors, Tab.Performance].map(
 					(t) => (
 						<Button
 							key={t}
@@ -245,21 +245,19 @@ const DevToolsWindowV2: React.FC<
 		>
 			{({ panelRef, handleRef }) => (
 				<Box>
-					<div className="flex justify-center align-middle">
-						<button
-							className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
-							ref={handleRef}
-						>
-							<div className="relative h-2 w-10 rounded-full bg-gray-200" />
-						</button>
-					</div>
 					<div
 						className={styles.devToolsWindowV2}
 						ref={panelRef}
-						style={{
-							width: props.width - styles.devToolsBoxMargin * 2,
-						}}
+						style={{ width: props.width }}
 					>
+						<div className="absolute flex justify-center align-middle">
+							<button
+								className="flex cursor-ns-resize justify-center border-none bg-transparent p-2 outline-none"
+								ref={handleRef}
+							>
+								<div className="relative h-2 w-10 rounded-full bg-gray-200" />
+							</button>
+						</div>
 						<DevToolsControlBar
 							setFilter={setFilter}
 							tab={tab}
