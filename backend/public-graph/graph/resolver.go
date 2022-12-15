@@ -1133,7 +1133,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	setupSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setup"))
 	project := &model.Project{}
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "project doesn't exist")
+		return nil, e.Wrapf(err, "project doesn't exist project_id:%d", projectID)
 	}
 	workspace, err := r.getWorkspace(project.WorkspaceID)
 	if err != nil {
