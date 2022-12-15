@@ -23,6 +23,21 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	"github.com/clearbit/clearbit-go/clearbit"
+	"github.com/leonelquinteros/hubspot"
+	"github.com/lib/pq"
+	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
+	"github.com/rs/xid"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go/v72"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/discord"
 	"github.com/highlight-run/highlight/backend/apolloio"
@@ -6050,34 +6065,31 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	// Returning nil for now to fix perf issues loading sessions
-	return nil, nil
+	var deviceMemory *int
+	metric := &model.Metric{}
 
-	// var deviceMemory *int
-	// metric := &model.Metric{}
+	if err := r.DB.Raw(`
+	WITH filtered_group_ids AS (
+		SELECT id
+		FROM metric_groups
+		WHERE session_id = ?
+		LIMIT 100000
+	  )
+	  SELECT metrics.*
+	  FROM metrics
+	  WHERE metrics.name = ?
+	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			log.Error(err)
+		}
+	}
 
-	// if err := r.DB.Raw(`
-	// WITH filtered_group_ids AS (
-	// 	SELECT id
-	// 	FROM metric_groups
-	// 	WHERE session_id = ?
-	// 	LIMIT 100000
-	//   )
-	//   SELECT metrics.*
-	//   FROM metrics
-	//   WHERE metrics.name = ?
-	//   AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
-	// 	if !e.Is(err, gorm.ErrRecordNotFound) {
-	// 		log.Error(err)
-	// 	}
-	// }
+	if metric != nil {
+		valueAsInt := int(metric.Value)
+		deviceMemory = &valueAsInt
+	}
 
-	// if metric != nil {
-	// 	valueAsInt := int(metric.Value)
-	// 	deviceMemory = &valueAsInt
-	// }
-
-	// return deviceMemory, nil
+	return deviceMemory, nil
 }
 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
