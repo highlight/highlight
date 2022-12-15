@@ -568,7 +568,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}); err != nil {
-				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+				log.WithFields(log.Fields{
+					"admin_id": admin.ID,
+					"value":    totalSessionCountAsInt,
+				}).Error(e.Wrap(err, "error updating session count for admin in hubspot"))
 			}
 			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
