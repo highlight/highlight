@@ -45,6 +45,12 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 		: 0
 	const numberOfDays = moment(moment()).diff(startDate, 'days')
 
+	const scrollToInstances = () => {
+		document.querySelector('#error-instance-container')?.scrollIntoView({
+			behavior: 'smooth',
+		})
+	}
+
 	React.useEffect(() => {
 		if (bodyRef.current) {
 			setTruncateable(
@@ -58,15 +64,30 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 			<Box display="flex">
 				<Stat
 					title={
-						<Box
-							color="neutral300"
-							display="flex"
-							alignItems="center"
-							gap="4"
-						>
-							<FaUsers />
-							<Text color="neutral500">Users</Text>
-						</Box>
+						<>
+							<Box
+								color="neutral300"
+								display="flex"
+								alignItems="center"
+								gap="4"
+							>
+								<FaUsers />
+								<Text color="neutral500">Affected Users</Text>
+							</Box>
+							<ButtonLink
+								style={{ cursor: 'pointer' }}
+								onClick={scrollToInstances}
+							>
+								<Box
+									display="flex"
+									alignItems="center"
+									as="span"
+								>
+									<span>Latest</span>{' '}
+									<IconChevronRight size={16} />
+								</Box>
+							</ButtonLink>
+						</>
 					}
 				>
 					<Box display="flex" gap="4" alignItems="center">
@@ -132,15 +153,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 							</Box>
 							<ButtonLink
 								style={{ cursor: 'pointer' }}
-								onClick={() =>
-									document
-										.querySelector(
-											'#error-instance-container',
-										)
-										?.scrollIntoView({
-											behavior: 'smooth',
-										})
-								}
+								onClick={scrollToInstances}
 							>
 								<Box
 									display="flex"
