@@ -228,7 +228,7 @@ const Metadata: React.FC<{
 									meta.label && copyToClipboard(meta.label)
 								}
 							>
-								<Text align="left" wrap="always" lines="1">
+								<Text align="left" break="all" lines="1">
 									{meta.label}
 								</Text>
 							</Box>
