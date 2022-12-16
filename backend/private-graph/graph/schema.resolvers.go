@@ -45,6 +45,9 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/rs/zerolog"
+	zlog "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -568,7 +571,15 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}); err != nil {
-				log.Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+				zlog.Error().
+					Stack().
+					Err(err).
+					Int("admin_id", admin.ID).
+					Int("value", totalSessionCountAsInt).
+					Msg("error updating session count for admin in hubspot")
 			}
 			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}

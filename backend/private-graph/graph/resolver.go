@@ -357,6 +357,11 @@ func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, 
 }
 
 func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspace"))
+	defer span.Finish()
+
+	span.SetTag("WorkspaceID", workspaceID)
+
 	if r.isWhitelistedAccount(ctx) {
 		return r.GetWorkspace(workspaceID)
 	}
@@ -365,6 +370,8 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving user")
 	}
+
+	span.SetTag("AdminID", admin.ID)
 
 	workspace := model.Workspace{}
 	if err := r.DB.Order("name asc").
@@ -383,6 +390,11 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProject"))
+	defer span.Finish()
+
+	span.SetTag("ProjectID", project_id)
+
 	if util.IsTestEnv() {
 		return nil, nil
 	}
@@ -399,6 +411,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	}
 	for _, p := range projects {
 		if p.ID == project_id {
+			span.SetTag("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}

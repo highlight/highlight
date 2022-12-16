@@ -262,6 +262,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					family="monospace"
 					lines={truncated ? '3' : undefined}
 					ref={bodyRef}
+					break="word"
 				>
 					{body}
 				</Text>

@@ -1259,12 +1259,21 @@ func (w *Worker) RefreshMaterializedViews() {
 
 	if !util.IsDevOrTestEnv() {
 		for _, c := range counts {
+			// See HIG-2743
+			// Skip updating session count for demo workspace because we exclude it from Hubspot
+			if c.WorkspaceID == 0 {
+				continue
+			}
+
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
 				Value:    c.Count,
 			}}); err != nil {
-				log.Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
+				log.WithFields(log.Fields{
+					"workspace_id": c.WorkspaceID,
+					"value":        c.Count,
+				}).Fatal(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 			time.Sleep(150 * time.Millisecond)
 		}

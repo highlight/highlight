@@ -103,9 +103,15 @@ export const variants = recipe({
 				textTransform: 'lowercase',
 			},
 		},
-		wrap: {
-			always: {
+		break: {
+			all: {
 				wordBreak: 'break-all',
+			},
+			word: {
+				wordBreak: 'break-word',
+			},
+			normal: {
+				wordBreak: 'normal',
 			},
 			none: {
 				whiteSpace: 'nowrap',
