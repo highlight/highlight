@@ -28,11 +28,11 @@ jobs:
 
             - name: Set the value
               run: |
-                  echo "my_command=$(echo 'testing')" >> $GITHUB_ENV
+                  echo "highlight_javascript_changed=$(echo 'git diff origin/chris/javascript-monorepo --name-only | grep "^highlight-javascript$"')" >> $GITHUB_ENV
 
             - name: Use the value
               run: |
-                  echo "my_command: ${{ env.my_command }}"
+                  echo "highlight_javascript_changed: ${{ env.highlight_javascript_changed }}"
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
