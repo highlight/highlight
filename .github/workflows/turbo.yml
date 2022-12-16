@@ -28,7 +28,8 @@ jobs:
 
             - name: Set the value
               run: |
-                  echo "highlight_javascript_changed=$(echo 'git diff origin/master --name-only | grep "^highlight-javascript$"')" >> $GITHUB_ENV
+                  changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
+                  echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
 
             - name: Use the value
               run: |
