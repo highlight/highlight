@@ -93,7 +93,7 @@ const ErrorsPage = React.memo(
 			<Box className={styles.errorsBox}>
 				{loading ? (
 					<Skeleton
-						count={2}
+						count={16}
 						style={{ height: 25, marginBottom: 11 }}
 					/>
 				) : !session || !errorsToRender.length ? (

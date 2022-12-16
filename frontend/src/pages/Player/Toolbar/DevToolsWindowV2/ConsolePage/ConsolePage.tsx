@@ -2,7 +2,6 @@ import { useGetMessagesQuery } from '@graph/hooks'
 import { ConsoleMessage } from '@highlight-run/client'
 import { playerMetaData } from '@highlight-run/rrweb/typings/types'
 import { Box, Text } from '@highlight-run/ui'
-import devStyles from '@pages/Player/Toolbar/DevToolsWindow/DevToolsWindow.module.scss'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { LogLevel, Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { indexedDBFetch } from '@util/db'
@@ -181,12 +180,12 @@ export const ConsolePage = React.memo(
 		return (
 			<Box className={styles.consoleBox}>
 				{loading ? (
-					<div className={devStyles.skeletonWrapper}>
+					<Box px="2" py="8">
 						<Skeleton
-							count={2}
+							count={16}
 							style={{ height: 25, marginBottom: 11 }}
 						/>
-					</div>
+					</Box>
 				) : messagesToRender?.length ? (
 					<Virtuoso
 						ref={virtuoso}

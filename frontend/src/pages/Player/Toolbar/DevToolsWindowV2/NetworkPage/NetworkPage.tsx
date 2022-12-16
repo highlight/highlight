@@ -260,10 +260,12 @@ export const NetworkPage = React.memo(
 		return (
 			<Box className={styles.container}>
 				{loading || !session ? (
-					<Skeleton
-						count={10}
-						style={{ height: 25, marginBottom: 11 }}
-					/>
+					<Box p="16">
+						<Skeleton
+							count={16}
+							style={{ height: 25, marginBottom: 11 }}
+						/>
+					</Box>
 				) : resourcesToRender.length > 0 ? (
 					<Box className={styles.container}>
 						<Box className={styles.networkHeader}>
