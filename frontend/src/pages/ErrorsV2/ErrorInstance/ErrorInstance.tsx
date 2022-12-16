@@ -1,7 +1,6 @@
 import { useApolloClient } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
@@ -41,7 +40,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const client = useApolloClient()
 	const { isLoggedIn } = useAuthContext()
 
-	const { loading, data } = useGetErrorInstanceQuery({
+	const { data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -85,90 +84,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const errorInstance = data?.error_instance
 
 	if (!errorInstance || !errorInstance?.error_object) {
-		// if (!loading) return null
-		return (
-			<Box id="error-instance-container">
-				<Box my="28" display="flex" justifyContent="space-between">
-					<Box display="flex" flexDirection="column" gap="16">
-						<Heading level="h4">Error Instance</Heading>
-					</Box>
-
-					<Box>
-						<Box display="flex" gap="8" alignItems="center">
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-							>
-								Older
-							</Button>
-							<Box borderRight="neutral" style={{ height: 18 }} />
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-							>
-								Newer
-							</Button>
-							<Button
-								kind="secondary"
-								emphasis="high"
-								disabled={!isLoggedIn}
-								onClick={() =>
-									isLoggedIn
-										? history.push(
-												`/${projectId}/sessions/${errorInstance?.error_object?.session?.secure_id}`,
-										  )
-										: null
-								}
-								iconLeft={<IconPlay />}
-							>
-								Show session
-							</Button>
-						</Box>
-					</Box>
-				</Box>
-
-				<Box
-					display="flex"
-					flexDirection={{ desktop: 'row', mobile: 'column' }}
-					mb="40"
-					gap="40"
-				>
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="neutral" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<Skeleton count={5} />
-						</Box>
-					</div>
-
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<Skeleton count={5} />
-						</Box>
-					</div>
-				</Box>
-
-				<Text size="large" weight="bold">
-					Stack trace
-				</Text>
-				<Box bt="neutral" mt="12" pt="16">
-					<Skeleton count={10} />
-				</Box>
-			</Box>
-		)
+		return null
 	}
 
-	const errorObject = errorInstance?.error_object
+	const errorObject = errorInstance.error_object
 
 	return (
 		<Box id="error-instance-container">
@@ -236,7 +155,9 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
-					<User errorObject={errorObject} />
+					<Box display="flex">
+						<User errorObject={errorObject} />
+					</Box>
 				</div>
 			</Box>
 
