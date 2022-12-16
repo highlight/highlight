@@ -1,4 +1,5 @@
 import BarChart from '@components/BarChart/BarChart'
+import { GetErrorInstanceDocument } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
@@ -13,12 +14,15 @@ import {
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { getErrorGroupStats } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
+import { client } from '@util/graph'
 import moment from 'moment'
 import React from 'react'
 import { BsGridFill } from 'react-icons/bs'
 import { FaUsers } from 'react-icons/fa'
+import { useHistory } from 'react-router-dom'
 import AutoSizer from 'react-virtualized-auto-sizer'
 
 const showChangeThresholdPercent = 1
@@ -32,6 +36,8 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 }) => {
 	const [truncated, setTruncated] = React.useState(true)
 	const [truncateable, setTruncateable] = React.useState(true)
+	const { projectId } = useProjectId()
+	const history = useHistory()
 	const body = getErrorBody(errorGroup?.event)
 	const bodyRef = React.useRef<HTMLElement | undefined>()
 
@@ -46,9 +52,25 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 	const numberOfDays = moment(moment()).diff(startDate, 'days')
 
 	const scrollToInstances = () => {
-		document.querySelector('#error-instance-container')?.scrollIntoView({
-			behavior: 'smooth',
-		})
+		// Using client directly here because there was some issues with the
+		// onCompleted handler competing with the logic already in ErrorInstance.
+		client
+			.query({
+				query: GetErrorInstanceDocument,
+				variables: {
+					error_group_secure_id: String(errorGroup?.secure_id),
+				},
+			})
+			.then((response) => {
+				history.push({
+					pathname: `/${projectId}/errors/${errorGroup?.secure_id}/instances/${response.data.error_instance?.error_object.id}`,
+					search: window.location.search,
+				})
+
+				document
+					.querySelector('#error-instance-container')
+					?.scrollIntoView({ behavior: 'smooth' })
+			})
 	}
 
 	React.useEffect(() => {
