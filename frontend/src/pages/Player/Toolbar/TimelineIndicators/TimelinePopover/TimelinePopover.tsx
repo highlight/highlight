@@ -33,8 +33,7 @@ const POPOVER_CONTENT_ROW_HEIGHT = 28
 
 const TimelinePopover = ({ bucket }: Props) => {
 	const history = useHistory()
-	const { setCurrentEvent, pause, errors, sessionMetadata } =
-		useReplayerContext()
+	const { setCurrentEvent, pause, errors } = useReplayerContext()
 	const {
 		setShowRightPanel,
 		setShowDevTools,
