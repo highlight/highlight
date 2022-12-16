@@ -134,11 +134,21 @@ export const BillingStatusCard = ({
 			nextInvoiceDate < billingPeriodEnd
 				? nextInvoiceDate
 				: billingPeriodEnd
+	} else if (billingPeriodEnd) {
+		nextBillingDate = billingPeriodEnd
 	}
 
 	return (
 		<div className={styles.fieldsBox}>
-			<h3 className={styles.cardTitle}>Current Billing Status</h3>
+			<h3 className={styles.cardTitle}>
+				Current Billing Status
+				{nextBillingDate &&
+					` - ${moment(nextBillingDate)
+						.subtract(1, 'months')
+						.format('MMM D')} to ${moment(nextBillingDate).format(
+						'MMM D',
+					)}`}
+			</h3>
 			<div className={styles.cardSubtitleContainer}>
 				<span>Current Base Plan</span>
 				{loading ? (
