@@ -38,7 +38,14 @@ const useDataTimeRange = () => {
 		})
 	}
 
-	return { timeRange, setTimeRange }
+	const resetTimeRange = () => {
+		setTimeRange(
+			moment().subtract(defaultLookback, 'minutes').format(FORMAT),
+			moment().format(FORMAT),
+		)
+	}
+
+	return { timeRange, setTimeRange, resetTimeRange }
 }
 
 export default useDataTimeRange

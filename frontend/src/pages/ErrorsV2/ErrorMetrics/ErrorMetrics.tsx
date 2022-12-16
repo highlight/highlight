@@ -42,7 +42,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		ticks: [],
 		format: '',
 	})
-	const { timeRange, setTimeRange } = useDataTimeRange()
+	const { timeRange, setTimeRange, resetTimeRange } = useDataTimeRange()
 	const [referenceArea, setReferenceArea] = useState<{
 		start: string
 		end: string
@@ -153,11 +153,8 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 	}, [frequencies?.errorGroupFrequencies])
 
 	useEffect(() => {
-		return () =>
-			setTimeRange(
-				moment().subtract('1', 'month').format(),
-				moment().format(),
-			)
+		resetTimeRange()
+		return resetTimeRange
 	}, [])
 
 	return (
