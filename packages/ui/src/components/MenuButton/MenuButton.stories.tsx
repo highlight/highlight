@@ -1,7 +1,7 @@
 import React from 'react'
 import { ComponentMeta } from '@storybook/react'
 
-import { MenuButton } from '@components'
+import { MenuButton } from '../MenuButton/MenuButton'
 
 export default {
 	title: 'Components/MenuButton',

@@ -115,6 +115,27 @@ export const variants = recipe({
 			secondary: {
 				color: vars.theme.interactive.fill.primary.content.text,
 			},
+			danger: {
+				background: vars.color.r8,
+				color: vars.color.white,
+				boxShadow: shadows.primary,
+				selectors: {
+					'&:hover': {
+						background: vars.color.r9,
+						color: vars.color.white,
+					},
+					'&:focus, &:active': {
+						background: vars.color.r9,
+						color: vars.color.white,
+						boxShadow: 'none',
+					},
+					'&[disabled], &[disabled]:hover, &[disabled]:focus': {
+						background: vars.color.r7,
+						color: vars.color.n1,
+						boxShadow: 'none',
+					},
+				},
+			},
 		},
 		size: {
 			xSmall: [

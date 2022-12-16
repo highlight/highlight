@@ -40,6 +40,7 @@ import {
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import CreateSegmentModal from '@pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
@@ -64,6 +65,7 @@ import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
 import { JsonParam, useQueryParam, useQueryParams } from 'use-query-params'
 
+import { DropdownMenu } from '../SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
 export interface RuleProps {
@@ -1313,6 +1315,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	} = props
 
 	const {
+		backendSearchQuery,
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
@@ -1405,6 +1408,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const { admin } = useAuthContext()
+	const { sessionResults } = useReplayerContext()
+
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
 			if (!field) {
@@ -2304,6 +2309,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
+					<DropdownMenu
+						sessionCount={sessionResults.totalCount}
+						sessionQuery={backendSearchQuery?.searchQuery || ''}
+					/>
+
 					{!readonly &&
 						!isAbsoluteTimeRange(
 							timeRangeRule.val?.options[0].value,
@@ -2337,10 +2347,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 			</Box>
 		)
 	}, [
+		backendSearchQuery?.searchQuery,
 		defaultTimeRangeRule.val,
 		isAnd,
 		readonly,
 		rules,
+		sessionResults.totalCount,
 		setBackendSearchQuery,
 		setShowLeftPanel,
 		syncButtonDisabled,
