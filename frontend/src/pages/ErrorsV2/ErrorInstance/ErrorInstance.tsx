@@ -295,6 +295,7 @@ const User: React.FC<{
 					alignItems="center"
 					display="flex"
 					justifyContent="space-between"
+					gap="4"
 				>
 					<Box alignItems="center" display="flex" gap="8">
 						<Avatar
