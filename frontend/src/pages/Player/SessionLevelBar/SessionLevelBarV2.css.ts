@@ -5,7 +5,6 @@ import { style } from '@vanilla-extract/css'
 export const sessionLevelBarV2 = style({
 	alignItems: 'center',
 	backgroundColor: colors.white,
-	borderBottom: `solid 1px ${colors.neutralN6}`,
 	display: 'flex',
 	height: 44,
 })

@@ -12,6 +12,7 @@ import {
 	RESET_PAGE_MS,
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import SearchPagination, {
 	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
@@ -151,8 +152,6 @@ export const SessionFeedV3 = React.memo(() => {
 		session_secure_id: string
 	}>()
 	const sessionFeedConfiguration = useSessionFeedConfiguration()
-	// TODO(vkorolik) use ShowDetailedSessionView in ... menu
-	// TODO(vkorolik) use autoPlayVideo, autoPlaySessions
 	const { autoPlaySessions, showDetailedSessionView } =
 		usePlayerConfiguration()
 
@@ -161,8 +160,8 @@ export const SessionFeedV3 = React.memo(() => {
 		`sessionsCount-project-${project_id}`,
 		0,
 	)
-	// TODO(vkorolik) use showStarredSessions
 	const {
+		showStarredSessions,
 		searchParams,
 		setSearchParams,
 		backendSearchQuery,
@@ -337,9 +336,22 @@ export const SessionFeedV3 = React.memo(() => {
 					) : (
 						<>
 							{sessionsCount === 0 ? (
-								<EmptySearchResults
-									kind={SearchResultsKind.Sessions}
-								/>
+								showStarredSessions ? (
+									<SearchEmptyState
+										item="sessions"
+										customTitle="Your project doesn't have starred sessions."
+										customDescription={
+											'Starring a session is like bookmarking a website. ' +
+											'It gives you a way to tag a session that you want to look at again. ' +
+											'You can star a session by clicking the star icon next to the user details ' +
+											"in the session's right panel."
+										}
+									/>
+								) : (
+									<EmptySearchResults
+										kind={SearchResultsKind.Sessions}
+									/>
+								)
 							) : (
 								filteredSessions?.map(
 									(s: Maybe<Session>, ind: number) =>

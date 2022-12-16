@@ -9,8 +9,8 @@ export const CENTER_COLUMN_OVERLAP = 64
 // set this as the effective margin
 export const CENTER_COLUMN_MARGIN = 0
 export const MIN_CENTER_COLUMN_WIDTH = 428
-export const PLAYER_PADDING_X = 8
-export const PLAYER_PADDING_Y = 8
+export const PLAYER_PADDING_X = 64
+export const PLAYER_PADDING_Y = 64
 
 export const playerWrapperV2 = style({
 	borderTop: `solid 1px ${colors.neutralN6}`,
@@ -39,6 +39,21 @@ export const rrwebPlayerSection = style({
 	flex: 2,
 	width: '100%',
 	height: '100%',
+})
+
+export const rrwebPlayerWrapper = style({
+	alignItems: 'center',
+	boxSizing: 'border-box',
+	display: 'flex',
+	flexGrow: 1,
+	justifyContent: 'center',
+	position: 'relative',
+	width: '100%',
+})
+
+export const rrwebInnerWrapper = style({
+	border: `32px solid ${colors.purpleP3}`,
+	borderRadius: 32,
 })
 
 export const playerCenterColumn = style({

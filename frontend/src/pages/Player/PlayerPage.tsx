@@ -169,6 +169,10 @@ const PlayerPage = ({ integrated }: Props) => {
 					'style',
 					`transform: scale(${replayerScale}) translate(-50%, -50%)`,
 				)
+				replayer?.wrapper?.setAttribute(
+					'class',
+					`replayer-wrapper ${style.rrwebInnerWrapper}`,
+				)
 
 				return replayerScale
 			})
@@ -398,7 +402,7 @@ const PlayerPage = ({ integrated }: Props) => {
 															>
 																<div
 																	className={
-																		styles.rrwebPlayerWrapper
+																		style.rrwebPlayerWrapper
 																	}
 																	ref={
 																		playerWrapperRef
@@ -503,6 +507,7 @@ const PlayerPage = ({ integrated }: Props) => {
 										height="full"
 										display="flex"
 										justifyContent="center"
+										borderTop="neutral"
 									>
 										<NoActiveSessionCard />
 									</Box>
