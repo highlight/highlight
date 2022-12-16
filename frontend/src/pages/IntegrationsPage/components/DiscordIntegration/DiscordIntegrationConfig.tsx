@@ -64,8 +64,8 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		return (
 			<>
 				<p className={styles.modalSubTitle}>
-					Disconnecting Discord from Highlight will stop enhancing
-					your customer interactions.
+					Disconnecting Discord from Highlight will prevent alerts
+					from notifying Discord channels.
 				</p>
 				<footer>
 					<Button
