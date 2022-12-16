@@ -85,7 +85,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const errorInstance = data?.error_instance
 
 	if (!errorInstance || !errorInstance?.error_object) {
-		// if (!loading) return null
+		if (!loading) return null
 		return (
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
