@@ -263,6 +263,7 @@ export type DiscordChannelInput = {
 
 export enum EmailOptOutCategory {
 	All = 'All',
+	Billing = 'Billing',
 	Digests = 'Digests',
 }
 

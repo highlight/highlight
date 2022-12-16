@@ -105,6 +105,11 @@ export const EmailOptOutPage = () => {
 				info: 'Weekly summaries of user activity and errors for your projects',
 				type: EmailOptOutCategory.Digests,
 			},
+			{
+				label: 'Billing',
+				info: 'Notifications about billing and plan usage',
+				type: EmailOptOutCategory.Billing,
+			},
 		]
 
 		let optOutAll = false

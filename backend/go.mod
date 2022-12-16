@@ -58,6 +58,7 @@ require (
 	github.com/highlight-run/highlight-go v0.5.3
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/influxdata/influxdb-client-go/v2 v2.9.1
+	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.10.4
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
@@ -68,6 +69,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
+	github.com/rs/zerolog v1.28.0
 	github.com/samber/lo v1.13.0
 	github.com/segmentio/kafka-go v0.4.31
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
@@ -111,7 +113,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tdewolff/test v1.0.7 // indirect
 	github.com/tidwall/btree v1.1.0 // indirect
@@ -136,6 +137,7 @@ require (
 	github.com/DataDog/gostackparse v0.5.0 // indirect
 	github.com/DataDog/sketches-go v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
+	github.com/ReneKroon/ttlcache v1.7.0
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-lambda-go v1.34.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.1.4 // indirect
@@ -163,7 +165,7 @@ require (
 	github.com/hasura/go-graphql-client v0.3.0 // indirect
 	github.com/highlight-run/go-resthooks v0.0.0-20220523054100-bf95aa850a20
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.1 // indirect
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect

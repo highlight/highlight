@@ -20,6 +20,10 @@ import (
 
 	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+
+	"github.com/ReneKroon/ttlcache"
 	"github.com/lib/pq"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
@@ -32,6 +36,7 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -39,10 +44,11 @@ import (
 )
 
 var (
-	DB     *gorm.DB
-	HashID *hashids.HashID
-	F      = false
-	T      = true
+	DB                *gorm.DB
+	HashID            *hashids.HashID
+	emailHistoryCache *ttlcache.Cache
+	F                 = false
+	T                 = true
 )
 
 const (
@@ -174,6 +180,7 @@ var Models = []interface{}{
 	&OAuthClientStore{},
 	&ResthookSubscription{},
 	&EmailOptOut{},
+	&BillingEmailHistory{},
 }
 
 func init() {
@@ -185,6 +192,10 @@ func init() {
 		log.Fatalf("error creating hash id client: %v", err)
 	}
 	HashID = hid
+
+	emailHistoryCache = ttlcache.NewCache()
+	emailHistoryCache.SetTTL(15 * time.Minute)
+	emailHistoryCache.SkipTtlExtensionOnHit(true)
 }
 
 type Model struct {
@@ -1110,21 +1121,11 @@ type EmailOptOut struct {
 	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
 }
 
-type EmailType string
-
-const (
-	HighlightTrial14Days   EmailType = "HighlightTrial14Days"
-	StripeTrial14Days      EmailType = "StripeTrial14Days"
-	StripeTrial3Days       EmailType = "StripeTrial3Days"
-	SessionUsage80Percent  EmailType = "SessionUsage80Percent"
-	SessionUsage100Percent EmailType = "SessionUsage100Percent"
-)
-
-type EmailHistory struct {
+type BillingEmailHistory struct {
 	Model
-	WorkspaceID int       `gorm:"index:email_history_workspace_type_active_idx"`
-	Type        EmailType `gorm:"index:email_history_workspace_type_active_idx"`
-	Active      bool      `gorm:"index:email_history_workspace_type_active_idx"`
+	Active      bool
+	WorkspaceID int
+	Type        Email.EmailType
 }
 
 func SetupDB(dbName string) (*gorm.DB, error) {
@@ -1278,6 +1279,20 @@ func MigrateDB(DB *gorm.DB) (bool, error) {
 		END $$;
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+	}
+
+	// Create unique conditional index for billing email history
+	if err := DB.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS
+				(select * from pg_indexes where indexname = 'email_history_active_workspace_type_idx')
+			THEN
+				CREATE UNIQUE INDEX email_history_active_workspace_type_idx ON billing_email_histories (active, workspace_id, type) WHERE (active = true);			
+			END IF;
+		END $$;
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating email_history_active_workspace_type_idx")
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -1703,6 +1718,67 @@ func (obj *ErrorAlert) SendAlerts(db *gorm.DB, mailClient *sendgrid.Client, inpu
 
 		}
 	}
+}
+
+func SendBillingNotifications(db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
+	// Skip sending email if sending was attempted within the cache TTL
+	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
+	_, exists := emailHistoryCache.Get(cacheKey)
+	if exists {
+		return nil
+	}
+	emailHistoryCache.Set(cacheKey, true)
+
+	var toAddrs []struct {
+		AdminID int
+		Email   string
+	}
+	if err := db.Raw(`
+		SELECT a.id as admin_id, a.email
+		FROM workspace_admins wa
+		INNER JOIN admins a
+		ON wa.admin_id = a.id
+		WHERE wa.workspace_id = ?
+		AND NOT EXISTS (
+			SELECT *
+			FROM email_opt_outs eoo
+			WHERE eoo.admin_id = a.id
+			AND eoo.category IN ('All', 'Billing')
+		)
+	`, workspace.ID).Scan(&toAddrs).Error; err != nil {
+		return e.Wrap(err, "error querying recipient emails")
+	}
+
+	history := BillingEmailHistory{
+		WorkspaceID: workspace.ID,
+		Type:        emailType,
+		Active:      true,
+	}
+	if err := db.Create(&history).Error; err != nil {
+		if err != nil {
+			var pgErr *pgconn.PgError
+			// An active BillingEmailHistory may already exist -
+			// in this case, don't send users another email.
+			if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+				return nil
+			}
+		}
+		return e.Wrap(err, "error creating BillingEmailHistory")
+	}
+
+	errors := []string{}
+	for _, toAddr := range toAddrs {
+		err := Email.SendBillingNotificationEmail(mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
+		if err != nil {
+			errors = append(errors, err.Error())
+		}
+	}
+
+	if len(errors) > 0 {
+		return e.New(strings.Join(errors, "\n"))
+	}
+
+	return nil
 }
 
 func (obj *ErrorAlert) GetRegexGroups() ([]*string, error) {

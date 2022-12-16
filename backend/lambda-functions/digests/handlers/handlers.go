@@ -14,7 +14,6 @@ import (
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/private-graph/graph"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -442,10 +441,6 @@ func unwrapErrorMessage(message string) string {
 	}
 }
 
-func formatSubscriptionUrl(adminId int, token string) string {
-	return fmt.Sprintf("https://app.highlight.io/subscriptions?admin_id=%d&token=%s", adminId, token)
-}
-
 func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataResponse) error {
 	var toAddrs []struct {
 		AdminID int
@@ -500,7 +495,7 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 			curData[k] = v
 		}
 		curData["toEmail"] = toAddr.Email
-		curData["unsubscribeUrl"] = formatSubscriptionUrl(toAddr.AdminID, graph.GetOptOutToken(toAddr.AdminID, false))
+		curData["unsubscribeUrl"] = email.GetSubscriptionUrl(toAddr.AdminID, false)
 
 		p.DynamicTemplateData = curData
 
