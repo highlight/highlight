@@ -29,7 +29,7 @@ jobs:
             - name: Set the value
               run: |
                   echo $(git remote -v)
-                  changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
+                  changed="$(git diff master --name-only | grep '^highlight-javascript$')"
                   echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
 
             - name: Use the value
