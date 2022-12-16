@@ -7598,7 +7598,7 @@ __metadata:
     "@types/color-hash": ^1.0.1
     "@types/jest": ^27.0.1
     "@types/lodash": ^4.14.168
-    "@types/node": ^18.0.4
+    "@types/node": ^18.11.15
     "@types/randomcolor": ^0.5.5
     "@types/react": ^18.0.25
     "@types/react-copy-to-clipboard": ^4.3.0
@@ -12355,7 +12355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0, @types/node@npm:^18.0.4":
+"@types/node@npm:>=12.12.47, @types/node@npm:>=13.7.0":
   version: 18.0.4
   resolution: "@types/node@npm:18.0.4"
   checksum: 981284fd57941f233f0e77038087c122f56e3c2b4fc4e090dfc7f0a93abfc526d5ccdd59eb3ef551d713245cf3943e37c7b957f12ba699209341a447c39fab59
