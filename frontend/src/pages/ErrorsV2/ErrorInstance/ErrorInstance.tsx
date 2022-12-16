@@ -30,6 +30,12 @@ type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
 
+const METADATA_LABELS: { [key: string]: string } = {
+	os: 'OS',
+	url: 'URL',
+	id: 'ID',
+} as const
+
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
 		error_secure_id: string
@@ -201,12 +207,7 @@ const Metadata: React.FC<{
 
 			<Box>
 				{metadata.map((meta) => (
-					<Box
-						display="flex"
-						gap="6"
-						key={meta.key}
-						alignItems="center"
-					>
+					<Box display="flex" gap="6" key={meta.key}>
 						<Box
 							py="10"
 							cursor="pointer"
@@ -219,7 +220,8 @@ const Metadata: React.FC<{
 								align="left"
 								lines="1"
 							>
-								{meta.key.replace('_', ' ')}
+								{METADATA_LABELS[meta.key] ??
+									meta.key.replace('_', ' ')}
 							</Text>
 						</Box>
 						<Box
@@ -230,7 +232,12 @@ const Metadata: React.FC<{
 							}
 							style={{ width: '67%' }}
 						>
-							<Text align="left" break="word" lines="4">
+							<Text
+								align="left"
+								break="word"
+								lines="4"
+								title={String(meta.label)}
+							>
 								{meta.label}
 							</Text>
 						</Box>
@@ -341,12 +348,7 @@ const User: React.FC<{
 					<Box display="flex" flexDirection="column">
 						<Box gap="16">
 							{userDisplayPropertyKeys.map((key) => (
-								<Box
-									display="flex"
-									alignItems="center"
-									gap="6"
-									key={key}
-								>
+								<Box display="flex" gap="6" key={key}>
 									<Box
 										py="10"
 										overflow="hidden"
@@ -360,7 +362,7 @@ const User: React.FC<{
 											lines="1"
 											title={key}
 										>
-											{key}
+											{METADATA_LABELS[key] ?? key}
 										</Text>
 									</Box>
 
