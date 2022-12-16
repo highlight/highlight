@@ -185,6 +185,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.previous_id}`,
 									search: window.location.search,
 								})
+
+								analytics.track('Viewed error instance', {
+									direction: 'previous',
+								})
 							}}
 							disabled={Number(errorInstance.previous_id) === 0}
 							kind="secondary"
@@ -198,6 +202,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 								history.push({
 									pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstance.next_id}`,
 									search: window.location.search,
+								})
+
+								analytics.track('Viewed error instance', {
+									direction: 'next',
 								})
 							}}
 							disabled={Number(errorInstance.next_id) === 0}
