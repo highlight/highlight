@@ -45,7 +45,7 @@ export const rightButtons = style({
 	alignItems: 'center',
 	justifyContent: 'flex-end',
 	gap: 16,
-	minWidth: 314,
+	minWidth: 400,
 })
 
 export const openLeftPanelButton = style({
