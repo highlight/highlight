@@ -2,7 +2,7 @@ import tinycolor from '@ctrl/tinycolor'
 import { Box, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts'
 
@@ -16,9 +16,6 @@ export interface Series {
 
 const POPOVER_TIMEOUT_MS = 500
 const BAR_RADIUS_PX = 4
-// sets the visual minimum bar value
-// (to ensure bars are not so short that the border radius looks weird)
-const MIN_BAR_VALUE = 8
 
 interface Props {
 	bucketTimes: number[]
@@ -42,6 +39,15 @@ const Histogram = React.memo(
 		const [tooltipHidden, setTooltipHidden] = useState(true)
 		const [tooltipWantHidden, setTooltipWantHidden] = useState(true)
 
+		// sets the visual minimum bar value
+		// (to ensure bars are not so short that the border radius looks weird)
+		const maxBarValue = useMemo(() => {
+			return Math.max(
+				...seriesList.flatMap((value) => Math.max(...value.counts)),
+			)
+		}, [seriesList])
+		const minBarValue = Math.floor(maxBarValue * 0.2)
+
 		let dragLeft: number | undefined
 		let dragRight: number | undefined
 		if (dragStart !== undefined && dragEnd !== undefined) {
@@ -64,7 +70,7 @@ const Histogram = React.memo(
 				chartData[i][`${s.label}-raw`] = s.counts[i]
 				chartData[i][s.label] =
 					s.counts[i] > 0
-						? Math.max(MIN_BAR_VALUE, s.counts[i])
+						? Math.max(minBarValue, s.counts[i])
 						: s.counts[i]
 			}
 		}
