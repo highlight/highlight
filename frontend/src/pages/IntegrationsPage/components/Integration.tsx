@@ -37,6 +37,7 @@ const Integration = ({
 		defaultEnable,
 		hasSettings,
 		modalWidth,
+		docs,
 	},
 	showModalDefault,
 	showSettingsDefault,
@@ -107,6 +108,16 @@ const Integration = ({
 				<div>
 					<h2 className={styles.title}>{name}</h2>
 					<p className={styles.description}>{description}</p>
+					{docs && (
+						<a
+							className={styles.description}
+							href={docs}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Learn more about the integration.
+						</a>
+					)}
 				</div>
 			</Card>
 
