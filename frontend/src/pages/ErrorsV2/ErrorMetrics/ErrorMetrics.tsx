@@ -169,24 +169,10 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 			</Box>
 
-			<Box mb="24" display="flex">
+			<Box mb="24" display="flex" gap="28" alignItems="flex-start">
 				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="space-between"
-				>
-					<span className={styles.titleContainer}>
-						<span className={styles.iconContainer}>
-							<IconZigZag color="#6b48c7" />
-						</span>
-						<Text weight="bold">Total occurrences</Text>
-					</span>
-					<Text>{errorFrequencyTotal}</Text>
-				</Box>
-
-				<div
-					className={styles.metricsDistributionContainer}
-					style={{ flexGrow: 1 }}
+					cssClass={styles.metricsDistributionContainer}
+					style={{ width: '50%' }}
 				>
 					<CategoricalBarChart
 						syncId="errorFrequencyChart"
@@ -200,6 +186,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 							tickCount: timelineTicks.ticks.length,
 						}}
 						yAxisLabel=""
+						hideYAxis
 						barColorMapping={LINE_COLORS}
 						referenceAreaProps={{
 							x1: referenceArea.start,
@@ -211,7 +198,22 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						stacked
 						hideLegend
 					/>
-				</div>
+				</Box>
+
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+					style={{ width: '50%' }}
+				>
+					<span className={styles.titleContainer}>
+						<span className={styles.iconContainer}>
+							<IconZigZag color="#6b48c7" />
+						</span>
+						<Text weight="bold">Total occurrences</Text>
+					</span>
+					<Text>{errorFrequencyTotal}</Text>
+				</Box>
 			</Box>
 		</Box>
 	)
