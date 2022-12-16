@@ -26,6 +26,14 @@ jobs:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
+            - name: Set the value
+              run: |
+                  echo "my_command=$(echo 'testing')" >> $GITHUB_ENV
+
+            - name: Use the value
+              run: |
+                  echo "my_command: ${{ env.my_command }}"
+
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
               uses: actions/setup-node@v3
