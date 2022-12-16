@@ -2,7 +2,7 @@ import tinycolor from '@ctrl/tinycolor'
 import { Box, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts'
 
@@ -39,6 +39,15 @@ const Histogram = React.memo(
 		const [tooltipHidden, setTooltipHidden] = useState(true)
 		const [tooltipWantHidden, setTooltipWantHidden] = useState(true)
 
+		// sets the visual minimum bar value
+		// (to ensure bars are not so short that the border radius looks weird)
+		const maxBarValue = useMemo(() => {
+			return Math.max(
+				...seriesList.flatMap((value) => Math.max(...value.counts)),
+			)
+		}, [seriesList])
+		const minBarValue = Math.floor(maxBarValue * 0.2)
+
 		let dragLeft: number | undefined
 		let dragRight: number | undefined
 		if (dragStart !== undefined && dragEnd !== undefined) {
@@ -58,7 +67,11 @@ const Histogram = React.memo(
 
 		for (const s of seriesList) {
 			for (let i = 0; i < seriesLength; i++) {
-				chartData[i][s.label] = s.counts[i]
+				chartData[i][`${s.label}-raw`] = s.counts[i]
+				chartData[i][s.label] =
+					s.counts[i] > 0
+						? Math.max(minBarValue, s.counts[i])
+						: s.counts[i]
 			}
 		}
 
@@ -210,7 +223,7 @@ const Histogram = React.memo(
 										stackId="a"
 										fill={colors[s.color]}
 									>
-										{chartData.map((entry, i) => {
+										{chartData.map((_, i) => {
 											const isFirst =
 												firstSeries[i] === s.label
 											const isLast =
@@ -292,6 +305,7 @@ const CustomTooltip: React.FC<{
 				const series = seriesList.find((s) => s.label === p.dataKey)
 				const color = series?.color || 'black'
 				const colorIsDark = tinycolor(p.color).getBrightness() < 165
+				const rawValue = p.payload[`${p.name}-raw`]
 
 				return (
 					<Box
@@ -301,7 +315,7 @@ const CustomTooltip: React.FC<{
 						p="4"
 					>
 						<Text color={colorIsDark ? 'white' : 'neutral700'}>
-							{p.value} {p.name}
+							{rawValue} {p.name}
 						</Text>
 					</Box>
 				)
