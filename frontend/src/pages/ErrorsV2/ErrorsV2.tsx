@@ -14,7 +14,6 @@ import {
 	IconExitRight,
 	vars,
 } from '@highlight-run/ui'
-import { getHeaderFromError } from '@pages/Error/ErrorPage'
 import useErrorPageConfiguration from '@pages/Error/utils/ErrorPageUIConfiguration'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import ErrorBody from '@pages/ErrorsV2/ErrorBody/ErrorBody'
@@ -23,6 +22,7 @@ import ErrorTitle from '@pages/ErrorsV2/ErrorTitle/ErrorTitle'
 import NoActiveErrorCard from '@pages/ErrorsV2/NoActiveErrorCard/NoActiveErrorCard'
 import SearchPanel from '@pages/ErrorsV2/SearchPanel/SearchPanel'
 import { controlBar } from '@pages/ErrorsV2/SearchPanel/SearchPanel.css'
+import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { IntegrationCard } from '@pages/Sessions/IntegrationCard/IntegrationCard'
 import analytics from '@util/analytics'
