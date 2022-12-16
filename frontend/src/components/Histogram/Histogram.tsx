@@ -16,6 +16,9 @@ export interface Series {
 
 const POPOVER_TIMEOUT_MS = 500
 const BAR_RADIUS_PX = 4
+// sets the visual minimum bar value
+// (to ensure bars are not so short that the border radius looks weird)
+const MIN_BAR_VALUE = 8
 
 interface Props {
 	bucketTimes: number[]
@@ -58,7 +61,11 @@ const Histogram = React.memo(
 
 		for (const s of seriesList) {
 			for (let i = 0; i < seriesLength; i++) {
-				chartData[i][s.label] = s.counts[i]
+				chartData[i][`${s.label}-raw`] = s.counts[i]
+				chartData[i][s.label] =
+					s.counts[i] > 0
+						? Math.max(MIN_BAR_VALUE, s.counts[i])
+						: s.counts[i]
 			}
 		}
 
@@ -210,7 +217,7 @@ const Histogram = React.memo(
 										stackId="a"
 										fill={colors[s.color]}
 									>
-										{chartData.map((entry, i) => {
+										{chartData.map((_, i) => {
 											const isFirst =
 												firstSeries[i] === s.label
 											const isLast =
@@ -292,6 +299,7 @@ const CustomTooltip: React.FC<{
 				const series = seriesList.find((s) => s.label === p.dataKey)
 				const color = series?.color || 'black'
 				const colorIsDark = tinycolor(p.color).getBrightness() < 165
+				const rawValue = p.payload[`${p.name}-raw`]
 
 				return (
 					<Box
@@ -301,7 +309,7 @@ const CustomTooltip: React.FC<{
 						p="4"
 					>
 						<Text color={colorIsDark ? 'white' : 'neutral700'}>
-							{p.value} {p.name}
+							{rawValue} {p.name}
 						</Text>
 					</Box>
 				)
