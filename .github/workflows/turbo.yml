@@ -26,16 +26,21 @@ jobs:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
 
-            - name: Set the value
+            - name: Set submodule change data
               run: |
-                  echo $(git remote -v)
                   git fetch origin master
                   changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
                   echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
 
-            - name: Use the value
+            - name: Use if true
+              if: ${{ env.highlight_javascript_changed == 'highlight-javascript' }}
               run: |
-                  echo "highlight_javascript_changed: ${{ env.highlight_javascript_changed }}"
+                  echo "highlight_javascript_changed_true: ${{ env.highlight_javascript_changed }}"
+
+            - name: Use if false
+              if: ${{ env.highlight_javascript_changed != 'highlight-javascript' }}
+              run: |
+                  echo "highlight_javascript_changed_false: ${{ env.highlight_javascript_changed }}"
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
