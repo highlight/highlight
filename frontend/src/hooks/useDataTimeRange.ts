@@ -39,9 +39,11 @@ const useDataTimeRange = () => {
 	}
 
 	const resetTimeRange = () => {
+		const now = moment()
+
 		setTimeRange(
-			moment().subtract(defaultLookback, 'minutes').format(FORMAT),
-			moment().format(FORMAT),
+			now.subtract(defaultLookback, 'minutes').format(FORMAT),
+			now.format(FORMAT),
 		)
 	}
 
