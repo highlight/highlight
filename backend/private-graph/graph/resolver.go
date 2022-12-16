@@ -411,6 +411,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	}
 	for _, p := range projects {
 		if p.ID == project_id {
+			span.SetTag("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
