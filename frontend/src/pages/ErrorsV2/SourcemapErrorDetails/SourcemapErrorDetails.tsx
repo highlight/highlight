@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import {
 	Maybe,
 	SourceMappingError,
@@ -19,6 +20,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
+import { showIntercom } from '@util/window'
 import React, { useEffect } from 'react'
 
 type Props = React.PropsWithChildren & { error: SourceMappingError }
@@ -251,6 +253,7 @@ const StackSectionError: React.FC<
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
 	const { mounted } = usePopover()
+	const { admin } = useAuthContext()
 
 	useEffect(() => {
 		if (!mounted) {
@@ -351,7 +354,7 @@ const StackSectionError: React.FC<
 			>
 				<Button
 					kind="secondary"
-					onClick={() => window.open('mailto:support@highlight.io')}
+					onClick={() => showIntercom({ admin })}
 				>
 					Contact
 				</Button>
