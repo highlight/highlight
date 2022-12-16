@@ -4,6 +4,7 @@ import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
+	IconChatAlt2,
 	IconChevronDown,
 	IconChevronUp,
 	IconDocumentDuplicate,
@@ -12,15 +13,18 @@ import {
 	IconLockOpened,
 	IconMenuAlt3,
 	IconTemplate,
+	SwitchButton,
 	Text,
 	TextLink,
 } from '@highlight-run/ui'
 import { shadows } from '@highlight-run/ui/src/components/Button/styles.css'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { defaultSessionsQuery } from '@pages/Sessions/SessionsFeedV2/components/QueryBuilder/QueryBuilder'
 import analytics from '@util/analytics'
@@ -53,6 +57,8 @@ export const SessionLevelBarV2: React.FC<
 		showRightPanel,
 		setShowRightPanel,
 	} = usePlayerConfiguration()
+	const { selectedRightPanelTab, setSelectedRightPanelTab } =
+		usePlayerUIContext()
 	const query = useMemo(() => JSON.stringify(defaultSessionsQuery), [])
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
@@ -268,6 +274,39 @@ export const SessionLevelBarV2: React.FC<
 						</Box>
 						<Box display="flex" align="center" gap="6">
 							<SessionShareButtonV2 />
+							<ExplanatoryPopover
+								content={
+									<>
+										<Text
+											userSelect="none"
+											color="neutral500"
+										>
+											Comments
+										</Text>
+									</>
+								}
+							>
+								<SwitchButton
+									size="small"
+									onChange={() => {
+										if (
+											selectedRightPanelTab !== 'Comments'
+										) {
+											setSelectedRightPanelTab('Comments')
+										}
+										setShowRightPanel(
+											!showRightPanel ||
+												selectedRightPanelTab !==
+													'Comments',
+										)
+									}}
+									checked={
+										showRightPanel &&
+										selectedRightPanelTab === 'Comments'
+									}
+									iconLeft={<IconChatAlt2 size={14} />}
+								/>
+							</ExplanatoryPopover>
 							<ButtonIcon
 								kind="secondary"
 								size="small"

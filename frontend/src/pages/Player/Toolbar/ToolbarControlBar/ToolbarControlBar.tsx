@@ -16,7 +16,6 @@ import {
 	IconSolidArrowSmLeft,
 	IconSolidArrowSmUp,
 	IconSolidChartBar,
-	IconSolidChatAlt_2,
 	IconSolidClock,
 	IconSolidCog,
 	IconSolidPause,
@@ -100,20 +99,13 @@ export const ToolbarControlBar = () => {
 		sessionMetadata,
 		lastActiveString,
 	} = useReplayerContext()
-	const {
-		setIsPlayerFullscreen,
-		isPlayerFullscreen,
-		selectedRightPanelTab,
-		setSelectedRightPanelTab,
-	} = usePlayerUIContext()
+	const { setIsPlayerFullscreen, isPlayerFullscreen } = usePlayerUIContext()
 
 	const {
 		showHistogram,
 		setShowHistogram,
 		showDevTools,
 		setShowDevTools,
-		showRightPanel,
-		setShowRightPanel,
 		playerSpeedIdx,
 		setPlayerSpeedIdx,
 		showPlayerAbsoluteTime,
@@ -359,36 +351,6 @@ export const ToolbarControlBar = () => {
 							checked={showDevTools}
 							disabled={isPlayerFullscreen || disableControls}
 							iconLeft={<IconSolidTerminal size={14} />}
-						/>
-					</ExplanatoryPopover>
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="neutral500">
-									Dev tools
-								</Text>
-								<ShortcutTextGuide
-									shortcut={DevToolsShortcut}
-								/>
-							</>
-						}
-					>
-						<SwitchButton
-							onChange={() => {
-								if (selectedRightPanelTab !== 'Comments') {
-									setSelectedRightPanelTab('Comments')
-								}
-								setShowRightPanel(
-									!showRightPanel ||
-										selectedRightPanelTab !== 'Comments',
-								)
-							}}
-							checked={
-								showRightPanel &&
-								selectedRightPanelTab === 'Comments'
-							}
-							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidChatAlt_2 size={14} />}
 						/>
 					</ExplanatoryPopover>
 					<Popover
