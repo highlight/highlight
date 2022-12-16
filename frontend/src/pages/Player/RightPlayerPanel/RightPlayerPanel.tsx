@@ -93,7 +93,10 @@ const RightPlayerPanelTabs = React.memo(() => {
 				{
 					key: RightPlayerPanelTabType.Metadata,
 					panelContent: (
-						<div className={styles.tabContentContainer}>
+						<div
+							className={styles.tabContentContainer}
+							style={{ paddingTop: 16 }}
+						>
 							<MetadataPanel />
 						</div>
 					),
