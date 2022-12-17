@@ -42,26 +42,6 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	value: 'custom_created_at',
 }
 
-const InitialSearchParamsForUrl = {
-	browser: undefined,
-	date_range: undefined,
-	device_id: undefined,
-	excluded_properties: undefined,
-	excluded_track_properties: undefined,
-	first_time: undefined,
-	hide_viewed: undefined,
-	identified: undefined,
-	length_range: undefined,
-	os: undefined,
-	referrer: undefined,
-	track_properties: undefined,
-	user_properties: undefined,
-	visited_url: undefined,
-	show_live_sessions: undefined,
-	environments: undefined,
-	app_versions: undefined,
-} as const
-
 const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: CUSTOM_TYPE,
@@ -268,6 +248,7 @@ const SessionsQueryBuilder = React.memo(
 
 		const {
 			searchParams,
+			setExistingParams,
 			setSearchParams,
 			page,
 			setPage,
@@ -359,11 +340,14 @@ const SessionsQueryBuilder = React.memo(
 			if (activeSegmentUrlParam) {
 				setSelectedSegment(activeSegmentUrlParam)
 			}
-			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
-			} else {
-				setSearchParams(EmptySessionsSearchParams)
-			}
+			const params = normalizeParams(
+				searchParamsToUrlParams.query !== undefined
+					? (searchParamsToUrlParams as SearchParamsInput)
+					: EmptySessionsSearchParams,
+			)
+
+			setSearchParams(params)
+
 			// We only want to run this on mount (i.e. when the page first loads).
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [])
