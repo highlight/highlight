@@ -5,7 +5,6 @@ import {
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import { useGetErrorGroupQuery } from '@graph/hooks'
-import { ErrorFrequencyGraph } from '@pages/Player/Toolbar/DevToolsWindow/ErrorsPage/components/ErrorFrequencyGraph/ErrorFrequencyGraph'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { useHistory } from 'react-router'
@@ -15,6 +14,7 @@ import { ErrorObject } from '../../../../../../../graph/generated/schemas'
 import ErrorBody from '../../../../../../Error/components/ErrorBody/ErrorBody'
 import ErrorTitle from '../../../../../../Error/components/ErrorTitle/ErrorTitle'
 import StackTraceSection from '../../../../../../Error/components/StackTraceSection/StackTraceSection'
+import { ErrorFrequencyGraph } from '../../../../../../Error/ErrorPage'
 import styles from './ErrorModal.module.scss'
 
 interface Props {

@@ -1,5 +1,4 @@
 import { ErrorGroup, Maybe, Project } from '@graph/schemas'
-import { cloneDeep } from 'lodash'
 import moment from 'moment/moment'
 
 export const getProjectPrefix = (project?: Maybe<Pick<Project, 'name'>>) =>
@@ -57,81 +56,4 @@ export const formatErrorGroupDate = function (date?: string) {
 						: undefined,
 		  })}`
 		: ''
-}
-
-export const parseErrorDescription = (
-	_text: Maybe<string>[] | undefined,
-): string => {
-	if (!_text) {
-		return ''
-	}
-
-	return parseErrorDescriptionList(_text).join('')
-}
-
-export const parseErrorDescriptionList = (
-	_text: Maybe<string>[] | undefined,
-): string[] => {
-	if (!_text) {
-		return []
-	}
-	const text = cloneDeep(_text)
-	const result: string[] = []
-	let index = 0
-
-	while (index < text.length) {
-		let currentLine = text[index] as string
-		if (!currentLine) {
-			break
-		}
-		/**
-		 * The specifier %s used to interpolate values in a console.(log|info|etc.) call.
-		 * https://developer.mozilla.org/en-US/docs/Web/API/Console#Using_string_substitutions
-		 */
-		const specifierCount = (currentLine.match(/\%s/g) || []).length
-		if (specifierCount === 0) {
-			result.push(currentLine)
-			index++
-		} else {
-			let offset = 1
-			while (offset <= specifierCount) {
-				const nextToken = text[index + offset] as string
-				currentLine = currentLine.replace('%s', nextToken)
-				offset++
-			}
-			result.push(currentLine)
-			index += specifierCount + 1
-		}
-	}
-
-	return result
-}
-
-export const getHeaderFromError = (
-	errorMsg: Maybe<string>[] | undefined,
-): string => {
-	const eventText = parseErrorDescriptionList(errorMsg)[0]
-	let title = ''
-	// Try to get the text in the form Text: ....
-	const splitOnColon = eventText?.split(':') ?? []
-	if (
-		splitOnColon.length &&
-		(!splitOnColon[0].includes(' ') ||
-			splitOnColon[0].toLowerCase().includes('error'))
-	) {
-		return splitOnColon[0]
-	}
-	// Try to get text in the form "'Something' Error" in the event.
-	const split = eventText?.split(' ') ?? []
-	let prev = ''
-	for (let i = 0; i < split?.length; i++) {
-		const curr = split[i]
-		if (curr.toLowerCase().includes('error')) {
-			title = (prev ? prev + ' ' : '') + curr
-			return title
-		}
-		prev = curr
-	}
-
-	return errorMsg?.join() ?? ''
 }

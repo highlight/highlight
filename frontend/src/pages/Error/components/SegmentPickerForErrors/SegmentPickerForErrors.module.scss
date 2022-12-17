@@ -1,0 +1,65 @@
+.segmentSelect {
+	width: 150px;
+
+	> :global(.ant-select-selector) {
+		font-size: 12px !important;
+		height: initial !important;
+		padding: 0 var(--size-small) !important;
+	}
+}
+
+.segmentPickerSection {
+	column-gap: var(--size-xSmall);
+	display: flex;
+}
+
+.segmentButton {
+	border-color: var(--color-gray-300) !important;
+	color: var(--color-gray-500) !important;
+	column-gap: var(--size-xSmall);
+	display: flex;
+	font-size: 12px;
+	height: 32px;
+
+	&.createOrUpdateButton {
+		width: 141px;
+	}
+
+	svg {
+		color: var(--color-purple);
+	}
+}
+.segmentOption {
+	&:hover {
+		button {
+			opacity: 1;
+		}
+	}
+}
+
+.segmentOptionContainer {
+	--delete-segment-icon-size: var(--size-medium);
+	align-items: center;
+	display: flex !important;
+	justify-content: space-between;
+
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	button {
+		background: var(--color-primary-background);
+		border: 0;
+		height: var(--delete-segment-icon-size);
+		opacity: 0;
+		padding: 0;
+		transition: opacity 0.2s ease-in-out;
+		width: var(--delete-segment-icon-size);
+	}
+	svg {
+		color: var(--color-gray-500);
+		height: var(--delete-segment-icon-size);
+		width: var(--delete-segment-icon-size);
+	}
+}
