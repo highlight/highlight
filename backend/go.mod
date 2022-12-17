@@ -68,6 +68,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
+	github.com/rs/zerolog v1.28.0
 	github.com/samber/lo v1.13.0
 	github.com/segmentio/kafka-go v0.4.31
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
@@ -111,7 +112,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/tdewolff/test v1.0.7 // indirect
 	github.com/tidwall/btree v1.1.0 // indirect
