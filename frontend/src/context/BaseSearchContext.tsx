@@ -26,6 +26,8 @@ export type BaseSearchContext<T> = {
 	/** The parameters that are persisted to the database. These params are saved to a segment. */
 	existingParams: T
 	setExistingParams: React.Dispatch<React.SetStateAction<T>>
+	segmentName: string | null
+	setSegmentName: React.Dispatch<React.SetStateAction<string | null>>
 	selectedSegment: { name: string; id: string } | undefined
 	setSelectedSegment: (
 		newValue:

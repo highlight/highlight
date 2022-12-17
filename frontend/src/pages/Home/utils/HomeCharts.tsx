@@ -41,7 +41,8 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchParams, setSegmentName, setSelectedSegment } =
+		useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -103,7 +104,8 @@ export const SessionCountGraph = ({
 				name="Sessions"
 				onClickHandler={(payload: any) => {
 					const date = moment(payload.activePayload[0].payload.date)
-					removeSelectedSegment()
+					setSegmentName(null)
+					setSelectedSegment(undefined)
 					setSearchParams({
 						...EmptySessionsSearchParams,
 						date_range: {

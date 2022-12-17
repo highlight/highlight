@@ -26,7 +26,8 @@ const KeyPerformanceIndicators = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { timeRange } = useDataTimeRange()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchParams, setSegmentName, setSelectedSegment } =
+		useSearchContext()
 	const { loading, data } = useGetKeyPerformanceIndicatorsQuery({
 		variables: {
 			project_id,
@@ -55,7 +56,8 @@ const KeyPerformanceIndicators = ({
 				route={`/${projectIdRemapped}/sessions`}
 				onClick={() => {
 					message.success('Showing sessions for new users')
-					removeSelectedSegment()
+					setSegmentName(null)
+					setSelectedSegment(undefined)
 					setSearchParams({
 						...EmptySessionsSearchParams,
 						first_time: true,

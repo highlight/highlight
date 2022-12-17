@@ -6,7 +6,7 @@ const { Option } = AntDesignSelect
 import { getQueryFromParams } from '@pages/Sessions/SessionsFeedV2/components/SessionsQueryBuilder/SessionsQueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import _ from 'lodash'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TextTransition from 'react-text-transition'
 
 import Button from '../../../../components/Button/Button/Button'
@@ -32,13 +32,14 @@ const SegmentPickerForPlayer = () => {
 	}>()
 	const {
 		setSearchParams,
+		setSegmentName,
 		setExistingParams,
+		segmentName,
 		searchParams,
 		existingParams,
 		setShowStarredSessions,
 		selectedSegment,
 		setSelectedSegment,
-		removeSelectedSegment,
 	} = useSearchContext()
 	const { loading, data } = useGetSegmentsQuery({
 		variables: { project_id },
@@ -53,38 +54,12 @@ const SegmentPickerForPlayer = () => {
 		refetchQueries: [namedOperations.Query.GetSegments],
 	})
 
-	const segmentOptions = useMemo(
-		() => [
-			{
-				id: STARRED_SEGMENT_ID,
-				value: 'Starred',
-				params: {
-					...EmptySessionsSearchParams,
-					query: JSON.stringify({
-						isAnd: true,
-						rules: [['custom_starred', 'is', 'true']],
-					}),
-				},
-			},
-			...(data?.segments || [])
-				.map((segment) => ({
-					...segment,
-					value: segment?.name || '',
-				}))
-				.sort((a, b) =>
-					a.value.toLowerCase() > b.value.toLowerCase() ? 1 : -1,
-				),
-		],
-		[data?.segments],
-	)
-
-	const currentSegment = useMemo(
-		() => segmentOptions.find((s) => s?.id === selectedSegment?.id),
-		[segmentOptions, selectedSegment?.id],
+	const currentSegment = data?.segments?.find(
+		(s) => s?.id === selectedSegment?.id,
 	)
 
 	useEffect(() => {
-		if (!loading && currentSegment) {
+		if (currentSegment) {
 			const segmentParameters = gqlSanitize({
 				...currentSegment?.params,
 			})
@@ -95,8 +70,9 @@ const SegmentPickerForPlayer = () => {
 			}
 			setExistingParams(segmentParameters)
 			setSearchParams(segmentParameters)
+			setSegmentName(currentSegment?.name || null)
 		}
-	}, [currentSegment, loading, setExistingParams, setSearchParams])
+	}, [currentSegment, setExistingParams, setSearchParams, setSegmentName])
 
 	useEffect(() => {
 		// Compares original params and current search params to check if they are different
@@ -115,12 +91,31 @@ const SegmentPickerForPlayer = () => {
 		)
 	}, [searchParams, existingParams])
 
-	const showUpdateSegmentOption = paramsIsDifferent && currentSegment
+	const showUpdateSegmentOption = paramsIsDifferent && segmentName
+	const segmentOptions = [
+		{
+			displayValue: 'Starred',
+			id: STARRED_SEGMENT_ID,
+			value: 'Starred',
+		},
+		...(data?.segments || [])
+			.map((segment) => ({
+				displayValue: segment?.name || '',
+				value: segment?.name || '',
+				id: segment?.id || '',
+			}))
+			.sort((a, b) =>
+				a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
+					? 1
+					: -1,
+			),
+	]
+
 	return (
 		<section className={styles.segmentPickerSection}>
 			<Select
 				dropdownMatchSelectWidth={410}
-				value={currentSegment?.value}
+				value={segmentName}
 				onChange={(name, option) => {
 					if ((option as any)?.key === STARRED_SEGMENT_ID) {
 						setShowStarredSessions(true)
@@ -133,6 +128,7 @@ const SegmentPickerForPlayer = () => {
 						}
 						setExistingParams(searchParams)
 						setSearchParams(searchParams)
+						setSegmentName('Starred')
 						setSelectedSegment({
 							name,
 							id: STARRED_SEGMENT_ID,
@@ -151,7 +147,7 @@ const SegmentPickerForPlayer = () => {
 					} else {
 						setExistingParams(EmptySessionsSearchParams)
 						setSearchParams(EmptySessionsSearchParams)
-						removeSelectedSegment()
+						setSegmentName(null)
 					}
 					setSelectedSegment(nextValue)
 				}}
@@ -171,13 +167,16 @@ const SegmentPickerForPlayer = () => {
 				{segmentOptions.map((option) => (
 					<Option
 						value={option.value}
-						label={option.value}
+						label={option.displayValue}
 						key={option.id}
 						className={styles.segmentOption}
 					>
 						<span className={styles.segmentOptionContainer}>
-							<Tooltip title={option.value} placement="topLeft">
-								{option.value}
+							<Tooltip
+								title={option.displayValue}
+								placement="topLeft"
+							>
+								{option.displayValue}
 							</Tooltip>
 							{option.id !== STARRED_SEGMENT_ID && (
 								<Button
@@ -190,7 +189,7 @@ const SegmentPickerForPlayer = () => {
 										e.stopPropagation()
 										setSegmentToDelete({
 											id: option.id,
-											name: option.value,
+											name: option.displayValue,
 										})
 									}}
 								>
@@ -282,6 +281,7 @@ const SegmentPickerForPlayer = () => {
 							id: segmentId,
 							name: segmentName,
 						})
+						setSegmentName(segmentName)
 					}
 				}}
 			/>
@@ -294,11 +294,11 @@ const SegmentPickerForPlayer = () => {
 				afterDeleteHandler={() => {
 					if (
 						segmentToDelete &&
-						currentSegment?.value === segmentToDelete.name
+						segmentName === segmentToDelete.name
 					) {
 						setSelectedSegment(undefined)
+						setSegmentName(null)
 						setSearchParams(EmptySessionsSearchParams)
-						removeSelectedSegment()
 					}
 				}}
 			/>

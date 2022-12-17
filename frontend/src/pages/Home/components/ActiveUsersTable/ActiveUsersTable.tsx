@@ -44,7 +44,8 @@ const ActiveUsersTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchParams, setSegmentName, setSelectedSegment } =
+		useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const history = useHistory()
 
@@ -101,7 +102,8 @@ const ActiveUsersTable = ({
 					data={filteredTableData}
 					onClickHandler={(record) => {
 						history.push(`/${projectIdRemapped}/sessions`)
-						removeSelectedSegment()
+						setSegmentName(null)
+						setSelectedSegment(undefined)
 						setSearchParams({
 							...EmptySessionsSearchParams,
 							user_properties: [

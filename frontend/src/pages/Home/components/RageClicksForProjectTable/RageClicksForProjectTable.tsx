@@ -50,7 +50,8 @@ const RageClicksForProjectTable = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchParams, setSegmentName, setSelectedSegment } =
+		useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const history = useHistory()
 
@@ -107,7 +108,8 @@ const RageClicksForProjectTable = ({
 						history.push(
 							`/${projectIdRemapped}/sessions/${record.sessionSecureId}`,
 						)
-						removeSelectedSegment()
+						setSegmentName(null)
+						setSelectedSegment(undefined)
 						setSearchParams({
 							...EmptySessionsSearchParams,
 							user_properties: [
