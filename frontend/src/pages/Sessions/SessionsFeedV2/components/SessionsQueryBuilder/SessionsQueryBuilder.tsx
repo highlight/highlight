@@ -248,7 +248,6 @@ const SessionsQueryBuilder = React.memo(
 
 		const {
 			searchParams,
-			setExistingParams,
 			setSearchParams,
 			page,
 			setPage,
