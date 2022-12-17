@@ -45,6 +45,13 @@ export const iconVariants = recipe({
 			secondary: {
 				color: vars.theme.interactive.fill.secondary.content.text,
 			},
+			danger: {
+				selectors: {
+					'&:focus, &:active': {
+						color: vars.color.n3,
+					},
+				},
+			},
 		},
 	},
 
