@@ -7,6 +7,7 @@ import {
 } from '@context/AppLoadingContext'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
+import { Box } from '@highlight-run/ui'
 import { ApplicationContextProvider } from '@routers/OrgRouter/ApplicationContext'
 import { GlobalContextProvider } from '@routers/OrgRouter/context/GlobalContext'
 import { message } from 'antd'
@@ -31,10 +32,16 @@ const OptInRow = (
 		<Switch
 			key={label}
 			label={
-				<>
+				<Box display="flex" alignItems="center" gap="2">
 					{label}
-					{info && <InfoTooltip size="medium" title={info} />}
-				</>
+					{info && (
+						<InfoTooltip
+							placement="right"
+							size="medium"
+							title={info}
+						/>
+					)}
+				</Box>
 			}
 			trackingId={`switch-${label}`}
 			checked={checked}
