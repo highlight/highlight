@@ -1,7 +1,8 @@
 name: E2E Test
 on:
-    pull_request:
-        types: ['opened', 'synchronize']
+    # pull_request:
+    #     types: ['opened', 'synchronize']
+    push:
         branches:
             - '**'
             - '!master'
