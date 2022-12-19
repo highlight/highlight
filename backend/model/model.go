@@ -257,7 +257,7 @@ type Workspace struct {
 	MonthlySessionLimit         *int
 	MonthlyMembersLimit         *int
 	TrialEndDate                *time.Time `json:"trial_end_date"`
-	AllowMeterOverage           bool       `gorm:"default:false"`
+	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
 	EligibleForTrialExtension   bool       `gorm:"default:false"`
 	TrialExtensionEnabled       bool       `gorm:"default:false"`
