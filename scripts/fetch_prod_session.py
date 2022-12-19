@@ -122,8 +122,8 @@ def fetch(
     ti_keys = ", ".join(
         k for k in indicators[0].keys() if k not in DROP_TIMELINE_INDICATORS_KEYS
     )
-    with tqdm(total=len(indicators)) as pbar:
-        for start in range(0, len(indicators), BATCH_INSERT_SIZE, unit="evts"):
+    with tqdm(total=len(indicators), unit="evts") as pbar:
+        for start in range(0, len(indicators), BATCH_INSERT_SIZE):
             batch = indicators[start : start + BATCH_INSERT_SIZE]
             indicators_bulk = ", ".join(
                 map(

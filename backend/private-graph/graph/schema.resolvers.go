@@ -45,6 +45,9 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+	"github.com/rs/zerolog"
+	zlog "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
@@ -568,10 +571,15 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 				Property: "number_of_highlight_sessions_viewed",
 				Value:    totalSessionCountAsInt,
 			}}); err != nil {
-				log.WithFields(log.Fields{
-					"admin_id": admin.ID,
-					"value":    totalSessionCountAsInt,
-				}).Error(e.Wrap(err, "error updating session count for admin in hubspot"))
+				zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+				zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+
+				zlog.Error().
+					Stack().
+					Err(err).
+					Int("admin_id", admin.ID).
+					Int("value", totalSessionCountAsInt).
+					Msg("error updating session count for admin in hubspot")
 			}
 			log.Infof("succesfully added to total session count for admin [%v], who just viewed session [%v]", admin.ID, s.ID)
 		}
@@ -2919,20 +2927,30 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 }
 
 // UpdateEmailOptOut is the resolver for the updateEmailOptOut field.
-func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token string, adminID int, category modelInputs.EmailOptOutCategory, isOptOut bool) (bool, error) {
-	if !IsOptOutTokenValid(adminID, token) {
-		return false, e.New("token is not valid or has expired")
+func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category modelInputs.EmailOptOutCategory, isOptOut bool) (bool, error) {
+	var adminIdDeref int
+	if adminID != nil && token != nil {
+		if !IsOptOutTokenValid(*adminID, *token) {
+			return false, e.New("token is not valid or has expired")
+		}
+		adminIdDeref = *adminID
+	} else {
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			return false, e.New("error querying current admin")
+		}
+		adminIdDeref = admin.ID
 	}
 
 	if isOptOut {
 		if err := r.DB.Create(&model.EmailOptOut{
-			AdminID:  adminID,
+			AdminID:  adminIdDeref,
 			Category: category,
 		}).Error; err != nil {
 			return false, err
 		}
 	} else {
-		if err := r.DB.Where("admin_id = ? AND category = ?", adminID, category).
+		if err := r.DB.Where("admin_id = ? AND category = ?", adminIdDeref, category).
 			Delete(&model.EmailOptOut{}).Error; err != nil {
 			return false, err
 		}
@@ -5961,13 +5979,23 @@ func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string
 }
 
 // EmailOptOuts is the resolver for the email_opt_outs field.
-func (r *queryResolver) EmailOptOuts(ctx context.Context, token string, adminID int) ([]modelInputs.EmailOptOutCategory, error) {
-	if !IsOptOutTokenValid(adminID, token) {
-		return nil, e.New("token is not valid or has expired")
+func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]modelInputs.EmailOptOutCategory, error) {
+	var adminIdDeref int
+	if adminID != nil && token != nil {
+		if !IsOptOutTokenValid(*adminID, *token) {
+			return nil, e.New("token is not valid or has expired")
+		}
+		adminIdDeref = *adminID
+	} else {
+		admin, err := r.getCurrentAdmin(ctx)
+		if err != nil {
+			return nil, e.New("error querying current admin")
+		}
+		adminIdDeref = admin.ID
 	}
 
 	rows := []*model.EmailOptOut{}
-	if err := r.DB.Where("admin_id = ?", adminID).Find(&rows).Error; err != nil {
+	if err := r.DB.Where("admin_id = ?", adminIdDeref).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -6042,34 +6070,31 @@ func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (
 
 // DeviceMemory is the resolver for the deviceMemory field.
 func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) (*int, error) {
-	// Returning nil for now to fix perf issues loading sessions
-	return nil, nil
+	var deviceMemory *int
+	metric := &model.Metric{}
 
-	// var deviceMemory *int
-	// metric := &model.Metric{}
+	if err := r.DB.Raw(`
+	WITH filtered_group_ids AS (
+		SELECT id
+		FROM metric_groups
+		WHERE session_id = ?
+		LIMIT 100000
+	  )
+	  SELECT metrics.*
+	  FROM metrics
+	  WHERE metrics.name = ?
+	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			log.Error(err)
+		}
+	}
 
-	// if err := r.DB.Raw(`
-	// WITH filtered_group_ids AS (
-	// 	SELECT id
-	// 	FROM metric_groups
-	// 	WHERE session_id = ?
-	// 	LIMIT 100000
-	//   )
-	//   SELECT metrics.*
-	//   FROM metrics
-	//   WHERE metrics.name = ?
-	//   AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
-	// 	if !e.Is(err, gorm.ErrRecordNotFound) {
-	// 		log.Error(err)
-	// 	}
-	// }
+	if metric != nil {
+		valueAsInt := int(metric.Value)
+		deviceMemory = &valueAsInt
+	}
 
-	// if metric != nil {
-	// 	valueAsInt := int(metric.Value)
-	// 	deviceMemory = &valueAsInt
-	// }
-
-	// return deviceMemory, nil
+	return deviceMemory, nil
 }
 
 // ChannelsToNotify is the resolver for the ChannelsToNotify field.
