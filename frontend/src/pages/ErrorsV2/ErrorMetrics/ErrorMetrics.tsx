@@ -3,14 +3,7 @@ import TimeRangePicker from '@components/TimeRangePicker/TimeRangePicker'
 import { useGetErrorGroupFrequenciesQuery } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'
 import { ErrorGroupFrequenciesParamsInput } from '@graph/schemas'
-import {
-	Box,
-	Callout,
-	Heading,
-	IconZigZag,
-	LinkButton,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Heading, IconZigZag, Text } from '@highlight-run/ui'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
@@ -49,7 +42,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		ticks: [],
 		format: '',
 	})
-	const { timeRange, setTimeRange } = useDataTimeRange()
+	const { timeRange, setTimeRange, resetTimeRange } = useDataTimeRange()
 	const [referenceArea, setReferenceArea] = useState<{
 		start: string
 		end: string
@@ -159,6 +152,11 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [frequencies?.errorGroupFrequencies])
 
+	useEffect(() => {
+		resetTimeRange()
+		return resetTimeRange
+	}, [])
+
 	return (
 		<Box>
 			<Box mt="20" mb="32" display="flex" justifyContent="space-between">
@@ -168,56 +166,9 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				</div>
 			</Box>
 
-			<Box mb="24" display="flex">
-				<div style={{ width: '50%' }}>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-					>
-						<span className={styles.titleContainer}>
-							<span className={styles.iconContainer}>
-								<IconZigZag color="#6b48c7" />
-							</span>
-							<Text weight="bold">Total occurrences</Text>
-						</span>
-						<Text>{errorFrequencyTotal}</Text>
-					</Box>
-
-					<div className={styles.calloutContainer}>
-						<Callout
-							title="Only see one environment version?"
-							kind="info"
-						>
-							<Box display="flex" flexDirection="column">
-								<Text
-									color="neutral500"
-									cssClass={styles.bodyText}
-								>
-									Are there sourcemaps tied to your javascript
-									code? If yes, you can upload them to
-									Highlight in CI/CD to get enhanced stack
-									traces.
-								</Text>
-								<div>
-									<LinkButton
-										kind="secondary"
-										to={{
-											pathname:
-												'https://www.highlight.io/docs/product-features/environments',
-										}}
-										target="_blank"
-									>
-										Learn more
-									</LinkButton>
-								</div>
-							</Box>
-						</Callout>
-					</div>
-				</div>
-
-				<div
-					className={styles.metricsDistributionContainer}
+			<Box mb="24" display="flex" gap="28" alignItems="flex-start">
+				<Box
+					cssClass={styles.metricsDistributionContainer}
 					style={{ width: '50%' }}
 				>
 					<CategoricalBarChart
@@ -232,6 +183,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 							tickCount: timelineTicks.ticks.length,
 						}}
 						yAxisLabel=""
+						hideYAxis
 						barColorMapping={LINE_COLORS}
 						referenceAreaProps={{
 							x1: referenceArea.start,
@@ -243,7 +195,22 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						stacked
 						hideLegend
 					/>
-				</div>
+				</Box>
+
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+					style={{ width: '50%' }}
+				>
+					<span className={styles.titleContainer}>
+						<span className={styles.iconContainer}>
+							<IconZigZag color="#6b48c7" />
+						</span>
+						<Text weight="bold">Total occurrences</Text>
+					</span>
+					<Text>{errorFrequencyTotal}</Text>
+				</Box>
 			</Box>
 		</Box>
 	)
