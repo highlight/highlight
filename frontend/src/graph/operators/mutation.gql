@@ -922,8 +922,8 @@ mutation UpdateVercelSettings(
 }
 
 mutation UpdateEmailOptOut(
-	$token: String!
-	$admin_id: ID!
+	$token: String
+	$admin_id: ID
 	$category: EmailOptOutCategory!
 	$is_opt_out: Boolean!
 ) {
