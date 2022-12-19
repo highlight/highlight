@@ -5,15 +5,6 @@ on:
         branches:
             - '**'
             - '!master'
-        paths:
-            - '**/package.json'
-            - '**/yarn.lock'
-            - '.github/workflows/e2e-test.yml'
-            - '.gitmodules'
-            - 'cypress.config.js'
-            - 'cypress/**'
-            - 'frontend/**'
-            - 'rrweb/**'
 jobs:
     test:
         name: End-to-end Cypress Testing
@@ -63,22 +54,53 @@ jobs:
               with:
                   token: ${{ secrets.GH_REPO_TOKEN }}
                   submodules: true
+
+            - name: Set submodule change data
+              run: |
+                  git fetch origin master
+                  changed="$(git diff origin/master --name-only | grep '^highlight-javascript$')"
+                  echo "highlight_javascript_changed=$changed" >> $GITHUB_ENV
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      core:
+                        - '**/package.json'
+                        - '**/yarn.lock'
+                        - '.github/workflows/e2e-test.yml'
+                        - '.gitmodules'
+                        - 'cypress.config.js'
+                        - 'cypress/**'
+                        - 'frontend/**'
+                        - 'rrweb/**'
+            - name: Combine outputs
+              run: |
+                  run_ci="${{ env.highlight_javascript_changed == 'highlight-javascript' || steps.filter.outputs.core == 'true' }}"
+                  echo "run_ci=$run_ci" >> $GITHUB_ENV
+            - name: Test outputs
+              run: echo "Should CI run? $run_ci"
+
             - name: Setup Node.js
               uses: actions/setup-node@v3
+              if: ${{ env.run_ci == 'true' }}
               with:
                   node-version: 16
                   cache: 'yarn'
             - name: Install js dependencies
+              if: ${{ env.run_ci == 'true' }}
               run: yarn
             - name: Setup Go
               uses: actions/setup-go@v3
+              if: ${{ env.run_ci == 'true' }}
               with:
                   go-version-file: 'backend/go.mod'
                   cache: true
                   cache-dependency-path: backend/go.sum
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v1
+              if: ${{ env.run_ci == 'true' }}
             - name: Migrate and seed database
+              if: ${{ env.run_ci == 'true' }}
               run: |
                   cd backend/
                   make migrate
@@ -86,9 +108,11 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
             - name: Build frontend + backend
+              if: ${{ env.run_ci == 'true' }}
               run: yarn ci:build
             - name: Run Cypress tests
               uses: cypress-io/github-action@v4
+              if: ${{ env.run_ci == 'true' }}
               with:
                   install: false
                   # frontend dependencies of ci:frontend are built prior by ci:build
