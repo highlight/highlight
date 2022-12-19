@@ -314,7 +314,7 @@ export const Header = () => {
 											</Menu.Item>
 										</Link>
 										<Link
-											to={`/w/${workspaceId}/account`}
+											to={`/w/${workspaceId}/account/auth`}
 											className={linkStyle}
 										>
 											<Menu.Item>
