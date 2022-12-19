@@ -90,14 +90,6 @@ $avatar-size: 36px;
 	position: relative;
 }
 
-.userEnhancedGrid {
-	column-gap: 14px;
-	display: grid;
-	grid-template-columns: fit-content(20px) auto;
-	padding: 16px 28px;
-	position: relative;
-}
-
 .enhancedSocial {
 	align-items: center;
 	color: var(--color-gray-500) !important;

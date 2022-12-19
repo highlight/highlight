@@ -1,14 +1,12 @@
-import { colors } from '@highlight-run/ui/src/css/colors'
+import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
+import { sprinkles } from '../../css/sprinkles.css'
+import { colors } from '../../css/colors'
 import { style } from '@vanilla-extract/css'
-import { recipe } from '@vanilla-extract/recipes'
 
-export const devToolsWindowV2 = style({
-	alignItems: 'center',
-	backgroundColor: colors.white,
-	display: 'flex',
-	flexDirection: 'column',
-	zIndex: 5,
-	position: 'relative',
+export const pageWrapper = style({
+	borderTop: `1px solid ${colors.neutralN6}`,
+	width: '100%',
+	height: '100%',
 })
 
 export const controlBarButton = style({
@@ -17,20 +15,8 @@ export const controlBarButton = style({
 	color: colors.neutralN11,
 })
 
-export const switchInverted = style({
-	transform: 'rotate(90deg)',
-})
-
-export const autoScroll = style({
-	height: 20,
-})
-
-export const pageWrapper = style({
-	backgroundColor: colors.neutralN1,
-	borderTop: `1px solid ${colors.neutralN6}`,
-	width: '100%',
-	height: '100%',
-	paddingBottom: 8,
+export const tabText = style({
+	display: 'flex',
 })
 
 export const controlBarVariants = recipe({
@@ -92,3 +78,18 @@ export const controlBarBottomVariants = recipe({
 		},
 	],
 })
+
+export const variants = recipe({
+	variants: {
+		mode: {
+			light: sprinkles({ background: 'white', color: 'black' }),
+			dark: sprinkles({ background: 'purple900', color: 'white' }),
+		},
+	},
+
+	defaultVariants: {
+		mode: 'light',
+	},
+})
+
+export type Variants = RecipeVariants<typeof variants>

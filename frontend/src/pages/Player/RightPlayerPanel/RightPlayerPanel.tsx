@@ -1,16 +1,22 @@
+import { useGetSessionCommentsQuery } from '@graph/hooks'
+import {
+	Badge,
+	IconChatAlt2,
+	IconFire,
+	IconHashtag,
+	Tabs,
+} from '@highlight-run/ui'
 import EventStream from '@pages/Player/components/EventStream/EventStream'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
-import { RightPlayerPanelTabType } from '@pages/Player/RightPlayerPanel/constants'
 import { useGlobalContext } from '@routers/OrgRouter/context/GlobalContext'
+import { useParams } from '@util/react-router/useParams'
 import classNames from 'classnames'
 import React, { useEffect } from 'react'
 
-import Tabs from '../../../components/Tabs/Tabs'
 import { MetadataBox } from '../MetadataBox/MetadataBox'
 import MetadataPanel from '../MetadataPanel/MetadataPanel'
 import usePlayerConfiguration from '../PlayerHook/utils/usePlayerConfiguration'
-import { PlayerPageProductTourSelectors } from '../PlayerPageProductTour/PlayerPageProductTour'
 import { useReplayerContext } from '../ReplayerContext'
 import SessionFullCommentList from '../SessionFullCommentList/SessionFullCommentList'
 import * as styles from './style.css'
@@ -63,45 +69,56 @@ const RightPlayerPanel = React.memo(() => {
 
 export default RightPlayerPanel
 
+enum Tab {
+	Events = 'Events',
+	Threads = 'Threads',
+	Metadata = 'Metadata',
+}
+
 const RightPlayerPanelTabs = React.memo(() => {
 	const sessionCommentsRef = React.useRef(null)
+	const { session_secure_id } = useParams<{ session_secure_id: string }>()
+	const { data: sessionCommentsData, loading } = useGetSessionCommentsQuery({
+		variables: {
+			session_secure_id: session_secure_id,
+		},
+	})
+
 	return (
-		<Tabs
-			centered
-			tabsHtmlId={`${PlayerPageProductTourSelectors.PlayerRightPanel}`}
-			id="PlayerRightPanel"
-			noPadding
-			className={styles.tabs}
-			tabs={[
-				{
-					key: RightPlayerPanelTabType.Events,
-					panelContent: <EventStream />,
-				},
-				{
-					key: RightPlayerPanelTabType.Comments,
-					panelContent: (
+		<Tabs<Tab>
+			default={Tab.Events}
+			pages={{
+				[Tab.Events]: { page: <EventStream />, icon: <IconFire /> },
+				[Tab.Threads]: {
+					page: (
+						<SessionFullCommentList
+							parentRef={sessionCommentsRef}
+							loading={loading}
+							sessionCommentsData={sessionCommentsData}
+						/>
+					),
+					icon: <IconChatAlt2 />,
+					badge: (
 						<div
-							className={styles.tabContentContainer}
-							ref={sessionCommentsRef}
+							style={{
+								display: 'inline-flex',
+								marginLeft: 4,
+							}}
 						>
-							<SessionFullCommentList
-								parentRef={sessionCommentsRef}
+							<Badge
+								size="tiny"
+								variant="purple"
+								shape="rounded"
+								label={`${sessionCommentsData?.session_comments?.length}`}
 							/>
 						</div>
 					),
 				},
-				{
-					key: RightPlayerPanelTabType.Metadata,
-					panelContent: (
-						<div
-							className={styles.tabContentContainer}
-							style={{ paddingTop: 16 }}
-						>
-							<MetadataPanel />
-						</div>
-					),
+				[Tab.Metadata]: {
+					page: <MetadataPanel />,
+					icon: <IconHashtag />,
 				},
-			]}
+			}}
 		/>
 	)
 })

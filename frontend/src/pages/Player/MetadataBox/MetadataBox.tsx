@@ -1,7 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
-import Button from '@components/Button/Button/Button'
-import { ExternalLinkText } from '@components/ExternalLinkText'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Tooltip from '@components/Tooltip/Tooltip'
@@ -19,6 +17,16 @@ import {
 	SocialLink,
 	SocialType,
 } from '@graph/schemas'
+import {
+	Box,
+	ButtonIcon,
+	IconExternalLink,
+	IconStar,
+	IconX,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import SvgInformationIcon from '@icons/InformationIcon'
 import UserCross from '@icons/UserCross'
 import { PaywallTooltip } from '@pages/Billing/PaywallTooltip/PaywallTooltip'
@@ -28,8 +36,8 @@ import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchPa
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { mustUpgradeForClearbit } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
+import { copyToClipboard } from '@util/string'
 import { message } from 'antd'
-import classNames from 'classnames'
 import React, { useCallback, useEffect } from 'react'
 import {
 	FaExternalLinkSquareAlt,
@@ -39,14 +47,12 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
-import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier'
-import { ReactComponent as StarIcon } from '../../../static/star.svg'
-import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 } from '../../Sessions/SessionsFeedV2/components/MinimalSessionCard/utils/utils'
 import { useReplayerContext } from '../ReplayerContext'
+import * as style from './MetadataBox.css'
 import styles from './MetadataBox.module.scss'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 
@@ -55,7 +61,7 @@ export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
 	const { setSearchParams } = useSearchContext()
-	const { setShowLeftPanel } = usePlayerConfiguration()
+	const { setShowLeftPanel, setShowRightPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
 	const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
@@ -84,7 +90,7 @@ export const MetadataBox = React.memo(() => {
 	)
 	const backfilled = sessionIsBackfilled(session)
 
-	const geoData = [session?.city, session?.state, session?.country]
+	const geoData = [session?.state, session?.country]
 		.filter((part) => !!part)
 		.join(', ')
 
@@ -119,152 +125,185 @@ export const MetadataBox = React.memo(() => {
 	])
 
 	return (
-		<div
-			className={classNames(styles.userBox, {
-				[styles.backfillShown]: backfilled,
-			})}
-		>
-			{backfilled && (
-				<div
-					className={styles.backfillContainer}
+		<Box display="flex" flexDirection="column">
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+				py="6"
+				px="8"
+				style={{ height: 44 }}
+			>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+					gap="8"
 					onClick={() => {
-						window.open(
-							'https://docs.highlight.run/identifying-users#BXEtr',
-							'_blank',
-						)
+						copyToClipboard(displayValue)
+						message.success(`Copied identifier ${displayValue}`, 3)
 					}}
 				>
-					<div className={styles.backfillContent}>
-						<div className={styles.backfillUserIcon}>
-							<UserCross />
-						</div>
-						<div>This session was not identified.</div>
-						<Tooltip
-							placement="leftTop"
-							title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
-							mouseEnterDelay={0}
-						>
-							<div className={styles.backfillInfoIcon}>
-								<SvgInformationIcon />
-							</div>
-						</Tooltip>
-					</div>
-				</div>
-			)}
-			<div className={styles.userMainSection}>
-				<div className={styles.userAvatarWrapper}>
-					{!session ? (
-						<Skeleton circle={true} height={36} width={36} />
-					) : (
-						<Avatar
-							className={styles.avatar}
-							seed={session?.identifier ?? ''}
-							shape="rounded"
-							customImage={customAvatarImage || enhancedAvatar}
-						/>
-					)}
-				</div>
-				<div className={styles.headerWrapper}>
-					{!session ? (
-						<Skeleton
-							count={3}
-							style={{ height: 20, marginBottom: 5 }}
-						/>
-					) : (
-						<>
-							<h4 className={styles.userIdHeader}>
-								<UserIdentifier
-									displayValue={displayValue}
-									className={styles.userIdentifier}
+					<Avatar
+						className={style.avatar}
+						seed={session?.identifier ?? ''}
+						shape="rounded"
+						customImage={customAvatarImage || enhancedAvatar}
+					/>
+					<Text>{displayValue}</Text>
+				</Box>
+				<Box display="flex" alignItems="center">
+					{isLoggedIn && (
+						<ButtonIcon
+							kind="secondary"
+							emphasis="low"
+							shape="square"
+							size="small"
+							icon={
+								<IconStar
+									size={16}
+									color={
+										session?.starred
+											? colors.yellowY6
+											: undefined
+									}
 								/>
-								{isLoggedIn && (
-									<div
-										className={styles.starIconWrapper}
-										onClick={() => {
-											markSessionAsStarred({
-												variables: {
-													secure_id:
-														session_secure_id,
-													starred: !session?.starred,
-												},
-											})
-												.then(() => {
-													message.success(
-														'Updated session status!',
-														3,
-													)
-												})
-												.catch(() => {
-													message.error(
-														'Error updating session status!',
-														3,
-													)
-												})
-										}}
-									>
-										{session?.starred ? (
-											<FilledStarIcon
-												className={styles.starredIcon}
-											/>
-										) : (
-											<StarIcon
-												className={styles.unstarredIcon}
-											/>
-										)}
-									</div>
-								)}
-							</h4>
-							<p className={styles.userIdSubHeader}>
-								{created.toLocaleString('en-us', {
-									hour: '2-digit',
-									minute: '2-digit',
-									timeZoneName: 'short',
-									day: 'numeric',
-									month: 'short',
-									weekday: 'long',
-									year:
-										created.getFullYear() !==
-										new Date().getFullYear()
-											? 'numeric'
-											: undefined,
-								})}
-							</p>
-							{geoData && (
-								<p className={styles.userIdSubHeader}>
-									<span>{geoData}</span>
-								</p>
-							)}
-							{session?.browser_name && (
-								<p className={styles.userIdSubHeader}>
-									<span>
-										{session.browser_name}{' '}
-										{getMajorVersion(
-											session.browser_version,
-										)}
-									</span>
-									<span> • </span>
-									<span>
-										{session.os_name}{' '}
-										{getMajorVersion(session.os_version)}
-									</span>
-								</p>
-							)}
-							<Button
-								className={styles.viewAllSessionsButton}
-								trackingId="ViewAllUserSessions"
-								type="text"
-								onClick={searchIdentifier}
-							>
-								<ExternalLinkText>
-									All Sessions for this User
-								</ExternalLinkText>
-							</Button>
-						</>
+							}
+							onClick={() => {
+								markSessionAsStarred({
+									variables: {
+										secure_id: session_secure_id,
+										starred: !session?.starred,
+									},
+								})
+									.then(() => {
+										message.success(
+											'Updated session status!',
+											3,
+										)
+									})
+									.catch(() => {
+										message.error(
+											'Error updating session status!',
+											3,
+										)
+									})
+							}}
+						/>
 					)}
-				</div>
-			</div>
-			<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
-		</div>
+					<ButtonIcon
+						kind="secondary"
+						emphasis="low"
+						shape="square"
+						size="small"
+						icon={<IconX size={16} />}
+						onClick={() => {
+							setShowRightPanel(false)
+						}}
+					/>
+				</Box>
+			</Box>
+			<Box
+				borderTop="neutral"
+				display="flex"
+				flexDirection="column"
+				padding="8"
+				gap="4"
+			>
+				{Object.entries({
+					Email: displayValue,
+					UserID: session?.fingerprint?.toString(),
+					Browser:
+						session?.browser_name && session?.browser_version
+							? `${session.browser_name} ${getMajorVersion(
+									session.browser_version,
+							  )}`
+							: undefined,
+					OS:
+						session?.os_name && session?.os_version
+							? `${session.os_name} ${getMajorVersion(
+									session.os_version,
+							  )}`
+							: undefined,
+					Location: geoData,
+					Time: created.toLocaleString('en-us', {
+						hour: '2-digit',
+						minute: '2-digit',
+						timeZoneName: 'short',
+						day: 'numeric',
+						month: 'short',
+						weekday: 'long',
+						year:
+							created.getFullYear() !== new Date().getFullYear()
+								? 'numeric'
+								: undefined,
+					}),
+				}).map(
+					([k, v]) =>
+						v && (
+							<Box key={k} className={style.sessionAttributeRow}>
+								<Text
+									size="medium"
+									color="neutralN11"
+									cssClass={style.sessionAttributeText}
+								>
+									{k}
+								</Text>
+								<Text cssClass={style.sessionAttributeText}>
+									{v}
+								</Text>
+							</Box>
+						),
+				)}
+				{backfilled && (
+					<Box
+						display="flex"
+						alignItems="center"
+						py="4"
+						onClick={() => {
+							window.open(
+								'https://docs.highlight.run/identifying-users#BXEtr',
+								'_blank',
+							)
+						}}
+					>
+						<Tag kind="grey" cssClass={style.moreSessionsTag}>
+							<Box display="flex" alignItems="center">
+								<div className={styles.backfillUserIcon}>
+									<UserCross />
+								</div>
+								<div>This session was not identified.</div>
+								<Tooltip
+									placement="leftTop"
+									title="This session was not identified. The user information is inferred from a similar session in the same browser. Click to learn more."
+									mouseEnterDelay={0}
+								>
+									<div className={styles.backfillInfoIcon}>
+										<SvgInformationIcon />
+									</div>
+								</Tooltip>
+							</Box>
+						</Tag>
+					</Box>
+				)}
+				<Box display="flex" alignItems="center">
+					<Tag
+						kind="white"
+						size="medium"
+						iconRight={<IconExternalLink />}
+						onClick={searchIdentifier}
+						cssClass={style.moreSessionsTag}
+					>
+						<Box>
+							<Text color="neutralN11">Show more sessions</Text>
+						</Box>
+					</Tag>
+				</Box>
+				<Box display="flex" alignItems="center">
+					<UserDetailsBox setEnhancedAvatar={setEnhancedAvatar} />
+				</Box>
+			</Box>
+		</Box>
 	)
 })
 
@@ -304,12 +343,12 @@ export const UserDetailsBox = React.memo(
 			if (mustUpgradeForClearbit(workspace?.workspace?.plan_tier)) {
 				return (
 					<PaywallTooltip tier={PlanType.Startup}>
-						<div className={styles.userEnhancedGrid}>
+						<div className={style.userEnhancedGrid}>
 							<div style={{ width: 36 }}>
 								<div className={styles.blurred}>
 									<Avatar
 										seed="test"
-										className={styles.avatar}
+										className={style.avatar}
 									/>
 								</div>
 							</div>
@@ -325,7 +364,6 @@ export const UserDetailsBox = React.memo(
 										}
 										key="example"
 									/>
-									SOME INTERESTING DETAILS HERE
 								</div>
 							</div>
 						</div>
@@ -475,9 +513,5 @@ const hasDiverseSocialLinks = (enhancedData?: GetEnhancedUserDetailsQuery) => {
 		return false
 	}
 
-	if (socials.length === 1 && socials[0]?.type === SocialType.Site) {
-		return false
-	}
-
-	return true
+	return !(socials.length === 1 && socials[0]?.type === SocialType.Site)
 }

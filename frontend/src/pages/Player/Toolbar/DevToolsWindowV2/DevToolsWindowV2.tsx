@@ -5,7 +5,8 @@ import {
 	IconSearch,
 	IconSwitchHorizontal,
 	MenuButton,
-} from '@highlight-run/ui/src'
+	Tabs,
+} from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
@@ -30,174 +31,6 @@ import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
 import * as styles from './style.css'
 
-const DevToolsControlBar: React.FC<
-	React.PropsWithChildren & {
-		tab: Tab
-		setTab: (tab: Tab) => void
-		autoScroll: boolean
-		setAutoScroll: (autoScroll: boolean) => void
-		setLogLevel: React.Dispatch<React.SetStateAction<LogLevel>>
-		setRequestType: React.Dispatch<React.SetStateAction<RequestType>>
-		setFilter: React.Dispatch<React.SetStateAction<string>>
-	}
-> = ({
-	tab,
-	setTab,
-	autoScroll,
-	setAutoScroll,
-	setLogLevel,
-	setRequestType,
-	setFilter,
-}) => {
-	const [hoveredTab, setHoveredTab] = React.useState<Tab>()
-	const [searchShown, setSearchShown] = React.useState<boolean>(false)
-	return (
-		<Box
-			px="8"
-			display="flex"
-			width="full"
-			justifyContent="space-between"
-			align="center"
-			borderBottom="neutral"
-		>
-			<Box gap="6" display="flex">
-				{[Tab.Console, Tab.Network, Tab.Errors, Tab.Performance].map(
-					(t) => (
-						<Box
-							display="flex"
-							flexDirection="column"
-							justifyContent="center"
-							paddingTop="4"
-							gap="4"
-							key={t}
-							className={styles.controlBarButton}
-							onMouseEnter={() => setHoveredTab(t)}
-							onMouseLeave={() => setHoveredTab(undefined)}
-							onClick={() => setTab(t)}
-						>
-							<Button
-								className={styles.controlBarVariants({
-									selected: t === tab,
-								})}
-							>
-								{Tab[t]}
-							</Button>
-							<div
-								className={styles.controlBarBottomVariants({
-									hovered: t === hoveredTab,
-									selected: t === tab,
-								})}
-							/>
-						</Box>
-					),
-				)}
-			</Box>
-			<Box
-				display="flex"
-				justifyContent="space-between"
-				gap="6"
-				align="center"
-			>
-				<Box
-					display="flex"
-					justifyContent="space-between"
-					gap="4"
-					align="center"
-				>
-					<Form>
-						<label>
-							<Box
-								display="flex"
-								justifyContent="space-between"
-								align="center"
-							>
-								<Box
-									display="flex"
-									align="center"
-									onClick={() => {
-										setSearchShown((s) => !s)
-									}}
-								>
-									<IconSearch
-										color={colors.neutral300}
-										size={16}
-									/>
-								</Box>
-								<Form.Input
-									id="search"
-									name="Search"
-									placeholder="Search"
-									size="xSmall"
-									collapsed={!searchShown}
-									onChange={(e) => setFilter(e.target.value)}
-									onBlur={() => {
-										setSearchShown(false)
-									}}
-									onFocus={() => {
-										setSearchShown(true)
-									}}
-								/>
-							</Box>
-						</label>
-					</Form>
-
-					{tab === Tab.Console ? (
-						<MenuButton
-							divider
-							size="medium"
-							options={Object.values(LogLevel).map((ll) => ({
-								key: ll,
-								render: ll,
-								variants: LogLevelVariants[
-									ll as keyof typeof LogLevelVariants
-								]
-									? {
-											variant:
-												LogLevelVariants[
-													ll as keyof typeof LogLevelVariants
-												],
-									  }
-									: undefined,
-							}))}
-							onChange={(ll: string) =>
-								setLogLevel(ll as LogLevel)
-							}
-						/>
-					) : tab === Tab.Network ? (
-						<MenuButton
-							size="medium"
-							options={Object.values(RequestType).map(
-								(rt: string) => ({ key: rt, render: rt }),
-							)}
-							onChange={(rt: string) =>
-								setRequestType(rt as RequestType)
-							}
-						/>
-					) : null}
-
-					<Button
-						size="xSmall"
-						cssClass={styles.autoScroll}
-						iconRight={
-							<IconSwitchHorizontal
-								width={12}
-								height={12}
-								className={styles.switchInverted}
-							/>
-						}
-						kind={autoScroll ? 'primary' : 'secondary'}
-						onClick={() => {
-							setAutoScroll(!autoScroll)
-						}}
-					>
-						Auto scroll
-					</Button>
-				</Box>
-			</Box>
-		</Box>
-	)
-}
-
 const DevToolsWindowV2: React.FC<
 	React.PropsWithChildren & {
 		width: number
@@ -211,6 +44,7 @@ const DevToolsWindowV2: React.FC<
 	const [requestType, setRequestType] = React.useState<RequestType>(
 		RequestType.All,
 	)
+	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [logLevel, setLogLevel] = React.useState<LogLevel>(LogLevel.All)
 	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
 		'highlight-devtools-v2-autoscroll',
@@ -219,42 +53,6 @@ const DevToolsWindowV2: React.FC<
 	const { height } = useWindowSize()
 	const maxHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, height / 2)
 	const defaultHeight = Math.max(DEV_TOOLS_MIN_HEIGHT, maxHeight / 2)
-
-	let page: React.ReactNode = null
-	switch (tab) {
-		case Tab.Errors:
-			page = (
-				<ErrorsPage
-					autoScroll={autoScroll}
-					filter={filter}
-					time={time}
-				/>
-			)
-			break
-		case Tab.Console:
-			page = (
-				<ConsolePage
-					autoScroll={autoScroll}
-					logLevel={logLevel}
-					filter={filter}
-					time={time}
-				/>
-			)
-			break
-		case Tab.Network:
-			page = (
-				<NetworkPage
-					autoScroll={autoScroll}
-					requestType={requestType}
-					filter={filter}
-					time={time}
-				/>
-			)
-			break
-		case Tab.Performance:
-			page = <PerformancePage currentTime={time} />
-			break
-	}
 
 	if (!openDevTools || isPlayerFullscreen) {
 		return null
@@ -282,19 +80,175 @@ const DevToolsWindowV2: React.FC<
 								<div className="relative h-2 w-10 rounded-full bg-gray-200" />
 							</button>
 						</div>
-						<DevToolsControlBar
-							setFilter={setFilter}
-							tab={tab}
-							setTab={(t: Tab) => {
+						<Tabs<Tab>
+							onChange={(t: Tab) => {
 								setTab(t)
 								setFilter('')
 							}}
-							autoScroll={autoScroll}
-							setAutoScroll={setAutoScroll}
-							setLogLevel={setLogLevel}
-							setRequestType={setRequestType}
+							pages={{
+								[Tab.Errors]: {
+									page: (
+										<ErrorsPage
+											autoScroll={autoScroll}
+											filter={filter}
+											time={time}
+										/>
+									),
+								},
+								[Tab.Console]: {
+									page: (
+										<ConsolePage
+											autoScroll={autoScroll}
+											logLevel={logLevel}
+											filter={filter}
+											time={time}
+										/>
+									),
+								},
+								[Tab.Network]: {
+									page: (
+										<NetworkPage
+											autoScroll={autoScroll}
+											requestType={requestType}
+											filter={filter}
+											time={time}
+										/>
+									),
+								},
+								[Tab.Performance]: {
+									page: (
+										<PerformancePage currentTime={time} />
+									),
+								},
+							}}
+							right={
+								<Box
+									display="flex"
+									justifyContent="space-between"
+									gap="6"
+									align="center"
+								>
+									<Box
+										display="flex"
+										justifyContent="space-between"
+										gap="4"
+										align="center"
+									>
+										<Form>
+											<label>
+												<Box
+													display="flex"
+													justifyContent="space-between"
+													align="center"
+												>
+													<Box
+														display="flex"
+														align="center"
+														onClick={() => {
+															setSearchShown(
+																(s) => !s,
+															)
+														}}
+													>
+														<IconSearch
+															color={
+																colors.neutral300
+															}
+															size={16}
+														/>
+													</Box>
+													<Form.Input
+														id="search"
+														name="Search"
+														placeholder="Search"
+														size="xSmall"
+														collapsed={!searchShown}
+														onChange={(e) =>
+															setFilter(
+																e.target.value,
+															)
+														}
+														onBlur={() => {
+															setSearchShown(
+																false,
+															)
+														}}
+														onFocus={() => {
+															setSearchShown(true)
+														}}
+													/>
+												</Box>
+											</label>
+										</Form>
+
+										{tab === Tab.Console ? (
+											<MenuButton
+												divider
+												size="medium"
+												options={Object.values(
+													LogLevel,
+												).map((ll) => ({
+													key: ll,
+													render: ll,
+													variants: LogLevelVariants[
+														ll as keyof typeof LogLevelVariants
+													]
+														? {
+																variant:
+																	LogLevelVariants[
+																		ll as keyof typeof LogLevelVariants
+																	],
+														  }
+														: undefined,
+												}))}
+												onChange={(ll: string) =>
+													setLogLevel(ll as LogLevel)
+												}
+											/>
+										) : tab === Tab.Network ? (
+											<MenuButton
+												size="medium"
+												options={Object.values(
+													RequestType,
+												).map((rt: string) => ({
+													key: rt,
+													render: rt,
+												}))}
+												onChange={(rt: string) =>
+													setRequestType(
+														rt as RequestType,
+													)
+												}
+											/>
+										) : null}
+
+										<Button
+											size="xSmall"
+											cssClass={styles.autoScroll}
+											iconRight={
+												<IconSwitchHorizontal
+													width={12}
+													height={12}
+													className={
+														styles.switchInverted
+													}
+												/>
+											}
+											kind={
+												autoScroll
+													? 'primary'
+													: 'secondary'
+											}
+											onClick={() => {
+												setAutoScroll(!autoScroll)
+											}}
+										>
+											Auto scroll
+										</Button>
+									</Box>
+								</Box>
+							}
 						/>
-						<Box className={styles.pageWrapper}>{page}</Box>
 					</div>
 				</Box>
 			)}

@@ -58,6 +58,9 @@ export const variants = recipe({
 				background: vars.theme.static.surface.sentiment.caution,
 				color: vars.theme.static.content.sentiment.caution,
 			}),
+			purple: sprinkles({
+				background: 'purpleP3',
+			}),
 		},
 	},
 

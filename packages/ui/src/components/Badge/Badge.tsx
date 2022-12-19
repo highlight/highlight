@@ -48,6 +48,9 @@ export const Badge: React.FC<Props> = ({
 		case 'white':
 			textColor = 'moderate'
 			break
+		case 'purple':
+			textColor = 'purpleP9'
+			break
 		default:
 			textColor = 'moderate'
 	}
