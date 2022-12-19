@@ -1,9 +1,9 @@
 import Tag from '@components/Tag/Tag'
 import { ErrorGroup, ErrorObject, Maybe } from '@graph/schemas'
+import { getHeaderFromError } from '@pages/ErrorsV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import React, { useEffect, useState } from 'react'
 
-import { getHeaderFromError } from '../../ErrorPage'
 import styles from './ErrorTitle.module.scss'
 
 interface Props {
