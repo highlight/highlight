@@ -76,12 +76,13 @@ jobs:
                         - 'rrweb/**'
             - name: Combine outputs
               run: |
-                  echo "env.highlight_javascript_changed: ${{ env.highlight_javascript_changed }}"
-                  echo "steps.filter.outputs.core: ${{ steps.filter.outputs.core }}"
                   run_ci="${{ env.highlight_javascript_changed == 'highlight-javascript' || steps.filter.outputs.core == 'true' }}"
                   echo "run_ci=$run_ci" >> $GITHUB_ENV
             - name: Test outputs
-              run: echo "Should CI run? $run_ci"
+              run: |
+                  echo "Should CI run? $run_ci"
+                  echo "env.highlight_javascript_changed: ${{ env.highlight_javascript_changed }}"
+                  echo "steps.filter.outputs.core: ${{ steps.filter.outputs.core }}"
 
             - name: Setup Node.js
               uses: actions/setup-node@v3
